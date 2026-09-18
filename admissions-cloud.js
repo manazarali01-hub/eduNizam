@@ -24,11 +24,57 @@
   async function signOut(){
     if(!state.client)return;return state.client.auth.signOut();
   }
+  function mapApplication(row){
+    return {
+      institution_id:cfg.institutionId,
+      applicant_user_id:state.user?.id||null,
+      application_no:row.applicationId,
+      status:row.status||'Submitted',
+      applicant_name:row.applicantName,
+      father_name:row.fatherName||null,
+      cnic:row.cnic||null,
+      dob:row.dob||null,
+      gender:row.gender||null,
+      phone:row.phone||null,
+      email:row.email||state.user?.email||null,
+      address:row.address||null,
+      city:row.city||null,
+      district:row.district||null,
+      program:row.program||null,
+      quota:row.quota||null,
+      qualification:row.qualification||null,
+      previous_institute:row.previousInstitute||null,
+      obtained_marks:row.obtainedMarks||null,
+      total_marks:row.totalMarks||null,
+      percentage:row.percentage||null,
+      payment_method:row.paymentMethod||null,
+      fee_status:row.feeStatus||'Unpaid',
+      fee_reference:row.feeReference||null,
+      fee_date:row.feeDate||null,
+      test_marks:row.testMarks||null,
+      interview_marks:row.interviewMarks||null,
+      academic_weight:row.academicWeight??70,
+      test_weight:row.testWeight??20,
+      interview_weight:row.interviewWeight??10,
+      merit_score:row.meritScore||null,
+      admin_note:row.adminNote||null,
+      metadata:{localCreatedAt:row.createdAt||null,quota:row.quota||null}
+    };
+  }
   async function createApplication(row){
     if(!state.client)throw new Error('Cloud backend is not configured.');
-    const user=state.user;if(!user)throw new Error('Sign in first.');
-    const payload={...row,applicant_user_id:user.id,institution_id:cfg.institutionId};
+    if(!state.user)throw new Error('Sign in first.');
+    if(!cfg.institutionId)throw new Error('Cloud institutionId is not configured.');
+    const payload=mapApplication(row);
     const {data,error}=await state.client.from('applications').insert(payload).select().single();
+    if(error)throw error;return data;
+  }
+  async function syncLocalApplication(row){
+    if(!state.client||!state.user||!cfg.institutionId)return null;
+    const payload=mapApplication(row);
+    const {data,error}=await state.client.from('applications')
+      .upsert(payload,{onConflict:'institution_id,application_no'})
+      .select().single();
     if(error)throw error;return data;
   }
   async function listMyApplications(){
@@ -41,6 +87,25 @@
     let q=state.client.from('applications').select('*').order('created_at',{ascending:false});
     if(cfg.institutionId)q=q.eq('institution_id',cfg.institutionId);
     const {data,error}=await q;if(error)throw error;return data||[];
+  }
+  async function getMyRole(){
+    if(!state.client||!state.user||!cfg.institutionId)return null;
+    const {data:inst}=await state.client.from('institutions').select('owner_user_id').eq('id',cfg.institutionId).maybeSingle();
+    if(inst?.owner_user_id===state.user.id)return 'owner';
+    const {data,error}=await state.client.from('institution_members').select('role').eq('institution_id',cfg.institutionId).eq('user_id',state.user.id).maybeSingle();
+    if(error)throw error;return data?.role||'applicant';
+  }
+  async function createSignedDocumentUrl(path,expiresIn=300){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    const {data,error}=await state.client.storage.from(cfg.admissionsStorageBucket||'admission-documents').createSignedUrl(path,expiresIn);
+    if(error)throw error;return data?.signedUrl||null;
+  }
+  async function logAudit(action,entityType,entityId,details={}){
+    if(!state.client||!state.user||!cfg.institutionId)return null;
+    const {data,error}=await state.client.from('audit_logs').insert({
+      institution_id:cfg.institutionId,user_id:state.user.id,action,entity_type:entityType,entity_id:String(entityId||''),details
+    }).select().single();
+    if(error)throw error;return data;
   }
   async function uploadDocument(applicationId,kind,file){
     if(!state.client)throw new Error('Cloud backend is not configured.');
@@ -62,7 +127,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,signIn,signOut,createApplication,listMyApplications,listInstitutionApplications,uploadDocument,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,signIn,signOut,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,uploadDocument,createSignedDocumentUrl,logAudit,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
