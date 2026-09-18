@@ -11,10 +11,40 @@
   const practiceHistory=()=>read('edunizam_practice_history',[]);
   let currentStudentId=null;
 
-  function fillStudents(){
+  async function visibleStudents(){
+    let list=students();
+    const cloud=window.EDUNIZAM_CLOUD;
+    if(!cloud?.ready?.()||!cloud.state?.user)return list;
+    let role='student';try{role=await cloud.getMyRole()||'student'}catch(e){}
+    if(role==='student'){
+      return list.filter(s=>s.authUserId===cloud.state.user.id);
+    }
+    if(role==='parent'){
+      try{
+        const links=await cloud.getLinkedStudents();
+        const ids=new Set(links.map(x=>x.student_user_id));
+        return list.filter(s=>s.authUserId&&ids.has(s.authUserId));
+      }catch(e){return[]}
+    }
+    return list;
+  }
+  async function fillStudents(){
     const el=$('profileStudentSelect');if(!el)return;
-    const list=students();
+    const list=await visibleStudents();
+    const current=el.value;
     el.innerHTML='<option value="">Select student</option>'+list.map(s=>'<option value="'+s.id+'">'+esc(s.name)+' · '+esc(s.className||'')+'</option>').join('');
+    if(current&&list.some(s=>String(s.id)===String(current)))el.value=current;
+    if(list.length===1&&!el.value){el.value=String(list[0].id)}
+    applyProfileRoleControls();
+  }
+  async function applyProfileRoleControls(){
+    const cloud=window.EDUNIZAM_CLOUD;let role='head_of_institute';
+    if(cloud?.ready?.()&&cloud.state?.user){try{role=await cloud.getMyRole()||'student'}catch(e){}}
+    const canRemark=['teacher','head_of_institute'].includes(role);
+    const remark=$('profileTeacherRemark'),save=$('saveProfileRemarkBtn');
+    if(remark){remark.disabled=!canRemark;remark.placeholder=canRemark?'Teacher remark / progress note':'Teacher remarks are view-only for this account';}
+    if(save)save.classList.toggle('hidden',!canRemark);
+    document.body.dataset.profileRole=role;
   }
 
   function studentAttendancePct(id){
@@ -73,8 +103,8 @@
     return ['On Track','good'];
   }
 
-  function render(){
-    fillStudents();
+  async function render(){
+    await fillStudents();
     const id=$('profileStudentSelect')?.value;
     currentStudentId=id?Number(id):null;
     const s=students().find(x=>Number(x.id)===currentStudentId);
