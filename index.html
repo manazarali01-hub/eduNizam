@@ -18,6 +18,7 @@
       <nav id="nav">
         <button class="nav-item active" data-view="dashboard">Dashboard</button>
         <button class="nav-item" data-view="students">Students</button>
+        <button class="nav-item" data-view="studentprofile">Student Profile</button>
         <button class="nav-item" data-view="attendance">Attendance</button>
         <button class="nav-item" data-view="fees">Fees</button>
         <button class="nav-item" data-view="results">Results</button>
@@ -78,6 +79,82 @@
           </div>
           <div id="studentList" class="list"></div>
         </article>
+      </section>
+
+      <section id="studentprofile" class="view">
+        <div class="pp-hero">
+          <div>
+            <div class="eyebrow">Academic Intelligence</div>
+            <h2>Student Profile & Performance</h2>
+            <p>Attendance, fees, results, weak subjects and parent-ready progress reporting in one place.</p>
+          </div>
+          <button id="printStudentReportBtn" class="secondary">Print Parent Report</button>
+        </div>
+
+        <article class="card">
+          <div class="form-grid">
+            <select id="profileStudentSelect"><option value="">Select student</option></select>
+            <select id="profileTermFilter">
+              <option value="all">All Results</option>
+              <option value="recent5">Recent 5 Results</option>
+              <option value="recent10">Recent 10 Results</option>
+            </select>
+          </div>
+        </article>
+
+        <div id="studentProfileEmpty" class="empty-state">Select a student to open the academic profile.</div>
+
+        <div id="studentProfileContent" class="hidden">
+          <article class="card student-profile-header">
+            <div>
+              <div class="eyebrow">Student Record</div>
+              <h2 id="profileStudentName">Student</h2>
+              <p id="profileStudentMeta" class="muted"></p>
+            </div>
+            <div id="profileRiskBadge" class="badge">On Track</div>
+          </article>
+
+          <div class="pp-stats">
+            <article><span>Attendance</span><strong id="profileAttendance">—</strong></article>
+            <article><span>Result Average</span><strong id="profileAverage">—</strong></article>
+            <article><span>Fees Paid</span><strong id="profileFeesPaid">—</strong></article>
+            <article><span>Pending Fees</span><strong id="profileFeesPending">—</strong></article>
+          </div>
+
+          <div class="analytics-grid">
+            <article class="card">
+              <div class="section-head"><div><h3>Subject Performance</h3><p class="muted">Average marks by subject.</p></div></div>
+              <div id="profileSubjectPerformance"></div>
+            </article>
+
+            <article class="card">
+              <div class="section-head"><div><h3>Progress & Alerts</h3><p class="muted">Areas requiring attention.</p></div></div>
+              <div id="profileAlerts"></div>
+            </article>
+          </div>
+
+          <div class="analytics-grid">
+            <article class="card">
+              <div class="section-head"><div><h3>Recent Results</h3><p class="muted">Latest recorded assessments.</p></div></div>
+              <div id="profileRecentResults"></div>
+            </article>
+
+            <article class="card">
+              <div class="section-head"><div><h3>Fee Record</h3><p class="muted">Paid and pending fee entries.</p></div></div>
+              <div id="profileFeeHistory"></div>
+            </article>
+          </div>
+
+          <article class="card">
+            <div class="section-head"><div><h3>Teacher Remarks</h3><p class="muted">Saved against this student's profile.</p></div></div>
+            <textarea id="profileTeacherRemark" rows="4" placeholder="Teacher remark / progress note"></textarea>
+            <div class="quick-actions">
+              <button id="saveProfileRemarkBtn">Save Remark</button>
+              <button id="generateParentSummaryBtn" class="secondary">Generate Parent Summary</button>
+            </div>
+            <div id="profileParentSummary" class="parent-summary"></div>
+          </article>
+        </div>
       </section>
 
       <section id="attendance" class="view">
@@ -890,6 +967,7 @@
   <script src="vu-workspace.js"></script>
   <script src="cloud-config.js"></script>
   <script src="admissions-cloud.js"></script>
+  <script src="student-performance.js"></script>
   <script src="admissions-portal.js"></script>
   <script src="admissions-selection.js"></script>
   <script src="math-editor.js"></script>
