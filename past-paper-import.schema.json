@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EduNizam Past Paper Import",
+  "type": "object",
+  "required": ["id","boardId","classLevel","subject","year","session","type","medium","source","title","url"],
+  "properties": {
+    "id": {"type":"string"},
+    "boardId": {"type":"string"},
+    "classLevel": {"type":"integer","enum":[9,10,11,12]},
+    "subject": {"type":"string"},
+    "year": {"type":"integer","minimum":1990,"maximum":2035},
+    "session": {"type":"string","enum":["Annual","Supplementary"]},
+    "type": {"type":"string","enum":["past","model","rubric","syllabus","portal"]},
+    "medium": {"type":"string"},
+    "source": {"type":"string","enum":["official","verified","community"]},
+    "title": {"type":"string"},
+    "url": {"type":"string","format":"uri"},
+    "note": {"type":"string"},
+    "paperCode": {"type":"string"},
+    "group": {"type":"string"},
+    "verifiedAt": {"type":"string","format":"date"},
+    "sha256": {"type":"string"}
+  }
+}
