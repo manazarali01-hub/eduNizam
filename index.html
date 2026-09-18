@@ -484,6 +484,8 @@
             <button class="paper-tab active" data-admission-tab="apply">Apply Online</button>
             <button class="paper-tab" data-admission-tab="track">Track Application</button>
             <button class="paper-tab" data-admission-tab="admin">Admin Dashboard</button>
+            <button class="paper-tab" data-admission-tab="payments">Payments</button>
+            <button class="paper-tab" data-admission-tab="audit">Audit Log</button>
             <button class="paper-tab" data-admission-tab="setup">Portal Setup</button>
           </div>
 
@@ -615,6 +617,16 @@
               </div>
               <div id="admissionReviewAttachments"></div>
             </div>
+          </div>
+
+          <div id="admissionPaymentsPanel" class="hidden">
+            <div class="section-head"><div><h3>Payment Verification Queue</h3><p class="muted">Cloud Mode staff can review pending/paid admission fee records.</p></div><button id="refreshAdmissionPaymentsBtn" class="secondary">Refresh</button></div>
+            <div id="admissionPaymentsList" class="paper-grid"></div>
+          </div>
+
+          <div id="admissionAuditPanel" class="hidden">
+            <div class="section-head"><div><h3>Audit Log</h3><p class="muted">Recent staff/application/payment actions in Cloud Mode.</p></div><button id="refreshAdmissionAuditBtn" class="secondary">Refresh</button></div>
+            <div id="admissionAuditList" class="list"></div>
           </div>
 
           <div id="admissionSetupPanel" class="hidden">
