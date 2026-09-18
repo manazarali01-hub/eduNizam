@@ -8,6 +8,8 @@
   const saveHistory=v=>localStorage.setItem('edunizam_practice_history',JSON.stringify(v.slice(-100)));
 
   function fill(){
+    const students=JSON.parse(localStorage.getItem('edunizam_students')||'[]');
+    if($('practiceStudent'))$('practiceStudent').innerHTML='<option value="">Student (optional)</option>'+students.map(s=>'<option value="'+s.id+'">'+esc(s.name)+' · '+esc(s.className||'')+'</option>').join('');
     $('practiceBoard').innerHTML='<option value="">All Boards</option>'+D.boards.map(x=>'<option>'+esc(x)+'</option>').join('');
     fillSubjects();fillChapters();
     $('practiceBankBadge').textContent=D.questions.length+' Questions';
@@ -25,7 +27,11 @@
     const chapters=D.chapters[key]||[];
     $('practiceChapter').innerHTML='<option value="">All Chapters</option>'+chapters.map(x=>'<option>'+esc(x)+'</option>').join('');
   }
-  function getConfig(){return{
+  function getConfig(){
+    const studentId=Number($('practiceStudent')?.value||0);
+    const student=JSON.parse(localStorage.getItem('edunizam_students')||'[]').find(s=>Number(s.id)===studentId);
+    return{
+    studentId:studentId||null,studentName:student?.name||'',
     board:$('practiceBoard').value,cls:Number($('practiceClass').value||0),subject:$('practiceSubject').value,
     chapter:$('practiceChapter').value,type:$('practiceType').value,difficulty:$('practiceDifficulty').value,
     count:Number($('practiceCount').value),minutes:Number($('practiceMinutes').value)
@@ -72,7 +78,7 @@
       }
     });
     const pct=autoTotal?Math.round(autoCorrect/autoTotal*100):0;
-    const rec={id:Date.now(),at:new Date().toISOString(),config:lastConfig,questionIds:current.map(q=>q.id),autoTotal,autoCorrect,pct,weak,details};
+    const rec={id:Date.now(),at:new Date().toISOString(),studentId:lastConfig?.studentId||null,studentName:lastConfig?.studentName||'',config:lastConfig,questionIds:current.map(q=>q.id),autoTotal,autoCorrect,pct,weak,details};
     const h=history();h.push(rec);saveHistory(h);
     $('practiceTestPanel').classList.add('hidden');$('practiceResultPanel').classList.remove('hidden');
     $('practiceResultSummary').innerHTML='<div class="result-score"><strong>'+pct+'%</strong><span>Auto-marked score</span></div><p>'+autoCorrect+' correct out of '+autoTotal+' MCQs.'+(current.some(q=>q.type!=='mcq')?' Written answers are saved for AI/teacher review.':'')+'</p>'+renderReview(details);
@@ -96,7 +102,7 @@
   }
   function renderHistory(){
     const h=history().slice().reverse();
-    $('practiceHistoryPanel').innerHTML=h.length?h.map(x=>'<article class="paper-card"><h3>'+esc(x.config.subject)+' · Class '+x.config.cls+'</h3><p class="muted">'+new Date(x.at).toLocaleString()+'</p><div class="paper-meta"><span>'+x.pct+'%</span><span>'+x.autoCorrect+'/'+x.autoTotal+' MCQs</span><span>'+esc(x.config.type)+'</span></div></article>').join(''):'<div class="empty-state">No tests taken yet.</div>';
+    $('practiceHistoryPanel').innerHTML=h.length?h.map(x=>'<article class="paper-card"><h3>'+esc(x.config.subject)+' · Class '+x.config.cls+'</h3><p class="muted">'+new Date(x.at).toLocaleString()+(x.studentName?' · '+esc(x.studentName):'')+'</p><div class="paper-meta"><span>'+x.pct+'%</span><span>'+x.autoCorrect+'/'+x.autoTotal+' MCQs</span><span>'+esc(x.config.type)+'</span></div></article>').join(''):'<div class="empty-state">No tests taken yet.</div>';
   }
   function renderWeak(){
     const map={};history().flatMap(x=>x.weak||[]).forEach(w=>{const k=w.subject+'|'+w.chapter;(map[k]??={subject:w.subject,chapter:w.chapter,count:0}).count++});
@@ -122,6 +128,6 @@
   $('startPracticeBtn').onclick=start;$('submitPracticeBtn').onclick=submit;$('cancelPracticeBtn').onclick=cancel;$('retryPracticeBtn').onclick=retry;
   $('printPracticeBtn').onclick=printBuild;$('printResultBtn').onclick=()=>window.print();$('aiGenerateTestBtn').onclick=aiGenerate;
   document.querySelectorAll('[data-practice-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.practiceTab));
-  window.renderPracticeCenter=()=>{updateStats()};
+  window.renderPracticeCenter=()=>{fill();updateStats()};
   fill();
 })();
