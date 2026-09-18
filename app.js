@@ -103,11 +103,42 @@ $('generateBtn').onclick=()=>{
  $('aiOutput').textContent='Secure AI backend is not connected yet. Request saved locally:\n\n'+q;
  logActivity('AI draft requested');
 };
+$('pushCoreCloudBtn')?.addEventListener('click',pushCoreCloud);
+$('pullCoreCloudBtn')?.addEventListener('click',pullCoreCloud);
 $('saveSettingsBtn').onclick=()=>{
  state.settings={schoolName:$('schoolNameInput').value.trim()||'My School',phone:$('schoolPhoneInput').value.trim(),address:$('schoolAddressInput').value.trim()};
  persist();renderSettings();logActivity('School settings updated');
 };
+
+async function refreshCoreCloudStatus(){
+ const status=$('coreCloudStatus'),msg=$('coreCloudMessage'),core=window.EDUNIZAM_CORE_CLOUD;
+ if(!status||!msg)return;
+ if(!core?.ready?.()){status.textContent='Local Mode';msg.textContent='Cloud backend is not connected yet. Your current data remains on this device.';return;}
+ status.textContent='Cloud Ready';
+ msg.textContent='Supabase is connected. You can upload this device data or load your cloud data here.';
+}
+async function pushCoreCloud(){
+ const core=window.EDUNIZAM_CORE_CLOUD,msg=$('coreCloudMessage');
+ if(!core?.ready?.())return alert('Cloud backend is not connected yet.');
+ try{
+   if(msg)msg.textContent='Uploading school data...';
+   const r=await core.pushAllLocalToCloud();
+   if(msg)msg.textContent='Cloud backup completed. '+r.students+' student record(s) are linked in cloud.';
+   alert('School data uploaded to cloud successfully.');
+ }catch(e){if(msg)msg.textContent='Cloud upload failed: '+(e.message||e);alert(e.message||'Cloud upload failed.')}
+}
+async function pullCoreCloud(){
+ const core=window.EDUNIZAM_CORE_CLOUD,msg=$('coreCloudMessage');
+ if(!core?.ready?.())return alert('Cloud backend is not connected yet.');
+ if(!confirm('Load cloud school data on this device? This will replace the current local core school records.'))return;
+ try{
+   if(msg)msg.textContent='Loading cloud data...';
+   const r=await core.pullAllCloudToLocal();
+   location.reload();
+ }catch(e){if(msg)msg.textContent='Cloud load failed: '+(e.message||e);alert(e.message||'Cloud load failed.')}
+}
 function renderSettings(){
+ refreshCoreCloudStatus();
  $('school-name').textContent=state.settings.schoolName;
  $('schoolNameInput').value=state.settings.schoolName||'';$('schoolPhoneInput').value=state.settings.phone||'';$('schoolAddressInput').value=state.settings.address||'';
 }
