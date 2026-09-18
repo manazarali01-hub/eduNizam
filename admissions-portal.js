@@ -183,10 +183,14 @@
     $('admissionApplyPanel').classList.toggle('hidden',name!=='apply');
     $('admissionTrackPanel').classList.toggle('hidden',name!=='track');
     $('admissionAdminPanel').classList.toggle('hidden',name!=='admin');
+    $('admissionSchedulesPanel')?.classList.toggle('hidden',name!=='schedules');
+    $('admissionMeritPanel')?.classList.toggle('hidden',name!=='merit');
+    $('admissionNotificationsPanel')?.classList.toggle('hidden',name!=='notifications');
     $('admissionPaymentsPanel')?.classList.toggle('hidden',name!=='payments');
     $('admissionAuditPanel')?.classList.toggle('hidden',name!=='audit');
     $('admissionSetupPanel').classList.toggle('hidden',name!=='setup');
     if(name==='admin')renderAdmin();
+    if(['schedules','merit','notifications'].includes(name))window.EDUNIZAM_ADMISSION_SELECTION?.render?.();
     if(name==='payments')renderCloudPayments();
     if(name==='audit')renderAuditLog();
     if(name==='setup')renderSetupSummary();
