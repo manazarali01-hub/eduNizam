@@ -487,6 +487,21 @@
             <button class="paper-tab" data-admission-tab="setup">Portal Setup</button>
           </div>
 
+          <div class="request-panel">
+            <div class="section-head">
+              <div><h3>Portal Access</h3><p class="muted">Local mode works on this device. Cloud mode adds applicant/admin accounts and central storage when configured.</p></div>
+              <span class="badge" id="admissionCloudBadge">Local Mode</span>
+            </div>
+            <div class="form-grid">
+              <input id="admissionAuthEmail" type="email" placeholder="Email">
+              <input id="admissionAuthPassword" type="password" placeholder="Password">
+              <button id="admissionSignUpBtn">Create Applicant Account</button>
+              <button id="admissionSignInBtn" class="secondary">Sign In</button>
+              <button id="admissionSignOutBtn" class="secondary">Sign Out</button>
+            </div>
+            <div id="admissionAuthStatus" class="muted">Cloud backend not connected.</div>
+          </div>
+
           <div id="admissionApplyPanel">
             <div class="section-head"><div><h3>New Application</h3><p class="muted">Complete applicant, academic and admission information.</p></div></div>
             <div class="form-grid">
@@ -734,6 +749,7 @@
   <script src="university-data.js"></script>
   <script src="vu-course-catalog.js"></script>
   <script src="admissions-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="curriculum-registry.js"></script>
   <script src="study-data.js"></script>
   <script src="study-inventory.js"></script>
@@ -742,6 +758,8 @@
   <script src="study-library.js"></script>
   <script src="education-hubs.js"></script>
   <script src="vu-workspace.js"></script>
+  <script src="cloud-config.js"></script>
+  <script src="admissions-cloud.js"></script>
   <script src="admissions-portal.js"></script>
   <script src="math-editor.js"></script>
   <script src="past-papers-premium.js"></script>
