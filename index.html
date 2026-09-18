@@ -145,6 +145,28 @@
 
           <div class="analytics-grid">
             <article class="card">
+              <div class="section-head"><div><h3>Academic Trend</h3><p class="muted">Recent result percentages over time.</p></div></div>
+              <div id="profileResultTrend" class="trend-chart"></div>
+            </article>
+            <article class="card">
+              <div class="section-head"><div><h3>Practice Trend</h3><p class="muted">Recent practice test scores.</p></div></div>
+              <div id="profilePracticeChart" class="trend-chart"></div>
+            </article>
+          </div>
+
+          <div class="analytics-grid">
+            <article class="card">
+              <div class="section-head"><div><h3>Attendance — Last 30 Days</h3><p class="muted">Daily attendance record at a glance.</p></div></div>
+              <div id="profileAttendanceCalendar" class="attendance-calendar"></div>
+            </article>
+            <article class="card">
+              <div class="section-head"><div><h3>Academic Highlights</h3><p class="muted">Strengths and focus areas.</p></div></div>
+              <div id="profileHighlights"></div>
+            </article>
+          </div>
+
+          <div class="analytics-grid">
+            <article class="card">
               <div class="section-head"><div><h3>Subject Performance</h3><p class="muted">Average marks by subject.</p></div></div>
               <div id="profileSubjectPerformance"></div>
             </article>
@@ -967,9 +989,17 @@
         <article class="card">
           <h2>School Settings</h2>
           <div class="form-grid">
-            <input id="schoolNameInput" placeholder="School name">
-            <input id="schoolPhoneInput" placeholder="School phone">
-            <input id="schoolAddressInput" placeholder="School address">
+            <input id="schoolNameInput" placeholder="Institution name">
+            <select id="schoolTypeInput">
+              <option value="School">School</option>
+              <option value="College">College</option>
+              <option value="Academy / Institute">Academy / Institute</option>
+              <option value="University">University</option>
+            </select>
+            <input id="schoolTaglineInput" placeholder="Tagline / motto e.g. Learn • Grow • Lead">
+            <input id="schoolSessionInput" placeholder="Academic session e.g. 2026-27">
+            <input id="schoolPhoneInput" placeholder="Institution phone">
+            <input id="schoolAddressInput" placeholder="Institution address">
             <button id="saveSettingsBtn">Save Settings</button>
           </div>
         </article>
