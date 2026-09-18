@@ -175,17 +175,77 @@
 
       <section id="assistant" class="view">
         <article class="card">
-          <h2>AI Assistant</h2>
-          <p class="muted">Generate school notices, parent messages, activity ideas, result comments and admin drafts. Secure AI backend will be connected later.</p>
-          <textarea id="aiPrompt" rows="6" placeholder="Example: Write a short fee reminder for parents in Urdu and English."></textarea>
+          <div class="section-head">
+            <div>
+              <h2>AI Assistant</h2>
+              <p class="muted">School admin help, exam preparation and step-by-step question solving.</p>
+            </div>
+            <button id="mathModeBtn" class="secondary">∑ Math Editor</button>
+          </div>
+
+          <textarea id="aiPrompt" rows="6" placeholder="Ask EduNizam AI anything — or use Math Editor for equations."></textarea>
+
           <div class="quick-actions">
             <button class="prompt-chip">Fee Reminder</button>
             <button class="prompt-chip">Holiday Notice</button>
             <button class="prompt-chip">Parent Message</button>
             <button class="prompt-chip">Activity Idea</button>
+            <button class="prompt-chip">Solve Step-by-Step</button>
           </div>
-          <button id="generateBtn">Generate Draft</button>
-          <div id="aiOutput" class="output muted">AI backend not connected yet. Your draft request will appear here when connected.</div>
+
+          <div id="mathEditorPanel" class="math-editor hidden">
+            <div class="math-editor-head">
+              <div>
+                <h3>MathType-style Equation Editor</h3>
+                <p class="muted">Type LaTeX or use the symbol palette. Suitable for Mathematics, Physics and Statistics.</p>
+              </div>
+              <span class="mini-badge">Live Preview</span>
+            </div>
+
+            <div class="math-toolbar" aria-label="Equation symbols">
+              <button type="button" data-math-insert="\\frac{}{}">a/b</button>
+              <button type="button" data-math-insert="\\sqrt{}">√</button>
+              <button type="button" data-math-insert="^2">x²</button>
+              <button type="button" data-math-insert="^{}">xⁿ</button>
+              <button type="button" data-math-insert="_{}">xₙ</button>
+              <button type="button" data-math-insert="\\pi">π</button>
+              <button type="button" data-math-insert="\\theta">θ</button>
+              <button type="button" data-math-insert="\\pm">±</button>
+              <button type="button" data-math-insert="\\times">×</button>
+              <button type="button" data-math-insert="\\div">÷</button>
+              <button type="button" data-math-insert="\\int_{}^{}">∫</button>
+              <button type="button" data-math-insert="\\sum_{}^{}">Σ</button>
+              <button type="button" data-math-insert="\\lim_{}">lim</button>
+              <button type="button" data-math-insert="\\log">log</button>
+              <button type="button" data-math-insert="\\sin">sin</button>
+              <button type="button" data-math-insert="\\cos">cos</button>
+              <button type="button" data-math-insert="\\tan">tan</button>
+              <button type="button" data-math-insert="\\le">≤</button>
+              <button type="button" data-math-insert="\\ge">≥</button>
+              <button type="button" data-math-insert="\\ne">≠</button>
+              <button type="button" data-math-insert="\\infty">∞</button>
+              <button type="button" data-math-insert="\\vec{}">vector</button>
+              <button type="button" data-math-insert="\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}">matrix</button>
+              <button type="button" data-math-insert="\\begin{cases} & \\\\ & \\end{cases}">cases</button>
+            </div>
+
+            <label class="math-label" for="mathInput">Equation / expression</label>
+            <textarea id="mathInput" rows="4" spellcheck="false" placeholder="Example: \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}"></textarea>
+
+            <div class="math-preview-wrap">
+              <div class="math-preview-label">Preview</div>
+              <div id="mathPreview" class="math-preview">Type an equation to preview it.</div>
+            </div>
+
+            <div class="math-editor-actions">
+              <button id="insertMathPromptBtn" type="button">Use in AI Solve</button>
+              <button id="copyLatexBtn" type="button" class="secondary">Copy LaTeX</button>
+              <button id="clearMathBtn" type="button" class="secondary">Clear</button>
+            </div>
+          </div>
+
+          <button id="generateBtn">Generate / Solve</button>
+          <div id="aiOutput" class="output muted">AI backend not connected yet. Your request will appear here when connected.</div>
         </article>
       </section>
 
@@ -203,8 +263,16 @@
     </main>
   </div>
 
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
+      svg: {fontCache: 'global'}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js"></script>
   <script src="past-papers-data.js"></script>
   <script src="app.js"></script>
+  <script src="math-editor.js"></script>
   <script src="past-papers-premium.js"></script>
 </body>
 </html>
