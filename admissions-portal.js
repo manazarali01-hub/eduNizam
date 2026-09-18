@@ -25,6 +25,7 @@
   }
   function fillStatic(){
     $('admQuota').innerHTML='<option value="">Admission category / quota</option>'+D.quotas.map(x=>'<option>'+esc(x)+'</option>').join('');
+    refreshPaymentMethods();
     $('admQualification').innerHTML='<option value="">Previous qualification</option>'+D.qualificationLevels.map(x=>'<option>'+esc(x)+'</option>').join('');
     $('admissionStatusFilter').innerHTML='<option value="">All Statuses</option>'+D.statuses.map(x=>'<option>'+esc(x)+'</option>').join('');
     $('admissionQuotaFilter').innerHTML='<option value="">All Categories</option>'+D.quotas.map(x=>'<option>'+esc(x)+'</option>').join('');
@@ -40,6 +41,25 @@
     $('admProgram').innerHTML='<option value="">Select class / program</option>'+list.map(x=>'<option>'+esc(x)+'</option>').join('');
     $('admissionProgramFilter').innerHTML='<option value="">All Programs</option>'+list.map(x=>'<option>'+esc(x)+'</option>').join('');
   }
+  function refreshPaymentMethods(){
+    const s=setup(),enabled=s.enabledPaymentMethods||D.paymentMethods.map(x=>x.id);
+    const list=D.paymentMethods.filter(x=>enabled.includes(x.id));
+    if($('admPaymentMethod'))$('admPaymentMethod').innerHTML='<option value="">Select payment method</option>'+list.map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join('');
+    renderPaymentInstructions();
+  }
+  function renderPaymentInstructions(){
+    if(!$('admPaymentInstructions'))return;
+    const s=setup(),m=$('admPaymentMethod')?.value||'';
+    let html='';
+    if(m==='bank')html='<strong>Bank Transfer / Deposit</strong><br>'+esc(s.bankName||'Bank not configured')+'<br>'+esc(s.bankAccountTitle||'')+'<br>'+esc(s.bankIban||'');
+    else if(m==='raast')html='<strong>Raast Payment</strong><br>Raast ID / Account: '+esc(s.raastId||'Not configured');
+    else if(m==='jazzcash')html='<strong>JazzCash</strong><br>'+esc(s.jazzCashTitle||'')+' '+esc(s.jazzCashNumber||'Not configured');
+    else if(m==='easypaisa')html='<strong>Easypaisa</strong><br>'+esc(s.easypaisaTitle||'')+' '+esc(s.easypaisaNumber||'Not configured');
+    else if(m==='cash')html='<strong>Cash at Institution</strong><br>Submit fee at the admissions/accounts office and enter the receipt number.';
+    else if(m==='challan')html='<strong>Printed Challan</strong><br>Use Print Challan, pay through the institution\'s instructed channel, then enter the reference.';
+    else if(m==='card')html='<strong>Online Card Payment</strong><br>Gateway: '+esc(s.gatewayProvider||'Not connected')+'. Live payment requires secure backend gateway integration.';
+    $('admPaymentInstructions').innerHTML=html?'<div class="coverage-note">'+html+'</div>':'';
+  }
   function loadSetup(){
     const s=setup();
     $('admissionInstitutionName').value=s.institutionName;
@@ -49,6 +69,15 @@
     $('admissionApplicationFee').value=s.applicationFee;
     $('admissionRequireTest').checked=!!s.requireTest;
     $('admissionRequireInterview').checked=!!s.requireInterview;
+    if($('admissionBankName'))$('admissionBankName').value=s.bankName||'';
+    if($('admissionBankTitle'))$('admissionBankTitle').value=s.bankAccountTitle||'';
+    if($('admissionBankIban'))$('admissionBankIban').value=s.bankIban||'';
+    if($('admissionRaastId'))$('admissionRaastId').value=s.raastId||'';
+    if($('admissionJazzCashNumber'))$('admissionJazzCashNumber').value=s.jazzCashNumber||'';
+    if($('admissionJazzCashTitle'))$('admissionJazzCashTitle').value=s.jazzCashTitle||'';
+    if($('admissionEasypaisaNumber'))$('admissionEasypaisaNumber').value=s.easypaisaNumber||'';
+    if($('admissionEasypaisaTitle'))$('admissionEasypaisaTitle').value=s.easypaisaTitle||'';
+    if($('admissionGatewayProvider'))$('admissionGatewayProvider').value=s.gatewayProvider||'Not connected';
     $('admissionSessionBadge').textContent='Session '+s.admissionSession;
     renderSetupSummary();
   }
@@ -61,7 +90,18 @@
       applicationFee:Number($('admissionApplicationFee').value||0),
       currency:'PKR',
       requireTest:$('admissionRequireTest').checked,
-      requireInterview:$('admissionRequireInterview').checked
+      requireInterview:$('admissionRequireInterview').checked,
+      enabledPaymentMethods:(setup().enabledPaymentMethods||D.defaultSetup.enabledPaymentMethods||[]),
+      bankName:$('admissionBankName')?.value.trim()||'',
+      bankAccountTitle:$('admissionBankTitle')?.value.trim()||'',
+      bankIban:$('admissionBankIban')?.value.trim()||'',
+      raastId:$('admissionRaastId')?.value.trim()||'',
+      jazzCashNumber:$('admissionJazzCashNumber')?.value.trim()||'',
+      jazzCashTitle:$('admissionJazzCashTitle')?.value.trim()||'',
+      easypaisaNumber:$('admissionEasypaisaNumber')?.value.trim()||'',
+      easypaisaTitle:$('admissionEasypaisaTitle')?.value.trim()||'',
+      gatewayProvider:$('admissionGatewayProvider')?.value||'Not connected',
+      gatewayMode:'manual'
     };
     write(KEY.setup,s);refreshPrograms();loadSetup();renderAdmin();alert('Admission portal setup saved.');
   }
@@ -182,7 +222,7 @@
     });
   }
   async function collectUploads(appId){
-    const fields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile']];
+    const fields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile'],['payment-proof','admPaymentProofFile']];
     const refs=[];
     for(const [kind,id] of fields){
       const file=$(id)?.files?.[0];
@@ -195,6 +235,7 @@
   const originalGetForm=getForm;
   getForm=function(status){
     const a=originalGetForm(status);
+    a.paymentMethod=$('admPaymentMethod')?.value||'';
     a.feeStatus=$('admFeeStatus')?.value||'Unpaid';
     a.feeReference=$('admFeeReference')?.value.trim()||'';
     a.feeDate=$('admFeeDate')?.value||'';
@@ -215,7 +256,8 @@
   const originalClearForm=clearForm;
   clearForm=function(){
     originalClearForm();
-    ['admPhotoFile','admIdentityFile','admResultFile','admSupportFile'].forEach(id=>{if($(id))$(id).value=''});
+    ['admPhotoFile','admIdentityFile','admResultFile','admSupportFile','admPaymentProofFile'].forEach(id=>{if($(id))$(id).value=''});
+    if($('admPaymentMethod'))$('admPaymentMethod').value='';
     if($('admFeeStatus'))$('admFeeStatus').value='Unpaid';
     if($('admFeeReference'))$('admFeeReference').value='';
     if($('admFeeDate'))$('admFeeDate').value='';
@@ -252,7 +294,7 @@
     $('admissionReviewPanel').classList.remove('hidden');
     $('admissionReviewTitle').textContent=a.applicantName+' — '+a.applicationId;
     $('admissionReviewMeta').textContent=a.program+' · '+a.status+' · '+a.session;
-    $('admissionReviewProfile').innerHTML='<div class="paper-card"><div class="paper-meta"><span>CNIC/B-Form: '+esc(a.cnic)+'</span><span>Academic: '+(a.percentage==null?'N/A':a.percentage+'%')+'</span><span>Fee: '+esc(a.feeStatus||'Unpaid')+'</span></div><p>'+esc(a.phone||'')+' · '+esc(a.email||'')+'</p></div>';
+    $('admissionReviewProfile').innerHTML='<div class="paper-card"><div class="paper-meta"><span>CNIC/B-Form: '+esc(a.cnic)+'</span><span>Academic: '+(a.percentage==null?'N/A':a.percentage+'%')+'</span><span>Fee: '+esc(a.feeStatus||'Unpaid')+'</span><span>Method: '+esc(a.paymentMethod||'Not selected')+'</span></div><p>'+esc(a.phone||'')+' · '+esc(a.email||'')+'</p><p class="coverage-note">Payment Ref: '+esc(a.feeReference||'N/A')+' · Date: '+esc(a.feeDate||'N/A')+'</p></div>';
     $('admReviewAcademicWeight').value=a.academicWeight??70;$('admReviewTestWeight').value=a.testWeight??20;$('admReviewInterviewWeight').value=a.interviewWeight??10;
     $('admReviewTestMarks').value=a.testMarks??'';$('admReviewInterviewMarks').value=a.interviewMarks??'';$('admReviewNote').value=a.adminNote||'';calculateMerit();
     const refs=a.attachments||[];const cards=[];
@@ -293,6 +335,7 @@
 
   ['admReviewAcademicWeight','admReviewTestWeight','admReviewInterviewWeight','admReviewTestMarks','admReviewInterviewMarks'].forEach(id=>$(id)?.addEventListener('input',calculateMerit));
   $('printAdmissionChallanBtn').onclick=printChallan;
+  $('admPaymentMethod')?.addEventListener('change',renderPaymentInstructions);
   $('exportAdmissionsCsvBtn').onclick=exportCsv;
   $('exportAdmissionsJsonBtn').onclick=exportJson;
   $('closeAdmissionReviewBtn').onclick=closeReview;
@@ -300,8 +343,8 @@
   $('printAdmissionLetterBtn').onclick=()=>printDecision('admission');
   $('printAdmissionRejectionBtn').onclick=()=>printDecision('decision');
 
-  ['admPhotoFile','admIdentityFile','admResultFile','admSupportFile'].forEach(id=>$(id)?.addEventListener('change',()=>{
-    const items=['admPhotoFile','admIdentityFile','admResultFile','admSupportFile'].map(x=>$(x)?.files?.[0]).filter(Boolean);
+  ['admPhotoFile','admIdentityFile','admResultFile','admSupportFile','admPaymentProofFile'].forEach(id=>$(id)?.addEventListener('change',()=>{
+    const items=['admPhotoFile','admIdentityFile','admResultFile','admSupportFile','admPaymentProofFile'].map(x=>$(x)?.files?.[0]).filter(Boolean);
     $('admUploadPreview').innerHTML=items.map(f=>'<span class="mini-badge">'+esc(f.name)+' · '+fileSize(f.size)+'</span>').join(' ');
   }));
 
