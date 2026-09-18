@@ -3,7 +3,7 @@ const state={
  attendance:JSON.parse(localStorage.getItem('edunizam_attendance')||'{}'),
  fees:JSON.parse(localStorage.getItem('edunizam_fees')||'[]'),
  results:JSON.parse(localStorage.getItem('edunizam_results')||'[]'),
- settings:JSON.parse(localStorage.getItem('edunizam_settings')||'{"schoolName":"My School","phone":"","address":""}'),
+ settings:JSON.parse(localStorage.getItem('edunizam_settings')||'{"schoolName":"My School","schoolType":"School","tagline":"Learn • Grow • Lead","session":"","phone":"","address":""}'),
  activity:JSON.parse(localStorage.getItem('edunizam_activity')||'[]')
 };
 const $=id=>document.getElementById(id);
