@@ -152,6 +152,159 @@
   $('admissionInstitutionType').addEventListener('change',()=>{const s=setup();s.institutionType=$('admissionInstitutionType').value;write(KEY.setup,s);refreshPrograms()});
   ['admissionAdminSearch'].forEach(id=>$(id).addEventListener('input',renderAdmin));
   ['admissionStatusFilter','admissionProgramFilter','admissionQuotaFilter'].forEach(id=>$(id).addEventListener('change',renderAdmin));
+
+  // Advanced admissions storage and review
+  const FILE_DB='edunizam_admission_files_v1', FILE_STORE='files';
+  let reviewApplicationId=null;
+
+  function openFileDb(){
+    return new Promise((resolve,reject)=>{
+      const req=indexedDB.open(FILE_DB,1);
+      req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(FILE_STORE))db.createObjectStore(FILE_STORE,{keyPath:'key'})};
+      req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+    });
+  }
+  async function saveFile(key,file){
+    if(!file)return null;
+    const db=await openFileDb();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(FILE_STORE,'readwrite');
+      tx.objectStore(FILE_STORE).put({key,name:file.name,type:file.type,size:file.size,blob:file,updatedAt:new Date().toISOString()});
+      tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+    });
+    return {key,name:file.name,type:file.type,size:file.size};
+  }
+  async function getFile(key){
+    const db=await openFileDb();
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction(FILE_STORE,'readonly'),req=tx.objectStore(FILE_STORE).get(key);
+      req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error);
+    });
+  }
+  async function collectUploads(appId){
+    const fields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile']];
+    const refs=[];
+    for(const [kind,id] of fields){
+      const file=$(id)?.files?.[0];
+      if(file){const ref=await saveFile(appId+'|'+kind,file);refs.push({kind,...ref})}
+    }
+    return refs;
+  }
+  function fileSize(n){if(!n)return'';if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(1)+' KB';return(n/1048576).toFixed(1)+' MB'}
+
+  const originalGetForm=getForm;
+  getForm=function(status){
+    const a=originalGetForm(status);
+    a.feeStatus=$('admFeeStatus')?.value||'Unpaid';
+    a.feeReference=$('admFeeReference')?.value.trim()||'';
+    a.feeDate=$('admFeeDate')?.value||'';
+    a.attachments=[];
+    return a;
+  };
+
+  const originalSaveApplication=saveApplication;
+  saveApplication=async function(status){
+    const a=getForm(status);
+    if(!valid(a,status==='Draft'))return alert(status==='Draft'?'Enter at least applicant name, CNIC or program.':'Please complete applicant name, guardian name, CNIC/B-Form, program and previous qualification.');
+    try{a.attachments=await collectUploads(a.applicationId)}catch(e){console.error(e);return alert('Could not save one or more uploaded files on this device.')}
+    const arr=apps();arr.push(a);write(KEY.apps,arr);clearForm();renderAdmin();updateStats();
+    $('admissionSubmitResult').innerHTML='<div class="admission-success"><strong>'+esc(a.applicationId)+'</strong><span>'+esc(status==='Draft'?'Draft saved':'Application submitted successfully')+'</span><button data-print-admission="'+a.applicationId+'" class="secondary">Print Application</button></div>';
+    document.querySelector('[data-print-admission]')?.addEventListener('click',()=>printApplication(a.applicationId));
+  };
+
+  const originalClearForm=clearForm;
+  clearForm=function(){
+    originalClearForm();
+    ['admPhotoFile','admIdentityFile','admResultFile','admSupportFile'].forEach(id=>{if($(id))$(id).value=''});
+    if($('admFeeStatus'))$('admFeeStatus').value='Unpaid';
+    if($('admFeeReference'))$('admFeeReference').value='';
+    if($('admFeeDate'))$('admFeeDate').value='';
+    if($('admUploadPreview'))$('admUploadPreview').innerHTML='';
+  };
+
+  function printChallan(){
+    const s=setup(),id=nextId(),name=$('admApplicantName').value.trim()||'Applicant';
+    const w=window.open('','_blank');if(!w)return;
+    w.document.write('<html><head><title>Admission Challan</title><style>body{font-family:Arial;padding:28px}.copy{border:1px solid #444;padding:18px;margin-bottom:22px}.row{display:flex;justify-content:space-between;gap:20px}</style></head><body>'+[1,2].map(i=>'<div class="copy"><h2>'+esc(s.institutionName)+'</h2><div class="row"><strong>Admission Fee Challan</strong><span>Copy '+i+'</span></div><p>Application Ref: '+esc(id)+'</p><p>Applicant: '+esc(name)+'</p><p>Session: '+esc(s.admissionSession)+'</p><p>Amount: PKR '+Number(s.applicationFee||0).toLocaleString()+'</p><p>Date: __________ &nbsp;&nbsp; Bank/Transaction Ref: __________________</p><p>Authorized Signature: __________________</p></div>').join('')+'</body></html>');
+    w.document.close();w.focus();setTimeout(()=>w.print(),250);
+  }
+
+  function exportFile(name,mime,text){
+    const blob=new Blob([text],{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);
+  }
+  function exportCsv(){
+    const rows=apps(),cols=['applicationId','applicantName','fatherName','cnic','phone','email','program','quota','qualification','percentage','feeStatus','status','session','createdAt'];
+    const csv=[cols.join(',')].concat(rows.map(r=>cols.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(','))).join('\n');
+    exportFile('edunizam-admissions.csv','text/csv;charset=utf-8',csv);
+  }
+  function exportJson(){exportFile('edunizam-admissions-backup.json','application/json',JSON.stringify({setup:setup(),applications:apps(),exportedAt:new Date().toISOString()},null,2))}
+
+  function calculateMerit(){
+    const aw=Number($('admReviewAcademicWeight').value||0),tw=Number($('admReviewTestWeight').value||0),iw=Number($('admReviewInterviewWeight').value||0);
+    const totalW=aw+tw+iw;if(totalW!==100){$('admReviewMerit').value='Weights must total 100';return null}
+    const a=apps().find(x=>x.applicationId===reviewApplicationId);if(!a)return null;
+    const academic=Number(a.percentage||0),test=Number($('admReviewTestMarks').value||0),interview=Number($('admReviewInterviewMarks').value||0);
+    const merit=(academic*aw+test*tw+interview*iw)/100;$('admReviewMerit').value=merit.toFixed(2)+'%';return Number(merit.toFixed(2));
+  }
+  async function openReview(id){
+    reviewApplicationId=id;const a=apps().find(x=>x.applicationId===id);if(!a)return;
+    $('admissionReviewPanel').classList.remove('hidden');
+    $('admissionReviewTitle').textContent=a.applicantName+' — '+a.applicationId;
+    $('admissionReviewMeta').textContent=a.program+' · '+a.status+' · '+a.session;
+    $('admissionReviewProfile').innerHTML='<div class="paper-card"><div class="paper-meta"><span>CNIC/B-Form: '+esc(a.cnic)+'</span><span>Academic: '+(a.percentage==null?'N/A':a.percentage+'%')+'</span><span>Fee: '+esc(a.feeStatus||'Unpaid')+'</span></div><p>'+esc(a.phone||'')+' · '+esc(a.email||'')+'</p></div>';
+    $('admReviewAcademicWeight').value=a.academicWeight??70;$('admReviewTestWeight').value=a.testWeight??20;$('admReviewInterviewWeight').value=a.interviewWeight??10;
+    $('admReviewTestMarks').value=a.testMarks??'';$('admReviewInterviewMarks').value=a.interviewMarks??'';$('admReviewNote').value=a.adminNote||'';calculateMerit();
+    const refs=a.attachments||[];const cards=[];
+    for(const ref of refs){
+      const stored=await getFile(ref.key).catch(()=>null);
+      if(stored){
+        const url=URL.createObjectURL(stored.blob);
+        cards.push('<div class="attachment-card"><strong>'+esc(ref.kind)+'</strong><span>'+esc(stored.name)+' · '+fileSize(stored.size)+'</span><a target="_blank" rel="noopener" href="'+url+'">Open</a></div>');
+      }
+    }
+    $('admissionReviewAttachments').innerHTML=cards.length?'<h3>Uploaded Files</h3><div class="attachment-grid">'+cards.join('')+'</div>':'<p class="muted">No uploaded files saved on this device.</p>';
+  }
+  function closeReview(){$('admissionReviewPanel').classList.add('hidden');reviewApplicationId=null}
+  function saveReview(){
+    const merit=calculateMerit();if(merit==null)return;
+    const arr=apps(),a=arr.find(x=>x.applicationId===reviewApplicationId);if(!a)return;
+    a.academicWeight=Number($('admReviewAcademicWeight').value||0);a.testWeight=Number($('admReviewTestWeight').value||0);a.interviewWeight=Number($('admReviewInterviewWeight').value||0);
+    a.testMarks=Number($('admReviewTestMarks').value||0);a.interviewMarks=Number($('admReviewInterviewMarks').value||0);a.meritScore=merit;a.adminNote=$('admReviewNote').value.trim();a.updatedAt=new Date().toISOString();
+    write(KEY.apps,arr);renderAdmin();updateStats();alert('Application review saved.');
+  }
+  function printDecision(kind){
+    const a=apps().find(x=>x.applicationId===reviewApplicationId);if(!a)return;const s=setup();
+    const accepted=kind==='admission';
+    const title=accepted?'Admission / Selection Letter':'Admission Decision Letter';
+    const body=accepted
+      ?'We are pleased to inform you that you have been selected for admission to '+esc(a.program)+' for session '+esc(a.session)+'. Please complete the remaining admission formalities and fee requirements within the notified schedule.'
+      :'This letter records the current admission decision for your application. Current status: '+esc(a.status)+'. Please contact the institution for any required next step or clarification.';
+    const w=window.open('','_blank');if(!w)return;w.document.write('<html><head><title>'+title+'</title><style>body{font-family:Arial;padding:48px;line-height:1.7}h1{margin-bottom:4px}.meta{margin:24px 0;padding:14px;border:1px solid #bbb}</style></head><body><h1>'+esc(s.institutionName)+'</h1><p>'+title+'</p><div class="meta">Application ID: '+esc(a.applicationId)+'<br>Applicant: '+esc(a.applicantName)+'<br>Program: '+esc(a.program)+'<br>Merit Score: '+(a.meritScore==null?'N/A':a.meritScore+'%')+'</div><p>Dear '+esc(a.applicantName)+',</p><p>'+body+'</p><p>Regards,<br>Admissions Office</p></body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),250)
+  }
+
+  const originalCard=card;
+  card=function(a){
+    const html=originalCard(a);
+    return html.replace('</div></article>','<button class="secondary-action" data-adm-review="'+esc(a.applicationId)+'">Review</button></div></article>');
+  };
+  const originalRenderAdmin=renderAdmin;
+  renderAdmin=function(){originalRenderAdmin();document.querySelectorAll('[data-adm-review]').forEach(b=>b.onclick=()=>openReview(b.dataset.admReview))};
+
+  ['admReviewAcademicWeight','admReviewTestWeight','admReviewInterviewWeight','admReviewTestMarks','admReviewInterviewMarks'].forEach(id=>$(id)?.addEventListener('input',calculateMerit));
+  $('printAdmissionChallanBtn').onclick=printChallan;
+  $('exportAdmissionsCsvBtn').onclick=exportCsv;
+  $('exportAdmissionsJsonBtn').onclick=exportJson;
+  $('closeAdmissionReviewBtn').onclick=closeReview;
+  $('saveAdmissionReviewBtn').onclick=saveReview;
+  $('printAdmissionLetterBtn').onclick=()=>printDecision('admission');
+  $('printAdmissionRejectionBtn').onclick=()=>printDecision('decision');
+
+  ['admPhotoFile','admIdentityFile','admResultFile','admSupportFile'].forEach(id=>$(id)?.addEventListener('change',()=>{
+    const items=['admPhotoFile','admIdentityFile','admResultFile','admSupportFile'].map(x=>$(x)?.files?.[0]).filter(Boolean);
+    $('admUploadPreview').innerHTML=items.map(f=>'<span class="mini-badge">'+esc(f.name)+' · '+fileSize(f.size)+'</span>').join(' ');
+  }));
+
   window.renderAdmissionsPortal=()=>{loadSetup();renderAdmin();updateStats()};
   fillStatic();
 })();
