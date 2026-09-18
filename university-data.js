@@ -1,0 +1,36 @@
+window.EDUNIZAM_UNIVERSITY_DATA={
+  updatedAt:"2026-09-18",
+  universities:[
+    {id:"vu",name:"Virtual University of Pakistan",type:"Public / Distance Learning",officialUrl:"https://www.vu.edu.pk/",special:true},
+    {id:"aiou",name:"Allama Iqbal Open University",type:"Public / Distance Learning",officialUrl:"https://www.aiou.edu.pk/"},
+    {id:"pu",name:"University of the Punjab",type:"Public",officialUrl:"https://pu.edu.pk/"},
+    {id:"bzu",name:"Bahauddin Zakariya University",type:"Public",officialUrl:"https://bzu.edu.pk/"},
+    {id:"uog",name:"University of Gujrat",type:"Public",officialUrl:"https://uog.edu.pk/"},
+    {id:"uaf",name:"University of Agriculture Faisalabad",type:"Public",officialUrl:"https://uaf.edu.pk/"},
+    {id:"gcuf",name:"Government College University Faisalabad",type:"Public",officialUrl:"https://gcuf.edu.pk/"},
+    {id:"su",name:"University of Sargodha",type:"Public",officialUrl:"https://su.edu.pk/"}
+  ],
+  resources:[
+    {id:"vu-ocw",universityId:"vu",category:"Handouts",source:"official",title:"VU OpenCourseWare / Course Material",url:"https://ocw.vu.edu.pk/",note:"Official VU learning portal for course material and lectures."},
+    {id:"vu-courses",universityId:"vu",category:"Handouts",source:"official",title:"VU Courses Catalogue",url:"https://www.vu.edu.pk/pages/courses.aspx",note:"Official VU course catalogue. Use with OCW/VULMS for current course material."},
+    {id:"vu-bookshop",universityId:"vu",category:"Handouts",source:"official",title:"VU Bookshop / Printed Handouts",url:"https://bookshop.vu.edu.pk/",note:"Official VU bookshop for authorized printed handouts/material."},
+    {id:"vu-vulms",universityId:"vu",category:"Quizzes",source:"official",title:"VU Learning Management System (VULMS)",url:"https://vulms.vu.edu.pk/",note:"Official logged-in source for current quizzes, assignments, GDBs and course announcements."},
+    {id:"vu-vulms-assignments",universityId:"vu",category:"Assignments",source:"official",title:"VU Assignments & GDBs via VULMS",url:"https://vulms.vu.edu.pk/",note:"Official course-specific assignments/GDBs are available to enrolled students through VULMS."},
+    {id:"vu-midterm-official",universityId:"vu",category:"Midterm",source:"official",title:"VU Midterm Information & Course Resources",url:"https://www.vu.edu.pk/",note:"Use official VU course outlines, handouts and announcements for the current midterm syllabus. VU does not provide a public comprehensive past-paper archive."},
+    {id:"vu-final-official",universityId:"vu",category:"Final Term",source:"official",title:"VU Final Term Information & Course Resources",url:"https://www.vu.edu.pk/",note:"Use official VU course outlines, handouts and announcements for the current final-term syllabus. VU does not provide a public comprehensive past-paper archive."},
+    {id:"vu-community-pastpapers",universityId:"vu",category:"Past Papers",source:"verified",title:"VU Community Past Papers Directory",url:"https://vustudents.ning.com/",note:"Community resource; not an official VU archive. Always verify against current handouts/course outline before exam preparation."},
+    {id:"vu-community-notes",universityId:"vu",category:"Notes",source:"verified",title:"VU Community Notes & Exam Preparation Resources",url:"https://vustudents.ning.com/",note:"Community-created notes; not official. Use only as supplementary material."},
+    {id:"vu-highlighted-handouts",universityId:"vu",category:"Highlighted Handouts",source:"verified",title:"VU Highlighted Handouts / Student-Marked Handouts",url:"https://vustudents.ning.com/",note:"Community-highlighted handouts are supplementary only; official base handout should come from VU OCW/VULMS."},
+    {id:"vu-community-quizzes",universityId:"vu",category:"Quizzes",source:"verified",title:"VU Community Quiz / MCQ Practice Resources",url:"https://vustudents.ning.com/",note:"Unofficial practice material; verify concepts against current official handouts."},
+    {id:"vu-community-midterm",universityId:"vu",category:"Midterm Past Papers",source:"verified",title:"VU Midterm Past Papers / Recall Questions",url:"https://vustudents.ning.com/",note:"Community recall/past-paper resource; syllabus may change by semester."},
+    {id:"vu-community-final",universityId:"vu",category:"Final Term Past Papers",source:"verified",title:"VU Final Term Past Papers / Recall Questions",url:"https://vustudents.ning.com/",note:"Community recall/past-paper resource; always match against the current semester handout/course outline."},
+
+    {id:"aiou-pastpapers",universityId:"aiou",category:"Past Papers",source:"official",title:"AIOU Past Papers / Examination Resources",url:"https://www.aiou.edu.pk/",note:"Official AIOU portal. Use examination/download sections for current available past papers."},
+    {id:"pu-pastpapers",universityId:"pu",category:"Past Papers",source:"official",title:"Punjab University Past / Previous Papers",url:"https://pu.edu.pk/page/show/past-papers.html",note:"Official University of the Punjab past-paper page where available."},
+    {id:"bzu-exam",universityId:"bzu",category:"Past Papers",source:"official",title:"BZU Examination Resources",url:"https://bzu.edu.pk/",note:"Official BZU portal; availability of old papers varies by department/exam."},
+    {id:"uog-exam",universityId:"uog",category:"Past Papers",source:"official",title:"University of Gujrat Examination Resources",url:"https://uog.edu.pk/",note:"Official UOG portal; old-paper availability varies by program."},
+    {id:"uaf-exam",universityId:"uaf",category:"Past Papers",source:"official",title:"UAF Examination / Academic Resources",url:"https://uaf.edu.pk/",note:"Official UAF portal; use program/exam sections for available paper resources."},
+    {id:"gcuf-exam",universityId:"gcuf",category:"Past Papers",source:"official",title:"GCUF Examination Resources",url:"https://gcuf.edu.pk/",note:"Official GCUF portal; paper availability varies by department."},
+    {id:"su-exam",universityId:"su",category:"Past Papers",source:"official",title:"University of Sargodha Examination Resources",url:"https://su.edu.pk/",note:"Official University of Sargodha portal; use exam/department sections for available resources."}
+  ]
+};
