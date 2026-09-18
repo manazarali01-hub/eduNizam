@@ -27,6 +27,7 @@
         <button class="nav-item" data-view="schoolassessments">Grade 5 & 8 Papers</button>
         <button class="nav-item" data-view="universities">University Hub</button>
         <button class="nav-item" data-view="vu">VU Special</button>
+        <button class="nav-item" data-view="admissions">Online Admissions</button>
         <button class="nav-item" data-view="assistant">AI Assistant</button>
         <button class="nav-item" data-view="settings">Settings</button>
       </nav>
@@ -461,6 +462,109 @@
         </article>
       </section>
 
+      <section id="admissions" class="view">
+        <div class="pp-hero">
+          <div>
+            <div class="eyebrow">Universal Enrollment</div>
+            <h2>Online Admission Portal</h2>
+            <p>Configurable admissions for schools, colleges, academies/institutes and universities.</p>
+          </div>
+          <span class="badge" id="admissionSessionBadge">Session 2026-27</span>
+        </div>
+
+        <div class="pp-stats">
+          <article><span>Applications</span><strong id="admissionStatTotal">0</strong></article>
+          <article><span>Submitted</span><strong id="admissionStatSubmitted">0</strong></article>
+          <article><span>Selected</span><strong id="admissionStatSelected">0</strong></article>
+          <article><span>Pending Docs</span><strong id="admissionStatPending">0</strong></article>
+        </div>
+
+        <article class="card">
+          <div class="paper-tabs">
+            <button class="paper-tab active" data-admission-tab="apply">Apply Online</button>
+            <button class="paper-tab" data-admission-tab="track">Track Application</button>
+            <button class="paper-tab" data-admission-tab="admin">Admin Dashboard</button>
+            <button class="paper-tab" data-admission-tab="setup">Portal Setup</button>
+          </div>
+
+          <div id="admissionApplyPanel">
+            <div class="section-head"><div><h3>New Application</h3><p class="muted">Complete applicant, academic and admission information.</p></div></div>
+            <div class="form-grid">
+              <input id="admApplicantName" placeholder="Applicant full name">
+              <input id="admFatherName" placeholder="Father / Guardian name">
+              <input id="admCnic" placeholder="CNIC / B-Form">
+              <input id="admDob" type="date">
+              <select id="admGender"><option value="">Gender</option><option>Male</option><option>Female</option><option>Other / Prefer not to say</option></select>
+              <input id="admPhone" placeholder="Mobile number">
+              <input id="admEmail" type="email" placeholder="Email address">
+              <input id="admAddress" placeholder="Address">
+              <input id="admCity" placeholder="City">
+              <input id="admDistrict" placeholder="District">
+              <select id="admProgram"><option value="">Select class / program</option></select>
+              <select id="admQuota"><option value="">Admission category / quota</option></select>
+              <select id="admQualification"><option value="">Previous qualification</option></select>
+              <input id="admPrevInstitute" placeholder="Previous school / college / university">
+              <input id="admObtainedMarks" type="number" min="0" placeholder="Obtained marks">
+              <input id="admTotalMarks" type="number" min="0" placeholder="Total marks">
+              <input id="admPercentage" readonly placeholder="Percentage">
+            </div>
+
+            <div class="request-panel">
+              <h3>Documents Checklist</h3>
+              <div id="admDocumentsChecklist" class="check-grid"></div>
+            </div>
+
+            <div class="quick-actions">
+              <button id="submitAdmissionBtn">Submit Application</button>
+              <button id="saveAdmissionDraftBtn" class="secondary">Save Draft</button>
+              <button id="clearAdmissionBtn" class="secondary">Clear Form</button>
+            </div>
+            <div id="admissionSubmitResult"></div>
+          </div>
+
+          <div id="admissionTrackPanel" class="hidden">
+            <div class="request-panel">
+              <h3>Track Application</h3>
+              <div class="form-grid">
+                <input id="admissionTrackId" placeholder="Application ID e.g. ADM-2026-0001">
+                <input id="admissionTrackCnic" placeholder="Applicant CNIC / B-Form">
+                <button id="trackAdmissionBtn">Track Status</button>
+              </div>
+            </div>
+            <div id="admissionTrackResult"></div>
+          </div>
+
+          <div id="admissionAdminPanel" class="hidden">
+            <div class="paper-search-row">
+              <input id="admissionAdminSearch" placeholder="Search Application ID, applicant, CNIC, program">
+            </div>
+            <div class="form-grid">
+              <select id="admissionStatusFilter"><option value="">All Statuses</option></select>
+              <select id="admissionProgramFilter"><option value="">All Programs</option></select>
+              <select id="admissionQuotaFilter"><option value="">All Categories</option></select>
+            </div>
+            <div id="admissionAdminList" class="paper-grid"></div>
+          </div>
+
+          <div id="admissionSetupPanel" class="hidden">
+            <div class="request-panel">
+              <h3>Admission Portal Setup</h3>
+              <div class="form-grid">
+                <input id="admissionInstitutionName" placeholder="Institution name">
+                <select id="admissionInstitutionType"></select>
+                <input id="admissionSession" placeholder="Admission session e.g. 2026-27">
+                <input id="admissionApplicationPrefix" placeholder="Application ID prefix">
+                <input id="admissionApplicationFee" type="number" min="0" placeholder="Application fee (PKR)">
+                <label class="check-option"><input id="admissionRequireTest" type="checkbox"> Admission test required</label>
+                <label class="check-option"><input id="admissionRequireInterview" type="checkbox"> Interview required</label>
+              </div>
+              <div class="quick-actions"><button id="saveAdmissionSetupBtn">Save Portal Setup</button></div>
+            </div>
+            <div id="admissionSetupSummary"></div>
+          </div>
+        </article>
+      </section>
+
       <section id="assistant" class="view">
         <article class="card">
           <div class="section-head">
@@ -564,6 +668,7 @@
   <script src="school-assessment-data.js"></script>
   <script src="university-data.js"></script>
   <script src="vu-course-catalog.js"></script>
+  <script src="admissions-data.js"></script>
   <script src="curriculum-registry.js"></script>
   <script src="study-data.js"></script>
   <script src="study-inventory.js"></script>
@@ -572,6 +677,7 @@
   <script src="study-library.js"></script>
   <script src="education-hubs.js"></script>
   <script src="vu-workspace.js"></script>
+  <script src="admissions-portal.js"></script>
   <script src="math-editor.js"></script>
   <script src="past-papers-premium.js"></script>
 </body>
