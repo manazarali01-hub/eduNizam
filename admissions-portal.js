@@ -193,7 +193,7 @@
     if(['schedules','merit','notifications'].includes(name))window.EDUNIZAM_ADMISSION_SELECTION?.render?.();
     if(name==='payments')renderCloudPayments();
     if(name==='audit')renderAuditLog();
-    if(name==='setup')renderSetupSummary();
+    if(name==='setup'){renderSetupSummary();renderParentLinks();}
   }
   function renderAdmin(){
     if(!$('admissionAdminList'))return;
@@ -454,6 +454,7 @@
       el.classList.toggle('hidden',!allowed.includes(role));
     });
     document.body.dataset.admissionRole=role||'student';
+    document.querySelectorAll('[data-parent-tools]').forEach(el=>el.classList.toggle('hidden',role!=='parent'));
     const active=document.querySelector('[data-admission-tab].active');
     if(active?.classList.contains('hidden')){
       const first=[...document.querySelectorAll('[data-admission-tab]:not(.hidden)')][0];
@@ -500,9 +501,56 @@
       await refreshCloudAuth();
     }catch(e){alert(e.message||'Authentication failed.')}
   }
+
+  async function requestParentLink(){
+    const cloud=window.EDUNIZAM_CLOUD,id=$('parentStudentUserId')?.value.trim();
+    if(!id)return alert('Enter student user UUID.');
+    if(!cloud?.ready?.())return alert('Cloud Mode is required for parent-student linking.');
+    try{
+      const role=await cloud.getMyRole();if(role!=='parent')return alert('Only Parent accounts can request a student link.');
+      await cloud.requestParentStudentLink(id);
+      $('parentStudentUserId').value='';
+      alert('Parent-student link request submitted for institute approval.');
+    }catch(e){alert(e.message||'Could not request link.')}
+  }
+  async function renderParentLinks(){
+    const el=$('admissionParentLinksList'),cloud=window.EDUNIZAM_CLOUD;if(!el)return;
+    if(!cloud?.ready?.()){el.innerHTML='<div class="empty-state">Cloud Mode required for role/link management.</div>';return;}
+    try{
+      const role=await cloud.getMyRole();
+      if(role!=='head_of_institute'){el.innerHTML='<div class="empty-state">Only Head of Institute can approve parent-child links.</div>';return;}
+      const rows=await cloud.listParentStudentLinks();
+      el.innerHTML=rows.length?rows.map(x=>'<div class="practice-review"><div><strong>Parent:</strong> '+esc(x.parent_user_id)+'</div><div><strong>Student:</strong> '+esc(x.student_user_id)+'</div><div class="paper-meta"><span>'+esc(x.status)+'</span></div><div class="paper-actions"><button data-link-approve="'+esc(x.parent_user_id)+'" data-student="'+esc(x.student_user_id)+'">Approve</button><button class="secondary-action" data-link-reject="'+esc(x.parent_user_id)+'" data-student="'+esc(x.student_user_id)+'">Reject</button></div></div>').join(''):'<div class="empty-state">No parent-child link requests.</div>';
+      document.querySelectorAll('[data-link-approve]').forEach(b=>b.onclick=()=>setParentLinkStatus(b.dataset.linkApprove,b.dataset.student,'approved'));
+      document.querySelectorAll('[data-link-reject]').forEach(b=>b.onclick=()=>setParentLinkStatus(b.dataset.linkReject,b.dataset.student,'rejected'));
+    }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load links.')+'</div>'}
+  }
+  async function setParentLinkStatus(parentId,studentId,status){
+    const cloud=window.EDUNIZAM_CLOUD;
+    try{
+      await cloud.updateParentStudentLink(parentId,studentId,status);
+      await cloud.logAudit('parent_student_link_'+status,'parent_student_link',parentId+'|'+studentId,{status});
+      renderParentLinks();
+    }catch(e){alert(e.message||'Could not update link.')}
+  }
+  async function assignStaffRole(){
+    const cloud=window.EDUNIZAM_CLOUD,userId=$('admissionStaffUserId')?.value.trim(),role=$('admissionStaffRole')?.value;
+    if(!userId)return alert('Enter teacher/head user UUID.');
+    if(!cloud?.ready?.())return alert('Cloud Mode is required for staff role assignment.');
+    try{
+      const myRole=await cloud.getMyRole();if(myRole!=='head_of_institute')return alert('Only Head of Institute can assign staff roles.');
+      await cloud.assignInstitutionRole(userId,role);
+      await cloud.logAudit('assign_'+role,'user',userId,{role});
+      $('admissionStaffUserId').value='';
+      alert((ROLE_LABELS[role]||role)+' role assigned.');
+    }catch(e){alert(e.message||'Could not assign role.')}
+  }
+
   $('admissionSignUpBtn')?.addEventListener('click',()=>authAction('signup'));
   $('admissionSignInBtn')?.addEventListener('click',()=>authAction('signin'));
   $('admissionSignOutBtn')?.addEventListener('click',()=>authAction('out'));
+  $('requestParentStudentLinkBtn')?.addEventListener('click',requestParentLink);
+  $('assignAdmissionStaffBtn')?.addEventListener('click',assignStaffRole);
   $('refreshAdmissionPaymentsBtn')?.addEventListener('click',renderCloudPayments);
   $('refreshAdmissionAuditBtn')?.addEventListener('click',renderAuditLog);
   window.addEventListener('edunizam:auth',refreshCloudAuth);
