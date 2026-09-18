@@ -13,9 +13,10 @@
     state.client.auth.onAuthStateChange((_event,session)=>{state.user=session?.user||null;window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{user:state.user}}))});
     window.EDUNIZAM_CLOUD=api;return api;
   }
-  async function signUp(email,password){
+  async function signUp(email,password,accountRole='student',fullName=''){
     if(!state.client)throw new Error('Cloud backend is not configured.');
-    return state.client.auth.signUp({email,password});
+    const safeRole=['student','parent'].includes(accountRole)?accountRole:'student';
+    return state.client.auth.signUp({email,password,options:{data:{account_role:safeRole,full_name:fullName}}});
   }
   async function signIn(email,password){
     if(!state.client)throw new Error('Cloud backend is not configured.');
@@ -89,11 +90,23 @@
     const {data,error}=await q;if(error)throw error;return data||[];
   }
   async function getMyRole(){
-    if(!state.client||!state.user||!cfg.institutionId)return null;
-    const {data:inst}=await state.client.from('institutions').select('owner_user_id').eq('id',cfg.institutionId).maybeSingle();
-    if(inst?.owner_user_id===state.user.id)return 'owner';
-    const {data,error}=await state.client.from('institution_members').select('role').eq('institution_id',cfg.institutionId).eq('user_id',state.user.id).maybeSingle();
-    if(error)throw error;return data?.role||'applicant';
+    if(!state.client||!state.user)return null;
+    if(cfg.institutionId){
+      const {data:inst}=await state.client.from('institutions').select('owner_user_id').eq('id',cfg.institutionId).maybeSingle();
+      if(inst?.owner_user_id===state.user.id)return 'head_of_institute';
+      const {data:member,error:memberError}=await state.client.from('institution_members').select('role').eq('institution_id',cfg.institutionId).eq('user_id',state.user.id).maybeSingle();
+      if(memberError)throw memberError;
+      if(member?.role)return member.role;
+    }
+    const {data,error}=await state.client.from('user_profiles').select('account_role').eq('user_id',state.user.id).maybeSingle();
+    if(error)throw error;return data?.account_role||'student';
+  }
+  async function getLinkedStudents(){
+    if(!state.client||!state.user)return[];
+    const {data,error}=await state.client.from('parent_student_links')
+      .select('student_user_id,status,user_profiles!parent_student_links_student_user_id_fkey(user_id,full_name,account_role)')
+      .eq('parent_user_id',state.user.id).eq('status','approved');
+    if(error)throw error;return data||[];
   }
   async function createSignedDocumentUrl(path,expiresIn=300){
     if(!state.client)throw new Error('Cloud backend is not configured.');
@@ -154,7 +167,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,signIn,signOut,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,uploadDocument,createSignedDocumentUrl,logAudit,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,signIn,signOut,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
