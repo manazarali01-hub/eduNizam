@@ -180,6 +180,7 @@
   function showTab(name){
     tab=name;
     document.querySelectorAll('[data-admission-tab]').forEach(b=>b.classList.toggle('active',b.dataset.admissionTab===name));
+    $('admissionRoleHomePanel')?.classList.toggle('hidden',name!=='rolehome');
     $('admissionApplyPanel').classList.toggle('hidden',name!=='apply');
     $('admissionTrackPanel').classList.toggle('hidden',name!=='track');
     $('admissionAdminPanel').classList.toggle('hidden',name!=='admin');
@@ -189,6 +190,7 @@
     $('admissionPaymentsPanel')?.classList.toggle('hidden',name!=='payments');
     $('admissionAuditPanel')?.classList.toggle('hidden',name!=='audit');
     $('admissionSetupPanel').classList.toggle('hidden',name!=='setup');
+    if(name==='rolehome')renderRoleHome();
     if(name==='admin')renderAdmin();
     if(['schedules','merit','notifications'].includes(name))window.EDUNIZAM_ADMISSION_SELECTION?.render?.();
     if(name==='payments')renderCloudPayments();
@@ -461,6 +463,52 @@
       if(first)showTab(first.dataset.admissionTab);
     }
   }
+
+  async function renderRoleHome(){
+    const title=$('admissionRoleHomeTitle'),sub=$('admissionRoleHomeSubtitle'),badge=$('admissionRoleHomeBadge'),stats=$('admissionRoleHomeStats'),actions=$('admissionRoleHomeActions'),content=$('admissionRoleHomeContent');
+    if(!title||!stats||!actions||!content)return;
+    let role=document.body.dataset.admissionRole||'student';
+    const cloud=window.EDUNIZAM_CLOUD;
+    if(cloud?.ready?.()&&cloud.state?.user){
+      try{role=await cloud.getMyRole()||role}catch(e){}
+    }
+    const label=ROLE_LABELS[role]||role;
+    badge.textContent=label;
+    title.textContent=label+' Dashboard';
+    const localApps=apps();
+
+    const action=(tab,name,desc)=>'<button class="role-action-card" data-role-open="'+tab+'"><strong>'+esc(name)+'</strong><span>'+esc(desc)+'</span></button>';
+    if(role==='student'){
+      sub.textContent='Apply, track your application, fees and notifications.';
+      let mine=localApps;
+      if(cloud?.ready?.()&&cloud.state?.user){
+        try{mine=await cloud.listMyApplications()}catch(e){}
+      }
+      const submitted=mine.length,selected=mine.filter(a=>['Selected','Admitted'].includes(a.status)).length,pending=mine.filter(a=>['Submitted','Under Review','Documents Pending','Test / Interview','Waitlisted'].includes(a.status)).length;
+      stats.innerHTML='<article><span>Applications</span><strong>'+submitted+'</strong></article><article><span>In Process</span><strong>'+pending+'</strong></article><article><span>Selected</span><strong>'+selected+'</strong></article><article><span>Role</span><strong>Student</strong></article>';
+      actions.innerHTML=action('apply','Apply Online','Submit a new admission application')+action('track','Track Status','Check application progress')+action('notifications','Notifications','See admission updates');
+      content.innerHTML=mine.length?'<div class="paper-grid">'+mine.slice(0,4).map(a=>'<article class="paper-card"><h3>'+esc(a.applicantName||a.applicant_name||'Application')+'</h3><p class="muted">'+esc(a.applicationId||a.application_no||'')+' · '+esc(a.program||'')+'</p><div class="paper-meta"><span>'+esc(a.status||'Submitted')+'</span></div></article>').join('')+'</div>':'<div class="empty-state">No application yet. Use Apply Online to start.</div>';
+    }else if(role==='parent'){
+      sub.textContent='Manage linked student admission access and updates.';
+      let links=[];if(cloud?.ready?.()&&cloud.state?.user){try{links=await cloud.getLinkedStudents()}catch(e){}}
+      stats.innerHTML='<article><span>Linked Students</span><strong>'+links.length+'</strong></article><article><span>Applications</span><strong>'+localApps.length+'</strong></article><article><span>Role</span><strong>Parent</strong></article><article><span>Access</span><strong>Approved Links</strong></article>';
+      actions.innerHTML=action('track','Track Child','View linked student admission status')+action('notifications','Notifications','See admission updates');
+      content.innerHTML=links.length?'<div class="paper-grid">'+links.map(x=>'<article class="paper-card"><h3>'+esc(x.user_profiles?.full_name||'Linked Student')+'</h3><p class="muted">'+esc(x.student_user_id)+'</p><div class="paper-meta"><span>'+esc(x.status)+'</span></div></article>').join('')+'</div>':'<div class="empty-state">No approved student link yet. Use Track Application tab to request a link.</div>';
+    }else if(role==='teacher'){
+      sub.textContent='Review applications, conduct tests/interviews and manage applicant progress.';
+      const review=localApps.filter(a=>['Submitted','Under Review','Documents Pending','Test / Interview'].includes(a.status)).length;
+      stats.innerHTML='<article><span>Applications</span><strong>'+localApps.length+'</strong></article><article><span>To Review</span><strong>'+review+'</strong></article><article><span>Selected</span><strong>'+localApps.filter(a=>a.status==='Selected').length+'</strong></article><article><span>Role</span><strong>Teacher</strong></article>';
+      actions.innerHTML=action('admin','Review Applications','Open admission review queue')+action('schedules','Tests & Interviews','Manage assessment schedule')+action('merit','Merit Lists','Generate selection ranking');
+      content.innerHTML='<div class="empty-state">Use the shortcuts above for admissions work.</div>';
+    }else{
+      sub.textContent='Full institute admissions overview and controls.';
+      stats.innerHTML='<article><span>Applications</span><strong>'+localApps.length+'</strong></article><article><span>Selected</span><strong>'+localApps.filter(a=>['Selected','Admitted'].includes(a.status)).length+'</strong></article><article><span>Pending Fee</span><strong>'+localApps.filter(a=>!['Paid','Exempted'].includes(a.feeStatus)).length+'</strong></article><article><span>Waitlisted</span><strong>'+localApps.filter(a=>a.status==='Waitlisted').length+'</strong></article>';
+      actions.innerHTML=action('admin','Applications','Review all applicants')+action('setup','Institute Setup','Fees, roles and admission settings')+action('payments','Payments','Verify admission fee payments')+action('merit','Merit Lists','Generate selection lists')+action('audit','Audit Log','Review system actions');
+      content.innerHTML='<div class="empty-state">Head of Institute has full admissions control.</div>';
+    }
+    document.querySelectorAll('[data-role-open]').forEach(b=>b.onclick=()=>showTab(b.dataset.roleOpen));
+  }
+
   async function refreshCloudAuth(){
     const cloud=window.EDUNIZAM_CLOUD;
     const badge=$('admissionCloudBadge'),status=$('admissionAuthStatus');
@@ -468,6 +516,7 @@
       if(badge)badge.textContent='Local Mode';
       if(status)status.textContent='Cloud backend not connected. Local admissions remain available on this device.';
       applyRoleVisibility('head_of_institute');
+      renderRoleHome();
       return;
     }
     try{await cloud.init()}catch(e){}
@@ -478,9 +527,11 @@
         let role='student';try{role=await cloud.getMyRole()||'student'}catch(e){}
         status.textContent='Signed in as '+user.email+' · Role: '+(ROLE_LABELS[role]||role);
         applyRoleVisibility(role);
+        renderRoleHome();
       }else{
         status.textContent='Cloud backend connected. Sign in or create a Student/Parent account.';
         applyRoleVisibility('student');
+        renderRoleHome();
       }
     }
   }
@@ -579,6 +630,6 @@
   window.addEventListener('edunizam:auth',refreshCloudAuth);
   refreshCloudAuth();
 
-  window.renderAdmissionsPortal=()=>{loadSetup();renderAdmin();updateStats();refreshCloudAuth()};
+  window.renderAdmissionsPortal=()=>{loadSetup();renderAdmin();updateStats();refreshCloudAuth();renderRoleHome()};
   fillStatic();
 })();
