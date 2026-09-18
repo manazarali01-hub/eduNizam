@@ -1003,6 +1003,15 @@
             <button id="saveSettingsBtn">Save Settings</button>
           </div>
         </article>
+
+        <article class="card">
+          <div class="section-head"><div><h2>Cloud Backup & Sync</h2><p class="muted">Keep school data available across devices when Supabase is connected.</p></div><span id="coreCloudStatus" class="badge">Local Mode</span></div>
+          <div class="quick-actions">
+            <button id="pushCoreCloudBtn">Upload Local Data to Cloud</button>
+            <button id="pullCoreCloudBtn" class="secondary">Load Cloud Data on This Device</button>
+          </div>
+          <div id="coreCloudMessage" class="coverage-note">Your current data remains safely stored on this device until cloud backend is connected.</div>
+        </article>
       </section>
     </main>
   </div>
@@ -1032,6 +1041,7 @@
   <script src="vu-workspace.js"></script>
   <script src="cloud-config.js"></script>
   <script src="admissions-cloud.js"></script>
+  <script src="core-cloud.js"></script>
   <script src="student-performance.js"></script>
   <script src="admissions-portal.js"></script>
   <script src="admissions-selection.js"></script>
