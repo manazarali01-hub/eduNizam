@@ -518,6 +518,7 @@
               <input id="admCity" placeholder="City">
               <input id="admDistrict" placeholder="District">
               <select id="admProgram"><option value="">Select class / program</option></select>
+              <div id="admProgramFeeSummary" class="program-fee-summary"></div>
               <select id="admQuota"><option value="">Admission category / quota</option></select>
               <select id="admQualification"><option value="">Previous qualification</option></select>
               <input id="admPrevInstitute" placeholder="Previous school / college / university">
@@ -652,6 +653,14 @@
               </div>
               <div class="quick-actions"><button id="saveAdmissionSetupBtn">Save Portal Setup</button></div>
             </div>
+
+            <div class="request-panel">
+              <h3>Class / Program Fee Structure</h3>
+              <p class="muted">Admin can set different fees for every class/program. These values are used in applicant fee summary and challans.</p>
+              <div id="admissionFeeStructureEditor" class="fee-structure-table"></div>
+              <div class="quick-actions"><button id="saveAdmissionFeeStructureBtn">Save Fee Structure</button></div>
+            </div>
+
             <div id="admissionSetupSummary"></div>
           </div>
         </article>
