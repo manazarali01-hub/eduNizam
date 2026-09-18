@@ -506,11 +506,17 @@
                 <option value="head_of_institute">Head of Institute (Institute-issued access)</option>
               </select>
               <input id="admissionAuthEmail" type="email" placeholder="Email">
-              <input id="admissionAuthPassword" type="password" placeholder="Password">
+              <div class="password-field">
+                <input id="admissionAuthPassword" type="password" minlength="6" placeholder="Password (minimum 6 characters)">
+                <button id="toggleAdmissionPasswordBtn" type="button" class="secondary">Show</button>
+              </div>
               <button id="admissionSignUpBtn">Create Student / Parent Account</button>
               <button id="admissionSignInBtn" class="secondary">Sign In</button>
+              <button id="admissionMagicLinkBtn" class="secondary">Email Login Link</button>
+              <button id="admissionForgotPasswordBtn" class="secondary">Forgot Password</button>
               <button id="admissionSignOutBtn" class="secondary">Sign Out</button>
             </div>
+            <div class="auth-help">Easy login: password only needs 6+ characters; no compulsory capital letter, number or symbol. You can also use an Email Login Link.</div>
             <div id="admissionAuthStatus" class="muted">Cloud backend not connected.</div>
           </div>
 
