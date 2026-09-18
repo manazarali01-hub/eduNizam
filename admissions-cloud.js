@@ -7,7 +7,7 @@
   }
   async function init(){
     if(!ready()){window.EDUNIZAM_CLOUD=api;return api}
-    state.client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);
+    state.client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     const {data}=await state.client.auth.getUser();
     state.user=data?.user||null;state.enabled=true;
     state.client.auth.onAuthStateChange((_event,session)=>{state.user=session?.user||null;window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{user:state.user}}))});
@@ -24,6 +24,17 @@
   }
   async function signOut(){
     if(!state.client)return;return state.client.auth.signOut();
+  }
+  async function sendMagicLink(email){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    return state.client.auth.signInWithOtp({
+      email,
+      options:{shouldCreateUser:false,emailRedirectTo:window.location.href.split('#')[0]}
+    });
+  }
+  async function sendPasswordReset(email){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    return state.client.auth.resetPasswordForEmail(email,{redirectTo:window.location.href.split('#')[0]});
   }
   function mapApplication(row){
     return {
@@ -194,7 +205,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,signIn,signOut,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
