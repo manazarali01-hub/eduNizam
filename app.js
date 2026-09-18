@@ -60,6 +60,7 @@ window.addStudentFromAdmission=(student)=>{
     admissionApplicationId:student.admissionApplicationId||'',
     admissionDate:student.admissionDate||'',
     feeSnapshot:student.feeSnapshot||null,
+    authUserId:student.authUserId||null,
     source:'admission'
   };
   state.students.push(record);
