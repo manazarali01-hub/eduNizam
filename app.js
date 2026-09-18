@@ -22,6 +22,7 @@ function setView(view){
  $(view).classList.add('active');
  $('page-title').textContent=document.querySelector('[data-view="'+view+'"]').textContent;
  if(view==='attendance')renderAttendance();
+ if(view==='pastpapers')renderPastPapers();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
@@ -96,3 +97,42 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPro
 $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').classList.add('hidden')};
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 renderAll();
+function initPastPapers(){
+ const data=window.EDUNIZAM_PAST_PAPERS;if(!data)return;
+ const regions=[...new Set(data.boards.map(b=>b.region))].sort();
+ $('paperRegion').innerHTML='<option value="">All Regions</option>'+regions.map(x=>'<option>'+esc(x)+'</option>').join('');
+ $('paperYear').innerHTML='<option value="">All Years</option>'+data.years.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
+ ['paperRegion','paperBoard','paperClass','paperSubject','paperYear','paperSession'].forEach(id=>$(id).addEventListener('change',()=>{
+   if(id==='paperRegion')fillBoardFilter();
+   if(id==='paperClass')fillSubjectFilter();
+   renderPastPapers();
+ }));
+ fillBoardFilter();fillSubjectFilter();
+ $('boardCountBadge').textContent=data.boards.length+' Boards';
+}
+function fillBoardFilter(){
+ const data=window.EDUNIZAM_PAST_PAPERS;if(!data)return;
+ const region=$('paperRegion').value,current=$('paperBoard').value;
+ const boards=data.boards.filter(b=>!region||b.region===region);
+ $('paperBoard').innerHTML='<option value="">All Boards</option>'+boards.map(b=>'<option value="'+b.id+'">'+esc(b.name)+'</option>').join('');
+ if(boards.some(b=>b.id===current))$('paperBoard').value=current;
+}
+function fillSubjectFilter(){
+ const data=window.EDUNIZAM_PAST_PAPERS;if(!data)return;
+ const cls=$('paperClass').value;
+ const subjects=cls?data.subjects[cls]||[]:[...new Set(Object.values(data.subjects).flat())].sort();
+ $('paperSubject').innerHTML='<option value="">All Subjects</option>'+subjects.map(s=>'<option>'+esc(s)+'</option>').join('');
+}
+function renderPastPapers(){
+ const data=window.EDUNIZAM_PAST_PAPERS;if(!data)return;
+ const region=$('paperRegion').value,boardId=$('paperBoard').value,cls=$('paperClass').value,subject=$('paperSubject').value,year=$('paperYear').value,session=$('paperSession').value;
+ const boards=data.boards.filter(b=>(!region||b.region===region)&&(!boardId||b.id===boardId)&&(!cls||b.classes.includes(Number(cls))));
+ $('paperLibrary').innerHTML=boards.length?boards.map(b=>{
+   const level=cls?(Number(cls)<=10?'Matric / SSC':'Intermediate / HSSC'):'Matric & Intermediate';
+   const detail=[level,cls?'Class '+cls:'Classes '+b.classes.join(', '),subject||'All subjects',year||'Multiple years',session||'Annual & Supplementary'].join(' · ');
+   const archive=b.archiveUrl?'<a class="primary-link" target="_blank" rel="noopener" href="'+b.archiveUrl+'">Open Past Papers</a>':'';
+   const official='<a class="secondary-link" target="_blank" rel="noopener" href="'+b.officialUrl+'">Official Board</a>';
+   return '<article class="paper-card"><h3>'+esc(b.name)+'</h3><p class="muted">'+esc(b.region)+'</p><p>'+esc(detail)+'</p><div class="paper-actions">'+archive+official+'</div><div class="coverage-note">'+(b.archiveUrl?'Paper archive/source available.':'Board added; paper archive links will be attached batch-wise after verification.')+'</div></article>';
+ }).join(''):'<div class="muted">No board matches these filters.</div>';
+}
+initPastPapers();
