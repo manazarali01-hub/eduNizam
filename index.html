@@ -575,6 +575,14 @@
           </div>
 
           <div id="admissionTrackPanel" class="hidden">
+            <div class="request-panel" data-parent-tools>
+              <h3>Parent - Student Link</h3>
+              <p class="muted">Parent can request access to a student's account; institute approval is required.</p>
+              <div class="form-grid">
+                <input id="parentStudentUserId" placeholder="Student user UUID">
+                <button id="requestParentStudentLinkBtn">Request Link</button>
+              </div>
+            </div>
             <div class="request-panel">
               <h3>Track Application</h3>
               <div class="form-grid">
@@ -699,6 +707,16 @@
           </div>
 
           <div id="admissionSetupPanel" class="hidden">
+            <div class="request-panel">
+              <h3>User & Role Management</h3>
+              <p class="muted">Head of Institute can link teachers/staff and approve parent-child access in Cloud Mode.</p>
+              <div class="form-grid">
+                <input id="admissionStaffUserId" placeholder="Teacher user UUID">
+                <select id="admissionStaffRole"><option value="teacher">Teacher</option><option value="head_of_institute">Head of Institute</option></select>
+                <button id="assignAdmissionStaffBtn">Assign Role</button>
+              </div>
+              <div id="admissionParentLinksList" class="list"></div>
+            </div>
             <div class="request-panel">
               <h3>Admission Portal Setup</h3>
               <div class="form-grid">
