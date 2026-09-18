@@ -23,6 +23,7 @@ function setView(view){
  $('page-title').textContent=document.querySelector('[data-view="'+view+'"]').textContent;
  if(view==='attendance')renderAttendance();
  if(view==='pastpapers')renderPastPapers();
+ if(view==='practice'&&window.renderPracticeCenter)window.renderPracticeCenter();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
