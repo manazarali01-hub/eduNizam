@@ -8,6 +8,7 @@
   const fees=()=>read('edunizam_fees',[]);
   const results=()=>read('edunizam_results',[]);
   const remarks=()=>read('edunizam_student_remarks',{});
+  const practiceHistory=()=>read('edunizam_practice_history',[]);
   let currentStudentId=null;
 
   function fillStudents(){
@@ -52,6 +53,19 @@
       pending:list.filter(f=>f.status!=='Paid').reduce((a,b)=>a+Number(b.amount||0),0)
     };
   }
+  function practiceStats(id){
+    const list=practiceHistory().filter(x=>Number(x.studentId)===Number(id));
+    const avg=list.length?Math.round(list.reduce((a,b)=>a+Number(b.pct||0),0)/list.length):null;
+    const weakMap={};
+    list.flatMap(x=>x.weak||[]).forEach(w=>{
+      const k=(w.subject||'Subject')+'|'+(w.chapter||'General');
+      weakMap[k]=(weakMap[k]||0)+1;
+    });
+    const weak=Object.entries(weakMap).map(([k,count])=>{
+      const [subject,chapter]=k.split('|');return{subject,chapter,count};
+    }).sort((a,b)=>b.count-a.count);
+    return{list,avg,weak};
+  }
 
   function riskLabel(att,avg,weak){
     if((att!=null&&att<60)||(avg!=null&&avg<50)||weak>=3)return ['High Attention','high'];
@@ -73,6 +87,7 @@
     const avg=averageResult(rlist);
     const subjects=subjectStats(rlist);
     const f=feeStats(s.id);
+    const p=practiceStats(s.id);
     const weak=subjects.filter(x=>x.avg<60);
     const [risk,riskClass]=riskLabel(att,avg,weak.length);
 
@@ -82,6 +97,8 @@
     $('profileAverage').textContent=avg==null?'No data':avg+'%';
     $('profileFeesPaid').textContent='Rs '+f.paid.toLocaleString();
     $('profileFeesPending').textContent='Rs '+f.pending.toLocaleString();
+    $('profilePracticeAverage').textContent=p.avg==null?'No data':p.avg+'%';
+    $('profilePracticeTests').textContent=p.list.length;
     $('profileRiskBadge').textContent=risk;
     $('profileRiskBadge').dataset.risk=riskClass;
 
@@ -101,6 +118,10 @@
 
     $('profileFeeHistory').innerHTML=f.list.length?f.list.slice().reverse().slice(0,8).map(x=>'<div class="profile-line"><strong>Rs '+Number(x.amount||0).toLocaleString()+'</strong><span>'+esc(x.status)+' · '+esc(x.date||'')+'</span></div>').join(''):'<div class="empty-state">No fee records.</div>';
 
+    $('profilePracticeTrend').innerHTML=p.list.length?p.list.slice().reverse().slice(0,8).map(x=>'<div class="profile-line"><strong>'+esc(x.config?.subject||'Practice')+'</strong><span>'+Number(x.pct||0)+'% · '+new Date(x.at).toLocaleDateString()+'</span></div>').join(''):'<div class="empty-state">No student-linked practice tests yet.</div>';
+
+    $('profilePracticeWeak').innerHTML=p.weak.length?p.weak.slice(0,8).map(x=>'<div class="profile-line"><strong>'+esc(x.subject)+' · '+esc(x.chapter)+'</strong><span>'+x.count+' mistake'+(x.count===1?'':'s')+'</span></div>').join(''):'<div class="empty-state">No weak practice topics detected.</div>';
+
     const rm=remarks();$('profileTeacherRemark').value=rm[s.id]||'';
     $('profileParentSummary').innerHTML='';
   }
@@ -113,7 +134,7 @@
 
   function summaryText(){
     const s=students().find(x=>Number(x.id)===Number(currentStudentId));if(!s)return'';
-    const att=studentAttendancePct(s.id),rlist=studentResults(s.id),avg=averageResult(rlist),subjects=subjectStats(rlist),f=feeStats(s.id),rm=remarks()[s.id]||'';
+    const att=studentAttendancePct(s.id),rlist=studentResults(s.id),avg=averageResult(rlist),subjects=subjectStats(rlist),f=feeStats(s.id),p=practiceStats(s.id),rm=remarks()[s.id]||'';
     const best=subjects.slice().sort((a,b)=>b.avg-a.avg)[0],weak=subjects.filter(x=>x.avg<60);
     let t='Progress summary for '+s.name+' ('+(s.className||'Student')+'). ';
     t+='Attendance: '+(att==null?'not recorded':att+'%')+'. ';
@@ -121,6 +142,8 @@
     if(best)t+='Strongest subject: '+best.subject+' ('+best.avg+'%). ';
     if(weak.length)t+='Needs attention in '+weak.map(x=>x.subject+' '+x.avg+'%').join(', ')+'. ';
     else if(subjects.length)t+='No subject is currently below 60%. ';
+    if(p.avg!=null)t+='Practice average: '+p.avg+'% across '+p.list.length+' linked test'+(p.list.length===1?'':'s')+'. ';
+    if(p.weak.length)t+='Practice focus: '+p.weak.slice(0,3).map(x=>x.subject+' '+x.chapter).join(', ')+'. ';
     if(f.pending>0)t+='Pending fees: Rs '+f.pending.toLocaleString()+'. ';
     if(rm)t+='Teacher remark: '+rm;
     return t;
