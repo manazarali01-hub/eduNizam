@@ -24,6 +24,7 @@ function setView(view){
  if(view==='attendance')renderAttendance();
  if(view==='pastpapers')renderPastPapers();
  if(view==='practice'&&window.renderPracticeCenter)window.renderPracticeCenter();
+ if(view==='study'&&window.renderStudyLibrary)window.renderStudyLibrary();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
