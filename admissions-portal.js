@@ -546,9 +546,32 @@
     }catch(e){alert(e.message||'Could not assign role.')}
   }
 
+
+  async function sendEasyLogin(type){
+    const cloud=window.EDUNIZAM_CLOUD,email=$('admissionAuthEmail')?.value.trim();
+    if(!email)return alert('Enter your email address first.');
+    if(!cloud?.ready?.())return alert('Cloud backend is not configured yet.');
+    try{
+      if(type==='magic'){
+        const {error}=await cloud.sendMagicLink(email);if(error)throw error;
+        alert('Email login link sent. Open the email and tap the link to sign in.');
+      }else{
+        const {error}=await cloud.sendPasswordReset(email);if(error)throw error;
+        alert('Password reset email sent.');
+      }
+    }catch(e){alert(e.message||'Could not send email.')}
+  }
+  function togglePassword(){
+    const input=$('admissionAuthPassword'),btn=$('toggleAdmissionPasswordBtn');if(!input||!btn)return;
+    const show=input.type==='password';input.type=show?'text':'password';btn.textContent=show?'Hide':'Show';
+  }
+
   $('admissionSignUpBtn')?.addEventListener('click',()=>authAction('signup'));
   $('admissionSignInBtn')?.addEventListener('click',()=>authAction('signin'));
   $('admissionSignOutBtn')?.addEventListener('click',()=>authAction('out'));
+  $('admissionMagicLinkBtn')?.addEventListener('click',()=>sendEasyLogin('magic'));
+  $('admissionForgotPasswordBtn')?.addEventListener('click',()=>sendEasyLogin('reset'));
+  $('toggleAdmissionPasswordBtn')?.addEventListener('click',togglePassword);
   $('requestParentStudentLinkBtn')?.addEventListener('click',requestParentLink);
   $('assignAdmissionStaffBtn')?.addEventListener('click',assignStaffRole);
   $('refreshAdmissionPaymentsBtn')?.addEventListener('click',renderCloudPayments);
