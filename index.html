@@ -22,6 +22,7 @@
         <button class="nav-item" data-view="fees">Fees</button>
         <button class="nav-item" data-view="results">Results</button>
         <button class="nav-item" data-view="pastpapers">Past Papers</button>
+        <button class="nav-item" data-view="practice">Practice & Tests</button>
         <button class="nav-item" data-view="assistant">AI Assistant</button>
         <button class="nav-item" data-view="settings">Settings</button>
       </nav>
@@ -173,6 +174,73 @@
         </article>
       </section>
 
+      <section id="practice" class="view">
+        <div class="pp-hero">
+          <div>
+            <div class="eyebrow">Premium Learning</div>
+            <h2>Practice & Test Center</h2>
+            <p>Board/class/subject/chapter-wise practice, timed tests, instant scoring, weak-topic analysis and printable tests.</p>
+          </div>
+          <span class="badge" id="practiceBankBadge">0 Questions</span>
+        </div>
+
+        <div class="pp-stats">
+          <article><span>Question Bank</span><strong id="practiceStatBank">0</strong></article>
+          <article><span>Tests Taken</span><strong id="practiceStatTests">0</strong></article>
+          <article><span>Best Score</span><strong id="practiceStatBest">0%</strong></article>
+          <article><span>Weak Topics</span><strong id="practiceStatWeak">0</strong></article>
+        </div>
+
+        <article class="card">
+          <div class="paper-tabs">
+            <button class="paper-tab active" data-practice-tab="build">Build Test</button>
+            <button class="paper-tab" data-practice-tab="history">History</button>
+            <button class="paper-tab" data-practice-tab="weak">Weak Topics</button>
+          </div>
+
+          <div id="practiceBuildPanel">
+            <div class="form-grid">
+              <select id="practiceBoard"><option value="">All Boards</option></select>
+              <select id="practiceClass"><option value="">Class</option><option value="9">9th</option><option value="10">10th</option><option value="11">11th</option><option value="12">12th</option></select>
+              <select id="practiceSubject"><option value="">Subject</option></select>
+              <select id="practiceChapter"><option value="">All Chapters</option></select>
+              <select id="practiceType"><option value="mcq">MCQs</option><option value="short">Short Questions</option><option value="long">Long Questions</option><option value="mixed">Mixed</option></select>
+              <select id="practiceDifficulty"><option value="">All Difficulty</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
+              <select id="practiceCount"><option value="5">5 Questions</option><option value="10">10 Questions</option><option value="15">15 Questions</option><option value="20">20 Questions</option></select>
+              <select id="practiceMinutes"><option value="5">5 Minutes</option><option value="10">10 Minutes</option><option value="20">20 Minutes</option><option value="30">30 Minutes</option></select>
+            </div>
+            <div class="quick-actions">
+              <button id="startPracticeBtn">Start Test</button>
+              <button id="printPracticeBtn" class="secondary">Print / Save PDF</button>
+              <button id="aiGenerateTestBtn" class="secondary">AI Generate Test</button>
+            </div>
+          </div>
+
+          <div id="practiceTestPanel" class="hidden">
+            <div class="practice-test-head">
+              <div><strong id="practiceTestTitle">Practice Test</strong><div class="muted" id="practiceProgress">0 / 0</div></div>
+              <div class="practice-timer" id="practiceTimer">00:00</div>
+            </div>
+            <div id="practiceQuestions"></div>
+            <div class="quick-actions">
+              <button id="submitPracticeBtn">Submit Test</button>
+              <button id="cancelPracticeBtn" class="secondary">Cancel</button>
+            </div>
+          </div>
+
+          <div id="practiceResultPanel" class="hidden">
+            <div id="practiceResultSummary"></div>
+            <div class="quick-actions">
+              <button id="retryPracticeBtn">Try Again</button>
+              <button id="printResultBtn" class="secondary">Print Result</button>
+            </div>
+          </div>
+
+          <div id="practiceHistoryPanel" class="hidden"></div>
+          <div id="practiceWeakPanel" class="hidden"></div>
+        </article>
+      </section>
+
       <section id="assistant" class="view">
         <article class="card">
           <div class="section-head">
@@ -272,7 +340,9 @@
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js"></script>
   <script src="past-papers-data.js"></script>
   <script src="past-papers-inventory.js"></script>
+  <script src="practice-data.js"></script>
   <script src="app.js"></script>
+  <script src="practice-center.js"></script>
   <script src="math-editor.js"></script>
   <script src="past-papers-premium.js"></script>
 </body>
