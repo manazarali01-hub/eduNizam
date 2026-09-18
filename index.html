@@ -16,34 +16,54 @@
         <div><strong>EduNizam</strong><small>AI School Assistant</small></div>
       </div>
       <nav id="nav">
-        <button class="nav-item active" data-view="dashboard">Dashboard</button>
-        <button class="nav-item" data-view="students">Students</button>
-        <button class="nav-item" data-view="studentprofile">Student Profile</button>
-        <button class="nav-item" data-view="attendance">Attendance</button>
-        <button class="nav-item" data-view="fees">Fees</button>
-        <button class="nav-item" data-view="results">Results</button>
-        <button class="nav-item" data-view="pastpapers">Past Papers</button>
-        <button class="nav-item" data-view="practice">Practice & Tests</button>
-        <button class="nav-item" data-view="study">Study Library</button>
-        <button class="nav-item" data-view="schoolassessments">Grade 5 & 8 Papers</button>
-        <button class="nav-item" data-view="universities">University Hub</button>
-        <button class="nav-item" data-view="vu">VU Special</button>
-        <button class="nav-item" data-view="admissions">Online Admissions</button>
-        <button class="nav-item" data-view="assistant">AI Assistant</button>
-        <button class="nav-item" data-view="settings">Settings</button>
+        <button class="nav-item active" data-view="dashboard">⌂  Dashboard</button>
+        <button class="nav-item" data-view="students">👨‍🎓  Students</button>
+        <button class="nav-item" data-view="studentprofile">📘  Student Profile</button>
+        <button class="nav-item" data-view="attendance">✓  Attendance</button>
+        <button class="nav-item" data-view="fees">₨  Fees</button>
+        <button class="nav-item" data-view="results">📊  Results</button>
+        <button class="nav-item" data-view="pastpapers">📄  Past Papers</button>
+        <button class="nav-item" data-view="practice">✍  Practice & Tests</button>
+        <button class="nav-item" data-view="study">📚  Study Library</button>
+        <button class="nav-item" data-view="schoolassessments">📝  Grade 5 & 8 Papers</button>
+        <button class="nav-item" data-view="universities">🎓  University Hub</button>
+        <button class="nav-item" data-view="vu">💻  VU Special</button>
+        <button class="nav-item" data-view="admissions">🧾  Online Admissions</button>
+        <button class="nav-item" data-view="assistant">✦  AI Assistant</button>
+        <button class="nav-item" data-view="settings">⚙  Settings</button>
       </nav>
     </aside>
 
     <main class="main">
       <header class="topbar">
-        <div>
+        <div class="topbar-title">
+          <div class="academic-kicker">School · College · Institute</div>
           <h1 id="page-title">Dashboard</h1>
           <p id="school-name">My School</p>
         </div>
-        <button id="installBtn" class="secondary hidden">Install App</button>
+        <div class="topbar-actions">
+          <span class="academic-pill">EduNizam Campus</span>
+          <button id="installBtn" class="secondary hidden">Install App</button>
+        </div>
       </header>
 
       <section id="dashboard" class="view active">
+        <div class="campus-hero">
+          <div>
+            <span class="campus-label">Smart Education Management</span>
+            <h2>Welcome to your digital campus</h2>
+            <p>Manage students, admissions, attendance, fees, academics and learning resources from one professional education workspace.</p>
+            <div class="campus-hero-actions">
+              <button data-jump="students">Manage Students</button>
+              <button data-jump="admissions" class="secondary">Online Admissions</button>
+            </div>
+          </div>
+          <div class="campus-visual" aria-hidden="true">
+            <div class="campus-icon">🏫</div>
+            <strong>School • College • University</strong>
+            <span>One education platform</span>
+          </div>
+        </div>
         <div class="cards">
           <article class="card stat"><span>Total Students</span><strong id="statStudents">0</strong></article>
           <article class="card stat"><span>Present Today</span><strong id="statPresent">0</strong></article>
