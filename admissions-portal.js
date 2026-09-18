@@ -381,6 +381,52 @@
     a.testMarks=Number($('admReviewTestMarks').value||0);a.interviewMarks=Number($('admReviewInterviewMarks').value||0);a.meritScore=merit;a.adminNote=$('admReviewNote').value.trim();a.updatedAt=new Date().toISOString();
     write(KEY.apps,arr);renderAdmin();updateStats();alert('Application review saved.');
   }
+
+  function nextRollNumber(className){
+    const students=JSON.parse(localStorage.getItem('edunizam_students')||'[]');
+    const nums=students.filter(s=>s.className===className).map(s=>{
+      const m=String(s.rollNo||'').match(/(\d+)$/);return m?Number(m[1]):0;
+    });
+    return Math.max(0,...nums)+1;
+  }
+  function makeStudentId(applicationId){
+    const year=new Date().getFullYear();
+    const tail=String(applicationId||'').split('-').pop()||String(Date.now()).slice(-4);
+    return 'STU-'+year+'-'+tail;
+  }
+  function finalizeAdmission(){
+    const a=apps().find(x=>x.applicationId===reviewApplicationId);if(!a)return alert('Open an application first.');
+    if(!['Selected','Admitted'].includes(a.status))return alert('Only a Selected application can be finalized for admission.');
+    if(a.enrollment?.studentId){
+      printEnrollmentSlip();
+      return alert('This applicant is already enrolled as '+a.enrollment.studentId+'.');
+    }
+    const roll=nextRollNumber(a.program);
+    const enrollment={
+      studentId:makeStudentId(a.applicationId),
+      rollNo:String(roll).padStart(3,'0'),
+      admissionDate:new Date().toISOString().slice(0,10),
+      className:a.program,
+      feeSnapshot:a.feeSnapshot||null
+    };
+    a.status='Admitted';a.enrollment=enrollment;a.updatedAt=new Date().toISOString();
+    const arr=apps(),i=arr.findIndex(x=>x.applicationId===a.applicationId);if(i>=0)arr[i]=a;write(KEY.apps,arr);
+    window.addStudentFromAdmission?.({
+      name:a.applicantName,father:a.fatherName,className:a.program,phone:a.phone,
+      rollNo:enrollment.rollNo,studentId:enrollment.studentId,
+      admissionApplicationId:a.applicationId,admissionDate:enrollment.admissionDate,feeSnapshot:a.feeSnapshot||null
+    });
+    renderAdmin();updateStats();openReview(a.applicationId);
+    alert('Admission finalized. Student ID: '+enrollment.studentId+' · Roll No: '+enrollment.rollNo);
+  }
+  function printEnrollmentSlip(){
+    const a=apps().find(x=>x.applicationId===reviewApplicationId);if(!a?.enrollment)return alert('Finalize admission first.');
+    const e=a.enrollment,s=setup(),f=a.feeSnapshot||{};
+    const w=window.open('','_blank');if(!w)return;
+    w.document.write('<html><head><title>Enrollment Slip</title><style>body{font-family:Arial;padding:40px;line-height:1.6}.box{border:1px solid #aaa;padding:16px;margin:16px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px}</style></head><body><h1>'+esc(s.institutionName)+'</h1><h2>Admission Confirmation / Enrollment Slip</h2><div class="box"><strong>Student ID: '+esc(e.studentId)+'</strong><br>Roll No: '+esc(e.rollNo)+'</div><div class="grid box"><div>Student: '+esc(a.applicantName)+'</div><div>Father/Guardian: '+esc(a.fatherName)+'</div><div>Class/Program: '+esc(a.program)+'</div><div>Admission Date: '+esc(e.admissionDate)+'</div><div>Application ID: '+esc(a.applicationId)+'</div><div>Status: Admitted</div></div><div class="box"><strong>Fee Snapshot</strong><br>Admission Fee: PKR '+Number(f.admissionFee||0).toLocaleString()+'<br>Monthly Fee: PKR '+Number(f.monthlyFee||0).toLocaleString()+'<br>Annual Charges: PKR '+Number(f.annualCharges||0).toLocaleString()+'<br>Other Charges: PKR '+Number(f.otherCharges||0).toLocaleString()+'</div><p>Authorized Signature: ____________________</p></body></html>');
+    w.document.close();w.focus();setTimeout(()=>w.print(),250);
+  }
+
   function printDecision(kind){
     const a=apps().find(x=>x.applicationId===reviewApplicationId);if(!a)return;const s=setup();
     const accepted=kind==='admission';
@@ -408,6 +454,8 @@
   $('saveAdmissionReviewBtn').onclick=saveReview;
   $('printAdmissionLetterBtn').onclick=()=>printDecision('admission');
   $('printAdmissionRejectionBtn').onclick=()=>printDecision('decision');
+  $('finalizeAdmissionBtn')?.addEventListener('click',finalizeAdmission);
+  $('printEnrollmentSlipBtn')?.addEventListener('click',printEnrollmentSlip);
 
   ['admPhotoFile','admIdentityFile','admResultFile','admSupportFile','admPaymentProofFile'].forEach(id=>$(id)?.addEventListener('change',()=>{
     const items=['admPhotoFile','admIdentityFile','admResultFile','admSupportFile','admPaymentProofFile'].map(x=>$(x)?.files?.[0]).filter(Boolean);
