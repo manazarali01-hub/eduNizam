@@ -193,3 +193,66 @@ for select to authenticated using (
 
 -- IMPORTANT: before production, tighten storage policies to validate institution/application
 -- ownership from the object path or route all document access through an Edge Function.
+
+
+-- Audit log for staff/application actions.
+create table if not exists public.audit_logs (
+  id uuid primary key default gen_random_uuid(),
+  institution_id uuid not null references public.institutions(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete set null,
+  action text not null,
+  entity_type text not null,
+  entity_id text,
+  details jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+alter table public.audit_logs enable row level security;
+
+create policy "staff read audit logs" on public.audit_logs
+for select to authenticated using (public.is_institution_staff(institution_id));
+
+create policy "authenticated insert audit logs" on public.audit_logs
+for insert to authenticated with check (
+  user_id=auth.uid() and public.is_institution_staff(institution_id)
+);
+
+-- Tighten storage access using path convention:
+-- institution_id/application_id/filename
+drop policy if exists "users upload admission documents" on storage.objects;
+drop policy if exists "authenticated read admission documents" on storage.objects;
+
+create policy "application owner or staff upload admission documents" on storage.objects
+for insert to authenticated with check (
+  bucket_id='admission-documents'
+  and exists (
+    select 1
+    from public.applications a
+    where a.id = (storage.foldername(name))[2]::uuid
+      and a.institution_id::text = (storage.foldername(name))[1]
+      and (a.applicant_user_id=auth.uid() or public.is_institution_staff(a.institution_id))
+  )
+);
+
+create policy "application owner or staff read admission documents" on storage.objects
+for select to authenticated using (
+  bucket_id='admission-documents'
+  and exists (
+    select 1
+    from public.applications a
+    where a.id = (storage.foldername(name))[2]::uuid
+      and a.institution_id::text = (storage.foldername(name))[1]
+      and (a.applicant_user_id=auth.uid() or public.is_institution_staff(a.institution_id))
+  )
+);
+
+create policy "staff delete admission documents" on storage.objects
+for delete to authenticated using (
+  bucket_id='admission-documents'
+  and exists (
+    select 1
+    from public.applications a
+    where a.id = (storage.foldername(name))[2]::uuid
+      and a.institution_id::text = (storage.foldername(name))[1]
+      and public.is_institution_staff(a.institution_id)
+  )
+);
