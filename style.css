@@ -9,3 +9,5 @@
 .study-viewer{position:fixed;inset:0;background:rgba(7,28,27,.55);z-index:9998;display:grid;place-items:center;padding:20px}.study-viewer-card{width:min(900px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.28)}.study-content{white-space:pre-wrap;font-family:Georgia,'Times New Roman',serif;font-size:17px;line-height:1.75;background:#f8fbfa;border:1px solid #dce8e6;border-radius:12px;padding:18px;overflow:auto}.study-viewer-card h2{margin:0}@media(max-width:600px){.study-viewer{padding:10px}.study-viewer-card{padding:16px;max-height:94vh}.study-content{font-size:16px;padding:14px}}
 
 .vu-workspace-tabs{margin-top:10px;padding-top:10px;border-top:1px solid #e2ebea}.vu-progress{height:9px;background:#e9f1f0;border-radius:999px;overflow:hidden;margin:10px 0}.vu-progress>div{height:100%;background:#0f766e;border-radius:999px}.paper-card .icon-btn{line-height:1}.practice-review .paper-card-top{margin-bottom:8px}
+
+.vu-course-insight{margin-top:12px}.vu-course-insight .paper-card{background:#f8fcfb;border-color:#cfe3df}.vu-course-insight h3{margin-top:10px}
