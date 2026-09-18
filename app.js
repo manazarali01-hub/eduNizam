@@ -28,6 +28,7 @@ function setView(view){
  if(view==='schoolassessments'&&window.renderSchoolAssessments)window.renderSchoolAssessments();
  if(view==='universities'&&window.renderUniversityHub)window.renderUniversityHub();
  if(view==='vu'&&window.renderVUSpecial)window.renderVUSpecial();
+ if(view==='vu'&&window.renderVUWorkspace)window.renderVUWorkspace();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
