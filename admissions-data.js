@@ -20,6 +20,15 @@ window.EDUNIZAM_ADMISSIONS_DATA={
     "Other Supporting Document"
   ],
   qualificationLevels:["No Previous Qualification","Primary","Middle","Matric / SSC","Intermediate / HSSC","Associate Degree","Bachelor","Master","MS / MPhil","PhD"],
+  paymentMethods:[
+    {id:"cash",name:"Cash at Institution",mode:"manual"},
+    {id:"bank",name:"Bank Deposit / Bank Transfer",mode:"manual"},
+    {id:"raast",name:"Raast / Raast QR",mode:"manual-or-gateway"},
+    {id:"jazzcash",name:"JazzCash",mode:"manual-or-gateway"},
+    {id:"easypaisa",name:"Easypaisa",mode:"manual-or-gateway"},
+    {id:"card",name:"Debit / Credit Card (Online Gateway)",mode:"gateway"},
+    {id:"challan",name:"Printed Challan",mode:"manual"}
+  ],
   defaultSetup:{
     institutionName:"EduNizam Demo Institute",
     institutionType:"school",
@@ -28,6 +37,17 @@ window.EDUNIZAM_ADMISSIONS_DATA={
     currency:"PKR",
     applicationPrefix:"ADM",
     requireTest:false,
-    requireInterview:false
+    requireInterview:false,
+    enabledPaymentMethods:["cash","bank","raast","jazzcash","easypaisa","challan"],
+    bankName:"",
+    bankAccountTitle:"",
+    bankIban:"",
+    raastId:"",
+    jazzCashNumber:"",
+    jazzCashTitle:"",
+    easypaisaNumber:"",
+    easypaisaTitle:"",
+    gatewayProvider:"Not connected",
+    gatewayMode:"manual"
   }
 };
