@@ -158,3 +158,50 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPro
 $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').classList.add('hidden')};
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 renderAll();
+
+
+/* EDUNIZAM_ROLE_ACCESS_V1 — local demo access and class-wise fee setup */
+(()=>{
+  const ROLE_KEY='edunizam_session';
+  const FEE_KEY='edunizam_class_fees';
+  const defaultFees={'Play Group':1500,'Nursery':1600,'Prep':1700,'1':1800,'2':1800,'3':1900,'4':2000,'5':2100,'6':2200,'7':2300,'8':2400,'9':2600,'10':2800};
+  const classFees=()=>JSON.parse(localStorage.getItem(FEE_KEY)||JSON.stringify(defaultFees));
+  const saveClassFees=v=>localStorage.setItem(FEE_KEY,JSON.stringify(v));
+  const roleViews={
+    student:['dashboard','studentprofile','fees','results','pastpapers','practice','study','schoolassessments','assistant'],
+    parent:['dashboard','studentprofile','fees','results','attendance','assistant'],
+    teacher:['dashboard','students','studentprofile','attendance','results','pastpapers','practice','study','schoolassessments','assistant'],
+    head:['dashboard','students','studentprofile','attendance','fees','results','pastpapers','practice','study','schoolassessments','universities','vu','admissions','assistant','settings']
+  };
+  const labels={student:'Student',parent:'Parent / Guardian',teacher:'Teacher',head:'Head of Institute'};
+  function injectStyles(){
+    const s=document.createElement('style');
+    s.textContent='.login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#071b33,#0f766e);display:grid;place-items:center;padding:20px}.login-card{width:min(620px,100%);background:#fff;border-radius:24px;padding:28px;box-shadow:0 28px 80px #001a}.login-card h1{margin:0;color:#0b2748}.login-card>p{color:#536579}.role-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}.role-choice{padding:16px;text-align:left;border:2px solid #dbe7ee;background:#f8fbfd;color:#15324a;border-radius:14px}.role-choice.active{border-color:#0f766e;background:#e8f7f4}.login-fields{display:grid;gap:12px}.session-chip{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e8f7f4;border-radius:999px;font-size:14px}.fee-setup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.fee-class-card{border:1px solid #dbe7ee;border-radius:12px;padding:10px}.fee-class-card label{display:block;font-weight:700;margin-bottom:6px}.fee-class-card input{width:100%;box-sizing:border-box}.role-hidden{display:none!important}@media(max-width:560px){.role-grid{grid-template-columns:1fr}.login-card{padding:20px;border-radius:18px}}';
+    document.head.appendChild(s);
+  }
+  function showLogin(){
+    if(document.getElementById('edunizamLogin'))return;
+    const box=document.createElement('div');box.id='edunizamLogin';box.className='login-screen';
+    box.innerHTML='<div class="login-card"><div class="academic-kicker">EduNizam Secure Access</div><h1>Apna role select karein</h1><p>Mobile number ya ID likhein. Demo mode mein password ki zaroorat nahi.</p><div class="role-grid">'+Object.entries(labels).map(([k,v])=>'<button class="role-choice" data-role="'+k+'"><strong>'+v+'</strong><br><small>'+({student:'Apni study aur result dekhein',parent:'Bachay ki progress dekhein',teacher:'Class aur academics manage karein',head:'Pooray institute ka control'}[k])+'</small></button>').join('')+'</div><div class="login-fields"><input id="loginIdentity" placeholder="Mobile number / Student ID / Staff ID"><button id="loginContinue" disabled>Continue</button></div></div>';
+    document.body.appendChild(box);let selected='';
+    box.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{selected=b.dataset.role;box.querySelectorAll('[data-role]').forEach(x=>x.classList.toggle('active',x===b));box.querySelector('#loginContinue').disabled=false});
+    box.querySelector('#loginContinue').onclick=()=>{const identity=box.querySelector('#loginIdentity').value.trim();if(!identity)return alert('Mobile number ya ID likhein');localStorage.setItem(ROLE_KEY,JSON.stringify({role:selected,identity,loginAt:Date.now()}));box.remove();applyRole();};
+  }
+  function applyRole(){
+    const session=JSON.parse(localStorage.getItem(ROLE_KEY)||'null');if(!session){showLogin();return}
+    const allowed=roleViews[session.role]||roleViews.student;
+    document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.toggle('role-hidden',!allowed.includes(b.dataset.view)));
+    const actions=document.querySelector('.topbar-actions');if(actions&&!document.getElementById('roleSession')){const chip=document.createElement('span');chip.id='roleSession';chip.className='session-chip';chip.innerHTML='<strong>'+labels[session.role]+'</strong><button class="secondary" style="padding:4px 8px">Logout</button>';chip.querySelector('button').onclick=()=>{localStorage.removeItem(ROLE_KEY);location.reload()};actions.prepend(chip)}
+    const active=document.querySelector('.view.active')?.id;if(active&&!allowed.includes(active))setView(allowed[0]);
+  }
+  function installFeeSetup(){
+    const section=document.getElementById('fees');if(!section||document.getElementById('classFeeSetup'))return;
+    const card=document.createElement('article');card.className='card';card.id='classFeeSetup';
+    card.innerHTML='<div class="section-head"><div><h2>Class-wise Monthly Fee</h2><p class="muted">Head of Institute apni marzi se har class ki fee set kar sakta hai.</p></div><button id="saveClassFeesBtn">Save Fees</button></div><div id="classFeeGrid" class="fee-setup-grid"></div>';
+    section.prepend(card);const fees=classFees();
+    card.querySelector('#classFeeGrid').innerHTML=Object.entries(fees).map(([c,a])=>'<div class="fee-class-card"><label>'+esc(c)+'</label><input type="number" min="0" data-fee-class="'+esc(c)+'" value="'+Number(a||0)+'"></div>').join('');
+    card.querySelector('#saveClassFeesBtn').onclick=()=>{const next={};card.querySelectorAll('[data-fee-class]').forEach(i=>next[i.dataset.feeClass]=Number(i.value||0));saveClassFees(next);logActivity('Class-wise fee structure updated');alert('Class fees saved successfully.');};
+    const select=document.getElementById('feeStudent');select?.addEventListener('change',()=>{const student=state.students.find(s=>s.id===Number(select.value));if(!student)return;const amount=classFees()[student.className];if(amount!=null)document.getElementById('feeAmount').value=amount;});
+  }
+  injectStyles();installFeeSetup();applyRole();
+})();
