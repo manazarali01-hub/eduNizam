@@ -418,7 +418,7 @@
     const cloud=window.EDUNIZAM_CLOUD;
     if(!cloud?.ready?.()){el.innerHTML='<div class="empty-state">Cloud Mode is not configured. Local fee records remain visible inside applications.</div>';return;}
     try{
-      const role=await cloud.getMyRole();if(!['owner','admin','admissions','reviewer'].includes(role)){el.innerHTML='<div class="empty-state">Payment verification is available to authorized institution staff.</div>';return;}
+      const role=await cloud.getMyRole();if(!['teacher','head_of_institute'].includes(role)){el.innerHTML='<div class="empty-state">Payment verification is available to authorized institution staff.</div>';return;}
       const rows=await cloud.listPayments();
       el.innerHTML=rows.length?rows.map(p=>{
         const a=p.applications||{};
@@ -441,18 +441,32 @@
     const cloud=window.EDUNIZAM_CLOUD;
     if(!cloud?.ready?.()){el.innerHTML='<div class="empty-state">Cloud Mode is not configured.</div>';return;}
     try{
-      const role=await cloud.getMyRole();if(!['owner','admin','admissions','reviewer'].includes(role)){el.innerHTML='<div class="empty-state">Audit Log is available to authorized institution staff.</div>';return;}
+      const role=await cloud.getMyRole();if(!['teacher','head_of_institute'].includes(role)){el.innerHTML='<div class="empty-state">Audit Log is available to authorized institution staff.</div>';return;}
       const rows=await cloud.listAuditLogs(75);
       el.innerHTML=rows.length?rows.map(x=>'<div class="practice-review"><div class="paper-card-top"><div><span class="mini-badge">'+esc(x.entity_type)+'</span><span class="trust-badge trust-verified">'+esc(x.action)+'</span></div><small>'+new Date(x.created_at).toLocaleString()+'</small></div><strong>'+esc(x.entity_id||'')+'</strong><div class="muted">'+esc(JSON.stringify(x.details||{}))+'</div></div>').join(''):'<div class="empty-state">No audit events yet.</div>';
     }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load audit log.')+'</div>'}
   }
 
+  const ROLE_LABELS={student:'Student',parent:'Parent',teacher:'Teacher',head_of_institute:'Head of Institute'};
+  function applyRoleVisibility(role){
+    document.querySelectorAll('[data-admission-roles]').forEach(el=>{
+      const allowed=(el.dataset.admissionRoles||'').split(',').map(x=>x.trim());
+      el.classList.toggle('hidden',!allowed.includes(role));
+    });
+    document.body.dataset.admissionRole=role||'student';
+    const active=document.querySelector('[data-admission-tab].active');
+    if(active?.classList.contains('hidden')){
+      const first=[...document.querySelectorAll('[data-admission-tab]:not(.hidden)')][0];
+      if(first)showTab(first.dataset.admissionTab);
+    }
+  }
   async function refreshCloudAuth(){
     const cloud=window.EDUNIZAM_CLOUD;
     const badge=$('admissionCloudBadge'),status=$('admissionAuthStatus');
     if(!cloud?.ready?.()){
       if(badge)badge.textContent='Local Mode';
       if(status)status.textContent='Cloud backend not connected. Local admissions remain available on this device.';
+      applyRoleVisibility('head_of_institute');
       return;
     }
     try{await cloud.init()}catch(e){}
@@ -460,19 +474,26 @@
     if(badge)badge.textContent=user?'Cloud Mode · Signed In':'Cloud Mode';
     if(status){
       if(user){
-        let role='applicant';try{role=await cloud.getMyRole()||'applicant'}catch(e){}
-        status.textContent='Signed in as '+user.email+' · Role: '+role;
-      }else status.textContent='Cloud backend connected. Sign in or create an applicant account.';
+        let role='student';try{role=await cloud.getMyRole()||'student'}catch(e){}
+        status.textContent='Signed in as '+user.email+' · Role: '+(ROLE_LABELS[role]||role);
+        applyRoleVisibility(role);
+      }else{
+        status.textContent='Cloud backend connected. Sign in or create a Student/Parent account.';
+        applyRoleVisibility('student');
+      }
     }
   }
   async function authAction(type){
     const cloud=window.EDUNIZAM_CLOUD,email=$('admissionAuthEmail')?.value.trim(),password=$('admissionAuthPassword')?.value||'';
     if(!cloud?.ready?.())return alert('Cloud backend is not configured yet. Local Mode is still available.');
+    const selectedRole=$('admissionAuthRole')?.value||'student';
+    const fullName=$('admissionAuthName')?.value.trim()||'';
     if(type!=='out'&&(!email||password.length<6))return alert('Enter a valid email and password of at least 6 characters.');
+    if(type==='signup'&&!['student','parent'].includes(selectedRole))return alert('Teacher and Head of Institute accounts are issued by the institute. Choose Student or Parent for self-registration.');
     try{
       if(type==='signup'){
-        const {error}=await cloud.signUp(email,password);if(error)throw error;
-        alert('Account created. If email confirmation is enabled, verify your email before signing in.');
+        const {error}=await cloud.signUp(email,password,selectedRole,fullName);if(error)throw error;
+        alert((ROLE_LABELS[selectedRole]||selectedRole)+' account created. If email confirmation is enabled, verify your email before signing in.');
       }else if(type==='signin'){
         const {error}=await cloud.signIn(email,password);if(error)throw error;
       }else await cloud.signOut();
