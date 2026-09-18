@@ -152,8 +152,23 @@
     return {ok:true,students:map.size};
   }
 
+  function createLocalBackup(){
+    const snapshot={
+      createdAt:new Date().toISOString(),
+      students:read('edunizam_students',[]),
+      attendance:read('edunizam_attendance',{}),
+      fees:read('edunizam_fees',[]),
+      results:read('edunizam_results',[]),
+      practiceHistory:read('edunizam_practice_history',[]),
+      remarks:read('edunizam_student_remarks',{}),
+      settings:read('edunizam_settings',{})
+    };
+    write('edunizam_last_cloud_restore_backup',snapshot);
+    return snapshot;
+  }
   async function pullAllCloudToLocal(){
     const c=cloud(); if(!ready()) throw new Error('Cloud backend is not configured.');
+    createLocalBackup();
     const client=c.state.client;
     const [settingsRes,studentsRes,attRes,feesRes,resultsRes,practiceRes,remarksRes]=await Promise.all([
       client.from('institution_settings').select('*').eq('institution_id',cfg.institutionId).maybeSingle(),
@@ -215,5 +230,5 @@
     return {ok:true,students:localStudents.length};
   }
 
-  window.EDUNIZAM_CORE_CLOUD={ready,pushAllLocalToCloud,pullAllCloudToLocal};
+  window.EDUNIZAM_CORE_CLOUD={ready,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup};
 })();
