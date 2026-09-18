@@ -117,6 +117,33 @@
     }).select().single();
     if(error)throw error;return data;
   }
+  async function listPayments(){
+    if(!state.client)return[];
+    const {data,error}=await state.client.from('payment_records')
+      .select('*,applications(application_no,applicant_name,institution_id)')
+      .order('created_at',{ascending:false});
+    if(error)throw error;return data||[];
+  }
+  async function updatePaymentStatus(id,status){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const payload={status};
+    if(status==='Paid'||status==='Verified'){payload.verified_by=state.user.id;payload.verified_at=new Date().toISOString()}
+    const {data,error}=await state.client.from('payment_records').update(payload).eq('id',id).select().single();
+    if(error)throw error;return data;
+  }
+  async function listAuditLogs(limit=50){
+    if(!state.client)return[];
+    let q=state.client.from('audit_logs').select('*').order('created_at',{ascending:false}).limit(limit);
+    if(cfg.institutionId)q=q.eq('institution_id',cfg.institutionId);
+    const {data,error}=await q;if(error)throw error;return data||[];
+  }
+  async function updateCloudApplicationStatus(id,status,note){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const payload={status,updated_at:new Date().toISOString()};
+    if(note!==undefined)payload.admin_note=note;
+    const {data,error}=await state.client.from('applications').update(payload).eq('id',id).select().single();
+    if(error)throw error;return data;
+  }
   async function createPaymentIntent({applicationId,method,amount,currency='PKR'}){
     if(!cfg.paymentApiBaseUrl)throw new Error('Live payment gateway is not connected.');
     const token=(await state.client?.auth.getSession())?.data?.session?.access_token||'';
@@ -127,7 +154,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,signIn,signOut,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,uploadDocument,createSignedDocumentUrl,logAudit,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,signIn,signOut,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,uploadDocument,createSignedDocumentUrl,logAudit,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
