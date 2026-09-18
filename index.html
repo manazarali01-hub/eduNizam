@@ -21,6 +21,7 @@
         <button class="nav-item" data-view="attendance">Attendance</button>
         <button class="nav-item" data-view="fees">Fees</button>
         <button class="nav-item" data-view="results">Results</button>
+        <button class="nav-item" data-view="pastpapers">Past Papers</button>
         <button class="nav-item" data-view="assistant">AI Assistant</button>
         <button class="nav-item" data-view="settings">Settings</button>
       </nav>
@@ -108,6 +109,28 @@
         </article>
       </section>
 
+      <section id="pastpapers" class="view">
+        <article class="card">
+          <div class="section-head">
+            <div><h2>Pakistan Past Papers</h2><p class="muted">Matric & Intermediate — board, class, subject and year wise</p></div>
+            <span class="badge" id="boardCountBadge">0 Boards</span>
+          </div>
+          <div class="form-grid">
+            <select id="paperRegion"><option value="">All Regions</option></select>
+            <select id="paperBoard"><option value="">All Boards</option></select>
+            <select id="paperClass">
+              <option value="">All Classes</option>
+              <option value="9">9th / SSC-I</option><option value="10">10th / SSC-II</option>
+              <option value="11">11th / HSSC-I</option><option value="12">12th / HSSC-II</option>
+            </select>
+            <select id="paperSubject"><option value="">All Subjects</option></select>
+            <select id="paperYear"><option value="">All Years</option></select>
+            <select id="paperSession"><option value="">Annual & Supplementary</option><option>Annual</option><option>Supplementary</option></select>
+          </div>
+          <div id="paperLibrary" class="paper-grid"></div>
+        </article>
+      </section>
+
       <section id="assistant" class="view">
         <article class="card">
           <h2>AI Assistant</h2>
@@ -138,6 +161,7 @@
     </main>
   </div>
 
+  <script src="past-papers-data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
