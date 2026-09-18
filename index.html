@@ -110,12 +110,36 @@
       </section>
 
       <section id="pastpapers" class="view">
-        <article class="card">
-          <div class="section-head">
-            <div><h2>Pakistan Past Papers</h2><p class="muted">Matric & Intermediate — board, class, subject and year wise</p></div>
-            <span class="badge" id="boardCountBadge">0 Boards</span>
+        <div class="pp-hero">
+          <div>
+            <div class="eyebrow">Premium Exam Prep</div>
+            <h2>Pakistan Past Papers Library</h2>
+            <p>Matric & Intermediate papers, model papers, rubrics and official board resources — searchable by board, class, subject and year.</p>
           </div>
-          <div class="form-grid">
+          <span class="badge" id="boardCountBadge">0 Boards</span>
+        </div>
+
+        <div class="pp-stats">
+          <article><span>Boards</span><strong id="ppStatBoards">0</strong></article>
+          <article><span>Indexed Resources</span><strong id="ppStatResources">0</strong></article>
+          <article><span>Saved</span><strong id="ppStatSaved">0</strong></article>
+          <article><span>Requests</span><strong id="ppStatRequests">0</strong></article>
+        </div>
+
+        <article class="card">
+          <div class="paper-tabs" role="tablist">
+            <button class="paper-tab active" data-paper-tab="browse">Boards</button>
+            <button class="paper-tab" data-paper-tab="verified">Verified Papers</button>
+            <button class="paper-tab" data-paper-tab="saved">Saved</button>
+            <button class="paper-tab" data-paper-tab="recent">Recent</button>
+            <button class="paper-tab" data-paper-tab="requests">Requests</button>
+          </div>
+
+          <div class="paper-search-row">
+            <input id="paperSearch" placeholder="Search board, subject, year or paper type">
+          </div>
+
+          <div class="form-grid pp-filter-grid">
             <select id="paperRegion"><option value="">All Regions</option></select>
             <select id="paperBoard"><option value="">All Boards</option></select>
             <select id="paperClass">
@@ -125,8 +149,25 @@
             </select>
             <select id="paperSubject"><option value="">All Subjects</option></select>
             <select id="paperYear"><option value="">All Years</option></select>
-            <select id="paperSession"><option value="">Annual & Supplementary</option><option>Annual</option><option>Supplementary</option></select>
+            <select id="paperSession"><option value="">All Sessions</option><option>Annual</option><option>Supplementary</option></select>
+            <select id="paperType"><option value="">All Resource Types</option><option value="past">Past Paper</option><option value="model">Model Paper</option><option value="rubric">Rubric / Marking</option><option value="syllabus">Syllabus</option><option value="portal">Official Portal</option></select>
+            <select id="paperMedium"><option value="">All Mediums</option><option>English</option><option>Urdu</option><option>English / Urdu</option></select>
+            <select id="paperSource"><option value="">All Sources</option><option value="official">Official</option><option value="verified">Verified</option><option value="community">Community</option></select>
           </div>
+
+          <div id="paperRequestPanel" class="request-panel hidden">
+            <h3>Request a Missing Paper</h3>
+            <p class="muted">If a paper is not yet indexed, save a request so it can be added to the verified library.</p>
+            <div class="form-grid">
+              <select id="requestBoard"><option value="">Select board</option></select>
+              <select id="requestClass"><option value="">Class</option><option value="9">9th</option><option value="10">10th</option><option value="11">11th</option><option value="12">12th</option></select>
+              <input id="requestSubject" placeholder="Subject">
+              <input id="requestYear" type="number" min="1990" max="2035" placeholder="Year">
+              <select id="requestSession"><option>Annual</option><option>Supplementary</option></select>
+              <button id="savePaperRequestBtn">Save Request</button>
+            </div>
+          </div>
+
           <div id="paperLibrary" class="paper-grid"></div>
         </article>
       </section>
@@ -163,5 +204,6 @@
 
   <script src="past-papers-data.js"></script>
   <script src="app.js"></script>
+  <script src="past-papers-premium.js"></script>
 </body>
 </html>
