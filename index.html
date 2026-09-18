@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <title>EduNizam – AI School Assistant</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">EN</div>
+        <div><strong>EduNizam</strong><small>AI School Assistant</small></div>
+      </div>
+      <nav id="nav">
+        <button class="nav-item active" data-view="dashboard">Dashboard</button>
+        <button class="nav-item" data-view="students">Students</button>
+        <button class="nav-item" data-view="attendance">Attendance</button>
+        <button class="nav-item" data-view="fees">Fees</button>
+        <button class="nav-item" data-view="results">Results</button>
+        <button class="nav-item" data-view="assistant">AI Assistant</button>
+        <button class="nav-item" data-view="settings">Settings</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="page-title">Dashboard</h1>
+          <p id="school-name">My School</p>
+        </div>
+        <button id="installBtn" class="secondary hidden">Install App</button>
+      </header>
+
+      <section id="dashboard" class="view active">
+        <div class="cards">
+          <article class="card stat"><span>Total Students</span><strong id="statStudents">0</strong></article>
+          <article class="card stat"><span>Present Today</span><strong id="statPresent">0</strong></article>
+          <article class="card stat"><span>Fees Collected</span><strong id="statFees">Rs 0</strong></article>
+          <article class="card stat"><span>Pending Fees</span><strong id="statPending">Rs 0</strong></article>
+        </div>
+        <div class="grid-2">
+          <article class="card">
+            <h2>Quick Actions</h2>
+            <div class="quick-actions">
+              <button data-jump="students">Add Student</button>
+              <button data-jump="attendance">Mark Attendance</button>
+              <button data-jump="fees">Record Fee</button>
+              <button data-jump="results">Add Result</button>
+            </div>
+          </article>
+          <article class="card">
+            <h2>Recent Activity</h2>
+            <div id="activityList" class="muted">No activity yet.</div>
+          </article>
+        </div>
+      </section>
+
+      <section id="students" class="view">
+        <article class="card">
+          <div class="section-head"><h2>Students</h2><button id="addStudentBtn">+ Add Student</button></div>
+          <div class="form-grid hidden" id="studentFormWrap">
+            <input id="studentName" placeholder="Student name">
+            <input id="fatherName" placeholder="Father / Guardian name">
+            <input id="studentClass" placeholder="Class">
+            <input id="studentPhone" placeholder="Phone">
+            <button id="saveStudentBtn">Save Student</button>
+          </div>
+          <div id="studentList" class="list"></div>
+        </article>
+      </section>
+
+      <section id="attendance" class="view">
+        <article class="card">
+          <div class="section-head"><h2>Daily Attendance</h2><span id="todayLabel" class="muted"></span></div>
+          <div id="attendanceList" class="list"></div>
+          <button id="saveAttendanceBtn">Save Attendance</button>
+        </article>
+      </section>
+
+      <section id="fees" class="view">
+        <article class="card">
+          <div class="section-head"><h2>Fee Management</h2></div>
+          <div class="form-grid">
+            <select id="feeStudent"></select>
+            <input id="feeAmount" type="number" min="0" placeholder="Amount">
+            <select id="feeStatus"><option>Paid</option><option>Pending</option></select>
+            <button id="saveFeeBtn">Save Fee Record</button>
+          </div>
+          <div id="feeList" class="list"></div>
+        </article>
+      </section>
+
+      <section id="results" class="view">
+        <article class="card">
+          <h2>Results</h2>
+          <div class="form-grid">
+            <select id="resultStudent"></select>
+            <input id="resultSubject" placeholder="Subject">
+            <input id="resultMarks" type="number" min="0" placeholder="Marks">
+            <input id="resultTotal" type="number" min="1" placeholder="Total marks">
+            <button id="saveResultBtn">Save Result</button>
+          </div>
+          <div id="resultList" class="list"></div>
+        </article>
+      </section>
+
+      <section id="assistant" class="view">
+        <article class="card">
+          <h2>AI Assistant</h2>
+          <p class="muted">Generate school notices, parent messages, activity ideas, result comments and admin drafts. Secure AI backend will be connected later.</p>
+          <textarea id="aiPrompt" rows="6" placeholder="Example: Write a short fee reminder for parents in Urdu and English."></textarea>
+          <div class="quick-actions">
+            <button class="prompt-chip">Fee Reminder</button>
+            <button class="prompt-chip">Holiday Notice</button>
+            <button class="prompt-chip">Parent Message</button>
+            <button class="prompt-chip">Activity Idea</button>
+          </div>
+          <button id="generateBtn">Generate Draft</button>
+          <div id="aiOutput" class="output muted">AI backend not connected yet. Your draft request will appear here when connected.</div>
+        </article>
+      </section>
+
+      <section id="settings" class="view">
+        <article class="card">
+          <h2>School Settings</h2>
+          <div class="form-grid">
+            <input id="schoolNameInput" placeholder="School name">
+            <input id="schoolPhoneInput" placeholder="School phone">
+            <input id="schoolAddressInput" placeholder="School address">
+            <button id="saveSettingsBtn">Save Settings</button>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
