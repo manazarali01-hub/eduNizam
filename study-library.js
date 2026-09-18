@@ -20,7 +20,7 @@
   }
   function filters(){return{q:$('studySearch').value.trim().toLowerCase(),board:$('studyBoard').value,cls:$('studyClass').value,subject:$('studySubject').value,type:$('studyType').value}}
   function match(x,f){
-    const hay=[x.title,x.board,x.subject,x.type,x.note,x.content].join(' ').toLowerCase();
+    const hay=[x.title,x.board,x.subject,x.type,x.chapter,x.note,x.content].join(' ').toLowerCase();
     return(!f.q||hay.includes(f.q))&&(!f.board||x.board===f.board)&&(!f.cls||x.classLevels.includes(Number(f.cls)))&&(!f.subject||x.subject===f.subject)&&(!f.type||x.type===f.type)
   }
   function card(x){
@@ -28,9 +28,9 @@
     let actions='';
     if(local) actions+='<button data-study-open="'+x.id+'">Open</button>';
     else actions+='<a class="primary-link" href="'+esc(x.url)+'" target="_blank" rel="noopener" data-study-track="'+x.id+'">Open Source</a>';
-    if(direct) actions+='<a class="secondary-link" href="'+esc(x.fileUrl||x.url)+'" target="_blank" rel="noopener">PDF</a>';
+    if(direct) actions+='<a class="secondary-link" href="'+esc(x.fileUrl||x.url)+'" target="_blank" rel="noopener">Download / Open PDF</a>';
     actions+='<button class="secondary-action" data-study-summary="'+x.id+'">AI Summary</button>';
-    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(x.type)+'</span> '+(x.source==='official'?'<span class="trust-badge trust-official">Official</span>':'<span class="trust-badge trust-verified">Built-in</span>')+'</div><button class="icon-btn" data-study-save="'+x.id+'">'+(isSaved?'★':'☆')+'</button></div><h3>'+esc(x.title)+'</h3><p class="muted">'+esc(x.board)+' · '+esc(x.subject)+' · Class '+esc(x.classLevels.join(', '))+'</p>'+(x.note?'<p class="coverage-note">'+esc(x.note)+'</p>':'')+'<div class="paper-actions">'+actions+'</div></article>';
+    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(x.type)+'</span> '+(x.source==='official'?'<span class="trust-badge trust-official">Official</span>':x.source==='verified'?'<span class="trust-badge trust-verified">Verified</span>':'<span class="trust-badge trust-verified">EduNizam</span>')+'</div><button class="icon-btn" data-study-save="'+x.id+'">'+(isSaved?'★':'☆')+'</button></div><h3>'+esc(x.title)+'</h3><p class="muted">'+esc(x.board)+' · '+esc(x.subject)+' · Class '+esc(x.classLevels.join(', '))+'</p>'+(x.note?'<p class="coverage-note">'+esc(x.note)+'</p>':'')+'<div class="paper-actions">'+actions+'</div></article>';
   }
   function render(){
     const f=filters();document.querySelectorAll('[data-study-tab]').forEach(b=>b.classList.toggle('active',b.dataset.studyTab===activeTab));
