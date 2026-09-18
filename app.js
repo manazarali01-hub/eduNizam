@@ -44,6 +44,27 @@ function renderStudents(){
  $('studentList').innerHTML=state.students.length?state.students.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span><button onclick="removeStudent('+s.id+')">Delete</button></div>').join(''):'<div class="muted">No students added yet.</div>';
 }
 window.removeStudent=id=>{state.students=state.students.filter(s=>s.id!==id);persist();renderAll();};
+window.addStudentFromAdmission=(student)=>{
+  if(!student||!student.name)return null;
+  const existing=state.students.find(s=>s.admissionApplicationId&&s.admissionApplicationId===student.admissionApplicationId);
+  if(existing)return existing;
+  const record={
+    id:student.id||Date.now(),
+    name:student.name,
+    father:student.father||'',
+    className:student.className||'',
+    phone:student.phone||'',
+    rollNo:student.rollNo||'',
+    studentId:student.studentId||'',
+    admissionApplicationId:student.admissionApplicationId||'',
+    admissionDate:student.admissionDate||'',
+    feeSnapshot:student.feeSnapshot||null,
+    source:'admission'
+  };
+  state.students.push(record);
+  persist();logActivity('Student enrolled from admission: '+record.name);renderAll();
+  return record;
+};
 function todayKey(){return new Date().toISOString().slice(0,10)}
 function renderAttendance(){
  $('todayLabel').textContent=new Date().toLocaleDateString();
