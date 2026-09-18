@@ -130,24 +130,8 @@
   function saveApplication(status){
     const a=getForm(status);
     if(!valid(a,status==='Draft'))return alert(status==='Draft'?'Enter at least applicant name, CNIC or program.':'Please complete applicant name, guardian name, CNIC/B-Form, program and previous qualification.');
-    const arr=apps();arr.push(a);write(KEY.apps,arr);
-    let cloudNote='';
-    const cloud=window.EDUNIZAM_CLOUD;
-    if(cloud?.ready?.()&&cloud.state?.user&&status!=='Draft'){
-      try{
-        const remote=await cloud.syncLocalApplication(a);
-        a.cloudId=remote?.id||null;a.cloudSyncedAt=new Date().toISOString();
-        const idx=arr.findIndex(x=>x.applicationId===a.applicationId);if(idx>=0)arr[idx]=a;write(KEY.apps,arr);
-        const uploadFields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile'],['payment-proof','admPaymentProofFile']];
-        for(const [kind,id] of uploadFields){
-          const file=$(id)?.files?.[0];
-          if(file&&remote?.id)await cloud.uploadDocument(remote.id,kind,file);
-        }
-        cloudNote=' · Cloud synced';
-      }catch(e){console.warn('Cloud sync failed:',e);cloudNote=' · Saved locally; cloud sync pending';}
-    }
-    clearForm();renderAdmin();updateStats();
-    $('admissionSubmitResult').innerHTML='<div class="admission-success"><strong>'+esc(a.applicationId)+'</strong><span>'+esc(status==='Draft'?'Draft saved':'Application submitted successfully')+esc(cloudNote)+'</span><button data-print-admission="'+a.applicationId+'" class="secondary">Print Application</button></div>';
+    const arr=apps();arr.push(a);write(KEY.apps,arr);clearForm();renderAdmin();updateStats();
+    $('admissionSubmitResult').innerHTML='<div class="admission-success"><strong>'+esc(a.applicationId)+'</strong><span>'+esc(status==='Draft'?'Draft saved':'Application submitted successfully')+'</span><button data-print-admission="'+a.applicationId+'" class="secondary">Print Application</button></div>';
     document.querySelector('[data-print-admission]')?.addEventListener('click',()=>printApplication(a.applicationId));
   }
   function clearForm(){
@@ -268,8 +252,24 @@
     const a=getForm(status);
     if(!valid(a,status==='Draft'))return alert(status==='Draft'?'Enter at least applicant name, CNIC or program.':'Please complete applicant name, guardian name, CNIC/B-Form, program and previous qualification.');
     try{a.attachments=await collectUploads(a.applicationId)}catch(e){console.error(e);return alert('Could not save one or more uploaded files on this device.')}
-    const arr=apps();arr.push(a);write(KEY.apps,arr);clearForm();renderAdmin();updateStats();
-    $('admissionSubmitResult').innerHTML='<div class="admission-success"><strong>'+esc(a.applicationId)+'</strong><span>'+esc(status==='Draft'?'Draft saved':'Application submitted successfully')+'</span><button data-print-admission="'+a.applicationId+'" class="secondary">Print Application</button></div>';
+    const uploadFields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile'],['payment-proof','admPaymentProofFile']];
+    const arr=apps();arr.push(a);write(KEY.apps,arr);
+    let cloudNote='';
+    const cloud=window.EDUNIZAM_CLOUD;
+    if(cloud?.ready?.()&&cloud.state?.user&&status!=='Draft'){
+      try{
+        const remote=await cloud.syncLocalApplication(a);
+        a.cloudId=remote?.id||null;a.cloudSyncedAt=new Date().toISOString();
+        const idx=arr.findIndex(x=>x.applicationId===a.applicationId);if(idx>=0)arr[idx]=a;write(KEY.apps,arr);
+        for(const [kind,id] of uploadFields){
+          const file=$(id)?.files?.[0];
+          if(file&&remote?.id)await cloud.uploadDocument(remote.id,kind,file);
+        }
+        cloudNote=' · Cloud synced';
+      }catch(e){console.warn('Cloud sync failed:',e);cloudNote=' · Saved locally; cloud sync pending';}
+    }
+    clearForm();renderAdmin();updateStats();
+    $('admissionSubmitResult').innerHTML='<div class="admission-success"><strong>'+esc(a.applicationId)+'</strong><span>'+esc(status==='Draft'?'Draft saved':'Application submitted successfully')+esc(cloudNote)+'</span><button data-print-admission="'+a.applicationId+'" class="secondary">Print Application</button></div>';
     document.querySelector('[data-print-admission]')?.addEventListener('click',()=>printApplication(a.applicationId));
   };
 
