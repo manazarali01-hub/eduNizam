@@ -348,6 +348,40 @@
     $('admUploadPreview').innerHTML=items.map(f=>'<span class="mini-badge">'+esc(f.name)+' · '+fileSize(f.size)+'</span>').join(' ');
   }));
 
-  window.renderAdmissionsPortal=()=>{loadSetup();renderAdmin();updateStats()};
+
+  async function refreshCloudAuth(){
+    const cloud=window.EDUNIZAM_CLOUD;
+    const badge=$('admissionCloudBadge'),status=$('admissionAuthStatus');
+    if(!cloud?.ready?.()){
+      if(badge)badge.textContent='Local Mode';
+      if(status)status.textContent='Cloud backend not connected. Local admissions remain available on this device.';
+      return;
+    }
+    try{await cloud.init()}catch(e){}
+    const user=cloud.state?.user;
+    if(badge)badge.textContent=user?'Cloud Mode · Signed In':'Cloud Mode';
+    if(status)status.textContent=user?'Signed in as '+user.email:'Cloud backend connected. Sign in or create an applicant account.';
+  }
+  async function authAction(type){
+    const cloud=window.EDUNIZAM_CLOUD,email=$('admissionAuthEmail')?.value.trim(),password=$('admissionAuthPassword')?.value||'';
+    if(!cloud?.ready?.())return alert('Cloud backend is not configured yet. Local Mode is still available.');
+    if(type!=='out'&&(!email||password.length<6))return alert('Enter a valid email and password of at least 6 characters.');
+    try{
+      if(type==='signup'){
+        const {error}=await cloud.signUp(email,password);if(error)throw error;
+        alert('Account created. If email confirmation is enabled, verify your email before signing in.');
+      }else if(type==='signin'){
+        const {error}=await cloud.signIn(email,password);if(error)throw error;
+      }else await cloud.signOut();
+      await refreshCloudAuth();
+    }catch(e){alert(e.message||'Authentication failed.')}
+  }
+  $('admissionSignUpBtn')?.addEventListener('click',()=>authAction('signup'));
+  $('admissionSignInBtn')?.addEventListener('click',()=>authAction('signin'));
+  $('admissionSignOutBtn')?.addEventListener('click',()=>authAction('out'));
+  window.addEventListener('edunizam:auth',refreshCloudAuth);
+  refreshCloudAuth();
+
+  window.renderAdmissionsPortal=()=>{loadSetup();renderAdmin();updateStats();refreshCloudAuth()};
   fillStatic();
 })();
