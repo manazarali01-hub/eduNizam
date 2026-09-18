@@ -97,6 +97,21 @@
     return{list,avg,weak};
   }
 
+
+  function trendBars(values){
+    if(!values.length)return '<div class="empty-state">No trend data yet.</div>';
+    return '<div class="trend-bars">'+values.map((v,i)=>'<div class="trend-col" title="'+esc(v.label)+' · '+v.value+'%"><span>'+v.value+'%</span><i style="height:'+Math.max(6,Math.min(100,v.value))+'%"></i><small>'+esc(v.shortLabel||String(i+1))+'</small></div>').join('')+'</div>';
+  }
+  function attendanceCalendar(id){
+    const all=attendance();
+    const dates=Object.keys(all).sort().slice(-30);
+    if(!dates.length)return '<div class="empty-state">No attendance data yet.</div>';
+    return '<div class="attendance-grid">'+dates.map(d=>{
+      const day=all[d]||{},v=day[id]??day[String(id)]??'Not Marked';
+      const cls=v==='Present'?'present':(v==='Absent'?'absent':'na');
+      return '<div class="attendance-day '+cls+'" title="'+esc(d)+' · '+esc(v)+'"><strong>'+esc(d.slice(-2))+'</strong><span>'+esc(v==='Present'?'P':v==='Absent'?'A':'—')+'</span></div>';
+    }).join('')+'</div>';
+  }
   function riskLabel(att,avg,weak){
     if((att!=null&&att<60)||(avg!=null&&avg<50)||weak>=3)return ['High Attention','high'];
     if((att!=null&&att<75)||(avg!=null&&avg<60)||weak>=1)return ['Needs Attention','medium'];
@@ -133,6 +148,21 @@
     $('profileRiskBadge').dataset.risk=riskClass;
 
     $('profileSubjectPerformance').innerHTML=subjects.length?subjects.map(x=>'<div class="subject-bar-row"><div><strong>'+esc(x.subject)+'</strong><span>'+x.avg+'%</span></div><div class="subject-bar"><i style="width:'+Math.max(0,Math.min(100,x.avg))+'%"></i></div></div>').join(''):'<div class="empty-state">No result data yet.</div>';
+
+    const resultTrend=rlist.slice(-8).map((r,i)=>({value:Math.round((Number(r.marks)||0)/(Number(r.total)||1)*100),label:r.subject||'Result',shortLabel:String(i+1)}));
+    $('profileResultTrend').innerHTML=trendBars(resultTrend);
+    const practiceTrend=p.list.slice(-8).map((x,i)=>({value:Number(x.pct||0),label:x.config?.subject||'Practice',shortLabel:String(i+1)}));
+    $('profilePracticeChart').innerHTML=trendBars(practiceTrend);
+    $('profileAttendanceCalendar').innerHTML=attendanceCalendar(s.id);
+
+    const strongest=subjects.length?subjects.slice().sort((a,b)=>b.avg-a.avg)[0]:null;
+    const weakest=subjects.length?subjects[0]:null;
+    const highlights=[];
+    if(strongest)highlights.push('<div class="highlight-card"><span>Strongest Subject</span><strong>'+esc(strongest.subject)+' · '+strongest.avg+'%</strong></div>');
+    if(weakest)highlights.push('<div class="highlight-card"><span>Focus Subject</span><strong>'+esc(weakest.subject)+' · '+weakest.avg+'%</strong></div>');
+    if(att!=null)highlights.push('<div class="highlight-card"><span>Attendance</span><strong>'+att+'%</strong></div>');
+    if(p.avg!=null)highlights.push('<div class="highlight-card"><span>Practice Average</span><strong>'+p.avg+'%</strong></div>');
+    $('profileHighlights').innerHTML=highlights.length?highlights.join(''):'<div class="empty-state">More data is needed for highlights.</div>';
 
     const alerts=[];
     if(att!=null&&att<75)alerts.push('Attendance is '+att+'%, below the 75% target.');
