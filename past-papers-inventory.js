@@ -155,5 +155,24 @@
   official('sargodha-10-model-2024','bise-sargodha',10,2024,'Annual','BISE Sargodha 10th Class Model Papers 2024','https://site.bisesargodha.edu.pk/MatricModelPapers','Official BISE Sargodha model-paper archive.','model');
   official('sargodha-9-model-2024','bise-sargodha',9,2024,'Annual','BISE Sargodha 9th Class Model Papers 2024','https://site.bisesargodha.edu.pk/MatricModelPapers','Official BISE Sargodha model-paper archive.','model');
 
+  // Khyber Pakhtunkhwa and Sindh official model/sample-paper resources.
+  [
+    ['abbottabad-9-model','bise-abbottabad',9,2026,'BISE Abbottabad Class 9 SLO Model Papers','https://biseatd.edu.pk/sample_papers_9th.php'],
+    ['abbottabad-10-model','bise-abbottabad',10,2026,'BISE Abbottabad Class 10 SLO Model Papers','https://www.biseatd.edu.pk/sample_papers_10th.php'],
+    ['abbottabad-11-model','bise-abbottabad',11,2026,'BISE Abbottabad Class 11 SLO Model Papers','https://www.biseatd.edu.pk/sample_papers_11th.php'],
+    ['abbottabad-12-model','bise-abbottabad',12,2026,'BISE Abbottabad Class 12 SLO Model Papers','https://biseatd.edu.pk/sample_papers_12th.php'],
+    ['bannu-9-model','bise-bannu',9,2026,'BISE Bannu SSC 9th Sample / Model Papers','https://www.biseb.edu.pk/sample-papers.php'],
+    ['bannu-10-model','bise-bannu',10,2026,'BISE Bannu SSC 10th Sample / Model Papers','https://www.biseb.edu.pk/sample-papers.php'],
+    ['bannu-11-model','bise-bannu',11,2026,'BISE Bannu HSSC 11th Sample Papers','https://www.biseb.edu.pk/sample-papers.php'],
+    ['bannu-12-model','bise-bannu',12,2026,'BISE Bannu HSSC 12th Sample Papers','https://www.biseb.edu.pk/sample-papers.php'],
+    ['peshawar-12-model','bise-peshawar',12,2026,'BISE Peshawar HSSC 12th SLO Model Papers','https://www.bisep.edu.pk/'],
+    ['peshawar-hssc-model','bise-peshawar',11,2026,'BISE Peshawar HSSC SLO Model Papers','https://www.bisep.edu.pk/'],
+    ['biek-11-12-model-2024','biek-karachi',11,2024,'BIEK Karachi XI & XII Model Papers 2024 Onward','https://biek.edu.pk/ModelPaper/2024/Model-Paper-for-Examinations-2024.pdf']
+  ].forEach(([id,boardId,cls,year,title,url])=>{
+    const rec={id,boardId,classLevel:cls,subject:'All Subjects',year,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title,url,note:'Official board model/sample-paper resource.',verifiedAt:'2026-09-18'};
+    if(/\.pdf(?:$|[?#])/i.test(url))rec.fileUrl=url;
+    add(rec);
+  });
+
   PP.updatedAt='2026-09-18';
 })();
