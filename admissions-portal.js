@@ -40,6 +40,43 @@
     const list=currentPrograms();
     $('admProgram').innerHTML='<option value="">Select class / program</option>'+list.map(x=>'<option>'+esc(x)+'</option>').join('');
     $('admissionProgramFilter').innerHTML='<option value="">All Programs</option>'+list.map(x=>'<option>'+esc(x)+'</option>').join('');
+    renderFeeStructureEditor();
+    renderProgramFeeSummary();
+  }
+  function feeForProgram(program){
+    const s=setup(),f=s.feeStructure?.[program]||{};
+    return {
+      applicationFee:Number(f.applicationFee ?? s.applicationFee ?? 0),
+      admissionFee:Number(f.admissionFee||0),
+      monthlyFee:Number(f.monthlyFee||0),
+      annualCharges:Number(f.annualCharges||0),
+      otherCharges:Number(f.otherCharges||0)
+    };
+  }
+  function renderFeeStructureEditor(){
+    const el=$('admissionFeeStructureEditor');if(!el)return;
+    const list=currentPrograms(),s=setup();
+    el.innerHTML='<div class="fee-row fee-head"><span>Class / Program</span><span>Application</span><span>Admission</span><span>Monthly</span><span>Annual</span><span>Other</span></div>'+
+      list.map(p=>{
+        const f=s.feeStructure?.[p]||{};
+        return '<div class="fee-row"><strong>'+esc(p)+'</strong><input data-fee-program="'+esc(p)+'" data-fee-field="applicationFee" type="number" min="0" value="'+Number(f.applicationFee ?? s.applicationFee ?? 0)+'"><input data-fee-program="'+esc(p)+'" data-fee-field="admissionFee" type="number" min="0" value="'+Number(f.admissionFee||0)+'"><input data-fee-program="'+esc(p)+'" data-fee-field="monthlyFee" type="number" min="0" value="'+Number(f.monthlyFee||0)+'"><input data-fee-program="'+esc(p)+'" data-fee-field="annualCharges" type="number" min="0" value="'+Number(f.annualCharges||0)+'"><input data-fee-program="'+esc(p)+'" data-fee-field="otherCharges" type="number" min="0" value="'+Number(f.otherCharges||0)+'"></div>';
+      }).join('');
+  }
+  function saveFeeStructure(){
+    const s=setup(),fs={...(s.feeStructure||{})};
+    document.querySelectorAll('[data-fee-program]').forEach(input=>{
+      const p=input.dataset.feeProgram,field=input.dataset.feeField;
+      fs[p]=fs[p]||{};fs[p][field]=Number(input.value||0);
+    });
+    s.feeStructure=fs;write(KEY.setup,s);renderProgramFeeSummary();renderSetupSummary();alert('Class/program fee structure saved.');
+  }
+  function renderProgramFeeSummary(){
+    const el=$('admProgramFeeSummary');if(!el)return;
+    const p=$('admProgram')?.value;
+    if(!p){el.innerHTML='';return;}
+    const f=feeForProgram(p);
+    const firstTotal=f.applicationFee+f.admissionFee+f.monthlyFee+f.annualCharges+f.otherCharges;
+    el.innerHTML='<div class="coverage-note"><strong>'+esc(p)+' Fee</strong><br>Application: PKR '+f.applicationFee.toLocaleString()+' · Admission: PKR '+f.admissionFee.toLocaleString()+' · Monthly: PKR '+f.monthlyFee.toLocaleString()+' · Annual: PKR '+f.annualCharges.toLocaleString()+' · Other: PKR '+f.otherCharges.toLocaleString()+'<br><strong>Initial payable (configured): PKR '+firstTotal.toLocaleString()+'</strong></div>';
   }
   function refreshPaymentMethods(){
     const s=setup(),enabled=s.enabledPaymentMethods||D.paymentMethods.map(x=>x.id);
@@ -120,6 +157,7 @@
       quota:$('admQuota').value,qualification:$('admQualification').value,previousInstitute:$('admPrevInstitute').value.trim(),
       obtainedMarks:o,totalMarks:t,percentage:t>0?Number(((o/t)*100).toFixed(2)):null,
       documents:docs(),testRequired:s.requireTest,interviewRequired:s.requireInterview,
+      feeSnapshot:feeForProgram($('admProgram').value),
       testMarks:null,interviewMarks:null,meritScore:null,adminNote:''
     }
   }
@@ -183,7 +221,7 @@
   }
   function renderSetupSummary(){
     const s=setup(),type=D.institutionTypes.find(x=>x.id===s.institutionType)?.name||s.institutionType;
-    $('admissionSetupSummary').innerHTML='<article class="paper-card"><h3>'+esc(s.institutionName)+'</h3><div class="paper-meta"><span>'+esc(type)+'</span><span>Session '+esc(s.admissionSession)+'</span><span>Fee PKR '+Number(s.applicationFee||0).toLocaleString()+'</span></div><p class="coverage-note">Test: '+(s.requireTest?'Required':'No')+' · Interview: '+(s.requireInterview?'Required':'No')+' · Prefix: '+esc(s.applicationPrefix)+'</p></article>';
+    $('admissionSetupSummary').innerHTML='<article class="paper-card"><h3>'+esc(s.institutionName)+'</h3><div class="paper-meta"><span>'+esc(type)+'</span><span>Session '+esc(s.admissionSession)+'</span><span>Fee PKR '+Number(s.applicationFee||0).toLocaleString()+'</span></div><p class="coverage-note">Test: '+(s.requireTest?'Required':'No')+' · Interview: '+(s.requireInterview?'Required':'No')+' · Prefix: '+esc(s.applicationPrefix)+' · Class/program-wise fees enabled</p></article>';
   }
   function updateStats(){
     const a=apps();$('admissionStatTotal').textContent=a.length;$('admissionStatSubmitted').textContent=a.filter(x=>x.status==='Submitted'||x.status==='Under Review').length;$('admissionStatSelected').textContent=a.filter(x=>x.status==='Selected'||x.status==='Admitted').length;$('admissionStatPending').textContent=a.filter(x=>x.status==='Documents Pending').length;
@@ -191,6 +229,8 @@
 
   document.querySelectorAll('[data-admission-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.admissionTab));
   $('admObtainedMarks').addEventListener('input',calcPct);$('admTotalMarks').addEventListener('input',calcPct);
+  $('admProgram').addEventListener('change',renderProgramFeeSummary);
+  $('saveAdmissionFeeStructureBtn')?.addEventListener('click',saveFeeStructure);
   $('submitAdmissionBtn').onclick=()=>saveApplication('Submitted');$('saveAdmissionDraftBtn').onclick=()=>saveApplication('Draft');$('clearAdmissionBtn').onclick=clearForm;
   $('trackAdmissionBtn').onclick=track;$('saveAdmissionSetupBtn').onclick=saveSetup;
   $('admissionInstitutionType').addEventListener('change',()=>{const s=setup();s.institutionType=$('admissionInstitutionType').value;write(KEY.setup,s);refreshPrograms()});
@@ -285,9 +325,9 @@
   };
 
   function printChallan(){
-    const s=setup(),id=nextId(),name=$('admApplicantName').value.trim()||'Applicant';
+    const s=setup(),id=nextId(),name=$('admApplicantName').value.trim()||'Applicant',program=$('admProgram').value||'',fee=feeForProgram(program);
     const w=window.open('','_blank');if(!w)return;
-    w.document.write('<html><head><title>Admission Challan</title><style>body{font-family:Arial;padding:28px}.copy{border:1px solid #444;padding:18px;margin-bottom:22px}.row{display:flex;justify-content:space-between;gap:20px}</style></head><body>'+[1,2].map(i=>'<div class="copy"><h2>'+esc(s.institutionName)+'</h2><div class="row"><strong>Admission Fee Challan</strong><span>Copy '+i+'</span></div><p>Application Ref: '+esc(id)+'</p><p>Applicant: '+esc(name)+'</p><p>Session: '+esc(s.admissionSession)+'</p><p>Amount: PKR '+Number(s.applicationFee||0).toLocaleString()+'</p><p>Date: __________ &nbsp;&nbsp; Bank/Transaction Ref: __________________</p><p>Authorized Signature: __________________</p></div>').join('')+'</body></html>');
+    w.document.write('<html><head><title>Admission Challan</title><style>body{font-family:Arial;padding:28px}.copy{border:1px solid #444;padding:18px;margin-bottom:22px}.row{display:flex;justify-content:space-between;gap:20px}</style></head><body>'+[1,2].map(i=>'<div class="copy"><h2>'+esc(s.institutionName)+'</h2><div class="row"><strong>Admission Fee Challan</strong><span>Copy '+i+'</span></div><p>Application Ref: '+esc(id)+'</p><p>Applicant: '+esc(name)+'</p><p>Session: '+esc(s.admissionSession)+'</p><p>Program: '+esc(program||'Not selected')+'</p><p>Application Fee: PKR '+Number(fee.applicationFee||0).toLocaleString()+'</p><p>Date: __________ &nbsp;&nbsp; Bank/Transaction Ref: __________________</p><p>Authorized Signature: __________________</p></div>').join('')+'</body></html>');
     w.document.close();w.focus();setTimeout(()=>w.print(),250);
   }
 
