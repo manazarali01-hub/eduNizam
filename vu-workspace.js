@@ -11,6 +11,26 @@
   const read=k=>JSON.parse(localStorage.getItem(k)||'[]');
   const write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const CATALOG=window.EDUNIZAM_VU_COURSE_CATALOG||{courses:[],domains:{}};
+  const catalogCourse=code=>CATALOG.courses?.find(x=>x.code===code);
+  const domainFor=code=>{
+    const m=String(code||'').toUpperCase().match(/^([A-Z]{2,5})/);
+    return m?(CATALOG.domains?.[m[1]]||m[1]):'General';
+  };
+  function renderCourseInsight(code){
+    const el=$('vuCourseInsight');if(!el)return;
+    const cc=String(code||'').trim().toUpperCase();
+    if(!cc){el.classList.add('hidden');el.innerHTML='';return;}
+    const x=catalogCourse(cc);
+    if(x){
+      el.classList.remove('hidden');
+      el.innerHTML='<div class="paper-card"><div class="paper-card-top"><div><span class="trust-badge trust-official">Verified Official Course</span> <span class="mini-badge">'+esc(x.category)+'</span></div></div><h3>'+esc(x.code)+' — '+esc(x.title)+'</h3><div class="paper-meta"><span>'+esc(x.creditHours)+' CH</span><span>'+esc(x.lectureCount)+' lectures</span><span>Prerequisite: '+esc(x.prerequisite||'None listed')+'</span></div><p class="coverage-note">'+esc(x.freshness||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(x.officialDetails)+'">Course Info</a><a class="secondary-link" target="_blank" rel="noopener" href="'+esc(x.officialOverview)+'">Overview</a><a class="secondary-link" target="_blank" rel="noopener" href="'+esc(x.officialVideos)+'">Video Lectures</a>'+(x.officialReferences?'<a class="secondary-link" target="_blank" rel="noopener" href="'+esc(x.officialReferences)+'">Reference Books</a>':'')+'</div></div>';
+    }else{
+      el.classList.remove('hidden');
+      el.innerHTML='<div class="paper-card"><div class="paper-card-top"><div><span class="trust-badge trust-community">Unverified Course Code</span> <span class="mini-badge">'+esc(domainFor(cc))+'</span></div></div><h3>'+esc(cc)+'</h3><p class="coverage-note">No specific official OCW URL has been verified in EduNizam yet. Use VULMS/OCW as the source of truth for the current semester before relying on community notes or past papers.</p></div>';
+    }
+  }
+
   let workspace='resources';
 
   function setWorkspace(name){
@@ -41,7 +61,7 @@
     const status=$('vuMyCourseStatus').value;
     if(!validCourseCode(code))return alert('Enter a valid VU course code, e.g. MTH501 or CS201.');
     const arr=courses(),i=arr.findIndex(x=>x.code===code);
-    const item={code,title:title||code,semester:semester||'Current',status,updatedAt:new Date().toISOString()};
+    const verified=catalogCourse(code);const item={code,title:title||verified?.title||code,semester:semester||'Current',status,domain:verified?.category||domainFor(code),lectureCount:verified?.lectureCount||null,verifiedOfficial:!!verified,updatedAt:new Date().toISOString()};
     if(i>=0)arr[i]={...arr[i],...item}; else arr.push(item);
     write(KEY.courses,arr);
     ['vuMyCourseCode','vuMyCourseTitle','vuMyCourseSemester'].forEach(id=>$(id).value='');
@@ -77,9 +97,9 @@
   function savePlan(){
     const course=$('vuPlannerCourse').value,term=$('vuPlannerTerm').value,from=Number($('vuPlannerFrom').value),to=Number($('vuPlannerTo').value),done=Number($('vuPlannerDone').value||0),examDate=$('vuPlannerExamDate').value;
     if(!course||!from||!to||to<from)return alert('Select course and enter a valid lecture range.');
-    const total=to-from+1,completed=Math.max(0,Math.min(done,total));
+    const courseMeta=courseByCode(course);const verified=catalogCourse(course);const effectiveTo=to||(verified?.lectureCount||courseMeta?.lectureCount||0);if(!effectiveTo||effectiveTo<from)return alert('Enter a valid lecture range.');const total=effectiveTo-from+1,completed=Math.max(0,Math.min(done,total));
     const arr=read(KEY.plans),key=course+'|'+term,i=arr.findIndex(x=>x.key===key);
-    const item={key,course,term,from,to,done:completed,total,examDate,updatedAt:new Date().toISOString()};
+    const item={key,course,term,from,to:effectiveTo,done:completed,total,examDate,updatedAt:new Date().toISOString()};
     if(i>=0)arr[i]=item;else arr.push(item);
     write(KEY.plans,arr);renderPlans();
   }
@@ -130,11 +150,22 @@
 
   document.querySelectorAll('[data-vu-workspace-tab]').forEach(b=>b.onclick=()=>setWorkspace(b.dataset.vuWorkspaceTab));
   $('vuSaveCourseBtn').onclick=saveCourse;
+  $('vuCourseCode')?.addEventListener('input',e=>renderCourseInsight(e.target.value));
+  $('vuMyCourseCode')?.addEventListener('input',e=>{
+    const code=e.target.value.trim().toUpperCase(),x=catalogCourse(code);
+    if(x){$('vuMyCourseTitle').value=x.title;renderCourseInsight(code)}
+  });
+  $('vuPlannerCourse')?.addEventListener('change',e=>{
+    const x=catalogCourse(e.target.value),saved=courseByCode(e.target.value);
+    if(x?.lectureCount&&!$('vuPlannerTo').value)$('vuPlannerTo').value=x.lectureCount;
+    else if(saved?.lectureCount&&!$('vuPlannerTo').value)$('vuPlannerTo').value=saved.lectureCount;
+  });
   $('vuSavePlannerBtn').onclick=savePlan;
   $('vuSaveRecallBtn').onclick=saveRecall;
   $('vuSavePersonalBtn').onclick=savePersonal;
 
   syncCourseSelects();
+  renderCourseInsight($('vuCourseCode')?.value||'');
   renderCourses();
   renderPlans();
   renderRecalls();
