@@ -481,15 +481,15 @@
 
         <article class="card">
           <div class="paper-tabs">
-            <button class="paper-tab active" data-admission-tab="apply">Apply Online</button>
-            <button class="paper-tab" data-admission-tab="track">Track Application</button>
-            <button class="paper-tab" data-admission-tab="admin">Admin Dashboard</button>
-            <button class="paper-tab" data-admission-tab="schedules">Tests & Interviews</button>
-            <button class="paper-tab" data-admission-tab="merit">Merit Lists</button>
-            <button class="paper-tab" data-admission-tab="notifications">Notifications</button>
-            <button class="paper-tab" data-admission-tab="payments">Payments</button>
-            <button class="paper-tab" data-admission-tab="audit">Audit Log</button>
-            <button class="paper-tab" data-admission-tab="setup">Portal Setup</button>
+            <button class="paper-tab active" data-admission-tab="apply" data-admission-roles="student,parent">Apply Online</button>
+            <button class="paper-tab" data-admission-tab="track" data-admission-roles="student,parent">Track Application</button>
+            <button class="paper-tab" data-admission-tab="admin" data-admission-roles="teacher,head_of_institute">Admin Dashboard</button>
+            <button class="paper-tab" data-admission-tab="schedules" data-admission-roles="teacher,head_of_institute">Tests & Interviews</button>
+            <button class="paper-tab" data-admission-tab="merit" data-admission-roles="teacher,head_of_institute">Merit Lists</button>
+            <button class="paper-tab" data-admission-tab="notifications" data-admission-roles="student,parent,teacher,head_of_institute">Notifications</button>
+            <button class="paper-tab" data-admission-tab="payments" data-admission-roles="teacher,head_of_institute">Payments</button>
+            <button class="paper-tab" data-admission-tab="audit" data-admission-roles="head_of_institute">Audit Log</button>
+            <button class="paper-tab" data-admission-tab="setup" data-admission-roles="head_of_institute">Portal Setup</button>
           </div>
 
           <div class="request-panel">
@@ -498,9 +498,16 @@
               <span class="badge" id="admissionCloudBadge">Local Mode</span>
             </div>
             <div class="form-grid">
+              <input id="admissionAuthName" placeholder="Full name">
+              <select id="admissionAuthRole">
+                <option value="student">Student</option>
+                <option value="parent">Parent</option>
+                <option value="teacher">Teacher (Institute-issued access)</option>
+                <option value="head_of_institute">Head of Institute (Institute-issued access)</option>
+              </select>
               <input id="admissionAuthEmail" type="email" placeholder="Email">
               <input id="admissionAuthPassword" type="password" placeholder="Password">
-              <button id="admissionSignUpBtn">Create Applicant Account</button>
+              <button id="admissionSignUpBtn">Create Student / Parent Account</button>
               <button id="admissionSignInBtn" class="secondary">Sign In</button>
               <button id="admissionSignOutBtn" class="secondary">Sign Out</button>
             </div>
