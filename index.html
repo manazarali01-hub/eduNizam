@@ -481,7 +481,8 @@
 
         <article class="card">
           <div class="paper-tabs">
-            <button class="paper-tab active" data-admission-tab="apply" data-admission-roles="student,parent">Apply Online</button>
+            <button class="paper-tab active" data-admission-tab="rolehome" data-admission-roles="student,parent,teacher,head_of_institute">My Dashboard</button>
+            <button class="paper-tab" data-admission-tab="apply" data-admission-roles="student,parent">Apply Online</button>
             <button class="paper-tab" data-admission-tab="track" data-admission-roles="student,parent">Track Application</button>
             <button class="paper-tab" data-admission-tab="admin" data-admission-roles="teacher,head_of_institute">Admin Dashboard</button>
             <button class="paper-tab" data-admission-tab="schedules" data-admission-roles="teacher,head_of_institute">Tests & Interviews</button>
@@ -518,6 +519,20 @@
             </div>
             <div class="auth-help">Easy login: password only needs 6+ characters; no compulsory capital letter, number or symbol. You can also use an Email Login Link.</div>
             <div id="admissionAuthStatus" class="muted">Cloud backend not connected.</div>
+          </div>
+
+          <div id="admissionRoleHomePanel">
+            <div class="role-home-hero">
+              <div>
+                <div class="eyebrow">Role Dashboard</div>
+                <h3 id="admissionRoleHomeTitle">My Admission Dashboard</h3>
+                <p id="admissionRoleHomeSubtitle" class="muted">Your admission tasks and updates in one place.</p>
+              </div>
+              <span id="admissionRoleHomeBadge" class="badge">Student</span>
+            </div>
+            <div id="admissionRoleHomeStats" class="pp-stats"></div>
+            <div id="admissionRoleHomeActions" class="role-action-grid"></div>
+            <div id="admissionRoleHomeContent"></div>
           </div>
 
           <div id="admissionApplyPanel">
