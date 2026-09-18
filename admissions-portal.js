@@ -161,8 +161,12 @@
     $('admissionApplyPanel').classList.toggle('hidden',name!=='apply');
     $('admissionTrackPanel').classList.toggle('hidden',name!=='track');
     $('admissionAdminPanel').classList.toggle('hidden',name!=='admin');
+    $('admissionPaymentsPanel')?.classList.toggle('hidden',name!=='payments');
+    $('admissionAuditPanel')?.classList.toggle('hidden',name!=='audit');
     $('admissionSetupPanel').classList.toggle('hidden',name!=='setup');
     if(name==='admin')renderAdmin();
+    if(name==='payments')renderCloudPayments();
+    if(name==='audit')renderAuditLog();
     if(name==='setup')renderSetupSummary();
   }
   function renderAdmin(){
@@ -365,6 +369,40 @@
   }));
 
 
+  async function renderCloudPayments(){
+    const el=$('admissionPaymentsList');if(!el)return;
+    const cloud=window.EDUNIZAM_CLOUD;
+    if(!cloud?.ready?.()){el.innerHTML='<div class="empty-state">Cloud Mode is not configured. Local fee records remain visible inside applications.</div>';return;}
+    try{
+      const role=await cloud.getMyRole();if(!['owner','admin','admissions','reviewer'].includes(role)){el.innerHTML='<div class="empty-state">Payment verification is available to authorized institution staff.</div>';return;}
+      const rows=await cloud.listPayments();
+      el.innerHTML=rows.length?rows.map(p=>{
+        const a=p.applications||{};
+        return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(p.method||'Payment')+'</span><span class="trust-badge trust-official">'+esc(p.status||'Pending')+'</span></div></div><h3>'+esc(a.applicant_name||'Applicant')+'</h3><p class="muted">'+esc(a.application_no||'')+' · PKR '+Number(p.amount||0).toLocaleString()+'</p><div class="paper-meta"><span>Ref: '+esc(p.reference||'N/A')+'</span><span>'+esc(p.gateway_provider||'Manual')+'</span></div><div class="paper-actions"><button data-pay-verify="'+esc(p.id)+'">Mark Paid</button><button class="secondary-action" data-pay-reject="'+esc(p.id)+'">Reject / Failed</button></div></article>';
+      }).join(''):'<div class="empty-state">No cloud payment records yet.</div>';
+      document.querySelectorAll('[data-pay-verify]').forEach(b=>b.onclick=()=>setCloudPaymentStatus(b.dataset.payVerify,'Paid'));
+      document.querySelectorAll('[data-pay-reject]').forEach(b=>b.onclick=()=>setCloudPaymentStatus(b.dataset.payReject,'Failed'));
+    }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load payments.')+'</div>'}
+  }
+  async function setCloudPaymentStatus(id,status){
+    const cloud=window.EDUNIZAM_CLOUD;
+    try{
+      await cloud.updatePaymentStatus(id,status);
+      await cloud.logAudit('payment_status_'+status.toLowerCase(),'payment',id,{status});
+      renderCloudPayments();renderAuditLog();
+    }catch(e){alert(e.message||'Payment update failed.')}
+  }
+  async function renderAuditLog(){
+    const el=$('admissionAuditList');if(!el)return;
+    const cloud=window.EDUNIZAM_CLOUD;
+    if(!cloud?.ready?.()){el.innerHTML='<div class="empty-state">Cloud Mode is not configured.</div>';return;}
+    try{
+      const role=await cloud.getMyRole();if(!['owner','admin','admissions','reviewer'].includes(role)){el.innerHTML='<div class="empty-state">Audit Log is available to authorized institution staff.</div>';return;}
+      const rows=await cloud.listAuditLogs(75);
+      el.innerHTML=rows.length?rows.map(x=>'<div class="practice-review"><div class="paper-card-top"><div><span class="mini-badge">'+esc(x.entity_type)+'</span><span class="trust-badge trust-verified">'+esc(x.action)+'</span></div><small>'+new Date(x.created_at).toLocaleString()+'</small></div><strong>'+esc(x.entity_id||'')+'</strong><div class="muted">'+esc(JSON.stringify(x.details||{}))+'</div></div>').join(''):'<div class="empty-state">No audit events yet.</div>';
+    }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load audit log.')+'</div>'}
+  }
+
   async function refreshCloudAuth(){
     const cloud=window.EDUNIZAM_CLOUD;
     const badge=$('admissionCloudBadge'),status=$('admissionAuthStatus');
@@ -400,6 +438,8 @@
   $('admissionSignUpBtn')?.addEventListener('click',()=>authAction('signup'));
   $('admissionSignInBtn')?.addEventListener('click',()=>authAction('signin'));
   $('admissionSignOutBtn')?.addEventListener('click',()=>authAction('out'));
+  $('refreshAdmissionPaymentsBtn')?.addEventListener('click',renderCloudPayments);
+  $('refreshAdmissionAuditBtn')?.addEventListener('click',renderAuditLog);
   window.addEventListener('edunizam:auth',refreshCloudAuth);
   refreshCloudAuth();
 
