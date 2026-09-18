@@ -215,5 +215,80 @@
     verifiedAt:'2026-09-18'
   }));
 
+  // BISE Mardan — official old-paper and SLO model-paper resources.
+  [
+    ['mardan-9-old-index',9,'Old Papers','BISE Mardan SSC 9th Old Papers','portal'],
+    ['mardan-10-old-index',10,'Old Papers','BISE Mardan SSC 10th Old Papers','portal'],
+    ['mardan-11-old-index',11,'Old Papers','BISE Mardan HSSC Part-I Old Papers','portal'],
+    ['mardan-12-old-index',12,'Old Papers','BISE Mardan HSSC Part-II Old Papers','portal'],
+    ['mardan-9-slo-models',9,'All Subjects','BISE Mardan Class 9 SLO Model Papers & Marking Schemes','model'],
+    ['mardan-10-slo-models',10,'All Subjects','BISE Mardan Class 10 SLO Model Papers & Marking Schemes','model'],
+    ['mardan-11-onscreen-models',11,'English / Physics / Chemistry','BISE Mardan Class 11 On-Screen Marking Model Papers','model'],
+    ['mardan-12-onscreen-models',12,'English / Physics / Chemistry','BISE Mardan Class 12 On-Screen Marking Model Papers','model']
+  ].forEach(([id,cls,subject,title,type])=>add({
+    id,boardId:'bise-mardan',classLevel:cls,subject,year:2026,session:'Annual',type,
+    medium:'English / Urdu',source:'official',title,
+    url:'https://web.bisemdn.edu.pk/student?cat=mp',
+    note:'Official BISE Mardan Student Corner resource. Old papers and SLO/model papers are listed by class and subject.',
+    verifiedAt:'2026-09-18'
+  }));
+
+  // BISE Swat — official syllabus, model papers, rubrics and e-marking papers.
+  [9,10,11,12].forEach(cls=>add({
+    id:'swat-'+cls+'-slo-models-2026',boardId:'bise-swat',classLevel:cls,subject:'All Subjects',
+    year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',
+    title:'BISE Swat Class '+cls+' SLO Model Papers, Marking Schemes & TOS',
+    url:'https://www.bisess.edu.pk/site/home/syllabus-model-papers',
+    note:'Official BISE Swat syllabus/model-paper library with subject-wise model papers and marking schemes.',
+    verifiedAt:'2026-09-18'
+  }));
+  [9,10,11,12].forEach(cls=>add({
+    id:'swat-'+cls+'-emarking-models-2026',boardId:'bise-swat',classLevel:cls,subject:'English / Physics / Chemistry',
+    year:2026,session:'Annual',type:'model',medium:'English',source:'official',
+    title:'BISE Swat Class '+cls+' E-Marking Model Papers',
+    url:'https://www.bisess.edu.pk/site/home/emarking-model-papers/',
+    note:'Official BISE Swat e-marking model papers for English, Chemistry and Physics.',
+    verifiedAt:'2026-09-18'
+  }));
+
+  // BISE Faisalabad — current and archived official model-paper resources.
+  [
+    ['fsd-9-model-2026',9,2026,'BISE Faisalabad Grade-IX Revised Smart Syllabus, Pairing Schemes & Model Papers'],
+    ['fsd-11-smart-2026',11,2026,'BISE Faisalabad Grade-11 Smart Syllabus 2026'],
+    ['fsd-9-model-2024',9,2024,'BISE Faisalabad 9th Model Papers with Index'],
+    ['fsd-10-model-2024',10,2024,'BISE Faisalabad 10th Model Papers with Index'],
+    ['fsd-11-model-2024',11,2024,'BISE Faisalabad Intermediate First Year Model Papers'],
+    ['fsd-12-model-2024',12,2024,'BISE Faisalabad Intermediate Second Year Model Papers']
+  ].forEach(([id,cls,year,title])=>add({
+    id,boardId:'bise-faisalabad',classLevel:cls,subject:'All Subjects',year,session:'Annual',type:'model',
+    medium:'English / Urdu',source:'official',title,
+    url:'https://bisefsd.edu.pk/NewsEvents.aspx',
+    note:'Official BISE Faisalabad notification/downloads page carrying the referenced model-paper resource.',
+    verifiedAt:'2026-09-18'
+  }));
+
+  // BISE D.G. Khan — direct official HSSC-II model paper PDFs.
+  [
+    ['dgk-12-biology-model-2019','Biology','Bio%2012th.pdf','BISE D.G. Khan 12th Biology Model Paper'],
+    ['dgk-12-chemistry-model-2019','Chemistry','Chemistry%2012th.pdf','BISE D.G. Khan 12th Chemistry Model Paper'],
+    ['dgk-12-cs-model-2019','Computer Science','Computer%20Science%2012th.pdf','BISE D.G. Khan 12th Computer Science Model Paper'],
+    ['dgk-12-physics-model-2019','Physics','Physics%2012th.pdf','BISE D.G. Khan 12th Physics Model Paper'],
+    ['dgk-12-statistics-model-2019','Statistics','STATISTICS%20PART12.pdf','BISE D.G. Khan 12th Statistics Model Paper'],
+    ['dgk-12-urdu-model-2019','Urdu','Paper%20Urdu%2012.pdf','BISE D.G. Khan 12th Urdu Model Paper'],
+    ['dgk-12-accounting-model-2019','Accounting','Principles%20of%20Accounting%2012th.pdf','BISE D.G. Khan 12th Principles of Accounting Model Paper']
+  ].forEach(([id,subject,file,title])=>{
+    const url='https://bisedgkhan.edu.pk/modelpapers/modelpapers/'+file;
+    add({id,boardId:'bise-dgkhan',classLevel:12,subject,year:2019,session:'Annual',type:'model',
+      medium:'English / Urdu',source:'official',title,url,fileUrl:url,
+      note:'Direct PDF from the official BISE D.G. Khan model-paper directory.',verifiedAt:'2026-09-18'});
+  });
+  {
+    const url='https://bisedgkhan.edu.pk/modelpapers/modelpapers/MODEL%20PAPER%20INTER_2016.pdf';
+    add({id:'dgk-inter-model-2016',boardId:'bise-dgkhan',classLevel:12,subject:'All Subjects',year:2016,
+      session:'Annual',type:'model',medium:'English / Urdu',source:'official',
+      title:'BISE D.G. Khan Intermediate Model Paper 2016',url,fileUrl:url,
+      note:'Direct official model-paper PDF from BISE D.G. Khan.',verifiedAt:'2026-09-18'});
+  }
+
   PP.updatedAt='2026-09-18';
 })();
