@@ -528,11 +528,14 @@
             <div class="request-panel">
               <h3>Application Fee / Challan</h3>
               <div class="form-grid">
-                <select id="admFeeStatus"><option value="Unpaid">Unpaid</option><option value="Paid">Paid</option><option value="Exempted">Exempted</option></select>
+                <select id="admPaymentMethod"><option value="">Select payment method</option></select>
+                <select id="admFeeStatus"><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="Paid">Paid</option><option value="Exempted">Exempted</option></select>
                 <input id="admFeeReference" placeholder="Transaction / challan reference">
                 <input id="admFeeDate" type="date">
+                <label class="upload-field">Payment Receipt / Screenshot<input id="admPaymentProofFile" type="file" accept="image/*,.pdf"></label>
                 <button id="printAdmissionChallanBtn" type="button" class="secondary">Print Challan</button>
               </div>
+              <div id="admPaymentInstructions" class="payment-instructions"></div>
             </div>
 
             <div class="quick-actions">
@@ -608,6 +611,15 @@
                 <input id="admissionSession" placeholder="Admission session e.g. 2026-27">
                 <input id="admissionApplicationPrefix" placeholder="Application ID prefix">
                 <input id="admissionApplicationFee" type="number" min="0" placeholder="Application fee (PKR)">
+                <input id="admissionBankName" placeholder="Bank name">
+                <input id="admissionBankTitle" placeholder="Bank account title">
+                <input id="admissionBankIban" placeholder="IBAN / account number">
+                <input id="admissionRaastId" placeholder="Raast ID / account">
+                <input id="admissionJazzCashNumber" placeholder="JazzCash number">
+                <input id="admissionJazzCashTitle" placeholder="JazzCash account title">
+                <input id="admissionEasypaisaNumber" placeholder="Easypaisa number">
+                <input id="admissionEasypaisaTitle" placeholder="Easypaisa account title">
+                <select id="admissionGatewayProvider"><option>Not connected</option><option>Safepay</option><option>PayFast</option><option>JazzCash Gateway</option><option>Easypaisa Gateway</option><option>Other</option></select>
                 <label class="check-option"><input id="admissionRequireTest" type="checkbox"> Admission test required</label>
                 <label class="check-option"><input id="admissionRequireInterview" type="checkbox"> Interview required</label>
               </div>
