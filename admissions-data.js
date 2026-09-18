@@ -48,6 +48,7 @@ window.EDUNIZAM_ADMISSIONS_DATA={
     easypaisaNumber:"",
     easypaisaTitle:"",
     gatewayProvider:"Not connected",
-    gatewayMode:"manual"
+    gatewayMode:"manual",
+    feeStructure:{}
   }
 };
