@@ -174,5 +174,46 @@
     add(rec);
   });
 
+  // AJK BISE — official model-paper portal and 2026 SSC-II assessment resources.
+  [
+    ['ajk-10-math-model-2026','Mathematics','AJK BISE SSC-II Mathematics Assessment Framework / Model Paper'],
+    ['ajk-10-urdu-model-2026','Urdu','AJK BISE SSC-II Urdu Assessment Framework / Model Paper'],
+    ['ajk-10-english-model-2026','English','AJK BISE SSC-II English Assessment Framework / Model Paper']
+  ].forEach(([id,subject,title])=>add({
+    id,boardId:'bise-ajk',classLevel:10,subject,year:2026,session:'Annual',type:'model',
+    medium:'English / Urdu',source:'official',title,
+    url:'https://ajkbise.net/modelpapers.php',
+    note:'Official AJK BISE model-paper resource announced on the board website in July 2026.',
+    verifiedAt:'2026-09-18'
+  }));
+
+  // BSEK Karachi — verified subject-rich model-paper archive.
+  [
+    [9,2023,'BSEK Karachi 9th Science & General Group Model Papers 2023'],
+    [10,2023,'BSEK Karachi 10th Science & General Group Model Papers 2023'],
+    [9,2022,'BSEK Karachi 9th Science & General Group Model Papers 2022'],
+    [10,2022,'BSEK Karachi 10th Science & General Group Model Papers 2022'],
+    [9,2018,'BSEK Karachi 9th Model Papers 2018'],
+    [10,2018,'BSEK Karachi 10th Model Papers 2018']
+  ].forEach(([cls,year,title])=>add({
+    id:'bsek-'+cls+'-'+year+'-verified-model-archive',boardId:'bsek-karachi',classLevel:cls,
+    subject:'All Subjects',year,session:'Annual',type:'model',medium:'English / Urdu',source:'verified',
+    title,url:'https://bsekkarachi.resultonline.pk/modelpaper/ssc-matric-part-1-2-9th-10th-class/',
+    note:'Verified third-party archive. Confirm subject/group against BSEK before exam use.',
+    verifiedAt:'2026-09-18'
+  }));
+
+  // BBISE Quetta — verified model-paper archive where the official board does not expose a stable public index.
+  [
+    [11,2018,'BBISE Quetta 11th / HSSC-I Model Papers 2018'],
+    [12,2017,'BBISE Quetta 12th / HSSC-II Model Papers 2017']
+  ].forEach(([cls,year,title])=>add({
+    id:'quetta-'+cls+'-'+year+'-verified-model-archive',boardId:'bbise-quetta',classLevel:cls,
+    subject:'All Subjects',year,session:'Annual',type:'model',medium:'English / Urdu',source:'verified',
+    title,url:'https://bisequetta.resultonline.pk/modelpaper/hssc-inter-part-1-2-11th-12th-class/',
+    note:'Verified third-party archive; official reference remains BBISE Quetta.',
+    verifiedAt:'2026-09-18'
+  }));
+
   PP.updatedAt='2026-09-18';
 })();
