@@ -305,7 +305,7 @@
     if(cloud?.ready?.()&&cloud.state?.user&&status!=='Draft'){
       try{
         const remote=await cloud.syncLocalApplication(a);
-        a.cloudId=remote?.id||null;a.cloudSyncedAt=new Date().toISOString();
+        a.cloudId=remote?.id||null;a.applicantUserId=remote?.applicant_user_id||cloud.state?.user?.id||null;a.cloudSyncedAt=new Date().toISOString();
         const idx=arr.findIndex(x=>x.applicationId===a.applicationId);if(idx>=0)arr[idx]=a;write(KEY.apps,arr);
         for(const [kind,id] of uploadFields){
           const file=$(id)?.files?.[0];
@@ -414,7 +414,7 @@
     window.addStudentFromAdmission?.({
       name:a.applicantName,father:a.fatherName,className:a.program,phone:a.phone,
       rollNo:enrollment.rollNo,studentId:enrollment.studentId,
-      admissionApplicationId:a.applicationId,admissionDate:enrollment.admissionDate,feeSnapshot:a.feeSnapshot||null
+      admissionApplicationId:a.applicationId,admissionDate:enrollment.admissionDate,feeSnapshot:a.feeSnapshot||null,authUserId:a.applicantUserId||null
     });
     renderAdmin();updateStats();openReview(a.applicationId);
     alert('Admission finalized. Student ID: '+enrollment.studentId+' · Roll No: '+enrollment.rollNo);
