@@ -513,6 +513,27 @@
               <h3>Documents Checklist</h3>
               <div id="admDocumentsChecklist" class="check-grid"></div>
             </div>
+            <div class="request-panel">
+              <h3>Photo & Document Uploads</h3>
+              <div class="form-grid">
+                <label class="upload-field">Applicant Photo<input id="admPhotoFile" type="file" accept="image/*"></label>
+                <label class="upload-field">CNIC / B-Form<input id="admIdentityFile" type="file" accept="image/*,.pdf"></label>
+                <label class="upload-field">Previous Result / Transcript<input id="admResultFile" type="file" accept="image/*,.pdf"></label>
+                <label class="upload-field">Supporting Document<input id="admSupportFile" type="file" accept="image/*,.pdf"></label>
+              </div>
+              <div id="admUploadPreview" class="upload-preview"></div>
+              <p class="muted">Files stay in this device's private browser storage in the current PWA version. They are not committed to GitHub.</p>
+            </div>
+
+            <div class="request-panel">
+              <h3>Application Fee / Challan</h3>
+              <div class="form-grid">
+                <select id="admFeeStatus"><option value="Unpaid">Unpaid</option><option value="Paid">Paid</option><option value="Exempted">Exempted</option></select>
+                <input id="admFeeReference" placeholder="Transaction / challan reference">
+                <input id="admFeeDate" type="date">
+                <button id="printAdmissionChallanBtn" type="button" class="secondary">Print Challan</button>
+              </div>
+            </div>
 
             <div class="quick-actions">
               <button id="submitAdmissionBtn">Submit Application</button>
@@ -538,12 +559,44 @@
             <div class="paper-search-row">
               <input id="admissionAdminSearch" placeholder="Search Application ID, applicant, CNIC, program">
             </div>
+            <div class="quick-actions">
+              <button id="exportAdmissionsCsvBtn">Export CSV</button>
+              <button id="exportAdmissionsJsonBtn" class="secondary">Export Backup</button>
+            </div>
             <div class="form-grid">
               <select id="admissionStatusFilter"><option value="">All Statuses</option></select>
               <select id="admissionProgramFilter"><option value="">All Programs</option></select>
               <select id="admissionQuotaFilter"><option value="">All Categories</option></select>
             </div>
             <div id="admissionAdminList" class="paper-grid"></div>
+          </div>
+
+          <div id="admissionReviewPanel" class="admission-review hidden">
+            <div class="admission-review-card">
+              <div class="section-head">
+                <div><h3 id="admissionReviewTitle">Application Review</h3><p id="admissionReviewMeta" class="muted"></p></div>
+                <button id="closeAdmissionReviewBtn" class="secondary">Close</button>
+              </div>
+              <div id="admissionReviewProfile"></div>
+              <div class="request-panel">
+                <h3>Merit / Test / Interview</h3>
+                <div class="form-grid">
+                  <input id="admReviewAcademicWeight" type="number" min="0" max="100" value="70" placeholder="Academic weight %">
+                  <input id="admReviewTestWeight" type="number" min="0" max="100" value="20" placeholder="Test weight %">
+                  <input id="admReviewInterviewWeight" type="number" min="0" max="100" value="10" placeholder="Interview weight %">
+                  <input id="admReviewTestMarks" type="number" min="0" max="100" placeholder="Test marks %">
+                  <input id="admReviewInterviewMarks" type="number" min="0" max="100" placeholder="Interview marks %">
+                  <input id="admReviewMerit" readonly placeholder="Calculated merit">
+                </div>
+                <textarea id="admReviewNote" rows="3" placeholder="Admin note"></textarea>
+                <div class="quick-actions">
+                  <button id="saveAdmissionReviewBtn">Save Review</button>
+                  <button id="printAdmissionLetterBtn" class="secondary">Print Admission Letter</button>
+                  <button id="printAdmissionRejectionBtn" class="secondary">Print Decision Letter</button>
+                </div>
+              </div>
+              <div id="admissionReviewAttachments"></div>
+            </div>
           </div>
 
           <div id="admissionSetupPanel" class="hidden">
