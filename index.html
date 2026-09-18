@@ -24,6 +24,9 @@
         <button class="nav-item" data-view="pastpapers">Past Papers</button>
         <button class="nav-item" data-view="practice">Practice & Tests</button>
         <button class="nav-item" data-view="study">Study Library</button>
+        <button class="nav-item" data-view="schoolassessments">Grade 5 & 8 Papers</button>
+        <button class="nav-item" data-view="universities">University Hub</button>
+        <button class="nav-item" data-view="vu">VU Special</button>
         <button class="nav-item" data-view="assistant">AI Assistant</button>
         <button class="nav-item" data-view="settings">Settings</button>
       </nav>
@@ -298,6 +301,94 @@
         </div>
       </section>
 
+      <section id="schoolassessments" class="view">
+        <div class="pp-hero">
+          <div>
+            <div class="eyebrow">Punjab School Assessments</div>
+            <h2>PECTAA / PEC Grade 5 & 8 Papers</h2>
+            <p>Current official PECTAA assessment/model resources plus clearly labeled historical PEC past-paper archives.</p>
+          </div>
+          <span class="badge" id="schoolAssessCount">0 Resources</span>
+        </div>
+        <article class="card">
+          <div class="form-grid">
+            <select id="schoolAssessGrade"><option value="">Grade 5 & 8</option><option value="5">Grade 5</option><option value="8">Grade 8</option></select>
+            <select id="schoolAssessSubject"><option value="">All Subjects</option></select>
+            <select id="schoolAssessYear"><option value="">All Years</option></select>
+            <select id="schoolAssessSource"><option value="">All Sources</option><option value="official">Official PECTAA</option><option value="verified">Historical / Verified</option></select>
+          </div>
+          <div id="schoolAssessLibrary" class="paper-grid"></div>
+        </article>
+      </section>
+
+      <section id="universities" class="view">
+        <div class="pp-hero">
+          <div>
+            <div class="eyebrow">Higher Education</div>
+            <h2>University Past Papers Hub</h2>
+            <p>Official university examination resources and verified study links, separated by institution and source trust.</p>
+          </div>
+          <span class="badge" id="universityCountBadge">0 Universities</span>
+        </div>
+        <article class="card">
+          <div class="paper-search-row"><input id="universitySearch" placeholder="Search university or resource"></div>
+          <div class="form-grid">
+            <select id="universityFilter"><option value="">All Universities</option></select>
+            <select id="universityCategory"><option value="">All Categories</option><option>Past Papers</option><option>Handouts</option><option>Notes</option><option>Assignments</option><option>Quizzes</option></select>
+            <select id="universitySource"><option value="">All Sources</option><option value="official">Official</option><option value="verified">Verified Community</option></select>
+          </div>
+          <div id="universityLibrary" class="paper-grid"></div>
+        </article>
+      </section>
+
+      <section id="vu" class="view">
+        <div class="pp-hero">
+          <div>
+            <div class="eyebrow">Virtual University Special</div>
+            <h2>VU Complete Study & Exam Center</h2>
+            <p>Official handouts/resources plus clearly labeled community notes, highlighted handouts, quizzes, midterm and final-term past papers.</p>
+          </div>
+          <span class="badge">VU Special</span>
+        </div>
+
+        <div class="pp-stats">
+          <article><span>Resources</span><strong id="vuStatResources">0</strong></article>
+          <article><span>Official</span><strong id="vuStatOfficial">0</strong></article>
+          <article><span>Verified Community</span><strong id="vuStatVerified">0</strong></article>
+          <article><span>Saved</span><strong id="vuStatSaved">0</strong></article>
+        </div>
+
+        <article class="card">
+          <div class="paper-tabs">
+            <button class="paper-tab active" data-vu-tab="all">All</button>
+            <button class="paper-tab" data-vu-tab="Handouts">Handouts</button>
+            <button class="paper-tab" data-vu-tab="Notes">Notes</button>
+            <button class="paper-tab" data-vu-tab="Highlighted Handouts">Highlighted Handouts</button>
+            <button class="paper-tab" data-vu-tab="Quizzes">Quizzes</button>
+            <button class="paper-tab" data-vu-tab="Assignments">Assignments</button>
+            <button class="paper-tab" data-vu-tab="Midterm Past Papers">Midterm</button>
+            <button class="paper-tab" data-vu-tab="Final Term Past Papers">Final Term</button>
+            <button class="paper-tab" data-vu-tab="Past Papers">Past Papers</button>
+          </div>
+          <div class="paper-search-row"><input id="vuSearch" placeholder="Search course code e.g. MTH501, CS201, STA301 or resource type"></div>
+          <div class="form-grid">
+            <select id="vuSource"><option value="">All Sources</option><option value="official">Official VU</option><option value="verified">Verified Community</option></select>
+            <select id="vuCourseLevel"><option value="">All Course Levels</option><option value="100">100-level</option><option value="200">200-level</option><option value="300">300-level</option><option value="400">400-level</option><option value="500">500-level</option><option value="600">600-level</option></select>
+          </div>
+          <div class="request-panel">
+            <h3>Course Code Quick Access</h3>
+            <p class="muted">Enter a VU course code to prepare handouts/notes/past-paper search and AI study prompt.</p>
+            <div class="form-grid">
+              <input id="vuCourseCode" placeholder="Example: MTH501">
+              <button id="vuCourseSearchBtn">Search Course</button>
+              <button id="vuAiStudyBtn" class="secondary">AI Study Plan</button>
+              <button id="vuAiQuizBtn" class="secondary">AI Quiz</button>
+            </div>
+          </div>
+          <div id="vuLibrary" class="paper-grid"></div>
+        </article>
+      </section>
+
       <section id="assistant" class="view">
         <article class="card">
           <div class="section-head">
@@ -398,12 +489,15 @@
   <script src="past-papers-data.js"></script>
   <script src="past-papers-inventory.js"></script>
   <script src="practice-data.js"></script>
+  <script src="school-assessment-data.js"></script>
+  <script src="university-data.js"></script>
   <script src="curriculum-registry.js"></script>
   <script src="study-data.js"></script>
   <script src="study-inventory.js"></script>
   <script src="app.js"></script>
   <script src="practice-center.js"></script>
   <script src="study-library.js"></script>
+  <script src="education-hubs.js"></script>
   <script src="math-editor.js"></script>
   <script src="past-papers-premium.js"></script>
 </body>
