@@ -19,3 +19,5 @@
 .payment-instructions{margin-top:10px}.payment-instructions .coverage-note{padding:12px;border:1px solid #d9e7e4;border-radius:10px;background:#f8fcfb;line-height:1.6}
 
 .fee-structure-table{display:grid;gap:8px;overflow-x:auto}.fee-row{display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(5,minmax(110px,1fr));gap:8px;align-items:center;min-width:780px}.fee-row input{width:100%}.fee-head{font-weight:700;color:#536462;padding:0 4px}.program-fee-summary{grid-column:1/-1}.program-fee-summary .coverage-note{margin:0}
+
+.merit-table-wrap{overflow-x:auto;margin-top:12px}.merit-table{width:100%;border-collapse:collapse;min-width:680px}.merit-table th,.merit-table td{padding:10px 12px;border-bottom:1px solid #e1e9e7;text-align:left}.merit-table th{font-size:13px;color:#526562;background:#f7faf9;position:sticky;top:0}.merit-table td:first-child{font-weight:700}.admission-schedule-list{display:grid;gap:12px}
