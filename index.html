@@ -360,15 +360,23 @@
 
         <article class="card">
           <div class="paper-tabs">
-            <button class="paper-tab active" data-vu-tab="all">All</button>
+            <button class="paper-tab active" data-vu-tab="all">All Resources</button>
             <button class="paper-tab" data-vu-tab="Handouts">Handouts</button>
             <button class="paper-tab" data-vu-tab="Notes">Notes</button>
-            <button class="paper-tab" data-vu-tab="Highlighted Handouts">Highlighted Handouts</button>
+            <button class="paper-tab" data-vu-tab="Highlighted Handouts">Highlighted</button>
             <button class="paper-tab" data-vu-tab="Quizzes">Quizzes</button>
             <button class="paper-tab" data-vu-tab="Assignments">Assignments</button>
             <button class="paper-tab" data-vu-tab="Midterm Past Papers">Midterm</button>
             <button class="paper-tab" data-vu-tab="Final Term Past Papers">Final Term</button>
             <button class="paper-tab" data-vu-tab="Past Papers">Past Papers</button>
+          </div>
+
+          <div class="paper-tabs vu-workspace-tabs">
+            <button class="paper-tab active" data-vu-workspace-tab="resources">Resource Library</button>
+            <button class="paper-tab" data-vu-workspace-tab="courses">My Courses</button>
+            <button class="paper-tab" data-vu-workspace-tab="planner">Exam Planner</button>
+            <button class="paper-tab" data-vu-workspace-tab="recall">Recall Bank</button>
+            <button class="paper-tab" data-vu-workspace-tab="personal">Personal Resources</button>
           </div>
           <div class="paper-search-row"><input id="vuSearch" placeholder="Search course code e.g. MTH501, CS201, STA301 or resource type"></div>
           <div class="form-grid">
@@ -385,7 +393,70 @@
               <button id="vuAiQuizBtn" class="secondary">AI Quiz</button>
             </div>
           </div>
-          <div id="vuLibrary" class="paper-grid"></div>
+          <div id="vuResourceWorkspace">
+            <div id="vuLibrary" class="paper-grid"></div>
+          </div>
+
+          <div id="vuCoursesWorkspace" class="hidden">
+            <div class="request-panel">
+              <h3>Add / Update VU Course</h3>
+              <div class="form-grid">
+                <input id="vuMyCourseCode" placeholder="Course code e.g. MTH501">
+                <input id="vuMyCourseTitle" placeholder="Course title">
+                <input id="vuMyCourseSemester" placeholder="Semester e.g. Fall 2026">
+                <select id="vuMyCourseStatus"><option>Active</option><option>Completed</option><option>Planned</option></select>
+                <button id="vuSaveCourseBtn">Save Course</button>
+              </div>
+            </div>
+            <div id="vuCourseList" class="paper-grid"></div>
+          </div>
+
+          <div id="vuPlannerWorkspace" class="hidden">
+            <div class="request-panel">
+              <h3>Exam Planner</h3>
+              <div class="form-grid">
+                <select id="vuPlannerCourse"><option value="">Select course</option></select>
+                <select id="vuPlannerTerm"><option value="Midterm">Midterm</option><option value="Final Term">Final Term</option></select>
+                <input id="vuPlannerFrom" type="number" min="1" placeholder="Lecture from">
+                <input id="vuPlannerTo" type="number" min="1" placeholder="Lecture to">
+                <input id="vuPlannerDone" type="number" min="0" placeholder="Lectures completed">
+                <input id="vuPlannerExamDate" type="date">
+                <button id="vuSavePlannerBtn">Save Plan</button>
+              </div>
+            </div>
+            <div id="vuPlannerList" class="paper-grid"></div>
+          </div>
+
+          <div id="vuRecallWorkspace" class="hidden">
+            <div class="request-panel">
+              <h3>Past Paper Recall Bank</h3>
+              <p class="muted">Save recalled questions from your own exam experience or trusted community discussion. These remain clearly separate from official VU material.</p>
+              <div class="form-grid">
+                <select id="vuRecallCourse"><option value="">Select course</option></select>
+                <select id="vuRecallTerm"><option>Midterm</option><option>Final Term</option></select>
+                <input id="vuRecallSemester" placeholder="Source semester e.g. Spring 2026">
+                <select id="vuRecallType"><option>MCQ</option><option>Short Question</option><option>Long Question</option></select>
+              </div>
+              <textarea id="vuRecallQuestion" rows="4" placeholder="Write recalled question or concept"></textarea>
+              <div class="quick-actions"><button id="vuSaveRecallBtn">Save Recall</button></div>
+            </div>
+            <div id="vuRecallList" class="list"></div>
+          </div>
+
+          <div id="vuPersonalWorkspace" class="hidden">
+            <div class="request-panel">
+              <h3>Add Personal / Authorized Resource Link</h3>
+              <p class="muted">Use this for your own notes, authorized highlighted handout links, class resources or other material you have permission to use.</p>
+              <div class="form-grid">
+                <select id="vuPersonalCourse"><option value="">Select course</option></select>
+                <select id="vuPersonalCategory"><option>Notes</option><option>Highlighted Handouts</option><option>Quiz Practice</option><option>Midterm Past Papers</option><option>Final Term Past Papers</option><option>Other</option></select>
+                <input id="vuPersonalTitle" placeholder="Resource title">
+                <input id="vuPersonalUrl" type="url" placeholder="https://...">
+                <button id="vuSavePersonalBtn">Save Resource</button>
+              </div>
+            </div>
+            <div id="vuPersonalList" class="paper-grid"></div>
+          </div>
         </article>
       </section>
 
@@ -498,6 +569,7 @@
   <script src="practice-center.js"></script>
   <script src="study-library.js"></script>
   <script src="education-hubs.js"></script>
+  <script src="vu-workspace.js"></script>
   <script src="math-editor.js"></script>
   <script src="past-papers-premium.js"></script>
 </body>
