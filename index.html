@@ -484,6 +484,9 @@
             <button class="paper-tab active" data-admission-tab="apply">Apply Online</button>
             <button class="paper-tab" data-admission-tab="track">Track Application</button>
             <button class="paper-tab" data-admission-tab="admin">Admin Dashboard</button>
+            <button class="paper-tab" data-admission-tab="schedules">Tests & Interviews</button>
+            <button class="paper-tab" data-admission-tab="merit">Merit Lists</button>
+            <button class="paper-tab" data-admission-tab="notifications">Notifications</button>
             <button class="paper-tab" data-admission-tab="payments">Payments</button>
             <button class="paper-tab" data-admission-tab="audit">Audit Log</button>
             <button class="paper-tab" data-admission-tab="setup">Portal Setup</button>
@@ -618,6 +621,64 @@
               </div>
               <div id="admissionReviewAttachments"></div>
             </div>
+          </div>
+
+          <div id="admissionSchedulesPanel" class="hidden">
+            <div class="request-panel">
+              <h3>Schedule Entry Test / Interview</h3>
+              <div class="form-grid">
+                <select id="admScheduleApplication"><option value="">Select application</option></select>
+                <select id="admScheduleType"><option>Entry Test</option><option>Interview</option><option>Document Verification</option><option>Orientation</option></select>
+                <input id="admScheduleDate" type="date">
+                <input id="admScheduleTime" type="time">
+                <input id="admScheduleVenue" placeholder="Venue / online meeting link">
+                <input id="admScheduleMaxMarks" type="number" min="0" value="100" placeholder="Max marks">
+              </div>
+              <textarea id="admScheduleNote" rows="3" placeholder="Instructions / notes"></textarea>
+              <div class="quick-actions"><button id="saveAdmissionScheduleBtn">Save Schedule</button></div>
+            </div>
+            <div id="admissionScheduleList" class="paper-grid"></div>
+          </div>
+
+          <div id="admissionMeritPanel" class="hidden">
+            <div class="request-panel">
+              <h3>Generate Merit List</h3>
+              <div class="form-grid">
+                <select id="admMeritProgram"><option value="">Select program</option></select>
+                <input id="admMeritSeats" type="number" min="1" value="30" placeholder="Available seats">
+                <input id="admMeritCutoff" type="number" min="0" max="100" value="0" placeholder="Minimum merit %">
+                <select id="admMeritBasis"><option value="meritScore">Calculated Merit Score</option><option value="percentage">Academic Percentage</option></select>
+                <button id="generateAdmissionMeritBtn">Generate Merit</button>
+              </div>
+            </div>
+            <div id="admissionMeritSummary"></div>
+            <div id="admissionMeritList" class="merit-table-wrap"></div>
+          </div>
+
+          <div id="admissionNotificationsPanel" class="hidden">
+            <div class="request-panel">
+              <h3>Applicant Notification</h3>
+              <div class="form-grid">
+                <select id="admNotifyApplication"><option value="">Select application</option></select>
+                <select id="admNotifyTemplate">
+                  <option value="custom">Custom Message</option>
+                  <option value="submitted">Application Received</option>
+                  <option value="documents">Documents Pending</option>
+                  <option value="test">Test Scheduled</option>
+                  <option value="interview">Interview Scheduled</option>
+                  <option value="selected">Selected</option>
+                  <option value="waitlisted">Waitlisted</option>
+                  <option value="rejected">Not Selected</option>
+                  <option value="fee">Fee Reminder</option>
+                </select>
+              </div>
+              <textarea id="admNotifyMessage" rows="5" placeholder="Notification message"></textarea>
+              <div class="quick-actions">
+                <button id="saveAdmissionNotificationBtn">Save Notification</button>
+                <button id="copyAdmissionNotificationBtn" class="secondary">Copy Message</button>
+              </div>
+            </div>
+            <div id="admissionNotificationList" class="list"></div>
           </div>
 
           <div id="admissionPaymentsPanel" class="hidden">
@@ -782,6 +843,7 @@
   <script src="cloud-config.js"></script>
   <script src="admissions-cloud.js"></script>
   <script src="admissions-portal.js"></script>
+  <script src="admissions-selection.js"></script>
   <script src="math-editor.js"></script>
   <script src="past-papers-premium.js"></script>
 </body>
