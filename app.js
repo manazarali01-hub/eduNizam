@@ -30,6 +30,7 @@ function setView(view){
  if(view==='vu'&&window.renderVUSpecial)window.renderVUSpecial();
  if(view==='vu'&&window.renderVUWorkspace)window.renderVUWorkspace();
  if(view==='admissions'&&window.renderAdmissionsPortal)window.renderAdmissionsPortal();
+ if(view==='studentprofile'&&window.renderStudentPerformance)window.renderStudentPerformance();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
