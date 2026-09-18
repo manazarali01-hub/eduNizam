@@ -21,7 +21,7 @@ create table if not exists public.institutions (
 create table if not exists public.institution_members (
   institution_id uuid not null references public.institutions(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
-  role text not null check (role in ('owner','admin','admissions','reviewer')),
+  role text not null check (role in ('teacher','head_of_institute')),
   created_at timestamptz not null default now(),
   primary key (institution_id,user_id)
 );
@@ -256,3 +256,102 @@ for delete to authenticated using (
       and public.is_institution_staff(a.institution_id)
   )
 );
+
+
+-- Four-account role model: Student, Parent, Teacher, Head of Institute.
+create table if not exists public.user_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  account_role text not null check (account_role in ('student','parent','teacher','head_of_institute')),
+  full_name text,
+  phone text,
+  institution_id uuid references public.institutions(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.user_profiles enable row level security;
+
+create table if not exists public.parent_student_links (
+  parent_user_id uuid not null references auth.users(id) on delete cascade,
+  student_user_id uuid not null references auth.users(id) on delete cascade,
+  institution_id uuid references public.institutions(id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending','approved','rejected')),
+  created_at timestamptz not null default now(),
+  primary key (parent_user_id,student_user_id)
+);
+alter table public.parent_student_links enable row level security;
+
+create or replace function public.current_account_role()
+returns text language sql stable security definer set search_path=public
+as $$
+  select coalesce(
+    (select 'head_of_institute' from public.institutions i where i.owner_user_id=auth.uid() limit 1),
+    (select m.role from public.institution_members m where m.user_id=auth.uid() order by case when m.role='head_of_institute' then 0 else 1 end limit 1),
+    (select p.account_role from public.user_profiles p where p.user_id=auth.uid()),
+    'student'
+  );
+$$;
+
+-- Create student/parent profile from safe signup metadata.
+create or replace function public.handle_new_user_profile()
+returns trigger language plpgsql security definer set search_path=public
+as $$
+declare requested_role text;
+begin
+  requested_role := coalesce(new.raw_user_meta_data->>'account_role','student');
+  if requested_role not in ('student','parent') then requested_role := 'student'; end if;
+  insert into public.user_profiles(user_id,account_role,full_name)
+  values(new.id,requested_role,new.raw_user_meta_data->>'full_name')
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_edunizam on auth.users;
+create trigger on_auth_user_created_edunizam
+after insert on auth.users
+for each row execute procedure public.handle_new_user_profile();
+
+create policy "users read own profile" on public.user_profiles
+for select to authenticated using (
+  user_id=auth.uid()
+  or (institution_id is not null and public.is_institution_staff(institution_id))
+  or exists (
+    select 1 from public.parent_student_links l
+    where l.status='approved'
+      and ((l.parent_user_id=auth.uid() and l.student_user_id=user_id)
+        or (l.student_user_id=auth.uid() and l.parent_user_id=user_id))
+  )
+);
+create policy "users update own basic profile" on public.user_profiles
+for update to authenticated using (user_id=auth.uid())
+with check (user_id=auth.uid() and account_role in ('student','parent'));
+create policy "staff manage institution profiles" on public.user_profiles
+for all to authenticated
+using (institution_id is not null and public.is_institution_staff(institution_id))
+with check (institution_id is not null and public.is_institution_staff(institution_id));
+
+create policy "parent/student read own links" on public.parent_student_links
+for select to authenticated using (
+  parent_user_id=auth.uid() or student_user_id=auth.uid()
+  or (institution_id is not null and public.is_institution_staff(institution_id))
+);
+create policy "parent requests child link" on public.parent_student_links
+for insert to authenticated with check (parent_user_id=auth.uid());
+create policy "staff approve child links" on public.parent_student_links
+for update to authenticated
+using (institution_id is not null and public.is_institution_staff(institution_id))
+with check (institution_id is not null and public.is_institution_staff(institution_id));
+
+-- Parent can read approved linked student's applications.
+create policy "parent read linked student applications" on public.applications
+for select to authenticated using (
+  exists (
+    select 1 from public.parent_student_links l
+    where l.parent_user_id=auth.uid()
+      and l.student_user_id=applications.applicant_user_id
+      and l.status='approved'
+  )
+);
+
+-- Teacher/head permissions are derived from institution membership/ownership.
+-- Students and parents never gain staff privileges from a client-side role selector.
