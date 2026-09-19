@@ -151,3 +151,9 @@ Head of Institute can manage all institute records. Teachers can manage records 
 EduNizam includes a Visitor & Student Gate Pass Center.
 
 Visitor check-in/out is Head-only. Parents can request an early-exit gate pass for an approved linked child, including exit date/time, pickup person, relation, phone and reason. Head can approve, reject and mark an approved pass as Exited. Student and Parent roles can read their own gate-pass history and print the pass. Pickup details are intentionally not exposed to Teacher accounts.
+
+
+## Lesson planning and syllabus progress
+EduNizam includes a Lesson Plan & Syllabus Progress Center. Teachers and Head can create weekly lesson plans with class/section, subject, topic, objectives, teaching activities and follow-up/homework. Plans support Draft, Published and Completed states.
+
+Syllabus units/chapters track target completion date, completion percentage and Planned/In Progress/Completed status. Teachers are restricted to classes/sections represented by their assigned students; Head can manage all institute classes. Student/Parent accounts see only Published lesson plans and syllabus units explicitly marked family-visible for their linked class/section. A printable syllabus progress report is included.
