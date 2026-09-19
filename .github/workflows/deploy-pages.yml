@@ -24,6 +24,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Run repository smoke checks
+        run: node scripts/repo-smoke-check.mjs
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
