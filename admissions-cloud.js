@@ -109,8 +109,42 @@
       if(memberError)throw memberError;
       if(member?.role)return member.role;
     }
+    const {data:owned,error:ownedError}=await state.client.from('institutions').select('id').eq('owner_user_id',state.user.id).limit(1);
+    if(ownedError)throw ownedError;
+    if(owned?.length)return 'head_of_institute';
     const {data,error}=await state.client.from('user_profiles').select('account_role').eq('user_id',state.user.id).maybeSingle();
     if(error)throw error;return data?.account_role||'student';
+  }
+  async function listMyInstitutions(){
+    if(!state.client||!state.user)return[];
+    const {data:owned,error:ownedError}=await state.client.from('institutions')
+      .select('*').eq('owner_user_id',state.user.id).order('created_at',{ascending:true});
+    if(ownedError)throw ownedError;
+    const {data:memberships,error:memberError}=await state.client.from('institution_members')
+      .select('role,institutions(*)').eq('user_id',state.user.id);
+    if(memberError)throw memberError;
+    const merged=[...(owned||[]),...((memberships||[]).map(x=>x.institutions).filter(Boolean))];
+    return [...new Map(merged.map(x=>[x.id,x])).values()];
+  }
+  async function createInstitution({name,institutionType='school',admissionSession}){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const clean=String(name||'').trim();
+    if(!clean)throw new Error('Institute name is required.');
+    const session=String(admissionSession||new Date().getFullYear()).trim();
+    const payload={
+      owner_user_id:state.user.id,
+      name:clean,
+      institution_type:institutionType,
+      admission_session:session,
+      application_prefix:'ADM',
+      currency:'PKR'
+    };
+    const {data,error}=await state.client.from('institutions').insert(payload).select().single();
+    if(error)throw error;
+    await state.client.from('institution_settings').upsert({
+      institution_id:data.id,school_name:clean,school_type:institutionType,academic_session:session,updated_by:state.user.id
+    },{onConflict:'institution_id'});
+    return data;
   }
   async function getLinkedStudents(){
     if(!state.client||!state.user)return[];
@@ -205,7 +239,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
