@@ -41,8 +41,11 @@ $('saveStudentBtn').onclick=()=>{
  ['studentName','fatherName','studentClass','studentPhone'].forEach(id=>$(id).value='');
  persist();logActivity('Student added: '+name);renderAll();
 };
+function scopedStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(state.students)||state.students}
 function renderStudents(){
- $('studentList').innerHTML=state.students.length?state.students.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span><button onclick="removeStudent('+s.id+')">Delete</button></div>').join(''):'<div class="muted">No students added yet.</div>';
+ const list=scopedStudents(),canDelete=(window.EDUNIZAM_ROLE_SCOPE?.role?.()||'head')==='head';
+ $('studentList').innerHTML=list.length?list.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canDelete?'<button onclick="removeStudent('+s.id+')">Delete</button>':'<span></span>')+'</div>').join(''):'<div class="muted">No accessible students.</div>';
+ const addBtn=$('addStudentBtn');if(addBtn)addBtn.style.display=canDelete?'inline-block':'none';
 }
 window.removeStudent=id=>{state.students=state.students.filter(s=>s.id!==id);persist();renderAll();};
 window.addStudentFromAdmission=(student)=>{
@@ -71,31 +74,37 @@ function todayKey(){return new Date().toISOString().slice(0,10)}
 function renderAttendance(){
  $('todayLabel').textContent=new Date().toLocaleDateString();
  const day=state.attendance[todayKey()]||{};
- $('attendanceList').innerHTML=state.students.length?state.students.map(s=>'<div class="row attendance-row"><strong>'+esc(s.name)+'</strong><label><input type="radio" name="att_'+s.id+'" value="Present" '+((day[s.id]||'Present')==='Present'?'checked':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(day[s.id]==='Absent'?'checked':'')+'> Absent</label></div>').join(''):'<div class="muted">Add students first.</div>';
+ const list=scopedStudents();
+ $('attendanceList').innerHTML=list.length?list.map(s=>'<div class="row attendance-row"><strong>'+esc(s.name)+'</strong><label><input type="radio" name="att_'+s.id+'" value="Present" '+((day[s.id]||'Present')==='Present'?'checked':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(day[s.id]==='Absent'?'checked':'')+'> Absent</label></div>').join(''):'<div class="muted">Add students first.</div>';
 }
 $('saveAttendanceBtn').onclick=()=>{
- const day={}; state.students.forEach(s=>{const x=document.querySelector('input[name="att_'+s.id+'"]:checked');day[s.id]=x?x.value:'Present';});
- state.attendance[todayKey()]=day;persist();logActivity('Attendance saved for '+todayKey());renderStats();
+ const day={}; scopedStudents().forEach(s=>{const x=document.querySelector('input[name="att_'+s.id+'"]:checked');day[s.id]=x?x.value:'Present';});
+ state.attendance[todayKey()]=Object.assign({},state.attendance[todayKey()]||{},day);persist();logActivity('Attendance saved for '+todayKey());renderStats();
+ window.EDUNIZAM_WORKFLOW_ALERTS?.attendanceSaved?.(day,todayKey());
 };
 function fillStudentSelects(){
- const opts='<option value="">Select student</option>'+state.students.map(s=>'<option value="'+s.id+'">'+esc(s.name)+'</option>').join('');
+ const opts='<option value="">Select student</option>'+scopedStudents().map(s=>'<option value="'+s.id+'">'+esc(s.name)+'</option>').join('');
  $('feeStudent').innerHTML=opts;$('resultStudent').innerHTML=opts;
 }
 $('saveFeeBtn').onclick=()=>{
  const studentId=Number($('feeStudent').value),amount=Number($('feeAmount').value||0),status=$('feeStatus').value;
  if(!studentId||amount<=0)return alert('Select student and enter amount');
- state.fees.push({id:Date.now(),studentId,amount,status,date:todayKey()});persist();logActivity('Fee record added');renderAll();$('feeAmount').value='';
+ const feeRecord={id:Date.now(),studentId,amount,status,date:todayKey()};state.fees.push(feeRecord);persist();logActivity('Fee record added');renderAll();$('feeAmount').value='';
+ window.EDUNIZAM_WORKFLOW_ALERTS?.feeSaved?.(feeRecord);
 };
 function renderFees(){
- $('feeList').innerHTML=state.fees.length?state.fees.slice().reverse().map(f=>{const s=state.students.find(x=>x.id===f.studentId);return '<div class="row"><strong>'+esc(s?.name||'Student')+'</strong><span>Rs '+f.amount+'</span><span class="badge">'+f.status+'</span><span>'+f.date+'</span><span></span></div>'}).join(''):'<div class="muted">No fee records yet.</div>';
+ const ids=new Set(scopedStudents().map(s=>s.id)),rows=state.fees.filter(f=>ids.has(f.studentId));
+ $('feeList').innerHTML=rows.length?rows.slice().reverse().map(f=>{const s=state.students.find(x=>x.id===f.studentId);return '<div class="row"><strong>'+esc(s?.name||'Student')+'</strong><span>Rs '+f.amount+'</span><span class="badge">'+f.status+'</span><span>'+f.date+'</span><span></span></div>'}).join(''):'<div class="muted">No fee records yet.</div>';
 }
 $('saveResultBtn').onclick=()=>{
  const studentId=Number($('resultStudent').value),subject=$('resultSubject').value.trim(),marks=Number($('resultMarks').value),total=Number($('resultTotal').value);
  if(!studentId||!subject||!total)return alert('Complete result fields');
- state.results.push({id:Date.now(),studentId,subject,marks,total});persist();logActivity('Result added for '+subject);renderResults();
+ const resultRecord={id:Date.now(),studentId,subject,marks,total,date:todayKey()};state.results.push(resultRecord);persist();logActivity('Result added for '+subject);renderResults();
+ window.EDUNIZAM_WORKFLOW_ALERTS?.resultSaved?.(resultRecord);
 };
 function renderResults(){
- $('resultList').innerHTML=state.results.length?state.results.slice().reverse().map(r=>{const s=state.students.find(x=>x.id===r.studentId);const p=Math.round((r.marks/r.total)*100);return '<div class="row"><strong>'+esc(s?.name||'Student')+'</strong><span>'+esc(r.subject)+'</span><span>'+r.marks+'/'+r.total+'</span><span>'+p+'%</span><span></span></div>'}).join(''):'<div class="muted">No results yet.</div>';
+ const ids=new Set(scopedStudents().map(s=>s.id)),rows=state.results.filter(r=>ids.has(r.studentId));
+ $('resultList').innerHTML=rows.length?rows.slice().reverse().map(r=>{const s=state.students.find(x=>x.id===r.studentId);const p=Math.round((r.marks/r.total)*100);return '<div class="row"><strong>'+esc(s?.name||'Student')+'</strong><span>'+esc(r.subject)+'</span><span>'+r.marks+'/'+r.total+'</span><span>'+p+'%</span><span></span></div>'}).join(''):'<div class="muted">No results yet.</div>';
 }
 document.querySelectorAll('.prompt-chip').forEach(b=>b.onclick=()=>$('aiPrompt').value=b.textContent+': ');
 $('generateBtn').onclick=()=>{
@@ -146,9 +155,9 @@ function renderActivity(){
  $('activityList').innerHTML=state.activity.length?state.activity.slice(-6).reverse().map(a=>'<div><strong>'+esc(a.text)+'</strong><br><small>'+esc(a.time)+'</small></div>').join('<hr>'):'No activity yet.';
 }
 function renderStats(){
- $('statStudents').textContent=state.students.length;
- const day=state.attendance[todayKey()]||{};$('statPresent').textContent=Object.values(day).filter(x=>x==='Present').length;
- const paid=state.fees.filter(x=>x.status==='Paid').reduce((a,b)=>a+b.amount,0),pending=state.fees.filter(x=>x.status==='Pending').reduce((a,b)=>a+b.amount,0);
+ const visible=scopedStudents(),ids=new Set(visible.map(s=>s.id));$('statStudents').textContent=visible.length;
+ const day=state.attendance[todayKey()]||{};$('statPresent').textContent=visible.filter(s=>day[s.id]==='Present').length;
+ const paid=state.fees.filter(x=>ids.has(x.studentId)&&x.status==='Paid').reduce((a,b)=>a+b.amount,0),pending=state.fees.filter(x=>ids.has(x.studentId)&&x.status==='Pending').reduce((a,b)=>a+b.amount,0);
  $('statFees').textContent='Rs '+paid.toLocaleString();$('statPending').textContent='Rs '+pending.toLocaleString();
 }
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
