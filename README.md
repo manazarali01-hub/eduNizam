@@ -145,3 +145,9 @@ Head of Institute manages routes, stops, monthly transport fee, vehicles, seatin
 EduNizam includes a Student Discipline & Behavior Center that tracks Positive Notes, Concerns, Warnings and Incidents with severity, action taken, open/resolved state and optional family visibility.
 
 Head of Institute can manage all institute records. Teachers can manage records for their assigned students and can read assigned-student records. Student/Parent accounts only see records explicitly marked "Share with family". Family-visible records generate notifications and can be acknowledged by the linked Student or Parent. Staff-only notes remain hidden from family accounts.
+
+
+## Visitor and student gate pass
+EduNizam includes a Visitor & Student Gate Pass Center.
+
+Visitor check-in/out is Head-only. Parents can request an early-exit gate pass for an approved linked child, including exit date/time, pickup person, relation, phone and reason. Head can approve, reject and mark an approved pass as Exited. Student and Parent roles can read their own gate-pass history and print the pass. Pickup details are intentionally not exposed to Teacher accounts.
