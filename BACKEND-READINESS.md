@@ -11,13 +11,14 @@
 2. Run `supabase-production-one-step.sql` in Supabase SQL Editor.
 3. Confirm the `admission-documents` storage bucket and RLS policies created by the migration.
 4. Configure Supabase Auth email settings and allowed redirect URLs.
-5. If admission payments are needed, deploy `supabase/functions/admissions-payments/index.ts` and configure its server-side environment variables.
-6. Open EduNizam → Settings → EduNizam Cloud Setup.
-7. Enter the Supabase Project URL and publishable/anon key, enable Cloud Mode, and reload.
-8. Sign in. On first owner setup, create the institution; otherwise select the linked institution.
-9. Run **Backend Health Check** in Settings.
-10. Test Head, Teacher, Student and Parent accounts on separate sessions/devices.
-11. Only after successful testing, use Cloud Backup & Sync to migrate any existing local school records.
+5. Deploy `supabase/functions/ai-assistant/index.ts` for EduNizam AI. Set the server-side `OPENAI_API_KEY` secret. Optional: `EDUNIZAM_AI_MODEL=gpt-5.6-luna`, `EDUNIZAM_AI_DAILY_LIMIT=25`, and `EDUNIZAM_ALLOWED_ORIGINS=https://manazarali01-hub.github.io`.
+6. If admission payments are needed, deploy `supabase/functions/admissions-payments/index.ts` and configure its server-side environment variables.
+7. Open EduNizam → Settings → EduNizam Cloud Setup.
+8. Enter the Supabase Project URL and publishable/anon key, enable Cloud Mode, and reload.
+9. Sign in. On first owner setup, create the institution; otherwise select the linked institution.
+10. Run **Backend Health Check** in Settings.
+11. Test Head, Teacher, Student and Parent accounts on separate sessions/devices.
+12. Only after successful testing, use Cloud Backup & Sync to migrate any existing local school records.
 
 ## Important notes
 - Do not manually edit `cloud-config.js` for normal setup; the Settings screen stores runtime configuration locally.
