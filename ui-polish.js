@@ -82,13 +82,61 @@
     reveal($('.view.active'));decorateActiveNav();
   }
 
+  function addMobileNavigation(){
+    const sidebar=$('.sidebar'),topbar=$('.topbar');
+    if(!sidebar||!topbar||$('#eduMobileMenuBtn'))return;
+    const menu=document.createElement('button');
+    menu.id='eduMobileMenuBtn';
+    menu.className='mobile-menu-btn';
+    menu.type='button';
+    menu.setAttribute('aria-label','Open navigation');
+    menu.setAttribute('aria-expanded','false');
+    menu.innerHTML='<span aria-hidden="true">☰</span>';
+
+    const close=document.createElement('button');
+    close.id='eduMobileNavClose';
+    close.className='mobile-nav-close';
+    close.type='button';
+    close.setAttribute('aria-label','Close navigation');
+    close.innerHTML='<span aria-hidden="true">×</span>';
+    sidebar.appendChild(close);
+
+    const backdrop=document.createElement('div');
+    backdrop.id='eduMobileNavBackdrop';
+    backdrop.className='mobile-nav-backdrop';
+    backdrop.setAttribute('aria-hidden','true');
+    document.body.appendChild(backdrop);
+
+    topbar.insertBefore(menu,topbar.firstChild);
+
+    const setOpen=open=>{
+      sidebar.classList.toggle('mobile-nav-open',open);
+      backdrop.classList.toggle('show',open);
+      document.body.classList.toggle('mobile-nav-lock',open);
+      menu.setAttribute('aria-expanded',String(open));
+      if(open)setTimeout(()=>sidebar.querySelector('.nav-search-wrap input')?.focus(),80);
+    };
+    menu.onclick=()=>setOpen(!sidebar.classList.contains('mobile-nav-open'));
+    close.onclick=()=>setOpen(false);
+    backdrop.onclick=()=>setOpen(false);
+    sidebar.addEventListener('click',event=>{
+      if(event.target.closest('.nav-item')&&innerWidth<=950)setOpen(false);
+    });
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&sidebar.classList.contains('mobile-nav-open'))setOpen(false);
+    });
+    addEventListener('resize',()=>{
+      if(innerWidth>950)setOpen(false);
+    });
+  }
+
   function mount(){
     document.documentElement.classList.add('edu-ui-polished');
-    addProgressBar();addBackToTop();observeViews();
+    addProgressBar();addBackToTop();addMobileNavigation();observeViews();
     document.addEventListener('pointerdown',ripple);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
   else mount();
-  window.EDUNIZAM_UI_POLISH={reveal,decorateActiveNav};
+  window.EDUNIZAM_UI_POLISH={reveal,decorateActiveNav,addMobileNavigation};
 })();
