@@ -505,3 +505,212 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .topbar{position:static;box-shadow:none;backdrop-filter:none}
   .view.active{animation:none}
 }
+
+
+/* EDUNIZAM_MOBILE_RESPONSIVE_V1 */
+.mobile-menu-btn,.mobile-nav-close,.mobile-nav-backdrop{display:none}
+
+@media(max-width:950px){
+  body{overflow-x:hidden}
+  .app-shell{display:block;min-height:100vh}
+  .main{width:100%;min-width:0;padding:18px 16px 36px}
+  .sidebar{
+    position:fixed;
+    inset:0 auto 0 0;
+    z-index:1002;
+    width:min(330px,88vw);
+    height:100dvh;
+    padding:16px 14px;
+    overflow:hidden;
+    transform:translateX(-104%);
+    transition:transform .22s ease;
+    box-shadow:18px 0 46px rgba(3,18,27,.28);
+  }
+  .sidebar.mobile-nav-open{transform:translateX(0)}
+  .sidebar .brand{margin-bottom:10px;padding:5px 4px 14px;padding-right:48px}
+  .sidebar .nav-groups{
+    display:block;
+    height:auto;
+    max-height:calc(100dvh - 150px);
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:0 2px 24px 0;
+  }
+  .nav-search-wrap{max-width:none;margin:0 0 10px}
+  .mobile-menu-btn{
+    display:inline-grid;
+    place-items:center;
+    flex:0 0 auto;
+    width:42px;
+    height:42px;
+    padding:0;
+    border-radius:12px;
+    font-size:21px;
+    line-height:1;
+    box-shadow:none;
+  }
+  .mobile-nav-close{
+    display:grid;
+    place-items:center;
+    position:absolute;
+    top:16px;
+    right:14px;
+    z-index:3;
+    width:38px;
+    height:38px;
+    padding:0;
+    border-radius:11px;
+    background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.13);
+    color:#fff;
+    box-shadow:none;
+    font-size:22px;
+  }
+  .mobile-nav-backdrop{
+    display:block;
+    position:fixed;
+    inset:0;
+    z-index:1001;
+    background:rgba(5,21,31,.48);
+    backdrop-filter:blur(2px);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .2s ease,visibility .2s ease;
+  }
+  .mobile-nav-backdrop.show{opacity:1;visibility:visible;pointer-events:auto}
+  body.mobile-nav-lock{overflow:hidden}
+  .topbar{
+    position:sticky;
+    top:6px;
+    z-index:80;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:10px;
+    align-items:center;
+    margin:0 0 16px;
+    padding:11px 12px;
+  }
+  .topbar-title{min-width:0}
+  .topbar-title h1{font-size:clamp(21px,5vw,27px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar-title p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar-actions{min-width:0;gap:7px;flex-wrap:nowrap}
+  .topbar-actions .academic-pill{display:none}
+  #roleSession{max-width:155px;min-width:0}
+  #roleSession strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .campus-hero{grid-template-columns:1fr;padding:22px}
+  .campus-visual{min-height:120px}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid-2,.analytics-grid,.import-layout{grid-template-columns:1fr}
+  .card,.paper-card,.request-panel{min-width:0}
+  .paper-grid,.community-feed,.role-action-grid,.check-grid{grid-template-columns:minmax(0,1fr)}
+  .form-grid,.pp-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .row{grid-template-columns:1fr 1fr;align-items:start}
+  .row>*{min-width:0}
+  .section-head{align-items:flex-start;flex-wrap:wrap}
+  .section-head>div{min-width:0;flex:1 1 240px}
+  .paper-tabs{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    overscroll-behavior-inline:contain;
+    scrollbar-width:thin;
+    padding-bottom:4px;
+  }
+  .paper-tabs .paper-tab{flex:0 0 auto;white-space:nowrap}
+  .schedule-table-wrap,.merit-table-wrap,.fee-structure-table{max-width:100%;-webkit-overflow-scrolling:touch}
+  .schedule-table,.merit-table,.fee-row{font-size:13px}
+  img,video,canvas,svg{max-width:100%}
+  .study-viewer-card,.admission-review-card{width:min(96vw,900px)}
+  .seo-footer{margin-left:0}
+}
+
+@media(max-width:650px){
+  html{-webkit-text-size-adjust:100%}
+  .main{padding:12px 10px 30px}
+  .topbar{
+    top:4px;
+    grid-template-columns:auto minmax(0,1fr);
+    border-radius:14px;
+    padding:9px 10px;
+  }
+  .mobile-menu-btn{grid-column:1;grid-row:1 / span 2;width:40px;height:40px}
+  .topbar-title{grid-column:2;grid-row:1}
+  .topbar-actions{grid-column:2;grid-row:2;justify-content:flex-start;overflow-x:auto;padding-bottom:1px}
+  .topbar-title .academic-kicker{display:none}
+  .topbar-title h1{font-size:21px;line-height:1.2}
+  .topbar-title p{margin-top:2px;font-size:12px}
+  #roleSession{max-width:100%;font-size:12px;padding:6px 8px}
+  #roleSession button{padding:4px 7px!important}
+  .campus-hero{padding:18px 16px;border-radius:17px}
+  .campus-hero h2{font-size:28px}
+  .campus-hero p{font-size:14px;line-height:1.55}
+  .campus-visual{display:none}
+  .campus-hero-actions,.quick-actions,.paper-actions,.math-editor-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+  }
+  .campus-hero-actions button,.quick-actions button,.paper-actions a,.paper-actions button,.math-editor-actions button{
+    width:100%;
+    text-align:center;
+    justify-content:center;
+  }
+  .cards,.pp-stats,.form-grid,.pp-filter-grid,.row,.attendance-row,.time-punch-grid{grid-template-columns:1fr}
+  .card{padding:15px;border-radius:15px}
+  .pp-hero{padding:18px 16px;border-radius:16px}
+  .pp-hero h2{font-size:26px}
+  .pp-stats{gap:8px}
+  .pp-stats article{padding:12px}
+  .paper-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+  .paper-card{padding:14px}
+  .paper-card h3{font-size:16px;overflow-wrap:anywhere}
+  .paper-card-top{align-items:flex-start}
+  .paper-meta{gap:5px}
+  .paper-search-row{display:grid;grid-template-columns:1fr;gap:8px}
+  .paper-search-row button{width:100%}
+  input,select,textarea{font-size:16px;min-height:44px}
+  button,.nav-item,.paper-actions a{min-height:42px}
+  .view>.section-head:first-child{padding:14px;border-radius:15px}
+  .view>.section-head:first-child h2{font-size:22px}
+  .section-head{gap:10px}
+  .section-head>button{width:100%}
+  .study-viewer,.admission-review{padding:0;align-items:stretch}
+  .study-viewer-card,.admission-review-card{
+    width:100vw;
+    max-width:none;
+    min-height:100dvh;
+    max-height:100dvh;
+    border-radius:0;
+    padding:15px 12px 28px;
+  }
+  .study-content{font-size:15px;line-height:1.6;padding:12px;max-width:100%;overflow-wrap:anywhere}
+  .math-editor{padding:12px}
+  .math-toolbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+  .math-toolbar button{width:100%;min-width:0}
+  .practice-test-head{flex-direction:column}
+  .practice-timer{width:100%}
+  .result-score{flex-wrap:wrap}
+  .fee-structure-table,.schedule-table-wrap,.merit-table-wrap{
+    margin-left:-5px;
+    margin-right:-5px;
+    border-radius:10px;
+  }
+  .fee-row{min-width:720px}
+  .schedule-table{min-width:620px}
+  .merit-table{min-width:620px}
+  .community-media{height:auto;max-height:260px}
+  .attachment-grid{grid-template-columns:1fr}
+  .password-field{grid-template-columns:minmax(0,1fr) auto}
+  .profile-line{flex-direction:column;gap:3px}
+  .attendance-grid{grid-template-columns:repeat(5,minmax(32px,1fr))}
+  .seo-footer{padding:16px 12px}
+}
+
+@media(max-width:380px){
+  .main{padding-left:8px;padding-right:8px}
+  .sidebar{width:92vw}
+  .cards{grid-template-columns:1fr}
+  .pp-stats{grid-template-columns:1fr 1fr}
+  .math-toolbar{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .attendance-grid{grid-template-columns:repeat(4,minmax(32px,1fr))}
+}
