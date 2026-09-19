@@ -83,3 +83,9 @@ Cloud mode stores the enhanced billing fields in `fee_records` and stores editab
 EduNizam includes a Class & Section Center for class/section records, class teachers, rooms, capacity and student allocation. Existing student records remain compatible because `sectionName` / `section_name` is optional.
 
 Head of Institute manages sections and student allocation. Teachers have read-only access to the class/section directory. Cloud backup and restore preserve each student's section.
+
+
+## Staff attendance and payroll
+Head of Institute can mark daily staff attendance, configure monthly salary, generate payroll, apply allowances/deductions, mark salary paid and print payslips. Teachers only read their own linked attendance and payroll records.
+
+Attendance-based payroll uses base salary / 30 as the daily rate. Absent days deduct one daily rate and Half Day deducts half a daily rate; Leave does not deduct salary automatically.
