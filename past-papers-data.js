@@ -3,7 +3,7 @@ window.EDUNIZAM_PAST_PAPERS = {
   boards: [
     {id:"fbise",name:"FBISE Islamabad",region:"Federal / GB sub-offices",classes:[9,10,11,12],archiveUrl:"https://pakboards.com/past-papers/fbise",officialUrl:"https://fbise.edu.pk/"},
     {id:"bise-lahore",name:"BISE Lahore",region:"Punjab",classes:[9,10,11,12],archiveUrl:"https://pakboards.com/past-papers/bise-lahore",officialUrl:"https://www.biselahore.com/"},
-    {id:"bise-gujranwala",name:"BISE Gujranwala",region:"Punjab",classes:[9,10,11,12],officialUrl:"https://www.bisegrw.edu.pk/"},
+    {id:"bise-gujranwala",name:"BISE Gujranwala",region:"Punjab",classes:[9,10,11,12],archiveUrl:"https://pakboards.com/past-papers/bise-gujranwala",officialUrl:"https://www.bisegrw.edu.pk/"},
     {id:"bise-faisalabad",name:"BISE Faisalabad",region:"Punjab",classes:[9,10,11,12],archiveUrl:"https://pakboards.com/past-papers/bise-faisalabad",officialUrl:"https://www.bisefsd.edu.pk/"},
     {id:"bise-multan",name:"BISE Multan",region:"Punjab",classes:[9,10,11,12],archiveUrl:"https://pakboards.com/past-papers/bise-multan",officialUrl:"https://www.bisemultan.edu.pk/"},
     {id:"bise-rawalpindi",name:"BISE Rawalpindi",region:"Punjab",classes:[9,10,11,12],archiveUrl:"https://pakboards.com/past-papers/bise-rawalpindi",officialUrl:"https://www.biserawalpindi.edu.pk/"},
