@@ -1,44 +1,43 @@
 # EduNizam – AI School Assistant
 
-EduNizam is a modular school-management PWA designed for small and growing schools.
+EduNizam is a modular school-management and learning PWA for schools, students, parents, teachers and institute heads.
 
 ## Current modules
-- Dashboard
-- Students
-- Attendance
-- Fees
-- Results
-- Notices / AI Assistant
-- Settings
+- Dashboard and role-based access
+- Students, attendance, fees and results
+- Student progress dashboard
+- Pakistan board past papers
+- Grade 5 & 8 assessment resources
+- University Hub and VU Special
+- Study library and practice tests
+- Online admissions
+- Communication / Google Meet scheduling
+- Notifications and academic access controls
+- Cloud backup/sync readiness with Supabase
+- AI Assistant shell and Math editor
 
 ## Architecture
 - Frontend: HTML, CSS, JavaScript
-- Hosting target: GitHub Pages
-- Local MVP storage: browser localStorage
-- AI: secure API backend to be connected separately (never expose API keys in browser code)
+- Hosting: GitHub Pages
+- Offline/local mode: browser localStorage + PWA service worker
+- Cloud backend: Supabase (optional until configured)
+- AI: secure server-side AI backend still needs to be connected; never expose AI API keys in browser code
 
-## Roadmap
-The project is intentionally modular so new features can be added without rebuilding the whole app.
+## Cloud setup
+Use **Settings → EduNizam Cloud Setup**. Do not hard-code production credentials into repository files.
 
+For a fresh Supabase project:
+1. Run `supabase-production-one-step.sql` in Supabase SQL Editor.
+2. Deploy `supabase/functions/admissions-payments/index.ts` only when admission payments are needed.
+3. In EduNizam Settings, enter the Supabase Project URL and publishable/anon key.
+4. Enable cloud mode, sign in, create/select the institution, then run Backend Health Check.
 
-## Premium Past Papers Module
-The Past Papers feature is designed as a scalable exam-prep library for Pakistan SSC/HSSC learners.
+## Past-paper data quality
+- `official`: hosted by the relevant board/university or official portal.
+- `verified`: third-party/community source checked as a useful index/archive.
+- `community`: supplementary material that should be verified against current official syllabus/handouts.
+- Search fallbacks should never pretend that an exact paper is indexed when only a source/archive is available.
 
-### Features
-- Matric (9th, 10th) and Intermediate (11th, 12th)
-- National board catalog with region/board/class/subject/year/session filters
-- Resource types: past papers, model papers, rubrics, syllabi, official portals
-- Source trust levels: official, verified, community
-- Universal search
-- Saved papers / favorites
-- Recently opened papers
-- Missing-paper request queue
-- AI Solve handoff into the EduNizam assistant
-- Offline PWA caching for the module shell
-- Import-ready JSON schema for large paper datasets
-
-### Data quality rule
-A paper should only be marked `official` when the URL is hosted by the relevant examination body or its official learning-material portal. Third-party archives must use `verified` or `community` status after link/content checks.
-
-### Bulk import
-Use `past-paper-import.schema.json` as the contract for future paper batches. This keeps thousands of records independent from the UI code.
+## Safety
+- Never put Supabase `service_role`, payment secrets, webhook secrets, private API keys or AI keys in browser files.
+- RLS remains the security boundary for browser-side Supabase access.
