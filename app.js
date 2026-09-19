@@ -39,6 +39,7 @@ function setView(view){
  if(view==='admissions'&&window.renderAdmissionsPortal)window.renderAdmissionsPortal();
  if(view==='studentprofile'&&window.renderStudentPerformance)window.renderStudentPerformance();
  if(view==='schoolwork'&&window.EDUNIZAM_SCHOOL_WORK?.render)window.EDUNIZAM_SCHOOL_WORK.render();
+ if(view==='leavecenter'&&window.EDUNIZAM_LEAVE_CENTER?.render)window.EDUNIZAM_LEAVE_CENTER.render();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
@@ -228,10 +229,10 @@ renderAll();
   const classFees=()=>JSON.parse(localStorage.getItem(FEE_KEY)||JSON.stringify(defaultFees));
   const saveClassFees=v=>localStorage.setItem(FEE_KEY,JSON.stringify(v));
   const roleViews={
-    student:['dashboard','studentprofile','fees','results','schoolwork','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
-    parent:['dashboard','studentprofile','fees','results','attendance','schoolwork','communication','access','notifications','assistant'],
-    teacher:['dashboard','students','studentprofile','attendance','results','schoolwork','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
-    head:['dashboard','students','studentprofile','attendance','fees','results','schoolwork','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
+    student:['dashboard','studentprofile','fees','results','schoolwork','leavecenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
+    parent:['dashboard','studentprofile','fees','results','attendance','schoolwork','leavecenter','communication','access','notifications','assistant'],
+    teacher:['dashboard','students','studentprofile','attendance','results','schoolwork','leavecenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
+    head:['dashboard','students','studentprofile','attendance','fees','results','schoolwork','leavecenter','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
   };
   const labels={student:'Student',parent:'Parent / Guardian',teacher:'Teacher',head:'Head of Institute'};
   function injectStyles(){
