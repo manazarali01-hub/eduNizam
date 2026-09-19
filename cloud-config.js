@@ -6,6 +6,7 @@
     supabasePublishableKey:"",
     institutionId:"",
     admissionsStorageBucket:"admission-documents",
+    complaintStorageBucket:"parent-complaints",
     paymentApiBaseUrl:""
   };
   let runtime={};

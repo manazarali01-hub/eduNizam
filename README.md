@@ -163,3 +163,9 @@ Syllabus units/chapters track target completion date, completion percentage and 
 EduNizam includes a structured Helpdesk & Complaint Center for Academics, Attendance, Fees, Transport, Behavior, Facilities, Technical, Admission and Other issues.
 
 Student, Parent, Teacher and Head accounts can submit tickets with priority and optional student context. Cloud validation restricts Student context to self, Parent context to approved linked children, and Teacher context to assigned students. Normal users read only their own tickets; Head reads and manages institute tickets, can move them through Open/In Progress/Resolved/Closed, add an official response, and triggers notifications back to the ticket creator. Printable ticket records are included.
+
+
+## Parent complaint notices with photo and video
+EduNizam includes a separate Parent Complaint Notices Center. Head of Institute can send a complaint about any student; a Teacher can send a complaint only about an assigned student. The complaint requires an approved linked Parent account so there is a valid recipient.
+
+Each complaint supports text plus up to 3 private photo/video attachments (maximum 25 MB each). Media is stored in the private `parent-complaints` Supabase Storage bucket, never as a public URL. Authorized viewers receive one-hour signed URLs. The linked Parent receives a notification, can view the complaint/media and acknowledge receipt; Head can mark the complaint Resolved. Parent acknowledgement also notifies the staff creator.
