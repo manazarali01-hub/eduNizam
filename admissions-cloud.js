@@ -259,6 +259,19 @@
       .eq('teacher_user_id',teacherUserId).eq('student_user_id',studentUserId);
     if(error)throw error;return true;
   }
+  async function listMyTeacherAssignments(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    const {data,error}=await state.client.from('teacher_student_links')
+      .select('student_user_id').eq('institution_id',cfg.institutionId).eq('teacher_user_id',state.user.id);
+    if(error)throw error;return (data||[]).map(x=>x.student_user_id);
+  }
+  async function listApprovedParentsForStudent(studentUserId){
+    if(!state.client||!cfg.institutionId||!studentUserId)return[];
+    const {data,error}=await state.client.from('parent_student_links')
+      .select('parent_user_id').eq('institution_id',cfg.institutionId)
+      .eq('student_user_id',studentUserId).eq('status','approved');
+    if(error)throw error;return (data||[]).map(x=>x.parent_user_id);
+  }
   async function listMyNotifications(){
     if(!state.client||!state.user)return[];
     const {data,error}=await state.client.from('user_notifications').select('*')
@@ -338,7 +351,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
