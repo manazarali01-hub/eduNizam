@@ -41,6 +41,7 @@ function setView(view){
  if(view==='schoolwork'&&window.EDUNIZAM_SCHOOL_WORK?.render)window.EDUNIZAM_SCHOOL_WORK.render();
  if(view==='leavecenter'&&window.EDUNIZAM_LEAVE_CENTER?.render)window.EDUNIZAM_LEAVE_CENTER.render();
  if(view==='examcenter'&&window.EDUNIZAM_EXAM_CENTER?.render)window.EDUNIZAM_EXAM_CENTER.render();
+ if(view==='staffcenter'&&window.EDUNIZAM_STAFF_CENTER?.render)window.EDUNIZAM_STAFF_CENTER.render();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
@@ -232,8 +233,8 @@ renderAll();
   const roleViews={
     student:['dashboard','studentprofile','fees','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
     parent:['dashboard','studentprofile','fees','results','attendance','schoolwork','leavecenter','examcenter','communication','access','notifications','assistant'],
-    teacher:['dashboard','students','studentprofile','attendance','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
-    head:['dashboard','students','studentprofile','attendance','fees','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
+    teacher:['dashboard','students','staffcenter','studentprofile','attendance','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
+    head:['dashboard','students','staffcenter','studentprofile','attendance','fees','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
   };
   const labels={student:'Student',parent:'Parent / Guardian',teacher:'Teacher',head:'Head of Institute'};
   function injectStyles(){
