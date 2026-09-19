@@ -1,4 +1,4 @@
-+(function(){
+(function(){
   const EVENT_KEY='edunizam_school_functions_v1',POST_KEY='edunizam_student_spotlight_v1',BUCKET='school-community-media';
   const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const read=(k)=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}},write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
