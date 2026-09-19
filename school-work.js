@@ -17,7 +17,7 @@
     return {
       announcements:(ann||[]).map(x=>({id:x.id,title:x.title,body:x.body,audience:x.audience,createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at})),
       homework:(hw||[]).map(x=>({id:x.id,className:x.class_name,subject:x.subject,title:x.title,details:x.details||'',dueDate:x.due_date||'',createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at})),
-      timetable:(tt||[]).map(x=>({id:x.id,className:x.class_name,day:x.weekday,time:x.start_time?String(x.start_time).slice(0,5):'',subject:x.subject,teacherName:x.teacher_name||'',createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at}))
+      timetable:(tt||[]).map(x=>({id:x.id,className:x.class_name,sectionName:x.section_name||'',day:x.weekday,periodNumber:Number(x.period_number||0),time:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',subject:x.subject,teacherName:x.teacher_name||'',roomLabel:x.room_label||'',createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}))
     };
   }
   async function pullCloud(){
@@ -40,7 +40,7 @@
     }else if(kind==='homework'){
       table='homework_items';payload={institution_id,creator_user_id,class_name:x.className,subject:x.subject,title:x.title,details:x.details||null,due_date:x.dueDate||null};
     }else{
-      table='timetable_entries';payload={institution_id,creator_user_id,class_name:x.className,weekday:x.day,start_time:x.time||null,subject:x.subject,teacher_name:x.teacherName||null};
+      table='timetable_entries';payload={institution_id,creator_user_id,class_name:x.className,section_name:x.sectionName||null,weekday:x.day,period_number:x.periodNumber||null,start_time:x.time||null,end_time:x.endTime||null,subject:x.subject,teacher_name:x.teacherName||null,room_label:x.roomLabel||null,updated_at:new Date().toISOString()};
     }
     const {data,error}=await c.state.client.from(table).insert(payload).select().single();
     if(error)throw error;return data;
