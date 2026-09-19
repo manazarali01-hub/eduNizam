@@ -2,30 +2,27 @@
 
 ## Current state
 - Frontend/PWA works in Local Mode.
-- Admissions cloud adapter exists.
-- Core school cloud sync adapter exists.
-- Full Supabase migration exists in `supabase-full-schema.sql`.
-- Cloud remains disabled until a real Supabase project URL, publishable key and institution ID are supplied.
+- Supabase adapters exist for authentication, school data, admissions, roles, notifications and communication.
+- The recommended production migration is `supabase-production-one-step.sql`.
+- Cloud stays disabled until a real Supabase Project URL and publishable/anon key are supplied.
 
-## Deploy order
-1. Create/connect Supabase project.
-2. Run `supabase-full-schema.sql`.
-3. Create/confirm private storage bucket `admission-documents`.
-4. Deploy `supabase/functions/admissions-payments/index.ts`.
-5. Configure Auth email settings and redirect URLs.
-6. Create first institution and Head of Institute account.
-7. Fill `cloud-config.js` with:
-   - enabled: true
-   - supabaseUrl
-   - supabasePublishableKey
-   - institutionId
-   - paymentApiBaseUrl when payment function is live
-8. Sign in as Head of Institute.
-9. Use Settings > Cloud Backup & Sync > Upload Local Data to Cloud.
-10. Verify Student/Parent/Teacher/Head role access on a second device.
+## Recommended deploy order
+1. Create a Supabase project.
+2. Run `supabase-production-one-step.sql` in Supabase SQL Editor.
+3. Confirm the `admission-documents` storage bucket and RLS policies created by the migration.
+4. Configure Supabase Auth email settings and allowed redirect URLs.
+5. If admission payments are needed, deploy `supabase/functions/admissions-payments/index.ts` and configure its server-side environment variables.
+6. Open EduNizam → Settings → EduNizam Cloud Setup.
+7. Enter the Supabase Project URL and publishable/anon key, enable Cloud Mode, and reload.
+8. Sign in. On first owner setup, create the institution; otherwise select the linked institution.
+9. Run **Backend Health Check** in Settings.
+10. Test Head, Teacher, Student and Parent accounts on separate sessions/devices.
+11. Only after successful testing, use Cloud Backup & Sync to migrate any existing local school records.
 
-## Safety
-- Never put service_role keys or payment secrets in frontend files.
-- Cloud restore creates a local snapshot at `edunizam_last_cloud_restore_backup`.
+## Important notes
+- Do not manually edit `cloud-config.js` for normal setup; the Settings screen stores runtime configuration locally.
+- `cloud-config.example.js` is reference documentation only.
+- Never put service-role keys, payment gateway secrets, webhook secrets or AI API keys in frontend files.
+- Cloud restore keeps a local snapshot at `edunizam_last_cloud_restore_backup`.
 - RLS policies protect institution/student data.
-- Teacher/Head roles are institute-controlled; Student/Parent may self-register.
+- Teacher/Head roles are institute-controlled; Student/Parent may self-register and then link/claim records.
