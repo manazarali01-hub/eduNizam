@@ -41,3 +41,14 @@ For a fresh Supabase project:
 ## Safety
 - Never put Supabase `service_role`, payment secrets, webhook secrets, private API keys or AI keys in browser files.
 - RLS remains the security boundary for browser-side Supabase access.
+
+
+## AI Assistant backend
+- Frontend client: `ai-client.js`
+- Supabase Edge Function: `supabase/functions/ai-assistant/index.ts`
+- Usage/quota migration: `supabase-ai-usage-migration.sql`
+- Default cost-sensitive model: `gpt-5.6-luna` (override with `EDUNIZAM_AI_MODEL`)
+- Required Edge Function secret: `OPENAI_API_KEY`
+- Optional secrets: `EDUNIZAM_AI_DAILY_LIMIT`, `EDUNIZAM_AI_MODEL`, `EDUNIZAM_ALLOWED_ORIGINS`
+
+The OpenAI key must remain server-side. Never put it in GitHub, `cloud-config.js`, localStorage or browser JavaScript.
