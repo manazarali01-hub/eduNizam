@@ -169,3 +169,9 @@ Student, Parent, Teacher and Head accounts can submit tickets with priority and 
 EduNizam includes a separate Parent Complaint Notices Center. Head of Institute can send a complaint about any student; a Teacher can send a complaint only about an assigned student. The complaint requires an approved linked Parent account so there is a valid recipient.
 
 Each complaint supports text plus up to 3 private photo/video attachments (maximum 25 MB each). Media is stored in the private `parent-complaints` Supabase Storage bucket, never as a public URL. Authorized viewers receive one-hour signed URLs. The linked Parent receives a notification, can view the complaint/media and acknowledge receipt; Head can mark the complaint Resolved. Parent acknowledgement also notifies the staff creator.
+
+
+## Digital notice board
+EduNizam upgrades the existing School Work announcements into a dedicated Digital Notice Board without duplicating announcement data.
+
+Notices support Normal/Important/Urgent priority, pin-to-top, optional expiry date, All/Students/Parents/Teachers/Specific Class audience, class/section targeting and printable notice output. Expired notices are hidden from Student/Parent active views and remain available to staff as archive/history. Head can manage all notices; Teachers manage their own notices, and class-targeted Teacher notices are validated against assigned students/classes.

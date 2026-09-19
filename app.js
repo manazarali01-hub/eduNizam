@@ -43,6 +43,7 @@ function setView(view){
  if(view==='parentcomplaints'&&window.EDUNIZAM_PARENT_COMPLAINTS?.render)window.EDUNIZAM_PARENT_COMPLAINTS.render();
  if(view==='gatecenter'&&window.EDUNIZAM_GATE_CENTER?.render)window.EDUNIZAM_GATE_CENTER.render();
  if(view==='schoolwork'&&window.EDUNIZAM_SCHOOL_WORK?.render)window.EDUNIZAM_SCHOOL_WORK.render();
+ if(view==='noticeboard'&&window.EDUNIZAM_NOTICE_BOARD?.render)window.EDUNIZAM_NOTICE_BOARD.render();
  if(view==='lessoncenter'&&window.EDUNIZAM_LESSON_CENTER?.render)window.EDUNIZAM_LESSON_CENTER.render();
  if(view==='calendarcenter'&&window.EDUNIZAM_CALENDAR_CENTER?.render)window.EDUNIZAM_CALENDAR_CENTER.render();
  if(view==='inboxcenter'&&window.EDUNIZAM_MESSAGING_CENTER?.render)window.EDUNIZAM_MESSAGING_CENTER.render();
@@ -270,10 +271,10 @@ renderAll();
   const classFees=()=>JSON.parse(localStorage.getItem(FEE_KEY)||JSON.stringify(defaultFees));
   const saveClassFees=v=>localStorage.setItem(FEE_KEY,JSON.stringify(v));
   const roleViews={
-    student:['dashboard','studentprofile','behaviorcenter','gatecenter','attendanceanalytics','studentdocs','fees','librarycenter','transportcenter','results','schoolwork','lessoncenter','calendarcenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
-    parent:['dashboard','studentprofile','behaviorcenter','parentcomplaints','gatecenter','studentdocs','fees','librarycenter','transportcenter','results','attendance','attendanceanalytics','schoolwork','lessoncenter','calendarcenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','communication','access','notifications','assistant'],
-    teacher:['dashboard','students','classcenter','staffcenter','staffpayroll','studentprofile','behaviorcenter','parentcomplaints','attendance','attendanceanalytics','inventorycenter','librarycenter','results','schoolwork','lessoncenter','calendarcenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
-    head:['dashboard','students','classcenter','staffcenter','staffpayroll','studentprofile','behaviorcenter','parentcomplaints','gatecenter','studentdocs','attendance','attendanceanalytics','fees','financecenter','inventorycenter','librarycenter','transportcenter','results','schoolwork','lessoncenter','calendarcenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
+    student:['dashboard','studentprofile','behaviorcenter','gatecenter','attendanceanalytics','studentdocs','fees','librarycenter','transportcenter','results','schoolwork','noticeboard','lessoncenter','calendarcenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
+    parent:['dashboard','studentprofile','behaviorcenter','parentcomplaints','gatecenter','studentdocs','fees','librarycenter','transportcenter','results','attendance','attendanceanalytics','schoolwork','noticeboard','lessoncenter','calendarcenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','communication','access','notifications','assistant'],
+    teacher:['dashboard','students','classcenter','staffcenter','staffpayroll','studentprofile','behaviorcenter','parentcomplaints','attendance','attendanceanalytics','inventorycenter','librarycenter','results','schoolwork','noticeboard','lessoncenter','calendarcenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
+    head:['dashboard','students','classcenter','staffcenter','staffpayroll','studentprofile','behaviorcenter','parentcomplaints','gatecenter','studentdocs','attendance','attendanceanalytics','fees','financecenter','inventorycenter','librarycenter','transportcenter','results','schoolwork','noticeboard','lessoncenter','calendarcenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
   };
   const labels={student:'Student',parent:'Parent / Guardian',teacher:'Teacher',head:'Head of Institute'};
   function injectStyles(){
