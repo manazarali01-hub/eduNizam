@@ -128,10 +128,20 @@ function renderResults(){
  $('resultList').innerHTML=rows.length?rows.slice().reverse().map(r=>{const s=state.students.find(x=>x.id===r.studentId);const p=Math.round((r.marks/r.total)*100);return '<div class="row"><strong>'+esc(s?.name||'Student')+'</strong><span>'+esc(r.subject)+'</span><span>'+r.marks+'/'+r.total+'</span><span>'+p+'%</span><span></span></div>'}).join(''):'<div class="muted">No results yet.</div>';
 }
 document.querySelectorAll('.prompt-chip').forEach(b=>b.onclick=()=>$('aiPrompt').value=b.textContent+': ');
-$('generateBtn').onclick=()=>{
- const q=$('aiPrompt').value.trim(); if(!q)return alert('Enter a request');
- $('aiOutput').textContent='Secure AI backend is not connected yet. Request saved locally:\n\n'+q;
- logActivity('AI draft requested');
+$('generateBtn').onclick=async()=>{
+ const q=$('aiPrompt').value.trim();if(!q)return alert('Enter a request');
+ const out=$('aiOutput'),btn=$('generateBtn');
+ if(!window.EDUNIZAM_AI?.ready?.()){
+  out.textContent='EduNizam AI requires Cloud Mode + a signed-in account. Configure Supabase in Settings, deploy the ai-assistant Edge Function, and add the OPENAI_API_KEY secret.';
+  return;
+ }
+ try{
+  btn.disabled=true;out.textContent='EduNizam AI is thinking...';
+  const r=await window.EDUNIZAM_AI.ask(q);
+  out.textContent=r.answer||'No answer returned.';
+  logActivity('AI request completed'+(Number.isFinite(r.remaining)?' · '+r.remaining+' daily request(s) remaining':''));
+ }catch(e){out.textContent='AI request failed: '+(e.message||e)}
+ finally{btn.disabled=false}
 };
 $('pushCoreCloudBtn')?.addEventListener('click',pushCoreCloud);
 $('pullCoreCloudBtn')?.addEventListener('click',pullCoreCloud);
