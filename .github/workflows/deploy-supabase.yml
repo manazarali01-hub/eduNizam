@@ -1,0 +1,58 @@
+name: Deploy EduNizam Supabase
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/functions/ai-assistant/**"
+      - ".github/workflows/deploy-supabase.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+    steps:
+      - name: Check Supabase deployment secrets
+        id: gate
+        shell: bash
+        run: |
+          if [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_PROJECT_ID" ] && [ -n "$SUPABASE_DB_PASSWORD" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "Supabase deployment secrets are configured."
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Supabase deployment skipped: add SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_ID and SUPABASE_DB_PASSWORD repository secrets."
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.ready == 'true'
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Supabase CLI
+        if: steps.gate.outputs.ready == 'true'
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        if: steps.gate.outputs.ready == 'true'
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Apply database migrations
+        if: steps.gate.outputs.ready == 'true'
+        run: supabase db push
+
+      - name: Deploy EduNizam AI function
+        if: steps.gate.outputs.ready == 'true'
+        run: supabase functions deploy ai-assistant --project-ref "$SUPABASE_PROJECT_ID"
