@@ -180,6 +180,42 @@
     },{onConflict:'institution_id,user_id'}).select().single();
     if(error)throw error;return data;
   }
+  async function claimInstitutionInvite(code){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('claim_institution_invite',{p_code:String(code||'').trim()});
+    if(error)throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if(row?.institution_id){
+      cfg.institutionId=row.institution_id;
+      try{
+        const saved=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}');
+        saved.institutionId=row.institution_id;saved.enabled=true;
+        localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify(saved));
+      }catch(_){}
+    }
+    return row||null;
+  }
+  async function createInstitutionInvite(targetRole,maxUses=1,validDays=7){
+    if(!state.client||!state.user||!cfg.institutionId)throw new Error('Cloud institution is not configured.');
+    if(!['teacher','student','parent'].includes(targetRole))throw new Error('Invalid invite role.');
+    const code='EN-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    const expires=new Date(Date.now()+Math.max(1,Number(validDays||7))*86400000).toISOString();
+    const {data,error}=await state.client.from('institution_invites').insert({
+      institution_id:cfg.institutionId,code,target_role:targetRole,created_by:state.user.id,
+      expires_at:expires,max_uses:Math.max(1,Number(maxUses||1))
+    }).select().single();
+    if(error)throw error;return data;
+  }
+  async function listInstitutionInvites(){
+    if(!state.client||!cfg.institutionId)return[];
+    const {data,error}=await state.client.from('institution_invites').select('*').eq('institution_id',cfg.institutionId).order('created_at',{ascending:false}).limit(50);
+    if(error)throw error;return data||[];
+  }
+  async function requestParentLinkByStudentCode(studentCode){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('request_parent_link_by_student_code',{p_student_code:String(studentCode||'').trim()});
+    if(error)throw error;return data;
+  }
   async function createSignedDocumentUrl(path,expiresIn=300){
     if(!state.client)throw new Error('Cloud backend is not configured.');
     const {data,error}=await state.client.storage.from(cfg.admissionsStorageBucket||'admission-documents').createSignedUrl(path,expiresIn);
@@ -239,7 +275,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
