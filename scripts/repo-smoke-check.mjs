@@ -36,7 +36,7 @@ const missingRefs=[...new Set(refs.map(x=>x.replace(/^\.\//,"")).filter(x=>x&&!e
 missingRefs.length?bad("html:local-assets",missingRefs.join(", ")):ok("html:local-assets");
 
 // 2b) Crawl and indexing essentials
-const expectedCanonical="https://manazarali01-hub.github.io/hub/";
+const expectedCanonical="https://manazarali01-hub.github.io/eduNizam/";
 const canonical=html.match(/<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i)?.[1]||"";
 canonical===expectedCanonical?ok("seo:canonical"):bad("seo:canonical",canonical||"missing");
 if(/<meta\s+name=["']robots["']\s+content=["'][^"']*index[^"']*follow/i.test(html))ok("seo:robots-meta");
