@@ -1116,22 +1116,64 @@ drop policy if exists "institution users read announcements" on public.school_an
 create policy "institution users read announcements" on public.school_announcements for select to authenticated using (public.is_institution_user(institution_id));
 drop policy if exists "staff manage announcements" on public.school_announcements;
 create policy "staff manage announcements" on public.school_announcements for all to authenticated
-using (public.is_institution_staff(institution_id) and creator_user_id=auth.uid())
-with check (public.is_institution_staff(institution_id) and creator_user_id=auth.uid());
+using (
+  exists(select 1 from public.institutions i where i.id=school_announcements.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+)
+with check (
+  exists(select 1 from public.institutions i where i.id=school_announcements.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+);
 
 drop policy if exists "institution users read homework" on public.homework_items;
 create policy "institution users read homework" on public.homework_items for select to authenticated using (public.is_institution_user(institution_id));
 drop policy if exists "staff manage homework" on public.homework_items;
 create policy "staff manage homework" on public.homework_items for all to authenticated
-using (public.is_institution_staff(institution_id) and creator_user_id=auth.uid())
-with check (public.is_institution_staff(institution_id) and creator_user_id=auth.uid());
+using (
+  exists(select 1 from public.institutions i where i.id=homework_items.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+)
+with check (
+  exists(select 1 from public.institutions i where i.id=homework_items.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+);
 
 drop policy if exists "institution users read timetable" on public.timetable_entries;
 create policy "institution users read timetable" on public.timetable_entries for select to authenticated using (public.is_institution_user(institution_id));
 drop policy if exists "staff manage timetable" on public.timetable_entries;
 create policy "staff manage timetable" on public.timetable_entries for all to authenticated
-using (public.is_institution_staff(institution_id) and creator_user_id=auth.uid())
-with check (public.is_institution_staff(institution_id) and creator_user_id=auth.uid());
+using (
+  exists(select 1 from public.institutions i where i.id=timetable_entries.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+)
+with check (
+  exists(select 1 from public.institutions i where i.id=timetable_entries.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+);
 
 commit;
 
