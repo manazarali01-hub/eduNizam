@@ -23,11 +23,28 @@
       for(const [k,v] of Object.entries(data?.tables||{}))checks.push(['Table: '+k,!!v]);
       for(const [k,v] of Object.entries(data?.functions||{}))checks.push(['Function: '+k,!!v]);
       for(const [k,v] of Object.entries(data?.storage||{}))checks.push(['Storage: '+k,!!v]);
+
+      let aiInfo=null;
+      if(window.EDUNIZAM_AI?.ready?.()){
+        try{
+          aiInfo=await window.EDUNIZAM_AI.health();
+          checks.push(['AI Edge Function reachable',!!aiInfo?.ok]);
+          checks.push(['OpenAI API key configured',!!aiInfo?.configured]);
+        }catch(e){
+          checks.push(['AI Edge Function reachable',false]);
+          aiInfo={error:e.message||String(e)};
+        }
+      }else{
+        checks.push(['AI client signed-in/ready',false]);
+      }
+
       const failed=checks.filter(x=>!x[1]).length;
-      grid.innerHTML=checks.map(x=>item(x[0],x[1])).join('');
-      summary.textContent=failed?failed+' backend check(s) failed. One-step migration dobara verify karein.':'All backend checks passed. EduNizam cloud schema is ready.';
+      grid.innerHTML=checks.map(x=>item(x[0],x[1])).join('')+
+        (aiInfo?.ok?'<div class="coverage-note" style="margin-top:10px"><strong>AI:</strong> Model '+String(aiInfo.model||'default')+' · Daily limit '+Number(aiInfo.dailyLimit||0)+'</div>':
+        (aiInfo?.error?'<div class="coverage-note" style="margin-top:10px"><strong>AI:</strong> '+String(aiInfo.error)+'</div>':''));
+      summary.textContent=failed?failed+' backend/AI check(s) need attention.':'All backend and AI checks passed. EduNizam cloud services are ready.';
     }catch(e){
-      summary.textContent='Health check failed: '+(e.message||e)+'. Ensure supabase-production-one-step.sql has been applied.';
+      summary.textContent='Health check failed: '+(e.message||e)+'. Verify the production migration, Cloud Setup and Edge Function deployment.';
       grid.innerHTML='';
     }
   }
