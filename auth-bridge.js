@@ -43,7 +43,7 @@
     if(!configured())return;
     removeDemoLogin();
     if(cloud().state.user){
-      try{await syncCloudRole();document.getElementById('edunizamCloudAuth')?.remove()}catch(e){console.warn('Cloud role sync:',e.message)}
+      try{const ok=await window.EDUNIZAM_CLOUD_SETUP?.ensureInstitution?.();if(ok!==false){await syncCloudRole();document.getElementById('edunizamCloudAuth')?.remove()}}catch(e){console.warn('Cloud role sync:',e.message)}
     }else authScreen();
     setTimeout(()=>{
       const btn=document.querySelector('#roleSession button');
