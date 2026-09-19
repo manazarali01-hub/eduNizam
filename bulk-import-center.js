@@ -1,4 +1,4 @@
-+(function(){
+(function(){
   const KEYS={students:'edunizam_students',staff:'edunizam_staff_profiles_v1',classes:'edunizam_class_sections_v1'};
   const BACKUP='edunizam_bulk_import_backup_v1';
   const $=id=>document.getElementById(id);
