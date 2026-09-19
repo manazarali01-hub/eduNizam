@@ -52,3 +52,22 @@ For a fresh Supabase project:
 - Optional secrets: `EDUNIZAM_AI_DAILY_LIMIT`, `EDUNIZAM_AI_MODEL`, `EDUNIZAM_ALLOWED_ORIGINS`
 
 The OpenAI key must remain server-side. Never put it in GitHub, `cloud-config.js`, localStorage or browser JavaScript.
+
+
+## SaaS owner and subscriptions
+EduNizam now includes a secure Platform Owner Console for subscription plans, institute trial/status control, usage counts and configured monthly recurring revenue.
+
+Platform Owner is separate from the institute-level Head role. No normal user can self-promote to platform admin.
+
+After Supabase is connected and the owner's Auth account exists, bootstrap the first platform administrator once from the Supabase SQL editor:
+
+```sql
+insert into public.platform_admins(user_id)
+select id from auth.users
+where email = 'OWNER_EMAIL_HERE'
+on conflict (user_id) do nothing;
+```
+
+Replace `OWNER_EMAIL_HERE` with the actual owner login email. Do not put this bootstrap logic or any service-role credential in browser JavaScript.
+
+The Owner Console manages plan configuration and subscription state. Payment collection/settlement is not yet connected, so "Configured MRR" is not the same as received revenue.

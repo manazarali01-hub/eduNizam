@@ -1060,6 +1060,531 @@ grant execute on function public.edunizam_ai_health_check() to authenticated;
 commit;
 
 -- =========================================================
+-- EduNizam School Work Center
+-- =========================================================
+begin;
+
+create table if not exists public.school_announcements (
+  id uuid primary key default gen_random_uuid(),
+  institution_id uuid not null references public.institutions(id) on delete cascade,
+  creator_user_id uuid not null references auth.users(id) on delete cascade,
+  audience text not null default 'all' check (audience in ('all','students','parents','teachers')),
+  title text not null,
+  body text not null,
+  created_at timestamptz not null default now()
+);
+alter table public.school_announcements enable row level security;
+
+create table if not exists public.homework_items (
+  id uuid primary key default gen_random_uuid(),
+  institution_id uuid not null references public.institutions(id) on delete cascade,
+  creator_user_id uuid not null references auth.users(id) on delete cascade,
+  class_name text not null,
+  subject text not null,
+  title text not null,
+  details text,
+  due_date date,
+  created_at timestamptz not null default now()
+);
+alter table public.homework_items enable row level security;
+
+create table if not exists public.timetable_entries (
+  id uuid primary key default gen_random_uuid(),
+  institution_id uuid not null references public.institutions(id) on delete cascade,
+  creator_user_id uuid not null references auth.users(id) on delete cascade,
+  class_name text not null,
+  weekday text not null,
+  start_time time,
+  subject text not null,
+  teacher_name text,
+  created_at timestamptz not null default now()
+);
+alter table public.timetable_entries enable row level security;
+
+create or replace function public.is_institution_user(target uuid)
+returns boolean
+language sql stable security definer set search_path=public
+as $
+  select exists(select 1 from public.institutions i where i.id=target and i.owner_user_id=auth.uid())
+  or exists(select 1 from public.institution_members m where m.institution_id=target and m.user_id=auth.uid())
+  or exists(select 1 from public.user_profiles p where p.institution_id=target and p.user_id=auth.uid());
+$;
+
+grant execute on function public.is_institution_user(uuid) to authenticated;
+
+drop policy if exists "institution users read announcements" on public.school_announcements;
+create policy "institution users read announcements" on public.school_announcements for select to authenticated using (public.is_institution_user(institution_id));
+drop policy if exists "staff manage announcements" on public.school_announcements;
+create policy "staff manage announcements" on public.school_announcements for all to authenticated
+using (
+  exists(select 1 from public.institutions i where i.id=school_announcements.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+)
+with check (
+  exists(select 1 from public.institutions i where i.id=school_announcements.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+);
+
+drop policy if exists "institution users read homework" on public.homework_items;
+create policy "institution users read homework" on public.homework_items for select to authenticated using (public.is_institution_user(institution_id));
+drop policy if exists "staff manage homework" on public.homework_items;
+create policy "staff manage homework" on public.homework_items for all to authenticated
+using (
+  exists(select 1 from public.institutions i where i.id=homework_items.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+)
+with check (
+  exists(select 1 from public.institutions i where i.id=homework_items.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+);
+
+drop policy if exists "institution users read timetable" on public.timetable_entries;
+create policy "institution users read timetable" on public.timetable_entries for select to authenticated using (public.is_institution_user(institution_id));
+drop policy if exists "staff manage timetable" on public.timetable_entries;
+create policy "staff manage timetable" on public.timetable_entries for all to authenticated
+using (
+  exists(select 1 from public.institutions i where i.id=timetable_entries.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+)
+with check (
+  exists(select 1 from public.institutions i where i.id=timetable_entries.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+);
+
+commit;
+
+
+-- =========================================================
+-- EduNizam Leave Requests
+-- =========================================================
+begin;
+
+create table if not exists public.leave_requests (
+  id uuid primary key default gen_random_uuid(),
+  institution_id uuid not null references public.institutions(id) on delete cascade,
+  student_user_id uuid not null references auth.users(id) on delete cascade,
+  local_student_id bigint,
+  student_name text not null,
+  class_name text,
+  submitted_by uuid not null references auth.users(id) on delete cascade,
+  requester_role text not null check (requester_role in ('student','parent')),
+  from_date date not null,
+  to_date date not null,
+  reason text not null,
+  status text not null default 'Pending' check (status in ('Pending','Approved','Rejected')),
+  decision_note text,
+  decided_by uuid references auth.users(id) on delete set null,
+  decided_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (to_date >= from_date)
+);
+
+create index if not exists leave_requests_institution_status_idx on public.leave_requests(institution_id,status,created_at desc);
+alter table public.leave_requests enable row level security;
+
+drop policy if exists "requesters read linked leave requests" on public.leave_requests;
+create policy "requesters read linked leave requests" on public.leave_requests for select to authenticated
+using (
+  student_user_id=auth.uid()
+  or submitted_by=auth.uid()
+  or exists(
+    select 1 from public.parent_student_links l
+    where l.institution_id=leave_requests.institution_id
+      and l.parent_user_id=auth.uid()
+      and l.student_user_id=leave_requests.student_user_id
+      and l.status='approved'
+  )
+);
+
+drop policy if exists "students submit own leave" on public.leave_requests;
+create policy "students submit own leave" on public.leave_requests for insert to authenticated
+with check (
+  requester_role='student'
+  and submitted_by=auth.uid()
+  and student_user_id=auth.uid()
+  and public.is_institution_user(institution_id)
+);
+
+drop policy if exists "parents submit linked student leave" on public.leave_requests;
+create policy "parents submit linked student leave" on public.leave_requests for insert to authenticated
+with check (
+  requester_role='parent'
+  and submitted_by=auth.uid()
+  and exists(
+    select 1 from public.parent_student_links l
+    where l.institution_id=leave_requests.institution_id
+      and l.parent_user_id=auth.uid()
+      and l.student_user_id=leave_requests.student_user_id
+      and l.status='approved'
+  )
+);
+
+drop policy if exists "heads manage institute leave" on public.leave_requests;
+create policy "heads manage institute leave" on public.leave_requests for all to authenticated
+using (
+  exists(select 1 from public.institutions i where i.id=leave_requests.institution_id and i.owner_user_id=auth.uid())
+)
+with check (
+  exists(select 1 from public.institutions i where i.id=leave_requests.institution_id and i.owner_user_id=auth.uid())
+);
+
+drop policy if exists "teachers manage assigned leave" on public.leave_requests;
+create policy "teachers manage assigned leave" on public.leave_requests for select to authenticated
+using (
+  public.current_account_role()='teacher'
+  and exists(
+    select 1 from public.teacher_student_links tsl
+    where tsl.institution_id=leave_requests.institution_id
+      and tsl.teacher_user_id=auth.uid()
+      and tsl.student_user_id=leave_requests.student_user_id
+  )
+);
+
+drop policy if exists "teachers decide assigned leave" on public.leave_requests;
+create policy "teachers decide assigned leave" on public.leave_requests for update to authenticated
+using (
+  public.current_account_role()='teacher'
+  and exists(
+    select 1 from public.teacher_student_links tsl
+    where tsl.institution_id=leave_requests.institution_id
+      and tsl.teacher_user_id=auth.uid()
+      and tsl.student_user_id=leave_requests.student_user_id
+  )
+)
+with check (
+  public.current_account_role()='teacher'
+  and status in ('Approved','Rejected')
+  and decided_by=auth.uid()
+  and exists(
+    select 1 from public.teacher_student_links tsl
+    where tsl.institution_id=leave_requests.institution_id
+      and tsl.teacher_user_id=auth.uid()
+      and tsl.student_user_id=leave_requests.student_user_id
+  )
+);
+
+commit;
+
+
+-- =========================================================
+-- EduNizam Exam Schedule
+-- =========================================================
+begin;
+
+create table if not exists public.exam_schedule_entries (
+  id uuid primary key default gen_random_uuid(),
+  institution_id uuid not null references public.institutions(id) on delete cascade,
+  creator_user_id uuid not null references auth.users(id) on delete cascade,
+  class_name text not null,
+  exam_name text not null,
+  subject text not null,
+  exam_date date not null,
+  start_time time,
+  total_marks numeric(10,2) not null default 100 check (total_marks > 0),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists exam_schedule_institution_date_idx on public.exam_schedule_entries(institution_id,exam_date);
+alter table public.exam_schedule_entries enable row level security;
+
+create or replace function public.is_institution_user(target uuid)
+returns boolean
+language sql stable security definer set search_path=public
+as $
+  select exists(select 1 from public.institutions i where i.id=target and i.owner_user_id=auth.uid())
+  or exists(select 1 from public.institution_members m where m.institution_id=target and m.user_id=auth.uid())
+  or exists(select 1 from public.user_profiles p where p.institution_id=target and p.user_id=auth.uid());
+$;
+grant execute on function public.is_institution_user(uuid) to authenticated;
+
+drop policy if exists "institution users read exam schedule" on public.exam_schedule_entries;
+create policy "institution users read exam schedule" on public.exam_schedule_entries for select to authenticated
+using (public.is_institution_user(institution_id));
+
+drop policy if exists "staff manage exam schedule" on public.exam_schedule_entries;
+create policy "staff manage exam schedule" on public.exam_schedule_entries for all to authenticated
+using (
+  exists(select 1 from public.institutions i where i.id=exam_schedule_entries.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+)
+with check (
+  exists(select 1 from public.institutions i where i.id=exam_schedule_entries.institution_id and i.owner_user_id=auth.uid())
+  or (
+    public.current_account_role()='teacher'
+    and creator_user_id=auth.uid()
+    and public.is_institution_staff(institution_id)
+  )
+);
+
+commit;
+
+
+-- =========================================================
+-- EduNizam Staff & Teacher Profiles
+-- =========================================================
+begin;
+
+create table if not exists public.staff_profiles (
+  id uuid primary key default gen_random_uuid(),
+  institution_id uuid not null references public.institutions(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete set null,
+  staff_code text not null,
+  full_name text not null,
+  designation text not null default 'Teacher',
+  phone text,
+  subjects text[] not null default '{}'::text[],
+  classes text[] not null default '{}'::text[],
+  joining_date date,
+  employment_status text not null default 'active' check (employment_status in ('active','inactive')),
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (institution_id,staff_code)
+);
+
+create unique index if not exists staff_profiles_linked_user_idx
+on public.staff_profiles(institution_id,user_id)
+where user_id is not null;
+
+alter table public.staff_profiles enable row level security;
+
+drop policy if exists "head manage staff profiles" on public.staff_profiles;
+create policy "head manage staff profiles" on public.staff_profiles
+for all to authenticated
+using (
+  exists(select 1 from public.institutions i where i.id=staff_profiles.institution_id and i.owner_user_id=auth.uid())
+)
+with check (
+  exists(select 1 from public.institutions i where i.id=staff_profiles.institution_id and i.owner_user_id=auth.uid())
+  and (
+    user_id is null
+    or exists(
+      select 1 from public.institution_members m
+      where m.institution_id=staff_profiles.institution_id
+        and m.user_id=staff_profiles.user_id
+        and m.role='teacher'
+    )
+  )
+);
+
+drop policy if exists "teachers read own staff profile" on public.staff_profiles;
+create policy "teachers read own staff profile" on public.staff_profiles
+for select to authenticated
+using (user_id=auth.uid());
+
+commit;
+
+
+-- =========================================================
+-- EduNizam SaaS Owner & Subscription Management
+-- =========================================================
+begin;
+
+create table if not exists public.platform_admins (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+alter table public.platform_admins enable row level security;
+
+create or replace function public.is_platform_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path=public
+as $
+  select auth.uid() is not null
+    and exists(select 1 from public.platform_admins p where p.user_id=auth.uid());
+$;
+
+grant execute on function public.is_platform_admin() to authenticated;
+
+drop policy if exists "platform admins read admin list" on public.platform_admins;
+create policy "platform admins read admin list" on public.platform_admins
+for select to authenticated
+using (public.is_platform_admin());
+
+create table if not exists public.subscription_plans (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  name text not null,
+  monthly_price_pkr numeric(12,2) not null default 0 check (monthly_price_pkr >= 0),
+  trial_days integer not null default 0 check (trial_days >= 0),
+  max_students integer check (max_students is null or max_students > 0),
+  max_staff integer check (max_staff is null or max_staff > 0),
+  ai_daily_limit integer check (ai_daily_limit is null or ai_daily_limit >= 0),
+  features jsonb not null default '[]'::jsonb,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.subscription_plans enable row level security;
+
+drop policy if exists "authenticated read subscription plans" on public.subscription_plans;
+create policy "authenticated read subscription plans" on public.subscription_plans
+for select to authenticated using (true);
+
+drop policy if exists "platform admins manage subscription plans" on public.subscription_plans;
+create policy "platform admins manage subscription plans" on public.subscription_plans
+for all to authenticated
+using (public.is_platform_admin())
+with check (public.is_platform_admin());
+
+insert into public.subscription_plans(code,name,monthly_price_pkr,trial_days,features,active)
+values('free','Free',0,0,'[]'::jsonb,true)
+on conflict (code) do nothing;
+
+create table if not exists public.institution_subscriptions (
+  institution_id uuid primary key references public.institutions(id) on delete cascade,
+  plan_id uuid not null references public.subscription_plans(id),
+  status text not null default 'active'
+    check (status in ('trialing','active','past_due','suspended','cancelled')),
+  trial_ends_at timestamptz,
+  current_period_end timestamptz,
+  notes text,
+  updated_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.institution_subscriptions enable row level security;
+
+drop policy if exists "platform admins manage institution subscriptions" on public.institution_subscriptions;
+create policy "platform admins manage institution subscriptions" on public.institution_subscriptions
+for all to authenticated
+using (public.is_platform_admin())
+with check (public.is_platform_admin());
+
+drop policy if exists "heads read own subscription" on public.institution_subscriptions;
+create policy "heads read own subscription" on public.institution_subscriptions
+for select to authenticated
+using (
+  exists(
+    select 1 from public.institutions i
+    where i.id=institution_subscriptions.institution_id
+      and i.owner_user_id=auth.uid()
+  )
+);
+
+create or replace function public.assign_default_subscription()
+returns trigger
+language plpgsql
+security definer
+set search_path=public
+as $
+declare
+  free_plan uuid;
+begin
+  select id into free_plan from public.subscription_plans where code='free' limit 1;
+  if free_plan is not null then
+    insert into public.institution_subscriptions(institution_id,plan_id,status)
+    values(new.id,free_plan,'active')
+    on conflict (institution_id) do nothing;
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists trg_assign_default_subscription on public.institutions;
+create trigger trg_assign_default_subscription
+after insert on public.institutions
+for each row execute function public.assign_default_subscription();
+
+insert into public.institution_subscriptions(institution_id,plan_id,status)
+select i.id,p.id,'active'
+from public.institutions i
+cross join public.subscription_plans p
+where p.code='free'
+  and not exists(
+    select 1 from public.institution_subscriptions s where s.institution_id=i.id
+  )
+on conflict (institution_id) do nothing;
+
+create or replace function public.platform_owner_institutions()
+returns table(
+  institution_id uuid,
+  institution_name text,
+  institution_type text,
+  institution_created_at timestamptz,
+  student_count bigint,
+  staff_count bigint,
+  plan_id uuid,
+  plan_code text,
+  plan_name text,
+  monthly_price_pkr numeric,
+  subscription_status text,
+  trial_ends_at timestamptz,
+  current_period_end timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path=public
+as $
+begin
+  if not public.is_platform_admin() then
+    raise exception 'Platform administrator access required';
+  end if;
+
+  return query
+  select
+    i.id,
+    i.name,
+    i.institution_type,
+    i.created_at,
+    (select count(*) from public.core_students cs where cs.institution_id=i.id),
+    (select count(*) from public.staff_profiles sp where sp.institution_id=i.id),
+    p.id,
+    p.code,
+    p.name,
+    p.monthly_price_pkr,
+    coalesce(s.status,'active'),
+    s.trial_ends_at,
+    s.current_period_end
+  from public.institutions i
+  left join public.institution_subscriptions s on s.institution_id=i.id
+  left join public.subscription_plans p on p.id=s.plan_id
+  order by i.created_at desc;
+end;
+$;
+
+grant execute on function public.platform_owner_institutions() to authenticated;
+
+commit;
+
+
+-- =========================================================
 -- EduNizam Production Health Check
 -- =========================================================
 begin;
@@ -1087,14 +1612,25 @@ as $$
       'institution_invites', to_regclass('public.institution_invites') is not null,
       'teacher_student_links', to_regclass('public.teacher_student_links') is not null,
       'user_notifications', to_regclass('public.user_notifications') is not null,
-      'ai_usage_logs', to_regclass('public.ai_usage_logs') is not null
+      'ai_usage_logs', to_regclass('public.ai_usage_logs') is not null,
+      'school_announcements', to_regclass('public.school_announcements') is not null,
+      'homework_items', to_regclass('public.homework_items') is not null,
+      'timetable_entries', to_regclass('public.timetable_entries') is not null,
+      'leave_requests', to_regclass('public.leave_requests') is not null,
+      'exam_schedule_entries', to_regclass('public.exam_schedule_entries') is not null,
+      'staff_profiles', to_regclass('public.staff_profiles') is not null,
+      'platform_admins', to_regclass('public.platform_admins') is not null,
+      'subscription_plans', to_regclass('public.subscription_plans') is not null,
+      'institution_subscriptions', to_regclass('public.institution_subscriptions') is not null
     ),
     'functions', jsonb_build_object(
       'current_account_role', to_regprocedure('public.current_account_role()') is not null,
       'claim_institution_invite', to_regprocedure('public.claim_institution_invite(text)') is not null,
       'request_parent_link_by_student_code', to_regprocedure('public.request_parent_link_by_student_code(text)') is not null,
       'claim_student_record', to_regprocedure('public.claim_student_record(text)') is not null,
-      'edunizam_ai_health_check', to_regprocedure('public.edunizam_ai_health_check()') is not null
+      'edunizam_ai_health_check', to_regprocedure('public.edunizam_ai_health_check()') is not null,
+      'is_platform_admin', to_regprocedure('public.is_platform_admin()') is not null,
+      'platform_owner_institutions', to_regprocedure('public.platform_owner_institutions()') is not null
     ),
     'storage', jsonb_build_object(
       'admission_documents_bucket', exists(select 1 from storage.buckets where id='admission-documents')
