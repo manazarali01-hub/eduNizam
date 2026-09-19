@@ -39,6 +39,18 @@ with check (
 
 create policy "participants read own communication meetings" on public.communication_meetings
 for select to authenticated
-using (participant_user_id=auth.uid() or student_user_id=auth.uid());
+using (
+  (participant_role='student' and student_user_id=auth.uid())
+  or (participant_role='parent' and participant_user_id=auth.uid())
+  or (
+    participant_role='parent'
+    and exists(
+      select 1 from public.parent_student_links l
+      where l.parent_user_id=auth.uid()
+        and l.student_user_id=communication_meetings.student_user_id
+        and l.status='approved'
+    )
+  )
+);
 
 commit;
