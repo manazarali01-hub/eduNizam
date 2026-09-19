@@ -28,7 +28,7 @@
     if(!cloudReady())return readSchedule();
     const {data,error}=await cloud().state.client.from('exam_schedule_entries').select('*').eq('institution_id',cfg().institutionId).order('exam_date').order('start_time');
     if(error)throw error;
-    const mapped=(data||[]).map(x=>({id:x.id,className:x.class_name,examName:x.exam_name,subject:x.subject,examDate:x.exam_date,startTime:x.start_time?String(x.start_time).slice(0,5):'',totalMarks:Number(x.total_marks||0),createdBy:x.creator_user_id,createdAt:x.created_at}));
+    const mapped=(data||[]).map(x=>({id:x.id,className:x.class_name,sectionName:x.section_name||'',examName:x.exam_name,subject:x.subject,examDate:x.exam_date,startTime:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',totalMarks:Number(x.total_marks||0),roomLabel:x.room_label||'',notes:x.notes||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}));
     writeSchedule(mapped);return mapped;
   }
   async function insertCloud(x){
@@ -36,7 +36,7 @@
     const c=cloud();
     const {data,error}=await c.state.client.from('exam_schedule_entries').insert({
       institution_id:cfg().institutionId,creator_user_id:c.state.user.id,class_name:x.className,
-      exam_name:x.examName,subject:x.subject,exam_date:x.examDate,start_time:x.startTime||null,total_marks:Number(x.totalMarks||0)
+      exam_name:x.examName,subject:x.subject,exam_date:x.examDate,start_time:x.startTime||null,end_time:x.endTime||null,total_marks:Number(x.totalMarks||0),section_name:x.sectionName||null,room_label:x.roomLabel||null,notes:x.notes||null,updated_at:new Date().toISOString()
     }).select().single();
     if(error)throw error;return data;
   }
@@ -102,7 +102,7 @@
     const className=$('exClass')?.value.trim(),examName=$('exName')?.value,subject=$('exSubject')?.value.trim(),examDate=$('exDate')?.value,startTime=$('exTime')?.value,totalMarks=Number($('exTotal')?.value||0);
     if(!className||!subject||!examDate||totalMarks<=0)return alert('Class, subject, date aur total marks complete karein.');
     let item={id:String(Date.now()),className,examName,subject,examDate,startTime,totalMarks,createdBy:identity(),createdAt:new Date().toISOString()};
-    try{const row=await insertCloud(item);if(row)item={id:row.id,className:row.class_name,examName:row.exam_name,subject:row.subject,examDate:row.exam_date,startTime:row.start_time?String(row.start_time).slice(0,5):'',totalMarks:Number(row.total_marks||0),createdBy:row.creator_user_id,createdAt:row.created_at}}catch(e){alert('Cloud sync failed; schedule local mode mein save hoga. '+(e.message||e))}
+    try{const row=await insertCloud(item);if(row)item={id:row.id,className:row.class_name,sectionName:row.section_name||'',examName:row.exam_name,subject:row.subject,examDate:row.exam_date,startTime:row.start_time?String(row.start_time).slice(0,5):'',endTime:row.end_time?String(row.end_time).slice(0,5):'',totalMarks:Number(row.total_marks||0),roomLabel:row.room_label||'',notes:row.notes||'',createdBy:row.creator_user_id,createdAt:row.created_at,updatedAt:row.updated_at,cloudExisting:true}}catch(e){alert('Cloud sync failed; schedule local mode mein save hoga. '+(e.message||e))}
     const arr=readSchedule();arr.push(item);writeSchedule(arr);render();
   }
   async function removeSchedule(id){

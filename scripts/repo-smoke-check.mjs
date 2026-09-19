@@ -14,6 +14,7 @@ function bad(name,msg){fail.push({name,msg})}
 // 1) Required files
 const required=[
   "index.html","style.css","app.js","manifest.webmanifest","sw.js",
+  "robots.txt","sitemap.xml","about.html","features.html","public.css",
   "past-papers-data.js","past-papers-inventory.js","university-data.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js"
 ];
@@ -30,6 +31,25 @@ const refs=[...html.matchAll(/(?:src|href)=["']([^"'?#]+)(?:[?#][^"']*)?["']/g)]
   .filter(x=>!/^https?:\/\//i.test(x)&&!x.startsWith("#")&&!x.startsWith("data:")&&!x.startsWith("mailto:"));
 const missingRefs=[...new Set(refs.map(x=>x.replace(/^\.\//,"")).filter(x=>x&&!exists(x)))];
 missingRefs.length?bad("html:local-assets",missingRefs.join(", ")):ok("html:local-assets");
+
+// 2b) Crawl and indexing essentials
+const expectedCanonical="https://manazarali01-hub.github.io/hub/";
+const canonical=html.match(/<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i)?.[1]||"";
+canonical===expectedCanonical?ok("seo:canonical"):bad("seo:canonical",canonical||"missing");
+if(/<meta\s+name=["']robots["']\s+content=["'][^"']*index[^"']*follow/i.test(html))ok("seo:robots-meta");
+else bad("seo:robots-meta","index,follow missing");
+try{
+  const jsonLd=html.match(/<script\s+type=["']application\/ld\+json["']>([\s\S]*?)<\/script>/i)?.[1];
+  const parsed=JSON.parse(jsonLd||"");
+  parsed["@type"]==="WebApplication"&&parsed.url===expectedCanonical?ok("seo:structured-data"):bad("seo:structured-data","unexpected WebApplication data");
+}catch(e){bad("seo:structured-data",e.message)}
+const sitemap=read("sitemap.xml");
+const sitemapUrls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
+const expectedUrls=[expectedCanonical,expectedCanonical+"about.html",expectedCanonical+"features.html"];
+const missingSitemap=expectedUrls.filter(x=>!sitemapUrls.includes(x));
+missingSitemap.length?bad("seo:sitemap",missingSitemap.join(", ")):ok("seo:sitemap");
+const robots=read("robots.txt");
+robots.includes("Sitemap: "+expectedCanonical+"sitemap.xml")?ok("seo:robots-sitemap"):bad("seo:robots-sitemap","sitemap directive missing");
 
 // 3) Manifest validity and icons
 try{

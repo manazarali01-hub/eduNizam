@@ -12,6 +12,7 @@ EduNizam is a modular school-management and learning PWA for schools, students, 
 - Study library and practice tests
 - Online admissions
 - Communication / Google Meet scheduling
+- Professional class/section timetables and printable exam date sheets
 - Notifications and academic access controls
 - Cloud backup/sync readiness with Supabase
 - AI Assistant shell and Math editor
@@ -175,3 +176,14 @@ Each complaint supports text plus up to 3 private photo/video attachments (maxim
 EduNizam upgrades the existing School Work announcements into a dedicated Digital Notice Board without duplicating announcement data.
 
 Notices support Normal/Important/Urgent priority, pin-to-top, optional expiry date, All/Students/Parents/Teachers/Specific Class audience, class/section targeting and printable notice output. Expired notices are hidden from Student/Parent active views and remain available to staff as archive/history. Head can manage all notices; Teachers manage their own notices, and class-targeted Teacher notices are validated against assigned students/classes.
+
+
+## Timetable and date sheets
+EduNizam includes a dedicated Timetable & Date Sheets Center. It reuses the existing `timetable_entries` and `exam_schedule_entries` data instead of creating duplicate schedules.
+
+The Head of Institute can create, edit and delete class/section periods and exam papers. Timetable entries include period number, start/end time, subject, teacher and room; date sheets include exam name, paper date/time, marks, room and instructions. Class, teacher and room clashes are detected before saving, and both views have print-ready layouts. Teachers, Students and Parents receive relevant read-only schedule access.
+
+## Google crawling and indexing
+EduNizam publishes canonical metadata, index/follow directives, Open Graph metadata and WebApplication JSON-LD on the main page. Public About and Features pages provide crawlable product information, and `sitemap.xml` lists only canonical HTML URLs.
+
+Submit `https://manazarali01-hub.github.io/hub/sitemap.xml` in Google Search Console after deployment. The repository also includes `robots.txt`, but GitHub project pages serve it under `/hub/robots.txt` instead of the hostname root. Search engines normally request `https://manazarali01-hub.github.io/robots.txt`, so Search Console sitemap submission remains the reliable discovery route until EduNizam uses a custom domain or a root GitHub Pages repository.

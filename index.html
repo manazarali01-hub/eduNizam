@@ -1,12 +1,48 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-PK">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0f766e">
-  <title>EduNizam – AI School Assistant</title>
+  <title>EduNizam | AI School Management System Pakistan</title>
+  <meta name="description" content="EduNizam is an AI-assisted school management system for attendance, fees, results, admissions, timetables, date sheets, communication and learning resources.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <link rel="canonical" href="https://manazarali01-hub.github.io/hub/">
+  <link rel="icon" href="icon-192.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="style.css">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="EduNizam">
+  <meta property="og:title" content="EduNizam | AI School Management System Pakistan">
+  <meta property="og:description" content="Manage school operations, academics, communication and learning resources from one role-based platform.">
+  <meta property="og:url" content="https://manazarali01-hub.github.io/hub/">
+  <meta property="og:locale" content="en_PK">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="EduNizam | AI School Management System Pakistan">
+  <meta name="twitter:description" content="School management, academics, communication and learning resources in one platform.">
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebApplication",
+    "name":"EduNizam",
+    "alternateName":"EduNizam AI School Assistant",
+    "url":"https://manazarali01-hub.github.io/hub/",
+    "description":"AI-assisted school management and learning platform for institute heads, teachers, students and parents.",
+    "applicationCategory":"EducationalApplication",
+    "operatingSystem":"Web",
+    "browserRequirements":"Requires a modern web browser with JavaScript enabled",
+    "inLanguage":"en-PK",
+    "featureList":[
+      "Student and staff management",
+      "Attendance, fees and results",
+      "Timetables and exam date sheets",
+      "Online admissions",
+      "School communication",
+      "Pakistan learning resources",
+      "AI-assisted education tools"
+    ]
+  }
+  </script>
 </head>
 <body>
   <div class="app-shell">
@@ -38,6 +74,7 @@
         <button class="nav-item" data-view="noticeboard">📌  Notice Board</button>
         <button class="nav-item" data-view="lessoncenter">🧑‍🏫  Lesson Plans & Syllabus</button>
         <button class="nav-item" data-view="calendarcenter">🗓  Calendar & Events</button>
+        <button class="nav-item" data-view="schedulecenter">🕒  Timetable & Date Sheets</button>
         <button class="nav-item" data-view="inboxcenter">💬  Inbox & Messaging</button>
         <button class="nav-item" data-view="helpdeskcenter">🎫  Helpdesk & Complaints</button>
         <button class="nav-item" data-view="leavecenter">🗓️  Leave Requests</button>
@@ -451,6 +488,17 @@
           </div>
         </div>
         <div id="calendarCenterApp"></div>
+      </section>
+
+      <section id="schedulecenter" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Academic Scheduling</div>
+            <h2>Timetable & Date Sheets</h2>
+            <p class="muted">Class/section weekly timetable, clash checking aur printable exam date sheets.</p>
+          </div>
+        </div>
+        <div id="scheduleCenterApp"></div>
       </section>
 
       <section id="inboxcenter" class="view">
@@ -1265,6 +1313,11 @@
     </main>
   </div>
 
+  <footer class="seo-footer">
+    <div><strong>EduNizam – AI School Assistant</strong><span>School management, academics and learning resources in one platform.</span></div>
+    <nav aria-label="Public information"><a href="about.html">About EduNizam</a><a href="features.html">Features</a><a href="sitemap.xml">Sitemap</a></nav>
+  </footer>
+
   <script>
     window.MathJax = {
       tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
@@ -1313,6 +1366,7 @@
   <script src="notice-board-center.js"></script>
   <script src="lesson-plan-center.js"></script>
   <script src="calendar-center.js"></script>
+  <script src="timetable-date-sheet.js"></script>
   <script src="leave-center.js"></script>
   <script src="exam-center.js"></script>
   <script src="staff-center.js"></script>
