@@ -182,3 +182,8 @@ Notices support Normal/Important/Urgent priority, pin-to-top, optional expiry da
 EduNizam includes a dedicated Timetable & Date Sheets Center. It reuses the existing `timetable_entries` and `exam_schedule_entries` data instead of creating duplicate schedules.
 
 The Head of Institute can create, edit and delete class/section periods and exam papers. Timetable entries include period number, start/end time, subject, teacher and room; date sheets include exam name, paper date/time, marks, room and instructions. Class, teacher and room clashes are detected before saving, and both views have print-ready layouts. Teachers, Students and Parents receive relevant read-only schedule access.
+
+## Google crawling and indexing
+EduNizam publishes canonical metadata, index/follow directives, Open Graph metadata and WebApplication JSON-LD on the main page. Public About and Features pages provide crawlable product information, and `sitemap.xml` lists only canonical HTML URLs.
+
+Submit `https://manazarali01-hub.github.io/hub/sitemap.xml` in Google Search Console after deployment. The repository also includes `robots.txt`, but GitHub project pages serve it under `/hub/robots.txt` instead of the hostname root. Search engines normally request `https://manazarali01-hub.github.io/robots.txt`, so Search Console sitemap submission remains the reliable discovery route until EduNizam uses a custom domain or a root GitHub Pages repository.
