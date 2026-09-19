@@ -38,13 +38,18 @@
     const {error}=await c().state.client.from('communication_meetings').delete().eq('id',id);
     if(error)throw error;return true;
   }
+  function localDate(dt){
+    if(Number.isNaN(dt.getTime()))return'';
+    const y=dt.getFullYear(),m=String(dt.getMonth()+1).padStart(2,'0'),d=String(dt.getDate()).padStart(2,'0');
+    return y+'-'+m+'-'+d;
+  }
   function map(row){
     const dt=new Date(row.scheduled_for);
     return {
       id:row.id,kind:row.created_by_role==='head_of_institute'?'head-parent':'teacher-student',
       personId:row.student_user_id||row.participant_user_id||'',personName:row.participant_role==='parent'?'Parent / Guardian':'Student',
       participantRole:row.participant_role,viewerRole:row.participant_role,title:row.title,
-      date:Number.isNaN(dt.getTime())?'':dt.toISOString().slice(0,10),time:Number.isNaN(dt.getTime())?'':dt.toTimeString().slice(0,5),
+      date:localDate(dt),time:Number.isNaN(dt.getTime())?'':dt.toTimeString().slice(0,5),
       url:row.meet_url||'',status:(row.status||'scheduled').replace(/^./,x=>x.toUpperCase()),createdByRole:row.created_by_role==='head_of_institute'?'head':'teacher',source:'cloud'
     };
   }
