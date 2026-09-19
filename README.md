@@ -121,3 +121,9 @@ Local Mode provides a same-device demo inbox; secure cross-device messaging requ
 EduNizam includes a monthly Attendance Analytics Center for Student, Parent, Teacher and Head roles. It reuses the existing attendance records instead of creating a second attendance system.
 
 The report provides monthly present/absent/leave/late counts, attendance percentage, low-attendance flags below 75%, class filtering for staff, a daily attendance grid and a printable monthly report. Attendance percentage is defined as `(Present + Late) / (Present + Late + Absent)`; Leave is excluded from the denominator.
+
+
+## Inventory and assets
+EduNizam includes an Inventory & Assets Center for furniture, IT equipment, laboratory items, books, stationery and other school property.
+
+Head of Institute can create/edit/delete items, track quantity, reorder levels, estimated value, condition, location, purchase date and asset assignment to staff. Teachers have read-only inventory access. Stock items generate low-stock alerts when quantity reaches the configured reorder level. A printable inventory report is included.

@@ -48,6 +48,7 @@ function setView(view){
  if(view==='staffpayroll'&&window.EDUNIZAM_STAFF_PAYROLL?.render)window.EDUNIZAM_STAFF_PAYROLL.render();
  if(view==='studentdocs'&&window.EDUNIZAM_STUDENT_DOCUMENTS?.render)window.EDUNIZAM_STUDENT_DOCUMENTS.render();
  if(view==='financecenter'&&window.EDUNIZAM_FINANCE_CENTER?.render)window.EDUNIZAM_FINANCE_CENTER.render();
+ if(view==='inventorycenter'&&window.EDUNIZAM_INVENTORY_CENTER?.render)window.EDUNIZAM_INVENTORY_CENTER.render();
  if(view==='classcenter'&&window.EDUNIZAM_CLASS_SECTION_CENTER?.render)window.EDUNIZAM_CLASS_SECTION_CENTER.render();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
@@ -264,8 +265,8 @@ renderAll();
   const roleViews={
     student:['dashboard','studentprofile','attendanceanalytics','studentdocs','fees','results','schoolwork','calendarcenter','inboxcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
     parent:['dashboard','studentprofile','studentdocs','fees','results','attendance','attendanceanalytics','schoolwork','calendarcenter','inboxcenter','leavecenter','examcenter','communication','access','notifications','assistant'],
-    teacher:['dashboard','students','classcenter','staffcenter','staffpayroll','studentprofile','attendance','attendanceanalytics','results','schoolwork','calendarcenter','inboxcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
-    head:['dashboard','students','classcenter','staffcenter','staffpayroll','studentprofile','studentdocs','attendance','attendanceanalytics','fees','financecenter','results','schoolwork','calendarcenter','inboxcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
+    teacher:['dashboard','students','classcenter','staffcenter','staffpayroll','studentprofile','attendance','attendanceanalytics','inventorycenter','results','schoolwork','calendarcenter','inboxcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
+    head:['dashboard','students','classcenter','staffcenter','staffpayroll','studentprofile','studentdocs','attendance','attendanceanalytics','fees','financecenter','inventorycenter','results','schoolwork','calendarcenter','inboxcenter','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
   };
   const labels={student:'Student',parent:'Parent / Guardian',teacher:'Teacher',head:'Head of Institute'};
   function injectStyles(){
