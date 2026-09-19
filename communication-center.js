@@ -40,11 +40,26 @@
       sel.innerHTML='<option value="">Select parent/guardian</option>'+list.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.father||'Parent/Guardian of '+s.name)+' — '+esc(s.name)+'</option>').join('');
     }
   }
+  function localParticipantStudentIds(){
+    const identity=String(session()?.identity||'').trim().toLowerCase();
+    const list=students();
+    if(!identity)return new Set();
+    const matched=list.filter(s=>[s.id,s.studentId,s.rollNo,s.phone].some(v=>String(v??'').trim().toLowerCase()===identity));
+    return new Set(matched.map(s=>String(s.id)));
+  }
   function visibleMeetings(){
-    const r=role(),id=session()?.identity||'';
-    const all=read();
-    if(['head','teacher'].includes(r))return all;
-    return all.filter(m=>m.viewerRole===r||m.participantIdentity===id||m.participantRole===r);
+    const r=role(),all=read();
+    if(r==='head')return all.filter(m=>m.kind==='head-parent');
+    if(r==='teacher'){
+      const visibleIds=new Set((window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]).map(s=>String(s.id)));
+      return all.filter(m=>m.kind==='teacher-student'&&(!visibleIds.size||visibleIds.has(String(m.personId))));
+    }
+    const ids=localParticipantStudentIds();
+    return all.filter(m=>{
+      if(r==='student')return m.kind==='teacher-student'&&ids.has(String(m.personId));
+      if(r==='parent')return m.kind==='head-parent'&&ids.has(String(m.personId));
+      return false;
+    });
   }
   function render(){
     const badge=document.getElementById('meetRoleBadge');if(badge)badge.textContent=roleLabel[role()]||role();
@@ -72,7 +87,7 @@
     const s=students().find(x=>String(x.id)===String(id));
     const participantRole=kind==='head-parent'?'parent':'student';
     const personName=kind==='head-parent'?(s?.father||('Parent/Guardian of '+(s?.name||'Student'))):(s?.name||'Student');
-    let record={id:String(Date.now()),kind,personId:id,personName,participantRole,viewerRole:participantRole,title,date,time,url,status:'Scheduled',createdByRole:role(),createdAt:new Date().toISOString()};
+    let record={id:String(Date.now()),kind,personId:id,personName,participantRole,viewerRole:participantRole,participantIdentity:String(s?.phone||s?.studentId||s?.rollNo||id),title,date,time,url,status:'Scheduled',createdByRole:role(),createdAt:new Date().toISOString()};
     const cloudApi=window.EDUNIZAM_COMMUNICATION_CLOUD;
     if(cloudApi?.ready?.()){
       cloudApi.create(record).then(row=>{
