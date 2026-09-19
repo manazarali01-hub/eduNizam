@@ -157,3 +157,9 @@ Visitor check-in/out is Head-only. Parents can request an early-exit gate pass f
 EduNizam includes a Lesson Plan & Syllabus Progress Center. Teachers and Head can create weekly lesson plans with class/section, subject, topic, objectives, teaching activities and follow-up/homework. Plans support Draft, Published and Completed states.
 
 Syllabus units/chapters track target completion date, completion percentage and Planned/In Progress/Completed status. Teachers are restricted to classes/sections represented by their assigned students; Head can manage all institute classes. Student/Parent accounts see only Published lesson plans and syllabus units explicitly marked family-visible for their linked class/section. A printable syllabus progress report is included.
+
+
+## Helpdesk and complaints
+EduNizam includes a structured Helpdesk & Complaint Center for Academics, Attendance, Fees, Transport, Behavior, Facilities, Technical, Admission and Other issues.
+
+Student, Parent, Teacher and Head accounts can submit tickets with priority and optional student context. Cloud validation restricts Student context to self, Parent context to approved linked children, and Teacher context to assigned students. Normal users read only their own tickets; Head reads and manages institute tickets, can move them through Open/In Progress/Resolved/Closed, add an official response, and triggers notifications back to the ticket creator. Printable ticket records are included.
