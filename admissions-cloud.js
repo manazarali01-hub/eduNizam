@@ -216,6 +216,69 @@
     const {data,error}=await state.client.rpc('request_parent_link_by_student_code',{p_student_code:String(studentCode||'').trim()});
     if(error)throw error;return data;
   }
+  async function claimStudentRecord(studentCode){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('claim_student_record',{p_student_code:String(studentCode||'').trim()});
+    if(error)throw error;return Array.isArray(data)?data[0]:data;
+  }
+  async function listInstitutionTeachers(){
+    if(!state.client||!cfg.institutionId)return[];
+    const {data,error}=await state.client.from('institution_members')
+      .select('user_id,role,user_profiles!institution_members_user_id_fkey(full_name)')
+      .eq('institution_id',cfg.institutionId).eq('role','teacher');
+    if(error)throw error;
+    return (data||[]).map(x=>({user_id:x.user_id,role:x.role,full_name:x.user_profiles?.full_name||''}));
+  }
+  async function listLinkedCoreStudents(){
+    if(!state.client||!cfg.institutionId)return[];
+    const {data,error}=await state.client.from('core_students')
+      .select('id,auth_user_id,name,class_name,student_code')
+      .eq('institution_id',cfg.institutionId).not('auth_user_id','is',null).order('name');
+    if(error)throw error;return data||[];
+  }
+  async function listTeacherStudentLinks(){
+    if(!state.client||!cfg.institutionId)return[];
+    const {data,error}=await state.client.from('teacher_student_links')
+      .select('teacher_user_id,student_user_id').eq('institution_id',cfg.institutionId);
+    if(error)throw error;
+    const [teachers,students]=await Promise.all([listInstitutionTeachers(),listLinkedCoreStudents()]);
+    const tm=new Map(teachers.map(x=>[x.user_id,x.full_name||x.user_id]));
+    const sm=new Map(students.map(x=>[x.auth_user_id,x.name||x.auth_user_id]));
+    return (data||[]).map(x=>({...x,teacher_name:tm.get(x.teacher_user_id),student_name:sm.get(x.student_user_id)}));
+  }
+  async function assignTeacherStudent(teacherUserId,studentUserId){
+    if(!state.client||!state.user||!cfg.institutionId)throw new Error('Cloud institution is not configured.');
+    const {data,error}=await state.client.from('teacher_student_links').upsert({
+      institution_id:cfg.institutionId,teacher_user_id:teacherUserId,student_user_id:studentUserId,assigned_by:state.user.id
+    },{onConflict:'teacher_user_id,student_user_id'}).select().single();
+    if(error)throw error;return data;
+  }
+  async function removeTeacherStudentLink(teacherUserId,studentUserId){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    const {error}=await state.client.from('teacher_student_links').delete()
+      .eq('teacher_user_id',teacherUserId).eq('student_user_id',studentUserId);
+    if(error)throw error;return true;
+  }
+  async function listMyNotifications(){
+    if(!state.client||!state.user)return[];
+    const {data,error}=await state.client.from('user_notifications').select('*')
+      .eq('recipient_user_id',state.user.id).order('created_at',{ascending:false}).limit(100);
+    if(error)throw error;return data||[];
+  }
+  async function markNotificationRead(id){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.from('user_notifications').update({read_at:new Date().toISOString()})
+      .eq('id',id).eq('recipient_user_id',state.user.id).select().single();
+    if(error)throw error;return data;
+  }
+  async function sendNotification(recipientUserId,title,body,category='general'){
+    if(!state.client||!state.user||!cfg.institutionId)throw new Error('Cloud institution is not configured.');
+    const {data,error}=await state.client.from('user_notifications').insert({
+      institution_id:cfg.institutionId,recipient_user_id:recipientUserId,created_by:state.user.id,
+      title:String(title||'Notification'),body:String(body||''),category:String(category||'general')
+    }).select().single();
+    if(error)throw error;return data;
+  }
   async function createSignedDocumentUrl(path,expiresIn=300){
     if(!state.client)throw new Error('Cloud backend is not configured.');
     const {data,error}=await state.client.storage.from(cfg.admissionsStorageBucket||'admission-documents').createSignedUrl(path,expiresIn);
@@ -275,7 +338,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
