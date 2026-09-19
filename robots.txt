@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://manazarali01-hub.github.io/hub/sitemap.xml
+Sitemap: https://manazarali01-hub.github.io/eduNizam/sitemap.xml
 
