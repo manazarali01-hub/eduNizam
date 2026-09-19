@@ -168,10 +168,10 @@ renderAll();
   const classFees=()=>JSON.parse(localStorage.getItem(FEE_KEY)||JSON.stringify(defaultFees));
   const saveClassFees=v=>localStorage.setItem(FEE_KEY,JSON.stringify(v));
   const roleViews={
-    student:['dashboard','studentprofile','fees','results','pastpapers','practice','study','schoolassessments','assistant'],
-    parent:['dashboard','studentprofile','fees','results','attendance','assistant'],
-    teacher:['dashboard','students','studentprofile','attendance','results','pastpapers','practice','study','schoolassessments','assistant'],
-    head:['dashboard','students','studentprofile','attendance','fees','results','pastpapers','practice','study','schoolassessments','universities','vu','admissions','assistant','settings']
+    student:['dashboard','studentprofile','fees','results','pastpapers','practice','study','schoolassessments','communication','assistant'],
+    parent:['dashboard','studentprofile','fees','results','attendance','communication','assistant'],
+    teacher:['dashboard','students','studentprofile','attendance','results','pastpapers','practice','study','schoolassessments','communication','assistant'],
+    head:['dashboard','students','studentprofile','attendance','fees','results','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','assistant','settings']
   };
   const labels={student:'Student',parent:'Parent / Guardian',teacher:'Teacher',head:'Head of Institute'};
   function injectStyles(){
