@@ -49,13 +49,13 @@
   function uniCard(r){
     const u=U.universities.find(x=>x.id===r.universityId);
     const badge=r.source==='official'?'<span class="trust-badge trust-official">Official</span>':'<span class="trust-badge trust-verified">Verified Community</span>';
-    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(r.category)+'</span> '+badge+'</div></div><h3>'+esc(r.title)+'</h3><p class="muted">'+esc(u?.name||'')+'</p><p class="coverage-note">'+esc(r.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(r.url)+'">Open Resource</a></div></article>';
+    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">Exact Indexed Resource</span> <span class="mini-badge">'+esc(r.category)+'</span> '+badge+'</div></div><h3>'+esc(r.title)+'</h3><p class="muted">'+esc(u?.name||'')+'</p><p class="coverage-note">'+esc(r.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(r.url)+'">Open Resource</a></div></article>';
   }
   function universityFallbackCard(u,q){
     const base=U.resources.find(r=>r.universityId===u.id&&r.category==='Past Papers')||U.resources.find(r=>r.universityId===u.id);
     const url=base?.url||u.officialUrl;
     const badge=base?.source==='verified'?'<span class="trust-badge trust-verified">Verified Community</span>':'<span class="trust-badge trust-official">Official Source</span>';
-    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">Search Source</span> '+badge+'</div></div><h3>'+esc(u.name)+' Past Paper Source</h3><p class="muted">'+esc(q||'Past papers')+'</p><p class="coverage-note">Exact searched paper EduNizam index mein abhi stored nahi hai. Is university ka available past-paper/examination source diya ja raha hai taa-ke search dead-end na ho.</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(url)+'">Open Source</a></div></article>';
+    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">Source Fallback</span> '+badge+'</div></div><h3>'+esc(u.name)+' Past Paper Source</h3><p class="muted">'+esc(q||'Past papers')+'</p><p class="coverage-note">Exact searched paper EduNizam index mein abhi stored nahi hai. Is university ka available past-paper/examination source diya ja raha hai taa-ke search dead-end na ho.</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(url)+'">Open Source</a></div></article>';
   }
   function renderUniversities(){
     const q=$('universitySearch').value.trim().toLowerCase(),uid=$('universityFilter').value,cat=$('universityCategory').value,src=$('universitySource').value;
@@ -69,8 +69,10 @@
     const saved=vuSaved().includes(r.id);
     const badge=r.source==='official'?'<span class="trust-badge trust-official">Official VU</span>':'<span class="trust-badge trust-verified">Verified Community</span>';
     const searchedCode=$('vuSearch')?.value.trim().toUpperCase();
-    const context=(r.courseAgnostic&&/^[A-Z]{2,5}\d{3}[A-Z]?$/.test(searchedCode))?'<p class="muted">Use this directory to look for <strong>'+esc(searchedCode)+'</strong>.</p>':'';
-    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(r.category)+'</span> '+badge+'</div><button class="icon-btn" data-vu-save="'+r.id+'">'+(saved?'★':'☆')+'</button></div><h3>'+esc(r.title)+'</h3>'+context+'<p class="coverage-note">'+esc(r.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(r.url)+'">Open Resource</a><button class="secondary-action" data-vu-ai="'+r.id+'">AI Use</button></div></article>';
+    const exactCode=Array.isArray(r.courseCodes)&&r.courseCodes.map(x=>String(x).toUpperCase()).includes(searchedCode);
+    const fallbackCode=r.courseAgnostic&&/^[A-Z]{2,5}\d{3}[A-Z]?$/.test(searchedCode);
+    const context=exactCode?'<p class="muted"><strong>Exact course match:</strong> '+esc(searchedCode)+'</p>':(fallbackCode?'<p class="muted"><strong>Source fallback for:</strong> '+esc(searchedCode)+'</p>':'');
+    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+(exactCode?'Exact Course Result':(fallbackCode?'Source Fallback':esc(r.category)))+'</span> '+badge+'</div><button class="icon-btn" data-vu-save="'+r.id+'">'+(saved?'★':'☆')+'</button></div><h3>'+esc(r.title)+'</h3>'+context+'<p class="coverage-note">'+esc(r.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(r.url)+'">Open Resource</a><button class="secondary-action" data-vu-ai="'+r.id+'">AI Use</button></div></article>';
   }
   function renderVU(){
     document.querySelectorAll('[data-vu-tab]').forEach(b=>b.classList.toggle('active',b.dataset.vuTab===vuTab));
