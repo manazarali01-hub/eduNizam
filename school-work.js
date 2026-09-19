@@ -9,11 +9,52 @@
   const nowDate=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   function read(){try{return Object.assign({announcements:[],homework:[],timetable:[]},JSON.parse(localStorage.getItem(KEY)||'{}'))}catch{return{announcements:[],homework:[],timetable:[]}}}
   function write(v){localStorage.setItem(KEY,JSON.stringify(v))}
+  const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
+  const cloud=()=>window.EDUNIZAM_CLOUD;
+  function cloudReady(){const c=cloud(),x=cfg();return !!(x.enabled&&x.institutionId&&c?.state?.client&&c?.state?.user)}
+  function cloudStatus(){return cloudReady()?'Cloud Sync':'Local Mode'}
+  function mapCloud(ann,hw,tt){
+    return {
+      announcements:(ann||[]).map(x=>({id:x.id,title:x.title,body:x.body,audience:x.audience,createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at})),
+      homework:(hw||[]).map(x=>({id:x.id,className:x.class_name,subject:x.subject,title:x.title,details:x.details||'',dueDate:x.due_date||'',createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at})),
+      timetable:(tt||[]).map(x=>({id:x.id,className:x.class_name,day:x.weekday,time:x.start_time?String(x.start_time).slice(0,5):'',subject:x.subject,teacherName:x.teacher_name||'',createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at}))
+    };
+  }
+  async function pullCloud(){
+    if(!cloudReady())return read();
+    const c=cloud(),id=cfg().institutionId;
+    const [a,h,t]=await Promise.all([
+      c.state.client.from('school_announcements').select('*').eq('institution_id',id).order('created_at',{ascending:false}),
+      c.state.client.from('homework_items').select('*').eq('institution_id',id).order('created_at',{ascending:false}),
+      c.state.client.from('timetable_entries').select('*').eq('institution_id',id).order('weekday').order('start_time')
+    ]);
+    for(const r of [a,h,t])if(r.error)throw r.error;
+    const mapped=mapCloud(a.data,h.data,t.data);write(mapped);return mapped;
+  }
+  async function insertCloud(kind,x){
+    if(!cloudReady())return null;
+    const c=cloud(),institution_id=cfg().institutionId,creator_user_id=c.state.user.id;
+    let table,payload;
+    if(kind==='announcements'){
+      table='school_announcements';payload={institution_id,creator_user_id,audience:x.audience,title:x.title,body:x.body};
+    }else if(kind==='homework'){
+      table='homework_items';payload={institution_id,creator_user_id,class_name:x.className,subject:x.subject,title:x.title,details:x.details||null,due_date:x.dueDate||null};
+    }else{
+      table='timetable_entries';payload={institution_id,creator_user_id,class_name:x.className,weekday:x.day,start_time:x.time||null,subject:x.subject,teacher_name:x.teacherName||null};
+    }
+    const {data,error}=await c.state.client.from(table).insert(payload).select().single();
+    if(error)throw error;return data;
+  }
+  async function deleteCloud(kind,id){
+    if(!cloudReady())return;
+    const table=kind==='announcements'?'school_announcements':kind==='homework'?'homework_items':'timetable_entries';
+    const {error}=await cloud().state.client.from(table).delete().eq('id',id);
+    if(error)throw error;
+  }
   function appState(){return window.EDUNIZAM_APP_STATE||null}
   function allStudents(){
     try{
-      const raw=JSON.parse(localStorage.getItem('edunizam_state')||'null');
-      return raw?.students||[];
+      return JSON.parse(localStorage.getItem('edunizam_students')||'[]');
     }catch{return[]}
   }
   function visibleStudents(){
@@ -39,6 +80,7 @@
   function mount(){
     const root=$('schoolWorkApp');if(!root)return;
     root.innerHTML=`
+      <div class="section-head"><span class="academic-pill" id="swCloudStatus">${cloudStatus()}</span></div>
       <div class="school-work-tabs">
         <button class="secondary sw-tab active" data-sw-tab="announcements">Announcements</button>
         <button class="secondary sw-tab" data-sw-tab="homework">Homework</button>
@@ -94,28 +136,50 @@
   }
 
   function bind(tab){
-    if(tab==='announcements'&&$('swSaveAnnouncement'))$('swSaveAnnouncement').onclick=()=>{
+    if(tab==='announcements'&&$('swSaveAnnouncement'))$('swSaveAnnouncement').onclick=async()=>{
       const title=$('swAnnTitle').value.trim(),body=$('swAnnBody').value.trim();if(!title||!body)return alert('Title aur announcement likhein.');
-      const d=read();d.announcements.unshift({id:String(Date.now()),title,body,audience:$('swAnnAudience').value,createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()});write(d);render();
+      const item={id:String(Date.now()),title,body,audience:$('swAnnAudience').value,createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()};
+      try{
+        const row=await insertCloud('announcements',item);
+        if(row)item.id=row.id,item.createdBy=row.creator_user_id,item.createdAt=row.created_at;
+      }catch(e){alert('Cloud sync failed; item local mode mein save hoga. '+(e.message||e))}
+      const d=read();d.announcements.unshift(item);write(d);render();
     };
-    if(tab==='homework'&&$('swSaveHomework'))$('swSaveHomework').onclick=()=>{
+    if(tab==='homework'&&$('swSaveHomework'))$('swSaveHomework').onclick=async()=>{
       const className=$('swHwClass').value.trim(),subject=$('swHwSubject').value.trim(),title=$('swHwTitle').value.trim();if(!className||!subject||!title)return alert('Class, subject aur title required hain.');
-      const d=read();d.homework.unshift({id:String(Date.now()),className,subject,title,dueDate:$('swHwDue').value,details:$('swHwDetails').value.trim(),createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()});write(d);render();
+      const item={id:String(Date.now()),className,subject,title,dueDate:$('swHwDue').value,details:$('swHwDetails').value.trim(),createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()};
+      try{
+        const row=await insertCloud('homework',item);
+        if(row)item.id=row.id,item.createdBy=row.creator_user_id,item.createdAt=row.created_at;
+      }catch(e){alert('Cloud sync failed; homework local mode mein save hoga. '+(e.message||e))}
+      const d=read();d.homework.unshift(item);write(d);render();
     };
-    if(tab==='timetable'&&$('swSaveTimetable'))$('swSaveTimetable').onclick=()=>{
+    if(tab==='timetable'&&$('swSaveTimetable'))$('swSaveTimetable').onclick=async()=>{
       const className=$('swTtClass').value.trim(),subject=$('swTtSubject').value.trim();if(!className||!subject)return alert('Class aur subject required hain.');
-      const d=read();d.timetable.push({id:String(Date.now()),className,day:$('swTtDay').value,time:$('swTtTime').value,subject,teacherName:$('swTtTeacher').value.trim(),createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()});write(d);render();
+      const item={id:String(Date.now()),className,day:$('swTtDay').value,time:$('swTtTime').value,subject,teacherName:$('swTtTeacher').value.trim(),createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()};
+      try{
+        const row=await insertCloud('timetable',item);
+        if(row)item.id=row.id,item.createdBy=row.creator_user_id,item.createdAt=row.created_at;
+      }catch(e){alert('Cloud sync failed; timetable local mode mein save hoga. '+(e.message||e))}
+      const d=read();d.timetable.push(item);write(d);render();
     };
-    document.querySelectorAll('[data-sw-delete]').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('[data-sw-delete]').forEach(b=>b.onclick=async()=>{
       const [kind,id]=b.dataset.swDelete.split(':');const d=read();const key=kind==='announcements'?'announcements':kind==='homework'?'homework':'timetable';
       const item=d[key].find(x=>String(x.id)===String(id));if(!item||!mine(item))return;
+      try{await deleteCloud(kind,id)}catch(e){return alert('Cloud delete failed: '+(e.message||e))}
       d[key]=d[key].filter(x=>String(x.id)!==String(id));write(d);render();
     });
   }
 
-  function render(){
+  async function render(){
     const root=$('schoolWorkApp');if(!root)return mount();
-    const tab=root.dataset.tab||'announcements',d=read();$('swEditor').innerHTML=editor(tab);
+    let d=read();
+    if(cloudReady()&&!root.dataset.cloudLoaded){
+      root.dataset.cloudLoaded='1';
+      try{d=await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('School Work cloud sync:',e.message)}
+    }
+    const status=$('swCloudStatus');if(status)status.textContent=cloudStatus();
+    const tab=root.dataset.tab||'announcements';$('swEditor').innerHTML=editor(tab);
     let arr=tab==='announcements'?d.announcements.filter(x=>audienceVisible(x.audience)):tab==='homework'?d.homework.filter(x=>classVisible(x.className)):d.timetable.filter(x=>classVisible(x.className));
     if(tab==='timetable'){
       const order=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -125,6 +189,7 @@
     bind(tab);
   }
 
+  window.addEventListener('edunizam:auth',()=>{const root=$('schoolWorkApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(mount,0);setTimeout(mount,600);
-  window.EDUNIZAM_SCHOOL_WORK={mount,render,read};
+  window.EDUNIZAM_SCHOOL_WORK={mount,render,read,pullCloud,cloudReady};
 })();
