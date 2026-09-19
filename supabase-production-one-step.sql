@@ -953,6 +953,33 @@ drop policy if exists "teacher read own assignments" on public.teacher_student_l
 create policy "teacher read own assignments" on public.teacher_student_links
 for select to authenticated using (teacher_user_id=auth.uid());
 
+-- Tighten Teacher–Student communication after teacher_student_links exists.
+drop policy if exists "teachers manage own student meetings" on public.communication_meetings;
+create policy "teachers manage own student meetings" on public.communication_meetings
+for all to authenticated
+using (
+  created_by=auth.uid()
+  and created_by_role='teacher'
+  and participant_role='student'
+  and exists(
+    select 1 from public.teacher_student_links tsl
+    where tsl.institution_id=communication_meetings.institution_id
+      and tsl.teacher_user_id=auth.uid()
+      and tsl.student_user_id=communication_meetings.student_user_id
+  )
+)
+with check (
+  created_by=auth.uid()
+  and created_by_role='teacher'
+  and participant_role='student'
+  and exists(
+    select 1 from public.teacher_student_links tsl
+    where tsl.institution_id=communication_meetings.institution_id
+      and tsl.teacher_user_id=auth.uid()
+      and tsl.student_user_id=communication_meetings.student_user_id
+  )
+);
+
 create table if not exists public.user_notifications (
   id uuid primary key default gen_random_uuid(),
   institution_id uuid not null references public.institutions(id) on delete cascade,
