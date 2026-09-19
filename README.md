@@ -13,6 +13,12 @@ EduNizam is a modular school-management and learning PWA for schools, students, 
 - Online admissions
 - Communication / Google Meet scheduling
 - Professional class/section timetables and printable exam date sheets
+- Bulk CSV/Excel import for students, staff and classes with validation and rollback
+- Exact-time staff check-in/check-out and monthly worked-duration log
+- Teacher training, CPD hours, progress, evaluation and certificates
+- School Functions calendar for Fun Fair, Annual Day and Prize Distribution
+- Our Students activity and achievement feed with private photo/audio/video media
+- Searchable, grouped feature navigation for a clean interface at scale
 - Notifications and academic access controls
 - Cloud backup/sync readiness with Supabase
 - AI Assistant shell and Math editor
@@ -90,6 +96,20 @@ Head of Institute manages sections and student allocation. Teachers have read-on
 Head of Institute can mark daily staff attendance, configure monthly salary, generate payroll, apply allowances/deductions, mark salary paid and print payslips. Teachers only read their own linked attendance and payroll records.
 
 Attendance-based payroll uses base salary / 30 as the daily rate. Absent days deduct one daily rate and Half Day deducts half a daily rate; Leave does not deduct salary automatically.
+
+The Staff Time Clock extends the same attendance rows with exact check-in/check-out timestamps and worked duration. Teachers can clock their own linked profile; Head can clock or correct any staff record. Run `supabase-staff-time-training-community-migration.sql` on an existing cloud project.
+
+
+## Bulk import and teacher training
+The Head-only Bulk Import Center accepts CSV, XLSX and XLS files for Students, Staff & Teachers, and Classes & Sections. It provides downloadable templates, header matching, required-field checks, duplicate detection, a preview, export, cloud sync and one-step rollback of the last local import.
+
+Teacher Training Center tracks assignments, delivery mode, provider, start/end dates, progress, CPD hours, evaluation score, completion status and certificate URL. Teachers read only their own linked training records.
+
+
+## School functions and Our Students
+School Functions publishes Fun Fair, Annual Day, Prize Distribution, Sports Day, Science Exhibition and other school events. Head manages records; all authenticated members of the same institution can read them.
+
+Our Students is the school activity and achievement feed. Head can publish text plus pictures, audio or video, and can identify a student/class when appropriate. Cloud uploads use a private `school-community-media` bucket, institution-scoped RLS and one-hour signed URLs. The media limit is 25 MB per item.
 
 
 ## Student ID cards and certificates
