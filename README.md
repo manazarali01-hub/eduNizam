@@ -107,3 +107,11 @@ The monthly statement shows fees collected, other income, salaries paid, other e
 EduNizam includes a School Calendar & Events Center for Holidays, PTM, Exams, Fee Due dates, Meetings, Activities and other events.
 
 Head can manage all institution events. Teachers can create and manage their own events. Events can target the whole institute, students, parents, staff, or a specific class/section. Student and Parent cloud access is protected by RLS so they only read relevant events.
+
+
+## Secure inbox and messaging
+EduNizam includes an Inbox & Messaging Center for Head–Parent, Teacher–Student and Teacher–Parent conversations.
+
+Cloud contacts are generated only from approved `parent_student_links` and assigned `teacher_student_links`. Conversation creation is validated server-side by RPC, messages are protected by participant-only RLS, and recipients receive an EduNizam notification when a new message arrives.
+
+Local Mode provides a same-device demo inbox; secure cross-device messaging requires Cloud Mode and authenticated linked accounts.
