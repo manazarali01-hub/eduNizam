@@ -26,6 +26,12 @@
         return list.filter(s=>s.authUserId&&ids.has(s.authUserId));
       }catch(e){return[]}
     }
+    if(role==='teacher'){
+      try{
+        const ids=new Set(await cloud.listMyTeacherAssignments());
+        return list.filter(s=>s.authUserId&&ids.has(s.authUserId));
+      }catch(e){return[]}
+    }
     return list;
   }
   async function fillStudents(){
