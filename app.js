@@ -216,6 +216,21 @@ function applyEditPermissions(){
  const feeSetup=$('classFeeSetup');if(feeSetup)feeSetup.style.display=canManageFees()?'block':'none';
 }
 function renderAll(){renderStudents();renderAttendance();renderFees();renderResults();fillStudentSelects();renderStats();renderSettings();renderActivity();applyEditPermissions();}
+window.EDUNIZAM_FEE_BRIDGE={
+  upsert(record){
+    if(!record||!record.id)return null;
+    const i=state.fees.findIndex(x=>String(x.id)===String(record.id));
+    if(i>=0)state.fees[i]=Object.assign({},state.fees[i],record);
+    else state.fees.push(record);
+    persist();renderFees();renderStats();return record;
+  },
+  remove(id){
+    state.fees=state.fees.filter(x=>String(x.id)!==String(id));persist();renderFees();renderStats();
+  },
+  refresh(){
+    state.fees=JSON.parse(localStorage.getItem('edunizam_fees')||'[]');renderFees();renderStats();
+  }
+};
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').classList.remove('hidden')});
 $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').classList.add('hidden')};
@@ -264,7 +279,7 @@ renderAll();
     card.innerHTML='<div class="section-head"><div><h2>Class-wise Monthly Fee</h2><p class="muted">Head of Institute apni marzi se har class ki fee set kar sakta hai.</p></div><button id="saveClassFeesBtn">Save Fees</button></div><div id="classFeeGrid" class="fee-setup-grid"></div>';
     section.prepend(card);const fees=classFees();
     card.querySelector('#classFeeGrid').innerHTML=Object.entries(fees).map(([c,a])=>'<div class="fee-class-card"><label>'+esc(c)+'</label><input type="number" min="0" data-fee-class="'+esc(c)+'" value="'+Number(a||0)+'"></div>').join('');
-    card.querySelector('#saveClassFeesBtn').onclick=()=>{if(currentRole()!=='head')return alert('Only Head of Institute can change class fees.');const next={};card.querySelectorAll('[data-fee-class]').forEach(i=>next[i.dataset.feeClass]=Number(i.value||0));saveClassFees(next);logActivity('Class-wise fee structure updated');alert('Class fees saved successfully.');};
+    card.querySelector('#saveClassFeesBtn').onclick=()=>{if(currentRole()!=='head')return alert('Only Head of Institute can change class fees.');const next={};card.querySelectorAll('[data-fee-class]').forEach(i=>next[i.dataset.feeClass]=Number(i.value||0));saveClassFees(next);window.EDUNIZAM_FEE_CENTER?.syncClassFees?.(next).catch?.(e=>console.warn('Class fee cloud sync:',e.message));logActivity('Class-wise fee structure updated');alert('Class fees saved successfully.');};
     const select=document.getElementById('feeStudent');select?.addEventListener('change',()=>{const student=state.students.find(s=>s.id===Number(select.value));if(!student)return;const amount=classFees()[student.className];if(amount!=null)document.getElementById('feeAmount').value=amount;});
     card.style.display=currentRole()==='head'?'block':'none';
   }

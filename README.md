@@ -71,3 +71,9 @@ on conflict (user_id) do nothing;
 Replace `OWNER_EMAIL_HERE` with the actual owner login email. Do not put this bootstrap logic or any service-role credential in browser JavaScript.
 
 The Owner Console manages plan configuration and subscription state. Payment collection/settlement is not yet connected, so "Configured MRR" is not the same as received revenue.
+
+
+## Monthly fee challans and receipts
+EduNizam Fee Management now supports monthly student challans, class-fee auto-fill, discounts, arrears, due dates, payment references and printable paid receipts. Existing simple fee records remain compatible.
+
+Cloud mode stores the enhanced billing fields in `fee_records` and stores editable per-class monthly fees in `class_fee_structure`. Student and Parent accounts only read fee records allowed by the existing student-access RLS.
