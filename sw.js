@@ -1,4 +1,4 @@
-const CACHE='edunizam-v22-school-work';
+const CACHE='edunizam-v23-school-work-cloud';
 const ASSETS=['./','./index.html','./style.css','./app.js','./manifest.webmanifest','./icon-192.svg','./icon-512.svg','./past-papers-data.js','./past-papers-inventory.js','./past-papers-premium.js','./math-editor.js','./practice-data.js','./practice-center.js','./curriculum-registry.js','./study-data.js','./study-inventory.js','./study-library.js','./education-hubs.js','./vu-workspace.js','./admissions-portal.js','./admissions-selection.js','./student-performance.js','./school-work.js','./core-cloud.js','./auth-bridge.js','./ai-client.js','./cloud-setup.js','./communication-cloud.js','./communication-center.js','./role-access-center.js','./academic-access.js','./role-scope.js','./role-dashboard.js','./workflow-alerts.js','./backend-health.js','./admissions-cloud.js','./cloud-config.js','./admissions-data.js','./university-data.js','./vu-course-catalog.js','./school-assessment-data.js'];
 self.addEventListener('install',e=>{
   self.skipWaiting();
