@@ -24,6 +24,7 @@
         <button class="nav-item" data-view="results">📊  Results</button>
         <button class="nav-item" data-view="schoolwork">📅  School Work</button>
         <button class="nav-item" data-view="leavecenter">🗓️  Leave Requests</button>
+        <button class="nav-item" data-view="examcenter">🧮  Exams & Report Cards</button>
         <button class="nav-item" data-view="pastpapers">📄  Past Papers</button>
         <button class="nav-item" data-view="practice">✍  Practice & Tests</button>
         <button class="nav-item" data-view="study">📚  Study Library</button>
@@ -244,6 +245,14 @@
             <input id="resultSubject" placeholder="Subject">
             <input id="resultMarks" type="number" min="0" placeholder="Marks">
             <input id="resultTotal" type="number" min="1" placeholder="Total marks">
+            <select id="resultExamType">
+              <option value="Monthly Test">Monthly Test</option>
+              <option value="Midterm">Midterm</option>
+              <option value="Final">Final</option>
+              <option value="Quiz">Quiz</option>
+              <option value="Assignment">Assignment</option>
+              <option value="Other">Other</option>
+            </select>
             <button id="saveResultBtn">Save Result</button>
           </div>
           <div id="resultList" class="list"></div>
@@ -270,6 +279,17 @@
           </div>
         </div>
         <div id="leaveCenterApp"></div>
+      </section>
+
+      <section id="examcenter" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Exams & Academic Reports</div>
+            <h2>Exam & Report Card Center</h2>
+            <p class="muted">Exam schedule manage karein aur existing result records se report card banayein.</p>
+          </div>
+        </div>
+        <div id="examCenterApp"></div>
       </section>
 
       <section id="pastpapers" class="view">
@@ -1080,6 +1100,7 @@
   <script src="student-performance.js"></script>
   <script src="school-work.js"></script>
   <script src="leave-center.js"></script>
+  <script src="exam-center.js"></script>
   <script src="admissions-portal.js"></script>
   <script src="admissions-selection.js"></script>
   <script src="math-editor.js"></script>
