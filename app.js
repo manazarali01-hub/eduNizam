@@ -7,6 +7,11 @@ const state={
  activity:JSON.parse(localStorage.getItem('edunizam_activity')||'[]')
 };
 const $=id=>document.getElementById(id);
+function currentRole(){try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role||'student'}catch{return'student'}}
+function canManageAttendance(){return ['teacher','head'].includes(currentRole())}
+function canManageResults(){return ['teacher','head'].includes(currentRole())}
+function canManageFees(){return currentRole()==='head'}
+function localDateKey(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day}
 function persist(){
  localStorage.setItem('edunizam_students',JSON.stringify(state.students));
  localStorage.setItem('edunizam_attendance',JSON.stringify(state.attendance));
@@ -17,10 +22,12 @@ function persist(){
 }
 function logActivity(text){state.activity.push({text,time:new Date().toLocaleString()});persist();renderActivity();}
 function setView(view){
+ const target=$(view);if(!target)return;
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
  document.querySelectorAll('.nav-item').forEach(v=>v.classList.toggle('active',v.dataset.view===view));
- $(view).classList.add('active');
- $('page-title').textContent=document.querySelector('[data-view="'+view+'"]').textContent;
+ target.classList.add('active');
+ const nav=document.querySelector('[data-view="'+view+'"]');
+ $('page-title').textContent=nav?.textContent?.trim()||view;
  if(view==='attendance')renderAttendance();
  if(view==='pastpapers')renderPastPapers();
  if(view==='practice'&&window.renderPracticeCenter)window.renderPracticeCenter();
@@ -47,7 +54,16 @@ function renderStudents(){
  $('studentList').innerHTML=list.length?list.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canDelete?'<button onclick="removeStudent('+s.id+')">Delete</button>':'<span></span>')+'</div>').join(''):'<div class="muted">No accessible students.</div>';
  const addBtn=$('addStudentBtn');if(addBtn)addBtn.style.display=canDelete?'inline-block':'none';
 }
-window.removeStudent=id=>{state.students=state.students.filter(s=>s.id!==id);persist();renderAll();};
+window.removeStudent=id=>{
+ if(currentRole()!=='head')return alert('Only Head of Institute can delete students.');
+ const s=state.students.find(x=>Number(x.id)===Number(id));if(!s)return;
+ if(!confirm('Delete '+s.name+' and related local attendance, fee and result records?'))return;
+ state.students=state.students.filter(x=>Number(x.id)!==Number(id));
+ state.fees=state.fees.filter(x=>Number(x.studentId)!==Number(id));
+ state.results=state.results.filter(x=>Number(x.studentId)!==Number(id));
+ Object.values(state.attendance).forEach(day=>{delete day[id];delete day[String(id)]});
+ logActivity('Student deleted: '+s.name);persist();renderAll();
+};
 window.addStudentFromAdmission=(student)=>{
   if(!student||!student.name)return null;
   const existing=state.students.find(s=>s.admissionApplicationId&&s.admissionApplicationId===student.admissionApplicationId);
@@ -70,15 +86,18 @@ window.addStudentFromAdmission=(student)=>{
   persist();logActivity('Student enrolled from admission: '+record.name);renderAll();
   return record;
 };
-function todayKey(){return new Date().toISOString().slice(0,10)}
+function todayKey(){return localDateKey()}
 function renderAttendance(){
  $('todayLabel').textContent=new Date().toLocaleDateString();
- const day=state.attendance[todayKey()]||{};
+ const day=state.attendance[todayKey()]||{},editable=canManageAttendance();
  const list=scopedStudents();
- $('attendanceList').innerHTML=list.length?list.map(s=>'<div class="row attendance-row"><strong>'+esc(s.name)+'</strong><label><input type="radio" name="att_'+s.id+'" value="Present" '+((day[s.id]||'Present')==='Present'?'checked':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(day[s.id]==='Absent'?'checked':'')+'> Absent</label></div>').join(''):'<div class="muted">Add students first.</div>';
+ $('attendanceList').innerHTML=list.length?list.map(s=>{const v=day[s.id]??day[String(s.id)]??'';return '<div class="row attendance-row"><strong>'+esc(s.name)+'</strong><label><input type="radio" name="att_'+s.id+'" value="Present" '+(v==='Present'?'checked':'')+' '+(!editable?'disabled':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(v==='Absent'?'checked':'')+' '+(!editable?'disabled':'')+'> Absent</label></div>'}).join(''):'<div class="muted">No accessible students.</div>';
+ const btn=$('saveAttendanceBtn');if(btn)btn.style.display=editable?'inline-block':'none';
 }
 $('saveAttendanceBtn').onclick=()=>{
- const day={}; scopedStudents().forEach(s=>{const x=document.querySelector('input[name="att_'+s.id+'"]:checked');day[s.id]=x?x.value:'Present';});
+ if(!canManageAttendance())return alert('Only Teacher or Head of Institute can save attendance.');
+ const list=scopedStudents(),day={};
+ for(const s of list){const x=document.querySelector('input[name="att_'+s.id+'"]:checked');if(!x)return alert('Mark Present or Absent for every visible student before saving.');day[s.id]=x.value;}
  state.attendance[todayKey()]=Object.assign({},state.attendance[todayKey()]||{},day);persist();logActivity('Attendance saved for '+todayKey());renderStats();
  window.EDUNIZAM_WORKFLOW_ALERTS?.attendanceSaved?.(day,todayKey());
 };
@@ -87,6 +106,7 @@ function fillStudentSelects(){
  $('feeStudent').innerHTML=opts;$('resultStudent').innerHTML=opts;
 }
 $('saveFeeBtn').onclick=()=>{
+ if(!canManageFees())return alert('Only Head of Institute can add fee records.');
  const studentId=Number($('feeStudent').value),amount=Number($('feeAmount').value||0),status=$('feeStatus').value;
  if(!studentId||amount<=0)return alert('Select student and enter amount');
  const feeRecord={id:Date.now(),studentId,amount,status,date:todayKey()};state.fees.push(feeRecord);persist();logActivity('Fee record added');renderAll();$('feeAmount').value='';
@@ -97,8 +117,9 @@ function renderFees(){
  $('feeList').innerHTML=rows.length?rows.slice().reverse().map(f=>{const s=state.students.find(x=>x.id===f.studentId);return '<div class="row"><strong>'+esc(s?.name||'Student')+'</strong><span>Rs '+f.amount+'</span><span class="badge">'+f.status+'</span><span>'+f.date+'</span><span></span></div>'}).join(''):'<div class="muted">No fee records yet.</div>';
 }
 $('saveResultBtn').onclick=()=>{
+ if(!canManageResults())return alert('Only Teacher or Head of Institute can add results.');
  const studentId=Number($('resultStudent').value),subject=$('resultSubject').value.trim(),marks=Number($('resultMarks').value),total=Number($('resultTotal').value);
- if(!studentId||!subject||!total)return alert('Complete result fields');
+ if(!studentId||!subject||!Number.isFinite(marks)||!Number.isFinite(total)||total<=0||marks<0||marks>total)return alert('Enter valid marks between 0 and total marks.');
  const resultRecord={id:Date.now(),studentId,subject,marks,total,date:todayKey()};state.results.push(resultRecord);persist();logActivity('Result added for '+subject);renderResults();
  window.EDUNIZAM_WORKFLOW_ALERTS?.resultSaved?.(resultRecord);
 };
@@ -115,7 +136,15 @@ $('generateBtn').onclick=()=>{
 $('pushCoreCloudBtn')?.addEventListener('click',pushCoreCloud);
 $('pullCoreCloudBtn')?.addEventListener('click',pullCoreCloud);
 $('saveSettingsBtn').onclick=()=>{
- state.settings={schoolName:$('schoolNameInput').value.trim()||'My School',phone:$('schoolPhoneInput').value.trim(),address:$('schoolAddressInput').value.trim()};
+ if(currentRole()!=='head')return alert('Only Head of Institute can change school settings.');
+ state.settings={
+  schoolName:$('schoolNameInput').value.trim()||'My School',
+  schoolType:$('schoolTypeInput').value||'School',
+  tagline:$('schoolTaglineInput').value.trim(),
+  session:$('schoolSessionInput').value.trim(),
+  phone:$('schoolPhoneInput').value.trim(),
+  address:$('schoolAddressInput').value.trim()
+ };
  persist();renderSettings();logActivity('School settings updated');
 };
 
@@ -148,8 +177,13 @@ async function pullCoreCloud(){
 }
 function renderSettings(){
  refreshCoreCloudStatus();
- $('school-name').textContent=state.settings.schoolName;
- $('schoolNameInput').value=state.settings.schoolName||'';$('schoolPhoneInput').value=state.settings.phone||'';$('schoolAddressInput').value=state.settings.address||'';
+ $('school-name').textContent=[state.settings.schoolName,state.settings.session].filter(Boolean).join(' · ');
+ $('schoolNameInput').value=state.settings.schoolName||'';
+ $('schoolTypeInput').value=state.settings.schoolType||'School';
+ $('schoolTaglineInput').value=state.settings.tagline||'';
+ $('schoolSessionInput').value=state.settings.session||'';
+ $('schoolPhoneInput').value=state.settings.phone||'';
+ $('schoolAddressInput').value=state.settings.address||'';
 }
 function renderActivity(){
  $('activityList').innerHTML=state.activity.length?state.activity.slice(-6).reverse().map(a=>'<div><strong>'+esc(a.text)+'</strong><br><small>'+esc(a.time)+'</small></div>').join('<hr>'):'No activity yet.';
@@ -161,7 +195,13 @@ function renderStats(){
  $('statFees').textContent='Rs '+paid.toLocaleString();$('statPending').textContent='Rs '+pending.toLocaleString();
 }
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function renderAll(){renderStudents();renderAttendance();renderFees();renderResults();fillStudentSelects();renderStats();renderSettings();renderActivity();}
+function applyEditPermissions(){
+ const feeForm=$('saveFeeBtn')?.closest('.form-grid'),resultForm=$('saveResultBtn')?.closest('.form-grid');
+ if(feeForm)feeForm.style.display=canManageFees()?'grid':'none';
+ if(resultForm)resultForm.style.display=canManageResults()?'grid':'none';
+ const feeSetup=$('classFeeSetup');if(feeSetup)feeSetup.style.display=canManageFees()?'block':'none';
+}
+function renderAll(){renderStudents();renderAttendance();renderFees();renderResults();fillStudentSelects();renderStats();renderSettings();renderActivity();applyEditPermissions();}
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').classList.remove('hidden')});
 $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').classList.add('hidden')};
@@ -202,6 +242,7 @@ renderAll();
     document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.toggle('role-hidden',!allowed.includes(b.dataset.view)));
     const actions=document.querySelector('.topbar-actions');if(actions&&!document.getElementById('roleSession')){const chip=document.createElement('span');chip.id='roleSession';chip.className='session-chip';chip.innerHTML='<strong>'+labels[session.role]+'</strong><button class="secondary" style="padding:4px 8px">Logout</button>';chip.querySelector('button').onclick=()=>{localStorage.removeItem(ROLE_KEY);location.reload()};actions.prepend(chip)}
     const active=document.querySelector('.view.active')?.id;if(active&&!allowed.includes(active))setView(allowed[0]);
+    renderAll();
   }
   function installFeeSetup(){
     const section=document.getElementById('fees');if(!section||document.getElementById('classFeeSetup'))return;
@@ -209,8 +250,9 @@ renderAll();
     card.innerHTML='<div class="section-head"><div><h2>Class-wise Monthly Fee</h2><p class="muted">Head of Institute apni marzi se har class ki fee set kar sakta hai.</p></div><button id="saveClassFeesBtn">Save Fees</button></div><div id="classFeeGrid" class="fee-setup-grid"></div>';
     section.prepend(card);const fees=classFees();
     card.querySelector('#classFeeGrid').innerHTML=Object.entries(fees).map(([c,a])=>'<div class="fee-class-card"><label>'+esc(c)+'</label><input type="number" min="0" data-fee-class="'+esc(c)+'" value="'+Number(a||0)+'"></div>').join('');
-    card.querySelector('#saveClassFeesBtn').onclick=()=>{const next={};card.querySelectorAll('[data-fee-class]').forEach(i=>next[i.dataset.feeClass]=Number(i.value||0));saveClassFees(next);logActivity('Class-wise fee structure updated');alert('Class fees saved successfully.');};
+    card.querySelector('#saveClassFeesBtn').onclick=()=>{if(currentRole()!=='head')return alert('Only Head of Institute can change class fees.');const next={};card.querySelectorAll('[data-fee-class]').forEach(i=>next[i.dataset.feeClass]=Number(i.value||0));saveClassFees(next);logActivity('Class-wise fee structure updated');alert('Class fees saved successfully.');};
     const select=document.getElementById('feeStudent');select?.addEventListener('change',()=>{const student=state.students.find(s=>s.id===Number(select.value));if(!student)return;const amount=classFees()[student.className];if(amount!=null)document.getElementById('feeAmount').value=amount;});
+    card.style.display=currentRole()==='head'?'block':'none';
   }
   injectStyles();installFeeSetup();applyRole();
 })();
