@@ -24,6 +24,7 @@
         <button class="nav-item" data-view="studentprofile">📘  Student Profile</button>
         <button class="nav-item" data-view="studentdocs">🪪  ID Cards & Certificates</button>
         <button class="nav-item" data-view="attendance">✓  Attendance</button>
+        <button class="nav-item" data-view="attendanceanalytics">📈  Attendance Analytics</button>
         <button class="nav-item" data-view="fees">₨  Fees</button>
         <button class="nav-item" data-view="financecenter">💰  Finance & Cashbook</button>
         <button class="nav-item" data-view="results">📊  Results</button>
@@ -274,6 +275,17 @@
           <div id="attendanceList" class="list"></div>
           <button id="saveAttendanceBtn">Save Attendance</button>
         </article>
+      </section>
+
+      <section id="attendanceanalytics" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Attendance Intelligence</div>
+            <h2>Attendance Analytics</h2>
+            <p class="muted">Monthly attendance %, low-attendance flags, class summary aur printable reports.</p>
+          </div>
+        </div>
+        <div id="attendanceAnalyticsApp"></div>
       </section>
 
       <section id="fees" class="view">
@@ -1184,6 +1196,7 @@
   <script src="workflow-alerts.js"></script>
   <script src="backend-health.js"></script>
   <script src="student-performance.js"></script>
+  <script src="attendance-analytics.js"></script>
   <script src="school-work.js"></script>
   <script src="calendar-center.js"></script>
   <script src="leave-center.js"></script>

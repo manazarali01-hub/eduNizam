@@ -115,3 +115,9 @@ EduNizam includes an Inbox & Messaging Center for Head–Parent, Teacher–Stude
 Cloud contacts are generated only from approved `parent_student_links` and assigned `teacher_student_links`. Conversation creation is validated server-side by RPC, messages are protected by participant-only RLS, and recipients receive an EduNizam notification when a new message arrives.
 
 Local Mode provides a same-device demo inbox; secure cross-device messaging requires Cloud Mode and authenticated linked accounts.
+
+
+## Attendance analytics
+EduNizam includes a monthly Attendance Analytics Center for Student, Parent, Teacher and Head roles. It reuses the existing attendance records instead of creating a second attendance system.
+
+The report provides monthly present/absent/leave/late counts, attendance percentage, low-attendance flags below 75%, class filtering for staff, a daily attendance grid and a printable monthly report. Attendance percentage is defined as `(Present + Late) / (Present + Late + Absent)`; Leave is excluded from the denominator.
