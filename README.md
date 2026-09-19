@@ -133,3 +133,9 @@ Head of Institute can create/edit/delete items, track quantity, reorder levels, 
 EduNizam includes a Library Circulation Center for the school's physical books. This is separate from the digital Study Library.
 
 Head of Institute manages the catalog, accession numbers and copy counts. Head/Teacher can issue and return books; Teachers are restricted to their assigned students. Student/Parent accounts can read loans for their accessible student records. Cloud issue uses a server-side transaction that locks the book row, checks available copies and prevents duplicate active loans. Due dates, overdue status, search and a printable loan register are included.
+
+
+## Transport and routes
+EduNizam includes a Transport & Route Center for school vehicles, routes and student pickup/drop assignments.
+
+Head of Institute manages routes, stops, monthly transport fee, vehicles, seating capacity, driver/conductor details and student assignment. The cloud assignment RPC locks the selected vehicle and checks capacity before assigning, with one current assignment per student. Student and Parent roles can read only transport information for their accessible student records.
