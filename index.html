@@ -35,7 +35,10 @@
     "featureList":[
       "Student and staff management",
       "Attendance, fees and results",
+      "Exact-time staff attendance and teacher training",
+      "Bulk CSV and Excel school setup",
       "Timetables and exam date sheets",
+      "School functions and student activity media",
       "Online admissions",
       "School communication",
       "Pakistan learning resources",
@@ -55,9 +58,13 @@
         <button class="nav-item active" data-view="dashboard">⌂  Dashboard</button>
         <button class="nav-item" data-view="students">👨‍🎓  Students</button>
         <button class="nav-item" data-view="classcenter">🏫  Classes & Sections</button>
+        <button class="nav-item" data-view="bulkimport">⇧  Bulk Import & Setup</button>
         <button class="nav-item" data-view="staffcenter">👩‍🏫  Staff & Teachers</button>
+        <button class="nav-item" data-view="stafftime">⏱  Staff Time Clock</button>
         <button class="nav-item" data-view="staffpayroll">💼  Staff Attendance & Payroll</button>
+        <button class="nav-item" data-view="training">🎓  Teacher Training</button>
         <button class="nav-item" data-view="studentprofile">📘  Student Profile</button>
+        <button class="nav-item" data-view="ourstudents">🏅  Our Students</button>
         <button class="nav-item" data-view="behaviorcenter">🌟  Discipline & Behavior</button>
         <button class="nav-item" data-view="parentcomplaints">📣  Parent Complaint Notices</button>
         <button class="nav-item" data-view="gatecenter">🚪  Visitor & Gate Pass</button>
@@ -74,6 +81,7 @@
         <button class="nav-item" data-view="noticeboard">📌  Notice Board</button>
         <button class="nav-item" data-view="lessoncenter">🧑‍🏫  Lesson Plans & Syllabus</button>
         <button class="nav-item" data-view="calendarcenter">🗓  Calendar & Events</button>
+        <button class="nav-item" data-view="functionscenter">🎪  School Functions</button>
         <button class="nav-item" data-view="schedulecenter">🕒  Timetable & Date Sheets</button>
         <button class="nav-item" data-view="inboxcenter">💬  Inbox & Messaging</button>
         <button class="nav-item" data-view="helpdeskcenter">🎫  Helpdesk & Complaints</button>
@@ -170,6 +178,17 @@
         <div id="classSectionApp"></div>
       </section>
 
+      <section id="bulkimport" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Fast School Setup</div>
+            <h2>Bulk Import Center</h2>
+            <p class="muted">Students, staff aur classes ko CSV/Excel templates se validate, preview aur import karein.</p>
+          </div>
+        </div>
+        <div id="bulkImportApp"></div>
+      </section>
+
       <section id="staffcenter" class="view">
         <div class="section-head">
           <div>
@@ -181,6 +200,17 @@
         <div id="staffCenterApp"></div>
       </section>
 
+      <section id="stafftime" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Exact Time Attendance</div>
+            <h2>Staff Time Clock</h2>
+            <p class="muted">Second-level check-in, check-out aur worked duration with monthly history.</p>
+          </div>
+        </div>
+        <div id="staffTimeApp"></div>
+      </section>
+
       <section id="staffpayroll" class="view">
         <div class="section-head">
           <div>
@@ -190,6 +220,28 @@
           </div>
         </div>
         <div id="staffPayrollApp"></div>
+      </section>
+
+      <section id="training" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Professional Development</div>
+            <h2>Teacher Training Center</h2>
+            <p class="muted">Training assignments, CPD hours, progress, evaluation aur certificates.</p>
+          </div>
+        </div>
+        <div id="teacherTrainingApp"></div>
+      </section>
+
+      <section id="ourstudents" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">School Community</div>
+            <h2>Our Students</h2>
+            <p class="muted">Student activities, achievements, performances, pictures, audio aur videos.</p>
+          </div>
+        </div>
+        <div id="ourStudentsApp"></div>
       </section>
 
       <section id="studentprofile" class="view">
@@ -488,6 +540,17 @@
           </div>
         </div>
         <div id="calendarCenterApp"></div>
+      </section>
+
+      <section id="functionscenter" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Celebrations & Gatherings</div>
+            <h2>School Functions</h2>
+            <p class="muted">Fun Fair, Annual Day, Prize Distribution, Sports Day aur school programs.</p>
+          </div>
+        </div>
+        <div id="schoolFunctionsApp"></div>
       </section>
 
       <section id="schedulecenter" class="view">
@@ -1370,9 +1433,13 @@
   <script src="leave-center.js"></script>
   <script src="exam-center.js"></script>
   <script src="staff-center.js"></script>
+  <script src="staff-time-attendance.js"></script>
   <script src="staff-payroll.js"></script>
+  <script src="teacher-training-center.js"></script>
   <script src="student-documents.js"></script>
   <script src="class-section-center.js"></script>
+  <script src="bulk-import-center.js"></script>
+  <script src="school-community.js"></script>
   <script src="fee-center.js"></script>
   <script src="finance-center.js"></script>
   <script src="inventory-center.js"></script>
@@ -1383,5 +1450,6 @@
   <script src="admissions-selection.js"></script>
   <script src="math-editor.js"></script>
   <script src="past-papers-premium.js"></script>
+  <script src="navigation-enhancements.js"></script>
 </body>
 </html>

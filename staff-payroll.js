@@ -54,7 +54,7 @@
       c.from('staff_payroll_records').select('*,staff_profiles(full_name,staff_code,user_id)').eq('institution_id',id).order('payroll_month',{ascending:false})
     ]);
     for(const r of [a,s,p])if(r.error)throw r.error;
-    writeKey(ATT_KEY,(a.data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,date:x.attendance_date,status:x.status,note:x.note||'',staffName:x.staff_profiles?.full_name||''})));
+    writeKey(ATT_KEY,(a.data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,date:x.attendance_date,status:x.status,note:x.note||'',checkInAt:x.check_in_at||'',checkOutAt:x.check_out_at||'',staffName:x.staff_profiles?.full_name||''})));
     writeKey(SAL_KEY,(s.data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,baseSalary:Number(x.base_salary||0),defaultAllowance:Number(x.default_allowance||0)})));
     writeKey(PAY_KEY,(p.data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,staffName:x.staff_profiles?.full_name||'',month:String(x.payroll_month).slice(0,7),baseSalary:Number(x.base_salary||0),allowances:Number(x.allowances||0),attendanceDeduction:Number(x.attendance_deduction||0),otherDeductions:Number(x.other_deductions||0),netSalary:Number(x.net_salary||0),status:x.status,paymentReference:x.payment_reference||'',paidAt:x.paid_at||'',createdAt:x.created_at})));
   }
@@ -62,7 +62,7 @@
   async function saveAttendanceCloud(rows){
     if(!cloudReady())return;
     const c=cloud();
-    const payload=rows.map(x=>({institution_id:cfg().institutionId,staff_profile_id:x.staffId,attendance_date:x.date,status:x.status,note:x.note||null,marked_by:c.state.user.id,updated_at:new Date().toISOString()}));
+    const payload=rows.map(x=>({institution_id:cfg().institutionId,staff_profile_id:x.staffId,attendance_date:x.date,status:x.status,note:x.note||null,check_in_at:x.checkInAt||null,check_out_at:x.checkOutAt||null,marked_by:c.state.user.id,updated_at:new Date().toISOString()}));
     const {error}=await c.state.client.from('staff_attendance_records').upsert(payload,{onConflict:'staff_profile_id,attendance_date'});
     if(error)throw error;
   }
@@ -132,7 +132,8 @@
     let all=attendance(),newRows=[];
     document.querySelectorAll('[data-spa-status]').forEach(sel=>{
       const staffId=sel.dataset.spaStatus,note=document.querySelector('[data-spa-note="'+CSS.escape(staffId)+'"]')?.value||'';
-      newRows.push({id:staffId+'-'+date,staffId,date,status:sel.value,note});
+      const old=all.find(x=>String(x.staffId)===String(staffId)&&x.date===date)||{};
+      newRows.push({id:old.id||staffId+'-'+date,staffId,date,status:sel.value,note,checkInAt:old.checkInAt||'',checkOutAt:old.checkOutAt||''});
     });
     try{await saveAttendanceCloud(newRows)}catch(e){if(cloudReady())return alert('Cloud attendance save failed: '+(e.message||e))}
     const keys=new Set(newRows.map(x=>String(x.staffId)+'|'+x.date));all=all.filter(x=>!keys.has(String(x.staffId)+'|'+x.date)).concat(newRows);writeKey(ATT_KEY,all);render();
