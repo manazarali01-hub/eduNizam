@@ -51,11 +51,19 @@
     const badge=r.source==='official'?'<span class="trust-badge trust-official">Official</span>':'<span class="trust-badge trust-verified">Verified Community</span>';
     return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(r.category)+'</span> '+badge+'</div></div><h3>'+esc(r.title)+'</h3><p class="muted">'+esc(u?.name||'')+'</p><p class="coverage-note">'+esc(r.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(r.url)+'">Open Resource</a></div></article>';
   }
+  function universityFallbackCard(u,q){
+    const base=U.resources.find(r=>r.universityId===u.id&&r.category==='Past Papers')||U.resources.find(r=>r.universityId===u.id);
+    const url=base?.url||u.officialUrl;
+    const badge=base?.source==='verified'?'<span class="trust-badge trust-verified">Verified Community</span>':'<span class="trust-badge trust-official">Official Source</span>';
+    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">Search Source</span> '+badge+'</div></div><h3>'+esc(u.name)+' Past Paper Source</h3><p class="muted">'+esc(q||'Past papers')+'</p><p class="coverage-note">Exact searched paper EduNizam index mein abhi stored nahi hai. Is university ka available past-paper/examination source diya ja raha hai taa-ke search dead-end na ho.</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(url)+'">Open Source</a></div></article>';
+  }
   function renderUniversities(){
     const q=$('universitySearch').value.trim().toLowerCase(),uid=$('universityFilter').value,cat=$('universityCategory').value,src=$('universitySource').value;
     const arr=U.resources.filter(r=>r.universityId!=='vu'&&(!uid||r.universityId===uid)&&(!cat||r.category===cat)&&(!src||r.source===src)&&(!q||([r.title,r.category,r.note,U.universities.find(x=>x.id===r.universityId)?.name].join(' ').toLowerCase().includes(q))));
     $('universityCountBadge').textContent=U.universities.length+' Universities';
-    $('universityLibrary').innerHTML=arr.length?arr.map(uniCard).join(''):'<div class="empty-state">No matching university resource.</div>';
+    if(arr.length){$('universityLibrary').innerHTML=arr.map(uniCard).join('');return}
+    const candidates=U.universities.filter(u=>u.id!=='vu'&&(!uid||u.id===uid));
+    $('universityLibrary').innerHTML=candidates.map(u=>universityFallbackCard(u,q)).join('');
   }
   function vuCard(r){
     const saved=vuSaved().includes(r.id);
@@ -73,7 +81,11 @@
       const courseMatch=!q||text.includes(q)||(courseQuery&&r.courseAgnostic&&r.category==='Past Papers');
       return r.universityId==='vu'&&(vuTab==='all'||r.category===vuTab)&&(!src||r.source===src)&&courseMatch&&(!level||!q||new RegExp('[A-Z]{2,4}'+level[0]).test(q.toUpperCase()));
     });
-    $('vuLibrary').innerHTML=arr.length?arr.map(vuCard).join(''):'<div class="empty-state">No matching VU resource. Try a category or course code.</div>';
+    let shown=arr;
+    if(!shown.length){
+      shown=U.resources.filter(r=>r.universityId==='vu'&&r.category==='Past Papers'&&r.courseAgnostic&&(!src||r.source===src));
+    }
+    $('vuLibrary').innerHTML=shown.length?shown.map(vuCard).join(''):'<div class="empty-state">VU official/community source is not configured for this filter yet.</div>';
     const vu=U.resources.filter(r=>r.universityId==='vu');
     $('vuStatResources').textContent=vu.length;$('vuStatOfficial').textContent=vu.filter(x=>x.source==='official').length;$('vuStatVerified').textContent=vu.filter(x=>x.source==='verified').length;$('vuStatSaved').textContent=vuSaved().length;
     document.querySelectorAll('[data-vu-save]').forEach(b=>b.onclick=()=>{let x=vuSaved();x=x.includes(b.dataset.vuSave)?x.filter(v=>v!==b.dataset.vuSave):[b.dataset.vuSave,...x];putVu(x);renderVU()});
