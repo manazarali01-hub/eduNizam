@@ -16,6 +16,7 @@
     const c=cloud();
     if(!configured()||!c.state.user)return false;
     const role=await c.getMyRole();
+    localStorage.setItem('edunizam_cloud_user_id',c.state.user.id);
     setLocalSession(role,c.state.user.email||c.state.user.id);
     removeDemoLogin();
     return true;
@@ -47,7 +48,7 @@
     }else authScreen();
     setTimeout(()=>{
       const btn=document.querySelector('#roleSession button');
-      if(btn)btn.onclick=async()=>{try{await cloud().signOut()}finally{localStorage.removeItem(LOCAL_KEY);location.reload()}};
+      if(btn)btn.onclick=async()=>{try{await cloud().signOut()}finally{localStorage.removeItem(LOCAL_KEY);localStorage.removeItem('edunizam_cloud_user_id');location.reload()}};
     },50);
   }
   window.addEventListener('edunizam:auth',()=>setTimeout(boot,0));
