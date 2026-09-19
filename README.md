@@ -89,3 +89,9 @@ Head of Institute manages sections and student allocation. Teachers have read-on
 Head of Institute can mark daily staff attendance, configure monthly salary, generate payroll, apply allowances/deductions, mark salary paid and print payslips. Teachers only read their own linked attendance and payroll records.
 
 Attendance-based payroll uses base salary / 30 as the daily rate. Absent days deduct one daily rate and Half Day deducts half a daily rate; Leave does not deduct salary automatically.
+
+
+## Student ID cards and certificates
+EduNizam includes a Student Documents Center. Head of Institute can issue Student ID Cards, Bonafide Certificates, Enrollment Certificates and Leaving Certificates with a unique document number and issue date.
+
+Student and Parent accounts can read and print documents belonging to their linked student records. ID cards use an initials avatar when no student photo is available, so the feature works without a photo-upload dependency.
