@@ -6,6 +6,13 @@
   const currentUser=()=>cloud()?.state?.user?.id||localStorage.getItem('edunizam_cloud_user_id')||'';
   const readCache=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}};
   const writeCache=v=>localStorage.setItem(KEY,JSON.stringify(v));
+  function cloudReady(){return !!(cloud()?.state?.client&&currentUser())}
+  function localVisibleStudents(list){
+    const r=role(),all=list||[],identity=String(session()?.identity||'').trim().toLowerCase();
+    if(r==='head'||r==='teacher')return all;
+    if(!identity)return[];
+    return all.filter(s=>[s.id,s.studentId,s.rollNo,s.phone].some(v=>String(v??'').trim().toLowerCase()===identity));
+  }
   function allowedAuthIds(){
     const r=role(),u=currentUser(),c=readCache();
     if(r==='head')return null;
@@ -15,12 +22,13 @@
     return new Set();
   }
   function getVisibleStudents(list){
+    if(!cloudReady())return localVisibleStudents(list);
     const ids=allowedAuthIds();
     if(ids===null)return list||[];
     return (list||[]).filter(s=>s.authUserId&&ids.has(s.authUserId));
   }
   async function refresh(){
-    const c=cloud();if(!c?.state?.client||!c?.state?.user)return readCache();
+    const c=cloud();if(!c?.state?.client||!c?.state?.user){window.renderAll?.();window.EDUNIZAM_PARENT_DASHBOARD?.render?.();return readCache();}
     const r=role(),next=readCache();
     if(r==='teacher'&&c.listMyTeacherAssignments){
       next.teacherStudentUserIds=await c.listMyTeacherAssignments();
