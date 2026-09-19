@@ -42,14 +42,15 @@ function setView(view){
  if(view==='leavecenter'&&window.EDUNIZAM_LEAVE_CENTER?.render)window.EDUNIZAM_LEAVE_CENTER.render();
  if(view==='examcenter'&&window.EDUNIZAM_EXAM_CENTER?.render)window.EDUNIZAM_EXAM_CENTER.render();
  if(view==='staffcenter'&&window.EDUNIZAM_STAFF_CENTER?.render)window.EDUNIZAM_STAFF_CENTER.render();
+ if(view==='classcenter'&&window.EDUNIZAM_CLASS_SECTION_CENTER?.render)window.EDUNIZAM_CLASS_SECTION_CENTER.render();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
 $('addStudentBtn').onclick=()=>$('studentFormWrap').classList.toggle('hidden');
 $('saveStudentBtn').onclick=()=>{
  const name=$('studentName').value.trim(); if(!name)return alert('Enter student name');
- state.students.push({id:Date.now(),name,father:$('fatherName').value.trim(),className:$('studentClass').value.trim(),phone:$('studentPhone').value.trim()});
- ['studentName','fatherName','studentClass','studentPhone'].forEach(id=>$(id).value='');
+ state.students.push({id:Date.now(),name,father:$('fatherName').value.trim(),className:$('studentClass').value.trim(),sectionName:$('studentSection')?.value.trim()||'',phone:$('studentPhone').value.trim()});
+ ['studentName','fatherName','studentClass','studentSection','studentPhone'].forEach(id=>{if($(id))$(id).value=''});
  persist();logActivity('Student added: '+name);renderAll();
 };
 function scopedStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(state.students)||state.students}
@@ -77,6 +78,7 @@ window.addStudentFromAdmission=(student)=>{
     name:student.name,
     father:student.father||'',
     className:student.className||'',
+    sectionName:student.sectionName||'',
     phone:student.phone||'',
     rollNo:student.rollNo||'',
     studentId:student.studentId||'',
@@ -216,6 +218,14 @@ function applyEditPermissions(){
  const feeSetup=$('classFeeSetup');if(feeSetup)feeSetup.style.display=canManageFees()?'block':'none';
 }
 function renderAll(){renderStudents();renderAttendance();renderFees();renderResults();fillStudentSelects();renderStats();renderSettings();renderActivity();applyEditPermissions();}
+window.EDUNIZAM_STUDENT_BRIDGE={
+  list(){return state.students},
+  update(id,patch){
+    const s=state.students.find(x=>String(x.id)===String(id));if(!s)return null;
+    Object.assign(s,patch||{});persist();renderStudents();fillStudentSelects();return s;
+  },
+  refresh(){state.students=JSON.parse(localStorage.getItem('edunizam_students')||'[]');renderStudents();fillStudentSelects()}
+};
 window.EDUNIZAM_FEE_BRIDGE={
   upsert(record){
     if(!record||!record.id)return null;
@@ -248,8 +258,8 @@ renderAll();
   const roleViews={
     student:['dashboard','studentprofile','fees','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
     parent:['dashboard','studentprofile','fees','results','attendance','schoolwork','leavecenter','examcenter','communication','access','notifications','assistant'],
-    teacher:['dashboard','students','staffcenter','studentprofile','attendance','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
-    head:['dashboard','students','staffcenter','studentprofile','attendance','fees','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
+    teacher:['dashboard','students','classcenter','staffcenter','studentprofile','attendance','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','communication','access','notifications','assistant'],
+    head:['dashboard','students','classcenter','staffcenter','studentprofile','attendance','fees','results','schoolwork','leavecenter','examcenter','pastpapers','practice','study','schoolassessments','universities','vu','admissions','communication','access','notifications','assistant','settings']
   };
   const labels={student:'Student',parent:'Parent / Guardian',teacher:'Teacher',head:'Head of Institute'};
   function injectStyles(){

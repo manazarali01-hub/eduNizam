@@ -18,6 +18,7 @@
       <nav id="nav">
         <button class="nav-item active" data-view="dashboard">⌂  Dashboard</button>
         <button class="nav-item" data-view="students">👨‍🎓  Students</button>
+        <button class="nav-item" data-view="classcenter">🏫  Classes & Sections</button>
         <button class="nav-item" data-view="staffcenter">👩‍🏫  Staff & Teachers</button>
         <button class="nav-item" data-view="studentprofile">📘  Student Profile</button>
         <button class="nav-item" data-view="attendance">✓  Attendance</button>
@@ -98,11 +99,23 @@
             <input id="studentName" placeholder="Student name">
             <input id="fatherName" placeholder="Father / Guardian name">
             <input id="studentClass" placeholder="Class">
+            <input id="studentSection" placeholder="Section (optional)">
             <input id="studentPhone" placeholder="Phone">
             <button id="saveStudentBtn">Save Student</button>
           </div>
           <div id="studentList" class="list"></div>
         </article>
+      </section>
+
+      <section id="classcenter" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Academic Structure</div>
+            <h2>Classes & Sections</h2>
+            <p class="muted">Sections, class teachers, rooms aur student allocation manage karein.</p>
+          </div>
+        </div>
+        <div id="classSectionApp"></div>
       </section>
 
       <section id="staffcenter" class="view">
@@ -1114,6 +1127,7 @@
   <script src="leave-center.js"></script>
   <script src="exam-center.js"></script>
   <script src="staff-center.js"></script>
+  <script src="class-section-center.js"></script>
   <script src="fee-center.js"></script>
   <script src="owner-center.js"></script>
   <script src="admissions-portal.js"></script>

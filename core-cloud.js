@@ -46,6 +46,7 @@
       name:s.name,
       guardian_name:s.father||null,
       class_name:s.className||null,
+      section_name:s.sectionName||null,
       phone:s.phone||null,
       roll_no:s.rollNo||null,
       student_code:s.studentId||null,
@@ -184,7 +185,7 @@
     const cloudStudents=studentsRes.data||[];
     const localStudents=cloudStudents.map(s=>({
       id:Number(s.local_id)||Date.now()+Math.floor(Math.random()*1000),
-      name:s.name,father:s.guardian_name||'',className:s.class_name||'',phone:s.phone||'',
+      name:s.name,father:s.guardian_name||'',className:s.class_name||'',sectionName:s.section_name||'',phone:s.phone||'',
       rollNo:s.roll_no||'',studentId:s.student_code||'',admissionApplicationId:s.admission_application_id||'',
       admissionDate:s.admission_date||'',feeSnapshot:s.fee_snapshot||null,authUserId:s.auth_user_id||null,source:s.source||'cloud'
     }));

@@ -77,3 +77,9 @@ The Owner Console manages plan configuration and subscription state. Payment col
 EduNizam Fee Management now supports monthly student challans, class-fee auto-fill, discounts, arrears, due dates, payment references and printable paid receipts. Existing simple fee records remain compatible.
 
 Cloud mode stores the enhanced billing fields in `fee_records` and stores editable per-class monthly fees in `class_fee_structure`. Student and Parent accounts only read fee records allowed by the existing student-access RLS.
+
+
+## Class and section management
+EduNizam includes a Class & Section Center for class/section records, class teachers, rooms, capacity and student allocation. Existing student records remain compatible because `sectionName` / `section_name` is optional.
+
+Head of Institute manages sections and student allocation. Teachers have read-only access to the class/section directory. Cloud backup and restore preserve each student's section.
