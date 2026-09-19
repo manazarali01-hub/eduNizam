@@ -82,6 +82,7 @@
       }).catch(e=>console.warn('Meeting cloud sync:',e.message||e));
     }
     const arr=read();arr.push(record);write(arr);
+    window.EDUNIZAM_WORKFLOW_ALERTS?.meetingSaved?.(record);
     document.getElementById('meetTitle').value='';document.getElementById('meetUrl').value='';render();
     if(window.logActivity)window.logActivity('Meeting scheduled: '+title);
   }
