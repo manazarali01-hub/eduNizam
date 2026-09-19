@@ -72,19 +72,37 @@
     const s=students().find(x=>String(x.id)===String(id));
     const participantRole=kind==='head-parent'?'parent':'student';
     const personName=kind==='head-parent'?(s?.father||('Parent/Guardian of '+(s?.name||'Student'))):(s?.name||'Student');
-    const arr=read();arr.push({id:String(Date.now()),kind,personId:id,personName,participantRole,viewerRole:participantRole,title,date,time,url,status:'Scheduled',createdByRole:role(),createdAt:new Date().toISOString()});write(arr);
+    let record={id:String(Date.now()),kind,personId:id,personName,participantRole,viewerRole:participantRole,title,date,time,url,status:'Scheduled',createdByRole:role(),createdAt:new Date().toISOString()};
+    const cloudApi=window.EDUNIZAM_COMMUNICATION_CLOUD;
+    if(cloudApi?.ready?.()){
+      cloudApi.create(record).then(row=>{
+        if(row?.id){
+          const arr=read();const local=arr.find(x=>x.id===record.id);if(local){local.id=row.id;local.source='cloud';write(arr);render();}
+        }
+      }).catch(e=>console.warn('Meeting cloud sync:',e.message||e));
+    }
+    const arr=read();arr.push(record);write(arr);
     document.getElementById('meetTitle').value='';document.getElementById('meetUrl').value='';render();
     if(window.logActivity)window.logActivity('Meeting scheduled: '+title);
   }
-  function updateStatus(id,status){const arr=read();const m=arr.find(x=>x.id===id);if(m)m.status=status;write(arr);render()}
-  function remove(id){write(read().filter(x=>x.id!==id));render()}
+  function updateStatus(id,status){const arr=read();const m=arr.find(x=>x.id===id);if(m)m.status=status;write(arr);render();const api=window.EDUNIZAM_COMMUNICATION_CLOUD;if(api?.ready?.())api.updateStatus(id,status).catch(e=>console.warn('Meeting status sync:',e.message||e))}
+  function remove(id){write(read().filter(x=>x.id!==id));render();const api=window.EDUNIZAM_COMMUNICATION_CLOUD;if(api?.ready?.())api.remove(id).catch(e=>console.warn('Meeting delete sync:',e.message||e))}
   function show(){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('communication')?.classList.add('active');document.querySelectorAll('.nav-item').forEach(v=>v.classList.toggle('active',v.dataset.view==='communication'));const t=document.getElementById('page-title');if(t)t.textContent='Communication & Meet';render()}
+  async function hydrateCloud(){
+    const api=window.EDUNIZAM_COMMUNICATION_CLOUD;if(!api?.ready?.())return;
+    try{
+      const rows=await api.list();if(!rows?.length)return;
+      const mapped=rows.map(api.map),local=read(),byId=new Map(local.map(x=>[String(x.id),x]));
+      mapped.forEach(x=>byId.set(String(x.id),Object.assign(byId.get(String(x.id))||{},x)));
+      write([...byId.values()]);render();
+    }catch(e){console.warn('Meeting cloud load:',e.message||e)}
+  }
   function boot(){
     injectStyle();injectNav();injectView();
     const kind=document.getElementById('meetKind');if(kind)kind.onchange=options;
     const create=document.getElementById('createGoogleMeet');if(create)create.onclick=()=>window.open('https://meet.google.com/new','_blank','noopener');
     const saveBtn=document.getElementById('saveMeeting');if(saveBtn)saveBtn.onclick=save;
-    render();
+    render();hydrateCloud();
   }
   setTimeout(boot,0);
   window.addEventListener('storage',render);
