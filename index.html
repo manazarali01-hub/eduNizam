@@ -25,6 +25,7 @@
         <button class="nav-item" data-view="studentdocs">🪪  ID Cards & Certificates</button>
         <button class="nav-item" data-view="attendance">✓  Attendance</button>
         <button class="nav-item" data-view="fees">₨  Fees</button>
+        <button class="nav-item" data-view="financecenter">💰  Finance & Cashbook</button>
         <button class="nav-item" data-view="results">📊  Results</button>
         <button class="nav-item" data-view="schoolwork">📅  School Work</button>
         <button class="nav-item" data-view="leavecenter">🗓️  Leave Requests</button>
@@ -284,6 +285,17 @@
           </div>
           <div id="feeList" class="list"></div>
         </article>
+      </section>
+
+      <section id="financecenter" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">School Finance</div>
+            <h2>Finance & Cashbook</h2>
+            <p class="muted">Fees, salaries, other income/expenses aur monthly surplus/deficit.</p>
+          </div>
+        </div>
+        <div id="financeCenterApp"></div>
       </section>
 
       <section id="results" class="view">
@@ -1155,6 +1167,7 @@
   <script src="student-documents.js"></script>
   <script src="class-section-center.js"></script>
   <script src="fee-center.js"></script>
+  <script src="finance-center.js"></script>
   <script src="owner-center.js"></script>
   <script src="admissions-portal.js"></script>
   <script src="admissions-selection.js"></script>

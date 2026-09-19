@@ -95,3 +95,9 @@ Attendance-based payroll uses base salary / 30 as the daily rate. Absent days de
 EduNizam includes a Student Documents Center. Head of Institute can issue Student ID Cards, Bonafide Certificates, Enrollment Certificates and Leaving Certificates with a unique document number and issue date.
 
 Student and Parent accounts can read and print documents belonging to their linked student records. ID cards use an initials avatar when no student photo is available, so the feature works without a photo-upload dependency.
+
+
+## School finance and cashbook
+EduNizam includes a Head-only Finance & Cashbook Center. Paid student fees and paid staff payroll are counted automatically, while the cashbook stores only other income and other expenses to avoid double-counting.
+
+The monthly statement shows fees collected, other income, salaries paid, other expenses, total income/expense and monthly surplus or deficit, with a printable finance statement.
