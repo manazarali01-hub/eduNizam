@@ -22,6 +22,7 @@
         <button class="nav-item" data-view="staffcenter">👩‍🏫  Staff & Teachers</button>
         <button class="nav-item" data-view="staffpayroll">💼  Staff Attendance & Payroll</button>
         <button class="nav-item" data-view="studentprofile">📘  Student Profile</button>
+        <button class="nav-item" data-view="behaviorcenter">🌟  Discipline & Behavior</button>
         <button class="nav-item" data-view="studentdocs">🪪  ID Cards & Certificates</button>
         <button class="nav-item" data-view="attendance">✓  Attendance</button>
         <button class="nav-item" data-view="attendanceanalytics">📈  Attendance Analytics</button>
@@ -259,6 +260,17 @@
             <div id="profileParentSummary" class="parent-summary"></div>
           </article>
         </div>
+      </section>
+
+      <section id="behaviorcenter" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Student Development</div>
+            <h2>Discipline & Behavior</h2>
+            <p class="muted">Positive notes, concerns, warnings, incidents aur parent follow-up.</p>
+          </div>
+        </div>
+        <div id="behaviorCenterApp"></div>
       </section>
 
       <section id="studentdocs" class="view">
@@ -1232,6 +1244,7 @@
   <script src="workflow-alerts.js"></script>
   <script src="backend-health.js"></script>
   <script src="student-performance.js"></script>
+  <script src="student-behavior.js"></script>
   <script src="attendance-analytics.js"></script>
   <script src="school-work.js"></script>
   <script src="calendar-center.js"></script>

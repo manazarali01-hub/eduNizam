@@ -139,3 +139,9 @@ Head of Institute manages the catalog, accession numbers and copy counts. Head/T
 EduNizam includes a Transport & Route Center for school vehicles, routes and student pickup/drop assignments.
 
 Head of Institute manages routes, stops, monthly transport fee, vehicles, seating capacity, driver/conductor details and student assignment. The cloud assignment RPC locks the selected vehicle and checks capacity before assigning, with one current assignment per student. Student and Parent roles can read only transport information for their accessible student records.
+
+
+## Student discipline and behavior
+EduNizam includes a Student Discipline & Behavior Center that tracks Positive Notes, Concerns, Warnings and Incidents with severity, action taken, open/resolved state and optional family visibility.
+
+Head of Institute can manage all institute records. Teachers can manage records for their assigned students and can read assigned-student records. Student/Parent accounts only see records explicitly marked "Share with family". Family-visible records generate notifications and can be acknowledged by the linked Student or Parent. Staff-only notes remain hidden from family accounts.
