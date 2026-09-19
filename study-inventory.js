@@ -61,6 +61,26 @@
     note:"Official NBF page containing textbook chapters and class-level book resources."
   });
 
+  // Provincial official textbook / curriculum portals verified in September 2026.
+  add({
+    id:"stbb-official-ebooks",board:"Sindh Textbook Board (STBB)",authorityId:"sindh-stbb",curriculumSession:"2026-27 / current portal",classLevels:[9,10,11,12],
+    subject:"All Subjects",type:"Textbook",title:"Sindh Textbook Board Official E-Books — Classes IX to XII",
+    source:"official",curriculumStatus:"current",url:"https://ebooks.stbb.edu.pk/",
+    note:"Official STBB digital library with class-wise Sindhi, Urdu and English-medium textbooks."
+  });
+  add({
+    id:"kptbb-official-textbooks",board:"Khyber Pakhtunkhwa / KPTBB",authorityId:"kp-dcte-kptbb",curriculumSession:"Current approved provincial curriculum",classLevels:[9,10,11,12],
+    subject:"All Subjects",type:"Official Portal",title:"Khyber Pakhtunkhwa Textbook Board Official Textbook Portal",
+    source:"official",curriculumStatus:"current",url:"https://tbb.kp.gov.pk/",
+    note:"Official KPTBB source for provincial textbook information and approved school resources."
+  });
+  add({
+    id:"btbb-official-ebooks",board:"Balochistan Textbook Board (BTBB)",authorityId:"balochistan-btbb",curriculumSession:"2026 onward",classLevels:[9,10,11,12],
+    subject:"All Subjects",type:"Textbook",title:"Balochistan Textbook Board Official Catalogue & E-Books",
+    source:"official",curriculumStatus:"current",url:"https://btbb.com.pk/books.php?view=publisher",
+    note:"Official BTBB catalogue with grade/subject filters and e-book links where available."
+  });
+
   // EduNizam concise revision notes (original summaries; not copied textbooks).
   const notes=[
     ["note-9-math-real",9,"Mathematics","Real Numbers","Real numbers include rational and irrational numbers. Rational numbers can be written p/q where q ≠ 0. Irrational numbers cannot be expressed as a ratio of integers. Key skills: number-line representation, surds, laws of exponents, interval notation, and simplifying radicals."],
