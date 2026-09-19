@@ -18,7 +18,7 @@ const required=[
   "past-papers-data.js","past-papers-inventory.js","university-data.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
-  "school-community.js","navigation-enhancements.js",
+  "school-community.js","navigation-enhancements.js","ui-polish.js",
   "supabase-staff-time-training-community-migration.sql"
 ];
 for(const p of required){exists(p)?ok("file:"+p):bad("file:"+p,"missing")}
