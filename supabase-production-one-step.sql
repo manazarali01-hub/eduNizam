@@ -645,17 +645,53 @@ create index if not exists communication_meetings_participant_idx on public.comm
 alter table public.communication_meetings enable row level security;
 
 drop policy if exists "staff manage communication meetings" on public.communication_meetings;
-create policy "staff manage communication meetings" on public.communication_meetings
+drop policy if exists "heads manage communication meetings" on public.communication_meetings;
+drop policy if exists "teachers manage own student meetings" on public.communication_meetings;
+
+create policy "heads manage communication meetings" on public.communication_meetings
 for all to authenticated
 using (
-  public.is_institution_staff(institution_id)
-  and public.current_account_role() in ('teacher','head_of_institute')
+  public.current_account_role()='head_of_institute'
+  and exists(
+    select 1 from public.institutions i
+    where i.id=communication_meetings.institution_id
+      and i.owner_user_id=auth.uid()
+  )
 )
 with check (
-  public.is_institution_staff(institution_id)
-  and (
-    (created_by_role='teacher' and participant_role='student')
-    or (created_by_role='head_of_institute' and participant_role='parent')
+  public.current_account_role()='head_of_institute'
+  and created_by=auth.uid()
+  and created_by_role='head_of_institute'
+  and participant_role='parent'
+  and exists(
+    select 1 from public.institutions i
+    where i.id=communication_meetings.institution_id
+      and i.owner_user_id=auth.uid()
+  )
+);
+
+create policy "teachers manage own student meetings" on public.communication_meetings
+for all to authenticated
+using (
+  created_by=auth.uid()
+  and created_by_role='teacher'
+  and participant_role='student'
+  and exists(
+    select 1 from public.institution_members m
+    where m.institution_id=communication_meetings.institution_id
+      and m.user_id=auth.uid()
+      and m.role='teacher'
+  )
+)
+with check (
+  created_by=auth.uid()
+  and created_by_role='teacher'
+  and participant_role='student'
+  and exists(
+    select 1 from public.institution_members m
+    where m.institution_id=communication_meetings.institution_id
+      and m.user_id=auth.uid()
+      and m.role='teacher'
   )
 );
 
@@ -665,7 +701,6 @@ for select to authenticated
 using (
   participant_user_id=auth.uid()
   or student_user_id=auth.uid()
-  or public.is_institution_staff(institution_id)
 );
 
 commit;
