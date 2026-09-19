@@ -2,6 +2,12 @@ window.EDUNIZAM_VU_COURSE_CATALOG={
   verifiedAt:"2026-09-18",
   courses:[
     {
+      code:"MTH647",title:"Methods in Mathematical Physics",category:"Mathematics",level:"Undergraduate",creditHours:3,
+      prerequisite:"Not listed",lectureCount:null,
+      officialDetails:"https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Mathematics",
+      freshness:"Official VU Mathematics study scheme lists MTH647 as Methods in Mathematical Physics (3 credit hours). Use VULMS/OCW for the current semester handout and announcements."
+    },
+    {
       code:"MTH501",title:"Linear Algebra",category:"Mathematics",level:"Undergraduate",creditHours:3,
       prerequisite:"MTH101",lectureCount:45,
       officialDetails:"https://ocw.vu.edu.pk/CourseDetails.aspx?cat=Mathematics&course=MTH501",
