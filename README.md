@@ -127,3 +127,9 @@ The report provides monthly present/absent/leave/late counts, attendance percent
 EduNizam includes an Inventory & Assets Center for furniture, IT equipment, laboratory items, books, stationery and other school property.
 
 Head of Institute can create/edit/delete items, track quantity, reorder levels, estimated value, condition, location, purchase date and asset assignment to staff. Teachers have read-only inventory access. Stock items generate low-stock alerts when quantity reaches the configured reorder level. A printable inventory report is included.
+
+
+## Physical library circulation
+EduNizam includes a Library Circulation Center for the school's physical books. This is separate from the digital Study Library.
+
+Head of Institute manages the catalog, accession numbers and copy counts. Head/Teacher can issue and return books; Teachers are restricted to their assigned students. Student/Parent accounts can read loans for their accessible student records. Cloud issue uses a server-side transaction that locks the book row, checks available copies and prevents duplicate active loans. Due dates, overdue status, search and a printable loan register are included.
