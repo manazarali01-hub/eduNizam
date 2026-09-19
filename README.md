@@ -101,3 +101,9 @@ Student and Parent accounts can read and print documents belonging to their link
 EduNizam includes a Head-only Finance & Cashbook Center. Paid student fees and paid staff payroll are counted automatically, while the cashbook stores only other income and other expenses to avoid double-counting.
 
 The monthly statement shows fees collected, other income, salaries paid, other expenses, total income/expense and monthly surplus or deficit, with a printable finance statement.
+
+
+## School calendar and events
+EduNizam includes a School Calendar & Events Center for Holidays, PTM, Exams, Fee Due dates, Meetings, Activities and other events.
+
+Head can manage all institution events. Teachers can create and manage their own events. Events can target the whole institute, students, parents, staff, or a specific class/section. Student and Parent cloud access is protected by RLS so they only read relevant events.
