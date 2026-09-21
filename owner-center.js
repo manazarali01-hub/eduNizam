@@ -216,7 +216,12 @@
         '<div class="section-head" style="margin-top:18px"><div><h3>Institutes & Subscriptions</h3><p class="muted">Trial, active, past-due ya suspended status control karein.</p></div></div>'+
         instituteRows();
       bind();
-    }catch(e){root.innerHTML='<div class="empty-state">Owner Console error: '+esc(e.message||e)+'</div>'}
+    }catch(e){
+      const m=e?.message||String(e);
+      root.innerHTML=/platform_school_admin_requests_v2|schema cache|function .* does not exist/i.test(m)
+        ?'<div class="empty-state"><strong>Verification backend pending.</strong><br>EMIS/Registration verification migration Supabase par deploy hone ke baad Admin approvals yahan enable honge.</div>'
+        :'<div class="empty-state">Owner Console error: '+esc(m)+'</div>';
+    }
   }
 
   async function mountHeadPlanCard(){
