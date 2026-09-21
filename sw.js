@@ -1,4 +1,4 @@
-const CACHE='edunizam-v70-professional'
+const CACHE='edunizam-v72-auth-loop-fix'
 const CORE=[
   './',
   './index.html',
