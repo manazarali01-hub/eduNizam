@@ -54,64 +54,64 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
       </div>
       <div class="school-pill">🏫 School ka verified naam login ke baad app mein khud apply ho jayega.</div>
       <form id="loginForm" class="fields">
-        <div class="field"><label for="loginSchool">School / Institute name</label><input id="loginSchool" autocomplete="organization" placeholder="Apne school ka naam likhein" required></div>
-        <div class="field"><label for="loginEmail">Email address</label><input id="loginEmail" type="email" autocomplete="email" placeholder="name@example.com" required></div>
-        <div class="field"><label for="loginPassword">Password</label><div class="input-wrap with-toggle"><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Apna password" required><button class="password-toggle" type="button" data-toggle="loginPassword">Show</button></div></div>
-        <div class="row-actions"><label class="help"><input id="rememberSchool" type="checkbox" checked> School name yaad rakhein</label><button id="forgotBtn" class="link" type="button">Password bhool gaye?</button></div>
+        <div class="field"><label for="loginSchool">School / Institute Name</label><input id="loginSchool" autocomplete="organization" placeholder="Enter your school or institute name" required></div>
+        <div class="field"><label for="loginEmail">Email Address</label><input id="loginEmail" type="email" autocomplete="email" placeholder="name@example.com" required></div>
+        <div class="field"><label for="loginPassword">Password</label><div class="input-wrap with-toggle"><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required><button class="password-toggle" type="button" data-toggle="loginPassword">Show</button></div></div>
+        <div class="row-actions"><label class="help"><input id="rememberSchool" type="checkbox" checked> Remember school name</label><button id="forgotBtn" class="link" type="button">Forgot password?</button></div>
         <button id="loginBtn" class="primary" type="submit">Admin Login</button>
       </form>
       <div id="loginStatus" class="status" role="status"></div>
       <div class="setup-links">
-        <button id="activateLink" class="setup-link" type="button">Pehli dafa? Account activate karein</button>
-        <button id="schoolRegisterLink" class="setup-link" type="button">Naya school register karein</button>
+        <button id="activateLink" class="setup-link" type="button">First time here? Activate account</button>
+        <button id="schoolRegisterLink" class="setup-link" type="button">Register a new school</button>
       </div>
-      <div class="security-note"><span>🔒</span><span>Teacher ko Admin approval aur har role ko apne linked school ka access hi milta hai.</span></div>
+      <div class="security-note"><span>🔒</span><span>Teachers require Admin approval, and each role only gets access to its linked institution.</span></div>
     </section>
 
     <section id="activateView" class="view">
-      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2 id="activateTitle">Account activate karein</h2><p>Yeh sirf pehli martaba karna hai.</p></div></div>
+      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2 id="activateTitle">Activate Account</h2><p>You only need to do this once.</p></div></div>
       <div id="activateRoles" class="roles">
         <button class="role" type="button" data-activate-role="teacher"><span class="icon">👩‍🏫</span>Teacher</button>
         <button class="role" type="button" data-activate-role="parent"><span class="icon">👪</span>Parent</button>
         <button class="role" type="button" data-activate-role="student"><span class="icon">🎓</span>Student</button>
       </div>
       <form id="activateForm" class="fields">
-        <div class="field"><label for="fullName">Full name</label><input id="fullName" autocomplete="name" placeholder="Apna poora naam" required></div>
-        <div class="field"><label for="activateEmail">Email address</label><input id="activateEmail" type="email" autocomplete="email" placeholder="name@example.com" required></div>
-        <div class="field"><label for="activatePassword">Create password</label><div class="input-wrap with-toggle"><input id="activatePassword" type="password" minlength="8" autocomplete="new-password" placeholder="Kam az kam 8 characters" required><button class="password-toggle" type="button" data-toggle="activatePassword">Show</button></div></div>
+        <div class="field"><label for="fullName">Full Name</label><input id="fullName" autocomplete="name" placeholder="Enter your full name" required></div>
+        <div class="field"><label for="activateEmail">Email Address</label><input id="activateEmail" type="email" autocomplete="email" placeholder="name@example.com" required></div>
+        <div class="field"><label for="activatePassword">Create Password</label><div class="input-wrap with-toggle"><input id="activatePassword" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters" required><button class="password-toggle" type="button" data-toggle="activatePassword">Show</button></div></div>
         <div class="code-fields">
-          <div id="inviteField" class="field"><label for="inviteCode">School invite code</label><input id="inviteCode" autocomplete="off" placeholder="Invite code"></div>
-          <div id="recordCodeField" class="field"><label id="recordCodeLabel" for="recordCode">Staff code</label><input id="recordCode" autocomplete="off" placeholder="Staff code"></div>
+          <div id="inviteField" class="field"><label for="inviteCode">School Invite Code</label><input id="inviteCode" autocomplete="off" placeholder="Invite Code"></div>
+          <div id="recordCodeField" class="field"><label id="recordCodeLabel" for="recordCode">Staff Code</label><input id="recordCode" autocomplete="off" placeholder="Staff Code"></div>
         </div>
-        <p id="activationHelp" class="help">Teacher account School Admin ki approval ke baad active hoga.</p>
+        <p id="activationHelp" class="help">Teacher access becomes active after School Admin approval.</p>
         <button id="activateBtn" class="primary" type="submit">Activate Teacher Account</button>
       </form>
       <div id="activateStatus" class="status" role="status"></div>
     </section>
 
     <section id="adminRequestView" class="view">
-      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2>Institute setup</h2><p>Sirf zaroori maloomat dein — baqi verification background mein handle hogi.</p></div></div>
+      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2>Institution Setup</h2><p>Enter the required details to create your institution workspace.</p></div></div>
       <form id="adminRequestForm" class="fields">
-        <div class="school-pill">🏫 <span id="setupSchoolName">Aap ka institute</span></div>
+        <div class="school-pill">🏫 <span id="setupSchoolName">Your Institution</span></div>
         <div class="admin-grid">
-          <div class="field"><label for="schoolType">Institute type</label><select id="schoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy / Institute</option><option value="university">University</option></select></div>
-          <div class="field"><label for="schoolSector">Institute sector</label><select id="schoolSector"><option value="private">Private</option><option value="government">Government</option></select></div>
+          <div class="field"><label for="schoolType">Institution Type</label><select id="schoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy / Institute</option><option value="university">University</option></select></div>
+          <div class="field"><label for="schoolSector">Institution Sector</label><select id="schoolSector"><option value="private">Private</option><option value="government">Government</option></select></div>
           <div class="field wide"><label for="schoolCode">Registration / EMIS Code</label><input id="schoolCode" placeholder="Registration ya EMIS code" required></div>
-          <div class="field"><label for="adminName">Head / Admin name</label><input id="adminName" autocomplete="name" placeholder="Poora naam" required></div>
-          <div class="field"><label for="phone">Mobile number</label><input id="phone" type="tel" autocomplete="tel" placeholder="03xx xxxxxxx" required></div>
-          <div class="field wide"><label for="setupLogo">Institute logo <span class="help">(optional)</span></label><input id="setupLogo" type="file" accept="image/png,image/jpeg,image/webp"></div>
+          <div class="field"><label for="adminName">Head / Admin Name</label><input id="adminName" autocomplete="name" placeholder="Full name" required></div>
+          <div class="field"><label for="phone">Mobile Number</label><input id="phone" type="tel" autocomplete="tel" placeholder="03xx xxxxxxx" required></div>
+          <div class="field wide"><label for="setupLogo">Institution Logo <span class="help">(Optional)</span></label><input id="setupLogo" type="file" accept="image/png,image/jpeg,image/webp"></div>
         </div>
-        <p class="help">Aik dafa Save & Continue karein. Alag “verification status” step ki zaroorat nahi hogi.</p>
-        <button id="submitAdminRequest" class="primary" type="submit">Save & Continue</button>
+        <p class="help">Save once and continue directly to your workspace.</p>
+        <button id="submitAdminRequest" class="primary" type="submit">Save and Continue</button>
       </form>
       <div id="adminStatus" class="status" role="status"></div>
     </section>
 
     <section id="resetView" class="view">
-      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2>Naya password</h2><p>Apne account ke liye naya password set karein.</p></div></div>
+      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2>New Password</h2><p>Set a new password for your account.</p></div></div>
       <form id="resetForm" class="fields">
         <div class="field"><label for="newPassword">New password</label><input id="newPassword" type="password" minlength="8" autocomplete="new-password" required></div>
-        <div class="field"><label for="confirmPassword">Confirm password</label><input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" required></div>
+        <div class="field"><label for="confirmPassword">Confirm Password</label><input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" required></div>
         <button class="primary" type="submit">Save New Password</button>
       </form>
       <div id="resetStatus" class="status" role="status"></div>
@@ -152,6 +152,12 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
     if(on){button.dataset.oldText=button.textContent;button.textContent=label||'Please wait...'}
     else if(button.dataset.oldText){button.textContent=button.dataset.oldText;delete button.dataset.oldText}
   }
+  function withTimeout(promise,ms=12000){
+    return Promise.race([
+      promise,
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('The request took too long. Please try again.')),ms))
+    ]);
+  }
   function expectedCloudRole(role){return role==='admin'?'head_of_institute':role}
   function selectRole(role){
     selectedRole=role;
@@ -164,9 +170,9 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
     document.querySelectorAll('[data-activate-role]').forEach(b=>b.classList.toggle('active',b.dataset.activateRole===role));
     const isTeacher=role==='teacher';
     $('inviteField').style.display='block';
-    $('recordCodeLabel').textContent=isTeacher?'Staff code':role==='parent'?'Child Student Code':'Your Student Code';
-    $('recordCode').placeholder=isTeacher?'Staff code':role==='parent'?'Child Student Code':'Student Code';
-    $('activationHelp').textContent=isTeacher?'Teacher account School Admin ki approval ke baad active hoga.':'Student Code se account sahi school ke saath link ho jayega.';
+    $('recordCodeLabel').textContent=isTeacher?'Staff Code':role==='parent'?'Child Student Code':'Your Student Code';
+    $('recordCode').placeholder=isTeacher?'Staff Code':role==='parent'?'Child Student Code':'Student Code';
+    $('activationHelp').textContent=isTeacher?'Teacher access becomes active after School Admin approval.':'Student Code se account sahi school ke saath link ho jayega.';
     $('activateTitle').textContent=(isTeacher?'Teacher':role==='parent'?'Parent':'Student')+' account activate karein';
     $('activateBtn').textContent='Activate '+(isTeacher?'Teacher':role==='parent'?'Parent':'Student')+' Account';
   }
@@ -236,7 +242,7 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
   $('forgotBtn').onclick=async()=>{
     const email=$('loginEmail').value.trim();
     if(!email)return status('loginStatus','Pehle apna email address likhein.');
-    if(!client)return status('loginStatus','Login service se connection nahi ho raha. Thori dair baad dobara try karein.');
+    if(!client)return status('loginStatus','Unable to connect to the login service. Thori dair baad dobara try karein.');
     try{
       const result=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?reset=1'});
       if(result.error)throw result.error;
@@ -246,7 +252,7 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
 
   $('loginForm').onsubmit=async event=>{
     event.preventDefault();
-    if(!client)return status('loginStatus','Login service se connection nahi ho raha. Thori dair baad dobara try karein.');
+    if(!client)return status('loginStatus','Unable to connect to the login service. Thori dair baad dobara try karein.');
     const school=$('loginSchool').value.trim(),email=$('loginEmail').value.trim(),password=$('loginPassword').value;
     if(!school||!email||!password)return status('loginStatus','School name, email aur password likhein.');
     busy($('loginBtn'),true,'Login ho raha hai...');status('loginStatus','');
@@ -277,25 +283,25 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
       if($('rememberSchool').checked)localStorage.setItem('edunizam_last_school',inst.name||school);else localStorage.removeItem('edunizam_last_school');
       const localRole=selectedRole==='admin'?'head':selectedRole;
       localStorage.setItem('edunizam_session',JSON.stringify({role:localRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst.name||school}));
-      status('loginStatus','Welcome! '+(inst.name||school)+' khola ja raha hai...',true);
+      status('loginStatus','Welcome! '+(inst.name||school)+' is opening...',true);
       setTimeout(()=>location.href='./?secureLogin=1',450);
     }catch(e){status('loginStatus',friendlyError(e.message||String(e)))}finally{busy($('loginBtn'),false)}
   };
 
   function friendlyError(message){
     const text=String(message||'');
-    if(/invalid login credentials/i.test(text))return 'Email ya password sahi nahi hai.';
-    if(/email not confirmed/i.test(text))return 'Pehle email inbox se apna account verify karein.';
+    if(/invalid login credentials/i.test(text))return 'The email or password is incorrect.';
+    if(/email not confirmed/i.test(text))return 'Please verify your email address first.';
     return text;
   }
 
   $('activateForm').onsubmit=async event=>{
     event.preventDefault();
-    if(!client)return status('activateStatus','Login service se connection nahi ho raha.');
+    if(!client)return status('activateStatus','Unable to connect to the login service.');
     const fullName=$('fullName').value.trim(),email=$('activateEmail').value.trim(),password=$('activatePassword').value,invite=$('inviteCode').value.trim(),recordCode=$('recordCode').value.trim();
-    if(!fullName||!email||password.length<8)return status('activateStatus','Full name, email aur kam az kam 8 characters ka password likhein.');
-    if(activationRole!=='admin'&&(!recordCode||(activationRole==='teacher'&&!invite)))return status('activateStatus',activationRole==='teacher'?'Invite code aur Staff Code dono likhein.':'Student Code likhein.');
-    busy($('activateBtn'),true,'Account ban raha hai...');
+    if(!fullName||!email||password.length<8)return status('activateStatus','Full Name, email aur kam az kam 8 characters ka password likhein.');
+    if(activationRole!=='admin'&&(!recordCode||(activationRole==='teacher'&&!invite)))return status('activateStatus',activationRole==='teacher'?'Invite Code aur Staff Code dono likhein.':'Student Code likhein.');
+    busy($('activateBtn'),true,'Creating account...');
     try{
       localStorage.setItem(PENDING_KEY,JSON.stringify({role:activationRole,email,invite,recordCode}));
       const requestedRole=['parent','student'].includes(activationRole)?activationRole:'student';
@@ -315,19 +321,21 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
   function readLogo(file){
     return new Promise((resolve,reject)=>{
       if(!file)return resolve('');
-      if(file.size>900000)return reject(new Error('Logo image 900 KB se chhoti rakhein.'));
+      if(file.size>900000)return reject(new Error('Use a logo image smaller than 900 KB.'));
       const reader=new FileReader();
       reader.onload=()=>resolve(String(reader.result||''));
-      reader.onerror=()=>reject(new Error('Logo read nahi ho saka.'));
+      reader.onerror=()=>reject(new Error('The logo image could not be read.'));
       reader.readAsDataURL(file);
     });
   }
 
   $('adminRequestForm').onsubmit=async event=>{
     event.preventDefault();
-    if(!client)return status('adminStatus','Login service se connection nahi ho raha.');
-    const userResult=await client.auth.getUser(),user=userResult.data.user;
-    if(!user)return status('adminStatus','Pehle Admin account create ya sign in karein.');
+    if(!client)return status('adminStatus','Unable to connect to the login service.');
+    const userResult=await withTimeout(client.auth.getUser(),10000);
+    const user=userResult.data.user;
+    if(!user)return status('adminStatus','Please sign in or create an Admin account first.');
+
     const schoolName=$('loginSchool').value.trim()||$('setupSchoolName').textContent.trim();
     const values={
       name:schoolName,
@@ -337,37 +345,53 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
       admin:$('adminName').value.trim(),
       phone:$('phone').value.trim()
     };
-    if(!values.name||!values.code||!values.admin||!values.phone)return status('adminStatus','Institute type, sector, Registration/EMIS Code, Head/Admin name aur mobile number complete karein.');
-    busy($('submitAdminRequest'),true,'Save ho raha hai...');
+    if(!values.name||!values.code||!values.admin||!values.phone){
+      return status('adminStatus','Complete Institution Type, Sector, Registration / EMIS Code, Head / Admin Name and Mobile Number.');
+    }
+
+    busy($('submitAdminRequest'),true,'Saving...');
+    status('adminStatus','Creating your institution workspace...',true);
+
     try{
       const logo=await readLogo($('setupLogo').files?.[0]);
-      const result=await client.rpc('submit_school_admin_request_v2',{
+      const result=await withTimeout(client.rpc('complete_school_admin_setup_v1',{
         p_school_name:values.name,
         p_school_registration_code:values.code,
         p_school_sector:values.sector,
         p_school_type:values.type,
         p_admin_name:values.admin,
-        p_designation:'Head / Admin',
-        p_phone:values.phone,
-        p_proof_reference:''
-      });
+        p_phone:values.phone
+      }),12000);
       if(result.error)throw result.error;
-      let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
+
+      let settings={};
+      try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
       settings.schoolName=values.name;
       settings.schoolType=values.type;
       if(logo)settings.schoolLogo=logo;
       localStorage.setItem('edunizam_settings',JSON.stringify(settings));
       localStorage.setItem('edunizam_last_school',values.name);
-      status('adminStatus','Setup save ho gayi. Verification background mein process hogi — alag status form fill karne ki zaroorat nahi.',true);
-      setTimeout(()=>showView('loginView'),1100);
-    }catch(e){status('adminStatus',friendlyError(e.message||String(e)))}finally{busy($('submitAdminRequest'),false)}
+      localStorage.setItem('edunizam_session',JSON.stringify({
+        role:'head',
+        identity:user.email,
+        loginAt:Date.now(),
+        source:'supabase',
+        schoolName:values.name
+      }));
+
+      status('adminStatus','Workspace created successfully. Opening EduNizam...',true);
+      location.replace('./?secureLogin=1');
+    }catch(e){
+      status('adminStatus',friendlyError(e.message||String(e)));
+      busy($('submitAdminRequest'),false);
+    }
   };
 
   $('resetForm').onsubmit=async event=>{
     event.preventDefault();const one=$('newPassword').value,two=$('confirmPassword').value;
-    if(one.length<8)return status('resetStatus','Password kam az kam 8 characters ka rakhein.');
-    if(one!==two)return status('resetStatus','Dono passwords match nahi kar rahe.');
-    try{const result=await client.auth.updateUser({password:one});if(result.error)throw result.error;status('resetStatus','Password change ho gaya. Ab normal login karein.',true);setTimeout(()=>showView('loginView'),800)}catch(e){status('resetStatus',e.message||String(e))}
+    if(one.length<8)return status('resetStatus','Use a password with at least 8 characters.');
+    if(one!==two)return status('resetStatus','The passwords do not match.');
+    try{const result=await client.auth.updateUser({password:one});if(result.error)throw result.error;status('resetStatus','Password changed successfully. You can now sign in normally.',true);setTimeout(()=>showView('loginView'),800)}catch(e){status('resetStatus',e.message||String(e))}
   };
 
   client=buildClient();
@@ -381,7 +405,7 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
       client.auth.getSession().then(({data})=>{
         const user=data?.session?.user;
         if(!user)return;
-        $('setupSchoolName').textContent=$('loginSchool').value.trim()||'Aap ka institute';
+        $('setupSchoolName').textContent=$('loginSchool').value.trim()||'Your Institution';
         $('adminName').value=user.user_metadata?.full_name||'';
         showView('adminRequestView');
       }).catch(()=>{});
