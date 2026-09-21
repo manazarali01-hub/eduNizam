@@ -789,3 +789,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .view{position:relative;z-index:1}
 .view>.card,.view .card{backdrop-filter:blur(3px)}
 @media(max-width:700px){.main{background-attachment:scroll}.school-logo-top{width:36px;height:36px}}
+
+
+/* Current institute identity in sidebar */
+.sidebar-institute{display:flex;align-items:center;gap:10px;margin:10px 12px 14px;padding:11px;border-radius:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);color:#fff}
+.sidebar-school-logo{width:44px;height:44px;object-fit:contain;border-radius:11px;background:#fff;padding:4px;flex:0 0 auto}
+.sidebar-institute-copy{min-width:0;display:flex;flex-direction:column;line-height:1.25}.sidebar-institute-copy small{font-size:.67rem;opacity:.68;text-transform:uppercase;letter-spacing:.07em}.sidebar-institute-copy strong{margin-top:3px;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sidebar-institute-copy span{font-size:.72rem;opacity:.78;margin-top:2px}
+@media(max-width:950px){.sidebar-institute{margin-left:10px;margin-right:10px}}
