@@ -4,12 +4,16 @@
 begin;
 
 -- Students and parents may read only the institute already linked to their
--- protected profile. They still cannot create or update institute records.
+-- protected profile. Merge this with the existing owner/staff policy so each
+-- SELECT evaluates one permissive policy instead of several.
 drop policy if exists "linked users read own institution" on public.institutions;
-create policy "linked users read own institution"
+drop policy if exists "owners read institutions" on public.institutions;
+create policy "owners read institutions"
 on public.institutions for select to authenticated
 using (
-  exists(
+  owner_user_id=(select auth.uid())
+  or public.is_institution_staff(id)
+  or exists(
     select 1 from public.user_profiles p
     where p.user_id=(select auth.uid())
       and p.institution_id=institutions.id
@@ -70,15 +74,24 @@ create index if not exists teacher_course_progress_user_idx
 alter table public.teacher_course_progress enable row level security;
 
 drop policy if exists "teachers read own course progress" on public.teacher_course_progress;
-create policy "teachers read own course progress"
+drop policy if exists "school admin reads teacher course progress" on public.teacher_course_progress;
+drop policy if exists "authorized users read teacher course progress" on public.teacher_course_progress;
+create policy "authorized users read teacher course progress"
 on public.teacher_course_progress for select to authenticated
 using (
-  user_id=(select auth.uid())
-  and exists(
-    select 1 from public.institution_members m
-    where m.institution_id=teacher_course_progress.institution_id
-      and m.user_id=(select auth.uid())
-      and m.role='teacher'
+  (
+    user_id=(select auth.uid())
+    and exists(
+      select 1 from public.institution_members m
+      where m.institution_id=teacher_course_progress.institution_id
+        and m.user_id=(select auth.uid())
+        and m.role='teacher'
+    )
+  )
+  or exists(
+    select 1 from public.institutions i
+    where i.id=teacher_course_progress.institution_id
+      and i.owner_user_id=(select auth.uid())
   )
 );
 
@@ -114,17 +127,6 @@ with check (
     where m.institution_id=teacher_course_progress.institution_id
       and m.user_id=(select auth.uid())
       and m.role='teacher'
-  )
-);
-
-drop policy if exists "school admin reads teacher course progress" on public.teacher_course_progress;
-create policy "school admin reads teacher course progress"
-on public.teacher_course_progress for select to authenticated
-using (
-  exists(
-    select 1 from public.institutions i
-    where i.id=teacher_course_progress.institution_id
-      and i.owner_user_id=(select auth.uid())
   )
 );
 
