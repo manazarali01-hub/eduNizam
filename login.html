@@ -137,7 +137,8 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
     if(password.length<6)return setStatus('accountStatus','Password kam az kam 6 characters ka rakhein.');
     setStatus('accountStatus','Creating verification account...',true);
     try{
-      const {data,error}=await client.auth.signUp({email,password,options:{data:{account_role:'student',signup_intent:selected==='admin'?'school_admin_candidate':'teacher_candidate'}}});
+      const redirectTo='https://manazarali01-hub.github.io/eduNizam/login.html?verified=1';
+      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:redirectTo,data:{account_role:'student',signup_intent:selected==='admin'?'school_admin_candidate':'teacher_candidate'}}});
       if(error)throw error;
       if(data?.session){
         setStatus('accountStatus','Account created. Opening verification form...',true);
