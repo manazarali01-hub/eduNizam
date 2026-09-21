@@ -28,11 +28,8 @@
     document.head.appendChild(s);
   }
   function authScreen(){
-    // Login UI is centralized in login.html to avoid a second, harder admin flow.
+    // Main app/session guard owns navigation. Never redirect from the cloud bridge.
     removeDemoLogin();
-    if(!location.pathname.endsWith('/login.html')){
-      location.replace('login.html?from=app');
-    }
   }
 
   async function boot(){
@@ -40,7 +37,7 @@
     removeDemoLogin();
     if(cloud().state.user){
       try{await syncCloudRole()}catch(e){console.warn('Cloud role sync:',e.message)}
-    }else authScreen();
+    }
     setTimeout(()=>{
       const btn=document.querySelector('#roleSession button');
       if(btn)btn.onclick=async()=>{try{await cloud().signOut()}finally{localStorage.removeItem(LOCAL_KEY);localStorage.removeItem('edunizam_cloud_user_id');location.reload()}};
