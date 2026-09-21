@@ -1,4 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="EduNizam">
-  <rect width="512" height="512" rx="96" fill="#ffffff"/>
-  <image href="assets/edunizam-logo.webp" x="16" y="76" width="480" height="360" preserveAspectRatio="xMidYMid meet"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="EduNizam app logo">
+  <rect width="512" height="512" rx="110" fill="#dff3ec"/>
+  <rect x="26" y="26" width="460" height="460" rx="96" fill="#ffffff" stroke="#0f766e" stroke-width="8"/>
+  <path d="M96 174 256 88l160 86-160 86z" fill="#0f8f62"/>
+  <path d="M372 190v88" stroke="#0f8f62" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="372" cy="292" r="14" fill="#0f8f62"/>
+  <circle cx="256" cy="282" r="28" fill="#0f8f62"/>
+  <path d="M214 315c18 8 30 24 42 48 12-24 24-40 42-48v78c-14 15-28 29-42 42-14-13-28-27-42-42z" fill="#0f8f62"/>
+  <path d="M92 322c62-7 111 9 164 55v48c-56-44-107-57-164-48z" fill="#0f8f62"/>
+  <path d="M420 322c-62-7-111 9-164 55v48c56-44 107-57 164-48z" fill="#0f8f62"/>
+  <path d="M92 377c56-8 108 4 164 48M420 377c-56-8-108 4-164 48" fill="none" stroke="#0b6f55" stroke-width="16" stroke-linecap="round"/>
 </svg>
