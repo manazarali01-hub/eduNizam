@@ -14,7 +14,7 @@ function bad(name,msg){fail.push({name,msg})}
 // 1) Required files
 const required=[
   "index.html","style.css","app.js","manifest.webmanifest","sw.js",
-  "robots.txt","sitemap.xml","about.html","features.html","privacy.html","404.html","public.css",
+  "robots.txt","sitemap.xml","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","public.css",
   "past-papers-data.js","past-papers-inventory.js","university-data.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
@@ -24,7 +24,7 @@ const required=[
 for(const p of required){exists(p)?ok("file:"+p):bad("file:"+p,"missing")}
 
 // 2) HTML integrity, accessibility basics and local references
-const htmlPages=["index.html","login.html","about.html","features.html","privacy.html","404.html"];
+const htmlPages=["index.html","login.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"];
 const htmlByPage=Object.fromEntries(htmlPages.map(p=>[p,read(p)]));
 const html=htmlByPage["index.html"];
 
@@ -57,7 +57,10 @@ const canonicalPages={
   "index.html":base,
   "about.html":base+"about.html",
   "features.html":base+"features.html",
-  "privacy.html":base+"privacy.html"
+  "privacy.html":base+"privacy.html",
+  "school-management-system-pakistan.html":base+"school-management-system-pakistan.html",
+  "online-school-admissions.html":base+"online-school-admissions.html",
+  "learning-resources-pakistan.html":base+"learning-resources-pakistan.html"
 };
 for(const [page,expected] of Object.entries(canonicalPages)){
   const source=htmlByPage[page];
@@ -76,7 +79,7 @@ try{
   parsed["@type"]==="WebApplication"&&parsed.url===base?ok("seo:structured-data:index"):bad("seo:structured-data:index","unexpected WebApplication data");
 }catch(e){bad("seo:structured-data:index",e.message)}
 
-for(const page of ["about.html","features.html","privacy.html"]){
+for(const page of ["about.html","features.html","privacy.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"]){
   try{
     const jsonLd=htmlByPage[page].match(/<script\s+type=["']application\/ld\+json["']>([\s\S]*?)<\/script>/i)?.[1];
     const parsed=JSON.parse(jsonLd||"");
