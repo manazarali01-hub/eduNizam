@@ -172,3 +172,19 @@ else ok("security:openai-key");
 console.log("EduNizam smoke checks:",pass.length,"passed,",fail.length,"failed");
 for(const x of fail)console.error("FAIL",x.name,"-",x.msg);
 if(fail.length)process.exit(1);
+
+
+/* Auth regression guards */
+const authBridge=read("auth-bridge.js");
+const loginHtml=read("login.html");
+if(/location\.replace\(['"]login\.html/i.test(authBridge)||/location\.href\s*=\s*['"]login\.html/i.test(authBridge)){
+  bad("auth:no-loop-redirect","auth-bridge must never auto-redirect to login");
+}else ok("auth:no-loop-redirect");
+
+if(/localStorage\.removeItem\(['"]edunizam_session['"]\)/.test(loginHtml)){
+  bad("auth:login-preserves-session","login page must not delete valid app session");
+}else ok("auth:login-preserves-session");
+
+if(/linear-gradient\([^)]*rgba\(6,78,70|rgba\(15,118,110/.test(loginHtml) && /edunizam-login-children\.webp/.test(loginHtml)){
+  bad("ui:children-image-overlay","children login image must not have green overlay");
+}else ok("ui:children-image-overlay");
