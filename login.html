@@ -91,7 +91,8 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
         <div class="school-pill">🏫 <span id="setupSchoolName">Aap ka institute</span></div>
         <div class="admin-grid">
           <div class="field"><label for="schoolType">Institute type</label><select id="schoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy / Institute</option><option value="university">University</option></select></div>
-          <div class="field"><label for="schoolCode">Registration / EMIS Code</label><input id="schoolCode" placeholder="Registration ya EMIS code" required></div>
+          <div class="field"><label for="schoolSector">Institute sector</label><select id="schoolSector"><option value="private">Private</option><option value="government">Government</option></select></div>
+          <div class="field wide"><label for="schoolCode">Registration / EMIS Code</label><input id="schoolCode" placeholder="Registration ya EMIS code" required></div>
           <div class="field"><label for="adminName">Head / Admin name</label><input id="adminName" autocomplete="name" placeholder="Poora naam" required></div>
           <div class="field"><label for="phone">Mobile number</label><input id="phone" type="tel" autocomplete="tel" placeholder="03xx xxxxxxx" required></div>
           <div class="field wide"><label for="setupLogo">Institute logo <span class="help">(optional)</span></label><input id="setupLogo" type="file" accept="image/png,image/jpeg,image/webp"></div>
@@ -328,18 +329,18 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
       name:schoolName,
       code:$('schoolCode').value.trim(),
       type:$('schoolType').value,
+      sector:$('schoolSector').value,
       admin:$('adminName').value.trim(),
       phone:$('phone').value.trim()
     };
-    if(!values.name||!values.code||!values.admin||!values.phone)return status('adminStatus','Institute type, Registration/EMIS Code, Head/Admin name aur mobile number complete karein.');
+    if(!values.name||!values.code||!values.admin||!values.phone)return status('adminStatus','Institute type, sector, Registration/EMIS Code, Head/Admin name aur mobile number complete karein.');
     busy($('submitAdminRequest'),true,'Save ho raha hai...');
     try{
       const logo=await readLogo($('setupLogo').files?.[0]);
-      const digitsOnly=/^\d{7,}$/.test(values.code.replace(/\s/g,''));
       const result=await client.rpc('submit_school_admin_request_v2',{
         p_school_name:values.name,
         p_school_registration_code:values.code,
-        p_school_sector:digitsOnly?'government':'private',
+        p_school_sector:values.sector,
         p_school_type:values.type,
         p_admin_name:values.admin,
         p_designation:'Head / Admin',
