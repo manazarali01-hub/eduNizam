@@ -326,9 +326,12 @@ renderAll();
       if(!id)return alert('Identity enter karein');
       if(selected==='head'||selected==='teacher'){
         if(!password.value)return alert('Password enter karein');
-        alert(selected==='head'
-          ?'School Admin / Head secure login screen ready hai. Live authentication ke liye Supabase cloud connection activate hona zaroori hai; local mode Admin rights nahi deta.'
-          :'Teacher secure login screen ready hai. Live access Staff Code verification aur School Admin approval ke baad activate hoga.');
+        if(window.EDUNIZAM_CLOUD_SETUP?.showConnectionWizard){
+          box.remove();
+          window.EDUNIZAM_CLOUD_SETUP.showConnectionWizard();
+        }else{
+          alert('Secure cloud connection setup required.');
+        }
         return;
       }
       localStorage.setItem(ROLE_KEY,JSON.stringify({role:selected,identity:id,loginAt:Date.now()}));box.remove();applyRole();
