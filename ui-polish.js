@@ -105,6 +105,9 @@
     backdrop.id='eduMobileNavBackdrop';
     backdrop.className='mobile-nav-backdrop';
     backdrop.setAttribute('aria-hidden','true');
+    backdrop.style.display='none';
+    backdrop.style.pointerEvents='none';
+    backdrop.style.visibility='hidden';
     document.body.appendChild(backdrop);
 
     topbar.insertBefore(menu,topbar.firstChild);
@@ -112,6 +115,10 @@
     const setOpen=open=>{
       sidebar.classList.toggle('mobile-nav-open',open);
       backdrop.classList.toggle('show',open);
+      backdrop.style.display=open?'block':'none';
+      backdrop.style.pointerEvents=open?'auto':'none';
+      backdrop.style.visibility=open?'visible':'hidden';
+      backdrop.setAttribute('aria-hidden',String(!open));
       document.body.classList.toggle('mobile-nav-lock',open);
       menu.setAttribute('aria-expanded',String(open));
       if(open)setTimeout(()=>sidebar.querySelector('.nav-search-wrap input')?.focus(),80);
