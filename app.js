@@ -21,8 +21,17 @@ function persist(){
  localStorage.setItem('edunizam_activity',JSON.stringify(state.activity.slice(-20)));
 }
 function logActivity(text){state.activity.push({text,time:new Date().toLocaleString()});persist();renderActivity();}
-function setView(view){
+async function setView(view){
  const target=$(view);if(!target)return;
+ try{
+   if(window.EDUNIZAM_FEATURE_LOADER&&!window.EDUNIZAM_FEATURE_LOADER.isReady(view)){
+     await window.EDUNIZAM_FEATURE_LOADER.ensure(view);
+   }
+ }catch(e){
+   console.error('Feature load failed:',view,e);
+   alert('This section could not load. Please retry.');
+   return;
+ }
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
  document.querySelectorAll('.nav-item').forEach(v=>v.classList.toggle('active',v.dataset.view===view));
  target.classList.add('active');
@@ -265,7 +274,7 @@ window.EDUNIZAM_FEE_BRIDGE={
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').classList.remove('hidden')});
 $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').classList.add('hidden')};
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260921-inputfix58',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260921-perf59',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 renderAll();
 
 
