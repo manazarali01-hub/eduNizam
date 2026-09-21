@@ -318,7 +318,7 @@ $('removeSchoolLogoBtn')?.addEventListener('click',()=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can change school settings.');
  state.settings.schoolLogo='';persist();renderSettings();logActivity('Institute logo removed');
 });
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260921-easy-login63',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260921-professional70',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 renderAll();
 
 
