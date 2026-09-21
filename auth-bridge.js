@@ -31,7 +31,7 @@
     if(document.getElementById('edunizamCloudAuth'))return;
     style();removeDemoLogin();
     const box=document.createElement('div');box.id='edunizamCloudAuth';box.className='cloud-auth-screen';
-    box.innerHTML='<div class="cloud-auth-card"><div class="academic-kicker">EduNizam Secure Access</div><span class="cloud-admin-badge">Protected role-based login</span><h1 id="cloudAuthTitle">School Admin Login</h1><p id="cloudAuthIntro">Sirf EduNizam se verified school owner/head account ko Admin access milta hai. EMIS ya school code akela Admin access nahi deta.</p><div class="cloud-auth-tabs"><button id="cloudAdminTab" class="active">School Admin</button><button id="cloudUserTab" class="secondary">Student / Parent</button></div><div class="cloud-auth-grid"><input id="cloudAuthName" placeholder="Full name (new account only)"><input id="cloudAuthEmail" type="email" autocomplete="email" placeholder="Registered email address"><input id="cloudAuthPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Password"><select id="cloudAuthRole"><option value="student">Student</option><option value="parent">Parent / Guardian</option></select><div class="cloud-auth-actions"><button id="cloudSignIn">Sign in as School Admin</button><button id="cloudSignUp" class="secondary">Create verification account</button><button id="cloudMagic" class="secondary">Email login link</button><button id="cloudForgot" class="secondary">Forgot password</button></div><div id="cloudAuthError" class="cloud-auth-error"></div></div><div id="cloudAuthNote" class="cloud-auth-note"><strong>First-time Admin:</strong> account banane ke baad sign in karein aur School Admin verification request submit karein. Approval ke baad hi Admin dashboard unlock hoga.</div></div>';
+    box.innerHTML='<div class="cloud-auth-card"><div class="academic-kicker">EduNizam Secure Access</div><span class="cloud-admin-badge">Protected role-based login</span><h1 id="cloudAuthTitle">School Admin Login</h1><p id="cloudAuthIntro">Sirf EduNizam se verified school owner/head account ko Admin access milta hai. EMIS ya school code akela Admin access nahi deta.</p><div class="cloud-auth-tabs"><button id="cloudAdminTab" class="active">School Admin</button><button id="cloudUserTab" class="secondary">Student / Parent</button></div><div class="cloud-auth-grid"><input id="cloudAuthName" placeholder="Full name (new account only)"><input id="cloudAuthEmail" type="email" autocomplete="email" placeholder="Registered email address"><input id="cloudAuthPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Password"><select id="cloudAuthRole"><option value="student">Student</option><option value="parent">Parent / Guardian</option></select><div class="cloud-auth-actions"><button id="cloudSignIn">Sign in as School Admin</button><button id="cloudSignUp" class="secondary">Create verification account</button><button id="cloudResend" class="secondary">Resend verification email</button><button id="cloudMagic" class="secondary">Email login link</button><button id="cloudForgot" class="secondary">Forgot password</button></div><div id="cloudAuthError" class="cloud-auth-error"></div></div><div id="cloudAuthNote" class="cloud-auth-note"><strong>First-time Admin:</strong> account banane ke baad sign in karein aur School Admin verification request submit karein. Approval ke baad hi Admin dashboard unlock hoga.</div></div>';
     document.body.appendChild(box);
 
     let mode='admin';
@@ -99,12 +99,25 @@
         const role=mode==='admin'?'student':roleSelect.value;
         err('Creating account...');
         const r=await cloud().signUp(email(),pass(),role,name);if(r?.error)throw r.error;
-        err(mode==='admin'
-          ?'Verification account created. Email verification required ho to inbox check karein; phir School Admin tab se sign in karke verification request submit karein.'
-          :'Account created. Email verification required ho to inbox check karein.',true);
+        const data=r?.data||{};
+        if(data?.session){
+          err('Account active ho gaya hai. Is Supabase project mein email confirmation required nahi lag rahi; aap ab Sign in kar sakte hain.',true);
+        }else if(data?.user&&Array.isArray(data.user.identities)&&data.user.identities.length===0){
+          err('Is email ka account pehle se maujood ho sakta hai. Sign in try karein, ya Resend verification email use karein.',true);
+        }else{
+          err('Account create request successful hai. Verification email Supabase ne queue ki hai. Inbox ke sath Spam/Promotions bhi check karein; na mile to Resend verification email dabayen.',true);
+        }
       }catch(e){err(e.message||String(e))}
     };
 
+    box.querySelector('#cloudResend').onclick=async()=>{
+      try{
+        if(!email())return err('Email address enter karein.');
+        err('Resending verification email...');
+        const r=await cloud().resendSignupConfirmation(email());if(r?.error)throw r.error;
+        err('Verification email dobara request kar di gayi hai. Inbox, Spam aur Promotions check karein. Agar Supabase rate limit ho to thori dair baad retry karein.',true);
+      }catch(e){err(e.message||String(e))}
+    };
     box.querySelector('#cloudMagic').onclick=async()=>{
       try{if(!email())return err('Email address enter karein.');err('Sending login link...');const r=await cloud().sendMagicLink(email());if(r?.error)throw r.error;err('Login link email par bhej diya gaya.',true)}catch(e){err(e.message||String(e))}
     };
