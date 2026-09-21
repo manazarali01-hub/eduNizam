@@ -58,7 +58,7 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
       <p>Login successful hai, lekin Admin rights verification ke baad milenge. Neeche school details submit karein.</p>
       <div class="fields">
         <input id="schoolName" placeholder="School / Institute name">
-        <input id="schoolCode" placeholder="School Registration / EMIS Code">
+        <select id="schoolSector"><option value="private">Private School</option><option value="government">Government School</option></select>\n        <input id="schoolCode" placeholder="Private School Registration Number">
         <select id="schoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy</option><option value="university">University</option></select>
         <input id="adminName" placeholder="Head / Owner full name">
         <input id="designation" placeholder="Designation e.g. Head Teacher / Principal / Owner">
@@ -67,7 +67,7 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
         <div class="actions"><button id="submitAdminRequest">Submit for Verification</button><button id="requestStatusBtn" class="secondary">Check Status</button></div>
       </div>
       <div id="adminRequestStatus" class="status"></div>
-      <div class="note"><strong>Important:</strong> EMIS/registration code sirf school identifier hai. Admin access approval ke baad hi activate hota hai.</div>
+      <div class="note"><strong>Mandatory verification:</strong> Private School ka Registration Number ya Government School ka EMIS Code official record se verify hona zaroori hai. Verification aur platform approval ke baad hi Admin access activate hota hai.</div>
     </section>
 
     <section id="simplePanel" class="panel">
@@ -129,6 +129,9 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
     client=buildClient();openRole(selected||'admin');
   };
   $('backCloud').onclick=()=>{loadCfg();show('cloudPanel')};
+  $('schoolSector').onchange=()=>{
+    $('schoolCode').placeholder=$('schoolSector').value==='government'?'Government School EMIS Code':'Private School Registration Number';
+  };
 
   $('createBtn').onclick=async()=>{
     if(!client)client=buildClient();if(!client)return show('cloudPanel');
@@ -206,7 +209,7 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
       });
       if(error)throw error;
       const row=Array.isArray(data)?data[0]:data;
-      setStatus('adminRequestStatus','Request submitted. Status: '+String(row?.request_status||'pending').toUpperCase()+'.',true);
+      setStatus('adminRequestStatus','Request submitted. Status: '+String(row?.request_status||'pending').toUpperCase()+'. '+(row?.code_verified?'School code verified.':'School code official record se verify hona abhi baqi hai.')+'.',true);
     }catch(e){setStatus('adminRequestStatus',e.message||String(e))}
   };
   $('requestStatusBtn').onclick=currentAdminRequest;
