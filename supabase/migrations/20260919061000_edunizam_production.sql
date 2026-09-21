@@ -1048,12 +1048,12 @@ language sql
 stable
 security definer
 set search_path=public
-as $
+as $$
   select jsonb_build_object(
     'authenticated', auth.uid() is not null,
     'usage_table', to_regclass('public.ai_usage_logs') is not null
   );
-$;
+$$;
 
 grant execute on function public.edunizam_ai_health_check() to authenticated;
 
@@ -1104,11 +1104,11 @@ alter table public.timetable_entries enable row level security;
 create or replace function public.is_institution_user(target uuid)
 returns boolean
 language sql stable security definer set search_path=public
-as $
+as $$
   select exists(select 1 from public.institutions i where i.id=target and i.owner_user_id=auth.uid())
   or exists(select 1 from public.institution_members m where m.institution_id=target and m.user_id=auth.uid())
   or exists(select 1 from public.user_profiles p where p.institution_id=target and p.user_id=auth.uid());
-$;
+$$;
 
 grant execute on function public.is_institution_user(uuid) to authenticated;
 
@@ -1315,11 +1315,11 @@ alter table public.exam_schedule_entries enable row level security;
 create or replace function public.is_institution_user(target uuid)
 returns boolean
 language sql stable security definer set search_path=public
-as $
+as $$
   select exists(select 1 from public.institutions i where i.id=target and i.owner_user_id=auth.uid())
   or exists(select 1 from public.institution_members m where m.institution_id=target and m.user_id=auth.uid())
   or exists(select 1 from public.user_profiles p where p.institution_id=target and p.user_id=auth.uid());
-$;
+$$;
 grant execute on function public.is_institution_user(uuid) to authenticated;
 
 drop policy if exists "institution users read exam schedule" on public.exam_schedule_entries;
@@ -1422,10 +1422,10 @@ language sql
 stable
 security definer
 set search_path=public
-as $
+as $$
   select auth.uid() is not null
     and exists(select 1 from public.platform_admins p where p.user_id=auth.uid());
-$;
+$$;
 
 grant execute on function public.is_platform_admin() to authenticated;
 
@@ -1502,7 +1502,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   free_plan uuid;
 begin
@@ -1514,7 +1514,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists trg_assign_default_subscription on public.institutions;
 create trigger trg_assign_default_subscription
@@ -1551,7 +1551,7 @@ language plpgsql
 stable
 security definer
 set search_path=public
-as $
+as $$
 begin
   if not public.is_platform_admin() then
     raise exception 'Platform administrator access required';
@@ -1577,7 +1577,7 @@ begin
   left join public.subscription_plans p on p.id=s.plan_id
   order by i.created_at desc;
 end;
-$;
+$$;
 
 grant execute on function public.platform_owner_institutions() to authenticated;
 
@@ -1900,7 +1900,7 @@ language sql
 stable
 security definer
 set search_path=public
-as $
+as $$
   select
     exists(select 1 from public.institutions i where i.id=e.institution_id and i.owner_user_id=auth.uid())
     or exists(select 1 from public.institution_members m where m.institution_id=e.institution_id and m.user_id=auth.uid())
@@ -1940,7 +1940,7 @@ as $
         )
       )
     );
-$;
+$$;
 
 grant execute on function public.can_read_school_calendar_event(public.school_calendar_events) to authenticated;
 
@@ -2018,13 +2018,13 @@ language sql
 stable
 security definer
 set search_path=public
-as $
+as $$
   select exists(
     select 1 from public.school_conversations c
     where c.id=p_conversation_id
       and auth.uid() in (c.participant_a,c.participant_b)
   );
-$;
+$$;
 grant execute on function public.is_school_conversation_participant(uuid) to authenticated;
 
 drop policy if exists "participants read school conversations" on public.school_conversations;
@@ -2050,7 +2050,7 @@ language plpgsql
 stable
 security definer
 set search_path=public
-as $
+as $$
 declare
   r text;
 begin
@@ -2156,7 +2156,7 @@ begin
     where tsl.student_user_id=auth.uid();
   end if;
 end;
-$;
+$$;
 grant execute on function public.list_message_contacts() to authenticated;
 
 create or replace function public.create_school_conversation(
@@ -2169,7 +2169,7 @@ returns public.school_conversations
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   inst uuid;
   caller_role text;
@@ -2280,7 +2280,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.create_school_conversation(uuid,uuid,text,text) to authenticated;
 
 create or replace function public.send_school_message(p_conversation_id uuid,p_body text)
@@ -2288,7 +2288,7 @@ returns public.school_messages
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   c public.school_conversations%rowtype;
   recipient uuid;
@@ -2312,7 +2312,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.send_school_message(uuid,text) to authenticated;
 
 create or replace function public.mark_school_messages_read(p_conversation_id uuid)
@@ -2320,7 +2320,7 @@ returns integer
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   n integer;
 begin
@@ -2335,7 +2335,7 @@ begin
   get diagnostics n=row_count;
   return n;
 end;
-$;
+$$;
 grant execute on function public.mark_school_messages_read(uuid) to authenticated;
 
 commit;
@@ -2479,7 +2479,7 @@ returns public.library_loans
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   b public.library_books%rowtype;
   s public.core_students%rowtype;
@@ -2527,7 +2527,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.issue_library_book(uuid,uuid,date) to authenticated;
 
 create or replace function public.return_library_book(p_loan_id uuid)
@@ -2535,7 +2535,7 @@ returns public.library_loans
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   l public.library_loans%rowtype;
   s public.core_students%rowtype;
@@ -2573,7 +2573,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.return_library_book(uuid) to authenticated;
 
 commit;
@@ -2687,7 +2687,7 @@ language sql
 stable
 security definer
 set search_path=public
-as $
+as $$
   select
     a.id,a.student_id,s.local_id,s.name,s.class_name,s.section_name,
     a.route_id,r.route_name,a.vehicle_id,v.registration_no,v.driver_name,v.driver_phone,
@@ -2700,7 +2700,7 @@ as $
     exists(select 1 from public.institutions i where i.id=a.institution_id and i.owner_user_id=auth.uid())
     or public.can_access_core_student(a.student_id)
   order by s.name;
-$;
+$$;
 grant execute on function public.list_my_transport_assignments() to authenticated;
 
 create or replace function public.assign_student_transport(
@@ -2715,7 +2715,7 @@ returns public.student_transport_assignments
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   s public.core_students%rowtype;
   r public.transport_routes%rowtype;
@@ -2759,7 +2759,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.assign_student_transport(uuid,uuid,uuid,text,text,date) to authenticated;
 
 commit;
@@ -2877,7 +2877,7 @@ returns public.student_behavior_records
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   s public.core_students%rowtype;
   r text;
@@ -2929,7 +2929,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.create_student_behavior_record(uuid,text,text,date,text,text,text,boolean) to authenticated;
 
 create or replace function public.acknowledge_student_behavior_record(p_record_id uuid)
@@ -2937,7 +2937,7 @@ returns public.student_behavior_records
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   b public.student_behavior_records%rowtype;
   s public.core_students%rowtype;
@@ -2970,7 +2970,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.acknowledge_student_behavior_record(uuid) to authenticated;
 
 commit;
@@ -3060,7 +3060,7 @@ returns public.student_gate_passes
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   s public.core_students%rowtype;
   r text;
@@ -3103,7 +3103,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.create_student_gate_pass(uuid,date,time,text,text,text,text) to authenticated;
 
 create or replace function public.update_student_gate_pass_status(
@@ -3115,7 +3115,7 @@ returns public.student_gate_passes
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   g public.student_gate_passes%rowtype;
   s public.core_students%rowtype;
@@ -3156,7 +3156,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.update_student_gate_pass_status(uuid,text,text) to authenticated;
 
 commit;
@@ -3177,7 +3177,7 @@ language sql
 stable
 security definer
 set search_path=public
-as $
+as $$
   select
     exists(select 1 from public.institutions i where i.id=p_institution_id and i.owner_user_id=auth.uid())
     or exists(
@@ -3191,7 +3191,7 @@ as $
         and s.class_name=p_class_name
         and (coalesce(p_section_name,'')='' or coalesce(s.section_name,'')=coalesce(p_section_name,''))
     );
-$;
+$$;
 grant execute on function public.can_manage_teaching_class(uuid,text,text) to authenticated;
 
 create or replace function public.can_view_family_class(
@@ -3204,7 +3204,7 @@ language sql
 stable
 security definer
 set search_path=public
-as $
+as $$
   select
     exists(
       select 1 from public.core_students s
@@ -3225,7 +3225,7 @@ as $
         and s.class_name=p_class_name
         and (coalesce(p_section_name,'')='' or coalesce(s.section_name,'')=coalesce(p_section_name,''))
     );
-$;
+$$;
 grant execute on function public.can_view_family_class(uuid,text,text) to authenticated;
 
 create table if not exists public.lesson_plans (
@@ -3370,7 +3370,7 @@ returns public.school_helpdesk_tickets
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   s public.core_students%rowtype;
   r text;
@@ -3418,7 +3418,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.create_helpdesk_ticket(uuid,uuid,text,text,text,text) to authenticated;
 
 create or replace function public.update_helpdesk_ticket(
@@ -3430,7 +3430,7 @@ returns public.school_helpdesk_tickets
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   t public.school_helpdesk_tickets%rowtype;
   result_row public.school_helpdesk_tickets%rowtype;
@@ -3457,7 +3457,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.update_helpdesk_ticket(uuid,text,text) to authenticated;
 
 commit;
@@ -3565,7 +3565,7 @@ returns public.student_parent_complaints
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   s public.core_students%rowtype;
   r text;
@@ -3614,7 +3614,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.create_student_parent_complaint(uuid,text,text,text,text) to authenticated;
 
 create or replace function public.acknowledge_student_parent_complaint(p_complaint_id uuid)
@@ -3622,7 +3622,7 @@ returns public.student_parent_complaints
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   c public.student_parent_complaints%rowtype;
   s public.core_students%rowtype;
@@ -3655,7 +3655,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.acknowledge_student_parent_complaint(uuid) to authenticated;
 
 create or replace function public.resolve_student_parent_complaint(p_complaint_id uuid)
@@ -3663,7 +3663,7 @@ returns public.student_parent_complaints
 language plpgsql
 security definer
 set search_path=public
-as $
+as $$
 declare
   c public.student_parent_complaints%rowtype;
   result_row public.student_parent_complaints%rowtype;
@@ -3680,7 +3680,7 @@ begin
 
   return result_row;
 end;
-$;
+$$;
 grant execute on function public.resolve_student_parent_complaint(uuid) to authenticated;
 
 insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
@@ -3781,7 +3781,7 @@ language sql
 stable
 security definer
 set search_path=public
-as $
+as $$
   select
     exists(select 1 from public.institutions i where i.id=n.institution_id and i.owner_user_id=auth.uid())
     or (
@@ -3828,7 +3828,7 @@ as $
         )
       )
     );
-$;
+$$;
 grant execute on function public.can_view_school_notice(public.school_announcements) to authenticated;
 
 drop policy if exists "institution users read announcements" on public.school_announcements;
