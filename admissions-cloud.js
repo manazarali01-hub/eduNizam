@@ -137,11 +137,12 @@
   async function createInstitution(){
     throw new Error('Direct institute creation is disabled. Submit a School Admin verification request.');
   }
-  async function submitSchoolAdminRequest({schoolName,registrationCode,schoolType='school',adminName,designation,phone,proofReference=''}) {
+  async function submitSchoolAdminRequest({schoolName,registrationCode,schoolSector='private',schoolType='school',adminName,designation,phone,proofReference=''}) {
     if(!state.client||!state.user)throw new Error('Sign in first.');
-    const {data,error}=await state.client.rpc('submit_school_admin_request',{
+    const {data,error}=await state.client.rpc('submit_school_admin_request_v2',{
       p_school_name:String(schoolName||'').trim(),
       p_school_registration_code:String(registrationCode||'').trim(),
+      p_school_sector:String(schoolSector||'private').trim(),
       p_school_type:String(schoolType||'school').trim(),
       p_admin_name:String(adminName||'').trim(),
       p_designation:String(designation||'').trim(),
@@ -157,8 +158,17 @@
   }
   async function platformSchoolAdminRequests(){
     if(!state.client||!state.user)return[];
-    const {data,error}=await state.client.rpc('platform_school_admin_requests');
+    const {data,error}=await state.client.rpc('platform_school_admin_requests_v2');
     if(error)throw error;return data||[];
+  }
+  async function verifySchoolAdminCode(requestId,verified,source=''){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('verify_school_admin_code',{
+      p_request_id:requestId,
+      p_verified:!!verified,
+      p_source:String(source||'').trim()
+    });
+    if(error)throw error;return Array.isArray(data)?data[0]:data;
   }
   async function decideSchoolAdminRequest(requestId,approve,note=''){
     if(!state.client||!state.user)throw new Error('Sign in first.');
@@ -397,7 +407,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,submitSchoolAdminRequest,mySchoolAdminRequest,platformSchoolAdminRequests,decideSchoolAdminRequest,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,submitSchoolAdminRequest,mySchoolAdminRequest,platformSchoolAdminRequests,verifySchoolAdminCode,decideSchoolAdminRequest,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
