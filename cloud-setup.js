@@ -32,7 +32,8 @@
       '<p>Is account ka abhi koi institute linked nahi hai. Agar aap school ke authorized Head/Owner hain to verification request submit karein.</p>'+
       '<div class="cloud-auth-grid">'+
       '<input id="adminSchoolName" placeholder="School / Institute name">'+
-      '<input id="adminSchoolCode" placeholder="School Registration / EMIS Code">'+
+      '<select id="adminSchoolSector"><option value="private">Private School</option><option value="government">Government School</option></select>'+
+      '<input id="adminSchoolCode" placeholder="Private School Registration Number">'+
       '<select id="adminSchoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy</option><option value="university">University</option></select>'+
       '<input id="adminFullName" placeholder="Head / Owner full name">'+
       '<input id="adminDesignation" placeholder="Designation e.g. Head Teacher / Principal / Owner">'+
@@ -42,9 +43,13 @@
       '<button id="adminRequestRefresh" class="secondary">Check Request Status</button>'+
       '<div id="adminRequestMsg" class="coverage-note"></div>'+
       '</div>'+
-      '<div class="cloud-auth-note"><strong>Important:</strong> EMIS/registration code sirf school ki pehchan hai; is se Admin access nahi milta. EduNizam approval ke baad hi ye account School Admin banta hai.</div>'
+      '<div class="cloud-auth-note"><strong>Mandatory verification:</strong> Private School ka Registration Number ya Government School ka EMIS Code official record se verify hona zaroori hai. Verification ke baghair Admin access activate nahi hoga.</div>'
     );
     const msg=box.querySelector('#adminRequestMsg');
+    const sector=box.querySelector('#adminSchoolSector');
+    const codeInput=box.querySelector('#adminSchoolCode');
+    const syncCodeLabel=()=>{codeInput.placeholder=sector.value==='government'?'Government School EMIS Code':'Private School Registration Number'};
+    sector.onchange=syncCodeLabel;syncCodeLabel();
     async function status(){
       try{
         const r=await window.EDUNIZAM_CLOUD?.mySchoolAdminRequest?.();
@@ -61,16 +66,20 @@
     box.querySelector('#adminRequestSubmit').onclick=async()=>{
       try{
         msg.textContent='Submitting verification request...';
+        const schoolSector=sector.value;
+        const registrationCode=codeInput.value.trim();
+        if(!registrationCode)return msg.textContent=schoolSector==='government'?'Government School EMIS Code required hai.':'Private School Registration Number required hai.';
         const r=await window.EDUNIZAM_CLOUD.submitSchoolAdminRequest({
           schoolName:box.querySelector('#adminSchoolName').value,
-          registrationCode:box.querySelector('#adminSchoolCode').value,
+          registrationCode,
+          schoolSector,
           schoolType:box.querySelector('#adminSchoolType').value,
           adminName:box.querySelector('#adminFullName').value,
           designation:box.querySelector('#adminDesignation').value,
           phone:box.querySelector('#adminPhone').value,
           proofReference:box.querySelector('#adminProof').value
         });
-        msg.textContent='Request submitted successfully. Status: '+String(r?.request_status||'pending').toUpperCase()+'. EduNizam verification ke baad Admin access activate hoga.';
+        msg.textContent='Request submitted. Status: '+String(r?.request_status||'pending').toUpperCase()+'. '+(r?.code_verified?'School code verified.':'School code official record se verify hona abhi baqi hai.')+' Code verify aur Admin approval ke baad hi access activate hoga.';
       }catch(e){msg.textContent=e.message||String(e)}
     };
     box.querySelector('#adminRequestRefresh').onclick=status;
