@@ -33,7 +33,11 @@ async function setView(view){
    return;
  }
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
- document.querySelectorAll('.nav-item').forEach(v=>v.classList.toggle('active',v.dataset.view===view));
+ document.querySelectorAll('.nav-item').forEach(v=>{
+   const active=v.dataset.view===view;
+   v.classList.toggle('active',active);
+   if(active)v.setAttribute('aria-current','page');else v.removeAttribute('aria-current');
+ });
  target.classList.add('active');
  const nav=document.querySelector('[data-view="'+view+'"]');
  const navGroup=nav?.closest?.('details.nav-group');if(navGroup)navGroup.open=true;
