@@ -80,7 +80,12 @@
           proofReference:box.querySelector('#adminProof').value
         });
         msg.textContent='Request submitted. Status: '+String(r?.request_status||'pending').toUpperCase()+'. '+(r?.code_verified?'School code verified.':'School code official record se verify hona abhi baqi hai.')+' Code verify aur Admin approval ke baad hi access activate hoga.';
-      }catch(e){msg.textContent=e.message||String(e)}
+      }catch(e){
+        const m=e?.message||String(e);
+        msg.textContent=/submit_school_admin_request_v2|schema cache|function .* does not exist/i.test(m)
+          ?'School verification backend is not deployed yet. Admin request is blocked until EMIS/Registration verification backend is active.'
+          :m;
+      }
     };
     box.querySelector('#adminRequestRefresh').onclick=status;
     status();
