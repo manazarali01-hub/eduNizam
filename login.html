@@ -60,13 +60,18 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
   </main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="cloud-config.js?v=20260921-cloud54"></script>
 <script>
 (function(){
   const KEY='edunizam_cloud_runtime_config';
   const $=id=>document.getElementById(id);
   let selected='';
   let client=null;
-  function getCfg(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(_){return{}}}
+  function getCfg(){
+    let runtime={};
+    try{runtime=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(_){}
+    return Object.assign({},window.EDUNIZAM_CLOUD_CONFIG||{},runtime);
+  }
   function show(id){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));$(id).classList.add('active')}
   function setStatus(id,msg,ok=false){const e=$(id);e.textContent=msg||'';e.className='status '+(ok?'good':'bad')}
   function loadCfg(){const c=getCfg();$('supabaseUrl').value=c.supabaseUrl||'';$('supabaseKey').value=c.supabasePublishableKey||'';return c}
