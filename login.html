@@ -104,6 +104,18 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (()=>{
+  // One-time cleanup of legacy login state from previous auth experiments.
+  [
+    'edunizam_session',
+    'edunizam_cloud_user_id',
+    'edunizam_pending_signup',
+    'edunizam_admin_signup_pending',
+    'edunizam_google_signup',
+    'edunizam_google_role',
+    'edunizam_pending_phone',
+    'edunizam_last_school'
+  ].forEach(key=>localStorage.removeItem(key));
+
   const $=id=>document.getElementById(id);
   const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
   const client=(cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase)
