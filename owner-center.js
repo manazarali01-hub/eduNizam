@@ -114,13 +114,30 @@
   function adminRequestRows(){
     return adminRequests.length?adminRequests.map(x=>
       '<article class="card" style="margin-bottom:12px">'+
-      '<div class="section-head"><div><h3>'+esc(x.school_name)+'</h3><p class="muted">Code: '+esc(x.school_registration_code)+' · '+esc(x.school_type)+' · '+esc(x.request_status)+'</p></div><span class="badge">'+esc(x.request_status)+'</span></div>'+
+      '<div class="section-head"><div><h3>'+esc(x.school_name)+'</h3><p class="muted">'+esc(x.school_sector||'school')+' · '+esc(x.code_type||'code')+': '+esc(x.school_registration_code)+' · '+esc(x.request_status)+'</p></div><span class="badge">'+esc(x.code_verified?'Code Verified':'Code Unverified')+'</span></div>'+
       '<p><strong>'+esc(x.admin_name)+'</strong> · '+esc(x.designation)+'</p>'+
       '<p class="muted">'+esc(x.email)+' · '+esc(x.phone)+'</p>'+
       (x.proof_reference?'<p><strong>Proof:</strong> '+esc(x.proof_reference)+'</p>':'')+
-      (x.request_status==='pending'?'<div class="paper-actions"><button data-admin-request-approve="'+esc(x.request_id)+'">Approve Admin</button><button class="secondary" data-admin-request-reject="'+esc(x.request_id)+'">Reject</button></div>':'')+
+      (x.request_status==='pending'
+        ?'<div class="form-grid"><input data-code-source="'+esc(x.request_id)+'" placeholder="Official verification source/reference" value="'+esc(x.code_verification_source||'')+'"></div>'+
+         '<div class="paper-actions">'+
+         (x.code_verified
+           ?'<button data-admin-request-approve="'+esc(x.request_id)+'">Approve Admin</button>'
+           :'<button data-admin-code-verify="'+esc(x.request_id)+'">Mark Code Verified</button>')+
+         '<button class="secondary" data-admin-request-reject="'+esc(x.request_id)+'">Reject</button></div>'
+        :'')+
       '</article>'
     ).join(''):'<div class="empty-state">No school admin requests.</div>';
+  }
+
+  async function verifyAdminCode(id){
+    const input=document.querySelector('[data-code-source="'+CSS.escape(id)+'"]');
+    const source=input?.value.trim()||'';
+    if(!source)return alert('Official verification source/reference required hai.');
+    try{
+      await cloud().verifySchoolAdminCode(id,true,source);
+      await load();render();
+    }catch(e){alert(e.message||e)}
   }
 
   async function decideAdminRequest(id,approve){
@@ -180,6 +197,7 @@
     bindPlanEditor();
     document.querySelectorAll('[data-edit-plan]').forEach(b=>b.onclick=()=>editPlan(b.dataset.editPlan));
     document.querySelectorAll('[data-save-subscription]').forEach(b=>b.onclick=()=>saveSubscription(b.dataset.saveSubscription));
+    document.querySelectorAll('[data-admin-code-verify]').forEach(b=>b.onclick=()=>verifyAdminCode(b.dataset.adminCodeVerify));
     document.querySelectorAll('[data-admin-request-approve]').forEach(b=>b.onclick=()=>decideAdminRequest(b.dataset.adminRequestApprove,true));
     document.querySelectorAll('[data-admin-request-reject]').forEach(b=>b.onclick=()=>decideAdminRequest(b.dataset.adminRequestReject,false));
   }
@@ -190,7 +208,7 @@
     try{
       await load();
       root.innerHTML=metricCards()+
-        '<div class="section-head" style="margin-top:18px"><div><h3>School Admin Verification</h3><p class="muted">Approve only after school authority verification. EMIS/registration code is an identifier, not a secret.</p></div></div>'+
+        '<div class="section-head" style="margin-top:18px"><div><h3>School Admin Verification</h3><p class="muted">Admin approval se pehle Private Registration Number ya Government EMIS Code ko official record se verify karna mandatory hai.</p></div></div>'+
         adminRequestRows()+
         '<div id="ownerPlanEditor" style="margin-top:16px">'+planEditor()+'</div>'+
         '<div class="section-head" style="margin-top:18px"><div><h3>Plans</h3><p class="muted">Plan pricing aur limits.</p></div></div>'+
