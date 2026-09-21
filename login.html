@@ -48,7 +48,7 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
         <input id="email" type="email" placeholder="Registered email address" autocomplete="email">
         <input id="password" type="password" placeholder="Password" autocomplete="current-password">
         <input id="staffCode" class="hidden" placeholder="Staff Code">
-        <div class="actions"><button id="signInBtn">Sign in</button><button id="createBtn" class="secondary">Create verification account</button><button id="forgotBtn" class="secondary">Forgot password</button><button id="backCloud" class="secondary">Cloud settings</button></div>
+        <div class="actions"><button id="signInBtn">Sign in</button><button id="createBtn" class="secondary">Create verification account</button><button id="resendBtn" class="secondary">Resend verification email</button><button id="forgotBtn" class="secondary">Forgot password</button><button id="backCloud" class="secondary">Cloud settings</button></div>
       </div>
       <div id="accountStatus" class="status"></div>
     </section>
@@ -146,6 +146,22 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
       }else{
         setStatus('accountStatus','Account created. Agar email confirmation enabled hai to inbox se verify karein, phir yahan Sign in karein.',true);
       }
+    }catch(e){setStatus('accountStatus',e.message||String(e))}
+  };
+
+  $('resendBtn').onclick=async()=>{
+    if(!client)client=buildClient();if(!client)return show('cloudPanel');
+    const email=$('email').value.trim();
+    if(!email)return setStatus('accountStatus','Email address enter karein.');
+    setStatus('accountStatus','Sending verification email...',true);
+    try{
+      const {error}=await client.auth.resend({
+        type:'signup',
+        email,
+        options:{emailRedirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?verified=1'}
+      });
+      if(error)throw error;
+      setStatus('accountStatus','Nayi verification email bhej di gayi. Purani localhost wali email use na karein.',true);
     }catch(e){setStatus('accountStatus',e.message||String(e))}
   };
 
