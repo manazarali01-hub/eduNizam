@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20260921-brand66';
+  const VERSION='20260921-brand67';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
