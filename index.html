@@ -10,7 +10,7 @@
   <link rel="canonical" href="https://manazarali01-hub.github.io/eduNizam/">
   <link rel="icon" href="assets/edunizam-logo.webp" type="image/webp">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=20260921-brand68">
+  <link rel="stylesheet" href="style.css?v=20260921-brand69">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="EduNizam">
   <meta property="og:title" content="EduNizam | AI School Management System Pakistan">
@@ -125,17 +125,18 @@
         <div class="campus-hero">
           <div>
             <span class="campus-label">Smart Education Management</span>
-            <h2>Welcome to your digital campus</h2>
-            <p>Manage students, admissions, attendance, fees, academics and learning resources from one professional education workspace.</p>
+            <h2 id="dashboardWelcomeTitle">Welcome to your digital campus</h2>
+            <p id="dashboardWelcomeText">Manage students, admissions, attendance, fees, academics and learning resources from one professional education workspace.</p>
             <div class="campus-hero-actions">
               <button data-jump="students">Manage Students</button>
               <button data-jump="admissions" class="secondary">Online Admissions</button>
             </div>
           </div>
-          <div class="campus-visual" aria-hidden="true">
-            <div class="campus-icon">🏫</div>
-            <strong>School • College • University</strong>
-            <span>One education platform</span>
+          <div class="campus-visual institute-hero-identity">
+            <img id="dashboardInstituteLogo" class="dashboard-institute-logo hidden" alt="Institute logo">
+            <div id="dashboardInstituteFallback" class="campus-icon">🏫</div>
+            <strong id="dashboardInstituteName">My School</strong>
+            <span id="dashboardInstituteMeta">School · Powered by EduNizam</span>
           </div>
         </div>
         <div class="cards">
@@ -1327,7 +1328,8 @@
               <button type="button" data-math-insert="\\tan">tan</button>
               <button type="button" data-math-insert="\\le">≤</button>
               <button type="button" data-math-insert="\\ge">≥</button>
-              <button type="button" data-math-insert="\\ne">≠</button>
+              <button type="button" data-math-insert="\
+e">≠</button>
               <button type="button" data-math-insert="\\infty">∞</button>
               <button type="button" data-math-insert="\\vec{}">vector</button>
               <button type="button" data-math-insert="\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}">matrix</button>
@@ -1356,7 +1358,7 @@
 
       <section id="settings" class="view">
         <article class="card">
-          <h2>School Settings</h2>
+          <div class="academic-kicker">Institute Branding & Profile</div><h2>Institute Settings</h2><p class="muted">Name, session, contact details aur apna logo yahan se manage karein.</p>
           <div class="form-grid">
             <input id="schoolNameInput" placeholder="Institution name">
             <select id="schoolTypeInput">
@@ -1368,7 +1370,9 @@
             <input id="schoolTaglineInput" placeholder="Tagline / motto e.g. Learn • Grow • Lead">
             <input id="schoolSessionInput" placeholder="Academic session e.g. 2026-27">
             <input id="schoolPhoneInput" placeholder="Institution phone">
-            <input id="schoolAddressInput" placeholder="Institution address">\n            <label class="settings-logo-field">Institute logo <input id="schoolLogoInput" type="file" accept="image/png,image/jpeg,image/webp"></label>\n            <div id="schoolLogoPreviewWrap" class="school-logo-preview-wrap hidden"><img id="schoolLogoPreview" alt="Institute logo preview"><button id="removeSchoolLogoBtn" type="button" class="secondary">Remove Logo</button></div>
+            <input id="schoolAddressInput" placeholder="Institution address">
+<label class="settings-logo-field">Institute logo <input id="schoolLogoInput" type="file" accept="image/png,image/jpeg,image/webp"></label>
+<div id="schoolLogoPreviewWrap" class="school-logo-preview-wrap hidden"><img id="schoolLogoPreview" alt="Institute logo preview"><button id="removeSchoolLogoBtn" type="button" class="secondary">Remove Logo</button></div>
             <button id="saveSettingsBtn">Save Settings</button>
           </div>
         </article>
@@ -1407,8 +1411,8 @@
   <script src="curriculum-registry.js"></script>
   <script src="study-data.js"></script>
   <script src="study-inventory.js"></script>
-  <script src="feature-loader.js?v=20260921-access62"></script>
-  <script src="app.js?v=20260921-brand68"></script>
+  <script src="feature-loader.js?v=20260921-brand69"></script>
+  <script src="app.js?v=20260921-brand69"></script>
   <script src="cloud-config.js"></script>
   <script src="cloud-setup.js?v=20260921-auth61"></script>
   <script src="admissions-cloud.js?v=20260921-auth61"></script>
