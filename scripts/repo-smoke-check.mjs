@@ -14,7 +14,7 @@ function bad(name,msg){fail.push({name,msg})}
 // 1) Required files
 const required=[
   "index.html","style.css","app.js","manifest.webmanifest","sw.js",
-  "robots.txt","sitemap.xml","about.html","features.html","public.css",
+  "robots.txt","sitemap.xml","about.html","features.html","privacy.html","404.html","public.css",
   "past-papers-data.js","past-papers-inventory.js","university-data.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
@@ -23,36 +23,77 @@ const required=[
 ];
 for(const p of required){exists(p)?ok("file:"+p):bad("file:"+p,"missing")}
 
-// 2) HTML duplicate IDs + local src/href existence
-const html=read("index.html");
-const ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
-const dup=[...new Set(ids.filter((x,i)=>ids.indexOf(x)!==i))];
-dup.length?bad("html:duplicate-ids",dup.join(", ")):ok("html:duplicate-ids");
+// 2) HTML integrity, accessibility basics and local references
+const htmlPages=["index.html","login.html","about.html","features.html","privacy.html","404.html"];
+const htmlByPage=Object.fromEntries(htmlPages.map(p=>[p,read(p)]));
+const html=htmlByPage["index.html"];
 
-const refs=[...html.matchAll(/(?:src|href)=["']([^"'?#]+)(?:[?#][^"']*)?["']/g)]
-  .map(m=>m[1])
-  .filter(x=>!/^https?:\/\//i.test(x)&&!x.startsWith("#")&&!x.startsWith("data:")&&!x.startsWith("mailto:"));
-const missingRefs=[...new Set(refs.map(x=>x.replace(/^\.\//,"")).filter(x=>x&&!exists(x)))];
-missingRefs.length?bad("html:local-assets",missingRefs.join(", ")):ok("html:local-assets");
+for(const [page,source] of Object.entries(htmlByPage)){
+  const ids=[...source.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
+  const dup=[...new Set(ids.filter((x,i)=>ids.indexOf(x)!==i))];
+  dup.length?bad("html:duplicate-ids:"+page,dup.join(", ")):ok("html:duplicate-ids:"+page);
+
+  const refs=[...source.matchAll(/(?:src|href)=["']([^"'?#]+)(?:[?#][^"']*)?["']/g)]
+    .map(m=>m[1])
+    .filter(x=>!/^https?:\/\//i.test(x)&&!x.startsWith("#")&&!x.startsWith("data:")&&!x.startsWith("mailto:"));
+  const missing=[...new Set(refs.map(x=>x.replace(/^\.\//,"")).filter(x=>x&&!exists(x)))];
+  missing.length?bad("html:local-assets:"+page,missing.join(", ")):ok("html:local-assets:"+page);
+
+  /<title>[^<]{3,}<\/title>/i.test(source)?ok("html:title:"+page):bad("html:title:"+page,"missing");
+  /<meta\s+name=["']description["']\s+content=["'][^"']{20,}["']/i.test(source)?ok("html:description:"+page):bad("html:description:"+page,"missing/short");
+  /<h1\b[^>]*>[\s\S]*?<\/h1>/i.test(source)?ok("html:h1:"+page):bad("html:h1:"+page,"missing");
+
+  const images=[...source.matchAll(/<img\b([^>]*)>/gi)].map(m=>m[1]);
+  const noAlt=images.filter(attrs=>!/\balt=["'][^"']*["']/i.test(attrs));
+  noAlt.length?bad("html:image-alt:"+page,noAlt.length+" image(s) missing alt"):ok("html:image-alt:"+page);
+
+  if(source.includes("\\n"))bad("html:literal-newline:"+page,"literal \\n found in markup");
+  else ok("html:literal-newline:"+page);
+}
 
 // 2b) Crawl and indexing essentials
-const expectedCanonical="https://manazarali01-hub.github.io/eduNizam/";
-const canonical=html.match(/<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i)?.[1]||"";
-canonical===expectedCanonical?ok("seo:canonical"):bad("seo:canonical",canonical||"missing");
-if(/<meta\s+name=["']robots["']\s+content=["'][^"']*index[^"']*follow/i.test(html))ok("seo:robots-meta");
-else bad("seo:robots-meta","index,follow missing");
+const base="https://manazarali01-hub.github.io/eduNizam/";
+const canonicalPages={
+  "index.html":base,
+  "about.html":base+"about.html",
+  "features.html":base+"features.html",
+  "privacy.html":base+"privacy.html"
+};
+for(const [page,expected] of Object.entries(canonicalPages)){
+  const source=htmlByPage[page];
+  const canonical=source.match(/<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i)?.[1]||"";
+  canonical===expected?ok("seo:canonical:"+page):bad("seo:canonical:"+page,canonical||"missing");
+  /<meta\s+name=["']robots["']\s+content=["'][^"']*index[^"']*follow/i.test(source)
+    ?ok("seo:robots-meta:"+page):bad("seo:robots-meta:"+page,"index,follow missing");
+}
+for(const page of ["login.html","404.html"]){
+  /<meta\s+name=["']robots["']\s+content=["'][^"']*noindex/i.test(htmlByPage[page])
+    ?ok("seo:noindex:"+page):bad("seo:noindex:"+page,"noindex missing");
+}
 try{
   const jsonLd=html.match(/<script\s+type=["']application\/ld\+json["']>([\s\S]*?)<\/script>/i)?.[1];
   const parsed=JSON.parse(jsonLd||"");
-  parsed["@type"]==="WebApplication"&&parsed.url===expectedCanonical?ok("seo:structured-data"):bad("seo:structured-data","unexpected WebApplication data");
-}catch(e){bad("seo:structured-data",e.message)}
+  parsed["@type"]==="WebApplication"&&parsed.url===base?ok("seo:structured-data:index"):bad("seo:structured-data:index","unexpected WebApplication data");
+}catch(e){bad("seo:structured-data:index",e.message)}
+
+for(const page of ["about.html","features.html","privacy.html"]){
+  try{
+    const jsonLd=htmlByPage[page].match(/<script\s+type=["']application\/ld\+json["']>([\s\S]*?)<\/script>/i)?.[1];
+    const parsed=JSON.parse(jsonLd||"");
+    parsed.url===canonicalPages[page]?ok("seo:structured-data:"+page):bad("seo:structured-data:"+page,"missing/unexpected URL");
+  }catch(e){bad("seo:structured-data:"+page,e.message)}
+}
+
 const sitemap=read("sitemap.xml");
 const sitemapUrls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
-const expectedUrls=[expectedCanonical,expectedCanonical+"about.html",expectedCanonical+"features.html"];
+const expectedUrls=Object.values(canonicalPages);
 const missingSitemap=expectedUrls.filter(x=>!sitemapUrls.includes(x));
 missingSitemap.length?bad("seo:sitemap",missingSitemap.join(", ")):ok("seo:sitemap");
+if(sitemapUrls.some(x=>/login\.html|404\.html/i.test(x)))bad("seo:sitemap-private","login/404 must not be listed");
+else ok("seo:sitemap-private");
 const robots=read("robots.txt");
-robots.includes("Sitemap: "+expectedCanonical+"sitemap.xml")?ok("seo:robots-sitemap"):bad("seo:robots-sitemap","sitemap directive missing");
+robots.includes("Sitemap: "+base+"sitemap.xml")?ok("seo:robots-sitemap"):bad("seo:robots-sitemap","sitemap directive missing");
+robots.includes("Disallow: /eduNizam/login.html")?ok("seo:robots-login"):bad("seo:robots-login","login disallow missing");
 
 // 3) Manifest validity and icons
 try{
