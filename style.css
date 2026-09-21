@@ -762,3 +762,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
     max-height:90px;
   }
 }
+
+
+/* EDUNIZAM_INPUT_SAFETY_V1 */
+.mobile-nav-backdrop:not(.show){display:none!important;pointer-events:none!important;visibility:hidden!important}
+.login-screen input,.login-screen select,.login-screen textarea,
+.cloud-auth-screen input,.cloud-auth-screen select,.cloud-auth-screen textarea{
+  position:relative;
+  z-index:2;
+  pointer-events:auto!important;
+  touch-action:manipulation;
+  user-select:text;
+  -webkit-user-select:text;
+}
+.login-card,.cloud-auth-card{position:relative;z-index:2}
