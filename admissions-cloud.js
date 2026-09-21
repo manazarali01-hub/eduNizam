@@ -18,6 +18,14 @@
     const safeRole=['student','parent'].includes(accountRole)?accountRole:'student';
     return state.client.auth.signUp({email,password,options:{emailRedirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?verified=1',data:{account_role:safeRole,full_name:fullName}}});
   }
+  async function resendSignupConfirmation(email){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    return state.client.auth.resend({
+      type:'signup',
+      email,
+      options:{emailRedirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?verified=1'}
+    });
+  }
   async function signIn(email,password){
     if(!state.client)throw new Error('Cloud backend is not configured.');
     return state.client.auth.signInWithPassword({email,password});
@@ -389,7 +397,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,submitSchoolAdminRequest,mySchoolAdminRequest,platformSchoolAdminRequests,decideSchoolAdminRequest,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,submitSchoolAdminRequest,mySchoolAdminRequest,platformSchoolAdminRequests,decideSchoolAdminRequest,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
