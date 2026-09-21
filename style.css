@@ -776,3 +776,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   -webkit-user-select:text;
 }
 .login-card,.cloud-auth-card{position:relative;z-index:2}
+
+
+/* EduNizam institution branding + softer education workspace */
+.school-identity{display:flex;align-items:center;gap:10px}
+.school-logo-top{width:42px;height:42px;object-fit:contain;border-radius:11px;background:#fff;padding:4px;border:1px solid rgba(15,118,110,.16);box-shadow:0 5px 16px rgba(15,23,42,.08)}
+.settings-logo-field{display:grid;gap:7px;font-weight:700;color:#334155}
+.settings-logo-field input{padding:10px;background:#fff;border:1px dashed #9ccbc5;border-radius:12px}
+.school-logo-preview-wrap{display:flex;align-items:center;gap:12px;grid-column:1/-1;padding:12px;border-radius:16px;background:#f2fbf8;border:1px solid #cbe9e3}
+.school-logo-preview-wrap img{width:72px;height:72px;object-fit:contain;border-radius:14px;background:#fff;padding:6px;border:1px solid #dceae7}
+.main{position:relative;background-image:linear-gradient(rgba(248,252,251,.94),rgba(248,252,251,.94)),url("assets/edunizam-login-children.webp");background-size:cover;background-position:center;background-attachment:fixed}
+.view{position:relative;z-index:1}
+.view>.card,.view .card{backdrop-filter:blur(3px)}
+@media(max-width:700px){.main{background-attachment:scroll}.school-logo-top{width:36px;height:36px}}
