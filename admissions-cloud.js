@@ -42,7 +42,7 @@
   }
   async function sendPasswordReset(email){
     if(!state.client)throw new Error('Cloud backend is not configured.');
-    return state.client.auth.resetPasswordForEmail(email,{redirectTo:window.location.href.split('#')[0]});
+    return state.client.auth.resetPasswordForEmail(email,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});
   }
   function mapApplication(row){
     return {
