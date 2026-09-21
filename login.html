@@ -44,8 +44,8 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
 
     <section id="loginView" class="view active">
       <div class="eyebrow">Welcome back</div>
-      <h2>Apna account kholen</h2>
-      <p class="subtitle">Role select karein aur seedha login karein.</p>
+      <h2>Open Your Account</h2>
+      <p class="subtitle">Select your role and sign in directly.</p>
       <div class="roles" role="group" aria-label="Select account role">
         <button class="role active" type="button" data-role="admin"><span class="icon">🏫</span>Admin</button>
         <button class="role" type="button" data-role="teacher"><span class="icon">👩‍🏫</span>Teacher</button>
@@ -173,7 +173,7 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
     $('recordCodeLabel').textContent=isTeacher?'Staff Code':role==='parent'?'Child Student Code':'Your Student Code';
     $('recordCode').placeholder=isTeacher?'Staff Code':role==='parent'?'Child Student Code':'Student Code';
     $('activationHelp').textContent=isTeacher?'Teacher access becomes active after School Admin approval.':'Student Code se account sahi school ke saath link ho jayega.';
-    $('activateTitle').textContent=(isTeacher?'Teacher':role==='parent'?'Parent':'Student')+' account activate karein';
+    $('activateTitle').textContent=(isTeacher?'Teacher':role==='parent'?'Parent':'Student')+' Account';
     $('activateBtn').textContent='Activate '+(isTeacher?'Teacher':role==='parent'?'Parent':'Student')+' Account';
   }
   function normalize(value){return String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
@@ -205,7 +205,7 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
       const result=await client.rpc('request_teacher_access',{p_invite_code:pending.invite,p_staff_code:pending.recordCode});
       if(result.error)throw result.error;
       localStorage.removeItem(PENDING_KEY);
-      return 'Teacher request Admin ko bhej di gayi hai. Approval ke baad isi simple login se sign in karein.';
+      return 'The teacher access request was sent to the Admin. Sign in here after approval.';
     }
     if(pending.invite){const claim=await client.rpc('claim_institution_invite',{p_code:pending.invite});if(claim.error)throw claim.error}
     const fn=role==='parent'?'request_parent_link_by_student_code':'claim_student_record';
@@ -241,24 +241,24 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
   };
   $('forgotBtn').onclick=async()=>{
     const email=$('loginEmail').value.trim();
-    if(!email)return status('loginStatus','Pehle apna email address likhein.');
-    if(!client)return status('loginStatus','Unable to connect to the login service. Thori dair baad dobara try karein.');
+    if(!email)return status('loginStatus','Enter your email address first.');
+    if(!client)return status('loginStatus','Unable to connect to the login service. Please try again shortly.');
     try{
       const result=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?reset=1'});
       if(result.error)throw result.error;
-      status('loginStatus','Password reset link aap ke email par bhej diya gaya hai.',true);
+      status('loginStatus','A password reset link has been sent to your email.',true);
     }catch(e){status('loginStatus',e.message||String(e))}
   };
 
   $('loginForm').onsubmit=async event=>{
     event.preventDefault();
-    if(!client)return status('loginStatus','Unable to connect to the login service. Thori dair baad dobara try karein.');
+    if(!client)return status('loginStatus','Unable to connect to the login service. Please try again shortly.');
     const school=$('loginSchool').value.trim(),email=$('loginEmail').value.trim(),password=$('loginPassword').value;
-    if(!school||!email||!password)return status('loginStatus','School name, email aur password likhein.');
-    busy($('loginBtn'),true,'Login ho raha hai...');status('loginStatus','');
+    if(!school||!email||!password)return status('loginStatus','Enter your school name, email and password.');
+    busy($('loginBtn'),true,'Signing in...');status('loginStatus','');
     try{
       const signed=await client.auth.signInWithPassword({email,password});if(signed.error)throw signed.error;
-      const user=signed.data.user;if(!user)throw new Error('Login nahi ho saka.');
+      const user=signed.data.user;if(!user)throw new Error('Sign-in failed.');
       let roleResult=await client.rpc('current_account_role');if(roleResult.error)throw roleResult.error;
       let cloudRole=roleResult.data;
       if(cloudRole!==expectedCloudRole(selectedRole)){
@@ -273,12 +273,12 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
       }
       if(cloudRole!==expectedCloudRole(selectedRole)){
         await client.auth.signOut();
-        throw new Error(selectedRole==='teacher'?'Teacher access abhi Admin approval ka muntazir hai.':'Yeh account selected login type se match nahi karta.');
+        throw new Error(selectedRole==='teacher'?'Teacher access is still waiting for Admin approval.':'This account does not match the selected login type.');
       }
       const inst=await resolveSchoolContext(user);
-      if(!inst){await client.auth.signOut();throw new Error('Account abhi kisi school se link nahi hai. Pehli dafa Account Activate option use karein.')}
+      if(!inst){await client.auth.signOut();throw new Error('This account is not linked to an institution yet. Use Activate Account first.')}
       if(normalize(school).length>4&&!normalize(inst.name).includes(normalize(school))&&!normalize(school).includes(normalize(inst.name))){
-        status('loginStatus','Verified school “'+inst.name+'” load ho gaya. Aap ko isi school mein login kiya ja raha hai.',true);
+        status('loginStatus','Verified institution “'+inst.name+'” was found. You will be signed in to this institution.',true);
       }
       if($('rememberSchool').checked)localStorage.setItem('edunizam_last_school',inst.name||school);else localStorage.removeItem('edunizam_last_school');
       const localRole=selectedRole==='admin'?'head':selectedRole;
@@ -299,8 +299,8 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
     event.preventDefault();
     if(!client)return status('activateStatus','Unable to connect to the login service.');
     const fullName=$('fullName').value.trim(),email=$('activateEmail').value.trim(),password=$('activatePassword').value,invite=$('inviteCode').value.trim(),recordCode=$('recordCode').value.trim();
-    if(!fullName||!email||password.length<8)return status('activateStatus','Full Name, email aur kam az kam 8 characters ka password likhein.');
-    if(activationRole!=='admin'&&(!recordCode||(activationRole==='teacher'&&!invite)))return status('activateStatus',activationRole==='teacher'?'Invite Code aur Staff Code dono likhein.':'Student Code likhein.');
+    if(!fullName||!email||password.length<8)return status('activateStatus','Enter your full name, email and a password with at least 8 characters.');
+    if(activationRole!=='admin'&&(!recordCode||(activationRole==='teacher'&&!invite)))return status('activateStatus',activationRole==='teacher'?'Enter both the Invite Code and Staff Code.':'Enter the Student Code.');
     busy($('activateBtn'),true,'Creating account...');
     try{
       localStorage.setItem(PENDING_KEY,JSON.stringify({role:activationRole,email,invite,recordCode}));
@@ -312,9 +312,9 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
         if(activationRole==='admin'){$('adminName').value=fullName;showView('adminRequestView');return}
         const message=await completePendingActivation(signed.data.user,activationRole);
         if(message){await client.auth.signOut();status('activateStatus',message,true);return}
-        await client.auth.signOut();status('activateStatus','Account school se link ho gaya. Ab simple login use karein.',true);return;
+        await client.auth.signOut();status('activateStatus','Your account is linked to the institution. You can now sign in normally.',true);return;
       }
-      status('activateStatus','Account ban gaya. Email inbox se verification karein, phir isi page par normal login karein.',true);
+      status('activateStatus','Account created. Verify your email, then return here to sign in.',true);
     }catch(e){status('activateStatus',friendlyError(e.message||String(e)))}finally{busy($('activateBtn'),false)}
   };
 
