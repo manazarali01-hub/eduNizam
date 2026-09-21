@@ -265,7 +265,7 @@ window.EDUNIZAM_FEE_BRIDGE={
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').classList.remove('hidden')});
 $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').classList.add('hidden')};
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260921-login52',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260921-inputfix58',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 renderAll();
 
 
