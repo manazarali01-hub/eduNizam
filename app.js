@@ -243,17 +243,27 @@ function renderSettings(){
  $('schoolSessionInput').value=state.settings.session||'';
  $('schoolPhoneInput').value=state.settings.phone||'';
  $('schoolAddressInput').value=state.settings.address||'';
- const topLogo=$('schoolLogoTop'),preview=$('schoolLogoPreview'),wrap=$('schoolLogoPreviewWrap'),sideLogo=$('sidebarSchoolLogo'),sideName=$('sidebarSchoolName'),sideType=$('sidebarSchoolType');
- if(sideName)sideName.textContent=state.settings.schoolName||'My School';
- if(sideType)sideType.textContent=state.settings.schoolType||'School';
+ const topLogo=$('schoolLogoTop'),preview=$('schoolLogoPreview'),wrap=$('schoolLogoPreviewWrap'),sideLogo=$('sidebarSchoolLogo'),sideName=$('sidebarSchoolName'),sideType=$('sidebarSchoolType'),
+ dashLogo=$('dashboardInstituteLogo'),dashFallback=$('dashboardInstituteFallback'),dashName=$('dashboardInstituteName'),dashMeta=$('dashboardInstituteMeta'),dashTitle=$('dashboardWelcomeTitle'),dashText=$('dashboardWelcomeText');
+ const instituteName=state.settings.schoolName||'My School',instituteType=state.settings.schoolType||'School';
+ if(sideName)sideName.textContent=instituteName;
+ if(sideType)sideType.textContent=instituteType;
+ if(dashName)dashName.textContent=instituteName;
+ if(dashMeta)dashMeta.textContent=[instituteType,state.settings.session,'Powered by EduNizam'].filter(Boolean).join(' · ');
+ if(dashTitle)dashTitle.textContent='Welcome to '+instituteName;
+ if(dashText)dashText.textContent='Manage '+instituteType.toLowerCase()+' students, admissions, attendance, fees, academics and learning resources from one professional workspace.';
  if(state.settings.schoolLogo){
    if(topLogo){topLogo.src=state.settings.schoolLogo;topLogo.classList.remove('hidden')}
    if(sideLogo){sideLogo.src=state.settings.schoolLogo;sideLogo.classList.remove('hidden')}
+   if(dashLogo){dashLogo.src=state.settings.schoolLogo;dashLogo.classList.remove('hidden')}
+   if(dashFallback)dashFallback.classList.add('hidden');
    if(preview)preview.src=state.settings.schoolLogo;
    if(wrap)wrap.classList.remove('hidden');
  }else{
    if(topLogo){topLogo.removeAttribute('src');topLogo.classList.add('hidden')}
    if(sideLogo){sideLogo.removeAttribute('src');sideLogo.classList.add('hidden')}
+   if(dashLogo){dashLogo.removeAttribute('src');dashLogo.classList.add('hidden')}
+   if(dashFallback)dashFallback.classList.remove('hidden');
    if(wrap)wrap.classList.add('hidden');
  }
 }
