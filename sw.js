@@ -1,4 +1,4 @@
-const CACHE='edunizam-v76-girl-hero'
+const CACHE='edunizam-v75-approved-logo'
 const CORE=[
   './',
   './index.html',
@@ -11,7 +11,6 @@ const CORE=[
   './manifest.webmanifest',
   './assets/edunizam-logo-approved.webp',
   './assets/edunizam-login-children.webp',
-  './assets/edunizam-girl-hero.webp',
   './public.css',
   './about.html',
   './features.html',
