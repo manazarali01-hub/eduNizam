@@ -804,3 +804,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .institute-hero-identity strong{max-width:220px;font-size:1rem;line-height:1.25}.institute-hero-identity span{max-width:230px;font-size:.78rem;opacity:.82}
 #settings>.card:first-child{position:relative;overflow:hidden}#settings>.card:first-child:after{content:"";position:absolute;right:-45px;top:-45px;width:150px;height:150px;border-radius:50%;background:rgba(20,184,166,.07);pointer-events:none}
 @media(max-width:700px){.institute-hero-identity{min-height:150px}.dashboard-institute-logo{width:72px;height:72px}}
+
+
+/* Global keyboard and accessibility polish */
+.skip-link{position:fixed;left:14px;top:14px;z-index:10050;transform:translateY(-160%);padding:10px 14px;border-radius:10px;background:#fff;color:#12324a;font-weight:850;box-shadow:0 10px 30px rgba(18,50,74,.2)}.skip-link:focus{transform:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #d7a438;outline-offset:3px}
+.nav-item[aria-current="page"]{box-shadow:inset 3px 0 0 rgba(240,207,130,.9)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
