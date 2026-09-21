@@ -48,9 +48,26 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
         <input id="email" type="email" placeholder="Registered email address" autocomplete="email">
         <input id="password" type="password" placeholder="Password" autocomplete="current-password">
         <input id="staffCode" class="hidden" placeholder="Staff Code">
-        <div class="actions"><button id="signInBtn">Sign in</button><button id="backCloud" class="secondary">Cloud settings</button></div>
+        <div class="actions"><button id="signInBtn">Sign in</button><button id="createBtn" class="secondary">Create verification account</button><button id="forgotBtn" class="secondary">Forgot password</button><button id="backCloud" class="secondary">Cloud settings</button></div>
       </div>
       <div id="accountStatus" class="status"></div>
+    </section>
+
+    <section id="adminRequestPanel" class="panel">
+      <h2>School Admin Verification</h2>
+      <p>Login successful hai, lekin Admin rights verification ke baad milenge. Neeche school details submit karein.</p>
+      <div class="fields">
+        <input id="schoolName" placeholder="School / Institute name">
+        <input id="schoolCode" placeholder="School Registration / EMIS Code">
+        <select id="schoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy</option><option value="university">University</option></select>
+        <input id="adminName" placeholder="Head / Owner full name">
+        <input id="designation" placeholder="Designation e.g. Head Teacher / Principal / Owner">
+        <input id="phone" placeholder="Mobile number">
+        <input id="proofRef" placeholder="Authority proof reference (optional for test)">
+        <div class="actions"><button id="submitAdminRequest">Submit for Verification</button><button id="requestStatusBtn" class="secondary">Check Status</button></div>
+      </div>
+      <div id="adminRequestStatus" class="status"></div>
+      <div class="note"><strong>Important:</strong> EMIS/registration code sirf school identifier hai. Admin access approval ke baad hi activate hota hai.</div>
     </section>
 
     <section id="simplePanel" class="panel">
@@ -112,6 +129,71 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
     client=buildClient();openRole(selected||'admin');
   };
   $('backCloud').onclick=()=>{loadCfg();show('cloudPanel')};
+
+  $('createBtn').onclick=async()=>{
+    if(!client)client=buildClient();if(!client)return show('cloudPanel');
+    const email=$('email').value.trim(),password=$('password').value;
+    if(!email||!password)return setStatus('accountStatus','Email aur password enter karein.');
+    if(password.length<6)return setStatus('accountStatus','Password kam az kam 6 characters ka rakhein.');
+    setStatus('accountStatus','Creating verification account...',true);
+    try{
+      const {data,error}=await client.auth.signUp({email,password,options:{data:{account_role:'student',signup_intent:selected==='admin'?'school_admin_candidate':'teacher_candidate'}}});
+      if(error)throw error;
+      if(data?.session){
+        setStatus('accountStatus','Account created. Opening verification form...',true);
+        if(selected==='admin')show('adminRequestPanel');
+      }else{
+        setStatus('accountStatus','Account created. Agar email confirmation enabled hai to inbox se verify karein, phir yahan Sign in karein.',true);
+      }
+    }catch(e){setStatus('accountStatus',e.message||String(e))}
+  };
+
+  $('forgotBtn').onclick=async()=>{
+    if(!client)client=buildClient();if(!client)return show('cloudPanel');
+    const email=$('email').value.trim();
+    if(!email)return setStatus('accountStatus','Email address enter karein.');
+    setStatus('accountStatus','Sending password reset link...',true);
+    try{
+      const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]});
+      if(error)throw error;
+      setStatus('accountStatus','Password reset link email par bhej diya gaya.',true);
+    }catch(e){setStatus('accountStatus',e.message||String(e))}
+  };
+
+  async function currentAdminRequest(){
+    try{
+      const {data,error}=await client.rpc('my_school_admin_request');
+      if(error)throw error;
+      const row=Array.isArray(data)?data[0]:data;
+      if(!row)return setStatus('adminRequestStatus','Abhi koi Admin verification request nahi mili.');
+      const status=String(row.request_status||row.status||'pending').toUpperCase();
+      setStatus('adminRequestStatus','Request status: '+status+(row.school_name?' · '+row.school_name:''),status==='APPROVED');
+      if(status==='APPROVED')setTimeout(()=>location.href='./?secureLogin=1',700);
+    }catch(e){setStatus('adminRequestStatus',e.message||String(e))}
+  }
+
+  $('submitAdminRequest').onclick=async()=>{
+    if(!client)client=buildClient();
+    const {data:{user}}=await client.auth.getUser();
+    if(!user)return setStatus('adminRequestStatus','Pehle account se sign in karein.');
+    const vals={
+      name:$('schoolName').value.trim(),code:$('schoolCode').value.trim(),type:$('schoolType').value,
+      admin:$('adminName').value.trim(),designation:$('designation').value.trim(),phone:$('phone').value.trim(),proof:$('proofRef').value.trim()
+    };
+    if(!vals.name||!vals.code||!vals.admin||!vals.designation||!vals.phone)return setStatus('adminRequestStatus','School name, EMIS/registration code, admin name, designation aur mobile required hain.');
+    setStatus('adminRequestStatus','Submitting verification request...',true);
+    try{
+      const {data,error}=await client.rpc('submit_school_admin_request',{
+        p_school_name:vals.name,p_school_registration_code:vals.code,p_school_type:vals.type,
+        p_admin_name:vals.admin,p_designation:vals.designation,p_phone:vals.phone,p_proof_reference:vals.proof||null
+      });
+      if(error)throw error;
+      const row=Array.isArray(data)?data[0]:data;
+      setStatus('adminRequestStatus','Request submitted. Status: '+String(row?.request_status||'pending').toUpperCase()+'.',true);
+    }catch(e){setStatus('adminRequestStatus',e.message||String(e))}
+  };
+  $('requestStatusBtn').onclick=currentAdminRequest;
+
   $('signInBtn').onclick=async()=>{
     if(!client)client=buildClient();if(!client)return show('cloudPanel');
     const email=$('email').value.trim(),password=$('password').value;
@@ -122,7 +204,12 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
       const user=data.user;if(!user)throw new Error('Login failed.');
       const {data:roleData,error:roleError}=await client.rpc('current_account_role');
       if(roleError)throw roleError;
-      if(selected==='admin'&&roleData!=='head_of_institute'){await client.auth.signOut();throw new Error('Ye account verified School Admin / Head nahi hai.')}
+      if(selected==='admin'&&roleData!=='head_of_institute'){
+        setStatus('accountStatus','Login successful. Admin verification abhi required hai.',true);
+        show('adminRequestPanel');
+        await currentAdminRequest();
+        return;
+      }
       if(selected==='teacher'&&roleData!=='teacher'){await client.auth.signOut();throw new Error('Teacher access abhi approved nahi hai.')}
       localStorage.setItem('edunizam_session',JSON.stringify({role:selected==='admin'?'head':'teacher',identity:user.email,loginAt:Date.now(),source:'supabase'}));
       setStatus('accountStatus','Verified. Opening EduNizam...',true);
