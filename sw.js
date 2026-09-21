@@ -1,4 +1,4 @@
-const CACHE='edunizam-v74-logo-icon-fix'
+const CACHE='edunizam-v75-approved-logo'
 const CORE=[
   './',
   './index.html',
@@ -9,7 +9,7 @@ const CORE=[
   './navigation-enhancements.js',
   './ui-polish.js',
   './manifest.webmanifest',
-  './assets/edunizam-logo.webp',
+  './assets/edunizam-logo-approved.webp',
   './assets/edunizam-login-children.webp',
   './public.css',
   './about.html',
