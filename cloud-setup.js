@@ -77,6 +77,52 @@
     status();
   }
 
+  function showConnectionWizard(){
+    document.getElementById('cloudPublicWizard')?.remove();
+    const current=Object.assign({},window.EDUNIZAM_CLOUD_CONFIG||{},get());
+    const box=overlayBase(
+      'cloudPublicWizard',
+      'Connect EduNizam Cloud',
+      '<p>School Admin aur Teacher secure login ke liye Supabase cloud backend connect karein.</p>'+
+      '<div class="cloud-auth-grid">'+
+      '<input id="publicCloudUrl" placeholder="Supabase Project URL" value="'+esc(current.supabaseUrl||'')+'">'+
+      '<input id="publicCloudKey" type="password" placeholder="Supabase Publishable / Anon Key" value="'+esc(current.supabasePublishableKey||'')+'">'+
+      '<div class="cloud-auth-actions"><button id="publicCloudTest">Test Connection</button><button id="publicCloudSave">Save & Reload</button><button id="publicCloudCancel" class="secondary">Cancel</button></div>'+
+      '<div id="publicCloudMsg" class="coverage-note">Publishable/Anon key browser app ke liye hoti hai. Service-role key yahan kabhi paste na karein.</div>'+
+      '</div>'
+    );
+    const msg=t=>{const el=box.querySelector('#publicCloudMsg');if(el)el.textContent=t};
+    box.querySelector('#publicCloudTest').onclick=async()=>{
+      const url=box.querySelector('#publicCloudUrl').value.trim().replace(/\/$/,'');
+      const key=box.querySelector('#publicCloudKey').value.trim();
+      if(!/^https:\/\/.+\.supabase\.co$/i.test(url))return msg('Valid Supabase Project URL enter karein.');
+      if(key.length<20)return msg('Publishable / Anon key incomplete lag rahi hai.');
+      try{
+        msg('Testing connection...');
+        const r=await fetch(url+'/auth/v1/settings',{headers:{apikey:key,Authorization:'Bearer '+key}});
+        if(!r.ok)throw new Error('HTTP '+r.status);
+        msg('Connection successful. Ab Save & Reload karein.');
+      }catch(e){msg('Connection test failed: '+(e.message||e))}
+    };
+    box.querySelector('#publicCloudSave').onclick=()=>{
+      const url=box.querySelector('#publicCloudUrl').value.trim().replace(/\/$/,'');
+      const key=box.querySelector('#publicCloudKey').value.trim();
+      if(!/^https:\/\/.+\.supabase\.co$/i.test(url))return msg('Valid Supabase Project URL enter karein.');
+      if(key.length<20)return msg('Publishable / Anon key required hai.');
+      localStorage.setItem(KEY,JSON.stringify({
+        enabled:true,
+        provider:'supabase',
+        supabaseUrl:url,
+        supabasePublishableKey:key,
+        institutionId:'',
+        admissionsStorageBucket:'admission-documents',
+        paymentApiBaseUrl:''
+      }));
+      location.reload();
+    };
+    box.querySelector('#publicCloudCancel').onclick=()=>box.remove();
+  }
+
   function mount(){
     const settings=document.getElementById('settings');if(!settings||document.getElementById('cloudSetupCard'))return;
     const cfg=Object.assign({},window.EDUNIZAM_CLOUD_CONFIG||{},get());
@@ -114,5 +160,5 @@
     };
   }
   setTimeout(mount,0);setTimeout(mount,400);
-  window.EDUNIZAM_CLOUD_SETUP={mount,get,ensureInstitution};
+  window.EDUNIZAM_CLOUD_SETUP={mount,get,ensureInstitution,showConnectionWizard};
 })();
