@@ -243,13 +243,17 @@ function renderSettings(){
  $('schoolSessionInput').value=state.settings.session||'';
  $('schoolPhoneInput').value=state.settings.phone||'';
  $('schoolAddressInput').value=state.settings.address||'';
- const topLogo=$('schoolLogoTop'),preview=$('schoolLogoPreview'),wrap=$('schoolLogoPreviewWrap');
+ const topLogo=$('schoolLogoTop'),preview=$('schoolLogoPreview'),wrap=$('schoolLogoPreviewWrap'),sideLogo=$('sidebarSchoolLogo'),sideName=$('sidebarSchoolName'),sideType=$('sidebarSchoolType');
+ if(sideName)sideName.textContent=state.settings.schoolName||'My School';
+ if(sideType)sideType.textContent=state.settings.schoolType||'School';
  if(state.settings.schoolLogo){
    if(topLogo){topLogo.src=state.settings.schoolLogo;topLogo.classList.remove('hidden')}
+   if(sideLogo){sideLogo.src=state.settings.schoolLogo;sideLogo.classList.remove('hidden')}
    if(preview)preview.src=state.settings.schoolLogo;
    if(wrap)wrap.classList.remove('hidden');
  }else{
    if(topLogo){topLogo.removeAttribute('src');topLogo.classList.add('hidden')}
+   if(sideLogo){sideLogo.removeAttribute('src');sideLogo.classList.add('hidden')}
    if(wrap)wrap.classList.add('hidden');
  }
 }
