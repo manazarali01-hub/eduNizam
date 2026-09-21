@@ -24,18 +24,20 @@
   function localDateKey(value){const d=value?new Date(value):new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
   function displayTime(value){if(!value)return'—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
   function duration(row){if(!row.checkInAt||!row.checkOutAt)return row.checkInAt?'In progress':'—';const ms=new Date(row.checkOutAt)-new Date(row.checkInAt);if(ms<0)return'Invalid';const mins=Math.floor(ms/60000);return Math.floor(mins/60)+'h '+String(mins%60).padStart(2,'0')+'m'}
+  function locate(){return new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(new Error('Location is not supported on this device.'));navigator.geolocation.getCurrentPosition(p=>resolve({latitude:Number(p.coords.latitude.toFixed(6)),longitude:Number(p.coords.longitude.toFixed(6)),accuracy:Math.round(p.coords.accuracy||0)}),e=>reject(new Error(e.code===1?'Location permission denied. Browser settings se location allow karein.':'Current location could not be verified.')),{enableHighAccuracy:true,timeout:15000,maximumAge:30000})})}
+  function mapLink(lat,lng,accuracy){if(lat==null||lng==null)return'<span class="muted">Not captured</span>';const url='https://www.google.com/maps?q='+encodeURIComponent(lat+','+lng);return'<a class="secondary-link" href="'+url+'" target="_blank" rel="noopener">Map · ±'+Number(accuracy||0)+'m</a>'}
   function rowFor(staffId,date=today()){return attendance().find(x=>String(x.staffId)===String(staffId)&&x.date===date)||null}
-  function canAct(staffId){return isHead()||mine().some(x=>String(x.id)===String(staffId))}
+  function canAct(staffId){return !isHead()&&mine().some(x=>String(x.id)===String(staffId))}
   async function pullCloud(){
     if(!cloudReady())return;
     const {data,error}=await cloud().state.client.from('staff_attendance_records').select('*,staff_profiles(full_name,staff_code,user_id)').eq('institution_id',cfg().institutionId).order('attendance_date',{ascending:false});
     if(error)throw error;
-    const mapped=(data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,date:x.attendance_date,status:x.status,note:x.note||'',checkInAt:x.check_in_at||'',checkOutAt:x.check_out_at||'',staffName:x.staff_profiles?.full_name||''}));
+    const mapped=(data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,date:x.attendance_date,status:x.status,note:x.note||'',checkInAt:x.check_in_at||'',checkOutAt:x.check_out_at||'',checkInLat:x.check_in_latitude,checkInLng:x.check_in_longitude,checkInAccuracy:x.check_in_accuracy_m,checkOutLat:x.check_out_latitude,checkOutLng:x.check_out_longitude,checkOutAccuracy:x.check_out_accuracy_m,staffName:x.staff_profiles?.full_name||''}));
     write(ATT_KEY,mapped);
   }
   async function saveCloud(item){
     if(!cloudReady())return null;
-    const payload={institution_id:cfg().institutionId,staff_profile_id:item.staffId,attendance_date:item.date,status:item.status,note:item.note||null,check_in_at:item.checkInAt||null,check_out_at:item.checkOutAt||null,marked_by:cloud().state.user.id,updated_at:new Date().toISOString()};
+    const payload={institution_id:cfg().institutionId,staff_profile_id:item.staffId,attendance_date:item.date,status:item.status,note:item.note||null,check_in_at:item.checkInAt||null,check_out_at:item.checkOutAt||null,check_in_latitude:item.checkInLat??null,check_in_longitude:item.checkInLng??null,check_in_accuracy_m:item.checkInAccuracy??null,check_out_latitude:item.checkOutLat??null,check_out_longitude:item.checkOutLng??null,check_out_accuracy_m:item.checkOutAccuracy??null,marked_by:cloud().state.user.id,updated_at:new Date().toISOString()};
     const {data,error}=await cloud().state.client.from('staff_attendance_records').upsert(payload,{onConflict:'staff_profile_id,attendance_date'}).select().single();
     if(error)throw error;return data;
   }
@@ -44,15 +46,15 @@
     const rows=attendance().filter(x=>!(String(x.staffId)===String(item.staffId)&&x.date===item.date));rows.push(item);write(ATT_KEY,rows);render();
   }
   async function clock(staffId,action){
-    if(!canAct(staffId))return;const now=new Date().toISOString(),old=rowFor(staffId)||{},st=staff().find(x=>String(x.id)===String(staffId));
-    let item={id:old.id||staffId+'-'+today(),staffId,date:today(),status:old.status||'Present',note:old.note||'',checkInAt:old.checkInAt||'',checkOutAt:old.checkOutAt||'',staffName:st?.fullName||''};
+    if(!canAct(staffId))return;let position;try{position=await locate()}catch(e){return alert(e.message||String(e))}const now=new Date().toISOString(),old=rowFor(staffId)||{},st=staff().find(x=>String(x.id)===String(staffId));
+    let item={id:old.id||staffId+'-'+today(),staffId,date:today(),status:old.status||'Present',note:old.note||'',checkInAt:old.checkInAt||'',checkOutAt:old.checkOutAt||'',checkInLat:old.checkInLat??null,checkInLng:old.checkInLng??null,checkInAccuracy:old.checkInAccuracy??null,checkOutLat:old.checkOutLat??null,checkOutLng:old.checkOutLng??null,checkOutAccuracy:old.checkOutAccuracy??null,staffName:st?.fullName||''};
     if(action==='in'){
       if(item.checkInAt&&!confirm('Check-in already recorded. Current time se replace karein?'))return;
-      item.checkInAt=now;item.checkOutAt='';item.status='Present';
+      item.checkInAt=now;item.checkOutAt='';item.checkInLat=position.latitude;item.checkInLng=position.longitude;item.checkInAccuracy=position.accuracy;item.checkOutLat=null;item.checkOutLng=null;item.checkOutAccuracy=null;item.status='Present';
     }else{
       if(!item.checkInAt)return alert('Pehle check-in karein.');
       if(item.checkOutAt&&!confirm('Check-out already recorded. Current time se replace karein?'))return;
-      item.checkOutAt=now;
+      item.checkOutAt=now;item.checkOutLat=position.latitude;item.checkOutLng=position.longitude;item.checkOutAccuracy=position.accuracy;
     }
     await persist(item);
   }
@@ -66,12 +68,12 @@
   function statusBadge(x){return x.checkInAt&&!x.checkOutAt?'On Campus':x.checkOutAt?'Completed':x.status||'Not Marked'}
   function todayCard(st){
     const row=rowFor(st.id),badge=statusBadge(row||{}),actions=canAct(st.id)?'<div class="paper-actions">'+(!row?.checkInAt?'<button data-clock-in="'+esc(st.id)+'">Clock In Now</button>':'')+(row?.checkInAt&&!row?.checkOutAt?'<button data-clock-out="'+esc(st.id)+'">Clock Out Now</button>':'')+'</div>':'';
-    return '<article class="paper-card timeclock-card"><div class="paper-card-top"><span class="mini-badge">'+esc(st.staffCode||'Staff')+'</span><span class="badge">'+esc(badge)+'</span></div><h3>'+esc(st.fullName)+'</h3><p class="muted">'+esc(st.designation||'Staff')+'</p><div class="time-punch-grid"><div><span>Check In</span><strong>'+displayTime(row?.checkInAt)+'</strong></div><div><span>Check Out</span><strong>'+displayTime(row?.checkOutAt)+'</strong></div><div><span>Worked</span><strong>'+duration(row||{})+'</strong></div></div>'+actions+'</article>';
+    return '<article class="paper-card timeclock-card"><div class="paper-card-top"><span class="mini-badge">'+esc(st.staffCode||'Staff')+'</span><span class="badge">'+esc(badge)+'</span></div><h3>'+esc(st.fullName)+'</h3><p class="muted">'+esc(st.designation||'Staff')+'</p><div class="time-punch-grid"><div><span>Check In</span><strong>'+displayTime(row?.checkInAt)+'</strong></div><div><span>Check Out</span><strong>'+displayTime(row?.checkOutAt)+'</strong></div><div><span>Worked</span><strong>'+duration(row||{})+'</strong></div></div>'+(row?.checkInAt?'<div class="paper-actions"><span>In: '+mapLink(row.checkInLat,row.checkInLng,row.checkInAccuracy)+'</span>'+(row?.checkOutAt?'<span>Out: '+mapLink(row.checkOutLat,row.checkOutLng,row.checkOutAccuracy)+'</span>':'')+'</div>':'')+actions+'</article>';
   }
   function logRows(month){
     const ids=new Set(mine().map(x=>String(x.id))),rows=attendance().filter(x=>ids.has(String(x.staffId))&&String(x.date).startsWith(month)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
     if(!rows.length)return'<div class="empty-state">Is month ka exact-time attendance record available nahi hai.</div>';
-    return '<div class="schedule-table-wrap"><table class="schedule-table"><thead><tr><th>Date</th><th>Staff</th><th>Status</th><th>Check In</th><th>Check Out</th><th>Worked</th></tr></thead><tbody>'+rows.map(x=>{const st=staff().find(s=>String(s.id)===String(x.staffId));return'<tr><td>'+esc(x.date)+'</td><td><strong>'+esc(st?.fullName||x.staffName||'Staff')+'</strong></td><td>'+esc(x.status)+'</td><td>'+displayTime(x.checkInAt)+'</td><td>'+displayTime(x.checkOutAt)+'</td><td>'+duration(x)+'</td></tr>'}).join('')+'</tbody></table></div>';
+    return '<div class="schedule-table-wrap"><table class="schedule-table"><thead><tr><th>Date</th><th>Staff</th><th>Status</th><th>Check In</th><th>Check Out</th><th>Worked</th><th>Verified Location</th></tr></thead><tbody>'+rows.map(x=>{const st=staff().find(s=>String(s.id)===String(x.staffId));return'<tr><td>'+esc(x.date)+'</td><td><strong>'+esc(st?.fullName||x.staffName||'Staff')+'</strong></td><td>'+esc(x.status)+'</td><td>'+displayTime(x.checkInAt)+'</td><td>'+displayTime(x.checkOutAt)+'</td><td>'+duration(x)+'</td><td><div class="paper-actions">'+mapLink(x.checkInLat,x.checkInLng,x.checkInAccuracy)+(x.checkOutAt?mapLink(x.checkOutLat,x.checkOutLng,x.checkOutAccuracy):'')+'</div></td></tr>'}).join('')+'</tbody></table></div>';
   }
   function manualEditor(){if(!isHead())return'';return'<article class="card"><div class="section-head"><div><h3>Manual Time Adjustment</h3><p class="muted">Head exact time correct ya back-date kar sakta hai.</p></div></div><div class="form-grid"><select id="staManualStaff"><option value="">Select staff</option>'+staff().filter(x=>x.status!=='inactive').map(x=>'<option value="'+esc(x.id)+'">'+esc(x.fullName)+'</option>').join('')+'</select><input id="staManualDate" type="date" value="'+today()+'"><select id="staManualStatus"><option>Present</option><option>Absent</option><option>Leave</option><option>Half Day</option></select><input id="staManualIn" type="time"><input id="staManualOut" type="time"><input id="staManualNote" placeholder="Adjustment note"><button id="staManualSave">Save Exact Time</button></div></article>'}
   function bind(){
@@ -82,11 +84,11 @@
     const root=$('staffTimeApp');if(!root)return;
     if(cloudReady()&&!root.dataset.cloudLoaded){root.dataset.cloudLoaded='1';try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Staff time cloud sync:',e.message)}}
     const people=mine().filter(x=>x.status!=='inactive'),todayRows=people.map(x=>rowFor(x.id)).filter(Boolean),inside=todayRows.filter(x=>x.checkInAt&&!x.checkOutAt).length,complete=todayRows.filter(x=>x.checkOutAt).length;
-    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Time Sync':'Local Time Mode')+'</span></div><strong>'+new Date().toLocaleString()+'</strong></div><div class="cards"><article class="card stat"><span>Visible Staff</span><strong>'+people.length+'</strong></article><article class="card stat"><span>Checked In</span><strong>'+inside+'</strong></article><article class="card stat"><span>Completed Today</span><strong>'+complete+'</strong></article><article class="card stat"><span>Not Marked</span><strong>'+Math.max(0,people.length-todayRows.length)+'</strong></article></div>'+manualEditor()+'<div class="section-head" style="margin-top:18px"><div><h3>Today Time Clock</h3><p class="muted">Second-level check-in and check-out timestamps.</p></div></div><div class="paper-grid">'+(people.length?people.map(todayCard).join(''):'<div class="empty-state">No linked staff profile.</div>')+'</div><article class="card" style="margin-top:18px"><div class="section-head"><div><h3>Monthly Time Log</h3><p class="muted">Exact attendance history and worked duration.</p></div><input id="staMonth" type="month" value="'+monthKey()+'"></div><div id="staLog">'+logRows(monthKey())+'</div></article>';
+    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Time + Location':'Local Time Mode')+'</span><p class="muted">'+(isHead()?'Admin view: date, exact time and verified map location update here.':'Clock-in/out ke waqt current location permission required hai.')+'</p></div><strong>'+new Date().toLocaleString()+'</strong></div><div class="cards"><article class="card stat"><span>Visible Staff</span><strong>'+people.length+'</strong></article><article class="card stat"><span>Checked In</span><strong>'+inside+'</strong></article><article class="card stat"><span>Completed Today</span><strong>'+complete+'</strong></article><article class="card stat"><span>Not Marked</span><strong>'+Math.max(0,people.length-todayRows.length)+'</strong></article></div>'+manualEditor()+'<div class="section-head" style="margin-top:18px"><div><h3>Today Time Clock</h3><p class="muted">Second-level timestamps with device location.</p></div></div><div class="paper-grid">'+(people.length?people.map(todayCard).join(''):'<div class="empty-state">No linked staff profile.</div>')+'</div><article class="card" style="margin-top:18px"><div class="section-head"><div><h3>Monthly Time Log</h3><p class="muted">Exact attendance history, worked duration and location.</p></div><input id="staMonth" type="month" value="'+monthKey()+'"></div><div id="staLog">'+logRows(monthKey())+'</div></article>';
     bind();
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('staffTimeApp');if(root)delete root.dataset.cloudLoaded;render()});
-  setInterval(()=>{if(document.getElementById('stafftime')?.classList.contains('active'))render()},60000);
+  setInterval(()=>{if(document.getElementById('stafftime')?.classList.contains('active')){const root=$('staffTimeApp');if(root)delete root.dataset.cloudLoaded;render()}},30000);
   setTimeout(render,0);setTimeout(render,900);
   window.EDUNIZAM_STAFF_TIME={render,pullCloud,cloudReady};
 })();

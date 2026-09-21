@@ -12,7 +12,7 @@
 .brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}.brand img{width:48px;height:48px;object-fit:contain}.brand strong{font-size:1.3rem}.kicker{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:#0f766e;font-weight:800}
 h1{font-size:clamp(2rem,7vw,3.4rem);margin:8px 0 10px}p{color:#536579;line-height:1.55}.roles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
 .role{padding:16px;text-align:left;border:2px solid #dce7ec;border-radius:16px;background:#f8fbfc;color:#16344d;font-weight:800}.role small{display:block;margin-top:5px;font-weight:600;color:#536579}.role.active{border-color:#0f766e;background:#e9f8f5}
-.panel{display:none;border-top:1px solid #e5ecef;margin-top:18px;padding-top:18px}.panel.active{display:block}.fields{display:grid;gap:11px}.fields input,.fields select{width:100%;padding:14px 15px;border:1px solid #cbd7dd;border-radius:12px;font-size:16px}
+.panel{display:none;border-top:1px solid #e5ecef;margin-top:18px;padding-top:18px}.panel.active{display:block}.fields{display:grid;gap:11px}.fields input,.fields select{width:100%;padding:14px 15px;border:1px solid #cbd7dd;border-radius:12px;font-size:16px}.school-context{display:flex;align-items:center;gap:9px;padding:12px 14px;border:1px solid #b9ded8;border-radius:13px;background:#effaf8;color:#174f4a;font-weight:750}.field-note{margin:-4px 0 2px;color:#657785;font-size:12px}
 button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:white;font-weight:800;font-size:15px}.secondary{background:#eef4f6;color:#234}.actions{display:flex;gap:10px;flex-wrap:wrap}.note{margin-top:12px;padding:12px;border-radius:12px;background:#f3f8fb;color:#466071;font-size:14px;line-height:1.45}.status{min-height:22px;margin-top:10px;font-size:14px}.good{color:#166534}.bad{color:#9b1c1c}.hidden{display:none!important}
 @media(max-width:560px){.card{padding:20px}.roles{grid-template-columns:1fr}}
 </style>
@@ -22,7 +22,7 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
   <main class="card">
     <div class="brand"><img src="assets/edunizam-logo.webp" alt="EduNizam"><div><div class="kicker">EduNizam Secure Access</div><strong>Role-based Login</strong></div></div>
     <h1>Select login type</h1>
-    <p>Admin aur Teacher access verification ke baghair activate nahi hota.</p>
+    <p>Apna role select karein. School Admin aur Teacher access sirf verified school record se activate hota hai.</p>
     <div class="roles">
       <button class="role" data-role="admin">School Admin / Head<small>Verified school owner/head only</small></button>
       <button class="role" data-role="teacher">Teacher / Staff<small>Staff Code + Admin approval</small></button>
@@ -44,11 +44,16 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
 
     <section id="accountPanel" class="panel">
       <h2 id="accountTitle">Secure sign in</h2>
+      <div id="schoolContext" class="school-context">🏫 School name sign in ke baad automatically load hoga.</div>
       <div class="fields">
+        <input id="fullName" placeholder="Full name (new account only)" autocomplete="name">
         <input id="email" type="email" placeholder="Registered email address" autocomplete="email">
         <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+        <input id="inviteCode" class="hidden" placeholder="School invite code (first login only)">
         <input id="staffCode" class="hidden" placeholder="Staff Code">
-        <div class="actions"><button id="signInBtn">Sign in</button><button id="createBtn" class="secondary">Create verification account</button><button id="resendBtn" class="secondary">Resend verification email</button><button id="forgotBtn" class="secondary">Forgot password</button><button id="backCloud" class="secondary">Cloud settings</button></div>
+        <input id="linkCode" class="hidden" placeholder="Student Code (first linking only)">
+        <div id="roleHelp" class="field-note"></div>
+        <div class="actions"><button id="signInBtn">Sign in</button><button id="createBtn" class="secondary">Create verification account</button><button id="resendBtn" class="secondary">Resend verification email</button><button id="forgotBtn" class="secondary">Forgot password</button><button id="backCloud" class="secondary hidden">Cloud settings</button></div>
       </div>
       <div id="accountStatus" class="status"></div>
     </section>
@@ -75,21 +80,17 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
       <h2>Set New Password</h2>
       <p>Password reset link verify ho gaya ho to naya password yahan set karein.</p>
       <div class="fields">
-        <input id="newPassword" type="password" minlength="6" autocomplete="new-password" placeholder="New password">
-        <input id="confirmPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Confirm new password">
+        <input id="newPassword" type="password" minlength="8" autocomplete="new-password" placeholder="New password (minimum 8 characters)">
+        <input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Confirm new password">
         <div class="actions"><button id="saveNewPassword">Save New Password</button></div>
       </div>
       <div id="resetStatus" class="status"></div>
     </section>
 
-    <section id="simplePanel" class="panel">
-      <p>This test page ka current focus Admin/Teacher secure login hai. Student/Parent flow next phase mein connect hoga.</p>
-      <a href="./" style="color:#0f766e;font-weight:800">Open EduNizam main app →</a>
-    </section>
   </main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="cloud-config.js?v=20260921-cloud54"></script>
+<script src="cloud-config.js?v=20260921-access62"></script>
 <script>
 (function(){
   const KEY='edunizam_cloud_runtime_config';
@@ -111,12 +112,19 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
   }
   async function openRole(role){
     selected=role;document.querySelectorAll('.role').forEach(b=>b.classList.toggle('active',b.dataset.role===role));
-    if(role==='parent'||role==='student'){show('simplePanel');return}
     const c=loadCfg();client=buildClient();
-    if(!client){$('cloudIntro').textContent=role==='admin'?'School Admin / Head secure login activate karne ke liye Supabase connect karein.':'Teacher verification login activate karne ke liye Supabase connect karein.';show('cloudPanel');return}
-    $('accountTitle').textContent=role==='admin'?'School Admin / Head Login':'Teacher / Staff Login';
+    if(!client){$('cloudIntro').textContent='Secure EduNizam login activate karne ke liye Supabase connect karein.';show('cloudPanel');return}
+    const titles={admin:'School Admin / Head Login',teacher:'Teacher / Staff Login',parent:'Parent / Guardian Login',student:'Student Login'};
+    const help={admin:'Existing Admin sirf email aur password se sign in kare. School verification sirf first registration par hoti hai.',teacher:'Normal login mein email/password کافی ہیں۔ Pehli dafa access ke liye School Invite Code aur Staff Code enter karein.',parent:'Pehli dafa child link karne ke liye Student Code enter karein. Baad ke logins mein sirf email/password کافی ہیں۔',student:'Pehli dafa apna school record link karne ke liye Student Code enter karein.'};
+    $('accountTitle').textContent=titles[role]||'Secure Login';
     $('staffCode').classList.toggle('hidden',role!=='teacher');
-    $('signInBtn').textContent=role==='admin'?'Sign in as School Admin':'Sign in as Teacher';
+    $('inviteCode').classList.toggle('hidden',!['teacher','parent','student'].includes(role));
+    $('linkCode').classList.toggle('hidden',!['parent','student'].includes(role));
+    $('inviteCode').placeholder=role==='teacher'?'Teacher invite code (first access only)':'School invite code (optional if Student Code is used)';
+    $('linkCode').placeholder=role==='parent'?'Child Student Code (first linking only)':'Your Student Code (first linking only)';
+    $('roleHelp').textContent=help[role]||'';
+    $('signInBtn').textContent=role==='admin'?'Sign in as School Admin':'Sign in';
+    $('createBtn').textContent=role==='admin'?'Create Admin verification account':'Create account';
     show('accountPanel');
   }
   document.querySelectorAll('.role').forEach(b=>b.onclick=()=>openRole(b.dataset.role));
@@ -148,12 +156,15 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
   $('createBtn').onclick=async()=>{
     if(!client)client=buildClient();if(!client)return show('cloudPanel');
     const email=$('email').value.trim(),password=$('password').value;
+    if(!$('fullName').value.trim())return setStatus('accountStatus','New account ke liye full name enter karein.');
     if(!email||!password)return setStatus('accountStatus','Email aur password enter karein.');
-    if(password.length<6)return setStatus('accountStatus','Password kam az kam 6 characters ka rakhein.');
+    if(password.length<8)return setStatus('accountStatus','Password kam az kam 8 characters ka rakhein.');
     setStatus('accountStatus','Creating verification account...',true);
     try{
       const redirectTo='https://manazarali01-hub.github.io/eduNizam/login.html?verified=1';
-      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:redirectTo,data:{account_role:'student',signup_intent:selected==='admin'?'school_admin_candidate':'teacher_candidate'}}});
+      const requestedRole=['student','parent'].includes(selected)?selected:'student';
+      const intent=selected==='admin'?'school_admin_candidate':selected==='teacher'?'teacher_candidate':selected+'_account';
+      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:redirectTo,data:{account_role:requestedRole,signup_intent:intent,full_name:$('fullName').value.trim()}}});
       if(error)throw error;
       if(data?.session){
         setStatus('accountStatus','Account created. Opening verification form...',true);
@@ -226,10 +237,39 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
   };
   $('requestStatusBtn').onclick=currentAdminRequest;
 
+  async function resolveSchoolContext(user){
+    const [{data:owned},{data:member},{data:profile}]=await Promise.all([
+      client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).limit(1),
+      client.from('institution_members').select('institution_id,institutions(id,name,institution_type)').eq('user_id',user.id).limit(1),
+      client.from('user_profiles').select('institution_id').eq('user_id',user.id).maybeSingle()
+    ]);
+    let inst=owned?.[0]||member?.[0]?.institutions||null;
+    if(!inst&&profile?.institution_id){const {data}=await client.from('institutions').select('id,name,institution_type').eq('id',profile.institution_id).maybeSingle();inst=data||null}
+    if(!inst)return null;
+    let runtime={};try{runtime=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(_){}
+    runtime.enabled=true;runtime.institutionId=inst.id;localStorage.setItem(KEY,JSON.stringify(runtime));
+    let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
+    settings.schoolName=inst.name||settings.schoolName||'My School';localStorage.setItem('edunizam_settings',JSON.stringify(settings));
+    $('schoolContext').textContent='🏫 '+(inst.name||'Linked School');
+    return inst;
+  }
+
+  async function completeFirstLink(role){
+    const invite=$('inviteCode').value.trim(),studentCode=$('linkCode').value.trim();
+    if(role==='teacher'&&invite&&$('staffCode').value.trim()){
+      const {data,error}=await client.rpc('request_teacher_access',{p_invite_code:invite,p_staff_code:$('staffCode').value.trim()});if(error)throw error;
+      const row=Array.isArray(data)?data[0]:data;return {pending:true,message:'Teacher access request '+String(row?.request_status||'pending').toUpperCase()+'. School Admin approval ke baad sign in karein.'};
+    }
+    if((role==='parent'||role==='student')&&invite){const {error}=await client.rpc('claim_institution_invite',{p_code:invite});if(error)throw error}
+    if(role==='parent'&&studentCode){const {error}=await client.rpc('request_parent_link_by_student_code',{p_student_code:studentCode});if(error)throw error}
+    if(role==='student'&&studentCode){const {error}=await client.rpc('claim_student_record',{p_student_code:studentCode});if(error)throw error}
+    return {pending:false};
+  }
+
   $('saveNewPassword').onclick=async()=>{
     if(!client)client=buildClient();if(!client)return setStatus('resetStatus','Cloud connection required hai.');
     const p1=$('newPassword').value,p2=$('confirmPassword').value;
-    if(p1.length<6)return setStatus('resetStatus','Password kam az kam 6 characters ka rakhein.');
+    if(p1.length<8)return setStatus('resetStatus','Password kam az kam 8 characters ka rakhein.');
     if(p1!==p2)return setStatus('resetStatus','Passwords match nahi kar rahe.');
     setStatus('resetStatus','Updating password...',true);
     try{
@@ -248,7 +288,7 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
     try{
       const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;
       const user=data.user;if(!user)throw new Error('Login failed.');
-      const {data:roleData,error:roleError}=await client.rpc('current_account_role');
+      let {data:roleData,error:roleError}=await client.rpc('current_account_role');
       if(roleError)throw roleError;
       if(selected==='admin'&&roleData!=='head_of_institute'){
         setStatus('accountStatus','Login successful. Admin verification abhi required hai.',true);
@@ -256,8 +296,19 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
         await currentAdminRequest();
         return;
       }
-      if(selected==='teacher'&&roleData!=='teacher'){await client.auth.signOut();throw new Error('Teacher access abhi approved nahi hai.')}
-      localStorage.setItem('edunizam_session',JSON.stringify({role:selected==='admin'?'head':'teacher',identity:user.email,loginAt:Date.now(),source:'supabase'}));
+      if(selected==='teacher'&&roleData!=='teacher'){
+        const link=await completeFirstLink('teacher');await client.auth.signOut();
+        throw new Error(link.pending?link.message:'Teacher access abhi approved nahi hai. First access ke liye Invite Code aur Staff Code enter karein.');
+      }
+      if(['parent','student'].includes(selected)){
+        if(roleData!==selected){await client.auth.signOut();throw new Error('Ye account '+String(roleData||'another role')+' ke liye registered hai. Sahi login type select karein.')}
+        await completeFirstLink(selected);
+        const refreshed=await client.rpc('current_account_role');if(refreshed.error)throw refreshed.error;roleData=refreshed.data;
+        if(roleData!==selected){await client.auth.signOut();throw new Error('School invite is login type se match nahi karta. Sahi '+selected+' invite use karein.')}
+      }
+      const inst=await resolveSchoolContext(user);
+      const localRole=selected==='admin'?'head':selected;
+      localStorage.setItem('edunizam_session',JSON.stringify({role:localRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||''}));
       setStatus('accountStatus','Verified. Opening EduNizam...',true);
       location.href='./?secureLogin=1';
     }catch(e){setStatus('accountStatus',e.message||String(e))}

@@ -3,16 +3,29 @@
   const get=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}};
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 
+  function useInstitution(inst,reload=true){
+    if(!inst?.id)return false;
+    const current=get();current.institutionId=inst.id;current.enabled=true;localStorage.setItem(KEY,JSON.stringify(current));
+    let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
+    settings.schoolName=inst.name||settings.schoolName||'My School';
+    settings.schoolType=inst.institution_type||settings.schoolType||'School';
+    localStorage.setItem('edunizam_settings',JSON.stringify(settings));
+    const schoolName=document.getElementById('school-name');if(schoolName)schoolName.textContent=[settings.schoolName,settings.session].filter(Boolean).join(' · ');
+    if(reload)location.reload();return true;
+  }
+
   async function ensureInstitution(){
     const cloud=window.EDUNIZAM_CLOUD,cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
     if(!cloud?.state?.user||!cloud?.listMyInstitutions)return false;
     const list=await cloud.listMyInstitutions();
-    if(cfg.institutionId&&list.some(x=>x.id===cfg.institutionId))return true;
+    if(cfg.institutionId&&list.some(x=>x.id===cfg.institutionId)){useInstitution(list.find(x=>x.id===cfg.institutionId),false);return true}
     if(list.length===1){
-      const current=get();current.institutionId=list[0].id;current.enabled=true;localStorage.setItem(KEY,JSON.stringify(current));location.reload();return true;
+      useInstitution(list[0]);return true;
     }
     if(list.length>1){showInstitutionPicker(list);return false}
-    showInstitutionCreate();return false;
+    const intent=cloud.state.user?.user_metadata?.signup_intent||'';
+    if(intent==='school_admin_candidate'){showInstitutionCreate();return false}
+    showSchoolLinking(await cloud.getMyRole());return false;
   }
   function overlayBase(id,title,body){
     document.getElementById(id)?.remove();
@@ -23,7 +36,34 @@
   function showInstitutionPicker(list){
     const options=list.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' — '+esc(x.institution_type)+'</option>').join('');
     const box=overlayBase('institutionPicker','Select your institute','<p>Aap ke account ke sath multiple institutes linked hain.</p><div class="cloud-auth-grid"><select id="institutionSelect">'+options+'</select><button id="institutionUse">Use this institute</button></div>');
-    box.querySelector('#institutionUse').onclick=()=>{const current=get();current.institutionId=box.querySelector('#institutionSelect').value;current.enabled=true;localStorage.setItem(KEY,JSON.stringify(current));location.reload()};
+    box.querySelector('#institutionUse').onclick=()=>useInstitution(list.find(x=>x.id===box.querySelector('#institutionSelect').value));
+  }
+
+  function showSchoolLinking(role){
+    const labels={teacher:'Teacher / Staff',parent:'Parent / Guardian',student:'Student'};
+    const title='Link '+(labels[role]||'Account')+' to School';
+    const teacher=role==='teacher',parent=role==='parent';
+    const body='<p>Account secure hai, lekin school link complete karna zaroori hai. School Admin se code lein.</p><div class="cloud-auth-grid">'+
+      '<input id="linkInvite" placeholder="School '+(teacher?'Teacher ':'')+'Invite Code">'+
+      (teacher?'<input id="linkStaff" placeholder="Staff Code">':'<input id="linkStudent" placeholder="'+(parent?'Child ':'Your ')+'Student Code">')+
+      '<button id="linkSubmit">'+(teacher?'Send Admin Approval Request':'Link Account')+'</button><button id="linkLogout" class="secondary">Sign out</button><div id="linkMsg" class="coverage-note"></div></div>';
+    const box=overlayBase('schoolLinking',title,body),msg=box.querySelector('#linkMsg');
+    box.querySelector('#linkSubmit').onclick=async()=>{
+      try{
+        msg.textContent='Verifying school link...';const c=window.EDUNIZAM_CLOUD;
+        if(teacher){
+          const row=await c.requestTeacherAccess(box.querySelector('#linkInvite').value,box.querySelector('#linkStaff').value);
+          msg.textContent='Request '+String(row?.request_status||'pending').toUpperCase()+'. School Admin approval ke baad dobara sign in karein.';return;
+        }
+        const invite=box.querySelector('#linkInvite').value.trim(),studentCode=box.querySelector('#linkStudent').value.trim();
+        if(invite)await c.claimInstitutionInvite(invite);
+        if(parent&&studentCode)await c.requestParentLinkByStudentCode(studentCode);
+        if(role==='student'&&studentCode)await c.claimStudentRecord(studentCode);
+        const list=await c.listMyInstitutions();
+        if(list.length)useInstitution(list[0]);else msg.textContent=parent?'Child link request sent. School approval ke baad dashboard active hoga.':'Valid School Invite Code ya Student Code required hai.';
+      }catch(e){msg.textContent=e.message||String(e)}
+    };
+    box.querySelector('#linkLogout').onclick=async()=>{await window.EDUNIZAM_CLOUD?.signOut?.();localStorage.removeItem('edunizam_session');location.href='login.html'};
   }
   async function showInstitutionCreate(){
     const box=overlayBase(

@@ -125,13 +125,20 @@
   }
   async function listMyInstitutions(){
     if(!state.client||!state.user)return[];
-    const {data:owned,error:ownedError}=await state.client.from('institutions')
-      .select('*').eq('owner_user_id',state.user.id).order('created_at',{ascending:true});
+    const [{data:owned,error:ownedError},{data:memberships,error:memberError},{data:profile,error:profileError}]=await Promise.all([
+      state.client.from('institutions').select('*').eq('owner_user_id',state.user.id).order('created_at',{ascending:true}),
+      state.client.from('institution_members').select('role,institutions(*)').eq('user_id',state.user.id),
+      state.client.from('user_profiles').select('institution_id').eq('user_id',state.user.id).maybeSingle()
+    ]);
     if(ownedError)throw ownedError;
-    const {data:memberships,error:memberError}=await state.client.from('institution_members')
-      .select('role,institutions(*)').eq('user_id',state.user.id);
     if(memberError)throw memberError;
-    const merged=[...(owned||[]),...((memberships||[]).map(x=>x.institutions).filter(Boolean))];
+    if(profileError)throw profileError;
+    let profileInstitution=null;
+    if(profile?.institution_id){
+      const {data,error}=await state.client.from('institutions').select('*').eq('id',profile.institution_id).maybeSingle();
+      if(error)throw error;profileInstitution=data||null;
+    }
+    const merged=[...(owned||[]),...((memberships||[]).map(x=>x.institutions).filter(Boolean)),...(profileInstitution?[profileInstitution]:[])];
     return [...new Map(merged.map(x=>[x.id,x])).values()];
   }
   async function createInstitution(){
