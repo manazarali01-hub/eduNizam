@@ -1,4 +1,4 @@
-const CACHE='edunizam-v75-approved-logo'
+const CACHE='edunizam-v77-installable-pwa'
 const CORE=[
   './',
   './index.html',
@@ -11,6 +11,8 @@ const CORE=[
   './manifest.webmanifest',
   './assets/edunizam-logo-approved.webp',
   './assets/edunizam-login-children.webp',
+  './icon-192.svg',
+  './icon-512.svg',
   './public.css',
   './about.html',
   './features.html',
