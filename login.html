@@ -367,11 +367,21 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
   };
 
   client=buildClient();
-  $('loginSchool').value=localStorage.getItem('edunizam_last_school')||'';
+  const params=new URLSearchParams(location.search);
+  $('loginSchool').value=params.get('school')||localStorage.getItem('edunizam_last_school')||'';
   selectRole('admin');selectActivationRole('teacher');
   if(client){
     client.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')showView('resetView')});
-    if(new URLSearchParams(location.search).get('reset')==='1')client.auth.getSession().then(({data})=>{if(data?.session)showView('resetView')}).catch(()=>{});
+    if(params.get('reset')==='1')client.auth.getSession().then(({data})=>{if(data?.session)showView('resetView')}).catch(()=>{});
+    if(params.get('adminSetup')==='1'){
+      client.auth.getSession().then(({data})=>{
+        const user=data?.session?.user;
+        if(!user)return;
+        $('setupSchoolName').textContent=$('loginSchool').value.trim()||'Aap ka institute';
+        $('adminName').value=user.user_metadata?.full_name||'';
+        showView('adminRequestView');
+      }).catch(()=>{});
+    }
   }
 })();
 </script>
