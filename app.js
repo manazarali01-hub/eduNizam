@@ -291,10 +291,48 @@ renderAll();
   function showLogin(){
     if(document.getElementById('edunizamLogin'))return;
     const box=document.createElement('div');box.id='edunizamLogin';box.className='login-screen';
-    box.innerHTML='<div class="login-card"><div class="academic-kicker">EduNizam Secure Access</div><h1>Local access</h1><p>Local/demo mode mein sirf Student aur Parent access available hai. <strong>School Admin aur Teacher login cloud verification ke baghair enable nahi hota.</strong></p><div class="role-grid">'+[['student',labels.student],['parent',labels.parent]].map(([k,v])=>'<button class="role-choice" data-role="'+k+'"><strong>'+v+'</strong><br><small>'+({student:'Apni study aur result dekhein',parent:'Bachay ki progress dekhein'}[k])+'</small></button>').join('')+'</div><div class="login-fields"><input id="loginIdentity" placeholder="Mobile number / Student ID"><button id="loginContinue" disabled>Continue</button></div><div class="coverage-note">School Admin: registered cloud account only. Teacher: Staff Code match + School Admin approval required.</div></div>';
+    const localHelp={
+      head:'Verified School Admin / Head only',
+      teacher:'Staff Code + School Admin approval',
+      parent:'Bachay ki progress dekhein',
+      student:'Apni study aur result dekhein'
+    };
+    box.innerHTML='<div class="login-card"><div class="academic-kicker">EduNizam Secure Access</div><h1>Select login type</h1><p>School Admin/Head, Teacher, Parent aur Student ke login alag hain. <strong>Admin aur Teacher ko verification ke baghair access nahi milega.</strong></p><div class="role-grid">'+[['head','School Admin / Head'],['teacher','Teacher / Staff'],['parent',labels.parent],['student',labels.student]].map(([k,v])=>'<button class="role-choice" data-role="'+k+'"><strong>'+v+'</strong><br><small>'+localHelp[k]+'</small></button>').join('')+'</div><div class="login-fields"><input id="loginIdentity" placeholder="Select a login type first"><input id="loginPassword" type="password" placeholder="Password" style="display:none"><div id="localSecureNote" class="coverage-note">School Admin / Head aur Teacher secure cloud verification se login karte hain.</div><button id="loginContinue" disabled>Continue</button></div></div>';
     document.body.appendChild(box);let selected='';
-    box.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{selected=b.dataset.role;box.querySelectorAll('[data-role]').forEach(x=>x.classList.toggle('active',x===b));box.querySelector('#loginContinue').disabled=false});
-    box.querySelector('#loginContinue').onclick=()=>{const identity=box.querySelector('#loginIdentity').value.trim();if(!identity)return alert('Mobile number ya ID likhein');localStorage.setItem(ROLE_KEY,JSON.stringify({role:selected,identity,loginAt:Date.now()}));box.remove();applyRole();};
+    const identity=box.querySelector('#loginIdentity'),password=box.querySelector('#loginPassword'),note=box.querySelector('#localSecureNote'),cont=box.querySelector('#loginContinue');
+    box.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{
+      selected=b.dataset.role;
+      box.querySelectorAll('[data-role]').forEach(x=>x.classList.toggle('active',x===b));
+      cont.disabled=false;
+      if(selected==='head'){
+        identity.placeholder='Registered Admin email';
+        password.style.display='block';
+        cont.textContent='School Admin / Head Login';
+        note.innerHTML='<strong>Protected login:</strong> is account ko EduNizam verification ke baad hi School Admin/Head rights milte hain. EMIS code akela access nahi deta.';
+      }else if(selected==='teacher'){
+        identity.placeholder='Registered email / Staff ID';
+        password.style.display='block';
+        cont.textContent='Teacher Login';
+        note.innerHTML='<strong>Teacher verification:</strong> Staff Directory match aur School Admin approval required hai.';
+      }else{
+        identity.placeholder=selected==='parent'?'Mobile / Parent ID':'Mobile / Student ID';
+        password.style.display='none';
+        cont.textContent='Continue';
+        note.textContent='Local test access. Production mein linked account verification use hogi.';
+      }
+    });
+    cont.onclick=()=>{
+      const id=identity.value.trim();
+      if(!id)return alert('Identity enter karein');
+      if(selected==='head'||selected==='teacher'){
+        if(!password.value)return alert('Password enter karein');
+        alert(selected==='head'
+          ?'School Admin / Head secure login screen ready hai. Live authentication ke liye Supabase cloud connection activate hona zaroori hai; local mode Admin rights nahi deta.'
+          :'Teacher secure login screen ready hai. Live access Staff Code verification aur School Admin approval ke baad activate hoga.');
+        return;
+      }
+      localStorage.setItem(ROLE_KEY,JSON.stringify({role:selected,identity:id,loginAt:Date.now()}));box.remove();applyRole();
+    };
   }
   function applyRole(){
     const session=JSON.parse(localStorage.getItem(ROLE_KEY)||'null');if(!session){showLogin();return}
