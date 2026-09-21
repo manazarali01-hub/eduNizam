@@ -5,7 +5,7 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const localRole=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role||'student'}catch{return'student'}};
   const ready=()=>!!(cfg().enabled&&cloud()?.state?.client&&cloud()?.state?.user);
-  let owner=false,plans=[],institutions=[];
+  let owner=false,plans=[],institutions=[],adminRequests=[];
 
   async function isOwner(){
     if(!ready())return false;
@@ -44,12 +44,13 @@
   async function load(){
     if(!ready()||!owner)return;
     const c=cloud().state.client;
-    const [p,i]=await Promise.all([
+    const [p,i,a]=await Promise.all([
       c.from('subscription_plans').select('*').order('monthly_price_pkr'),
-      c.rpc('platform_owner_institutions')
+      c.rpc('platform_owner_institutions'),
+      cloud().platformSchoolAdminRequests?.()||Promise.resolve([])
     ]);
     if(p.error)throw p.error;if(i.error)throw i.error;
-    plans=p.data||[];institutions=i.data||[];
+    plans=p.data||[];institutions=i.data||[];adminRequests=a||[];
   }
 
   function money(v){return 'Rs '+Number(v||0).toLocaleString('en-PK')}
@@ -110,6 +111,26 @@
     ).join(''):'<div class="empty-state">Abhi koi institute registered nahi hai.</div>';
   }
 
+  function adminRequestRows(){
+    return adminRequests.length?adminRequests.map(x=>
+      '<article class="card" style="margin-bottom:12px">'+
+      '<div class="section-head"><div><h3>'+esc(x.school_name)+'</h3><p class="muted">Code: '+esc(x.school_registration_code)+' · '+esc(x.school_type)+' · '+esc(x.request_status)+'</p></div><span class="badge">'+esc(x.request_status)+'</span></div>'+
+      '<p><strong>'+esc(x.admin_name)+'</strong> · '+esc(x.designation)+'</p>'+
+      '<p class="muted">'+esc(x.email)+' · '+esc(x.phone)+'</p>'+
+      (x.proof_reference?'<p><strong>Proof:</strong> '+esc(x.proof_reference)+'</p>':'')+
+      (x.request_status==='pending'?'<div class="paper-actions"><button data-admin-request-approve="'+esc(x.request_id)+'">Approve Admin</button><button class="secondary" data-admin-request-reject="'+esc(x.request_id)+'">Reject</button></div>':'')+
+      '</article>'
+    ).join(''):'<div class="empty-state">No school admin requests.</div>';
+  }
+
+  async function decideAdminRequest(id,approve){
+    const note=approve?'Verified by EduNizam platform owner':'Rejected by EduNizam platform owner';
+    try{
+      await cloud().decideSchoolAdminRequest(id,approve,note);
+      await load();render();
+    }catch(e){alert(e.message||e)}
+  }
+
   async function savePlan(){
     const id=$('ownerPlanId')?.value||'',code=$('ownerPlanCode')?.value.trim().toLowerCase(),name=$('ownerPlanName')?.value.trim();
     if(!code||!name)return alert('Plan code aur name required hain.');
@@ -159,6 +180,8 @@
     bindPlanEditor();
     document.querySelectorAll('[data-edit-plan]').forEach(b=>b.onclick=()=>editPlan(b.dataset.editPlan));
     document.querySelectorAll('[data-save-subscription]').forEach(b=>b.onclick=()=>saveSubscription(b.dataset.saveSubscription));
+    document.querySelectorAll('[data-admin-request-approve]').forEach(b=>b.onclick=()=>decideAdminRequest(b.dataset.adminRequestApprove,true));
+    document.querySelectorAll('[data-admin-request-reject]').forEach(b=>b.onclick=()=>decideAdminRequest(b.dataset.adminRequestReject,false));
   }
 
   async function render(){
@@ -167,6 +190,8 @@
     try{
       await load();
       root.innerHTML=metricCards()+
+        '<div class="section-head" style="margin-top:18px"><div><h3>School Admin Verification</h3><p class="muted">Approve only after school authority verification. EMIS/registration code is an identifier, not a secret.</p></div></div>'+
+        adminRequestRows()+
         '<div id="ownerPlanEditor" style="margin-top:16px">'+planEditor()+'</div>'+
         '<div class="section-head" style="margin-top:18px"><div><h3>Plans</h3><p class="muted">Plan pricing aur limits.</p></div></div>'+
         planCards()+
