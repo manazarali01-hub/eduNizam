@@ -86,19 +86,18 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
     </section>
 
     <section id="adminRequestView" class="view">
-      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2>School registration</h2><p>Admin verification ke liye school ki bunyadi maloomat dein.</p></div></div>
+      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2>Institute setup</h2><p>Sirf zaroori maloomat dein — baqi verification background mein handle hogi.</p></div></div>
       <form id="adminRequestForm" class="fields">
+        <div class="school-pill">🏫 <span id="setupSchoolName">Aap ka institute</span></div>
         <div class="admin-grid">
-          <div class="field wide"><label for="schoolName">School / Institute name</label><input id="schoolName" placeholder="Official school name" required></div>
-          <div class="field"><label for="schoolSector">School sector</label><select id="schoolSector"><option value="private">Private School</option><option value="government">Government School</option></select></div>
-          <div class="field"><label for="schoolType">Institute type</label><select id="schoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy</option><option value="university">University</option></select></div>
-          <div class="field wide"><label id="schoolCodeLabel" for="schoolCode">Registration number</label><input id="schoolCode" placeholder="Private School Registration Number" required></div>
-          <div class="field"><label for="adminName">Head / Owner name</label><input id="adminName" autocomplete="name" required></div>
-          <div class="field"><label for="designation">Designation</label><input id="designation" placeholder="Principal / Owner" required></div>
-          <div class="field wide"><label for="phone">Mobile number</label><input id="phone" type="tel" autocomplete="tel" placeholder="03xx xxxxxxx" required></div>
+          <div class="field"><label for="schoolType">Institute type</label><select id="schoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy / Institute</option><option value="university">University</option></select></div>
+          <div class="field"><label for="schoolCode">Registration / EMIS Code</label><input id="schoolCode" placeholder="Registration ya EMIS code" required></div>
+          <div class="field"><label for="adminName">Head / Admin name</label><input id="adminName" autocomplete="name" placeholder="Poora naam" required></div>
+          <div class="field"><label for="phone">Mobile number</label><input id="phone" type="tel" autocomplete="tel" placeholder="03xx xxxxxxx" required></div>
+          <div class="field wide"><label for="setupLogo">Institute logo <span class="help">(optional)</span></label><input id="setupLogo" type="file" accept="image/png,image/jpeg,image/webp"></div>
         </div>
-        <button id="submitAdminRequest" class="primary" type="submit">Submit for Verification</button>
-        <button id="checkAdminStatus" class="secondary" type="button">Check verification status</button>
+        <p class="help">Aik dafa Save & Continue karein. Alag “verification status” step ki zaroorat nahi hogi.</p>
+        <button id="submitAdminRequest" class="primary" type="submit">Save & Continue</button>
       </form>
       <div id="adminStatus" class="status" role="status"></div>
     </section>
@@ -225,16 +224,10 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
     $('activateRoles').style.display='none';
     $('inviteField').style.display='none';
     $('recordCodeField').style.display='none';
-    $('activationHelp').textContent='Email verify karne ke baad school registration form khul jayega.';
+    $('activationHelp').textContent='School name, email aur password se Admin account banayein. Agla setup sirf aik chhota step hoga.';
     $('activateBtn').textContent='Create Admin Account';
     activationRole='admin';showView('activateView');
   };
-  $('schoolSector').onchange=()=>{
-    const government=$('schoolSector').value==='government';
-    $('schoolCodeLabel').textContent=government?'Government EMIS Code':'Registration number';
-    $('schoolCode').placeholder=government?'Government School EMIS Code':'Private School Registration Number';
-  };
-
   $('forgotBtn').onclick=async()=>{
     const email=$('loginEmail').value.trim();
     if(!email)return status('loginStatus','Pehle apna email address likhein.');
@@ -259,8 +252,9 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
       let cloudRole=roleResult.data;
       if(cloudRole!==expectedCloudRole(selectedRole)){
         if(selectedRole==='admin'){
-          $('schoolName').value=school;$('adminName').value=user.user_metadata?.full_name||'';
-          showView('adminRequestView');await checkAdminStatus();return;
+          $('setupSchoolName').textContent=school;
+          $('adminName').value=user.user_metadata?.full_name||'';
+          showView('adminRequestView');return;
         }
         const activationMessage=await completePendingActivation(user,selectedRole);
         if(activationMessage){await client.auth.signOut();throw new Error(activationMessage)}
@@ -313,31 +307,55 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
     }catch(e){status('activateStatus',friendlyError(e.message||String(e)))}finally{busy($('activateBtn'),false)}
   };
 
-  async function checkAdminStatus(){
-    if(!client)return;
-    try{
-      const result=await client.rpc('my_school_admin_request');if(result.error)throw result.error;
-      const row=Array.isArray(result.data)?result.data[0]:result.data;
-      if(!row)return status('adminStatus','School verification form complete karke submit karein.');
-      const requestStatus=String(row.request_status||row.status||'pending').toUpperCase();
-      status('adminStatus','Verification status: '+requestStatus+(row.school_name?' · '+row.school_name:''),requestStatus==='APPROVED');
-      if(requestStatus==='APPROVED')setTimeout(()=>location.reload(),700);
-    }catch(e){status('adminStatus',e.message||String(e))}
+  function readLogo(file){
+    return new Promise((resolve,reject)=>{
+      if(!file)return resolve('');
+      if(file.size>900000)return reject(new Error('Logo image 900 KB se chhoti rakhein.'));
+      const reader=new FileReader();
+      reader.onload=()=>resolve(String(reader.result||''));
+      reader.onerror=()=>reject(new Error('Logo read nahi ho saka.'));
+      reader.readAsDataURL(file);
+    });
   }
-  $('checkAdminStatus').onclick=checkAdminStatus;
+
   $('adminRequestForm').onsubmit=async event=>{
     event.preventDefault();
     if(!client)return status('adminStatus','Login service se connection nahi ho raha.');
     const userResult=await client.auth.getUser(),user=userResult.data.user;
     if(!user)return status('adminStatus','Pehle Admin account create ya sign in karein.');
-    const values={name:$('schoolName').value.trim(),code:$('schoolCode').value.trim(),sector:$('schoolSector').value,type:$('schoolType').value,admin:$('adminName').value.trim(),designation:$('designation').value.trim(),phone:$('phone').value.trim()};
-    if(Object.values(values).some(v=>!v))return status('adminStatus','Tamam zaroori maloomat complete karein.');
-    busy($('submitAdminRequest'),true,'Submit ho raha hai...');
+    const schoolName=$('loginSchool').value.trim()||$('setupSchoolName').textContent.trim();
+    const values={
+      name:schoolName,
+      code:$('schoolCode').value.trim(),
+      type:$('schoolType').value,
+      admin:$('adminName').value.trim(),
+      phone:$('phone').value.trim()
+    };
+    if(!values.name||!values.code||!values.admin||!values.phone)return status('adminStatus','Institute type, Registration/EMIS Code, Head/Admin name aur mobile number complete karein.');
+    busy($('submitAdminRequest'),true,'Save ho raha hai...');
     try{
-      const result=await client.rpc('submit_school_admin_request_v2',{p_school_name:values.name,p_school_registration_code:values.code,p_school_sector:values.sector,p_school_type:values.type,p_admin_name:values.admin,p_designation:values.designation,p_phone:values.phone,p_proof_reference:''});
+      const logo=await readLogo($('setupLogo').files?.[0]);
+      const digitsOnly=/^\d{7,}$/.test(values.code.replace(/\s/g,''));
+      const result=await client.rpc('submit_school_admin_request_v2',{
+        p_school_name:values.name,
+        p_school_registration_code:values.code,
+        p_school_sector:digitsOnly?'government':'private',
+        p_school_type:values.type,
+        p_admin_name:values.admin,
+        p_designation:'Head / Admin',
+        p_phone:values.phone,
+        p_proof_reference:''
+      });
       if(result.error)throw result.error;
-      status('adminStatus','School verification request submit ho gayi. Approval ke baad isi simple Admin Login se sign in karein.',true);
-    }catch(e){status('adminStatus',e.message||String(e))}finally{busy($('submitAdminRequest'),false)}
+      let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
+      settings.schoolName=values.name;
+      settings.schoolType=values.type;
+      if(logo)settings.schoolLogo=logo;
+      localStorage.setItem('edunizam_settings',JSON.stringify(settings));
+      localStorage.setItem('edunizam_last_school',values.name);
+      status('adminStatus','Setup save ho gayi. Verification background mein process hogi — alag status form fill karne ki zaroorat nahi.',true);
+      setTimeout(()=>showView('loginView'),1100);
+    }catch(e){status('adminStatus',friendlyError(e.message||String(e)))}finally{busy($('submitAdminRequest'),false)}
   };
 
   $('resetForm').onsubmit=async event=>{
