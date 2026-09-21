@@ -1,4 +1,16 @@
 -- Fresh EduNizam authentication contract after login reset.
+-- Remove obsolete onboarding objects from previous auth experiments.
+drop function if exists public.complete_school_admin_setup_v1(text,text,text,text,text,text);
+drop function if exists public.complete_school_admin_signup_v2(text,text,text,text);
+drop function if exists public.submit_school_admin_request(text,text,text,text,text,text,text);
+drop function if exists public.submit_school_admin_request_v2(text,text,text,text,text,text,text,text);
+drop function if exists public.decide_school_admin_request(uuid,boolean,text);
+drop function if exists public.verify_school_admin_code(uuid,boolean,text);
+drop function if exists public.my_school_admin_request();
+drop function if exists public.platform_school_admin_requests();
+drop function if exists public.platform_school_admin_requests_v2();
+drop table if exists public.school_admin_requests cascade;
+
 -- Four roles: Admin, Teacher, Parent, Student.
 -- Admin creates the school; other roles link to an existing school code.
 -- Authorization remains enforced by existing RLS and staff/student linking rules.
