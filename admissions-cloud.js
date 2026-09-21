@@ -16,7 +16,7 @@
   async function signUp(email,password,accountRole='student',fullName=''){
     if(!state.client)throw new Error('Cloud backend is not configured.');
     const safeRole=['student','parent'].includes(accountRole)?accountRole:'student';
-    return state.client.auth.signUp({email,password,options:{data:{account_role:safeRole,full_name:fullName}}});
+    return state.client.auth.signUp({email,password,options:{emailRedirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?verified=1',data:{account_role:safeRole,full_name:fullName}}});
   }
   async function signIn(email,password){
     if(!state.client)throw new Error('Cloud backend is not configured.');
