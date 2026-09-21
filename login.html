@@ -202,6 +202,14 @@
     try{
       const {data,error}=await client.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});
       if(error)throw error;
+
+      const localPending=(()=>{try{return JSON.parse(localStorage.getItem('edunizam_pending_signup')||'null')}catch(_){return null}})();
+      const metaPending=data.user?.user_metadata?.signup_role;
+      if((localPending&&String(localPending.email||'').toLowerCase()===String(data.user.email||'').toLowerCase())||metaPending){
+        const completed=await completeSignup(data.user);
+        if(completed!==false)return;
+      }
+
       const role=await client.rpc('current_account_role');
       if(role.error)throw role.error;
       if(role.data!==roleCloud[selectedRole]){await client.auth.signOut();throw new Error('This account does not match the selected role.')}
@@ -218,7 +226,7 @@
     try{
       const logo=selectedRole==='admin'?await saveLogo($('schoolLogo').files?.[0]):'';
       localStorage.setItem('edunizam_pending_signup',JSON.stringify({role:selectedRole,school,name,phone,code,logo,email}));
-      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{full_name:name}}});
+      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{full_name:name,signup_role:selectedRole,school_name:school||'',school_code:code,contact_number:phone}}});
       if(error)throw error;
       if(!data.session){
         localStorage.setItem('edunizam_verify_email',email);
@@ -232,7 +240,21 @@
 
   async function completeSignup(user){
     let pending=null;try{pending=JSON.parse(localStorage.getItem('edunizam_pending_signup')||'null')}catch(_){}
-    if(!pending)return;
+    if(!pending){
+      const meta=user?.user_metadata||{};
+      if(meta.signup_role&&meta.school_code&&meta.full_name){
+        pending={
+          role:meta.signup_role,
+          school:meta.school_name||'',
+          name:meta.full_name,
+          phone:meta.contact_number||'',
+          code:meta.school_code,
+          logo:'',
+          email:user.email||''
+        };
+      }
+    }
+    if(!pending)return false;
     const {data,error}=await client.rpc('register_simple_account_v1',{
       p_role:pending.role,p_school_name:pending.school||'',p_school_code:pending.code,p_full_name:pending.name,p_phone:pending.phone
     });
@@ -243,7 +265,9 @@
       localStorage.setItem('edunizam_settings',JSON.stringify(settings));
     }
     localStorage.removeItem('edunizam_pending_signup');
+    localStorage.removeItem('edunizam_verify_email');
     await openApp(user,pending.role);
+    return true;
   }
 
   $('resendVerifyBtn').onclick=async()=>{
