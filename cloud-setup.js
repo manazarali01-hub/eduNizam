@@ -25,12 +25,56 @@
     const box=overlayBase('institutionPicker','Select your institute','<p>Aap ke account ke sath multiple institutes linked hain.</p><div class="cloud-auth-grid"><select id="institutionSelect">'+options+'</select><button id="institutionUse">Use this institute</button></div>');
     box.querySelector('#institutionUse').onclick=()=>{const current=get();current.institutionId=box.querySelector('#institutionSelect').value;current.enabled=true;localStorage.setItem(KEY,JSON.stringify(current));location.reload()};
   }
-  function showInstitutionCreate(){
-    overlayBase(
+  async function showInstitutionCreate(){
+    const box=overlayBase(
       'institutionCreate',
-      'School Admin access required',
-      '<p>This account is not linked to an EduNizam institute.</p><div class="coverage-note"><strong>Security rule:</strong> users cannot create a school and make themselves Admin from the login screen. The school must first be provisioned for its verified owner. After that, the owner signs in with the registered Admin account, while Teachers request access against the Staff Directory.</div>'
+      'Register School Admin',
+      '<p>Is account ka abhi koi institute linked nahi hai. Agar aap school ke authorized Head/Owner hain to verification request submit karein.</p>'+
+      '<div class="cloud-auth-grid">'+
+      '<input id="adminSchoolName" placeholder="School / Institute name">'+
+      '<input id="adminSchoolCode" placeholder="School Registration / EMIS Code">'+
+      '<select id="adminSchoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy</option><option value="university">University</option></select>'+
+      '<input id="adminFullName" placeholder="Head / Owner full name">'+
+      '<input id="adminDesignation" placeholder="Designation e.g. Head Teacher / Principal / Owner">'+
+      '<input id="adminPhone" placeholder="Mobile number">'+
+      '<input id="adminProof" placeholder="Authority proof reference (optional for test)">'+
+      '<button id="adminRequestSubmit">Submit for Verification</button>'+
+      '<button id="adminRequestRefresh" class="secondary">Check Request Status</button>'+
+      '<div id="adminRequestMsg" class="coverage-note"></div>'+
+      '</div>'+
+      '<div class="cloud-auth-note"><strong>Important:</strong> EMIS/registration code sirf school ki pehchan hai; is se Admin access nahi milta. EduNizam approval ke baad hi ye account School Admin banta hai.</div>'
     );
+    const msg=box.querySelector('#adminRequestMsg');
+    async function status(){
+      try{
+        const r=await window.EDUNIZAM_CLOUD?.mySchoolAdminRequest?.();
+        if(!r){msg.textContent='Abhi koi Admin verification request submit nahi hui.';return}
+        msg.textContent='Request: '+String(r.request_status||'pending').toUpperCase()+
+          ' · '+(r.school_name||'School')+
+          (r.review_note?' · '+r.review_note:'');
+        if(r.request_status==='approved'){
+          msg.textContent+=' · Admin access activated. Reloading...';
+          setTimeout(()=>location.reload(),800);
+        }
+      }catch(e){msg.textContent=e.message||String(e)}
+    }
+    box.querySelector('#adminRequestSubmit').onclick=async()=>{
+      try{
+        msg.textContent='Submitting verification request...';
+        const r=await window.EDUNIZAM_CLOUD.submitSchoolAdminRequest({
+          schoolName:box.querySelector('#adminSchoolName').value,
+          registrationCode:box.querySelector('#adminSchoolCode').value,
+          schoolType:box.querySelector('#adminSchoolType').value,
+          adminName:box.querySelector('#adminFullName').value,
+          designation:box.querySelector('#adminDesignation').value,
+          phone:box.querySelector('#adminPhone').value,
+          proofReference:box.querySelector('#adminProof').value
+        });
+        msg.textContent='Request submitted successfully. Status: '+String(r?.request_status||'pending').toUpperCase()+'. EduNizam verification ke baad Admin access activate hoga.';
+      }catch(e){msg.textContent=e.message||String(e)}
+    };
+    box.querySelector('#adminRequestRefresh').onclick=status;
+    status();
   }
 
   function mount(){
