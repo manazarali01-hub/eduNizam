@@ -181,17 +181,30 @@ $('generateBtn').onclick=async()=>{
 };
 $('pushCoreCloudBtn')?.addEventListener('click',pushCoreCloud);
 $('pullCoreCloudBtn')?.addEventListener('click',pullCoreCloud);
-$('saveSettingsBtn').onclick=()=>{
+$('saveSettingsBtn').onclick=async()=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can change school settings.');
+ let logo=state.settings.schoolLogo||'';
+ const logoFile=$('schoolLogoInput')?.files?.[0];
+ if(logoFile){
+   if(logoFile.size>900000)return alert('Institute logo 900 KB se chhota rakhein.');
+   logo=await new Promise((resolve,reject)=>{
+     const reader=new FileReader();
+     reader.onload=()=>resolve(String(reader.result||''));
+     reader.onerror=()=>reject(new Error('Logo read nahi ho saka.'));
+     reader.readAsDataURL(logoFile);
+   }).catch(e=>{alert(e.message);return logo});
+ }
  state.settings={
   schoolName:$('schoolNameInput').value.trim()||'My School',
   schoolType:$('schoolTypeInput').value||'School',
   tagline:$('schoolTaglineInput').value.trim(),
   session:$('schoolSessionInput').value.trim(),
   phone:$('schoolPhoneInput').value.trim(),
-  address:$('schoolAddressInput').value.trim()
+  address:$('schoolAddressInput').value.trim(),
+  schoolLogo:logo
  };
  persist();renderSettings();logActivity('School settings updated');
+ if($('schoolLogoInput'))$('schoolLogoInput').value='';
 };
 
 async function refreshCoreCloudStatus(){
@@ -230,6 +243,15 @@ function renderSettings(){
  $('schoolSessionInput').value=state.settings.session||'';
  $('schoolPhoneInput').value=state.settings.phone||'';
  $('schoolAddressInput').value=state.settings.address||'';
+ const topLogo=$('schoolLogoTop'),preview=$('schoolLogoPreview'),wrap=$('schoolLogoPreviewWrap');
+ if(state.settings.schoolLogo){
+   if(topLogo){topLogo.src=state.settings.schoolLogo;topLogo.classList.remove('hidden')}
+   if(preview)preview.src=state.settings.schoolLogo;
+   if(wrap)wrap.classList.remove('hidden');
+ }else{
+   if(topLogo){topLogo.removeAttribute('src');topLogo.classList.add('hidden')}
+   if(wrap)wrap.classList.add('hidden');
+ }
 }
 function renderActivity(){
  $('activityList').innerHTML=state.activity.length?state.activity.slice(-6).reverse().map(a=>'<div><strong>'+esc(a.text)+'</strong><br><small>'+esc(a.time)+'</small></div>').join('<hr>'):'No activity yet.';
@@ -274,6 +296,10 @@ window.EDUNIZAM_FEE_BRIDGE={
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').classList.remove('hidden')});
 $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').classList.add('hidden')};
+$('removeSchoolLogoBtn')?.addEventListener('click',()=>{
+ if(currentRole()!=='head')return alert('Only Head of Institute can change school settings.');
+ state.settings.schoolLogo='';persist();renderSettings();logActivity('Institute logo removed');
+});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260921-easy-login63',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 renderAll();
 
