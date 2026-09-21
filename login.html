@@ -71,6 +71,17 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
       <div class="note"><strong>Mandatory verification:</strong> Private School ka Registration Number ya Government School ka EMIS Code official record se verify hona zaroori hai. Verification aur platform approval ke baad hi Admin access activate hota hai.</div>
     </section>
 
+    <section id="resetPanel" class="panel">
+      <h2>Set New Password</h2>
+      <p>Password reset link verify ho gaya ho to naya password yahan set karein.</p>
+      <div class="fields">
+        <input id="newPassword" type="password" minlength="6" autocomplete="new-password" placeholder="New password">
+        <input id="confirmPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Confirm new password">
+        <div class="actions"><button id="saveNewPassword">Save New Password</button></div>
+      </div>
+      <div id="resetStatus" class="status"></div>
+    </section>
+
     <section id="simplePanel" class="panel">
       <p>This test page ka current focus Admin/Teacher secure login hai. Student/Parent flow next phase mein connect hoga.</p>
       <a href="./" style="color:#0f766e;font-weight:800">Open EduNizam main app →</a>
@@ -175,7 +186,7 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
     if(!email)return setStatus('accountStatus','Email address enter karein.');
     setStatus('accountStatus','Sending password reset link...',true);
     try{
-      const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]});
+      const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});
       if(error)throw error;
       setStatus('accountStatus','Password reset link email par bhej diya gaya.',true);
     }catch(e){setStatus('accountStatus',e.message||String(e))}
@@ -215,6 +226,20 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
   };
   $('requestStatusBtn').onclick=currentAdminRequest;
 
+  $('saveNewPassword').onclick=async()=>{
+    if(!client)client=buildClient();if(!client)return setStatus('resetStatus','Cloud connection required hai.');
+    const p1=$('newPassword').value,p2=$('confirmPassword').value;
+    if(p1.length<6)return setStatus('resetStatus','Password kam az kam 6 characters ka rakhein.');
+    if(p1!==p2)return setStatus('resetStatus','Passwords match nahi kar rahe.');
+    setStatus('resetStatus','Updating password...',true);
+    try{
+      const {error}=await client.auth.updateUser({password:p1});
+      if(error)throw error;
+      setStatus('resetStatus','Password successfully change ho gaya. Ab naye password se sign in karein.',true);
+      setTimeout(()=>{show('accountPanel');history.replaceState({},'',location.pathname)},900);
+    }catch(e){setStatus('resetStatus',e.message||String(e))}
+  };
+
   $('signInBtn').onclick=async()=>{
     if(!client)client=buildClient();if(!client)return show('cloudPanel');
     const email=$('email').value.trim(),password=$('password').value;
@@ -237,7 +262,18 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
       location.href='./?secureLogin=1';
     }catch(e){setStatus('accountStatus',e.message||String(e))}
   };
-  loadCfg();
+  const initialCfg=loadCfg();
+  client=buildClient();
+  if(client){
+    client.auth.onAuthStateChange((event)=>{
+      if(event==='PASSWORD_RECOVERY')show('resetPanel');
+    });
+    if(new URLSearchParams(location.search).get('reset')==='1'){
+      client.auth.getSession().then(({data})=>{
+        if(data?.session)show('resetPanel');
+      }).catch(()=>{});
+    }
+  }
 })();
 </script>
 </body>
