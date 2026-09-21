@@ -1,4 +1,4 @@
-const CACHE='edunizam-v73-logo-brand-refresh'
+const CACHE='edunizam-v74-logo-icon-fix'
 const CORE=[
   './',
   './index.html',
@@ -15,10 +15,7 @@ const CORE=[
   './about.html',
   './features.html',
   './privacy.html',
-  './404.html',
-  './icon-192.svg',
-  './icon-512.svg'
-];
+  './404.html',];
 
 self.addEventListener('install',event=>{
   self.skipWaiting();
