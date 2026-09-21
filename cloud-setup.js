@@ -26,15 +26,11 @@
     box.querySelector('#institutionUse').onclick=()=>{const current=get();current.institutionId=box.querySelector('#institutionSelect').value;current.enabled=true;localStorage.setItem(KEY,JSON.stringify(current));location.reload()};
   }
   function showInstitutionCreate(){
-    const year=new Date().getFullYear();
-    const box=overlayBase('institutionCreate','Create your institute','<p>First setup mein apna school/college/academy/university create karein.</p><div class="cloud-auth-grid"><input id="instName" placeholder="Institute name"><select id="instType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy</option><option value="university">University</option></select><input id="instSession" value="'+year+'" placeholder="Admission / academic session"><button id="instCreateBtn">Create Institute</button><div id="instCreateMsg" class="cloud-auth-error"></div></div>');
-    box.querySelector('#instCreateBtn').onclick=async()=>{
-      const msg=box.querySelector('#instCreateMsg');msg.textContent='Creating institute...';
-      try{
-        const data=await window.EDUNIZAM_CLOUD.createInstitution({name:box.querySelector('#instName').value,institutionType:box.querySelector('#instType').value,admissionSession:box.querySelector('#instSession').value});
-        const current=get();current.institutionId=data.id;current.enabled=true;localStorage.setItem(KEY,JSON.stringify(current));location.reload();
-      }catch(e){msg.textContent=e.message||String(e)}
-    };
+    overlayBase(
+      'institutionCreate',
+      'School Admin access required',
+      '<p>This account is not linked to an EduNizam institute.</p><div class="coverage-note"><strong>Security rule:</strong> users cannot create a school and make themselves Admin from the login screen. The school must first be provisioned for its verified owner. After that, the owner signs in with the registered Admin account, while Teachers request access against the Staff Directory.</div>'
+    );
   }
 
   function mount(){
