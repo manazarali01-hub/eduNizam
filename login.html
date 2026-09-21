@@ -1,663 +1,251 @@
 <!doctype html>
 <html lang="en-PK">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#075f55">
-<meta name="robots" content="noindex,follow,noarchive">
-<meta name="referrer" content="strict-origin-when-cross-origin">
-<meta name="description" content="EduNizam ka asaan aur mehfooz school login for Admin, Teacher, Parent aur Student.">
-<title>EduNizam Login</title>
-<link rel="icon" href="assets/edunizam-logo.webp" type="image/webp">
-<style>
-:root{--green:#08756b;--green-dark:#064e46;--gold:#f5b942;--ink:#102a43;--muted:#64748b;--line:#dbe7e5;--soft:#effaf7;--danger:#b42318}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#dff2ed url("assets/edunizam-login-children.webp") center/cover fixed no-repeat}
-body:before{content:"";position:fixed;inset:0;background:linear-gradient(90deg,rgba(2,48,43,.82) 0%,rgba(2,48,43,.48) 42%,rgba(2,48,43,.12) 67%,rgba(255,255,255,.2) 100%);pointer-events:none}
-button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:minmax(270px,1fr) minmax(340px,520px);gap:clamp(24px,6vw,86px);align-items:center;padding:clamp(18px,4vw,56px)}
-.story{max-width:630px;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.24)}.brand{display:flex;align-items:center;gap:12px;margin-bottom:42px}.brand img{width:58px;height:58px;object-fit:contain;background:#fff;border-radius:17px;padding:7px;box-shadow:0 10px 30px rgba(0,0,0,.18)}.brand strong{display:block;font-size:1.45rem}.brand span{font-size:.88rem;opacity:.88}
-.story h1{font-size:clamp(2.5rem,5.7vw,5rem);line-height:1.02;margin:0 0 18px;letter-spacing:-.045em}.story p{font-size:clamp(1rem,1.5vw,1.2rem);line-height:1.7;max-width:560px;margin:0}.benefits{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}.benefits span{padding:9px 13px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(255,255,255,.13);backdrop-filter:blur(10px);font-weight:700;font-size:.86rem}
-.card{width:100%;max-height:calc(100vh - 36px);overflow:auto;background:rgba(255,255,255,.97);border:1px solid rgba(255,255,255,.8);border-radius:30px;padding:clamp(22px,4vw,36px);box-shadow:0 28px 90px rgba(1,31,28,.32);backdrop-filter:blur(18px)}
-.mobile-brand{display:none;align-items:center;gap:10px;margin-bottom:18px}.mobile-brand img{width:44px;height:44px;object-fit:contain}.eyebrow{color:var(--green);font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;font-weight:900}.card h2{font-size:clamp(1.75rem,4vw,2.35rem);margin:5px 0 7px;letter-spacing:-.035em}.subtitle{margin:0 0 20px;color:var(--muted);line-height:1.5}
-.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 20px}.role{border:1px solid var(--line);border-radius:14px;padding:11px 5px;background:#fff;color:#40566c;cursor:pointer;font-weight:800;font-size:.76rem;transition:.18s}.role .icon{display:block;font-size:1.25rem;margin-bottom:3px}.role:hover{border-color:#79bdb5;transform:translateY(-1px)}.role.active{color:var(--green-dark);border-color:var(--green);background:var(--soft);box-shadow:0 0 0 2px rgba(8,117,107,.08)}
-.view{display:none}.view.active{display:block}.fields{display:grid;gap:13px}.field label{display:block;font-size:.82rem;font-weight:800;margin:0 0 6px;color:#334e68}.input-wrap{position:relative}.field input,.field select{width:100%;height:50px;border:1.5px solid #cdddda;border-radius:14px;padding:0 14px;background:#fff;color:var(--ink);outline:none;transition:.18s}.field input:focus,.field select:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(8,117,107,.1)}.field input::placeholder{color:#94a3b8}.password-toggle{position:absolute;right:7px;top:7px;height:36px;padding:0 10px;border:0;background:transparent;color:var(--green);font-weight:800;cursor:pointer}.with-toggle input{padding-right:68px}
-.primary{width:100%;height:52px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(8,117,107,.22);transition:.18s}.primary:hover{transform:translateY(-1px);box-shadow:0 15px 28px rgba(8,117,107,.28)}.primary:disabled{opacity:.65;cursor:wait}.secondary{border:1px solid var(--line);border-radius:12px;background:#fff;color:#31506a;font-weight:800;padding:11px 14px;cursor:pointer}.link{border:0;background:transparent;color:var(--green);font-weight:850;padding:4px;cursor:pointer}.row-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px}.setup-links{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px;padding-top:17px;border-top:1px solid #e7efed}.setup-link{border:1px solid var(--line);background:#f8fbfa;border-radius:13px;padding:11px 9px;color:#345269;font-weight:800;font-size:.78rem;cursor:pointer}.setup-link:hover{border-color:#86c7bf;background:var(--soft)}
-.school-pill{display:flex;align-items:center;gap:9px;background:var(--soft);border:1px solid #b9dfda;color:#155e57;border-radius:13px;padding:11px 13px;margin-bottom:15px;font-size:.82rem;font-weight:750}.status{display:none;margin-top:13px;border-radius:12px;padding:11px 13px;font-size:.84rem;line-height:1.45}.status.show{display:block}.status.good{background:#e9f8ef;color:#17643a}.status.bad{background:#fff0ef;color:var(--danger)}
-.view-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px}.back{flex:0 0 auto;width:38px;height:38px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--green);cursor:pointer;font-size:1.15rem}.view-head h2{font-size:1.55rem;margin:1px 0 3px}.view-head p{margin:0;color:var(--muted);font-size:.85rem}.code-fields{display:grid;grid-template-columns:1fr 1fr;gap:11px}.help{margin:0;color:var(--muted);font-size:.77rem;line-height:1.5}.security-note{display:flex;gap:8px;margin-top:17px;color:#597080;font-size:.75rem;line-height:1.45}.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.admin-grid .wide{grid-column:1/-1}
-@media(max-width:900px){body:before{background:rgba(2,48,43,.5)}.page{grid-template-columns:1fr;justify-items:center;padding:18px}.story{display:none}.card{max-width:540px;max-height:none}.mobile-brand{display:flex}}
-@media(max-width:520px){body{background-position:38% center}.card{padding:20px 17px;border-radius:23px}.roles{grid-template-columns:repeat(2,1fr)}.role{padding:10px}.setup-links,.code-fields,.admin-grid{grid-template-columns:1fr}.admin-grid .wide{grid-column:auto}.row-actions{align-items:flex-start}.page{padding:12px}.card h2{font-size:1.75rem}}
-:focus-visible{outline:3px solid #f5b942;outline-offset:3px}.skip-link{position:fixed;left:12px;top:12px;z-index:9999;transform:translateY(-160%);background:#fff;color:#064e46;padding:10px 14px;border-radius:10px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.18)}.skip-link:focus{transform:none}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
-
-.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}
-.auth-tab{border:1px solid #cfe0de;background:#f7fbfa;color:#17443f;padding:11px 12px;border-radius:12px;font-weight:800}
-.auth-tab.active{background:#0f766e;color:#fff;border-color:#0f766e}
-.google-btn{width:100%;background:#fff;color:#25313b;border:1px solid #d6dfdf;padding:12px 14px;border-radius:12px;font-weight:800}
-.google-btn:hover{border-color:#a7c7c3;background:#fbfefe}
-.or-divider{display:flex;align-items:center;gap:10px;margin:12px 0;color:#7b8988;font-size:.82rem}
-.or-divider:before,.or-divider:after{content:"";height:1px;background:#dce7e5;flex:1}
-.hidden{display:none!important}
-
-.role-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
-.role-choice{min-height:118px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;text-align:left}
-.role-choice .icon{font-size:1.6rem}.role-choice strong{font-size:1rem}.role-choice small{opacity:.72;font-weight:600}
-.auth-view-head{align-items:flex-start}
-@media(max-width:520px){.role-choice-grid{grid-template-columns:1fr 1fr}.role-choice{min-height:105px;padding:12px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="robots" content="noindex,follow,noarchive">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="description" content="Secure EduNizam access for Admin, Teacher, Parent and Student accounts.">
+  <title>EduNizam Login</title>
+  <link rel="icon" href="icon-192.svg" type="image/svg+xml">
+  <style>
+    :root{--teal:#0f766e;--teal2:#115e59;--ink:#17324a;--muted:#667b80;--line:#d9e7e4;--bg:#eef7f5;--white:#fff;--danger:#b42318;--ok:#067647}
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#eaf7f4,#f7fbfa)}
+    button,input{font:inherit}.hidden{display:none!important}.page{min-height:100vh;display:grid;grid-template-columns:minmax(300px,42%) 1fr}
+    .story{position:relative;padding:48px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;background:linear-gradient(135deg,rgba(6,78,70,.92),rgba(15,118,110,.82)),url("assets/edunizam-login-children.webp") center/cover}
+    .brand{display:flex;align-items:center;gap:12px}.brand img{width:58px;height:58px;object-fit:contain;background:#fff;border-radius:16px;padding:6px}.brand strong{font-size:1.2rem}.brand span{display:block;opacity:.82;font-size:.8rem}
+    .story h1{font-size:clamp(40px,5vw,72px);line-height:.95;letter-spacing:-.045em;margin:40px 0 20px}.story p{max-width:520px;font-size:1.05rem;line-height:1.65;opacity:.9}
+    .benefits{display:flex;gap:10px;flex-wrap:wrap}.benefits span{padding:8px 12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);border-radius:999px;font-size:.8rem}
+    .main{display:grid;place-items:center;padding:30px}.card{width:min(680px,100%);background:rgba(255,255,255,.96);border:1px solid rgba(15,118,110,.13);border-radius:26px;padding:30px;box-shadow:0 24px 70px rgba(23,50,74,.13)}
+    .eyebrow{font-size:.73rem;text-transform:uppercase;letter-spacing:.11em;color:var(--teal);font-weight:850}.view h2{margin:6px 0 6px;font-size:2rem;letter-spacing:-.035em}.subtitle{margin:0 0 20px;color:var(--muted);line-height:1.55}
+    .roles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.role{min-height:118px;border:1px solid var(--line);background:#fbfefd;border-radius:18px;padding:16px;text-align:left;color:var(--ink);cursor:pointer;transition:.16s}.role:hover,.role:focus-visible{border-color:#81b8b0;transform:translateY(-1px);box-shadow:0 10px 26px rgba(23,50,74,.08)}.role .icon{display:block;font-size:1.8rem;margin-bottom:8px}.role strong{display:block}.role small{display:block;color:var(--muted);margin-top:4px}
+    .head{display:flex;align-items:flex-start;gap:12px}.back{border:0;background:#eef7f5;color:var(--teal2);width:38px;height:38px;border-radius:11px;cursor:pointer;font-weight:900}
+    .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.tab{border:1px solid var(--line);background:#f7fbfa;border-radius:12px;padding:11px;font-weight:800;cursor:pointer}.tab.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+    .fields{display:grid;gap:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input{width:100%;border:1px solid #cadbd8;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);outline:none}.field input:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}
+    .primary{width:100%;border:0;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;padding:13px 16px;font-weight:850;cursor:pointer}.secondary{border:1px solid var(--line);background:#fff;color:var(--teal2);border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer}.link{border:0;background:none;color:var(--teal);font-weight:800;cursor:pointer;padding:0}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}
+    .mobile-brand{display:none}.skip{position:fixed;left:12px;top:12px;transform:translateY(-160%);background:#fff;color:#12324a;padding:10px 14px;border-radius:10px;z-index:999}.skip:focus{transform:none}
+    :focus-visible{outline:3px solid #e6b94c;outline-offset:3px}
+    @media(max-width:820px){.page{grid-template-columns:1fr}.story{display:none}.main{padding:18px}.card{padding:22px;border-radius:20px}.mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}.mobile-brand img{width:48px;height:48px}.grid2{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-<a class="skip-link" href="#loginMain">Skip to login</a>
+<a class="skip" href="#authCard">Skip to login</a>
 <div class="page">
-  <section class="story" aria-label="EduNizam introduction">
+  <aside class="story">
     <div class="brand"><img src="assets/edunizam-logo.webp" alt="EduNizam"><div><strong>EduNizam</strong><span>Smart School Management</span></div></div>
-    <h1>Har school.<br>Har class.<br>Ek nizam.</h1>
-    <p>Students, parents, teachers aur school head—sab ke liye aik khoobsurat, asaan aur mehfooz jagah.</p>
-    <div class="benefits"><span>✓ Easy Login</span><span>✓ Secure Records</span><span>✓ School Connected</span></div>
-  </section>
+    <div><h1>One school.<br>One system.</h1><p>Simple access for Admins, Teachers, Parents and Students.</p></div>
+    <div class="benefits"><span>✓ Simple Access</span><span>✓ Role Based</span><span>✓ School Connected</span></div>
+  </aside>
 
-  <main class="card" id="loginMain" tabindex="-1">
-    <div class="mobile-brand"><img src="assets/edunizam-logo.webp" alt=""><div><strong>EduNizam</strong><div class="eyebrow">Smart School Management</div></div></div>
+  <main class="main">
+    <section class="card" id="authCard">
+      <div class="mobile-brand"><img src="assets/edunizam-logo.webp" alt="EduNizam"><strong>EduNizam</strong></div>
 
-    <section id="roleChoiceView" class="view active">
-      <div class="eyebrow">EduNizam Access</div>
-      <h2>Choose Your Role</h2>
-      <p class="subtitle">Select how you want to use EduNizam.</p>
-      <div class="roles role-choice-grid" role="group" aria-label="Choose account role">
-        <button class="role role-choice" type="button" data-entry-role="admin"><span class="icon">🏫</span><strong>Admin</strong><small>School / Institute Head</small></button>
-        <button class="role role-choice" type="button" data-entry-role="teacher"><span class="icon">👩‍🏫</span><strong>Teacher</strong><small>Teaching Staff</small></button>
-        <button class="role role-choice" type="button" data-entry-role="parent"><span class="icon">👪</span><strong>Parent</strong><small>Parent / Guardian</small></button>
-        <button class="role role-choice" type="button" data-entry-role="student"><span class="icon">🎓</span><strong>Student</strong><small>Student Account</small></button>
-      </div>
-    </section>
-
-    <section id="loginView" class="view">
-      <div class="view-head auth-view-head"><button id="changeRoleBtn" class="back" type="button">←</button><div><div class="eyebrow">EduNizam Access</div><h2 id="authRoleTitle">Admin Access</h2><p id="authRoleSubtitle" class="subtitle">Log in or create an Admin account.</p></div></div>
-
-      <div class="auth-tabs" role="tablist" aria-label="Account access">
-        <button id="loginTabBtn" class="auth-tab active" type="button" role="tab" aria-selected="true">Log In</button>
-        <button id="signupTabBtn" class="auth-tab" type="button" role="tab" aria-selected="false">Sign Up</button>
+      <div id="roleView" class="view">
+        <div class="eyebrow">EduNizam Access</div>
+        <h2>Choose Your Role</h2>
+        <p class="subtitle">Select the account type you want to use.</p>
+        <div class="roles">
+          <button class="role" type="button" data-role="admin"><span class="icon">🏫</span><strong>Admin</strong><small>School / Institute Head</small></button>
+          <button class="role" type="button" data-role="teacher"><span class="icon">👩‍🏫</span><strong>Teacher</strong><small>Teaching Staff</small></button>
+          <button class="role" type="button" data-role="parent"><span class="icon">👪</span><strong>Parent</strong><small>Parent / Guardian</small></button>
+          <button class="role" type="button" data-role="student"><span class="icon">🎓</span><strong>Student</strong><small>Student Account</small></button>
+        </div>
       </div>
 
-      <div id="loginPanel">
+      <div id="authView" class="view hidden">
+        <div class="head"><button id="backRole" class="back" type="button">←</button><div><div class="eyebrow">EduNizam Access</div><h2 id="roleTitle">Admin Access</h2><p id="roleText" class="subtitle">Log in or create your account.</p></div></div>
+        <div class="tabs">
+          <button id="loginTab" class="tab active" type="button">Log In</button>
+          <button id="signupTab" class="tab" type="button">Sign Up</button>
+        </div>
+
         <form id="loginForm" class="fields">
-          <div class="field"><label for="loginEmail">Email Address</label><input id="loginEmail" type="email" autocomplete="email" placeholder="name@example.com" required></div>
-          <div class="field"><label for="loginPassword">Password</label><div class="input-wrap with-toggle"><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required><button class="password-toggle" type="button" data-toggle="loginPassword">Show</button></div></div>
-          <div class="row-actions"><span></span><button id="forgotBtn" class="link" type="button">Forgot password?</button></div>
+          <div class="field"><label for="loginEmail">Email Address</label><input id="loginEmail" type="email" autocomplete="email" required></div>
+          <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+          <div class="row"><span></span><button id="forgotBtn" class="link" type="button">Forgot password?</button></div>
           <button id="loginBtn" class="primary" type="submit">Log In</button>
         </form>
-        <div class="or-divider"><span>or</span></div>
-        <button id="googleLoginBtn" class="google-btn" type="button">Continue with Google</button>
-      </div>
 
-      <div id="signupPanel" class="hidden">
-        <form id="signupForm" class="fields">
-          <div class="field"><label for="signupSchool">School Name</label><input id="signupSchool" autocomplete="organization" placeholder="Enter school name" required></div>
-          <div class="field"><label for="signupEmail">Email Address</label><input id="signupEmail" type="email" autocomplete="email" placeholder="name@example.com" required></div>
-          <div class="field"><label for="signupPassword">Password</label><div class="input-wrap with-toggle"><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters" required><button class="password-toggle" type="button" data-toggle="signupPassword">Show</button></div></div>
-          <div class="field"><label for="signupAdminName">Admin Name</label><input id="signupAdminName" autocomplete="name" placeholder="Full name" required></div>
-          <div class="field"><label for="signupPhone">Contact Number</label><input id="signupPhone" type="tel" autocomplete="tel" placeholder="+92 3xx xxxxxxx" required></div>
-          <div class="field"><label for="signupCode">School Code / EMIS / Registration No.</label><input id="signupCode" placeholder="Enter school code" required></div>
-          <div class="field"><label for="signupLogo">School Logo <span class="help">(Optional)</span></label><input id="signupLogo" type="file" accept="image/png,image/jpeg,image/webp"></div>
+        <form id="signupForm" class="fields hidden">
+          <div id="adminSchoolNameField" class="field"><label for="schoolName">School Name</label><input id="schoolName" autocomplete="organization"></div>
+          <div class="grid2">
+            <div class="field"><label for="fullName">Full Name</label><input id="fullName" autocomplete="name" required></div>
+            <div class="field"><label for="contactNumber">Contact Number</label><input id="contactNumber" type="tel" autocomplete="tel" required></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="signupEmail">Email Address</label><input id="signupEmail" type="email" autocomplete="email" required></div>
+            <div class="field"><label for="signupPassword">Password</label><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required></div>
+          </div>
+          <div class="field"><label for="schoolCode">School Code / EMIS / Registration No.</label><input id="schoolCode" required></div>
+          <div id="adminLogoField" class="field"><label for="schoolLogo">School Logo <span class="help">(Optional)</span></label><input id="schoolLogo" type="file" accept="image/png,image/jpeg,image/webp"></div>
           <button id="signupBtn" class="primary" type="submit">Create Account</button>
+          <div class="help">Email verification may be required by your account settings. Contact number is saved with the profile.</div>
         </form>
-        <div class="or-divider"><span>or</span></div>
-        <button id="googleSignupBtn" class="google-btn" type="button">Sign Up with Google</button>
+
+        <div id="statusBox" class="status" role="status"></div>
       </div>
 
-      <div id="loginStatus" class="status" role="status"></div>
-    </section>
-
-    <section id="phoneVerifyView" class="view">
-      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2>Verify Phone Number</h2><p>Enter the 6-digit code sent to your phone.</p></div></div>
-      <form id="phoneVerifyForm" class="fields">
-        <div class="field"><label for="phoneOtp">Verification Code</label><input id="phoneOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" required></div>
-        <button id="verifyPhoneBtn" class="primary" type="submit">Verify and Continue</button>
-      </form>
-      <div id="phoneVerifyStatus" class="status" role="status"></div>
-    </section>
-
-    <section id="activateView" class="view hidden-legacy">
-      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2 id="activateTitle">Activate Account</h2><p>You only need to do this once.</p></div></div>
-      <div id="activateRoles" class="roles">
-        <button class="role" type="button" data-activate-role="teacher"><span class="icon">👩‍🏫</span>Teacher</button>
-        <button class="role" type="button" data-activate-role="parent"><span class="icon">👪</span>Parent</button>
-        <button class="role" type="button" data-activate-role="student"><span class="icon">🎓</span>Student</button>
+      <div id="resetView" class="view hidden">
+        <div class="head"><button id="backReset" class="back" type="button">←</button><div><div class="eyebrow">Account Recovery</div><h2>Set New Password</h2></div></div>
+        <form id="resetForm" class="fields">
+          <div class="field"><label for="newPassword">New Password</label><input id="newPassword" type="password" minlength="8" required></div>
+          <button class="primary" type="submit">Save New Password</button>
+        </form>
+        <div id="resetStatus" class="status" role="status"></div>
       </div>
-      <form id="activateForm" class="fields">
-        <div class="field"><label for="fullName">Full Name</label><input id="fullName" autocomplete="name" placeholder="Enter your full name" required></div>
-        <div class="field"><label for="activateEmail">Email Address</label><input id="activateEmail" type="email" autocomplete="email" placeholder="name@example.com" required></div>
-        <div class="field"><label for="activatePassword">Create Password</label><div class="input-wrap with-toggle"><input id="activatePassword" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters" required><button class="password-toggle" type="button" data-toggle="activatePassword">Show</button></div></div>
-        <div class="code-fields">
-          <div id="inviteField" class="field"><label for="inviteCode">School Invite Code</label><input id="inviteCode" autocomplete="off" placeholder="Invite Code"></div>
-          <div id="recordCodeField" class="field"><label id="recordCodeLabel" for="recordCode">Staff Code</label><input id="recordCode" autocomplete="off" placeholder="Staff Code"></div>
-        </div>
-        <p id="activationHelp" class="help">Teacher access becomes active after School Admin approval.</p>
-        <button id="activateBtn" class="primary" type="submit">Activate Teacher Account</button>
-      </form>
-      <div id="activateStatus" class="status" role="status"></div>
-    </section>
-
-    <section id="adminRequestView" class="view hidden-legacy">
-      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2>Institution Setup</h2><p>Enter the required details to create your institution workspace.</p></div></div>
-      <form id="adminRequestForm" class="fields">
-        <div class="school-pill">🏫 <span id="setupSchoolName">Your Institution</span></div>
-        <div class="admin-grid">
-          <div class="field"><label for="schoolType">Institution Type</label><select id="schoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy / Institute</option><option value="university">University</option></select></div>
-          <div class="field"><label for="schoolSector">Institution Sector</label><select id="schoolSector"><option value="private">Private</option><option value="government">Government</option></select></div>
-          <div class="field wide"><label for="schoolCode">Registration / EMIS Code</label><input id="schoolCode" placeholder="Registration ya EMIS code" required></div>
-          <div class="field"><label for="adminName">Head / Admin Name</label><input id="adminName" autocomplete="name" placeholder="Full name" required></div>
-          <div class="field"><label for="phone">Mobile Number</label><input id="phone" type="tel" autocomplete="tel" placeholder="03xx xxxxxxx" required></div>
-          <div class="field wide"><label for="setupLogo">Institution Logo <span class="help">(Optional)</span></label><input id="setupLogo" type="file" accept="image/png,image/jpeg,image/webp"></div>
-        </div>
-        <p class="help">Save once and continue directly to your workspace.</p>
-        <button id="submitAdminRequest" class="primary" type="submit">Save and Continue</button>
-      </form>
-      <div id="adminStatus" class="status" role="status"></div>
-    </section>
-
-    <section id="resetView" class="view">
-      <div class="view-head"><button class="back" type="button" data-back>←</button><div><h2>New Password</h2><p>Set a new password for your account.</p></div></div>
-      <form id="resetForm" class="fields">
-        <div class="field"><label for="newPassword">New password</label><input id="newPassword" type="password" minlength="8" autocomplete="new-password" required></div>
-        <div class="field"><label for="confirmPassword">Confirm Password</label><input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" required></div>
-        <button class="primary" type="submit">Save New Password</button>
-      </form>
-      <div id="resetStatus" class="status" role="status"></div>
     </section>
   </main>
 </div>
 
+<script src="cloud-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="cloud-config.js?v=20260921-easy-login63"></script>
 <script>
-(function(){
-  const CONFIG_KEY='edunizam_cloud_runtime_config';
-  const PENDING_KEY='edunizam_pending_activation';
+(()=>{
   const $=id=>document.getElementById(id);
+  const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
+  const client=(cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase)
+    ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey)
+    : null;
+
   let selectedRole='admin';
-  let activationRole='teacher';
-  let client=null;
+  const roleCloud={admin:'head_of_institute',teacher:'teacher',parent:'parent',student:'student'};
+  const labels={admin:'Admin',teacher:'Teacher',parent:'Parent',student:'Student'};
 
-  function getConfig(){
-    let runtime={};
-    try{runtime=JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch(_){}
-    return Object.assign({},window.EDUNIZAM_CLOUD_CONFIG||{},runtime);
+  function show(id){
+    ['roleView','authView','resetView'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
+    window.scrollTo({top:0,behavior:'smooth'});
   }
-  function buildClient(){
-    const c=getConfig();
-    if(!c.enabled||!c.supabaseUrl||!c.supabasePublishableKey||!window.supabase)return null;
-    try{return window.supabase.createClient(c.supabaseUrl,c.supabasePublishableKey)}catch(_){return null}
+  function message(text,ok=false,target='statusBox'){
+    const el=$(target);el.textContent=text||'';el.className='status'+(text?' show ':' ')+(ok?'good':'bad');
   }
-  function showView(id){
-    document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));
-    document.querySelector('.card').scrollTop=0;
+  function busy(btn,on,label){
+    btn.disabled=on;
+    if(on){btn.dataset.old=btn.textContent;btn.textContent=label}
+    else if(btn.dataset.old){btn.textContent=btn.dataset.old;delete btn.dataset.old}
   }
-  function status(id,message,ok=false){
-    const el=$(id);el.textContent=message||'';el.className='status'+(message?' show ':' ')+(ok?'good':'bad');
+  function friendly(error){
+    const s=String(error||'');
+    if(/invalid login credentials/i.test(s))return 'Email or password is incorrect.';
+    if(/email not confirmed/i.test(s))return 'Please verify your email address, then log in.';
+    if(/already registered|already exists/i.test(s))return 'An account already exists with this email.';
+    return s;
   }
-  function busy(button,on,label){
-    if(!button)return;button.disabled=on;
-    if(on){button.dataset.oldText=button.textContent;button.textContent=label||'Please wait...'}
-    else if(button.dataset.oldText){button.textContent=button.dataset.oldText;delete button.dataset.oldText}
-  }
-  function withTimeout(promise,ms=12000){
-    return Promise.race([
-      promise,
-      new Promise((_,reject)=>setTimeout(()=>reject(new Error('The request took too long. Please try again.')),ms))
-    ]);
-  }
-  function expectedCloudRole(role){return role==='admin'?'head_of_institute':role}
-  function selectRole(role){
-    selectedRole=role;
-    document.querySelectorAll('[data-role]').forEach(b=>b.classList.toggle('active',b.dataset.role===role));
-    document.querySelectorAll('[data-entry-role]').forEach(b=>b.classList.toggle('active',b.dataset.entryRole===role));
-    const names={admin:'Admin',teacher:'Teacher',parent:'Parent',student:'Student'};
-    if($('authRoleTitle'))$('authRoleTitle').textContent=(names[role]||'Account')+' Access';
-    if($('authRoleSubtitle'))$('authRoleSubtitle').textContent='Log in or create a '+(names[role]||'user')+' account.';
-    if($('loginBtn'))$('loginBtn').textContent='Log In';
-  }
-  function selectActivationRole(role){
-    activationRole=role;
-    document.querySelectorAll('[data-activate-role]').forEach(b=>b.classList.toggle('active',b.dataset.activateRole===role));
-    const isTeacher=role==='teacher';
-    $('inviteField').style.display='block';
-    $('recordCodeLabel').textContent=isTeacher?'Staff Code':role==='parent'?'Child Student Code':'Your Student Code';
-    $('recordCode').placeholder=isTeacher?'Staff Code':role==='parent'?'Child Student Code':'Student Code';
-    $('activationHelp').textContent=isTeacher?'Teacher access becomes active after School Admin approval.':'Student Code se account sahi school ke saath link ho jayega.';
-    $('activateTitle').textContent=(isTeacher?'Teacher':role==='parent'?'Parent':'Student')+' Account';
-    $('activateBtn').textContent='Activate '+(isTeacher?'Teacher':role==='parent'?'Parent':'Student')+' Account';
-  }
-  function normalize(value){return String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
-
-  async function resolveSchoolContext(user){
-    const results=await Promise.all([
-      client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).limit(1),
-      client.from('institution_members').select('institution_id,institutions(id,name,institution_type)').eq('user_id',user.id).limit(1),
-      client.from('user_profiles').select('institution_id').eq('user_id',user.id).maybeSingle()
-    ]);
-    let inst=results[0].data?.[0]||results[1].data?.[0]?.institutions||null;
-    const profile=results[2].data;
-    if(!inst&&profile?.institution_id){
-      const found=await client.from('institutions').select('id,name,institution_type').eq('id',profile.institution_id).maybeSingle();
-      inst=found.data||null;
-    }
-    if(!inst)return null;
-    let runtime={};try{runtime=JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch(_){}
-    runtime.enabled=true;runtime.institutionId=inst.id;localStorage.setItem(CONFIG_KEY,JSON.stringify(runtime));
-    let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
-    settings.schoolName=inst.name||'My School';localStorage.setItem('edunizam_settings',JSON.stringify(settings));
-    return inst;
-  }
-
-  async function completePendingActivation(user,role){
-    let pending=null;try{pending=JSON.parse(localStorage.getItem(PENDING_KEY)||'null')}catch(_){}
-    if(!pending||pending.role!==role||String(pending.email).toLowerCase()!==String(user.email).toLowerCase())return null;
-    if(role==='teacher'){
-      const result=await client.rpc('request_teacher_access',{p_invite_code:pending.invite,p_staff_code:pending.recordCode});
-      if(result.error)throw result.error;
-      localStorage.removeItem(PENDING_KEY);
-      return 'The teacher access request was sent to the Admin. Sign in here after approval.';
-    }
-    if(pending.invite){const claim=await client.rpc('claim_institution_invite',{p_code:pending.invite});if(claim.error)throw claim.error}
-    const fn=role==='parent'?'request_parent_link_by_student_code':'claim_student_record';
-    const args=role==='parent'?{p_student_code:pending.recordCode}:{p_student_code:pending.recordCode};
-    const linked=await client.rpc(fn,args);if(linked.error)throw linked.error;
-    localStorage.removeItem(PENDING_KEY);
-    return null;
-  }
-
-  document.querySelectorAll('[data-entry-role]').forEach(b=>b.addEventListener('click',()=>{
-    selectRole(b.dataset.entryRole);
-    showView('loginView');
-    showAuthTab('login');
-  }));
-  $('changeRoleBtn')?.addEventListener('click',()=>showView('roleChoiceView'));
-    document.querySelectorAll('[data-role]').forEach(b=>b.addEventListener('click',()=>selectRole(b.dataset.role)));
-  document.querySelectorAll('[data-activate-role]').forEach(b=>b.addEventListener('click',()=>selectActivationRole(b.dataset.activateRole)));
-  document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',()=>showView('loginView')));
-  document.querySelectorAll('[data-toggle]').forEach(b=>b.addEventListener('click',()=>{
-    const input=$(b.dataset.toggle);const showing=input.type==='text';input.type=showing?'password':'text';b.textContent=showing?'Show':'Hide';
-  }));
-
-  // Legacy activation entry points are no longer shown on the first screen.
-  const activateLink=$('activateLink');
-  if(activateLink)activateLink.onclick=()=>{
-    $('activateRoles').style.display='grid';
-    $('recordCodeField').style.display='block';
-    selectActivationRole(selectedRole==='admin'?'teacher':selectedRole);
-    showView('activateView');
-  };
-  const schoolRegisterLink=$('schoolRegisterLink');
-  if(schoolRegisterLink)schoolRegisterLink.onclick=()=>{
-    selectedRole='admin';
-    showAuthTab('signup');
-  };
-
-  $('forgotBtn').onclick=async()=>{
-    const email=$('loginEmail').value.trim();
-    if(!email)return status('loginStatus','Enter your email address first.');
-    if(!client)return status('loginStatus','Unable to connect to the login service. Please try again shortly.');
-    try{
-      const result=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?reset=1'});
-      if(result.error)throw result.error;
-      status('loginStatus','A password reset link has been sent to your email.',true);
-    }catch(e){status('loginStatus',e.message||String(e))}
-  };
-
-  function showAuthTab(which){
-    const login=which==='login';
-    $('loginTabBtn').classList.toggle('active',login);
-    $('signupTabBtn').classList.toggle('active',!login);
-    $('loginTabBtn').setAttribute('aria-selected',String(login));
-    $('signupTabBtn').setAttribute('aria-selected',String(!login));
-    status('loginStatus','');
-
-    if(!login && selectedRole!=='admin'){
-      selectActivationRole(selectedRole);
-      showView('activateView');
-      return;
-    }
-    $('loginPanel').classList.toggle('hidden',!login);
-    $('signupPanel').classList.toggle('hidden',login);
-  }
-
-  $('loginTabBtn').onclick=()=>showAuthTab('login');
-  $('signupTabBtn').onclick=()=>showAuthTab('signup');
-
-  async function openDashboard(user,schoolName=''){
-    let profile=await client.from('user_profiles').select('account_role,institution_id').eq('user_id',user.id).maybeSingle();
-    const role=profile.data?.account_role;
-    if(role!=='head_of_institute'){
-      showAuthTab('signup');
-      status('loginStatus','Complete school setup to continue.');
-      return;
-    }
-    localStorage.setItem('edunizam_session',JSON.stringify({
-      role:'head',identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:schoolName||localStorage.getItem('edunizam_last_school')||''
-    }));
-    location.replace('./?secureLogin=1');
-  }
-
-  $('loginForm').onsubmit=async event=>{
-    event.preventDefault();
-    if(!client)return status('loginStatus','Unable to connect to the login service.');
-    const email=$('loginEmail').value.trim(),password=$('loginPassword').value;
-    if(!email||!password)return status('loginStatus','Enter your email and password.');
-    busy($('loginBtn'),true,'Signing in...');
-    try{
-      const signed=await withTimeout(client.auth.signInWithPassword({email,password}),12000);
-      if(signed.error)throw signed.error;
-      const user=signed.data.user;
-      if(!user)throw new Error('Sign-in failed.');
-
-      const roleResult=await client.rpc('current_account_role');
-      if(roleResult.error)throw roleResult.error;
-      const expected=expectedCloudRole(selectedRole);
-      if(roleResult.data!==expected){
-        await client.auth.signOut();
-        throw new Error('This account does not match the selected role.');
-      }
-
-      if(selectedRole==='admin'){
-        await openDashboard(user);
-        return;
-      }
-
-      const inst=await resolveSchoolContext(user);
-      if(!inst){
-        await client.auth.signOut();
-        throw new Error('This account is not linked to an institution yet.');
-      }
-      localStorage.setItem('edunizam_session',JSON.stringify({
-        role:selectedRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst.name||''
-      }));
-      location.replace('./?secureLogin=1');
-    }catch(e){status('loginStatus',friendlyError(e.message||String(e)))}finally{busy($('loginBtn'),false)}
-  };
-
-  async function startGoogle(){
-    if(!client)return status('loginStatus','Unable to connect to the login service.');
-    localStorage.setItem('edunizam_google_signup','1');
-    localStorage.setItem('edunizam_google_role',selectedRole);
-    const result=await client.auth.signInWithOAuth({
-      provider:'google',
-      options:{redirectTo:location.origin+location.pathname+'?google=1'}
-    });
-    if(result.error)status('loginStatus',friendlyError(result.error.message));
-  }
-  $('googleLoginBtn').onclick=startGoogle;
-  $('googleSignupBtn').onclick=startGoogle;
-
-  function savePendingSignup(values,logo){
-    localStorage.setItem('edunizam_admin_signup_pending',JSON.stringify({...values,logo:logo||''}));
-    localStorage.setItem('edunizam_last_school',values.school);
-  }
-  function pendingSignup(){
-    try{return JSON.parse(localStorage.getItem('edunizam_admin_signup_pending')||'null')}catch(_){return null}
-  }
-
-  async function requestPhoneVerification(phone){
-    const normalized=phone.replace(/\s+/g,'');
-    const updated=await withTimeout(client.auth.updateUser({phone:normalized}),12000);
-    if(updated.error)throw updated.error;
-    localStorage.setItem('edunizam_pending_phone',normalized);
-    showView('phoneVerifyView');
-    status('phoneVerifyStatus','Verification code sent.',true);
-  }
-
-  $('signupForm').onsubmit=async event=>{
-    event.preventDefault();
-    if(!client)return status('loginStatus','Unable to connect to the login service.');
-
-    const values={
-      school:$('signupSchool').value.trim(),
-      email:$('signupEmail').value.trim(),
-      password:$('signupPassword').value,
-      admin:$('signupAdminName').value.trim(),
-      phone:$('signupPhone').value.trim(),
-      code:$('signupCode').value.trim()
-    };
-    if(!values.school||!values.email||values.password.length<8||!values.admin||!values.phone||!values.code){
-      return status('loginStatus','Complete all required sign-up fields.');
-    }
-
-    busy($('signupBtn'),true,'Creating account...');
-    try{
-      const logo=await readLogo($('signupLogo').files?.[0]);
-      savePendingSignup(values,logo);
-
-      const signed=await withTimeout(client.auth.signUp({
-        email:values.email,
-        password:values.password,
-        options:{
-          emailRedirectTo:location.origin+location.pathname+'?emailVerified=1',
-          data:{full_name:values.admin,signup_intent:'school_admin'}
-        }
-      }),12000);
-      if(signed.error)throw signed.error;
-
-      if(!signed.data.session){
-        status('loginStatus','Account created. Verify your email, then return to continue phone verification.',true);
-        return;
-      }
-
-      await requestPhoneVerification(values.phone);
-    }catch(e){status('loginStatus',friendlyError(e.message||String(e)))}finally{busy($('signupBtn'),false)}
-  };
-
-  async function finalizeAdminSignup(){
-    const pending=pendingSignup();
-    const userResult=await client.auth.getUser();
-    const user=userResult.data.user;
-    if(!pending||!user)return false;
-
-    const result=await withTimeout(client.rpc('complete_school_admin_signup_v2',{
-      p_school_name:pending.school,
-      p_school_code:pending.code,
-      p_admin_name:pending.admin,
-      p_phone:pending.phone
-    }),12000);
-    if(result.error)throw result.error;
-
-    let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
-    settings.schoolName=pending.school;
-    settings.schoolType='School';
-    if(pending.logo)settings.schoolLogo=pending.logo;
-    localStorage.setItem('edunizam_settings',JSON.stringify(settings));
-    localStorage.setItem('edunizam_last_school',pending.school);
-    localStorage.removeItem('edunizam_admin_signup_pending');
-    localStorage.removeItem('edunizam_pending_phone');
-    localStorage.removeItem('edunizam_google_signup');
-    await openDashboard(user,pending.school);
-    return true;
-  }
-
-  $('phoneVerifyForm').onsubmit=async event=>{
-    event.preventDefault();
-    const phone=localStorage.getItem('edunizam_pending_phone')||pendingSignup()?.phone||'';
-    const token=$('phoneOtp').value.trim();
-    if(!phone||token.length!==6)return status('phoneVerifyStatus','Enter the 6-digit verification code.');
-    busy($('verifyPhoneBtn'),true,'Verifying...');
-    try{
-      const verified=await withTimeout(client.auth.verifyOtp({phone:phone.replace(/\s+/g,''),token,type:'phone_change'}),12000);
-      if(verified.error)throw verified.error;
-      status('phoneVerifyStatus','Phone verified. Opening your school workspace...',true);
-      await finalizeAdminSignup();
-    }catch(e){status('phoneVerifyStatus',friendlyError(e.message||String(e)))}finally{busy($('verifyPhoneBtn'),false)}
-  };
-
-  function friendlyError(message){
-    const text=String(message||'');
-    if(/invalid login credentials/i.test(text))return 'The email or password is incorrect.';
-    if(/email not confirmed/i.test(text))return 'Please verify your email address first.';
-    return text;
-  }
-
-  $('activateForm').onsubmit=async event=>{
-    event.preventDefault();
-    if(!client)return status('activateStatus','Unable to connect to the login service.');
-    const fullName=$('fullName').value.trim(),email=$('activateEmail').value.trim(),password=$('activatePassword').value,invite=$('inviteCode').value.trim(),recordCode=$('recordCode').value.trim();
-    if(!fullName||!email||password.length<8)return status('activateStatus','Enter your full name, email and a password with at least 8 characters.');
-    if(activationRole!=='admin'&&(!recordCode||(activationRole==='teacher'&&!invite)))return status('activateStatus',activationRole==='teacher'?'Enter both the Invite Code and Staff Code.':'Enter the Student Code.');
-    busy($('activateBtn'),true,'Creating account...');
-    try{
-      localStorage.setItem(PENDING_KEY,JSON.stringify({role:activationRole,email,invite,recordCode}));
-      const requestedRole=['parent','student'].includes(activationRole)?activationRole:'student';
-      const intent=activationRole==='admin'?'school_admin_candidate':activationRole==='teacher'?'teacher_candidate':activationRole+'_account';
-      const signed=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname+'?verified=1',data:{account_role:requestedRole,signup_intent:intent,full_name:fullName}}});
-      if(signed.error)throw signed.error;
-      if(signed.data.session&&signed.data.user){
-        if(activationRole==='admin'){$('adminName').value=fullName;showView('adminRequestView');return}
-        const message=await completePendingActivation(signed.data.user,activationRole);
-        if(message){await client.auth.signOut();status('activateStatus',message,true);return}
-        await client.auth.signOut();status('activateStatus','Your account is linked to the institution. You can now sign in normally.',true);return;
-      }
-      status('activateStatus','Account created. Verify your email, then return here to sign in.',true);
-    }catch(e){status('activateStatus',friendlyError(e.message||String(e)))}finally{busy($('activateBtn'),false)}
-  };
-
-  function readLogo(file){
+  function saveLogo(file){
     return new Promise((resolve,reject)=>{
       if(!file)return resolve('');
-      if(file.size>900000)return reject(new Error('Use a logo image smaller than 900 KB.'));
-      const reader=new FileReader();
-      reader.onload=()=>resolve(String(reader.result||''));
-      reader.onerror=()=>reject(new Error('The logo image could not be read.'));
-      reader.readAsDataURL(file);
+      if(file.size>900000)return reject(new Error('Use a logo smaller than 900 KB.'));
+      const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('Logo could not be read.'));reader.readAsDataURL(file);
     });
   }
+  async function resolveInstitution(user){
+    const owner=await client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).limit(1);
+    if(owner.data?.[0])return owner.data[0];
+    const profile=await client.from('user_profiles').select('institution_id').eq('user_id',user.id).maybeSingle();
+    if(!profile.data?.institution_id)return null;
+    const inst=await client.from('institutions').select('id,name,institution_type').eq('id',profile.data.institution_id).maybeSingle();
+    return inst.data||null;
+  }
+  async function openApp(user,role){
+    const inst=await resolveInstitution(user);
+    let runtime={};try{runtime=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}')}catch(_){}
+    if(inst?.id){runtime.enabled=true;runtime.institutionId=inst.id;localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify(runtime))}
+    let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
+    if(inst?.name)settings.schoolName=inst.name;
+    localStorage.setItem('edunizam_settings',JSON.stringify(settings));
+    localStorage.setItem('edunizam_session',JSON.stringify({role,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||''}));
+    location.replace('./?secureLogin=1');
+  }
+  function chooseRole(role){
+    selectedRole=role;
+    $('roleTitle').textContent=labels[role]+' Access';
+    $('roleText').textContent='Log in or create your '+labels[role]+' account.';
+    const admin=role==='admin';
+    $('adminSchoolNameField').classList.toggle('hidden',!admin);
+    $('adminLogoField').classList.toggle('hidden',!admin);
+    $('schoolName').required=admin;
+    show('authView');
+    setTab('login');
+  }
+  function setTab(tab){
+    const login=tab==='login';
+    $('loginTab').classList.toggle('active',login);$('signupTab').classList.toggle('active',!login);
+    $('loginForm').classList.toggle('hidden',!login);$('signupForm').classList.toggle('hidden',login);
+    message('');
+  }
 
-  $('adminRequestForm').onsubmit=async event=>{
-    event.preventDefault();
-    if(!client)return status('adminStatus','Unable to connect to the login service.');
-    const userResult=await withTimeout(client.auth.getUser(),10000);
-    const user=userResult.data.user;
-    if(!user)return status('adminStatus','Please sign in or create an Admin account first.');
+  document.querySelectorAll('[data-role]').forEach(btn=>btn.addEventListener('click',()=>chooseRole(btn.dataset.role)));
+  $('backRole').onclick=()=>show('roleView');
+  $('loginTab').onclick=()=>setTab('login');
+  $('signupTab').onclick=()=>setTab('signup');
 
-    const schoolName=$('loginSchool').value.trim()||$('setupSchoolName').textContent.trim();
-    const values={
-      name:schoolName,
-      code:$('schoolCode').value.trim(),
-      type:$('schoolType').value,
-      sector:$('schoolSector').value,
-      admin:$('adminName').value.trim(),
-      phone:$('phone').value.trim()
-    };
-    if(!values.name||!values.code||!values.admin||!values.phone){
-      return status('adminStatus','Complete Institution Type, Sector, Registration / EMIS Code, Head / Admin Name and Mobile Number.');
-    }
-
-    busy($('submitAdminRequest'),true,'Saving...');
-    status('adminStatus','Creating your institution workspace...',true);
-
+  $('loginForm').onsubmit=async e=>{
+    e.preventDefault();
+    if(!client)return message('Login service is unavailable.');
+    busy($('loginBtn'),true,'Signing in...');
     try{
-      const logo=await readLogo($('setupLogo').files?.[0]);
-      const result=await withTimeout(client.rpc('complete_school_admin_setup_v1',{
-        p_school_name:values.name,
-        p_school_registration_code:values.code,
-        p_school_sector:values.sector,
-        p_school_type:values.type,
-        p_admin_name:values.admin,
-        p_phone:values.phone
-      }),12000);
-      if(result.error)throw result.error;
+      const {data,error}=await client.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});
+      if(error)throw error;
+      const role=await client.rpc('current_account_role');
+      if(role.error)throw role.error;
+      if(role.data!==roleCloud[selectedRole]){await client.auth.signOut();throw new Error('This account does not match the selected role.')}
+      await openApp(data.user,selectedRole);
+    }catch(err){message(friendly(err.message||err))}finally{busy($('loginBtn'),false)}
+  };
 
-      let settings={};
-      try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
-      settings.schoolName=values.name;
-      settings.schoolType=values.type;
-      if(logo)settings.schoolLogo=logo;
+  $('signupForm').onsubmit=async e=>{
+    e.preventDefault();
+    if(!client)return message('Login service is unavailable.');
+    const school=$('schoolName').value.trim(),name=$('fullName').value.trim(),phone=$('contactNumber').value.trim(),email=$('signupEmail').value.trim(),password=$('signupPassword').value,code=$('schoolCode').value.trim();
+    if(!name||!phone||!email||password.length<8||!code||(selectedRole==='admin'&&!school))return message('Complete all required fields.');
+    busy($('signupBtn'),true,'Creating account...');
+    try{
+      const logo=selectedRole==='admin'?await saveLogo($('schoolLogo').files?.[0]):'';
+      localStorage.setItem('edunizam_pending_signup',JSON.stringify({role:selectedRole,school,name,phone,code,logo,email}));
+      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname+'?completeSignup=1',data:{full_name:name}}});
+      if(error)throw error;
+      if(!data.session){message('Account created. Please verify your email, then return to this page.',true);return}
+      await completeSignup(data.user);
+    }catch(err){message(friendly(err.message||err))}finally{busy($('signupBtn'),false)}
+  };
+
+  async function completeSignup(user){
+    let pending=null;try{pending=JSON.parse(localStorage.getItem('edunizam_pending_signup')||'null')}catch(_){}
+    if(!pending)return;
+    const {data,error}=await client.rpc('register_simple_account_v1',{
+      p_role:pending.role,p_school_name:pending.school||'',p_school_code:pending.code,p_full_name:pending.name,p_phone:pending.phone
+    });
+    if(error)throw error;
+    if(pending.role==='admin'){
+      let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
+      settings.schoolName=pending.school;settings.schoolType='School';if(pending.logo)settings.schoolLogo=pending.logo;
       localStorage.setItem('edunizam_settings',JSON.stringify(settings));
-      localStorage.setItem('edunizam_last_school',values.name);
-      localStorage.setItem('edunizam_session',JSON.stringify({
-        role:'head',
-        identity:user.email,
-        loginAt:Date.now(),
-        source:'supabase',
-        schoolName:values.name
-      }));
-
-      status('adminStatus','Workspace created successfully. Opening EduNizam...',true);
-      location.replace('./?secureLogin=1');
-    }catch(e){
-      status('adminStatus',friendlyError(e.message||String(e)));
-      busy($('submitAdminRequest'),false);
     }
-  };
+    localStorage.removeItem('edunizam_pending_signup');
+    await openApp(user,pending.role);
+  }
 
-  $('resetForm').onsubmit=async event=>{
-    event.preventDefault();const one=$('newPassword').value,two=$('confirmPassword').value;
-    if(one.length<8)return status('resetStatus','Use a password with at least 8 characters.');
-    if(one!==two)return status('resetStatus','The passwords do not match.');
-    try{const result=await client.auth.updateUser({password:one});if(result.error)throw result.error;status('resetStatus','Password changed successfully. You can now sign in normally.',true);setTimeout(()=>showView('loginView'),800)}catch(e){status('resetStatus',e.message||String(e))}
+  $('forgotBtn').onclick=async()=>{
+    const email=$('loginEmail').value.trim();if(!email)return message('Enter your email address first.');
+    try{const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?reset=1'});if(error)throw error;message('Password reset link sent to your email.',true)}catch(err){message(friendly(err.message||err))}
   };
-
-  client=buildClient();
-  const params=new URLSearchParams(location.search);
-  selectRole('admin');selectActivationRole('teacher');
-  if(!params.get('reset')&&!params.get('emailVerified')&&!params.get('google'))showView('roleChoiceView');
+  $('resetForm').onsubmit=async e=>{
+    e.preventDefault();const password=$('newPassword').value;if(password.length<8)return message('Use at least 8 characters.',false,'resetStatus');
+    try{const {error}=await client.auth.updateUser({password});if(error)throw error;message('Password changed successfully.',true,'resetStatus');setTimeout(()=>show('roleView'),700)}catch(err){message(friendly(err.message||err),false,'resetStatus')}
+  };
+  $('backReset').onclick=()=>show('roleView');
 
   if(client){
-    client.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')showView('resetView')});
-
-    if(params.get('reset')==='1'){
-      client.auth.getSession().then(({data})=>{if(data?.session)showView('resetView')}).catch(()=>{});
-    }
-
+    client.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')show('resetView')});
+    const params=new URLSearchParams(location.search);
     client.auth.getSession().then(async({data})=>{
-      const user=data?.session?.user;
-      if(!user)return;
-
-      const pending=pendingSignup();
-      const google=params.get('google')==='1'||localStorage.getItem('edunizam_google_signup')==='1';
-
-      if(google){
-        localStorage.removeItem('edunizam_google_signup');
-        const googleRole=localStorage.getItem('edunizam_google_role')||'admin';
-        localStorage.removeItem('edunizam_google_role');
-        selectRole(googleRole);
-
-        let profile=await client.from('user_profiles').select('account_role').eq('user_id',user.id).maybeSingle();
-        const expected=expectedCloudRole(googleRole);
-
-        if(profile.data?.account_role===expected){
-          if(googleRole==='admin'){
-            await openDashboard(user);
-          }else{
-            const inst=await resolveSchoolContext(user);
-            if(inst){
-              localStorage.setItem('edunizam_session',JSON.stringify({role:googleRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst.name||''}));
-              location.replace('./?secureLogin=1');
-            }
-          }
-          return;
-        }
-
-        if(googleRole!=='admin'){
-          await client.auth.signOut();
-          showView('roleChoiceView');
-          status('loginStatus','Google account is not yet linked to the selected role.');
-          return;
-        }
-
-        showView('loginView');
-        showAuthTab('signup');
-        $('signupEmail').value=user.email||'';
-        $('signupEmail').readOnly=true;
-        $('signupAdminName').value=user.user_metadata?.full_name||user.user_metadata?.name||'';
-        status('loginStatus','Google account verified. Complete school details and verify your phone number.',true);
-        return;
+      if(params.get('reset')==='1'&&data.session){show('resetView');return}
+      if(params.get('completeSignup')==='1'&&data.session?.user){
+        try{await completeSignup(data.session.user)}catch(err){show('authView');message(friendly(err.message||err))}
       }
-
-      if(params.get('emailVerified')==='1'&&pending){
-        status('loginStatus','Email verified. Sending phone verification code...',true);
-        try{await requestPhoneVerification(pending.phone)}catch(e){status('loginStatus',friendlyError(e.message||String(e)))}
-        return;
-      }
-
-      if(pending && user.email_confirmed_at){
-        try{await requestPhoneVerification(pending.phone)}catch(_){}
-      }
-    }).catch(()=>{});
+    });
   }
 })();
 </script>
