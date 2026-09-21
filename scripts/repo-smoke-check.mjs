@@ -89,6 +89,11 @@ for(const page of ["about.html","features.html","privacy.html","school-managemen
 
 const sitemap=read("sitemap.xml");
 const sitemapUrls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
+const homeLinks=[...html.matchAll(/href=["']([^"']+\.html)["']/g)].map(m=>m[1].replace(/^\.\//,''));
+const crawlFiles=["about.html","features.html","privacy.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"];
+const orphaned=crawlFiles.filter(p=>!homeLinks.includes(p) && !htmlByPage["features.html"].includes('href="'+p+'"'));
+orphaned.length?bad("seo:orphan-public-pages",orphaned.join(", ")):ok("seo:orphan-public-pages");
+
 const expectedUrls=Object.values(canonicalPages);
 const missingSitemap=expectedUrls.filter(x=>!sitemapUrls.includes(x));
 missingSitemap.length?bad("seo:sitemap",missingSitemap.join(", ")):ok("seo:sitemap");
