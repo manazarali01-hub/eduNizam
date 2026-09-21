@@ -274,7 +274,7 @@ window.EDUNIZAM_FEE_BRIDGE={
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').classList.remove('hidden')});
 $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').classList.add('hidden')};
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260921-access62',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260921-easy-login63',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 renderAll();
 
 
@@ -298,53 +298,8 @@ renderAll();
     document.head.appendChild(s);
   }
   function showLogin(){
-    if(document.getElementById('edunizamLogin'))return;
-    const box=document.createElement('div');box.id='edunizamLogin';box.className='login-screen';
-    const localHelp={
-      head:'Verified School Admin / Head only',
-      teacher:'Staff Code + School Admin approval',
-      parent:'Bachay ki progress dekhein',
-      student:'Apni study aur result dekhein'
-    };
-    box.innerHTML='<div class="login-card"><div class="academic-kicker">EduNizam Secure Access</div><h1>Select login type</h1><p>School Admin/Head, Teacher, Parent aur Student ke login alag hain. <strong>Admin aur Teacher ko verification ke baghair access nahi milega.</strong></p><div class="role-grid">'+[['head','School Admin / Head'],['teacher','Teacher / Staff'],['parent',labels.parent],['student',labels.student]].map(([k,v])=>'<button class="role-choice" data-role="'+k+'"><strong>'+v+'</strong><br><small>'+localHelp[k]+'</small></button>').join('')+'</div><div class="login-fields"><input id="loginIdentity" placeholder="Select a login type first"><input id="loginPassword" type="password" placeholder="Password" style="display:none"><div id="localSecureNote" class="coverage-note">School Admin / Head aur Teacher secure cloud verification se login karte hain.</div><button id="loginContinue" disabled>Continue</button></div></div>';
-    document.body.appendChild(box);let selected='';
-    const identity=box.querySelector('#loginIdentity'),password=box.querySelector('#loginPassword'),note=box.querySelector('#localSecureNote'),cont=box.querySelector('#loginContinue');
-    box.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{
-      selected=b.dataset.role;
-      box.querySelectorAll('[data-role]').forEach(x=>x.classList.toggle('active',x===b));
-      cont.disabled=false;
-      if(selected==='head'){
-        identity.placeholder='Registered Admin email';
-        password.style.display='block';
-        cont.textContent='School Admin / Head Login';
-        note.innerHTML='<strong>Protected login:</strong> is account ko EduNizam verification ke baad hi School Admin/Head rights milte hain. EMIS code akela access nahi deta.';
-      }else if(selected==='teacher'){
-        identity.placeholder='Registered email / Staff ID';
-        password.style.display='block';
-        cont.textContent='Teacher Login';
-        note.innerHTML='<strong>Teacher verification:</strong> Staff Directory match aur School Admin approval required hai.';
-      }else{
-        identity.placeholder=selected==='parent'?'Mobile / Parent ID':'Mobile / Student ID';
-        password.style.display='none';
-        cont.textContent='Continue';
-        note.textContent='Local test access. Production mein linked account verification use hogi.';
-      }
-    });
-    cont.onclick=()=>{
-      const id=identity.value.trim();
-      if(!id)return alert('Identity enter karein');
-      if(selected==='head'||selected==='teacher'){
-        if(!password.value)return alert('Password enter karein');
-        if(window.EDUNIZAM_CLOUD_SETUP?.showConnectionWizard){
-          box.remove();
-          window.EDUNIZAM_CLOUD_SETUP.showConnectionWizard();
-        }else{
-          alert('Secure cloud connection setup required.');
-        }
-        return;
-      }
-      localStorage.setItem(ROLE_KEY,JSON.stringify({role:selected,identity:id,loginAt:Date.now()}));box.remove();applyRole();
-    };
+    const target='login.html?from=app';
+    if(!location.pathname.endsWith('/login.html'))location.replace(target);
   }
   function applyRole(){
     const session=JSON.parse(localStorage.getItem(ROLE_KEY)||'null');if(!session){showLogin();return}
