@@ -345,8 +345,16 @@ renderAll();
     const target='login.html?from=app';
     if(!location.pathname.endsWith('/login.html'))location.replace(target);
   }
-  function applyRole(){
-    const session=JSON.parse(localStorage.getItem(ROLE_KEY)||'null');if(!session){showLogin();return}
+  function applyRole(retry=0){
+    const session=JSON.parse(localStorage.getItem(ROLE_KEY)||'null');
+    if(!session){
+      if(retry<8){
+        setTimeout(()=>applyRole(retry+1),300);
+        return;
+      }
+      showLogin();
+      return;
+    }
     const allowed=roleViews[session.role]||roleViews.student;
     document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.toggle('role-hidden',!allowed.includes(b.dataset.view)));
     const actions=document.querySelector('.topbar-actions');if(actions&&!document.getElementById('roleSession')){const chip=document.createElement('span');chip.id='roleSession';chip.className='session-chip';chip.innerHTML='<strong>'+labels[session.role]+'</strong><button class="secondary" style="padding:4px 8px">Logout</button>';chip.querySelector('button').onclick=()=>{localStorage.removeItem(ROLE_KEY);location.reload()};actions.prepend(chip)}
