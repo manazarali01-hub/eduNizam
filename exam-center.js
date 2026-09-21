@@ -83,8 +83,9 @@
     if(!rows.length){out.innerHTML='<div class="empty-state">Is selection ke liye result records available nahi hain.</div>';return}
     const obt=rows.reduce((a,r)=>a+Number(r.marks||0),0),tot=rows.reduce((a,r)=>a+Number(r.total||0),0),pct=tot?Math.round(obt/tot*100):0;
     const st=settings();
+    const logo=st.schoolLogo?'<img class="report-school-logo" src="'+esc(st.schoolLogo)+'" alt="Institute logo">':'';
     out.innerHTML='<div id="printableReportCard" class="card">'+
-      '<div class="section-head"><div><div class="academic-kicker">'+esc(st.schoolName||'EduNizam Institute')+'</div><h2>Student Report Card</h2><p class="muted">'+esc(type||'Combined Results')+(st.session?' · '+esc(st.session):'')+'</p></div><span class="academic-pill">Grade '+grade(pct)+'</span></div>'+
+      '<div class="section-head report-card-head"><div class="report-brand">'+logo+'<div><div class="academic-kicker">'+esc(st.schoolName||'EduNizam Institute')+'</div><h2>Student Report Card</h2><p class="muted">'+esc(type||'Combined Results')+(st.session?' · '+esc(st.session):'')+'</p></div></div><span class="academic-pill">Grade '+grade(pct)+'</span></div>'+
       '<div class="paper-meta"><span><strong>Student:</strong> '+esc(s.name)+'</span><span><strong>Class:</strong> '+esc(s.className||'-')+'</span><span><strong>Guardian:</strong> '+esc(s.father||'-')+'</span></div>'+
       '<div class="list" style="margin-top:14px">'+rows.map(r=>{const p=Math.round(Number(r.marks||0)/Number(r.total||1)*100);return '<div class="row"><strong>'+esc(r.subject)+'</strong><span>'+esc(r.type||'Result')+'</span><span>'+Number(r.marks||0)+'/'+Number(r.total||0)+'</span><span>'+p+'% · '+grade(p)+'</span><span></span></div>'}).join('')+'</div>'+
       '<div class="cards" style="margin-top:14px"><article class="card stat"><span>Obtained</span><strong>'+obt+'</strong></article><article class="card stat"><span>Total</span><strong>'+tot+'</strong></article><article class="card stat"><span>Percentage</span><strong>'+pct+'%</strong></article><article class="card stat"><span>Grade</span><strong>'+grade(pct)+'</strong></article></div>'+
@@ -94,7 +95,7 @@
   function printReport(){
     const card=$('printableReportCard');if(!card)return alert('Pehle report card build karein.');
     const w=window.open('','_blank','width=900,height=700');if(!w)return alert('Popup blocked. Browser mein popups allow karein.');
-    w.document.write('<!doctype html><html><head><title>EduNizam Report Card</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#17324a}.row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;padding:10px;border-bottom:1px solid #ddd}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.card{border:1px solid #d8e2e7;border-radius:12px;padding:14px}.muted{color:#667}.academic-pill{padding:6px 10px;border:1px solid #ccc;border-radius:999px}@media print{button{display:none}}</style></head><body>'+card.innerHTML+'</body></html>');
+    w.document.write('<!doctype html><html><head><title>EduNizam Report Card</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#17324a}.row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;padding:10px;border-bottom:1px solid #ddd}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.card{border:1px solid #d8e2e7;border-radius:12px;padding:14px}.muted{color:#667}.academic-pill{padding:6px 10px;border:1px solid #ccc;border-radius:999px}.section-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.report-brand{display:flex;align-items:center;gap:14px}.report-school-logo{width:72px;height:72px;object-fit:contain;border:1px solid #d8e2e7;border-radius:12px;padding:5px}.academic-kicker{font-size:13px;font-weight:700;color:#0f766e}@media print{button{display:none}}</style></head><body>'+card.innerHTML+'</body></html>');
     w.document.close();w.focus();setTimeout(()=>w.print(),250);
   }
 
