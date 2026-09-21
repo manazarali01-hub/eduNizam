@@ -14,9 +14,10 @@
     *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#eaf7f4,#f7fbfa)}
     button,input{font:inherit}.hidden{display:none!important}.page{min-height:100vh;display:grid;grid-template-columns:minmax(560px,58%) minmax(360px,42%)}
     .story{position:relative;min-height:100vh;padding:52px 56px 78px;display:flex;flex-direction:column;justify-content:flex-start;gap:26px;color:#fff;background:url("assets/edunizam-login-children.webp") center/cover}
-    .brand{display:flex;align-items:center;gap:12px;width:max-content;max-width:100%}.brand img{width:58px;height:58px;object-fit:contain;background:rgba(255,255,255,.92);border-radius:16px;padding:6px;box-shadow:0 8px 22px rgba(15,23,42,.10)}.brand strong{font-size:1.2rem;color:#0f766e}.brand span{display:block;font-size:.8rem;color:#0f766e}
-    .mini-chip{display:inline-block;padding:6px 12px;margin:3px 0;background:rgba(255,255,255,.84);border:1px solid rgba(15,118,110,.18);border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,.08);backdrop-filter:blur(3px)}
-    .story-copy{width:min(560px,94%);transform:translateY(-18px)}.story h1{font-size:clamp(40px,5vw,72px);line-height:.98;letter-spacing:-.045em;margin:0 0 12px}.story h1 .mini-chip{color:#0f766e;padding:7px 13px}.story p{max-width:540px;font-size:1.05rem;line-height:1.65;margin:0}.story p .mini-chip{color:#0f766e}
+    .brand{display:flex;align-items:center;gap:12px;width:max-content;max-width:100%}.brand img{width:58px;height:58px;object-fit:contain;background:rgba(255,255,255,.92);border-radius:16px;padding:6px;box-shadow:0 8px 22px rgba(15,23,42,.10)}.brand strong{font-size:1.2rem;color:#0f766e;text-shadow:0 2px 8px rgba(255,255,255,.9)}.brand span{display:block;font-size:.8rem;color:#0f766e}
+    .mini-chip{display:inline-block;padding:5px 10px;margin:3px 0;background:rgba(255,255,255,.84);border:1px solid rgba(15,118,110,.18);border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,.08);backdrop-filter:blur(3px)}
+    .pak-flag{position:absolute;top:24px;right:26px;z-index:2;font-size:2.1rem;line-height:1;filter:drop-shadow(0 3px 5px rgba(15,23,42,.25))}
+    .story-copy{width:min(560px,94%);transform:translateY(-18px)}.story h1{font-size:clamp(40px,5vw,72px);line-height:.98;letter-spacing:-.045em;margin:0 0 12px;color:#0f766e;text-shadow:0 2px 10px rgba(255,255,255,.9)}.story p{max-width:540px;font-size:1.05rem;line-height:1.65;margin:0}.story p .mini-chip{color:#0f766e}
     .benefits{display:flex;gap:10px;flex-wrap:wrap;margin-top:-10px}.benefits span{padding:8px 12px;border:1px solid rgba(15,118,110,.20);background:rgba(255,255,255,.84);color:#0f766e;border-radius:999px;font-size:.8rem;font-weight:800;box-shadow:0 6px 18px rgba(15,23,42,.08);backdrop-filter:blur(3px)}
     .main{display:grid;place-items:center;padding:30px}.card{width:min(680px,100%);background:rgba(255,255,255,.96);border:1px solid rgba(15,118,110,.13);border-radius:26px;padding:30px;box-shadow:0 24px 70px rgba(23,50,74,.13)}
     .eyebrow{font-size:.73rem;text-transform:uppercase;letter-spacing:.11em;color:var(--teal);font-weight:850}.view h2{margin:6px 0 6px;font-size:2rem;letter-spacing:-.035em}.subtitle{margin:0 0 20px;color:var(--muted);line-height:1.55}
@@ -35,8 +36,9 @@
 <a class="skip" href="#authCard">Skip to login</a>
 <div class="page">
   <aside class="story">
-    <div class="brand"><img src="assets/edunizam-logo.webp" alt="EduNizam"><div><strong class="mini-chip">EduNizam</strong><span class="mini-chip">Smart School Management</span></div></div>
-    <div class="story-copy"><h1><span class="mini-chip">One school.</span><br><span class="mini-chip">One system.</span></h1><p><span class="mini-chip">Simple access for Admins, Teachers, Parents and Students.</span></p></div>
+    <div class="pak-flag" role="img" aria-label="Pakistan flag">🇵🇰</div>
+    <div class="brand"><img src="assets/edunizam-logo.webp" alt="EduNizam"><div><strong>EduNizam</strong><span class="mini-chip">Smart School Management</span></div></div>
+    <div class="story-copy"><h1>One school.<br>One system.</h1><p><span class="mini-chip">Simple access for Admins, Teachers, Parents and Students.</span></p></div>
     <div class="benefits"><span>✓ Simple Access</span><span>✓ Role Based</span><span>✓ School Connected</span></div>
   </aside>
 
