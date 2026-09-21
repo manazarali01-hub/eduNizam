@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en-PK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f766e">
+<title>EduNizam Secure Login</title>
+<link rel="icon" href="assets/edunizam-logo.webp" type="image/webp">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(135deg,#071b33,#0f766e);min-height:100vh;padding:20px;color:#0b2748}
+.wrap{min-height:calc(100vh - 40px);display:grid;place-items:center}.card{width:min(620px,100%);background:#fff;border-radius:26px;padding:28px;box-shadow:0 28px 80px #001a}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}.brand img{width:48px;height:48px;object-fit:contain}.brand strong{font-size:1.3rem}.kicker{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:#0f766e;font-weight:800}
+h1{font-size:clamp(2rem,7vw,3.4rem);margin:8px 0 10px}p{color:#536579;line-height:1.55}.roles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.role{padding:16px;text-align:left;border:2px solid #dce7ec;border-radius:16px;background:#f8fbfc;color:#16344d;font-weight:800}.role small{display:block;margin-top:5px;font-weight:600;color:#536579}.role.active{border-color:#0f766e;background:#e9f8f5}
+.panel{display:none;border-top:1px solid #e5ecef;margin-top:18px;padding-top:18px}.panel.active{display:block}.fields{display:grid;gap:11px}.fields input,.fields select{width:100%;padding:14px 15px;border:1px solid #cbd7dd;border-radius:12px;font-size:16px}
+button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:white;font-weight:800;font-size:15px}.secondary{background:#eef4f6;color:#234}.actions{display:flex;gap:10px;flex-wrap:wrap}.note{margin-top:12px;padding:12px;border-radius:12px;background:#f3f8fb;color:#466071;font-size:14px;line-height:1.45}.status{min-height:22px;margin-top:10px;font-size:14px}.good{color:#166534}.bad{color:#9b1c1c}.hidden{display:none!important}
+@media(max-width:560px){.card{padding:20px}.roles{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main class="card">
+    <div class="brand"><img src="assets/edunizam-logo.webp" alt="EduNizam"><div><div class="kicker">EduNizam Secure Access</div><strong>Role-based Login</strong></div></div>
+    <h1>Select login type</h1>
+    <p>Admin aur Teacher access verification ke baghair activate nahi hota.</p>
+    <div class="roles">
+      <button class="role" data-role="admin">School Admin / Head<small>Verified school owner/head only</small></button>
+      <button class="role" data-role="teacher">Teacher / Staff<small>Staff Code + Admin approval</small></button>
+      <button class="role" data-role="parent">Parent / Guardian<small>Linked child account</small></button>
+      <button class="role" data-role="student">Student<small>Student account</small></button>
+    </div>
+
+    <section id="cloudPanel" class="panel">
+      <h2>Connect EduNizam Cloud</h2>
+      <p id="cloudIntro">Secure Admin/Teacher authentication ke liye Supabase connect karna zaroori hai.</p>
+      <div class="fields">
+        <input id="supabaseUrl" placeholder="Supabase Project URL e.g. https://xxxx.supabase.co" autocomplete="off">
+        <input id="supabaseKey" type="password" placeholder="Publishable / Anon Key" autocomplete="off">
+        <div class="actions"><button id="testBtn">Test Connection</button><button id="saveBtn">Save & Continue</button></div>
+      </div>
+      <div class="note"><strong>Security:</strong> yahan sirf Publishable/Anon key use karein. Service Role Key ya database password kabhi paste na karein.</div>
+      <div id="cloudStatus" class="status"></div>
+    </section>
+
+    <section id="accountPanel" class="panel">
+      <h2 id="accountTitle">Secure sign in</h2>
+      <div class="fields">
+        <input id="email" type="email" placeholder="Registered email address" autocomplete="email">
+        <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+        <input id="staffCode" class="hidden" placeholder="Staff Code">
+        <div class="actions"><button id="signInBtn">Sign in</button><button id="backCloud" class="secondary">Cloud settings</button></div>
+      </div>
+      <div id="accountStatus" class="status"></div>
+    </section>
+
+    <section id="simplePanel" class="panel">
+      <p>This test page ka current focus Admin/Teacher secure login hai. Student/Parent flow next phase mein connect hoga.</p>
+      <a href="./" style="color:#0f766e;font-weight:800">Open EduNizam main app →</a>
+    </section>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const KEY='edunizam_cloud_runtime_config';
+  const $=id=>document.getElementById(id);
+  let selected='';
+  let client=null;
+  function getCfg(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(_){return{}}}
+  function show(id){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));$(id).classList.add('active')}
+  function setStatus(id,msg,ok=false){const e=$(id);e.textContent=msg||'';e.className='status '+(ok?'good':'bad')}
+  function loadCfg(){const c=getCfg();$('supabaseUrl').value=c.supabaseUrl||'';$('supabaseKey').value=c.supabasePublishableKey||'';return c}
+  function buildClient(){
+    const c=getCfg();
+    if(!c.enabled||!c.supabaseUrl||!c.supabasePublishableKey)return null;
+    try{return window.supabase.createClient(c.supabaseUrl,c.supabasePublishableKey)}catch(_){return null}
+  }
+  async function openRole(role){
+    selected=role;document.querySelectorAll('.role').forEach(b=>b.classList.toggle('active',b.dataset.role===role));
+    if(role==='parent'||role==='student'){show('simplePanel');return}
+    const c=loadCfg();client=buildClient();
+    if(!client){$('cloudIntro').textContent=role==='admin'?'School Admin / Head secure login activate karne ke liye Supabase connect karein.':'Teacher verification login activate karne ke liye Supabase connect karein.';show('cloudPanel');return}
+    $('accountTitle').textContent=role==='admin'?'School Admin / Head Login':'Teacher / Staff Login';
+    $('staffCode').classList.toggle('hidden',role!=='teacher');
+    $('signInBtn').textContent=role==='admin'?'Sign in as School Admin':'Sign in as Teacher';
+    show('accountPanel');
+  }
+  document.querySelectorAll('.role').forEach(b=>b.onclick=()=>openRole(b.dataset.role));
+  $('testBtn').onclick=async()=>{
+    const url=$('supabaseUrl').value.trim().replace(/\/$/,'');
+    const key=$('supabaseKey').value.trim();
+    if(!/^https:\/\/.+\.supabase\.co$/i.test(url))return setStatus('cloudStatus','Valid Supabase Project URL enter karein.');
+    if(key.length<20)return setStatus('cloudStatus','Publishable / Anon key incomplete hai.');
+    setStatus('cloudStatus','Testing connection...',true);
+    try{
+      const r=await fetch(url+'/auth/v1/settings',{headers:{apikey:key,Authorization:'Bearer '+key}});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      setStatus('cloudStatus','Connection successful.',true);
+    }catch(e){setStatus('cloudStatus','Connection failed: '+(e.message||e))}
+  };
+  $('saveBtn').onclick=()=>{
+    const url=$('supabaseUrl').value.trim().replace(/\/$/,'');
+    const key=$('supabaseKey').value.trim();
+    if(!/^https:\/\/.+\.supabase\.co$/i.test(url))return setStatus('cloudStatus','Valid Supabase Project URL enter karein.');
+    if(key.length<20)return setStatus('cloudStatus','Publishable / Anon key required hai.');
+    localStorage.setItem(KEY,JSON.stringify({enabled:true,provider:'supabase',supabaseUrl:url,supabasePublishableKey:key,institutionId:'',admissionsStorageBucket:'admission-documents'}));
+    client=buildClient();openRole(selected||'admin');
+  };
+  $('backCloud').onclick=()=>{loadCfg();show('cloudPanel')};
+  $('signInBtn').onclick=async()=>{
+    if(!client)client=buildClient();if(!client)return show('cloudPanel');
+    const email=$('email').value.trim(),password=$('password').value;
+    if(!email||!password)return setStatus('accountStatus','Email aur password required hain.');
+    setStatus('accountStatus','Signing in...',true);
+    try{
+      const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;
+      const user=data.user;if(!user)throw new Error('Login failed.');
+      const {data:roleData,error:roleError}=await client.rpc('current_account_role');
+      if(roleError)throw roleError;
+      if(selected==='admin'&&roleData!=='head_of_institute'){await client.auth.signOut();throw new Error('Ye account verified School Admin / Head nahi hai.')}
+      if(selected==='teacher'&&roleData!=='teacher'){await client.auth.signOut();throw new Error('Teacher access abhi approved nahi hai.')}
+      localStorage.setItem('edunizam_session',JSON.stringify({role:selected==='admin'?'head':'teacher',identity:user.email,loginAt:Date.now(),source:'supabase'}));
+      setStatus('accountStatus','Verified. Opening EduNizam...',true);
+      location.href='./?secureLogin=1';
+    }catch(e){setStatus('accountStatus',e.message||String(e))}
+  };
+  loadCfg();
+})();
+</script>
+</body>
+</html>
