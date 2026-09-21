@@ -58,7 +58,8 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
       <p>Login successful hai, lekin Admin rights verification ke baad milenge. Neeche school details submit karein.</p>
       <div class="fields">
         <input id="schoolName" placeholder="School / Institute name">
-        <select id="schoolSector"><option value="private">Private School</option><option value="government">Government School</option></select>\n        <input id="schoolCode" placeholder="Private School Registration Number">
+        <select id="schoolSector"><option value="private">Private School</option><option value="government">Government School</option></select>
+        <input id="schoolCode" placeholder="Private School Registration Number">
         <select id="schoolType"><option value="school">School</option><option value="college">College</option><option value="academy">Academy</option><option value="university">University</option></select>
         <input id="adminName" placeholder="Head / Owner full name">
         <input id="designation" placeholder="Designation e.g. Head Teacher / Principal / Owner">
@@ -197,15 +198,15 @@ button{border:0;border-radius:12px;padding:13px 16px;background:#0f766e;color:wh
     const {data:{user}}=await client.auth.getUser();
     if(!user)return setStatus('adminRequestStatus','Pehle account se sign in karein.');
     const vals={
-      name:$('schoolName').value.trim(),code:$('schoolCode').value.trim(),type:$('schoolType').value,
+      name:$('schoolName').value.trim(),code:$('schoolCode').value.trim(),sector:$('schoolSector').value,type:$('schoolType').value,
       admin:$('adminName').value.trim(),designation:$('designation').value.trim(),phone:$('phone').value.trim(),proof:$('proofRef').value.trim()
     };
     if(!vals.name||!vals.code||!vals.admin||!vals.designation||!vals.phone)return setStatus('adminRequestStatus','School name, EMIS/registration code, admin name, designation aur mobile required hain.');
     setStatus('adminRequestStatus','Submitting verification request...',true);
     try{
-      const {data,error}=await client.rpc('submit_school_admin_request',{
-        p_school_name:vals.name,p_school_registration_code:vals.code,p_school_type:vals.type,
-        p_admin_name:vals.admin,p_designation:vals.designation,p_phone:vals.phone,p_proof_reference:vals.proof||null
+      const {data,error}=await client.rpc('submit_school_admin_request_v2',{
+        p_school_name:vals.name,p_school_registration_code:vals.code,p_school_sector:vals.sector,p_school_type:vals.type,
+        p_admin_name:vals.admin,p_designation:vals.designation,p_phone:vals.phone,p_proof_reference:vals.proof||''
       });
       if(error)throw error;
       const row=Array.isArray(data)?data[0]:data;
