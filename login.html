@@ -36,6 +36,12 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
 .or-divider{display:flex;align-items:center;gap:10px;margin:12px 0;color:#7b8988;font-size:.82rem}
 .or-divider:before,.or-divider:after{content:"";height:1px;background:#dce7e5;flex:1}
 .hidden{display:none!important}
+
+.role-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.role-choice{min-height:118px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;text-align:left}
+.role-choice .icon{font-size:1.6rem}.role-choice strong{font-size:1rem}.role-choice small{opacity:.72;font-weight:600}
+.auth-view-head{align-items:flex-start}
+@media(max-width:520px){.role-choice-grid{grid-template-columns:1fr 1fr}.role-choice{min-height:105px;padding:12px}}
 </style>
 </head>
 <body>
@@ -51,10 +57,20 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
   <main class="card" id="loginMain" tabindex="-1">
     <div class="mobile-brand"><img src="assets/edunizam-logo.webp" alt=""><div><strong>EduNizam</strong><div class="eyebrow">Smart School Management</div></div></div>
 
-    <section id="loginView" class="view active">
+    <section id="roleChoiceView" class="view active">
       <div class="eyebrow">EduNizam Access</div>
-      <h2>Welcome to EduNizam</h2>
-      <p class="subtitle">Create a new school account or sign in to an existing one.</p>
+      <h2>Choose Your Role</h2>
+      <p class="subtitle">Select how you want to use EduNizam.</p>
+      <div class="roles role-choice-grid" role="group" aria-label="Choose account role">
+        <button class="role role-choice" type="button" data-entry-role="admin"><span class="icon">🏫</span><strong>Admin</strong><small>School / Institute Head</small></button>
+        <button class="role role-choice" type="button" data-entry-role="teacher"><span class="icon">👩‍🏫</span><strong>Teacher</strong><small>Teaching Staff</small></button>
+        <button class="role role-choice" type="button" data-entry-role="parent"><span class="icon">👪</span><strong>Parent</strong><small>Parent / Guardian</small></button>
+        <button class="role role-choice" type="button" data-entry-role="student"><span class="icon">🎓</span><strong>Student</strong><small>Student Account</small></button>
+      </div>
+    </section>
+
+    <section id="loginView" class="view">
+      <div class="view-head auth-view-head"><button id="changeRoleBtn" class="back" type="button">←</button><div><div class="eyebrow">EduNizam Access</div><h2 id="authRoleTitle">Admin Access</h2><p id="authRoleSubtitle" class="subtitle">Log in or create an Admin account.</p></div></div>
 
       <div class="auth-tabs" role="tablist" aria-label="Account access">
         <button id="loginTabBtn" class="auth-tab active" type="button" role="tab" aria-selected="true">Log In</button>
@@ -193,8 +209,11 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
   function selectRole(role){
     selectedRole=role;
     document.querySelectorAll('[data-role]').forEach(b=>b.classList.toggle('active',b.dataset.role===role));
-    const labels={admin:'Admin Login',teacher:'Teacher Login',parent:'Parent Login',student:'Student Login'};
-    $('loginBtn').textContent=labels[role];
+    document.querySelectorAll('[data-entry-role]').forEach(b=>b.classList.toggle('active',b.dataset.entryRole===role));
+    const names={admin:'Admin',teacher:'Teacher',parent:'Parent',student:'Student'};
+    if($('authRoleTitle'))$('authRoleTitle').textContent=(names[role]||'Account')+' Access';
+    if($('authRoleSubtitle'))$('authRoleSubtitle').textContent='Log in or create a '+(names[role]||'user')+' account.';
+    if($('loginBtn'))$('loginBtn').textContent='Log In';
   }
   function selectActivationRole(role){
     activationRole=role;
@@ -246,30 +265,33 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
     return null;
   }
 
-  document.querySelectorAll('[data-role]').forEach(b=>b.addEventListener('click',()=>selectRole(b.dataset.role)));
+  document.querySelectorAll('[data-entry-role]').forEach(b=>b.addEventListener('click',()=>{
+    selectRole(b.dataset.entryRole);
+    showView('loginView');
+    showAuthTab('login');
+  }));
+  $('changeRoleBtn')?.addEventListener('click',()=>showView('roleChoiceView'));
+    document.querySelectorAll('[data-role]').forEach(b=>b.addEventListener('click',()=>selectRole(b.dataset.role)));
   document.querySelectorAll('[data-activate-role]').forEach(b=>b.addEventListener('click',()=>selectActivationRole(b.dataset.activateRole)));
   document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',()=>showView('loginView')));
   document.querySelectorAll('[data-toggle]').forEach(b=>b.addEventListener('click',()=>{
     const input=$(b.dataset.toggle);const showing=input.type==='text';input.type=showing?'password':'text';b.textContent=showing?'Show':'Hide';
   }));
 
-  $('activateLink').onclick=()=>{
+  // Legacy activation entry points are no longer shown on the first screen.
+  const activateLink=$('activateLink');
+  if(activateLink)activateLink.onclick=()=>{
     $('activateRoles').style.display='grid';
     $('recordCodeField').style.display='block';
     selectActivationRole(selectedRole==='admin'?'teacher':selectedRole);
     showView('activateView');
   };
-  $('schoolRegisterLink').onclick=()=>{
-    selectRole('admin');
-    selectActivationRole('teacher');
-    $('activateTitle').textContent='Admin account banayein';
-    $('activateRoles').style.display='none';
-    $('inviteField').style.display='none';
-    $('recordCodeField').style.display='none';
-    $('activationHelp').textContent='School name, email aur password se Admin account banayein. Agla setup sirf aik chhota step hoga.';
-    $('activateBtn').textContent='Create Admin Account';
-    activationRole='admin';showView('activateView');
+  const schoolRegisterLink=$('schoolRegisterLink');
+  if(schoolRegisterLink)schoolRegisterLink.onclick=()=>{
+    selectedRole='admin';
+    showAuthTab('signup');
   };
+
   $('forgotBtn').onclick=async()=>{
     const email=$('loginEmail').value.trim();
     if(!email)return status('loginStatus','Enter your email address first.');
@@ -283,13 +305,19 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
 
   function showAuthTab(which){
     const login=which==='login';
-    $('loginPanel').classList.toggle('hidden',!login);
-    $('signupPanel').classList.toggle('hidden',login);
     $('loginTabBtn').classList.toggle('active',login);
     $('signupTabBtn').classList.toggle('active',!login);
     $('loginTabBtn').setAttribute('aria-selected',String(login));
     $('signupTabBtn').setAttribute('aria-selected',String(!login));
     status('loginStatus','');
+
+    if(!login && selectedRole!=='admin'){
+      selectActivationRole(selectedRole);
+      showView('activateView');
+      return;
+    }
+    $('loginPanel').classList.toggle('hidden',!login);
+    $('signupPanel').classList.toggle('hidden',login);
   }
 
   $('loginTabBtn').onclick=()=>showAuthTab('login');
@@ -318,13 +346,38 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
     try{
       const signed=await withTimeout(client.auth.signInWithPassword({email,password}),12000);
       if(signed.error)throw signed.error;
-      await openDashboard(signed.data.user);
+      const user=signed.data.user;
+      if(!user)throw new Error('Sign-in failed.');
+
+      const roleResult=await client.rpc('current_account_role');
+      if(roleResult.error)throw roleResult.error;
+      const expected=expectedCloudRole(selectedRole);
+      if(roleResult.data!==expected){
+        await client.auth.signOut();
+        throw new Error('This account does not match the selected role.');
+      }
+
+      if(selectedRole==='admin'){
+        await openDashboard(user);
+        return;
+      }
+
+      const inst=await resolveSchoolContext(user);
+      if(!inst){
+        await client.auth.signOut();
+        throw new Error('This account is not linked to an institution yet.');
+      }
+      localStorage.setItem('edunizam_session',JSON.stringify({
+        role:selectedRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst.name||''
+      }));
+      location.replace('./?secureLogin=1');
     }catch(e){status('loginStatus',friendlyError(e.message||String(e)))}finally{busy($('loginBtn'),false)}
   };
 
   async function startGoogle(){
     if(!client)return status('loginStatus','Unable to connect to the login service.');
     localStorage.setItem('edunizam_google_signup','1');
+    localStorage.setItem('edunizam_google_role',selectedRole);
     const result=await client.auth.signInWithOAuth({
       provider:'google',
       options:{redirectTo:location.origin+location.pathname+'?google=1'}
@@ -541,6 +594,7 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
   client=buildClient();
   const params=new URLSearchParams(location.search);
   selectRole('admin');selectActivationRole('teacher');
+  if(!params.get('reset')&&!params.get('emailVerified')&&!params.get('google'))showView('roleChoiceView');
 
   if(client){
     client.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')showView('resetView')});
@@ -558,11 +612,34 @@ button,input,select{font:inherit}.page{position:relative;z-index:1;min-height:10
 
       if(google){
         localStorage.removeItem('edunizam_google_signup');
+        const googleRole=localStorage.getItem('edunizam_google_role')||'admin';
+        localStorage.removeItem('edunizam_google_role');
+        selectRole(googleRole);
+
         let profile=await client.from('user_profiles').select('account_role').eq('user_id',user.id).maybeSingle();
-        if(profile.data?.account_role==='head_of_institute'){
-          await openDashboard(user);
+        const expected=expectedCloudRole(googleRole);
+
+        if(profile.data?.account_role===expected){
+          if(googleRole==='admin'){
+            await openDashboard(user);
+          }else{
+            const inst=await resolveSchoolContext(user);
+            if(inst){
+              localStorage.setItem('edunizam_session',JSON.stringify({role:googleRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst.name||''}));
+              location.replace('./?secureLogin=1');
+            }
+          }
           return;
         }
+
+        if(googleRole!=='admin'){
+          await client.auth.signOut();
+          showView('roleChoiceView');
+          status('loginStatus','Google account is not yet linked to the selected role.');
+          return;
+        }
+
+        showView('loginView');
         showAuthTab('signup');
         $('signupEmail').value=user.email||'';
         $('signupEmail').readOnly=true;
