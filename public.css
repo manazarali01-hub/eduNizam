@@ -13,3 +13,13 @@ a{color:var(--teal)}
 .public-footer{padding:24px 20px;text-align:center;color:var(--muted);border-top:1px solid var(--line);background:#fff}.public-footer a{margin:0 7px}
 @media(max-width:760px){.public-nav{align-items:flex-start;flex-direction:column}.public-main{width:min(100% - 28px,1080px);padding-top:28px}.public-hero{padding:28px}.public-grid,.public-list{grid-template-columns:1fr}}
 
+
+
+/* Accessibility and trust polish */
+.skip-link{position:fixed;left:14px;top:14px;z-index:9999;transform:translateY(-160%);padding:10px 14px;border-radius:10px;background:#fff;color:var(--navy);font-weight:850;box-shadow:0 10px 30px rgba(18,50,74,.18)}.skip-link:focus{transform:none}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #d7a438;outline-offset:3px}
+.public-links a[aria-current="page"]{color:var(--navy);text-decoration:underline;text-underline-offset:5px}
+.public-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.public-cta-secondary{background:#fff;color:var(--navy)}
+.public-hero-compact{padding:36px}.public-hero-compact h1{font-size:clamp(34px,5vw,52px)}
+.prose{max-width:860px}.prose h2{margin-top:32px}.prose p{font-size:16px}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
