@@ -177,10 +177,10 @@
   }
   function printDoc(item){
     const settings=(()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}})();
-    const paid=item.status==='Paid';
+    const paid=item.status==='Paid',logo=settings.schoolLogo?'<img class="school-logo" src="'+esc(settings.schoolLogo)+'" alt="Institute logo">':'';
     const w=window.open('','_blank','width=850,height=700');if(!w)return alert('Popup blocked.');
     const title=paid?'Fee Receipt':'Fee Challan';
-    w.document.write('<!doctype html><html><head><title>'+title+'</title><style>body{font-family:Arial,sans-serif;color:#17324a;padding:28px}.box{border:1px solid #bbb;border-radius:14px;padding:18px;max-width:720px;margin:auto}.row{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #eee;padding:9px 0}.total{font-size:22px;font-weight:700}.muted{color:#667}.head{text-align:center;margin-bottom:18px}@media print{body{padding:0}}</style></head><body><div class="box"><div class="head"><h2>'+esc(settings.schoolName||'EduNizam Institute')+'</h2><h3>'+title+'</h3><div class="muted">'+esc(settings.session||'')+'</div></div>'+
+    w.document.write('<!doctype html><html><head><title>'+title+'</title><style>body{font-family:Arial,sans-serif;color:#17324a;padding:28px}.box{border:1px solid #bbb;border-radius:14px;padding:18px;max-width:720px;margin:auto}.row{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #eee;padding:9px 0}.total{font-size:22px;font-weight:700}.muted{color:#667}.head{text-align:center;margin-bottom:18px}.school-logo{width:72px;height:72px;object-fit:contain;border:1px solid #d8e2e7;border-radius:12px;padding:5px}.head h2{margin:8px 0 4px}@media print{body{padding:0}}</style></head><body><div class="box"><div class="head">'+logo+'<h2>'+esc(settings.schoolName||'EduNizam Institute')+'</h2><h3>'+title+'</h3><div class="muted">'+esc(settings.session||'')+'</div></div>'+
       '<div class="row"><span>Student</span><strong>'+esc(item.studentName)+'</strong></div>'+
       '<div class="row"><span>Class</span><strong>'+esc(item.className||'-')+'</strong></div>'+
       '<div class="row"><span>Fee Month</span><strong>'+esc(item.feeMonth)+'</strong></div>'+
