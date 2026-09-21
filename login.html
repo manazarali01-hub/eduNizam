@@ -12,8 +12,8 @@
   <style>
     :root{--teal:#0f766e;--teal2:#115e59;--ink:#17324a;--muted:#667b80;--line:#d9e7e4;--bg:#eef7f5;--white:#fff;--danger:#b42318;--ok:#067647}
     *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#eaf7f4,#f7fbfa)}
-    button,input{font:inherit}.hidden{display:none!important}.page{min-height:100vh;display:grid;grid-template-columns:minmax(300px,42%) 1fr}
-    .story{position:relative;padding:48px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;background:linear-gradient(135deg,rgba(6,78,70,.92),rgba(15,118,110,.82)),url("assets/edunizam-login-children.webp") center/cover}
+    button,input{font:inherit}.hidden{display:none!important}.page{min-height:100vh;display:grid;grid-template-columns:minmax(420px,48%) 1fr}
+    .story{position:relative;padding:56px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;background:linear-gradient(135deg,rgba(6,78,70,.92),rgba(15,118,110,.82)),url("assets/edunizam-login-children.webp") center/cover}
     .brand{display:flex;align-items:center;gap:12px}.brand img{width:58px;height:58px;object-fit:contain;background:#fff;border-radius:16px;padding:6px}.brand strong{font-size:1.2rem}.brand span{display:block;opacity:.82;font-size:.8rem}
     .story h1{font-size:clamp(40px,5vw,72px);line-height:.95;letter-spacing:-.045em;margin:40px 0 20px}.story p{max-width:520px;font-size:1.05rem;line-height:1.65;opacity:.9}
     .benefits{display:flex;gap:10px;flex-wrap:wrap}.benefits span{padding:8px 12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);border-radius:999px;font-size:.8rem}
@@ -82,7 +82,8 @@
           <div class="field"><label for="schoolCode">School Code / EMIS / Registration No.</label><input id="schoolCode" required></div>
           <div id="adminLogoField" class="field"><label for="schoolLogo">School Logo <span class="help">(Optional)</span></label><input id="schoolLogo" type="file" accept="image/png,image/jpeg,image/webp"></div>
           <button id="signupBtn" class="primary" type="submit">Create Account</button>
-          <div class="help">Email verification may be required by your account settings. Contact number is saved with the profile.</div>
+          <button id="resendVerifyBtn" class="secondary hidden" type="button">Resend Verification Email</button>
+          <div class="help">After verification, you will return to EduNizam and your sign-up will continue automatically.</div>
         </form>
 
         <div id="statusBox" class="status" role="status"></div>
@@ -125,6 +126,7 @@
   let selectedRole='admin';
   const roleCloud={admin:'head_of_institute',teacher:'teacher',parent:'parent',student:'student'};
   const labels={admin:'Admin',teacher:'Teacher',parent:'Parent',student:'Student'};
+  const PROD_LOGIN_URL='https://manazarali01-hub.github.io/eduNizam/login.html?completeSignup=1';
 
   function show(id){
     ['roleView','authView','resetView'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
@@ -216,9 +218,14 @@
     try{
       const logo=selectedRole==='admin'?await saveLogo($('schoolLogo').files?.[0]):'';
       localStorage.setItem('edunizam_pending_signup',JSON.stringify({role:selectedRole,school,name,phone,code,logo,email}));
-      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname+'?completeSignup=1',data:{full_name:name}}});
+      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{full_name:name}}});
       if(error)throw error;
-      if(!data.session){message('Account created. Please verify your email, then return to this page.',true);return}
+      if(!data.session){
+        localStorage.setItem('edunizam_verify_email',email);
+        $('resendVerifyBtn').classList.remove('hidden');
+        message('Account created. Please verify your email. The verification link will return you to EduNizam.',true);
+        return
+      }
       await completeSignup(data.user);
     }catch(err){message(friendly(err.message||err))}finally{busy($('signupBtn'),false)}
   };
@@ -239,15 +246,34 @@
     await openApp(user,pending.role);
   }
 
+  $('resendVerifyBtn').onclick=async()=>{
+    if(!client)return message('Login service is unavailable.');
+    const email=localStorage.getItem('edunizam_verify_email')||$('signupEmail').value.trim();
+    if(!email)return message('Enter your email address first.');
+    busy($('resendVerifyBtn'),true,'Sending...');
+    try{
+      const {error}=await client.auth.resend({
+        type:'signup',
+        email,
+        options:{emailRedirectTo:PROD_LOGIN_URL}
+      });
+      if(error)throw error;
+      message('Verification email sent again. Please check your inbox and spam folder.',true);
+    }catch(err){message(friendly(err.message||err))}
+    finally{busy($('resendVerifyBtn'),false)}
+  };
+
   $('forgotBtn').onclick=async()=>{
     const email=$('loginEmail').value.trim();if(!email)return message('Enter your email address first.');
-    try{const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?reset=1'});if(error)throw error;message('Password reset link sent to your email.',true)}catch(err){message(friendly(err.message||err))}
+    try{const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});if(error)throw error;message('Password reset link sent to your email.',true)}catch(err){message(friendly(err.message||err))}
   };
   $('resetForm').onsubmit=async e=>{
     e.preventDefault();const password=$('newPassword').value;if(password.length<8)return message('Use at least 8 characters.',false,'resetStatus');
     try{const {error}=await client.auth.updateUser({password});if(error)throw error;message('Password changed successfully.',true,'resetStatus');setTimeout(()=>show('roleView'),700)}catch(err){message(friendly(err.message||err),false,'resetStatus')}
   };
   $('backReset').onclick=()=>show('roleView');
+
+  if(localStorage.getItem('edunizam_verify_email'))$('resendVerifyBtn').classList.remove('hidden');
 
   if(client){
     client.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')show('resetView')});
