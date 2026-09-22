@@ -77,6 +77,13 @@ if(!roleScope.includes("r==='admin'?'head':r")) fail.push('Role scope does not n
 if(!login.includes("client.auth.resend({")) fail.push('Verification email resend flow missing.');
 if(!login.includes("emailRedirectTo:PROD_LOGIN_URL")) fail.push('Signup verification redirect missing.');
 if(!read('cloud-setup.js').includes("create_owned_institution_v1")) fail.push('Multi-school creation UI missing.');
+if(!index.includes('data-view="settings"')) fail.push('Settings navigation item missing.');
+if(!index.includes('data-view="help"')) fail.push('Help & Support navigation item missing.');
+if(!index.includes('id="help"')) fail.push('Help & Support section missing.');
+for(const roleName of ['student','parent','teacher','head']){
+  const rolePattern=new RegExp(roleName+":\\[[^\\n]*'help'");
+  if(!rolePattern.test(app)) fail.push('Help section is not available to role: '+roleName);
+}
 
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
