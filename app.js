@@ -99,12 +99,10 @@ async function setView(view){
  if(view==='troubleshoot'&&window.EDUNIZAM_RELIABILITY?.render)window.EDUNIZAM_RELIABILITY.render();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
-document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{
-  setView(b.dataset.jump);
-  if(b.dataset.jump==='students'){
-    $('studentFormWrap')?.classList.remove('hidden');
-    $('studentName')?.focus();
-  }
+document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=async()=>{
+  const targetView=b.dataset.jump;
+  await setView(targetView);
+  if(targetView==='students')openStudentForm();
 });
 let editingStudentId=null;
 function clearStudentForm(){
@@ -112,11 +110,15 @@ function clearStudentForm(){
   ['studentName','fatherName','studentClass','studentSection','studentPhone','studentBForm','guardianCnic','studentDob','admissionNo','studentAddress','guardianOccupation','studentCaste'].forEach(id=>{if($(id))$(id).value=''});
   const save=$('saveStudentBtn');if(save)save.textContent='Save Student';
 }
-$('addStudentBtn').onclick=()=>{
+function openStudentForm(){
   clearStudentForm();
-  $('studentFormWrap').classList.toggle('hidden');
-  if(!$('studentFormWrap').classList.contains('hidden'))$('studentName')?.focus();
-};
+  const wrap=$('studentFormWrap');
+  if(!wrap)return;
+  wrap.classList.remove('hidden');
+  $('studentName')?.focus();
+}
+const addStudentBtn=$('addStudentBtn');
+if(addStudentBtn)addStudentBtn.onclick=openStudentForm;
 $('saveStudentBtn').onclick=async()=>{
  const name=$('studentName').value.trim(); if(!name)return alert('Enter student name');
  const patch={
