@@ -43,8 +43,8 @@ for(const id of new Set(hardHandlers)){
 }
 
 const cloudPos=index.indexOf('src="cloud-config.js"');
-const scopePos=index.indexOf('src="storage-scope.js');
-const appPos=index.indexOf('src="app.js');
+const scopePos=index.indexOf('src="storage-scope.js"');
+const appPos=index.indexOf('src="app.js"');
 if(cloudPos<0||scopePos<0||appPos<0) fail.push('Critical startup scripts missing.');
 else if(!(cloudPos<scopePos&&scopePos<appPos)) fail.push('Critical script order must be cloud-config -> storage-scope -> app.js');
 
