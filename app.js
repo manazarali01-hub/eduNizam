@@ -144,7 +144,11 @@ $('saveStudentBtn').onclick=async()=>{
  persist();clearStudentForm();$('studentFormWrap').classList.add('hidden');renderAll();
  try{
    if(window.EDUNIZAM_CORE_CLOUD?.ready?.())await window.EDUNIZAM_CORE_CLOUD.pushAllLocalToCloud();
- }catch(e){console.warn('Student cloud sync:',e.message)}
+ }catch(e){
+   console.warn('Student cloud sync:',e.message);
+   recordDiagnostic('Student Cloud Sync',e.message||e,'Students');
+   alert('Student is saved on this device, but cloud sync failed. Open Settings → Cloud Backup & Sync and retry later.');
+ }
 };
 function scopedStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(state.students)||state.students}
 function renderStudents(){
