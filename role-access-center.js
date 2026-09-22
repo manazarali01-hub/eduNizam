@@ -19,7 +19,7 @@
     b.onclick=show;
     const main=document.querySelector('main');if(!main)return;
     const sec=document.createElement('section');sec.id='access';sec.className='view';
-    sec.innerHTML='<div class="section-head"><div><h2>Access & Role Center</h2><p class="muted">School Admin protected access, verified Teacher onboarding, Parent and Student linking.</p></div><span id="accessRoleBadge" class="badge"></span></div><div class="access-grid"><article class="card" id="claimInviteCard"><h3>School Link</h3><p class="muted">Parent aur Student school signup/login code se directly Admin ke school se link hote hain. Teacher ke liye verified invite flow use hota hai.</p><div id="claimInviteMsg" class="coverage-note">School code: Settings → My Schools / Institutes. Teacher invite: neeche Admin card se.</div></article><article class="card" id="teacherRequestCard"><h3>Teacher Staff Verification</h3><p class="muted">Teacher invite code aur Staff Code enter karein. Access tab tak nahi milega jab tak School Admin approve na kare.</p><div class="form-grid"><input id="teacherInviteCode" placeholder="Teacher invite code"><input id="teacherStaffCode" placeholder="Staff Code e.g. T-001"><button id="requestTeacherAccessBtn">Request Teacher Access</button></div><div id="teacherRequestMsg" class="coverage-note"></div></article><article class="card" id="parentLinkCard"><h3>Parent–Student Link</h3><p class="muted">Parent student ka EduNizam Student Code enter karke access request bhej sakta hai.</p><div class="form-grid"><input id="parentStudentCode" placeholder="Student code"><button id="requestParentLinkBtn">Request Child Link</button></div><div id="parentLinkMsg" class="coverage-note"></div></article><article class="card" id="inviteAdminCard"><div class="section-head"><div><h3>Create Invite Code</h3><p class="muted">Sirf School Admin institute access codes bana sakta hai.</p></div></div><div class="form-grid"><select id="inviteRole"><option value="teacher">Teacher (Admin approval required)</option></select><input id="inviteUses" type="number" min="1" max="100" value="1" placeholder="Max uses"><input id="inviteDays" type="number" min="1" max="365" value="7" placeholder="Valid days"><button id="createInviteBtn">Generate Invite</button></div><div id="inviteResult"></div><div id="inviteList"></div></article><article class="card" id="teacherApprovalCard"><div class="section-head"><div><h3>Teacher Access Requests</h3><p class="muted">Staff Directory match verify karke approve/reject karein.</p></div><button id="refreshTeacherRequests" class="secondary">Refresh</button></div><div id="teacherDecisionMsg" class="coverage-note"></div><div id="teacherAccessRequests"></div></article><article class="card" id="parentApprovalCard"><div class="section-head"><div><h3>Parent Access Requests</h3><p class="muted">Pending parent-child links approve ya reject karein.</p></div><button id="refreshParentLinks" class="secondary">Refresh</button></div><div id="parentDecisionMsg" class="coverage-note"></div><div id="accessParentLinks"></div></article></div>';
+    sec.innerHTML='<div class="section-head"><div><h2>Access & Role Center</h2><p class="muted">School Admin protected access, verified Teacher onboarding, Parent and Student linking.</p></div><span id="accessRoleBadge" class="badge"></span></div><div class="access-grid"><article class="card" id="claimInviteCard"><h3>School Link</h3><p class="muted">Parent aur Student school signup/login code se directly Admin ke school se link hote hain. Teacher ke liye verified invite flow use hota hai.</p><div id="claimInviteMsg" class="coverage-note">School code: Settings → My Schools / Institutes. Teacher invite: neeche Admin card se.</div></article><article class="card" id="teacherRequestCard"><h3>Teacher Staff Verification</h3><p class="muted">Teacher invite code aur Staff Code enter karein. Access tab tak nahi milega jab tak School Admin approve na kare.</p><div class="form-grid"><input id="teacherInviteCode" placeholder="Teacher invite code"><input id="teacherStaffCode" placeholder="Staff Code e.g. T-001"><button id="requestTeacherAccessBtn">Request Teacher Access</button></div><div id="teacherRequestMsg" class="coverage-note"></div></article><article class="card" id="parentLinkCard"><h3>Parent–Student Link</h3><p class="muted">Parent student ka EduNizam Student Code enter karke access request bhej sakta hai.</p><div class="form-grid"><input id="parentStudentCode" placeholder="Student code"><button id="requestParentLinkBtn">Request Child Link</button></div><div id="parentLinkMsg" class="coverage-note"></div></article><article class="card" id="inviteAdminCard"><div class="section-head"><div><h3>Create Invite Code</h3><p class="muted">Sirf School Admin institute access codes bana sakta hai.</p></div></div><div class="form-grid"><select id="inviteRole"><option value="teacher">Teacher (Admin approval required)</option></select><input id="inviteUses" type="number" min="1" max="100" value="1" placeholder="Max uses"><input id="inviteDays" type="number" min="1" max="365" value="7" placeholder="Valid days"><button id="createInviteBtn">Generate Invite</button></div><div id="inviteResult"></div><div id="inviteList"></div></article><article class="card" id="schoolAccountsCard"><div class="section-head"><div><h3>School Login Accounts</h3><p class="muted">Is school ke Admin se connected Teacher, Parent aur Student logins.</p></div><button id="refreshSchoolAccounts" class="secondary">Refresh</button></div><div id="schoolLoginAccounts"><div class="muted">Loading linked accounts...</div></div></article><article class="card" id="teacherApprovalCard"><div class="section-head"><div><h3>Teacher Access Requests</h3><p class="muted">Staff Directory match verify karke approve/reject karein.</p></div><button id="refreshTeacherRequests" class="secondary">Refresh</button></div><div id="teacherDecisionMsg" class="coverage-note"></div><div id="teacherAccessRequests"></div></article><article class="card" id="parentApprovalCard"><div class="section-head"><div><h3>Parent Access Requests</h3><p class="muted">Pending parent-child links approve ya reject karein.</p></div><button id="refreshParentLinks" class="secondary">Refresh</button></div><div id="parentDecisionMsg" class="coverage-note"></div><div id="accessParentLinks"></div></article></div>';
     main.appendChild(sec);
   }
   function show(){
@@ -44,6 +44,15 @@
       const r=await cloud().requestTeacherAccess(invite,staffCode);
       msg.textContent='Request sent for '+(r?.staff_name||'staff member')+'. School Admin approval ke baad Teacher access activate hoga.';
     }catch(e){msg.textContent=e.message||String(e)}
+  }
+  async function loadInstitutionAccounts(){
+    const box=document.getElementById('schoolLoginAccounts');
+    if(!box||role()!=='head'||!ready())return;
+    try{
+      const rows=cloud().listInstitutionAccounts?await cloud().listInstitutionAccounts():[];
+      const labels={teacher:'Teacher',parent:'Parent',student:'Student'};
+      box.innerHTML=rows.length?rows.map(x=>'<div class="access-list-item"><div class="access-row"><strong>'+esc(x.full_name||'Linked account')+'</strong><span class="badge">'+esc(labels[x.role]||x.role)+'</span></div><div class="muted">'+esc(x.phone||'Connected to this school Admin')+'</div></div>').join(''):'<div class="muted">No Teacher, Parent or Student login has been linked yet.</div>';
+    }catch(e){box.textContent=e.message||String(e)}
   }
   async function loadTeacherRequests(){
     const box=document.getElementById('teacherAccessRequests');if(!box||role()!=='head'||!ready())return;
@@ -105,13 +114,14 @@
   }
   function render(){
     const r=role(),badge=document.getElementById('accessRoleBadge');if(badge)badge.textContent=({head:'Head of Institute',teacher:'Teacher',parent:'Parent',student:'Student'}[r]||r);
-    const admin=document.getElementById('inviteAdminCard'),approval=document.getElementById('parentApprovalCard'),teacherApproval=document.getElementById('teacherApprovalCard'),teacherRequest=document.getElementById('teacherRequestCard'),parent=document.getElementById('parentLinkCard');
+    const admin=document.getElementById('inviteAdminCard'),accounts=document.getElementById('schoolAccountsCard'),approval=document.getElementById('parentApprovalCard'),teacherApproval=document.getElementById('teacherApprovalCard'),teacherRequest=document.getElementById('teacherRequestCard'),parent=document.getElementById('parentLinkCard');
     if(admin)admin.style.display=r==='head'?'block':'none';
+    if(accounts)accounts.style.display=r==='head'?'block':'none';
     if(approval)approval.style.display=r==='head'?'block':'none';
     if(teacherApproval)teacherApproval.style.display=r==='head'?'block':'none';
     if(teacherRequest)teacherRequest.style.display=r==='teacher'?'block':'none';
     if(parent)parent.style.display=r==='parent'?'block':'none';
-    if(r==='head'){loadInvites();loadParentLinks();loadTeacherRequests()}
+    if(r==='head'){loadInvites();loadInstitutionAccounts();loadParentLinks();loadTeacherRequests()}
   }
   function boot(){
     injectStyle();inject();
@@ -119,6 +129,7 @@
     document.getElementById('requestTeacherAccessBtn')?.addEventListener('click',requestTeacherAccess);
     document.getElementById('requestParentLinkBtn')?.addEventListener('click',requestParent);
     document.getElementById('createInviteBtn')?.addEventListener('click',createInvite);
+    document.getElementById('refreshSchoolAccounts')?.addEventListener('click',loadInstitutionAccounts);
     document.getElementById('refreshTeacherRequests')?.addEventListener('click',loadTeacherRequests);
     document.getElementById('refreshParentLinks')?.addEventListener('click',loadParentLinks);
     render();
