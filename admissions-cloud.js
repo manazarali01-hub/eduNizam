@@ -258,6 +258,31 @@
     const {data,error}=await state.client.rpc('claim_student_account_v1',{p_student_code:String(studentCode||'').trim()});
     if(error)throw error;return Array.isArray(data)?data[0]:data;
   }
+  async function listInstitutionAccounts(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    const {data:members,error}=await state.client.from('institution_members')
+      .select('user_id,role,created_at')
+      .eq('institution_id',cfg.institutionId)
+      .order('created_at',{ascending:true});
+    if(error)throw error;
+    const ids=[...new Set((members||[]).map(x=>x.user_id).filter(Boolean))];
+    let profiles=[];
+    if(ids.length){
+      const profileRes=await state.client.from('user_profiles')
+        .select('user_id,full_name,phone,account_role,institution_id')
+        .eq('institution_id',cfg.institutionId)
+        .in('user_id',ids);
+      if(profileRes.error)throw profileRes.error;
+      profiles=profileRes.data||[];
+    }
+    const pm=new Map(profiles.map(x=>[x.user_id,x]));
+    return (members||[]).map(x=>({
+      ...x,
+      full_name:pm.get(x.user_id)?.full_name||'',
+      phone:pm.get(x.user_id)?.phone||'',
+      account_role:pm.get(x.user_id)?.account_role||x.role
+    }));
+  }
   async function listInstitutionTeachers(){
     if(!state.client||!cfg.institutionId)return[];
     const {data,error}=await state.client.from('institution_members')
@@ -388,7 +413,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
