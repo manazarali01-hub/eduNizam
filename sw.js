@@ -1,4 +1,4 @@
-const CACHE='edunizam-v81-help-accuracy'
+const CACHE='edunizam-v82-auto-recovery'
 const CORE=[
   './',
   './index.html',
