@@ -89,7 +89,7 @@ document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{
 let editingStudentId=null;
 function clearStudentForm(){
   editingStudentId=null;
-  ['studentName','fatherName','studentClass','studentSection','studentPhone'].forEach(id=>{if($(id))$(id).value=''});
+  ['studentName','fatherName','studentClass','studentSection','studentPhone','studentBForm','guardianCnic','studentDob','admissionNo','studentAddress','guardianOccupation','studentCaste'].forEach(id=>{if($(id))$(id).value=''});
   const save=$('saveStudentBtn');if(save)save.textContent='Save Student';
 }
 $('addStudentBtn').onclick=()=>{
@@ -99,7 +99,20 @@ $('addStudentBtn').onclick=()=>{
 };
 $('saveStudentBtn').onclick=async()=>{
  const name=$('studentName').value.trim(); if(!name)return alert('Enter student name');
- const patch={name,father:$('fatherName').value.trim(),className:$('studentClass').value.trim(),sectionName:$('studentSection')?.value.trim()||'',phone:$('studentPhone').value.trim()};
+ const patch={
+   name,
+   father:$('fatherName').value.trim(),
+   className:$('studentClass').value.trim(),
+   sectionName:$('studentSection')?.value.trim()||'',
+   phone:$('studentPhone').value.trim(),
+   bFormNo:$('studentBForm')?.value.trim()||'',
+   guardianCnic:$('guardianCnic')?.value.trim()||'',
+   dateOfBirth:$('studentDob')?.value||'',
+   admissionNo:$('admissionNo')?.value.trim()||'',
+   address:$('studentAddress')?.value.trim()||'',
+   guardianOccupation:$('guardianOccupation')?.value.trim()||'',
+   caste:$('studentCaste')?.value.trim()||''
+ };
  if(editingStudentId!=null){
    const s=state.students.find(x=>String(x.id)===String(editingStudentId));
    if(!s)return alert('Student record not found.');
@@ -129,6 +142,13 @@ window.editStudent=id=>{
  $('studentClass').value=s.className||'';
  if($('studentSection'))$('studentSection').value=s.sectionName||'';
  $('studentPhone').value=s.phone||'';
+ if($('studentBForm'))$('studentBForm').value=s.bFormNo||'';
+ if($('guardianCnic'))$('guardianCnic').value=s.guardianCnic||'';
+ if($('studentDob'))$('studentDob').value=s.dateOfBirth||'';
+ if($('admissionNo'))$('admissionNo').value=s.admissionNo||'';
+ if($('studentAddress'))$('studentAddress').value=s.address||'';
+ if($('guardianOccupation'))$('guardianOccupation').value=s.guardianOccupation||'';
+ if($('studentCaste'))$('studentCaste').value=s.caste||'';
  $('studentFormWrap').classList.remove('hidden');
  $('saveStudentBtn').textContent='Update Student';
  $('studentName').focus();
@@ -162,6 +182,13 @@ window.addStudentFromAdmission=(student)=>{
     className:student.className||'',
     sectionName:student.sectionName||'',
     phone:student.phone||'',
+    bFormNo:student.bFormNo||'',
+    guardianCnic:student.guardianCnic||'',
+    dateOfBirth:student.dateOfBirth||'',
+    admissionNo:student.admissionNo||'',
+    address:student.address||'',
+    guardianOccupation:student.guardianOccupation||'',
+    caste:student.caste||'',
     rollNo:student.rollNo||'',
     studentId:student.studentId||'',
     admissionApplicationId:student.admissionApplicationId||'',
