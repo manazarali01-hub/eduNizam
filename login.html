@@ -149,6 +149,25 @@
       const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('Logo could not be read.'));reader.readAsDataURL(file);
     });
   }
+  async function addSchoolToExistingAdmin({email,password,school,code,phone}){
+    const signedIn=await client.auth.signInWithPassword({email,password});
+    if(signedIn.error){
+      throw new Error('This email already has an EduNizam account. Enter the existing account password to add another school.');
+    }
+    const role=await client.rpc('current_account_role');
+    if(role.error)throw role.error;
+    if(role.data!=='head_of_institute'){
+      await client.auth.signOut();
+      throw new Error('This email is already linked to a non-Admin EduNizam account.');
+    }
+    const created=await client.rpc('create_owned_institution_v1',{
+      p_school_name:school,
+      p_school_code:code,
+      p_phone:phone
+    });
+    if(created.error)throw created.error;
+    return {user:signedIn.data.user,institution:Array.isArray(created.data)?created.data[0]:created.data};
+  }
   const normalizeInstituteName=value=>String(value||'').trim().replace(/\s+/g,' ').toLowerCase();
   async function resolveInstitution(user,requestedName=''){
     const wanted=normalizeInstituteName(requestedName);
@@ -258,13 +277,33 @@
       const logo=selectedRole==='admin'?await saveLogo($('schoolLogo').files?.[0]):'';
       localStorage.setItem('edunizam_pending_signup',JSON.stringify({role:selectedRole,school,name,phone,code,teacherInvite,teacherStaff,logo,email}));
       const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{full_name:name,signup_role:selectedRole,school_name:school||'',school_code:code,teacher_invite_code:teacherInvite,teacher_staff_code:teacherStaff,contact_number:phone}}});
-      if(error)throw error;
-      if(!data.session){
-        if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
+      if(error){
+        if(selectedRole==='admin'&&/already registered|already exists/i.test(String(error.message||error))){
+          const existing=await addSchoolToExistingAdmin({email,password,school,code,phone});
           localStorage.removeItem('edunizam_pending_signup');
           localStorage.removeItem('edunizam_verify_email');
           $('resendVerifyBtn').classList.add('hidden');
-          message('This email already has an EduNizam account. Log in with this email, then open Settings → My Schools / Institutes → Add another school.');
+          message('Existing Admin account found. New school added successfully.',true);
+          await openApp(existing.user,'admin',school);
+          return;
+        }
+        throw error;
+      }
+      if(!data.session){
+        if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
+          if(selectedRole==='admin'){
+            const existing=await addSchoolToExistingAdmin({email,password,school,code,phone});
+            localStorage.removeItem('edunizam_pending_signup');
+            localStorage.removeItem('edunizam_verify_email');
+            $('resendVerifyBtn').classList.add('hidden');
+            message('Existing Admin account found. New school added successfully.',true);
+            await openApp(existing.user,'admin',school);
+            return;
+          }
+          localStorage.removeItem('edunizam_pending_signup');
+          localStorage.removeItem('edunizam_verify_email');
+          $('resendVerifyBtn').classList.add('hidden');
+          message('This email already has an EduNizam account. Please use Log In for this role.');
           setTab('login');
           $('loginEmail').value=email;
           return;
