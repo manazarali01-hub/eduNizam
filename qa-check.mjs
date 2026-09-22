@@ -42,6 +42,20 @@ for(const id of new Set(hardHandlers)){
   if(!seen.has(id)) fail.push('app.js references missing HTML id: '+id);
 }
 
+const navTargets=[...index.matchAll(/\bdata-view=["']([^"']+)["']/g)].map(m=>m[1]);
+for(const view of new Set(navTargets)){
+  if(!seen.has(view)) fail.push('Navigation points to missing section: '+view);
+}
+const jumpTargets=[...index.matchAll(/\bdata-jump=["']([^"']+)["']/g)].map(m=>m[1]);
+for(const view of new Set(jumpTargets)){
+  if(!seen.has(view)) fail.push('Shortcut points to missing section: '+view);
+}
+const roleViewTargets=[...app.matchAll(/(?:student|parent|teacher|head):\[([^\n]+)\]/g)]
+  .flatMap(m=>[...m[1].matchAll(/['"]([^'"]+)['"]/g)].map(x=>x[1]));
+for(const view of new Set(roleViewTargets)){
+  if(!seen.has(view)) fail.push('Role access points to missing section: '+view);
+}
+
 const cloudPos=scriptRefs.indexOf('cloud-config.js');
 const scopePos=scriptRefs.indexOf('storage-scope.js');
 const appPos=scriptRefs.indexOf('app.js');
