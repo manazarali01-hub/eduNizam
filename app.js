@@ -105,6 +105,16 @@ document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=async()=>{
   if(targetView==='students')openStudentForm();
 });
 let editingStudentId=null;
+function makeStudentCode(){
+  const bytes=new Uint8Array(4);
+  if(window.crypto?.getRandomValues)window.crypto.getRandomValues(bytes);
+  else for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256);
+  return 'STU-'+Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+function ensureStudentCode(student){
+  if(student&&!student.studentId)student.studentId=makeStudentCode();
+  return student?.studentId||'';
+}
 function clearStudentForm(){
   editingStudentId=null;
   ['studentName','fatherName','studentClass','studentSection','studentPhone','studentBForm','guardianCnic','studentDob','admissionNo','studentAddress','guardianOccupation','studentCaste'].forEach(id=>{if($(id))$(id).value=''});
@@ -141,7 +151,7 @@ $('saveStudentBtn').onclick=async()=>{
    Object.assign(s,patch);
    logActivity('Student updated: '+name);
  }else{
-   state.students.push(Object.assign({id:Date.now()},patch));
+   state.students.push(Object.assign({id:Date.now(),studentId:makeStudentCode()},patch));
    logActivity('Student added: '+name);
  }
  persist();clearStudentForm();$('studentFormWrap').classList.add('hidden');renderAll();
@@ -155,8 +165,11 @@ $('saveStudentBtn').onclick=async()=>{
 };
 function scopedStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(state.students)||state.students}
 function renderStudents(){
+ let addedCode=false;
+ state.students.forEach(s=>{if(!s.studentId){ensureStudentCode(s);addedCode=true}});
+ if(addedCode)persist();
  const list=scopedStudents(),canManage=currentRole()==='head';
- $('studentList').innerHTML=list.length?list.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canManage?'<span class="access-row"><button class="secondary" onclick="editStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Edit</button><button onclick="removeStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Delete</button></span>':'<span></span>')+'</div>').join(''):'<div class="muted">No accessible students.</div>';
+ $('studentList').innerHTML=list.length?list.map(s=>'<div class="row"><div><strong>'+esc(s.name)+'</strong><small style="display:block;margin-top:4px;color:#64748b">Student Code: '+esc(s.studentId||'-')+'</small></div><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canManage?'<span class="access-row"><button class="secondary" onclick="editStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Edit</button><button onclick="removeStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Delete</button></span>':'<span></span>')+'</div>').join(''):'<div class="muted">No accessible students.</div>';
  const addBtn=$('addStudentBtn');if(addBtn)addBtn.style.display=canManage?'inline-block':'none';
 }
 window.editStudent=id=>{
@@ -216,7 +229,7 @@ window.addStudentFromAdmission=(student)=>{
     guardianOccupation:student.guardianOccupation||'',
     caste:student.caste||'',
     rollNo:student.rollNo||'',
-    studentId:student.studentId||'',
+    studentId:student.studentId||makeStudentCode(),
     admissionApplicationId:student.admissionApplicationId||'',
     admissionDate:student.admissionDate||'',
     feeSnapshot:student.feeSnapshot||null,
