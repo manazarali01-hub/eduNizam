@@ -128,6 +128,16 @@ if(!login.includes('id="roleGuidance"')) fail.push('Role-specific same-school lo
 if(!login.includes("if(role!=='admin'&&!inst)")) fail.push('Non-Admin roles can open without a linked school.');
 if(!login.includes("Teacher request is pending School Admin approval.")) fail.push('Teacher pending-approval login guidance missing.');
 if(!read('cloud-setup.js').includes('Parent/Student Login Code')) fail.push('Admin Settings do not expose the same-school Parent/Student login code clearly.');
+if(!login.includes('id="studentCodeField"')) fail.push('Student signup code field missing.');
+if(!login.includes('id="loginStudentCode"')) fail.push('Student first-login code field missing.');
+if(!login.includes("claim_student_account_v1")) fail.push('Secure Student Code claim RPC missing from login.');
+if(!login.includes("ensureStudentRecord")) fail.push('Student login is not tied to a verified school record.');
+if(!app.includes("function makeStudentCode()")) fail.push('Student Code generator missing.');
+if(!app.includes("Student Code:")) fail.push('Admin student list does not display Student Codes.');
+if(!read('core-cloud.js').includes("student_code:s.studentId||fallbackStudentCode(s)")) fail.push('Legacy student cloud sync can lose Student Code.');
+if(!read('admissions-cloud.js').includes("rpc('claim_student_account_v1'")) fail.push('Cloud student claim still uses legacy RPC.');
+if(!read('role-access-center.js').includes("teacherRequest.style.display=r==='teacher'")) fail.push('Teacher verification card is exposed to the wrong role.');
+if(!fs.existsSync(path.join(root,'supabase/migrations/20260922223000_secure_student_parent_school_linking.sql'))) fail.push('Secure Student/Parent DB migration file missing.');
 if(!login.includes("client.auth.resend({")) fail.push('Verification email resend flow missing.');
 if(!login.includes("emailRedirectTo:PROD_LOGIN_URL")) fail.push('Signup verification redirect missing.');
 if(!read('cloud-setup.js').includes("create_owned_institution_v1")) fail.push('Multi-school creation UI missing.');
