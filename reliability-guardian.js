@@ -303,8 +303,10 @@
 
   window.addEventListener('error',event=>{
     if(event.target&&event.target!==window){
+      const tag=String(event.target.tagName||'').toUpperCase();
       const src=event.target.src||event.target.href||event.target.tagName||'Resource';
-      trackError('Resource failed to load',src);
+      if(tag==='SCRIPT'||tag==='LINK')trackError('Critical resource failed to load',src);
+      else report('Resource Warning','A non-critical resource failed to load.',src,'warning');
       return;
     }
     trackError(event.message||'JavaScript error',event.filename||'Runtime');
