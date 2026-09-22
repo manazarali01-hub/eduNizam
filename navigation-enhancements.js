@@ -20,6 +20,14 @@
       const box=document.createElement('div');box.className='nav-group-items';views.forEach(v=>{const b=byView.get(v);if(b){box.appendChild(b);byView.delete(v)}});details.appendChild(box);if(box.children.length)nav.appendChild(details);
     }
     if(byView.size){const details=document.createElement('details');details.className='nav-group';details.open=true;details.innerHTML='<summary><span>＋</span><strong>More</strong><small>›</small></summary><div class="nav-group-items"></div>';const box=details.lastElementChild;byView.forEach(b=>box.appendChild(b));nav.appendChild(details)}
+    nav.querySelectorAll('.nav-group').forEach(group=>{
+      group.addEventListener('toggle',()=>{
+        if(!group.open)return;
+        nav.querySelectorAll('.nav-group').forEach(other=>{
+          if(other!==group && other.open)other.open=false;
+        });
+      });
+    });
     const input=document.getElementById('navFeatureSearch');
     function filter(){const q=input.value.trim().toLowerCase();nav.querySelectorAll('.nav-group').forEach(g=>{let shown=0;g.querySelectorAll('.nav-item').forEach(b=>{const match=!q||b.textContent.toLowerCase().includes(q);b.classList.toggle('nav-search-hidden',!match);if(match&&!b.classList.contains('role-hidden'))shown++});g.hidden=shown===0;if(q&&shown)g.open=true})}
     input.addEventListener('input',filter);document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus();input.select()}if(e.key==='Escape'&&document.activeElement===input){input.value='';filter();input.blur()}});
