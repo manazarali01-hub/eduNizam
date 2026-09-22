@@ -1,4 +1,4 @@
-const CACHE='edunizam-v86-student-parent-linking'
+const CACHE='edunizam-v87-all-login-admin-membership'
 const CORE=[
   './',
   './index.html',
