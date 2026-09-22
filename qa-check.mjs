@@ -87,6 +87,8 @@ if(!index.includes('id="reliabilityDiagnosticsCard"')) fail.push('Reliability di
 if(!app.includes("window.addEventListener('error'")) fail.push('Runtime JavaScript error capture missing.');
 if(!app.includes("window.addEventListener('unhandledrejection'")) fail.push('Unhandled promise diagnostics missing.');
 if(!app.includes("writeDiagnostics([])")) fail.push('Diagnostics clear action missing.');
+if(!app.includes("recordDiagnostic('Student Cloud Sync'")) fail.push('Student cloud-sync failures are not surfaced in diagnostics.');
+if(!app.includes('Student is saved on this device, but cloud sync failed.')) fail.push('Student cloud-sync failure does not inform the user.');
 for(const roleName of ['student','parent','teacher','head']){
   const rolePattern=new RegExp(roleName+":\\[[^\\n]*'help'");
   if(!rolePattern.test(app)) fail.push('Help section is not available to role: '+roleName);
