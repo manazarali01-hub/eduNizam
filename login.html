@@ -172,28 +172,55 @@
     return {user:signedIn.data.user,institution:Array.isArray(created.data)?created.data[0]:created.data};
   }
   const normalizeInstituteName=value=>String(value||'').trim().replace(/\s+/g,' ').toLowerCase();
-  async function resolveInstitution(user,requestedName=''){
+  async function resolveInstitution(user,requestedName='',role=''){
     const wanted=normalizeInstituteName(requestedName);
-    const owner=await client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).order('created_at',{ascending:true});
-    if(owner.error)throw owner.error;
-    if(owner.data?.length){
+
+    if(role==='admin'){
+      const owner=await client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).order('created_at',{ascending:true});
+      if(owner.error)throw owner.error;
       if(wanted){
-        const exact=owner.data.find(x=>normalizeInstituteName(x.name)===wanted);
-        if(exact)return exact;
-        return null;
+        return (owner.data||[]).find(x=>normalizeInstituteName(x.name)===wanted)||null;
       }
-      if(owner.data.length===1)return owner.data[0];
+      return owner.data?.length===1?owner.data[0]:null;
     }
-    const profile=await client.from('user_profiles').select('institution_id').eq('user_id',user.id).maybeSingle();
+
+    const expectedRole=roleCloud[role]||role;
+    const memberships=await client
+      .from('institution_members')
+      .select('institution_id,role,institutions(id,name,institution_type)')
+      .eq('user_id',user.id);
+    if(memberships.error)throw memberships.error;
+
+    const memberSchools=(memberships.data||[])
+      .filter(x=>!expectedRole||x.role===expectedRole)
+      .map(x=>x.institutions)
+      .filter(Boolean);
+
+    if(wanted){
+      const exact=memberSchools.find(x=>normalizeInstituteName(x.name)===wanted);
+      if(exact)return exact;
+    }
+
+    const profile=await client.from('user_profiles').select('institution_id,account_role').eq('user_id',user.id).maybeSingle();
     if(profile.error)throw profile.error;
-    if(!profile.data?.institution_id)return null;
-    const inst=await client.from('institutions').select('id,name,institution_type').eq('id',profile.data.institution_id).maybeSingle();
-    if(inst.error)throw inst.error;
-    if(wanted&&inst.data&&normalizeInstituteName(inst.data.name)!==wanted)return null;
-    return inst.data||null;
+
+    if(profile.data?.institution_id){
+      const preferred=memberSchools.find(x=>x.id===profile.data.institution_id);
+      if(preferred)return preferred;
+    }
+    if(memberSchools.length===1)return memberSchools[0];
+
+    // Legacy/recovery fallback. New accounts are always written to institution_members.
+    if(profile.data?.institution_id&&(!expectedRole||profile.data.account_role===expectedRole)){
+      const inst=await client.from('institutions').select('id,name,institution_type').eq('id',profile.data.institution_id).maybeSingle();
+      if(inst.error)throw inst.error;
+      if(wanted&&inst.data&&normalizeInstituteName(inst.data.name)!==wanted)return null;
+      return inst.data||null;
+    }
+    return null;
   }
   async function openApp(user,role,requestedName=''){
-    const inst=await resolveInstitution(user,requestedName);
+    const inst=await resolveInstitution(user,requestedName,role);
     if(role==='admin'&&!inst)throw new Error('No institute with this name is linked to this Admin account. Check the institute name and try again.');
     if(role!=='admin'&&!inst){
       const roleName=labels[role]||'User';
