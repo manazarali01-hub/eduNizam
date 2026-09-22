@@ -231,5 +231,24 @@
     return {ok:true,students:localStudents.length};
   }
 
-  window.EDUNIZAM_CORE_CLOUD={ready,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup};
+  async function deleteStudentByLocalId(localId){
+    const c=await requireStaff(),client=c.state.client;
+    const {data,error:findError}=await client
+      .from('core_students')
+      .select('id')
+      .eq('institution_id',cfg.institutionId)
+      .eq('local_id',Number(localId))
+      .maybeSingle();
+    if(findError)throw findError;
+    if(!data?.id)return {ok:true,deleted:false};
+    const {error}=await client
+      .from('core_students')
+      .delete()
+      .eq('institution_id',cfg.institutionId)
+      .eq('id',data.id);
+    if(error)throw error;
+    return {ok:true,deleted:true};
+  }
+
+  window.EDUNIZAM_CORE_CLOUD={ready,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
 })();
