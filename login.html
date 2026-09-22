@@ -66,6 +66,7 @@
         </div>
 
         <form id="loginForm" class="fields">
+          <div id="adminLoginSchoolField" class="field"><label for="loginSchoolName">Institute / School Name</label><input id="loginSchoolName" autocomplete="organization" placeholder="e.g. Dar-ul-Islam School"></div>
           <div class="field"><label for="loginEmail">Email Address</label><input id="loginEmail" type="email" autocomplete="email" required></div>
           <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
           <div class="row"><span></span><button id="forgotBtn" class="link" type="button">Forgot password?</button></div>
@@ -146,26 +147,37 @@
       const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('Logo could not be read.'));reader.readAsDataURL(file);
     });
   }
-  async function resolveInstitution(user){
-    let runtime={};try{runtime=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}')}catch(_){}
+  const normalizeInstituteName=value=>String(value||'').trim().replace(/\s+/g,' ').toLowerCase();
+  async function resolveInstitution(user,requestedName=''){
+    const wanted=normalizeInstituteName(requestedName);
     const owner=await client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).order('created_at',{ascending:true});
+    if(owner.error)throw owner.error;
     if(owner.data?.length){
-      return owner.data.find(x=>x.id===runtime.institutionId)||owner.data[0];
+      if(wanted){
+        const exact=owner.data.find(x=>normalizeInstituteName(x.name)===wanted);
+        if(exact)return exact;
+        return null;
+      }
+      if(owner.data.length===1)return owner.data[0];
     }
     const profile=await client.from('user_profiles').select('institution_id').eq('user_id',user.id).maybeSingle();
+    if(profile.error)throw profile.error;
     if(!profile.data?.institution_id)return null;
     const inst=await client.from('institutions').select('id,name,institution_type').eq('id',profile.data.institution_id).maybeSingle();
+    if(inst.error)throw inst.error;
+    if(wanted&&inst.data&&normalizeInstituteName(inst.data.name)!==wanted)return null;
     return inst.data||null;
   }
-  async function openApp(user,role){
-    const inst=await resolveInstitution(user);
+  async function openApp(user,role,requestedName=''){
+    const inst=await resolveInstitution(user,requestedName);
+    if(role==='admin'&&!inst)throw new Error('No institute with this name is linked to this Admin account. Check the institute name and try again.');
     let runtime={};try{runtime=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}')}catch(_){}
     if(inst?.id){runtime.enabled=true;runtime.institutionId=inst.id;localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify(runtime))}
     let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
     if(inst?.name)settings.schoolName=inst.name;
     localStorage.setItem('edunizam_settings',JSON.stringify(settings));
     const localRole=role==='admin'?'head':role;
-    localStorage.setItem('edunizam_session',JSON.stringify({role:localRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||''}));
+    localStorage.setItem('edunizam_session',JSON.stringify({role:localRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||'',institutionId:inst?.id||''}));
     location.replace('./?secureLogin=1');
   }
   function chooseRole(role){
@@ -173,6 +185,8 @@
     $('roleTitle').textContent=labels[role]+' Access';
     $('roleText').textContent='Log in or create your '+labels[role]+' account.';
     const admin=role==='admin';
+    $('adminLoginSchoolField').classList.toggle('hidden',!admin);
+    $('loginSchoolName').required=admin;
     $('adminSchoolNameField').classList.toggle('hidden',!admin);
     $('adminLogoField').classList.toggle('hidden',!admin);
     $('schoolName').required=admin;
@@ -196,6 +210,8 @@
     if(!client)return message('Login service is unavailable.');
     busy($('loginBtn'),true,'Signing in...');
     try{
+      const requestedInstitute=selectedRole==='admin'?$('loginSchoolName').value.trim():'';
+      if(selectedRole==='admin'&&!requestedInstitute)throw new Error('Enter your institute / school name.');
       const {data,error}=await client.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});
       if(error)throw error;
 
@@ -209,7 +225,7 @@
       const role=await client.rpc('current_account_role');
       if(role.error)throw role.error;
       if(role.data!==roleCloud[selectedRole]){await client.auth.signOut();throw new Error('This account does not match the selected role.')}
-      await openApp(data.user,selectedRole);
+      await openApp(data.user,selectedRole,requestedInstitute);
     }catch(err){message(friendly(err.message||err))}finally{busy($('loginBtn'),false)}
   };
 
