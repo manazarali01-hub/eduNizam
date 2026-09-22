@@ -10,6 +10,14 @@
     current.institutionId=inst.id;
     localStorage.setItem(KEY,JSON.stringify(current));
 
+    let session=null;
+    try{session=JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch(_){}
+    if(session){
+      session.institutionId=inst.id;
+      session.schoolName=inst.name||session.schoolName||'';
+      localStorage.setItem('edunizam_session',JSON.stringify(session));
+    }
+
     let settings={};
     try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
     settings.schoolName=inst.name||settings.schoolName||'My School';
@@ -35,7 +43,15 @@
         .order('created_at',{ascending:true});
 
       if(owner.data?.length){
-        const preferred=owner.data.find(x=>x.id===current.institutionId)||owner.data[0];
+        let session=null;
+        try{session=JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch(_){}
+        const selectedId=session?.institutionId||current.institutionId||'';
+        const selectedName=String(session?.schoolName||'').trim().toLowerCase();
+        const preferred=
+          owner.data.find(x=>x.id===selectedId) ||
+          (selectedName?owner.data.find(x=>String(x.name||'').trim().toLowerCase()===selectedName):null) ||
+          owner.data.find(x=>x.id===current.institutionId) ||
+          owner.data[0];
         useInstitution(preferred,false);
         return true;
       }
