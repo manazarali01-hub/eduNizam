@@ -1,0 +1,70 @@
+/* EduNizam reliability + mobile performance layer */
+html,body{max-width:100%;overflow-x:hidden}
+.view,.card,.row,.section-head,.form-grid,.grid-2,.analytics-grid{min-width:0}
+img,video,canvas,svg{max-width:100%;height:auto}
+button,a,input,select,textarea{touch-action:manipulation}
+
+.edu-offline #reliabilityNetworkBadge,
+#reliabilityStatusBadge.warning{background:#fff4e5;color:#9a5a00;border-color:#f4d49a}
+
+.edu-safe-performance-mode *,
+.edu-safe-performance-mode *::before,
+.edu-safe-performance-mode *::after{
+  animation-duration:.01ms!important;
+  animation-iteration-count:1!important;
+  transition-duration:.01ms!important;
+  scroll-behavior:auto!important;
+}
+.edu-safe-performance-mode .main{
+  background-image:none!important;
+  background-attachment:scroll!important;
+}
+.edu-safe-performance-mode .card,
+.edu-safe-performance-mode .topbar,
+.edu-safe-performance-mode .sidebar{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:none!important;
+}
+.edu-safe-performance-mode .edu-progress-line,
+.edu-safe-performance-mode .ripple{display:none!important}
+
+#troubleshoot .check-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+#troubleshoot .check-option{min-height:48px}
+#reliabilityEventList .row{grid-template-columns:minmax(130px,.7fr) minmax(220px,2fr) auto}
+#reliabilityPerformance{overflow-wrap:anywhere}
+
+@media(max-width:950px){
+  .edu-mobile-performance .main{background-attachment:scroll}
+  .edu-mobile-performance .view .card{backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+
+@media(max-width:700px){
+  body{overscroll-behavior-y:contain}
+  .main{width:100%;max-width:100vw}
+  .view{width:100%;max-width:100%}
+  .card,.paper-card,.coverage-note,.empty-state{overflow-wrap:anywhere}
+  input,select,textarea,button{max-width:100%}
+  button,.nav-item,a.button{min-height:46px}
+  .quick-actions{gap:9px}
+  .row{width:100%}
+  #reliabilityEventList .row{grid-template-columns:1fr;gap:4px}
+  #troubleshoot .quick-actions{display:grid;grid-template-columns:1fr}
+  #troubleshoot .quick-actions button{width:100%}
+  .edu-mobile-performance .card:hover,
+  .edu-mobile-performance .paper-card:hover{transform:none!important}
+  .edu-mobile-performance .main{background-image:none}
+  .edu-mobile-performance .view.active>.section-head{box-shadow:none}
+}
+
+@media(max-width:420px){
+  .main{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
+  .topbar{margin-top:env(safe-area-inset-top)}
+  .card{padding:13px}
+  h1,h2,h3{overflow-wrap:anywhere}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .main{background-attachment:scroll!important}
+  .card,.paper-card{transform:none!important}
+}
