@@ -89,7 +89,8 @@ if(!app.includes('deleteStudentByLocalId')) fail.push('Student delete is not syn
 if(!read('core-cloud.js').includes('deleteStudentByLocalId')) fail.push('Cloud student delete handler missing.');
 if(!read('cloud-setup.js').includes('create_owned_institution_v1')) fail.push('Multi-school creation UI missing.');
 if(!read('storage-scope.js').includes('edunizam_school:')) fail.push('Per-school browser storage isolation missing.');
-if(!read('sw.js').includes("'./storage-scope.js'")) fail.push('PWA cache does not include storage isolation script.');\nif(!read('sw.js').includes("'./reliability-guardian.js'")) fail.push('PWA cache does not include Reliability Guardian.');
+if(!read('sw.js').includes("'./storage-scope.js'")) fail.push('PWA cache does not include storage isolation script.');
+if(!read('sw.js').includes("'./reliability-guardian.js'")) fail.push('PWA cache does not include Reliability Guardian.');
 if(!read('sw.js').includes("'./mobile-performance.css'")) fail.push('PWA cache does not include mobile performance styles.');
 if(!index.includes('mobile-performance.css')) fail.push('Mobile performance stylesheet is not loaded.');
 const reliability=read('reliability-guardian.js');
