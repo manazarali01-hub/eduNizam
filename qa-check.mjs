@@ -73,6 +73,9 @@ for(const id of ['studentBForm','guardianCnic','studentDob','admissionNo','stude
 }
 if(!app.includes("bFormNo:$('studentBForm')")) fail.push('Optional student profile fields are not saved locally.');
 if(!read('core-cloud.js').includes('b_form_no:s.bFormNo||null')) fail.push('Optional student profile fields are not synced to cloud.');
+const coreCloud=read('core-cloud.js');
+if(!/function studentMap\(\)[\s\S]*?from\('core_students'\)[\s\S]*?eq\('institution_id',cfg\.institutionId\)/.test(coreCloud)) fail.push('Student cloud map is not scoped to the active institution.');
+if(!/from\('core_students'\)[\s\S]*?delete\(\)[\s\S]*?eq\('institution_id',cfg\.institutionId\)/.test(coreCloud)) fail.push('Student cloud delete is not scoped to the active institution.');
 if(!roleScope.includes("r==='admin'?'head':r")) fail.push('Role scope does not normalize legacy Admin sessions.');
 if(!login.includes("client.auth.resend({")) fail.push('Verification email resend flow missing.');
 if(!login.includes("emailRedirectTo:PROD_LOGIN_URL")) fail.push('Signup verification redirect missing.');
