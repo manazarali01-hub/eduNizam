@@ -12,7 +12,7 @@
   <link rel="icon" href="icon-192.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=20260921-auth72">
+  <link rel="stylesheet" href="style.css?v=20260921-auth72">\n  <link rel="stylesheet" href="mobile-performance.css?v=20260922-reliability1">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="EduNizam">
   <meta property="og:title" content="EduNizam | AI School Management System Pakistan">
@@ -1408,6 +1408,48 @@ e">≠</button>
             <details><summary><strong>Complaint ya technical issue kaise bhejein?</strong></summary><p class="muted">Helpdesk & Complaints section mein ticket create karke issue track karein.</p></details>
           </article>
         </div>
+      </section>
+
+      <section id="troubleshoot" class="view">
+        <div class="section-head">
+          <div>
+            <div class="academic-kicker">Automatic Reliability System</div>
+            <h2>Troubleshoot & Auto-Recovery</h2>
+            <p class="muted">EduNizam automatically watches for runtime errors, failed feature loads, slow/hanging UI and network problems, then applies safe recovery steps.</p>
+          </div>
+          <span id="reliabilityStatusBadge" class="badge">Checking...</span>
+        </div>
+
+        <div class="grid-2">
+          <article class="card">
+            <h3>Auto-Recovery Status</h3>
+            <div id="reliabilitySummary" class="coverage-note">Reliability Guardian is starting...</div>
+            <div id="reliabilityPerformance" class="coverage-note" style="margin-top:10px"></div>
+            <div class="quick-actions" style="margin-top:12px">
+              <button id="runReliabilityCheck" type="button">Run Self Check</button>
+              <button id="repairReliabilityNow" class="secondary" type="button">Repair Now</button>
+              <button id="toggleSafePerformance" class="secondary" type="button">Toggle Performance Protection</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-head">
+              <div><h3>System Checks</h3><p class="muted">Interface, storage, network, cloud session and mobile layout.</p></div>
+              <span id="reliabilityNetworkBadge" class="badge">Network</span>
+            </div>
+            <div id="reliabilityCheckList" class="check-grid">
+              <div class="muted">Automatic check will run after startup.</div>
+            </div>
+          </article>
+        </div>
+
+        <article class="card">
+          <div class="section-head">
+            <div><h3>Recent Reliability Events</h3><p class="muted">Only technical recovery events are shown here. School records are not deleted by Auto-Recovery.</p></div>
+            <button id="clearReliabilityEvents" class="secondary" type="button">Clear Events</button>
+          </div>
+          <div id="reliabilityEventList" class="list"><div class="muted">No reliability problems detected.</div></div>
+        </article>
       </section>
 
       <section id="settings" class="view">
