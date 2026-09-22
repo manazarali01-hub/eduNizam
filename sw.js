@@ -1,4 +1,4 @@
-const CACHE='edunizam-v85-linked-role-logins'
+const CACHE='edunizam-v86-student-parent-linking'
 const CORE=[
   './',
   './index.html',
