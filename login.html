@@ -164,7 +164,8 @@
     let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
     if(inst?.name)settings.schoolName=inst.name;
     localStorage.setItem('edunizam_settings',JSON.stringify(settings));
-    localStorage.setItem('edunizam_session',JSON.stringify({role,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||''}));
+    const localRole=role==='admin'?'head':role;
+    localStorage.setItem('edunizam_session',JSON.stringify({role:localRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||''}));
     location.replace('./?secureLogin=1');
   }
   function chooseRole(role){
