@@ -83,7 +83,9 @@
             <div class="field"><label for="signupEmail">Email Address</label><input id="signupEmail" type="email" autocomplete="email" required></div>
             <div class="field"><label for="signupPassword">Password</label><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required></div>
           </div>
-          <div class="field"><label for="schoolCode">School Code / EMIS / Registration No.</label><input id="schoolCode" required></div>
+          <div id="schoolCodeField" class="field"><label for="schoolCode">School Code / EMIS / Registration No.</label><input id="schoolCode" required></div>
+          <div id="teacherInviteField" class="field hidden"><label for="teacherInviteCode">Teacher Invite Code</label><input id="teacherInviteCode" autocomplete="one-time-code" placeholder="Provided by School Admin"></div>
+          <div id="teacherStaffField" class="field hidden"><label for="teacherStaffCode">Staff Code</label><input id="teacherStaffCode" placeholder="e.g. T-001"></div>
           <div id="adminLogoField" class="field"><label for="schoolLogo">School Logo <span class="help">(Optional)</span></label><input id="schoolLogo" type="file" accept="image/png,image/jpeg,image/webp"></div>
           <button id="signupBtn" class="primary" type="submit">Create Account</button>
           <button id="resendVerifyBtn" class="secondary hidden" type="button">Resend Verification Email</button>
@@ -184,12 +186,18 @@
     selectedRole=role;
     $('roleTitle').textContent=labels[role]+' Access';
     $('roleText').textContent='Log in or create your '+labels[role]+' account.';
-    const admin=role==='admin';
+    const admin=role==='admin',teacher=role==='teacher';
     $('adminLoginSchoolField').classList.toggle('hidden',!admin);
     $('loginSchoolName').required=admin;
     $('adminSchoolNameField').classList.toggle('hidden',!admin);
     $('adminLogoField').classList.toggle('hidden',!admin);
     $('schoolName').required=admin;
+    $('schoolCodeField').classList.toggle('hidden',teacher);
+    $('schoolCode').required=!teacher;
+    $('teacherInviteField').classList.toggle('hidden',!teacher);
+    $('teacherStaffField').classList.toggle('hidden',!teacher);
+    $('teacherInviteCode').required=teacher;
+    $('teacherStaffCode').required=teacher;
     show('authView');
     setTab('login');
   }
@@ -232,13 +240,15 @@
   $('signupForm').onsubmit=async e=>{
     e.preventDefault();
     if(!client)return message('Login service is unavailable.');
-    const school=$('schoolName').value.trim(),name=$('fullName').value.trim(),phone=$('contactNumber').value.trim(),email=$('signupEmail').value.trim(),password=$('signupPassword').value,code=$('schoolCode').value.trim();
-    if(!name||!phone||!email||password.length<8||!code||(selectedRole==='admin'&&!school))return message('Complete all required fields.');
+    const school=$('schoolName').value.trim(),name=$('fullName').value.trim(),phone=$('contactNumber').value.trim(),email=$('signupEmail').value.trim(),password=$('signupPassword').value;
+    const teacher=selectedRole==='teacher',code=teacher?'':$('schoolCode').value.trim();
+    const teacherInvite=teacher?$('teacherInviteCode').value.trim():'',teacherStaff=teacher?$('teacherStaffCode').value.trim():'';
+    if(!name||!phone||!email||password.length<8||(teacher?(!teacherInvite||!teacherStaff):!code)||(selectedRole==='admin'&&!school))return message('Complete all required fields.');
     busy($('signupBtn'),true,'Creating account...');
     try{
       const logo=selectedRole==='admin'?await saveLogo($('schoolLogo').files?.[0]):'';
-      localStorage.setItem('edunizam_pending_signup',JSON.stringify({role:selectedRole,school,name,phone,code,logo,email}));
-      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{full_name:name,signup_role:selectedRole,school_name:school||'',school_code:code,contact_number:phone}}});
+      localStorage.setItem('edunizam_pending_signup',JSON.stringify({role:selectedRole,school,name,phone,code,teacherInvite,teacherStaff,logo,email}));
+      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{full_name:name,signup_role:selectedRole,school_name:school||'',school_code:code,teacher_invite_code:teacherInvite,teacher_staff_code:teacherStaff,contact_number:phone}}});
       if(error)throw error;
       if(!data.session){
         if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
@@ -263,19 +273,37 @@
     let pending=null;try{pending=JSON.parse(localStorage.getItem('edunizam_pending_signup')||'null')}catch(_){}
     if(!pending){
       const meta=user?.user_metadata||{};
-      if(meta.signup_role&&meta.school_code&&meta.full_name){
+      const teacherMeta=meta.signup_role==='teacher'&&meta.teacher_invite_code&&meta.teacher_staff_code;
+      const standardMeta=meta.signup_role&&meta.signup_role!=='teacher'&&meta.school_code;
+      if(meta.full_name&&(teacherMeta||standardMeta)){
         pending={
           role:meta.signup_role,
           school:meta.school_name||'',
           name:meta.full_name,
           phone:meta.contact_number||'',
-          code:meta.school_code,
+          code:meta.school_code||'',
+          teacherInvite:meta.teacher_invite_code||'',
+          teacherStaff:meta.teacher_staff_code||'',
           logo:'',
           email:user.email||''
         };
       }
     }
     if(!pending)return false;
+    if(pending.role==='teacher'){
+      const {data,error}=await client.rpc('request_teacher_access',{
+        p_invite_code:pending.teacherInvite||'',p_staff_code:pending.teacherStaff||''
+      });
+      if(error)throw error;
+      localStorage.removeItem('edunizam_pending_signup');
+      localStorage.removeItem('edunizam_verify_email');
+      await client.auth.signOut();
+      show('authView');
+      setTab('login');
+      $('loginEmail').value=pending.email||user.email||'';
+      message('Teacher verification request sent. School Admin approval ke baad isi email aur password se Teacher login karein.',true);
+      return true;
+    }
     const {data,error}=await client.rpc('register_simple_account_v1',{
       p_role:pending.role,p_school_name:pending.school||'',p_school_code:pending.code,p_full_name:pending.name,p_phone:pending.phone
     });
