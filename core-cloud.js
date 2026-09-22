@@ -15,7 +15,10 @@
   }
   async function studentMap(){
     const c=cloud(),client=c.state.client;
-    const {data,error}=await client.from('core_students').select('id,local_id,auth_user_id,name,class_name');
+    const {data,error}=await client
+      .from('core_students')
+      .select('id,local_id,auth_user_id,name,class_name')
+      .eq('institution_id',cfg.institutionId);
     if(error) throw error;
     return new Map((data||[]).map(x=>[Number(x.local_id),x]));
   }
