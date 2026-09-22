@@ -69,14 +69,16 @@ for(const view of new Set(roleViewTargets)){
 
 const cloudPos=scriptRefs.indexOf('cloud-config.js');
 const scopePos=scriptRefs.indexOf('storage-scope.js');
+const guardianPos=scriptRefs.indexOf('reliability-guardian.js');
+const featurePos=scriptRefs.indexOf('feature-loader.js');
 const appPos=scriptRefs.indexOf('app.js');
-if(cloudPos<0||scopePos<0||appPos<0) fail.push('Critical startup scripts missing.');
-else if(!(cloudPos<scopePos&&scopePos<appPos)) fail.push('Critical script order must be cloud-config -> storage-scope -> app.js');
+if(cloudPos<0||scopePos<0||guardianPos<0||featurePos<0||appPos<0) fail.push('Critical startup scripts missing.');
+else if(!(cloudPos<scopePos&&scopePos<guardianPos&&guardianPos<featurePos&&featurePos<appPos)) fail.push('Critical script order must be cloud-config -> storage-scope -> reliability guardian -> feature loader -> app.js');
 
 for(const required of [
   'login.html','cloud-config.js','storage-scope.js','cloud-setup.js','core-cloud.js',
   'auth-bridge.js','account-security.js','role-access-center.js','role-scope.js',
-  'backend-health.js','sw.js'
+  'backend-health.js','reliability-guardian.js','mobile-performance.css','sw.js'
 ]){
   if(!exists(required)) fail.push('Missing core file: '+required);
 }
@@ -87,7 +89,15 @@ if(!app.includes('deleteStudentByLocalId')) fail.push('Student delete is not syn
 if(!read('core-cloud.js').includes('deleteStudentByLocalId')) fail.push('Cloud student delete handler missing.');
 if(!read('cloud-setup.js').includes('create_owned_institution_v1')) fail.push('Multi-school creation UI missing.');
 if(!read('storage-scope.js').includes('edunizam_school:')) fail.push('Per-school browser storage isolation missing.');
-if(!read('sw.js').includes("'./storage-scope.js'")) fail.push('PWA cache does not include storage isolation script.');
+if(!read('sw.js').includes("'./storage-scope.js'")) fail.push('PWA cache does not include storage isolation script.');\nif(!read('sw.js').includes("'./reliability-guardian.js'")) fail.push('PWA cache does not include Reliability Guardian.');
+if(!read('sw.js').includes("'./mobile-performance.css'")) fail.push('PWA cache does not include mobile performance styles.');
+if(!index.includes('mobile-performance.css')) fail.push('Mobile performance stylesheet is not loaded.');
+const reliability=read('reliability-guardian.js');
+if(!reliability.includes('Main Thread Stall')) fail.push('Hang watchdog is missing.');
+if(!reliability.includes('function criticalCheck()')) fail.push('Automatic critical UI recovery is missing.');
+if(!reliability.includes('async function withRetry')) fail.push('Automatic retry engine is missing.');
+if(!feature.includes('Feature script timed out')) fail.push('Feature loader timeout protection is missing.');
+if(!feature.includes('repairUI')) fail.push('Feature loader does not call Auto-Recovery after failure.');
 const login=read('login.html');
 const roleScope=read('role-scope.js');
 if(!login.includes("role==='admin'?'head':role")) fail.push('Admin login role is not normalized to Head permissions.');
@@ -106,6 +116,8 @@ if(!login.includes("client.auth.resend({")) fail.push('Verification email resend
 if(!login.includes("emailRedirectTo:PROD_LOGIN_URL")) fail.push('Signup verification redirect missing.');
 if(!read('cloud-setup.js').includes("create_owned_institution_v1")) fail.push('Multi-school creation UI missing.');
 if(!index.includes('data-view="settings"')) fail.push('Settings navigation item missing.');
+if(!index.includes('data-view="troubleshoot"')) fail.push('Troubleshoot navigation item missing.');
+if(!index.includes('id="troubleshoot"')) fail.push('Troubleshoot section missing.');
 if(!index.includes('data-view="help"')) fail.push('Help & Support navigation item missing.');
 if(!index.includes('id="help"')) fail.push('Help & Support section missing.');
 if(!index.includes('id="reliabilityDiagnosticsCard"')) fail.push('Reliability diagnostics card missing.');
@@ -115,8 +127,10 @@ if(!app.includes("writeDiagnostics([])")) fail.push('Diagnostics clear action mi
 if(!app.includes("recordDiagnostic('Student Cloud Sync'")) fail.push('Student cloud-sync failures are not surfaced in diagnostics.');
 if(!app.includes('Student is saved on this device, but cloud sync failed.')) fail.push('Student cloud-sync failure does not inform the user.');
 for(const roleName of ['student','parent','teacher','head']){
-  const rolePattern=new RegExp(roleName+":\\[[^\\n]*'help'");
-  if(!rolePattern.test(app)) fail.push('Help section is not available to role: '+roleName);
+  const helpPattern=new RegExp(roleName+":\\[[^\\n]*'help'");
+  const troubleshootPattern=new RegExp(roleName+":\\[[^\\n]*'troubleshoot'");
+  if(!helpPattern.test(app)) fail.push('Help section is not available to role: '+roleName);
+  if(!troubleshootPattern.test(app)) fail.push('Troubleshoot section is not available to role: '+roleName);
 }
 
 if(fail.length){
