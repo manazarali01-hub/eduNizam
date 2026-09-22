@@ -27,7 +27,7 @@
     .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.tab{border:1px solid var(--line);background:#f7fbfa;border-radius:12px;padding:11px;font-weight:800;cursor:pointer}.tab.active{background:var(--teal);color:#fff;border-color:var(--teal)}
     .fields{display:grid;gap:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input{width:100%;border:1px solid #cadbd8;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);outline:none}.field input:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}
     .primary{width:100%;border:0;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;padding:13px 16px;font-weight:850;cursor:pointer}.secondary{border:1px solid var(--line);background:#fff;color:var(--teal2);border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer}.link{border:0;background:none;color:var(--teal);font-weight:800;cursor:pointer;padding:0}
-    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.role-guidance{margin:2px 0 16px;padding:12px 14px;border:1px solid #d5e6e2;border-radius:13px;background:#f5fbf9;color:#405b58;font-size:.82rem;line-height:1.55}.role-guidance strong{color:var(--teal2)}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}
     .mobile-brand{display:none}.skip{position:fixed;left:12px;top:12px;transform:translateY(-160%);background:#fff;color:#12324a;padding:10px 14px;border-radius:10px;z-index:999}.skip:focus{transform:none}
     :focus-visible{outline:3px solid #e6b94c;outline-offset:3px}
     @media(max-width:1100px) and (min-width:821px){.story{padding:42px 38px 50px}.brand{gap:12px}.logo-box{width:112px;height:84px;flex-basis:112px}.brand-title strong{font-size:clamp(40px,4.8vw,58px)}.story-copy{margin-top:58px;width:min(500px,95%)}}@media(max-width:820px){.page{grid-template-columns:1fr}.story{display:none}.main{padding:18px}.card{padding:22px;border-radius:20px}.mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}.mobile-brand img{width:48px;height:48px}.grid2{grid-template-columns:1fr}}
@@ -64,6 +64,7 @@
           <button id="loginTab" class="tab active" type="button">Log In</button>
           <button id="signupTab" class="tab" type="button">Sign Up</button>
         </div>
+        <div id="roleGuidance" class="role-guidance"></div>
 
         <form id="loginForm" class="fields">
           <div id="adminLoginSchoolField" class="field"><label for="loginSchoolName">Institute / School Name</label><input id="loginSchoolName" autocomplete="organization" placeholder="e.g. Dar-ul-Islam School"></div>
@@ -192,6 +193,10 @@
   async function openApp(user,role,requestedName=''){
     const inst=await resolveInstitution(user,requestedName);
     if(role==='admin'&&!inst)throw new Error('No institute with this name is linked to this Admin account. Check the institute name and try again.');
+    if(role!=='admin'&&!inst){
+      const roleName=labels[role]||'User';
+      throw new Error(roleName+' account is not linked to a school yet. Use the code/invite provided by your School Admin.');
+    }
     let runtime={};try{runtime=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}')}catch(_){}
     if(inst?.id){runtime.enabled=true;runtime.institutionId=inst.id;localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify(runtime))}
     let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
@@ -210,10 +215,32 @@
     localStorage.setItem('edunizam_session',JSON.stringify({role:localRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||'',institutionId:inst?.id||''}));
     location.replace('./?secureLogin=1');
   }
+  async function teacherAccessStatus(userId){
+    const {data,error}=await client
+      .from('teacher_access_requests')
+      .select('status,review_note,staff_code,institutions(name)')
+      .eq('requester_user_id',userId)
+      .order('updated_at',{ascending:false})
+      .limit(1)
+      .maybeSingle();
+    if(error)return null;
+    return data||null;
+  }
   function chooseRole(role){
     selectedRole=role;
     $('roleTitle').textContent=labels[role]+' Access';
-    $('roleText').textContent='Log in or create your '+labels[role]+' account.';
+    const copy={
+      admin:'Use your school name, Admin email and password.',
+      teacher:'Teacher account is linked to the same school through Admin-provided Teacher Invite Code + Staff Code.',
+      parent:'Parent account is linked to the same school using the School Code provided by the School Admin.',
+      student:'Student account is linked to the same school using the School Code provided by the School Admin.'
+    };
+    $('roleText').textContent=copy[role];
+    $('roleGuidance').innerHTML=role==='admin'
+      ? '<strong>Admin:</strong> Aap apne school ke owner hain. School Code doosre users ko isi school se link karta hai.'
+      : role==='teacher'
+        ? '<strong>Same-school link:</strong> Teacher ko pehle Admin ke Staff Directory mein hona chahiye. Invite Code + Staff Code ke baad Admin approval zaroori hai.'
+        : '<strong>Same-school link:</strong> School Admin ka School Code enter karein. Account kisi doosre school mein manually open nahi hoga.';
     const admin=role==='admin',teacher=role==='teacher';
     $('adminLoginSchoolField').classList.toggle('hidden',!admin);
     $('loginSchoolName').required=admin;
@@ -222,6 +249,7 @@
     $('schoolName').required=admin;
     $('schoolCodeField').classList.toggle('hidden',teacher);
     $('schoolCode').required=!teacher;
+    $('schoolCode').placeholder=admin?'School Code / EMIS / Registration No.':'School Code provided by Admin';
     $('teacherInviteField').classList.toggle('hidden',!teacher);
     $('teacherStaffField').classList.toggle('hidden',!teacher);
     $('teacherInviteCode').required=teacher;
@@ -260,7 +288,16 @@
 
       const role=await client.rpc('current_account_role');
       if(role.error)throw role.error;
-      if(role.data!==roleCloud[selectedRole]){await client.auth.signOut();throw new Error('This account does not match the selected role.')}
+      if(role.data!==roleCloud[selectedRole]){
+        if(selectedRole==='teacher'){
+          const status=await teacherAccessStatus(data.user.id);
+          await client.auth.signOut();
+          if(status?.status==='pending')throw new Error('Teacher request is pending School Admin approval.');
+          if(status?.status==='rejected')throw new Error('Teacher request was rejected by School Admin'+(status.review_note?': '+status.review_note:'')+'.');
+        }
+        await client.auth.signOut();
+        throw new Error('This account is not linked to the selected role in this school.');
+      }
       await openApp(data.user,selectedRole,requestedInstitute);
     }catch(err){message(friendly(err.message||err))}finally{busy($('loginBtn'),false)}
   };
