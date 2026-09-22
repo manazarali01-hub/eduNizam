@@ -27,14 +27,16 @@
     if(!cloud?.state?.user)return false;
 
     try{
+      const current=get();
       const owner=await cloud.state.client
         .from('institutions')
-        .select('id,name,institution_type')
+        .select('id,name,institution_type,school_registration_code')
         .eq('owner_user_id',cloud.state.user.id)
-        .limit(1);
+        .order('created_at',{ascending:true});
 
-      if(owner.data?.[0]){
-        useInstitution(owner.data[0],false);
+      if(owner.data?.length){
+        const preferred=owner.data.find(x=>x.id===current.institutionId)||owner.data[0];
+        useInstitution(preferred,false);
         return true;
       }
 
@@ -141,6 +143,48 @@
 
     settings.prepend(card);
     const msg=t=>document.getElementById('cloudSetupMessage').textContent=t;
+
+    const schoolCard=document.createElement('article');
+    schoolCard.className='card';
+    schoolCard.id='multiSchoolCard';
+    schoolCard.innerHTML='<div class="section-head"><div><h2>My Schools / Institutes</h2><p class="muted">Ek hi EduNizam account se multiple schools manage karein.</p></div><button id="refreshSchoolsBtn" class="secondary">Refresh</button></div>'+
+      '<div id="ownedSchoolsList" class="list"><div class="muted">Loading schools...</div></div>'+
+      '<hr><h3>Add another school</h3><div class="form-grid"><input id="newOwnedSchoolName" placeholder="School / Institute name"><input id="newOwnedSchoolCode" placeholder="School Code / EMIS / Registration No."><input id="newOwnedSchoolPhone" placeholder="Contact number (optional)"><button id="addOwnedSchoolBtn">Add School</button></div>'+
+      '<div id="multiSchoolMsg" class="coverage-note"></div>';
+    card.after(schoolCard);
+
+    async function loadOwnedSchools(){
+      const cloud=window.EDUNIZAM_CLOUD,box=document.getElementById('ownedSchoolsList');
+      if(!cloud?.state?.client||!cloud?.state?.user){box.innerHTML='<div class="muted">Please sign in first.</div>';return}
+      const {data,error}=await cloud.state.client.from('institutions').select('id,name,institution_type,school_registration_code').eq('owner_user_id',cloud.state.user.id).order('created_at',{ascending:true});
+      if(error){box.innerHTML='<div class="muted">'+esc(error.message)+'</div>';return}
+      const current=get().institutionId||'';
+      box.innerHTML=(data||[]).length?(data||[]).map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span>'+esc(s.school_registration_code||'-')+'</span><span>'+(s.id===current?'<span class="badge">Current</span>':'<button class="secondary" data-school-id="'+esc(s.id)+'">Switch</button>')+'</span></div>').join(''):'<div class="muted">No owned school found.</div>';
+      box.querySelectorAll('[data-school-id]').forEach(btn=>btn.onclick=()=>{
+        const school=(data||[]).find(x=>x.id===btn.dataset.schoolId);
+        if(school)useInstitution(school,true);
+      });
+    }
+
+    document.getElementById('refreshSchoolsBtn').onclick=loadOwnedSchools;
+    document.getElementById('addOwnedSchoolBtn').onclick=async()=>{
+      const cloud=window.EDUNIZAM_CLOUD,msgBox=document.getElementById('multiSchoolMsg');
+      if(!cloud?.state?.client||!cloud?.state?.user){msgBox.textContent='Please sign in first.';return}
+      const name=document.getElementById('newOwnedSchoolName').value.trim();
+      const code=document.getElementById('newOwnedSchoolCode').value.trim();
+      const phone=document.getElementById('newOwnedSchoolPhone').value.trim();
+      if(!name||!code){msgBox.textContent='School name and school code are required.';return}
+      msgBox.textContent='Adding school...';
+      const {data,error}=await cloud.state.client.rpc('create_owned_institution_v1',{p_school_name:name,p_school_code:code,p_phone:phone});
+      if(error){msgBox.textContent=error.message;return}
+      const school=Array.isArray(data)?data[0]:data;
+      msgBox.textContent='School added successfully.';
+      document.getElementById('newOwnedSchoolName').value='';
+      document.getElementById('newOwnedSchoolCode').value='';
+      document.getElementById('newOwnedSchoolPhone').value='';
+      if(school?.id)useInstitution(school,true); else await loadOwnedSchools();
+    };
+    loadOwnedSchools();
 
     document.getElementById('cloudSetupTest').onclick=async()=>{
       const url=document.getElementById('cloudSetupUrl').value.trim().replace(/\/$/,'');
