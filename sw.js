@@ -1,4 +1,4 @@
-const CACHE='edunizam-v82-auto-recovery'
+const CACHE='edunizam-v83-multischool-student-fix'
 const CORE=[
   './',
   './index.html',
