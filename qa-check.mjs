@@ -80,6 +80,10 @@ if(!read('cloud-setup.js').includes("create_owned_institution_v1")) fail.push('M
 if(!index.includes('data-view="settings"')) fail.push('Settings navigation item missing.');
 if(!index.includes('data-view="help"')) fail.push('Help & Support navigation item missing.');
 if(!index.includes('id="help"')) fail.push('Help & Support section missing.');
+if(!index.includes('id="reliabilityDiagnosticsCard"')) fail.push('Reliability diagnostics card missing.');
+if(!app.includes("window.addEventListener('error'")) fail.push('Runtime JavaScript error capture missing.');
+if(!app.includes("window.addEventListener('unhandledrejection'")) fail.push('Unhandled promise diagnostics missing.');
+if(!app.includes("writeDiagnostics([])")) fail.push('Diagnostics clear action missing.');
 for(const roleName of ['student','parent','teacher','head']){
   const rolePattern=new RegExp(roleName+":\\[[^\\n]*'help'");
   if(!rolePattern.test(app)) fail.push('Help section is not available to role: '+roleName);
