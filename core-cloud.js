@@ -3,6 +3,10 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const read=(k,f)=>JSON.parse(localStorage.getItem(k)||JSON.stringify(f));
   const write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+  function fallbackStudentCode(s){
+    const raw=String(Number(s?.id)||Date.now()).replace(/\D/g,'').slice(-8).padStart(8,'0');
+    return 'STU-'+raw;
+  }
 
   function ready(){
     return !!(cloud()?.ready?.() && cloud()?.state?.client && cfg.institutionId);
@@ -59,7 +63,7 @@
       guardian_occupation:s.guardianOccupation||null,
       caste:s.caste||null,
       roll_no:s.rollNo||null,
-      student_code:s.studentId||null,
+      student_code:s.studentId||fallbackStudentCode(s),
       admission_application_id:s.admissionApplicationId||null,
       admission_date:s.admissionDate||null,
       fee_snapshot:s.feeSnapshot||null,
