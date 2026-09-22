@@ -58,7 +58,7 @@ jobs:
             local url="$1"
             local marker="$2"
             for attempt in 1 2 3 4 5 6; do
-              body="$(curl --fail --silent --show-error --location --no-cache "${url}" || true)"
+              body="$(curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${url}?verify=${GITHUB_SHA}-${attempt}" || true)"
               if printf '%s' "${body}" | grep -Fq "${marker}"; then
                 return 0
               fi
@@ -70,5 +70,5 @@ jobs:
 
           check_content "${BASE}" "EduNizam"
           check_content "${BASE}login.html" "EduNizam Login"
-          curl --fail --silent --show-error --location --no-cache "${BASE}app.js" >/dev/null
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}app.js?verify=${GITHUB_SHA}" >/dev/null
           echo "Live deployment verification passed."
