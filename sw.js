@@ -1,4 +1,4 @@
-const CACHE='edunizam-v79-qa-corrections'
+const CACHE='edunizam-v80-qa-corrections'
 const CORE=[
   './',
   './index.html',
