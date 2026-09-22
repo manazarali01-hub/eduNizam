@@ -52,8 +52,19 @@ for(const view of new Set(jumpTargets)){
 }
 const roleViewTargets=[...app.matchAll(/(?:student|parent|teacher|head):\[([^\n]+)\]/g)]
   .flatMap(m=>[...m[1].matchAll(/['"]([^'"]+)['"]/g)].map(x=>x[1]));
+const runtimeRoleViews={
+  communication:{file:'communication-center.js',pattern:/sec\.id=['"]communication['"]/},
+  access:{file:'role-access-center.js',pattern:/sec\.id=['"]access['"]/},
+  notifications:{file:'academic-access.js',pattern:/sec\.id=['"]notifications['"]/}
+};
 for(const view of new Set(roleViewTargets)){
-  if(!seen.has(view)) fail.push('Role access points to missing section: '+view);
+  if(seen.has(view)) continue;
+  const runtime=runtimeRoleViews[view];
+  if(!runtime||!exists(runtime.file)||!runtime.pattern.test(read(runtime.file))){
+    fail.push('Role access points to missing section: '+view);
+  }else{
+    ok.push('Runtime section '+view+' injected by '+runtime.file);
+  }
 }
 
 const cloudPos=scriptRefs.indexOf('cloud-config.js');
