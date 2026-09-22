@@ -11,6 +11,3 @@ alter table public.core_students
   add column if not exists guardian_occupation text,
   add column if not exists caste text;
 
-create index if not exists core_students_institution_admission_no_idx
-  on public.core_students (institution_id, admission_no)
-  where admission_no is not null and btrim(admission_no) <> '';
