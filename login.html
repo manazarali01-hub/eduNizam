@@ -177,7 +177,16 @@
     if(inst?.id){runtime.enabled=true;runtime.institutionId=inst.id;localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify(runtime))}
     let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
     if(inst?.name)settings.schoolName=inst.name;
+    if(inst?.institution_type)settings.schoolType=inst.institution_type;
     localStorage.setItem('edunizam_settings',JSON.stringify(settings));
+    if(inst?.id){
+      const scopedSettingsKey='edunizam_school:'+inst.id+':edunizam_settings';
+      let scopedSettings={};
+      try{scopedSettings=JSON.parse(localStorage.getItem(scopedSettingsKey)||'{}')}catch(_){}
+      scopedSettings.schoolName=inst.name||scopedSettings.schoolName||'My School';
+      scopedSettings.schoolType=inst.institution_type||scopedSettings.schoolType||'School';
+      localStorage.setItem(scopedSettingsKey,JSON.stringify(scopedSettings));
+    }
     const localRole=role==='admin'?'head':role;
     localStorage.setItem('edunizam_session',JSON.stringify({role:localRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||'',institutionId:inst?.id||''}));
     location.replace('./?secureLogin=1');
