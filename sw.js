@@ -6,6 +6,8 @@ const CORE=[
   './style.css',
   './cloud-config.js',
   './storage-scope.js',
+  './reliability-guardian.js',
+  './mobile-performance.css',
   './app.js',
   './feature-loader.js',
   './navigation-enhancements.js',
