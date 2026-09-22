@@ -10,7 +10,20 @@
   }
   function removeDemoLogin(){document.getElementById('edunizamLogin')?.remove()}
   function setLocalSession(role,identity){
-    localStorage.setItem(LOCAL_KEY,JSON.stringify({role:mapRole(role),identity:identity||'',loginAt:Date.now(),source:'supabase'}));
+    let existing=null;
+    try{existing=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null')}catch(_){}
+    let runtime={};
+    try{runtime=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}')}catch(_){}
+    const institutionId=existing?.institutionId||runtime.institutionId||'';
+    const schoolName=existing?.schoolName||'';
+    localStorage.setItem(LOCAL_KEY,JSON.stringify({
+      role:mapRole(role),
+      identity:identity||existing?.identity||'',
+      loginAt:existing?.loginAt||Date.now(),
+      source:'supabase',
+      institutionId,
+      schoolName
+    }));
   }
   async function syncCloudRole(){
     const c=cloud();
