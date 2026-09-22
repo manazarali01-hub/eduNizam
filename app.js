@@ -7,7 +7,7 @@ const state={
  activity:JSON.parse(localStorage.getItem('edunizam_activity')||'[]')
 };
 const $=id=>document.getElementById(id);
-function currentRole(){try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role||'student'}catch{return'student'}}
+function currentRole(){try{const r=JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role||'student';return r==='admin'?'head':r}catch{return'student'}}
 function canManageAttendance(){return ['teacher','head'].includes(currentRole())}
 function canManageResults(){return ['teacher','head'].includes(currentRole())}
 function canManageFees(){return currentRole()==='head'}
@@ -116,7 +116,7 @@ $('saveStudentBtn').onclick=async()=>{
 };
 function scopedStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(state.students)||state.students}
 function renderStudents(){
- const list=scopedStudents(),canManage=(window.EDUNIZAM_ROLE_SCOPE?.role?.()||'head')==='head';
+ const list=scopedStudents(),canManage=currentRole()==='head';
  $('studentList').innerHTML=list.length?list.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canManage?'<span class="access-row"><button class="secondary" onclick="editStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Edit</button><button onclick="removeStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Delete</button></span>':'<span></span>')+'</div>').join(''):'<div class="muted">No accessible students.</div>';
  const addBtn=$('addStudentBtn');if(addBtn)addBtn.style.display=canManage?'inline-block':'none';
 }
