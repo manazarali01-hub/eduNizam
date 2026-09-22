@@ -63,6 +63,15 @@ if(!read('core-cloud.js').includes('deleteStudentByLocalId')) fail.push('Cloud s
 if(!read('cloud-setup.js').includes('create_owned_institution_v1')) fail.push('Multi-school creation UI missing.');
 if(!read('storage-scope.js').includes('edunizam_school:')) fail.push('Per-school browser storage isolation missing.');
 if(!read('sw.js').includes("'./storage-scope.js'")) fail.push('PWA cache does not include storage isolation script.');
+const login=read('login.html');
+const roleScope=read('role-scope.js');
+if(!login.includes("role==='admin'?'head':role")) fail.push('Admin login role is not normalized to Head permissions.');
+if(!app.includes("return r==='admin'?'head':r")) fail.push('Legacy Admin sessions are not normalized in app permissions.');
+if(!app.includes("canManage=currentRole()==='head'")) fail.push('Student management permission does not use normalized app role.');
+if(!roleScope.includes("r==='admin'?'head':r")) fail.push('Role scope does not normalize legacy Admin sessions.');
+if(!login.includes("client.auth.resend({")) fail.push('Verification email resend flow missing.');
+if(!login.includes("emailRedirectTo:PROD_LOGIN_URL")) fail.push('Signup verification redirect missing.');
+if(!read('cloud-setup.js').includes("create_owned_institution_v1")) fail.push('Multi-school creation UI missing.');
 
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
