@@ -6,7 +6,7 @@
     ['Academics','✎',['results','schoolwork','noticeboard','lessoncenter','calendarcenter','functionscenter','schedulecenter','leavecenter','examcenter']],
     ['Learning Resources','▤',['pastpapers','practice','study','schoolassessments','universities','vu']],
     ['Communication','✉',['inboxcenter','helpdeskcenter','communication','access','notifications']],
-    ['AI & Settings','✦',['assistant','settings']]
+    ['AI & Settings','✦',['assistant','settings','troubleshoot','help']]
   ];
   function mount(){
     const nav=document.getElementById('nav');if(!nav||nav.dataset.enhanced==='1')return;
