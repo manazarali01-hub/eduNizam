@@ -1,4 +1,4 @@
-const CACHE='edunizam-v84-spacious-navigation'
+const CACHE='edunizam-v85-linked-role-logins'
 const CORE=[
   './',
   './index.html',
