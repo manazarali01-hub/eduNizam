@@ -133,13 +133,21 @@ window.editStudent=id=>{
  $('saveStudentBtn').textContent='Update Student';
  $('studentName').focus();
 };
-window.removeStudent=id=>{
+window.removeStudent=async id=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can delete students.');
- const s=state.students.find(x=>Number(x.id)===Number(id));if(!s)return;
- if(!confirm('Delete '+s.name+' and related local attendance, fee and result records?'))return;
- state.students=state.students.filter(x=>Number(x.id)!==Number(id));
- state.fees=state.fees.filter(x=>Number(x.studentId)!==Number(id));
- state.results=state.results.filter(x=>Number(x.studentId)!==Number(id));
+ const s=state.students.find(x=>String(x.id)===String(id));if(!s)return;
+ if(!confirm('Delete '+s.name+' and related attendance, fee and result records?'))return;
+ try{
+   if(window.EDUNIZAM_CORE_CLOUD?.ready?.()){
+     await window.EDUNIZAM_CORE_CLOUD.deleteStudentByLocalId(s.id);
+   }
+ }catch(e){
+   alert('Student could not be deleted from cloud: '+(e.message||e));
+   return;
+ }
+ state.students=state.students.filter(x=>String(x.id)!==String(id));
+ state.fees=state.fees.filter(x=>String(x.studentId)!==String(id));
+ state.results=state.results.filter(x=>String(x.studentId)!==String(id));
  Object.values(state.attendance).forEach(day=>{delete day[id];delete day[String(id)]});
  logActivity('Student deleted: '+s.name);persist();renderAll();
 };
