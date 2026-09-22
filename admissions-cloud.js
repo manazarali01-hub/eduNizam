@@ -151,22 +151,36 @@
       .eq('parent_user_id',state.user.id).eq('status','approved');
     if(error)throw error;return data||[];
   }
-  async function requestParentStudentLink(studentUserId){
-    if(!state.client||!state.user)throw new Error('Sign in first.');
-    if(!cfg.institutionId)throw new Error('Institution is not configured.');
-    const {data,error}=await state.client.from('parent_student_links').upsert({
-      parent_user_id:state.user.id,student_user_id:studentUserId,institution_id:cfg.institutionId,status:'pending'
-    },{onConflict:'parent_user_id,student_user_id'}).select().single();
-    if(error)throw error;return data;
+  async function requestParentStudentLink(){
+    throw new Error('Use the Student Code link flow so the child is verified inside the same school.');
   }
   async function listParentStudentLinks(){
     if(!state.client||!cfg.institutionId)return[];
-    const {data,error}=await state.client.from('parent_student_links').select('*').eq('institution_id',cfg.institutionId).order('created_at',{ascending:false});
-    if(error)throw error;return data||[];
+    const {data:links,error}=await state.client.from('parent_student_links').select('*').eq('institution_id',cfg.institutionId).order('created_at',{ascending:false});
+    if(error)throw error;
+    if(!links?.length)return[];
+    const parentIds=[...new Set(links.map(x=>x.parent_user_id).filter(Boolean))];
+    const studentIds=[...new Set(links.map(x=>x.student_user_id).filter(Boolean))];
+    const [parentsRes,studentsRes]=await Promise.all([
+      parentIds.length?state.client.from('user_profiles').select('user_id,full_name').eq('institution_id',cfg.institutionId).in('user_id',parentIds):Promise.resolve({data:[],error:null}),
+      studentIds.length?state.client.from('core_students').select('auth_user_id,name,class_name,student_code').eq('institution_id',cfg.institutionId).in('auth_user_id',studentIds):Promise.resolve({data:[],error:null})
+    ]);
+    if(parentsRes.error)throw parentsRes.error;
+    if(studentsRes.error)throw studentsRes.error;
+    const pm=new Map((parentsRes.data||[]).map(x=>[x.user_id,x.full_name||'Parent']));
+    const sm=new Map((studentsRes.data||[]).map(x=>[x.auth_user_id,x]));
+    return links.map(x=>({
+      ...x,
+      parent_name:pm.get(x.parent_user_id)||'Parent / Guardian',
+      student_name:sm.get(x.student_user_id)?.name||'Student',
+      student_class:sm.get(x.student_user_id)?.class_name||'',
+      student_code:sm.get(x.student_user_id)?.student_code||''
+    }));
   }
   async function updateParentStudentLink(parentUserId,studentUserId,status){
-    if(!state.client)throw new Error('Cloud backend is not configured.');
+    if(!state.client||!cfg.institutionId)throw new Error('Cloud institution is not configured.');
     const {data,error}=await state.client.from('parent_student_links').update({status})
+      .eq('institution_id',cfg.institutionId)
       .eq('parent_user_id',parentUserId).eq('student_user_id',studentUserId).select().single();
     if(error)throw error;return data;
   }
@@ -241,7 +255,7 @@
   }
   async function claimStudentRecord(studentCode){
     if(!state.client||!state.user)throw new Error('Sign in first.');
-    const {data,error}=await state.client.rpc('claim_student_record',{p_student_code:String(studentCode||'').trim()});
+    const {data,error}=await state.client.rpc('claim_student_account_v1',{p_student_code:String(studentCode||'').trim()});
     if(error)throw error;return Array.isArray(data)?data[0]:data;
   }
   async function listInstitutionTeachers(){
