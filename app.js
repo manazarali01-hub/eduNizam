@@ -79,20 +79,60 @@ async function setView(view){
  if(view==='classcenter'&&window.EDUNIZAM_CLASS_SECTION_CENTER?.render)window.EDUNIZAM_CLASS_SECTION_CENTER.render();
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
-document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
-$('addStudentBtn').onclick=()=>$('studentFormWrap').classList.toggle('hidden');
-$('saveStudentBtn').onclick=()=>{
+document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{
+  setView(b.dataset.jump);
+  if(b.dataset.jump==='students'){
+    $('studentFormWrap')?.classList.remove('hidden');
+    $('studentName')?.focus();
+  }
+});
+let editingStudentId=null;
+function clearStudentForm(){
+  editingStudentId=null;
+  ['studentName','fatherName','studentClass','studentSection','studentPhone'].forEach(id=>{if($(id))$(id).value=''});
+  const save=$('saveStudentBtn');if(save)save.textContent='Save Student';
+}
+$('addStudentBtn').onclick=()=>{
+  clearStudentForm();
+  $('studentFormWrap').classList.toggle('hidden');
+  if(!$('studentFormWrap').classList.contains('hidden'))$('studentName')?.focus();
+};
+$('saveStudentBtn').onclick=async()=>{
  const name=$('studentName').value.trim(); if(!name)return alert('Enter student name');
- state.students.push({id:Date.now(),name,father:$('fatherName').value.trim(),className:$('studentClass').value.trim(),sectionName:$('studentSection')?.value.trim()||'',phone:$('studentPhone').value.trim()});
- ['studentName','fatherName','studentClass','studentSection','studentPhone'].forEach(id=>{if($(id))$(id).value=''});
- persist();logActivity('Student added: '+name);renderAll();
+ const patch={name,father:$('fatherName').value.trim(),className:$('studentClass').value.trim(),sectionName:$('studentSection')?.value.trim()||'',phone:$('studentPhone').value.trim()};
+ if(editingStudentId!=null){
+   const s=state.students.find(x=>String(x.id)===String(editingStudentId));
+   if(!s)return alert('Student record not found.');
+   Object.assign(s,patch);
+   logActivity('Student updated: '+name);
+ }else{
+   state.students.push(Object.assign({id:Date.now()},patch));
+   logActivity('Student added: '+name);
+ }
+ persist();clearStudentForm();$('studentFormWrap').classList.add('hidden');renderAll();
+ try{
+   if(window.EDUNIZAM_CORE_CLOUD?.ready?.())await window.EDUNIZAM_CORE_CLOUD.pushAllLocalToCloud();
+ }catch(e){console.warn('Student cloud sync:',e.message)}
 };
 function scopedStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(state.students)||state.students}
 function renderStudents(){
- const list=scopedStudents(),canDelete=(window.EDUNIZAM_ROLE_SCOPE?.role?.()||'head')==='head';
- $('studentList').innerHTML=list.length?list.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canDelete?'<button onclick="removeStudent('+s.id+')">Delete</button>':'<span></span>')+'</div>').join(''):'<div class="muted">No accessible students.</div>';
- const addBtn=$('addStudentBtn');if(addBtn)addBtn.style.display=canDelete?'inline-block':'none';
+ const list=scopedStudents(),canManage=(window.EDUNIZAM_ROLE_SCOPE?.role?.()||'head')==='head';
+ $('studentList').innerHTML=list.length?list.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canManage?'<span class="access-row"><button class="secondary" onclick="editStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Edit</button><button onclick="removeStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Delete</button></span>':'<span></span>')+'</div>').join(''):'<div class="muted">No accessible students.</div>';
+ const addBtn=$('addStudentBtn');if(addBtn)addBtn.style.display=canManage?'inline-block':'none';
 }
+window.editStudent=id=>{
+ if(currentRole()!=='head')return alert('Only Head of Institute can edit students.');
+ const s=state.students.find(x=>String(x.id)===String(id));if(!s)return;
+ editingStudentId=s.id;
+ $('studentName').value=s.name||'';
+ $('fatherName').value=s.father||'';
+ $('studentClass').value=s.className||'';
+ if($('studentSection'))$('studentSection').value=s.sectionName||'';
+ $('studentPhone').value=s.phone||'';
+ $('studentFormWrap').classList.remove('hidden');
+ $('saveStudentBtn').textContent='Update Student';
+ $('studentName').focus();
+};
 window.removeStudent=id=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can delete students.');
  const s=state.students.find(x=>Number(x.id)===Number(id));if(!s)return;
