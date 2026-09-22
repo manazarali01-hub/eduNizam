@@ -1,7 +1,7 @@
 (function(){
   const KEY='edunizam_role_scope';
   const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
-  const role=()=>session()?.role||'student';
+  const role=()=>{const r=session()?.role||'student';return r==='admin'?'head':r};
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const currentUser=()=>cloud()?.state?.user?.id||localStorage.getItem('edunizam_cloud_user_id')||'';
   const readCache=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}};
