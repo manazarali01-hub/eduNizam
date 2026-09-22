@@ -7,6 +7,25 @@ const state={
  activity:JSON.parse(localStorage.getItem('edunizam_activity')||'[]')
 };
 const $=id=>document.getElementById(id);
+const DIAG_KEY='edunizam_runtime_diagnostics';
+function readDiagnostics(){try{return JSON.parse(localStorage.getItem(DIAG_KEY)||'[]')}catch{return[]}}
+function writeDiagnostics(items){localStorage.setItem(DIAG_KEY,JSON.stringify((items||[]).slice(-20)))}
+function recordDiagnostic(type,message,source=''){
+ const items=readDiagnostics();
+ items.push({type:String(type||'error'),message:String(message||'Unknown error').slice(0,500),source:String(source||'').slice(0,300),at:new Date().toISOString()});
+ writeDiagnostics(items);
+ renderDiagnostics();
+}
+function renderDiagnostics(){
+ const count=$('diagnosticCount'),list=$('diagnosticList');
+ if(!count||!list)return;
+ const items=readDiagnostics();
+ count.textContent=items.length?items.length+' recent issue(s) recorded':'No recent runtime issues recorded';
+ list.innerHTML=items.length?items.slice().reverse().map(x=>'<div class="row"><strong>'+esc(x.type)+'</strong><span>'+esc(x.message)+'</span><span>'+esc(new Date(x.at).toLocaleString())+'</span></div>').join(''):'<div class="muted">Runtime diagnostics are clear.</div>';
+}
+window.addEventListener('error',e=>recordDiagnostic('JavaScript Error',e.message,e.filename||''));
+window.addEventListener('unhandledrejection',e=>recordDiagnostic('Unhandled Promise',e.reason?.message||e.reason||'Unhandled promise rejection'));
+
 function currentRole(){try{const r=JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role||'student';return r==='admin'?'head':r}catch{return'student'}}
 function canManageAttendance(){return ['teacher','head'].includes(currentRole())}
 function canManageResults(){return ['teacher','head'].includes(currentRole())}
@@ -260,6 +279,7 @@ $('generateBtn').onclick=async()=>{
 };
 $('pushCoreCloudBtn')?.addEventListener('click',pushCoreCloud);
 $('pullCoreCloudBtn')?.addEventListener('click',pullCoreCloud);
+$('clearDiagnosticsBtn')?.addEventListener('click',()=>{writeDiagnostics([]);renderDiagnostics();});
 $('saveSettingsBtn').onclick=async()=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can change school settings.');
  let logo=state.settings.schoolLogo||'';
@@ -315,6 +335,7 @@ async function pullCoreCloud(){
 }
 function renderSettings(){
  refreshCoreCloudStatus();
+ renderDiagnostics();
  $('school-name').textContent=[state.settings.schoolName,state.settings.session].filter(Boolean).join(' · ');
  $('schoolNameInput').value=state.settings.schoolName||'';
  $('schoolTypeInput').value=state.settings.schoolType||'School';
