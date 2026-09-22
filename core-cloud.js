@@ -48,6 +48,13 @@
       class_name:s.className||null,
       section_name:s.sectionName||null,
       phone:s.phone||null,
+      b_form_no:s.bFormNo||null,
+      guardian_cnic:s.guardianCnic||null,
+      date_of_birth:s.dateOfBirth||null,
+      admission_no:s.admissionNo||null,
+      address:s.address||null,
+      guardian_occupation:s.guardianOccupation||null,
+      caste:s.caste||null,
       roll_no:s.rollNo||null,
       student_code:s.studentId||null,
       admission_application_id:s.admissionApplicationId||null,
@@ -186,6 +193,8 @@
     const localStudents=cloudStudents.map(s=>({
       id:Number(s.local_id)||Date.now()+Math.floor(Math.random()*1000),
       name:s.name,father:s.guardian_name||'',className:s.class_name||'',sectionName:s.section_name||'',phone:s.phone||'',
+      bFormNo:s.b_form_no||'',guardianCnic:s.guardian_cnic||'',dateOfBirth:s.date_of_birth||'',admissionNo:s.admission_no||'',
+      address:s.address||'',guardianOccupation:s.guardian_occupation||'',caste:s.caste||'',
       rollNo:s.roll_no||'',studentId:s.student_code||'',admissionApplicationId:s.admission_application_id||'',
       admissionDate:s.admission_date||'',feeSnapshot:s.fee_snapshot||null,authUserId:s.auth_user_id||null,source:s.source||'cloud'
     }));
