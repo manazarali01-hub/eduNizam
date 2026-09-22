@@ -169,11 +169,6 @@ else ok("security:service-role");
 if(/OPENAI_API_KEY\s*[:=]\s*["'][^"']+["']/i.test(browserText))bad("security:openai-key","OpenAI secret-like value in browser code");
 else ok("security:openai-key");
 
-console.log("EduNizam smoke checks:",pass.length,"passed,",fail.length,"failed");
-for(const x of fail)console.error("FAIL",x.name,"-",x.msg);
-if(fail.length)process.exit(1);
-
-
 /* Auth regression guards */
 const authBridge=read("auth-bridge.js");
 const loginHtml=read("login.html");
@@ -188,3 +183,7 @@ if(/localStorage\.removeItem\(['"]edunizam_session['"]\)/.test(loginHtml)){
 if(/linear-gradient\([^)]*rgba\(6,78,70|rgba\(15,118,110/.test(loginHtml) && /edunizam-login-children\.webp/.test(loginHtml)){
   bad("ui:children-image-overlay","children login image must not have green overlay");
 }else ok("ui:children-image-overlay");
+
+console.log("EduNizam smoke checks:",pass.length,"passed,",fail.length,"failed");
+for(const x of fail)console.error("FAIL",x.name,"-",x.msg);
+if(fail.length)process.exit(1);
