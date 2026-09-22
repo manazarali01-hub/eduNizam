@@ -147,8 +147,11 @@
     });
   }
   async function resolveInstitution(user){
-    const owner=await client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).limit(1);
-    if(owner.data?.[0])return owner.data[0];
+    let runtime={};try{runtime=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}')}catch(_){}
+    const owner=await client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).order('created_at',{ascending:true});
+    if(owner.data?.length){
+      return owner.data.find(x=>x.id===runtime.institutionId)||owner.data[0];
+    }
     const profile=await client.from('user_profiles').select('institution_id').eq('user_id',user.id).maybeSingle();
     if(!profile.data?.institution_id)return null;
     const inst=await client.from('institutions').select('id,name,institution_type').eq('id',profile.data.institution_id).maybeSingle();
