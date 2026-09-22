@@ -124,6 +124,10 @@ if(!login.includes("addSchoolToExistingAdmin")) fail.push('Existing Admin email 
 if(!login.includes("create_owned_institution_v1")) fail.push('Multi-school signup RPC is missing.');
 if(!app.includes("b.onclick=async()=>")) fail.push('Quick actions do not await view navigation.');
 if(!app.includes("if(targetView==='students')openStudentForm()")) fail.push('Student quick action does not reliably open the form.');
+if(!login.includes('id="roleGuidance"')) fail.push('Role-specific same-school login guidance missing.');
+if(!login.includes("if(role!=='admin'&&!inst)")) fail.push('Non-Admin roles can open without a linked school.');
+if(!login.includes("Teacher request is pending School Admin approval.")) fail.push('Teacher pending-approval login guidance missing.');
+if(!read('cloud-setup.js').includes('Parent/Student Login Code')) fail.push('Admin Settings do not expose the same-school Parent/Student login code clearly.');
 if(!login.includes("client.auth.resend({")) fail.push('Verification email resend flow missing.');
 if(!login.includes("emailRedirectTo:PROD_LOGIN_URL")) fail.push('Signup verification redirect missing.');
 if(!read('cloud-setup.js').includes("create_owned_institution_v1")) fail.push('Multi-school creation UI missing.');
