@@ -1,9 +1,11 @@
-const CACHE='edunizam-v80-qa-corrections'
+const CACHE='edunizam-v81-help-accuracy'
 const CORE=[
   './',
   './index.html',
   './login.html',
   './style.css',
+  './cloud-config.js',
+  './storage-scope.js',
   './app.js',
   './feature-loader.js',
   './navigation-enhancements.js',
