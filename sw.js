@@ -1,4 +1,4 @@
-const CACHE='edunizam-v77-installable-pwa'
+const CACHE='edunizam-v78-student-multischool'
 const CORE=[
   './',
   './index.html',
