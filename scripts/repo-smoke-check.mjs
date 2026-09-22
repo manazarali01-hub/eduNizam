@@ -180,8 +180,9 @@ if(/localStorage\.removeItem\(['"]edunizam_session['"]\)/.test(loginHtml)){
   bad("auth:login-preserves-session","login page must not delete valid app session");
 }else ok("auth:login-preserves-session");
 
-if(/linear-gradient\([^)]*rgba\(6,78,70|rgba\(15,118,110/.test(loginHtml) && /edunizam-login-children\.webp/.test(loginHtml)){
-  bad("ui:children-image-overlay","children login image must not have green overlay");
+const storyRule=loginHtml.match(/\.story\{[^}]*\}/)?.[0]||"";
+if(/linear-gradient\(/.test(storyRule) && /edunizam-login-children\.webp/.test(storyRule)){
+  bad("ui:children-image-overlay","children login image must not have a gradient overlay");
 }else ok("ui:children-image-overlay");
 
 console.log("EduNizam smoke checks:",pass.length,"passed,",fail.length,"failed");
