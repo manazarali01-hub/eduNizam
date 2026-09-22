@@ -42,9 +42,9 @@ for(const id of new Set(hardHandlers)){
   if(!seen.has(id)) fail.push('app.js references missing HTML id: '+id);
 }
 
-const cloudPos=index.indexOf('src="cloud-config.js"');
-const scopePos=index.indexOf('src="storage-scope.js"');
-const appPos=index.indexOf('src="app.js"');
+const cloudPos=scriptRefs.indexOf('cloud-config.js');
+const scopePos=scriptRefs.indexOf('storage-scope.js');
+const appPos=scriptRefs.indexOf('app.js');
 if(cloudPos<0||scopePos<0||appPos<0) fail.push('Critical startup scripts missing.');
 else if(!(cloudPos<scopePos&&scopePos<appPos)) fail.push('Critical script order must be cloud-config -> storage-scope -> app.js');
 
