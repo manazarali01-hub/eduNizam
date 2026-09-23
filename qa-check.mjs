@@ -152,6 +152,17 @@ if(!app.includes("window.addEventListener('unhandledrejection'")) fail.push('Unh
 if(!app.includes("writeDiagnostics([])")) fail.push('Diagnostics clear action missing.');
 if(!app.includes("recordDiagnostic('Student Cloud Sync'")) fail.push('Student cloud-sync failures are not surfaced in diagnostics.');
 if(!app.includes('Student is saved on this device, but cloud sync failed.')) fail.push('Student cloud-sync failure does not inform the user.');
+const roleHardening=read('supabase-role-linking-hardening.sql');
+if(!login.includes('Registration No. <span class="help">(Optional)</span>')) fail.push('Admin registration number is not optional in signup UI.');
+if(!login.includes("register_admin_school_v2")) fail.push('Admin signup does not use the optional-registration backend.');
+if(!cloudSetup.includes('Registration No. (optional)')) fail.push('Settings multi-school form does not expose optional registration number.');
+if(!cloudSetup.includes("create_owned_institution_v2")) fail.push('Settings school creation does not use the optional-registration backend.');
+if(!roleHardening.includes('insert into public.institution_members')) fail.push('Parent/Student signup membership hardening is missing.');
+if(!roleHardening.includes('school admin approves child links')) fail.push('Parent-child approval is not restricted to School Admin.');
+const admissionsCloud=read('admissions-cloud.js');
+if(!/removeTeacherStudentLink[\s\S]*?eq\('institution_id',cfg\.institutionId\)/.test(admissionsCloud)) fail.push('Teacher-student unlink is not scoped to the active school.');
+if(!admissionsCloud.includes('Selected teacher is not linked to this school.')) fail.push('Teacher assignment lacks same-school validation.');
+if(!admissionsCloud.includes('Selected student is not linked to this school.')) fail.push('Student assignment lacks same-school validation.');
 for(const roleName of ['student','parent','teacher','head']){
   const helpPattern=new RegExp(roleName+":\\[[^\\n]*'help'");
   const troubleshootPattern=new RegExp(roleName+":\\[[^\\n]*'troubleshoot'");
