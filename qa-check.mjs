@@ -87,6 +87,8 @@ if(!app.includes('window.editStudent=')) fail.push('Student Edit handler missing
 if(!app.includes("window.EDUNIZAM_CORE_CLOUD?.ready?.()")) fail.push('Student cloud sync guard missing.');
 if(!app.includes('deleteStudentByLocalId')) fail.push('Student delete is not synchronized with cloud.');
 if(!read('core-cloud.js').includes('deleteStudentByLocalId')) fail.push('Cloud student delete handler missing.');
+if(!read('core-cloud.js').includes("rpc('delete_core_student_v1'")) fail.push('Student delete does not use the atomic access-cleanup RPC.');
+if(!fs.existsSync(path.join(root,'supabase-atomic-student-delete.sql'))) fail.push('Atomic student-delete backend SQL is missing from the repository.');
 if(!read('cloud-setup.js').includes('create_owned_institution_v2')) fail.push('Multi-school creation UI missing.');
 if(!read('storage-scope.js').includes('edunizam_school:')) fail.push('Per-school browser storage isolation missing.');
 if(!read('sw.js').includes("'./storage-scope.js'")) fail.push('PWA cache does not include storage isolation script.');
