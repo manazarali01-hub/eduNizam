@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -35,29 +35,47 @@ jobs:
       - name: Run EduNizam QA gate
         run: node qa-check.mjs
 
+      - name: Check latest main commit
+        id: latest
+        shell: bash
+        run: |
+          LATEST_SHA="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          echo "Remote main: ${LATEST_SHA}"
+          echo "This run:    ${GITHUB_SHA}"
+          if [[ "${LATEST_SHA}" == "${GITHUB_SHA}" ]]; then
+            echo "deploy=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "deploy=false" >> "${GITHUB_OUTPUT}"
+            echo "Stale workflow run detected; deployment steps will be skipped."
+          fi
+
       - name: Configure GitHub Pages
+        if: steps.latest.outputs.deploy == 'true'
         uses: actions/configure-pages@v5
 
       - name: Upload static site
+        if: steps.latest.outputs.deploy == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
           path: "."
 
       - name: Deploy to GitHub Pages
         id: deployment_primary
+        if: steps.latest.outputs.deploy == 'true'
         continue-on-error: true
         uses: actions/deploy-pages@v5
 
       - name: Pause before Pages retry
-        if: steps.deployment_primary.outcome == 'failure'
+        if: steps.latest.outputs.deploy == 'true' && steps.deployment_primary.outcome == 'failure'
         run: sleep 15
 
       - name: Retry GitHub Pages deployment
         id: deployment_retry
-        if: steps.deployment_primary.outcome == 'failure'
+        if: steps.latest.outputs.deploy == 'true' && steps.deployment_primary.outcome == 'failure'
         uses: actions/deploy-pages@v5
 
       - name: Verify live EduNizam deployment
+        if: steps.latest.outputs.deploy == 'true'
         shell: bash
         run: |
           BASE="${{ steps.deployment_retry.outputs.page_url || steps.deployment_primary.outputs.page_url }}"
