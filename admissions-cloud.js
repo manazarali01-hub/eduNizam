@@ -310,15 +310,20 @@
   }
   async function assignTeacherStudent(teacherUserId,studentUserId){
     if(!state.client||!state.user||!cfg.institutionId)throw new Error('Cloud institution is not configured.');
+    const [teachers,students]=await Promise.all([listInstitutionTeachers(),listLinkedCoreStudents()]);
+    if(!teachers.some(x=>x.user_id===teacherUserId))throw new Error('Selected teacher is not linked to this school.');
+    if(!students.some(x=>x.auth_user_id===studentUserId))throw new Error('Selected student is not linked to this school.');
     const {data,error}=await state.client.from('teacher_student_links').upsert({
       institution_id:cfg.institutionId,teacher_user_id:teacherUserId,student_user_id:studentUserId,assigned_by:state.user.id
     },{onConflict:'teacher_user_id,student_user_id'}).select().single();
     if(error)throw error;return data;
   }
   async function removeTeacherStudentLink(teacherUserId,studentUserId){
-    if(!state.client)throw new Error('Cloud backend is not configured.');
+    if(!state.client||!cfg.institutionId)throw new Error('Cloud backend is not configured.');
     const {error}=await state.client.from('teacher_student_links').delete()
-      .eq('teacher_user_id',teacherUserId).eq('student_user_id',studentUserId);
+      .eq('institution_id',cfg.institutionId)
+      .eq('teacher_user_id',teacherUserId)
+      .eq('student_user_id',studentUserId);
     if(error)throw error;return true;
   }
   async function listMyTeacherAssignments(){
