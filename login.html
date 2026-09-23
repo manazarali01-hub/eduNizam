@@ -72,6 +72,7 @@
           <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
           <div id="studentLoginCodeField" class="field hidden"><label for="loginStudentCode">Student Code <span class="help">(first link only)</span></label><input id="loginStudentCode" autocomplete="one-time-code" placeholder="Provided by School Admin"></div>
           <div class="row"><span></span><button id="forgotBtn" class="link" type="button">Forgot password?</button></div>
+          <div class="help">Security: School name alone cannot reset access. A reset link is sent only to the registered email address.</div>
           <button id="loginBtn" class="primary" type="submit">Log In</button>
         </form>
 
@@ -423,7 +424,7 @@
           localStorage.removeItem('edunizam_verify_email');
           $('resendVerifyBtn').classList.add('hidden');
           localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School added successfully.'+(code?' Registration No. '+code+' saved for display.':'')+' A separate School Login Code was generated automatically.'}));
-          message('School added successfully.'+(code?' Registration No. saved.':'')+' Opening the school...',true);
+          message('Existing verified Admin email confirmed. No new verification email is required. School added successfully.'+(code?' Registration No. saved.':'')+' Opening the school...',true);
           await openApp(existing.user,'admin',school);
           return;
         }
@@ -437,7 +438,7 @@
             localStorage.removeItem('edunizam_verify_email');
             $('resendVerifyBtn').classList.add('hidden');
             localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School added successfully.'+(code?' Registration No. '+code+' saved for display.':'')+' A separate School Login Code was generated automatically.'}));
-            message('School added successfully.'+(code?' Registration No. saved.':'')+' Opening the school...',true);
+            message('Existing verified Admin email confirmed. No new verification email is required. School added successfully.'+(code?' Registration No. saved.':'')+' Opening the school...',true);
             await openApp(existing.user,'admin',school);
             return;
           }
@@ -554,8 +555,16 @@
   };
 
   $('forgotBtn').onclick=async()=>{
-    const email=$('loginEmail').value.trim();if(!email)return message('Enter your email address first.');
-    try{const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});if(error)throw error;message('Password reset link sent to your email.',true)}catch(err){message(friendly(err.message||err))}
+    if(!client)return message('Login service is unavailable.');
+    const email=$('loginEmail').value.trim();
+    if(!email)return message('Enter your registered email address first.');
+    busy($('forgotBtn'),true,'Sending...');
+    try{
+      const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});
+      if(error)throw error;
+      message('If this email is registered, a password reset link has been sent. Check inbox and spam folder.',true);
+    }catch(err){message(friendly(err.message||err))}
+    finally{busy($('forgotBtn'),false)}
   };
   $('resetForm').onsubmit=async e=>{
     e.preventDefault();const password=$('newPassword').value;if(password.length<8)return message('Use at least 8 characters.',false,'resetStatus');
