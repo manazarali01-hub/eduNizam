@@ -444,10 +444,10 @@
           localStorage.removeItem('edunizam_pending_signup');
           localStorage.removeItem('edunizam_verify_email');
           $('resendVerifyBtn').classList.add('hidden');
-          message('This email already has an EduNizam account. Please use Log In for this role.');
           setTab('login');
           $('loginEmail').value=email;
           if(selectedRole==='student'&&$('loginStudentCode'))$('loginStudentCode').value=studentCode||'';
+          message('This email already has an EduNizam account. Please use Log In for this role.');
           return;
         }
         localStorage.setItem('edunizam_verify_email',email);
