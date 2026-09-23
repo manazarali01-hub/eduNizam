@@ -265,21 +265,19 @@
 
   async function deleteStudentByLocalId(localId){
     const c=await requireStaff(),client=c.state.client;
-    const {data,error:findError}=await client
-      .from('core_students')
-      .select('id')
-      .eq('institution_id',cfg.institutionId)
-      .eq('local_id',Number(localId))
-      .maybeSingle();
-    if(findError)throw findError;
-    if(!data?.id)return {ok:true,deleted:false};
-    const {error}=await client
-      .from('core_students')
-      .delete()
-      .eq('institution_id',cfg.institutionId)
-      .eq('id',data.id);
+    const {data,error}=await client.rpc('delete_core_student_v1',{
+      p_institution_id:cfg.institutionId,
+      p_local_id:Number(localId)
+    });
     if(error)throw error;
-    return {ok:true,deleted:true};
+    const row=Array.isArray(data)?data[0]:data;
+    return {
+      ok:true,
+      deleted:!!row?.deleted,
+      studentId:row?.student_id||null,
+      studentUserId:row?.student_user_id||null,
+      studentName:row?.student_name||''
+    };
   }
 
   window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
