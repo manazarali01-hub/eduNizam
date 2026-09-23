@@ -115,6 +115,7 @@
         <div class="head"><button id="backReset" class="back" type="button">←</button><div><div class="eyebrow">Account Recovery</div><h2>Set New Password</h2></div></div>
         <form id="resetForm" class="fields">
           <div class="field"><label for="newPassword">New Password</label><div class="password-wrap"><input id="newPassword" type="password" minlength="8" autocomplete="new-password" required><button class="password-toggle" type="button" data-password-target="newPassword" aria-label="Show password">Show</button></div></div>
+          <div class="field"><label for="confirmNewPassword">Confirm New Password</label><div class="password-wrap"><input id="confirmNewPassword" type="password" minlength="8" autocomplete="new-password" required><button class="password-toggle" type="button" data-password-target="confirmNewPassword" aria-label="Show password">Show</button></div><div class="help">Re-enter the same password to confirm.</div></div>
           <button class="primary" type="submit">Save New Password</button>
         </form>
         <div id="resetStatus" class="status" role="status"></div>
@@ -664,8 +665,21 @@
   $('backOtp').onclick=()=>{show('authView');setTab('login')};
 
   $('resetForm').onsubmit=async e=>{
-    e.preventDefault();const password=$('newPassword').value;if(password.length<8)return message('Use at least 8 characters.',false,'resetStatus');
-    try{const {error}=await client.auth.updateUser({password});if(error)throw error;localStorage.removeItem('edunizam_recovery_email');otpMode='';otpEmail='';message('Password changed successfully.',true,'resetStatus');setTimeout(()=>show('roleView'),700)}catch(err){message(friendly(err.message||err),false,'resetStatus')}
+    e.preventDefault();
+    const password=$('newPassword').value;
+    const confirmPassword=$('confirmNewPassword').value;
+    if(password.length<8)return message('Use at least 8 characters.',false,'resetStatus');
+    if(password!==confirmPassword)return message('New Password and Confirm New Password do not match.',false,'resetStatus');
+    try{
+      const {error}=await client.auth.updateUser({password});
+      if(error)throw error;
+      $('newPassword').value='';
+      $('confirmNewPassword').value='';
+      localStorage.removeItem('edunizam_recovery_email');
+      otpMode='';otpEmail='';
+      message('Password changed successfully.',true,'resetStatus');
+      setTimeout(()=>show('roleView'),700);
+    }catch(err){message(friendly(err.message||err),false,'resetStatus')}
   };
   $('backReset').onclick=()=>show('roleView');
 
@@ -695,7 +709,7 @@
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-password-toggle97').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-confirm-password98').catch(()=>{}));
 }
 </script>
 </body>
