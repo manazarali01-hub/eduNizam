@@ -461,7 +461,7 @@ function showStartupFlash(){
    setTimeout(()=>box.remove(),9000);
  }catch(_){localStorage.removeItem('edunizam_flash_message')}
 }
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260923-stability90',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260923-stability94',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 renderAll();
 showStartupFlash();
 
