@@ -166,7 +166,7 @@ $('saveStudentBtn').onclick=async()=>{
  }catch(e){
    console.warn('Student cloud sync:',e.message);
    recordDiagnostic('Student Cloud Sync',e.message||e,'Students');
-   alert('Student is saved on this device, but cloud save failed. Open Troubleshoot to see the exact error, then retry Cloud Backup & Sync.');
+   alert('Student is saved on this device, but cloud sync failed. Open Troubleshoot to see the exact error, then retry Cloud Backup & Sync.');
  }
 };
 function scopedStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(state.students)||state.students}
