@@ -51,7 +51,10 @@
     try{
       const rows=cloud().listInstitutionAccounts?await cloud().listInstitutionAccounts():[];
       const labels={teacher:'Teacher',parent:'Parent',student:'Student'};
-      box.innerHTML=rows.length?rows.map(x=>'<div class="access-list-item"><div class="access-row"><strong>'+esc(x.full_name||'Linked account')+'</strong><span class="badge">'+esc(labels[x.role]||x.role)+'</span></div><div class="muted">'+esc(x.phone||'Connected to this school Admin')+'</div></div>').join(''):'<div class="muted">No Teacher, Parent or Student login has been linked yet.</div>';
+      const counts={teacher:0,parent:0,student:0};
+      rows.forEach(x=>{if(Object.prototype.hasOwnProperty.call(counts,x.role))counts[x.role]++});
+      const summary='<div class="coverage-note"><strong>Linked with this Admin:</strong> '+counts.teacher+' Teacher · '+counts.parent+' Parent · '+counts.student+' Student</div>';
+      box.innerHTML=summary+(rows.length?rows.map(x=>'<div class="access-list-item"><div class="access-row"><strong>'+esc(x.full_name||'Linked account')+'</strong><span class="badge">'+esc(labels[x.role]||x.role)+'</span></div><div class="muted">'+esc(x.phone||'Connected to this school Admin')+'</div></div>').join(''):'<div class="muted">No Teacher, Parent or Student login has been linked yet. New verified role accounts will appear here automatically.</div>');
     }catch(e){box.textContent=e.message||String(e)}
   }
   async function loadTeacherRequests(){
@@ -70,6 +73,7 @@
       await cloud().decideTeacherAccess(id,approve,approve?'Verified by School Admin':'Rejected by School Admin');
       if(msg)msg.textContent=approve?'Teacher approved and linked to this school.':'Teacher request rejected.';
       loadTeacherRequests();
+      if(approve)loadInstitutionAccounts();
     }catch(e){if(msg)msg.textContent=e.message||String(e)}
   }
   async function requestParent(){
