@@ -3,7 +3,7 @@
   const RUNTIME_KEY='edunizam_cloud_runtime_config';
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
-  const mapRole=r=>r==='head_of_institute'?'head':(['student','parent','teacher','head'].includes(r)?r:'student');
+  const mapRole=r=>r==='head_of_institute'?'head':(['student','parent','teacher','head'].includes(r)?r:'');
   const normalizeIdentity=v=>String(v||'').trim().toLowerCase();
 
   function configured(){
@@ -47,12 +47,18 @@
     const c=cloud();
     if(!configured()||!c.state.user)return false;
     const role=await c.getMyRole();
+    if(!role){
+      clearLocalAuthState();
+      window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
+      return false;
+    }
     localStorage.setItem('edunizam_cloud_user_id',c.state.user.id);
     setLocalSession(role,c.state.user.email||c.state.user.id);
     if(window.EDUNIZAM_CLOUD_SETUP?.ensureInstitution){
       const institutionReady=await window.EDUNIZAM_CLOUD_SETUP.ensureInstitution();
-      if(role==='head_of_institute'&&!institutionReady){
-        window.dispatchEvent(new CustomEvent('edunizam:school-selection-required'));
+      if(!institutionReady){
+        clearLocalAuthState();
+        window.dispatchEvent(new CustomEvent(role==='head_of_institute'?'edunizam:school-selection-required':'edunizam:auth-invalid'));
         return false;
       }
     }
