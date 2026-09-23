@@ -171,3 +171,9 @@ with check (
   institution_id is not null
   and (select private.is_institution_owner(parent_student_links.institution_id, (select auth.uid())))
 );
+
+
+-- Prevent two students in the same school from sharing the same Student Code.
+create unique index if not exists uq_core_students_institution_student_code_ci
+on public.core_students (institution_id, upper(trim(student_code)))
+where nullif(trim(student_code),'') is not null;
