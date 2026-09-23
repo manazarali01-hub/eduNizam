@@ -126,6 +126,8 @@ if(!app.includes("b.onclick=async()=>")) fail.push('Quick actions do not await v
 if(!app.includes("if(targetView==='students')openStudentForm()")) fail.push('Student quick action does not reliably open the form.');
 if(!login.includes('id="roleGuidance"')) fail.push('Role-specific same-school login guidance missing.');
 if(!login.includes("if(role!=='admin'&&!inst)")) fail.push('Non-Admin roles can open without a linked school.');
+if(!login.includes('chooseOwnedInstitution')) fail.push('Duplicate-name Admin schools do not have an explicit login picker.');
+if(!login.includes('registration_number,school_registration_code')) fail.push('Duplicate-school picker lacks disambiguating school data.');
 if(!login.includes("Teacher request is pending School Admin approval.")) fail.push('Teacher pending-approval login guidance missing.');
 if(!read('cloud-setup.js').includes('Parent/Student Login Code')) fail.push('Admin Settings do not expose the same-school Parent/Student login code clearly.');
 if(!login.includes('id="studentCodeField"')) fail.push('Student signup code field missing.');
