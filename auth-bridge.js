@@ -76,7 +76,7 @@
       const authUser=data?.session?.user||null;
       if(!authUser){
         clearLocalAuthState();
-        if(!location.pathname.endsWith('/login.html'))location.replace('login.html?reason=session');
+        window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
         return;
       }
       c.state.user=authUser;
@@ -91,7 +91,7 @@
         try{await cloud().signOut()}
         finally{
           clearLocalAuthState();
-          location.replace('login.html');
+          window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
         }
       };
     },50);
