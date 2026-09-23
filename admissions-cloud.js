@@ -120,8 +120,17 @@
     const {data:owned,error:ownedError}=await state.client.from('institutions').select('id').eq('owner_user_id',state.user.id).limit(1);
     if(ownedError)throw ownedError;
     if(owned?.length)return 'head_of_institute';
-    const {data,error}=await state.client.from('user_profiles').select('account_role').eq('user_id',state.user.id).maybeSingle();
-    if(error)throw error;return data?.account_role||'student';
+    const {data:profile,error}=await state.client.from('user_profiles').select('account_role,institution_id').eq('user_id',state.user.id).maybeSingle();
+    if(error)throw error;
+    if(!profile?.institution_id||!['teacher','parent','student'].includes(profile.account_role))return null;
+    const {data:verified,error:verifyError}=await state.client.from('institution_members')
+      .select('role')
+      .eq('institution_id',profile.institution_id)
+      .eq('user_id',state.user.id)
+      .eq('role',profile.account_role)
+      .maybeSingle();
+    if(verifyError)throw verifyError;
+    return verified?.role||null;
   }
   async function listMyInstitutions(){
     if(!state.client||!state.user)return[];
