@@ -101,9 +101,9 @@
       </div>
 
       <div id="otpView" class="view hidden">
-        <div class="head"><button id="backOtp" class="back" type="button">←</button><div><div class="eyebrow">Email Verification</div><h2 id="otpTitle">Verify Email</h2><p id="otpText" class="subtitle">Enter the 6-digit code sent to your registered email.</p></div></div>
+        <div class="head"><button id="backOtp" class="back" type="button">←</button><div><div class="eyebrow">Email Verification</div><h2 id="otpTitle">Verify Email</h2><p id="otpText" class="subtitle">Enter the OTP code sent to your registered email.</p></div></div>
         <form id="otpForm" class="fields">
-          <div class="field"><label for="otpCode">6-digit OTP</label><input id="otpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="123456" required></div>
+          <div class="field"><label for="otpCode">OTP code</label><input id="otpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" pattern="[0-9]{6,10}" placeholder="Enter code" required></div>
           <button id="verifyOtpBtn" class="primary" type="submit">Verify OTP</button>
           <button id="resendOtpBtn" class="secondary" type="button">Resend Code</button>
           <div class="help">You may also use the secure verification/reset link in the email. OTP codes require an email template that includes the Supabase token.</div>
@@ -468,7 +468,7 @@
         $('resendVerifyBtn').classList.remove('hidden');
         otpMode='signup';otpEmail=email;
         $('otpTitle').textContent='Verify Your Email';
-        $('otpText').textContent='We sent a verification email to '+email+'. Enter the 6-digit OTP if your email shows one, or open the secure verification link.';
+        $('otpText').textContent='We sent a verification email to '+email+'. Enter the OTP code if your email shows one, or open the secure verification link.';
         $('otpCode').value='';
         message('',false,'otpStatus');
         show('otpView');
@@ -596,7 +596,7 @@
     try{
       await sendRecovery(email);
       $('otpTitle').textContent='Password Recovery';
-      $('otpText').textContent='If this email is registered, a recovery email was sent. Enter the 6-digit OTP if shown, or open the secure reset link in that email.';
+      $('otpText').textContent='If this email is registered, a recovery email was sent. Enter the OTP code if shown, or open the secure reset link in that email.';
       $('otpCode').value='';
       message('',false,'otpStatus');
       show('otpView');
@@ -606,8 +606,8 @@
   $('otpForm').onsubmit=async e=>{
     e.preventDefault();
     if(!client)return message('Login service is unavailable.',false,'otpStatus');
-    const token=$('otpCode').value.replace(/\D/g,'').slice(0,6);
-    if(token.length!==6)return message('Enter the complete 6-digit OTP.',false,'otpStatus');
+    const token=$('otpCode').value.replace(/\D/g,'').slice(0,10);
+    if(token.length<6||token.length>10)return message('Enter the complete OTP code (6–10 digits).',false,'otpStatus');
     busy($('verifyOtpBtn'),true,'Verifying...');
     try{
       const email=otpEmail||localStorage.getItem(otpMode==='recovery'?'edunizam_recovery_email':'edunizam_verify_email')||'';
@@ -683,7 +683,7 @@
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-authotp95').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-authotp96').catch(()=>{}));
 }
 </script>
 </body>
