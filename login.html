@@ -85,7 +85,7 @@
             <div class="field"><label for="signupEmail">Email Address</label><input id="signupEmail" type="email" autocomplete="email" required></div>
             <div class="field"><label for="signupPassword">Password</label><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required></div>
           </div>
-          <div id="schoolCodeField" class="field"><label for="schoolCode">School Code / EMIS / Registration No.</label><input id="schoolCode" required spellcheck="false" autocomplete="off" aria-describedby="schoolCodeHelp"><div id="schoolCodeHelp" class="help">Enter the school's official code/EMIS/registration number. If this Admin email already exists, the new school will be added to the same Admin account.</div></div>
+          <div id="schoolCodeField" class="field"><label id="schoolCodeLabel" for="schoolCode">Registration No. <span class="help">(Optional)</span></label><input id="schoolCode" spellcheck="false" autocomplete="off" aria-describedby="schoolCodeHelp"><div id="schoolCodeHelp" class="help">Optional display information only. EduNizam generates a separate School Login Code automatically.</div></div>
           <div id="studentCodeField" class="field hidden"><label for="studentCode">Student Code</label><input id="studentCode" autocomplete="one-time-code" placeholder="Provided by School Admin"></div>
           <div id="teacherInviteField" class="field hidden"><label for="teacherInviteCode">Teacher Invite Code</label><input id="teacherInviteCode" autocomplete="one-time-code" placeholder="Provided by School Admin"></div>
           <div id="teacherStaffField" class="field hidden"><label for="teacherStaffCode">Staff Code</label><input id="teacherStaffCode" placeholder="e.g. T-001"></div>
@@ -152,7 +152,7 @@
       const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('Logo could not be read.'));reader.readAsDataURL(file);
     });
   }
-  async function addSchoolToExistingAdmin({email,password,school,code,phone}){
+  async function addSchoolToExistingAdmin({email,password,school,registration,phone}){
     const signedIn=await client.auth.signInWithPassword({email,password});
     if(signedIn.error){
       throw new Error('This email already has an EduNizam account. Enter the existing account password to add another school.');
@@ -163,9 +163,9 @@
       await client.auth.signOut();
       throw new Error('This email is already linked to a non-Admin EduNizam account.');
     }
-    const created=await client.rpc('create_owned_institution_v1',{
+    const created=await client.rpc('create_owned_institution_v2',{
       p_school_name:school,
-      p_school_code:code,
+      p_registration_number:registration||'',
       p_phone:phone
     });
     if(created.error)throw created.error;
@@ -312,11 +312,12 @@
     $('adminLogoField').classList.toggle('hidden',!admin);
     $('schoolName').required=admin;
     $('schoolCodeField').classList.toggle('hidden',teacher);
-    $('schoolCode').required=!teacher;
-    $('schoolCode').placeholder=admin?'School Code / EMIS / Registration No.':'School Code provided by Admin';
+    $('schoolCode').required=!admin&&!teacher;
+    $('schoolCode').placeholder=admin?'Registration No. (Optional)':'School Code provided by Admin';
+    $('schoolCodeLabel').innerHTML=admin?'Registration No. <span class="help">(Optional)</span>':'School Code';
     $('signupBtn').textContent=admin?'Create / Add School':'Create Account';
     $('schoolCodeHelp').textContent=admin
-      ? 'Enter the school\'s official code/EMIS/registration number. If this Admin email already exists, the new school will be added to the same Admin account.'
+      ? 'Optional display information only. No verification is required. EduNizam generates a separate School Login Code automatically.'
       : 'Enter the School Code provided by the School Admin.';
     $('studentCodeField').classList.toggle('hidden',!student);
     $('studentCode').required=student;
@@ -382,20 +383,20 @@
     const teacher=selectedRole==='teacher',student=selectedRole==='student',code=teacher?'':$('schoolCode').value.trim();
     const studentCode=student?$('studentCode').value.trim():'';
     const teacherInvite=teacher?$('teacherInviteCode').value.trim():'',teacherStaff=teacher?$('teacherStaffCode').value.trim():'';
-    if(!name||!phone||!email||password.length<8||(teacher?(!teacherInvite||!teacherStaff):!code)||(student&&!studentCode)||(selectedRole==='admin'&&!school))return message('Complete all required fields.');
+    if(!name||!phone||!email||password.length<8||(teacher&&(!teacherInvite||!teacherStaff))||((selectedRole==='parent'||selectedRole==='student')&&!code)||(student&&!studentCode)||(selectedRole==='admin'&&!school))return message('Complete all required fields.');
     busy($('signupBtn'),true,selectedRole==='admin'?'Creating / adding school...':'Creating account...');
     try{
       const logo=selectedRole==='admin'?await saveLogo($('schoolLogo').files?.[0]):'';
       localStorage.setItem('edunizam_pending_signup',JSON.stringify({role:selectedRole,school,name,phone,code,studentCode,teacherInvite,teacherStaff,logo,email}));
-      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{full_name:name,signup_role:selectedRole,school_name:school||'',school_code:code,student_code:studentCode,teacher_invite_code:teacherInvite,teacher_staff_code:teacherStaff,contact_number:phone}}});
+      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{full_name:name,signup_role:selectedRole,school_name:school||'',school_code:selectedRole==='admin'?'':code,registration_number:selectedRole==='admin'?code:'',student_code:studentCode,teacher_invite_code:teacherInvite,teacher_staff_code:teacherStaff,contact_number:phone}}});
       if(error){
         if(selectedRole==='admin'&&/already registered|already exists/i.test(String(error.message||error))){
-          const existing=await addSchoolToExistingAdmin({email,password,school,code,phone});
+          const existing=await addSchoolToExistingAdmin({email,password,school,registration:code,phone});
           localStorage.removeItem('edunizam_pending_signup');
           localStorage.removeItem('edunizam_verify_email');
           $('resendVerifyBtn').classList.add('hidden');
-          localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School added successfully. Registration No. '+code+' accepted and linked to your existing Admin account.'}));
-          message('School added successfully. Registration No. '+code+' accepted. Opening the school...',true);
+          localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School added successfully.'+(code?' Registration No. '+code+' saved for display.':'')+' A separate School Login Code was generated automatically.'}));
+          message('School added successfully.'+(code?' Registration No. saved.':'')+' Opening the school...',true);
           await openApp(existing.user,'admin',school);
           return;
         }
@@ -404,12 +405,12 @@
       if(!data.session){
         if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
           if(selectedRole==='admin'){
-            const existing=await addSchoolToExistingAdmin({email,password,school,code,phone});
+            const existing=await addSchoolToExistingAdmin({email,password,school,registration:code,phone});
             localStorage.removeItem('edunizam_pending_signup');
             localStorage.removeItem('edunizam_verify_email');
             $('resendVerifyBtn').classList.add('hidden');
-            localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School added successfully. Registration No. '+code+' accepted and linked to your existing Admin account.'}));
-            message('School added successfully. Registration No. '+code+' accepted. Opening the school...',true);
+            localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School added successfully.'+(code?' Registration No. '+code+' saved for display.':'')+' A separate School Login Code was generated automatically.'}));
+            message('School added successfully.'+(code?' Registration No. saved.':'')+' Opening the school...',true);
             await openApp(existing.user,'admin',school);
             return;
           }
@@ -436,14 +437,16 @@
     if(!pending){
       const meta=user?.user_metadata||{};
       const teacherMeta=meta.signup_role==='teacher'&&meta.teacher_invite_code&&meta.teacher_staff_code;
-      const standardMeta=meta.signup_role&&meta.signup_role!=='teacher'&&meta.school_code;
+      const standardMeta=meta.signup_role==='admin'
+        ? !!meta.school_name
+        : (meta.signup_role&&meta.signup_role!=='teacher'&&meta.school_code);
       if(meta.full_name&&(teacherMeta||standardMeta)){
         pending={
           role:meta.signup_role,
           school:meta.school_name||'',
           name:meta.full_name,
           phone:meta.contact_number||'',
-          code:meta.school_code||'',
+          code:meta.signup_role==='admin'?(meta.registration_number||''):(meta.school_code||''),
           studentCode:meta.student_code||'',
           teacherInvite:meta.teacher_invite_code||'',
           teacherStaff:meta.teacher_staff_code||'',
@@ -467,9 +470,19 @@
       message('Teacher verification request sent. School Admin approval ke baad isi email aur password se Teacher login karein.',true);
       return true;
     }
-    const {data,error}=await client.rpc('register_simple_account_v1',{
-      p_role:pending.role,p_school_name:pending.school||'',p_school_code:pending.code,p_full_name:pending.name,p_phone:pending.phone
-    });
+    let data,error;
+    if(pending.role==='admin'){
+      ({data,error}=await client.rpc('register_admin_school_v2',{
+        p_school_name:pending.school||'',
+        p_registration_number:pending.code||'',
+        p_full_name:pending.name,
+        p_phone:pending.phone
+      }));
+    }else{
+      ({data,error}=await client.rpc('register_simple_account_v1',{
+        p_role:pending.role,p_school_name:pending.school||'',p_school_code:pending.code,p_full_name:pending.name,p_phone:pending.phone
+      }));
+    }
     if(error)throw error;
     if(pending.role==='student'){
       const claimed=await client.rpc('claim_student_account_v1',{p_student_code:pending.studentCode||''});
@@ -488,11 +501,11 @@
       let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
       settings.schoolName=pending.school;settings.schoolType='School';if(pending.logo)settings.schoolLogo=pending.logo;
       localStorage.setItem('edunizam_settings',JSON.stringify(settings));
-      localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School account created successfully. Registration No. '+pending.code+' accepted.'}));
+      localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School account created successfully.'+(pending.code?' Registration No. '+pending.code+' saved for display.':'')+' A separate School Login Code was generated automatically.'}));
     }
     localStorage.removeItem('edunizam_pending_signup');
     localStorage.removeItem('edunizam_verify_email');
-    await openApp(user,pending.role);
+    await openApp(user,pending.role,pending.role==='admin'?pending.school:'');
     return true;
   }
 
