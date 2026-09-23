@@ -27,7 +27,7 @@
     .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.tab{border:1px solid var(--line);background:#f7fbfa;border-radius:12px;padding:11px;font-weight:800;cursor:pointer}.tab.active{background:var(--teal);color:#fff;border-color:var(--teal)}
     .fields{display:grid;gap:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input{width:100%;border:1px solid #cadbd8;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);outline:none}.field input:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}
     .primary{width:100%;border:0;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;padding:13px 16px;font-weight:850;cursor:pointer}.secondary{border:1px solid var(--line);background:#fff;color:var(--teal2);border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer}.link{border:0;background:none;color:var(--teal);font-weight:800;cursor:pointer;padding:0}
-    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.role-guidance{margin:2px 0 16px;padding:12px 14px;border:1px solid #d5e6e2;border-radius:13px;background:#f5fbf9;color:#405b58;font-size:.82rem;line-height:1.55}.role-guidance strong{color:var(--teal2)}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.role-guidance{margin:2px 0 16px;padding:12px 14px;border:1px solid #d5e6e2;border-radius:13px;background:#f5fbf9;color:#405b58;font-size:.82rem;line-height:1.55}.role-guidance strong{color:var(--teal2)}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}.school-picker{margin-top:14px;padding:14px;border:1px solid #d5e6e2;border-radius:14px;background:#f8fcfb}.school-picker h3{margin:0 0 10px;font-size:1rem}.school-choice{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #e4efed}.school-choice:first-of-type{border-top:0}.school-choice small{display:block;color:var(--muted);margin-top:3px}.school-choice button{width:auto;padding:9px 12px}
     .mobile-brand{display:none}.skip{position:fixed;left:12px;top:12px;transform:translateY(-160%);background:#fff;color:#12324a;padding:10px 14px;border-radius:10px;z-index:999}.skip:focus{transform:none}
     :focus-visible{outline:3px solid #e6b94c;outline-offset:3px}
     @media(max-width:1100px) and (min-width:821px){.story{padding:42px 38px 50px}.brand{gap:12px}.logo-box{width:112px;height:84px;flex-basis:112px}.brand-title strong{font-size:clamp(40px,4.8vw,58px)}.story-copy{margin-top:58px;width:min(500px,95%)}}@media(max-width:820px){.page{grid-template-columns:1fr}.story{display:none}.main{padding:18px}.card{padding:22px;border-radius:20px}.mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}.mobile-brand img{width:48px;height:48px}.grid2{grid-template-columns:1fr}}
@@ -96,6 +96,7 @@
         </form>
 
         <div id="statusBox" class="status" role="status"></div>
+        <div id="schoolPicker" class="school-picker hidden" aria-live="polite"></div>
       </div>
 
       <div id="resetView" class="view hidden">
@@ -172,16 +173,41 @@
     return {user:signedIn.data.user,institution:Array.isArray(created.data)?created.data[0]:created.data};
   }
   const normalizeInstituteName=value=>String(value||'').trim().replace(/\s+/g,' ').toLowerCase();
+  function clearSchoolPicker(){
+    const box=$('schoolPicker');
+    if(box){box.classList.add('hidden');box.innerHTML=''}
+  }
+  function chooseOwnedInstitution(matches){
+    const box=$('schoolPicker');
+    if(!box||!Array.isArray(matches)||matches.length<2)return Promise.resolve(matches?.[0]||null);
+    box.classList.remove('hidden');
+    box.innerHTML='<h3>Same name ke multiple schools mile. Sahi school select karein:</h3>'+
+      matches.map((s,i)=>'<div class="school-choice"><div><strong>'+String(s.name||'School').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))+'</strong><small>'+
+        (s.registration_number?'Registration No.: '+String(s.registration_number).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])):'Registration No.: Not provided')+
+        ' · Login Code: '+String(s.school_registration_code||'-').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))+
+      '</small></div><button class="secondary" type="button" data-school-choice="'+i+'">Select</button></div>').join('');
+    return new Promise(resolve=>{
+      box.querySelectorAll('[data-school-choice]').forEach(btn=>btn.onclick=()=>{
+        const selected=matches[Number(btn.dataset.schoolChoice)]||null;
+        clearSchoolPicker();
+        resolve(selected);
+      });
+    });
+  }
   async function resolveInstitution(user,requestedName='',role=''){
     const wanted=normalizeInstituteName(requestedName);
 
     if(role==='admin'){
-      const owner=await client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).order('created_at',{ascending:true});
+      const owner=await client.from('institutions').select('id,name,institution_type,registration_number,school_registration_code').eq('owner_user_id',user.id).order('created_at',{ascending:true});
       if(owner.error)throw owner.error;
       if(wanted){
-        return (owner.data||[]).find(x=>normalizeInstituteName(x.name)===wanted)||null;
+        const matches=(owner.data||[]).filter(x=>normalizeInstituteName(x.name)===wanted);
+        if(matches.length>1)return await chooseOwnedInstitution(matches);
+        return matches[0]||null;
       }
-      return owner.data?.length===1?owner.data[0]:null;
+      if(owner.data?.length===1)return owner.data[0];
+      if((owner.data||[]).length>1)return await chooseOwnedInstitution(owner.data||[]);
+      return null;
     }
 
     const expectedRole=roleCloud[role]||role;
@@ -329,6 +355,7 @@
     setTab('login');
   }
   function setTab(tab){
+    clearSchoolPicker();
     const login=tab==='login';
     $('loginTab').classList.toggle('active',login);$('signupTab').classList.toggle('active',!login);
     $('loginForm').classList.toggle('hidden',!login);$('signupForm').classList.toggle('hidden',login);
