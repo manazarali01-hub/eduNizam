@@ -468,6 +468,7 @@ renderAll();
     if(!location.pathname.endsWith('/login.html'))location.replace(target);
   }
   window.addEventListener('edunizam:auth-invalid',showLogin);
+  window.addEventListener('edunizam:school-selection-required',showLogin);
   function applyRole(retry=0){
     const session=JSON.parse(localStorage.getItem(ROLE_KEY)||'null');
     if(!session){
