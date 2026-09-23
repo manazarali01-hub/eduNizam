@@ -10,6 +10,37 @@ set registration_number = nullif(trim(school_registration_code),'')
 where registration_number is null
   and nullif(trim(school_registration_code),'') is not null;
 
+-- Existing projects may have used the entered registration/EMIS value as the
+-- Parent/Student login code. Once the value is preserved in registration_number,
+-- replace that login code with a generated EduNizam code so the two concepts stay separate.
+do $
+declare
+  rec record;
+  new_code text;
+begin
+  for rec in
+    select id
+    from public.institutions
+    where registration_number is not null
+      and nullif(trim(registration_number),'') is not null
+      and school_registration_code = registration_number
+      and school_registration_code not like 'EDU-%'
+  loop
+    loop
+      new_code := 'EDU-' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,8));
+      exit when not exists (
+        select 1 from public.institutions i
+        where upper(trim(coalesce(i.school_registration_code,''))) = new_code
+      );
+    end loop;
+
+    update public.institutions
+    set school_registration_code=new_code,
+        updated_at=now()
+    where id=rec.id;
+  end loop;
+end $;
+
 create or replace function public.create_owned_institution_v2(
   p_school_name text,
   p_registration_number text default '',
