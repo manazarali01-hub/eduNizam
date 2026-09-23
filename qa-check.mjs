@@ -141,6 +141,8 @@ if(!app.includes("Student Code:")) fail.push('Admin student list does not displa
 if(!read('core-cloud.js').includes("student_code:s.studentId||fallbackStudentCode(s)")) fail.push('Legacy student cloud sync can lose Student Code.');
 if(!read('admissions-cloud.js').includes("rpc('claim_student_account_v1'")) fail.push('Cloud student claim still uses legacy RPC.');
 if(!read('role-access-center.js').includes("teacherRequest.style.display=r==='teacher'")) fail.push('Teacher verification card is exposed to the wrong role.');
+if(!fs.existsSync(path.join(root,'supabase-teacher-access-ambiguity-fix.sql'))) fail.push('Teacher access ambiguity fix SQL is missing from the repository.');
+if(!read('supabase-teacher-access-ambiguity-fix.sql').includes('teacher_access_requests_institution_id_requester_user_id_key')) fail.push('Teacher access upsert does not use the named unique constraint.');
 if(!fs.existsSync(path.join(root,'supabase/migrations/20260922223000_secure_student_parent_school_linking.sql'))) fail.push('Secure Student/Parent DB migration file missing.');
 if(!login.includes("client.auth.resend({")) fail.push('Verification email resend flow missing.');
 if(!login.includes("emailRedirectTo:PROD_LOGIN_URL")) fail.push('Signup verification redirect missing.');
