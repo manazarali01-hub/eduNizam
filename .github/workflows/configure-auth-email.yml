@@ -48,6 +48,7 @@ jobs:
               external_email_enabled: true,
               mailer_autoconfirm: false,
               mailer_secure_email_change_enabled: true,
+              rate_limit_email_sent: 50,
               smtp_admin_email: $from,
               smtp_host: $host,
               smtp_port: $port,
