@@ -1,4 +1,4 @@
-const CACHE='edunizam-v88-stability-login-students'
+const CACHE='edunizam-v89-stability-multischool'
 const CORE=[
   './',
   './index.html',
