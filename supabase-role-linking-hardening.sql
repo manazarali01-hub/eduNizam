@@ -173,7 +173,5 @@ with check (
 );
 
 
--- Prevent two students in the same school from sharing the same Student Code.
-create unique index if not exists uq_core_students_institution_student_code_ci
-on public.core_students (institution_id, upper(trim(student_code)))
-where nullif(trim(student_code),'') is not null;
+-- Student Code uniqueness is already enforced by the existing
+-- core_students_institution_student_code_uidx index.
