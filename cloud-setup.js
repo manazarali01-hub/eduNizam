@@ -9,6 +9,10 @@
     current.enabled=true;
     current.institutionId=inst.id;
     localStorage.setItem(KEY,JSON.stringify(current));
+    if(window.EDUNIZAM_CLOUD_CONFIG){
+      window.EDUNIZAM_CLOUD_CONFIG.enabled=true;
+      window.EDUNIZAM_CLOUD_CONFIG.institutionId=inst.id;
+    }
 
     let session=null;
     try{session=JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch(_){}
@@ -51,7 +55,8 @@
           owner.data.find(x=>x.id===selectedId) ||
           (selectedName?owner.data.find(x=>String(x.name||'').trim().toLowerCase()===selectedName):null) ||
           owner.data.find(x=>x.id===current.institutionId) ||
-          owner.data[0];
+          (owner.data.length===1?owner.data[0]:null);
+        if(!preferred)return false;
         useInstitution(preferred,false);
         return true;
       }
