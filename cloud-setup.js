@@ -168,9 +168,9 @@
     const schoolCard=document.createElement('article');
     schoolCard.className='card';
     schoolCard.id='multiSchoolCard';
-    schoolCard.innerHTML='<div class="section-head"><div><h2>My Schools / Institutes</h2><p class="muted">Ek hi Admin account se multiple schools manage karein. Parent/Student ko isi school ka Login Code dein; Teacher ko Access & Roles se invite dein.</p></div><button id="refreshSchoolsBtn" class="secondary">Refresh</button></div>'+
+    schoolCard.innerHTML='<div class="section-head"><div><h2>My Schools / Institutes</h2><p class="muted">Ek hi Admin account se multiple schools manage karein. Parent/Student school select karke approval request bhejte hain; Admin ko code share karne ki zarurat nahi.</p></div><button id="refreshSchoolsBtn" class="secondary">Refresh</button></div>'+
       '<div id="ownedSchoolsList" class="list"><div class="muted">Loading schools...</div></div>'+
-      '<hr><h3>Add another school</h3><div class="form-grid"><input id="newOwnedSchoolName" placeholder="School / Institute name"><input id="newOwnedSchoolRegistration" placeholder="Registration No. (optional)"><input id="newOwnedSchoolPhone" placeholder="Contact number (optional)"><button id="addOwnedSchoolBtn">Add School</button></div><div class="muted">Registration No. sirf display ke liye hai. EduNizam Parent/Student ke liye School Login Code khud generate karega.</div>'+
+      '<hr><h3>Add another school</h3><div class="form-grid"><input id="newOwnedSchoolName" placeholder="School / Institute name"><input id="newOwnedSchoolRegistration" placeholder="Registration No. (optional)"><input id="newOwnedSchoolPhone" placeholder="Contact number (optional)"><button id="addOwnedSchoolBtn">Add School</button></div><div class="muted">Registration No. sirf display ke liye hai. Parent/Student approval school selection aur profile verification se hota hai.</div>'+
       '<div id="multiSchoolMsg" class="coverage-note"></div>';
     card.after(schoolCard);
 
@@ -180,7 +180,7 @@
       const {data,error}=await cloud.state.client.from('institutions').select('id,name,institution_type,school_registration_code').eq('owner_user_id',cloud.state.user.id).order('created_at',{ascending:true});
       if(error){box.innerHTML='<div class="muted">'+esc(error.message)+'</div>';return}
       const current=get().institutionId||'';
-      box.innerHTML=(data||[]).length?(data||[]).map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span><small>Registration No.</small><br><strong>'+esc(s.registration_number||'Not provided')+'</strong></span><span><small>Parent/Student Login Code</small><br><strong>'+esc(s.school_registration_code||'-')+'</strong></span><span>'+(s.id===current?'<span class="badge">Current</span>':'<button class="secondary" data-school-id="'+esc(s.id)+'">Switch</button>')+'</span></div>').join(''):'<div class="muted">No owned school found.</div>';
+      box.innerHTML=(data||[]).length?(data||[]).map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span><small>Registration No.</small><br><strong>'+esc(s.registration_number||'Not provided')+'</strong></span><span>'+(s.id===current?'<span class="badge">Current</span>':'<button class="secondary" data-school-id="'+esc(s.id)+'">Switch</button>')+'</span></div>').join(''):'<div class="muted">No owned school found.</div>';
       box.querySelectorAll('[data-school-id]').forEach(btn=>btn.onclick=()=>{
         const school=(data||[]).find(x=>x.id===btn.dataset.schoolId);
         if(school)useInstitution(school,true);
@@ -199,7 +199,7 @@
       const {data,error}=await cloud.state.client.rpc('create_owned_institution_v2',{p_school_name:name,p_registration_number:registration,p_phone:phone});
       if(error){msgBox.textContent=error.message;return}
       const school=Array.isArray(data)?data[0]:data;
-      msgBox.textContent='School added successfully. '+(registration?'Registration No. saved for display. ':'')+'School Login Code generated automatically.';
+      msgBox.textContent='School added successfully. '+(registration?'Registration No. saved for display. ':'')+'Parent/Student can now find this school by name and request approval.';
       document.getElementById('newOwnedSchoolName').value='';
       document.getElementById('newOwnedSchoolRegistration').value='';
       document.getElementById('newOwnedSchoolPhone').value='';
