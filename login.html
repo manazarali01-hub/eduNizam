@@ -27,7 +27,7 @@
     .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.tab{border:1px solid var(--line);background:#f7fbfa;border-radius:12px;padding:11px;font-weight:800;cursor:pointer}.tab.active{background:var(--teal);color:#fff;border-color:var(--teal)}
     .fields{display:grid;gap:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input{width:100%;border:1px solid #cadbd8;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);outline:none}.field input:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}.password-wrap{position:relative}.password-wrap input{padding-right:72px}.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:#eef7f5;color:var(--teal2);border-radius:9px;padding:7px 9px;font-size:.75rem;font-weight:850;cursor:pointer}.password-toggle:hover{background:#e1f1ed}.password-toggle:focus-visible{outline:3px solid #e6b94c;outline-offset:2px}
     .primary{width:100%;border:0;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;padding:13px 16px;font-weight:850;cursor:pointer}.secondary{border:1px solid var(--line);background:#fff;color:var(--teal2);border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer}.link{border:0;background:none;color:var(--teal);font-weight:800;cursor:pointer;padding:0}
-    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.role-guidance{margin:2px 0 16px;padding:12px 14px;border:1px solid #d5e6e2;border-radius:13px;background:#f5fbf9;color:#405b58;font-size:.82rem;line-height:1.55}.role-guidance strong{color:var(--teal2)}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}.school-picker{margin-top:14px;padding:14px;border:1px solid #d5e6e2;border-radius:14px;background:#f8fcfb}.school-picker h3{margin:0 0 10px;font-size:1rem}.school-choice{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #e4efed}.school-choice:first-of-type{border-top:0}.school-choice small{display:block;color:var(--muted);margin-top:3px}.school-choice button{width:auto;padding:9px 12px}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.role-guidance{margin:2px 0 16px;padding:12px 14px;border:1px solid #d5e6e2;border-radius:13px;background:#f5fbf9;color:#405b58;font-size:.82rem;line-height:1.55}.role-guidance strong{color:var(--teal2)}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}.school-picker{margin-top:14px;padding:14px;border:1px solid #d5e6e2;border-radius:14px;background:#f8fcfb}.school-picker h3{margin:0 0 10px;font-size:1rem}.school-choice{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #e4efed}.school-choice:first-of-type{border-top:0}.school-choice small{display:block;color:var(--muted);margin-top:3px}.school-choice button{width:auto;padding:9px 12px}.school-search-row{display:grid;grid-template-columns:1fr auto;gap:8px}.school-search-row button{width:auto}.school-search-results{display:grid;gap:8px}.school-search-result{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 11px;border:1px solid #dbe7e4;border-radius:11px;background:#fbfefd}.school-search-result small{display:block;color:var(--muted);margin-top:3px}.school-selected{padding:10px 12px;border-radius:11px;background:#ecfdf3;color:#166534;border:1px solid #b7e6c8;font-size:.82rem}
     .mobile-brand{display:none}.skip{position:fixed;left:12px;top:12px;transform:translateY(-160%);background:#fff;color:#12324a;padding:10px 14px;border-radius:10px;z-index:999}.skip:focus{transform:none}
     :focus-visible{outline:3px solid #e6b94c;outline-offset:3px}
     @media(max-width:1100px) and (min-width:821px){.story{padding:42px 38px 50px}.brand{gap:12px}.logo-box{width:112px;height:84px;flex-basis:112px}.brand-title strong{font-size:clamp(40px,4.8vw,58px)}.story-copy{margin-top:58px;width:min(500px,95%)}}@media(max-width:820px){.page{grid-template-columns:1fr}.story{display:none}.main{padding:18px}.card{padding:22px;border-radius:20px}.mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}.mobile-brand img{width:48px;height:48px}.grid2{grid-template-columns:1fr}}
@@ -85,6 +85,30 @@
           <div class="grid2">
             <div class="field"><label for="signupEmail">Email Address</label><input id="signupEmail" type="email" autocomplete="email" required></div>
             <div class="field"><label for="signupPassword">Password</label><div class="password-wrap"><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required><button class="password-toggle" type="button" data-password-target="signupPassword" aria-label="Show password">Show</button></div></div>
+          </div>
+          <div id="memberSchoolField" class="field hidden">
+            <label for="memberSchoolSearch">School / Institute</label>
+            <div class="school-search-row"><input id="memberSchoolSearch" autocomplete="organization" placeholder="Type school name"><button id="findMemberSchoolBtn" class="secondary" type="button">Find School</button></div>
+            <input id="memberSchoolId" type="hidden">
+            <div id="memberSchoolSelected" class="school-selected hidden"></div>
+            <div id="memberSchoolResults" class="school-search-results"></div>
+            <div class="help">No code required. Search and select your school once.</div>
+          </div>
+          <div id="memberProfileFields" class="hidden fields">
+            <div id="approvalStudentNameField" class="field hidden"><label for="approvalStudentName">Child Name</label><input id="approvalStudentName" autocomplete="name"></div>
+            <div class="grid2">
+              <div class="field"><label id="approvalGuardianLabel" for="approvalGuardianName">Father / Guardian Name <span class="help">(Optional)</span></label><input id="approvalGuardianName" autocomplete="name"></div>
+              <div class="field"><label for="approvalClassName">Class</label><input id="approvalClassName" placeholder="e.g. Grade 5"></div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label for="approvalSectionName">Section <span class="help">(Optional)</span></label><input id="approvalSectionName" placeholder="e.g. A"></div>
+              <div class="field"><label for="approvalAdmissionNo">Admission No. <span class="help">(Optional)</span></label><input id="approvalAdmissionNo"></div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label for="approvalDateOfBirth">Date of Birth <span class="help">(Optional)</span></label><input id="approvalDateOfBirth" type="date"></div>
+              <div id="approvalRelationshipField" class="field hidden"><label for="approvalRelationship">Relationship</label><input id="approvalRelationship" placeholder="e.g. Father / Mother / Guardian"></div>
+            </div>
+            <div class="help">These details help the School Admin recognize and approve the correct account. After approval, normal login is only email + password.</div>
           </div>
           <div id="schoolCodeField" class="field"><label id="schoolCodeLabel" for="schoolCode">Registration No. <span class="help">(Optional)</span></label><input id="schoolCode" spellcheck="false" autocomplete="off" aria-describedby="schoolCodeHelp"><div id="schoolCodeHelp" class="help">Optional display information only. EduNizam generates a separate School Login Code automatically.</div></div>
           <div id="studentCodeField" class="field hidden"><label for="studentCode">Student Code</label><input id="studentCode" autocomplete="one-time-code" placeholder="Provided by School Admin"></div>
@@ -328,44 +352,103 @@
     if(error)return null;
     return data||null;
   }
+  async function schoolAccessStatus(userId,role){
+    const {data,error}=await client
+      .from('school_access_requests')
+      .select('status,review_note,requested_role,updated_at')
+      .eq('requester_user_id',userId)
+      .eq('requested_role',role)
+      .order('updated_at',{ascending:false})
+      .limit(1)
+      .maybeSingle();
+    if(error)return null;
+    return data||null;
+  }
+  const safeHtml=value=>String(value??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  function clearMemberSchoolSelection(){
+    $('memberSchoolId').value='';
+    $('memberSchoolSelected').textContent='';
+    $('memberSchoolSelected').classList.add('hidden');
+  }
+  async function searchMemberSchools(){
+    const q=$('memberSchoolSearch').value.trim();
+    const box=$('memberSchoolResults');
+    clearMemberSchoolSelection();
+    if(q.length<2){box.innerHTML='<div class="help">Type at least 2 letters of the school name.</div>';return}
+    box.innerHTML='<div class="help">Searching schools...</div>';
+    try{
+      const {data,error}=await client.rpc('search_school_directory_v1',{p_query:q});
+      if(error)throw error;
+      const rows=data||[];
+      box.innerHTML=rows.length?rows.map((x,i)=>{
+        const details=[x.registration_number?'Reg. No. '+safeHtml(x.registration_number):'',x.address?safeHtml(x.address):'',safeHtml(x.institution_type||'School')].filter(Boolean).join(' · ');
+        return '<div class="school-search-result"><div><strong>'+safeHtml(x.institution_name||'School')+'</strong><small>'+details+'</small></div><button class="secondary" type="button" data-member-school="'+i+'">Select</button></div>';
+      }).join(''):'<div class="help">No matching school found. Check the school name and try again.</div>';
+      box.querySelectorAll('[data-member-school]').forEach(btn=>btn.onclick=()=>{
+        const row=rows[Number(btn.dataset.memberSchool)];
+        if(!row)return;
+        $('memberSchoolId').value=row.institution_id||'';
+        $('memberSchoolSearch').value=row.institution_name||$('memberSchoolSearch').value;
+        $('memberSchoolSelected').textContent='Selected: '+(row.institution_name||'School')+(row.registration_number?' · Reg. No. '+row.registration_number:'');
+        $('memberSchoolSelected').classList.remove('hidden');
+        box.innerHTML='';
+      });
+    }catch(err){box.innerHTML='<div class="help">'+safeHtml(friendly(err.message||err))+'</div>'}
+  }
+  $('findMemberSchoolBtn').onclick=searchMemberSchools;
+  $('memberSchoolSearch').addEventListener('input',clearMemberSchoolSelection);
+  $('memberSchoolSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchMemberSchools()}});
+
   function chooseRole(role){
     selectedRole=role;
     $('roleTitle').textContent=labels[role]+' Access';
     const copy={
       admin:'Use your school name, Admin email and password.',
-      teacher:'Teacher is linked through the School Admin using Teacher Invite Code + Staff Code.',
-      parent:'Parent is linked to the same school using the School Code provided by the School Admin.',
-      student:'Student uses the School Code plus the personal Student Code created by the School Admin.'
+      teacher:'Teacher creates an account and is activated after School Admin approval.',
+      parent:'Use your email and password, select your school, and send a simple approval request.',
+      student:'Use your email and password, select your school, and send your profile for Admin approval.'
     };
     $('roleText').textContent=copy[role];
     $('roleGuidance').innerHTML=role==='admin'
-      ? '<strong>Admin:</strong> Aap school owner hain. School Code Parent/Student ko isi school se link karta hai.'
+      ? '<strong>Admin:</strong> Create or open your school account.'
       : role==='teacher'
-        ? '<strong>Same-school link:</strong> Staff Directory record + Teacher Invite Code + Staff Code ke baad Admin approval zaroori hai.'
+        ? '<strong>Teacher:</strong> Teacher account activates after verified School Admin approval.'
         : role==='student'
-          ? '<strong>Same-school link:</strong> School Code school ko identify karta hai; Student Code aap ko Admin ke exact student record se link karta hai.'
-          : '<strong>Same-school link:</strong> School Admin ka School Code use karein. Child link ke liye baad mein child ka Student Code use hoga.';
-    const admin=role==='admin',teacher=role==='teacher',student=role==='student';
+          ? '<strong>Student:</strong> No School Code or Student Code required. Select your school and submit your profile once.'
+          : '<strong>Parent:</strong> No School Code required. Select your school and submit child details once.';
+    const admin=role==='admin',teacher=role==='teacher',student=role==='student',parent=role==='parent',member=parent||student;
     $('adminLoginSchoolField').classList.toggle('hidden',!admin);
     $('loginSchoolName').required=admin;
-    $('studentLoginCodeField').classList.toggle('hidden',!student);
+    $('studentLoginCodeField').classList.add('hidden');
     $('adminSchoolNameField').classList.toggle('hidden',!admin);
     $('adminLogoField').classList.toggle('hidden',!admin);
     $('schoolName').required=admin;
-    $('schoolCodeField').classList.toggle('hidden',teacher);
-    $('schoolCode').required=!admin&&!teacher;
-    $('schoolCode').placeholder=admin?'Registration No. (Optional)':'School Code provided by Admin';
-    $('schoolCodeLabel').innerHTML=admin?'Registration No. <span class="help">(Optional)</span>':'School Code';
-    $('signupBtn').textContent=admin?'Create / Add School':'Create Account';
-    $('schoolCodeHelp').textContent=admin
-      ? 'Optional display information only. No verification is required. EduNizam generates a separate School Login Code automatically.'
-      : 'Enter the School Code provided by the School Admin.';
-    $('studentCodeField').classList.toggle('hidden',!student);
-    $('studentCode').required=student;
+    $('schoolCodeField').classList.toggle('hidden',!admin);
+    $('schoolCode').required=false;
+    $('schoolCode').placeholder='Registration No. (Optional)';
+    $('schoolCodeLabel').innerHTML='Registration No. <span class="help">(Optional)</span>';
+    $('schoolCodeHelp').textContent='Optional display information only. No verification is required.';
+    $('studentCodeField').classList.add('hidden');
+    $('studentCode').required=false;
     $('teacherInviteField').classList.toggle('hidden',!teacher);
     $('teacherStaffField').classList.toggle('hidden',!teacher);
     $('teacherInviteCode').required=teacher;
     $('teacherStaffCode').required=teacher;
+    $('memberSchoolField').classList.toggle('hidden',!member);
+    $('memberProfileFields').classList.toggle('hidden',!member);
+    $('approvalStudentNameField').classList.toggle('hidden',!parent);
+    $('approvalRelationshipField').classList.toggle('hidden',!parent);
+    $('approvalStudentName').required=parent;
+    $('approvalClassName').required=member;
+    $('approvalRelationship').required=false;
+    $('approvalGuardianLabel').innerHTML=student
+      ? 'Father / Guardian Name <span class="help">(Optional)</span>'
+      : 'Child Father / Guardian Name <span class="help">(Optional)</span>';
+    if(!member){
+      clearMemberSchoolSelection();
+      $('memberSchoolResults').innerHTML='';
+    }
+    $('signupBtn').textContent=admin?'Create / Add School':teacher?'Send Teacher Request':'Send Approval Request';
     show('authView');
     setTab('login');
   }
@@ -404,15 +487,17 @@
         if(selectedRole==='teacher'){
           const status=await teacherAccessStatus(data.user.id);
           await client.auth.signOut();
-          if(status?.status==='pending')throw new Error('Teacher request is pending School Admin approval.');
+          if(status?.status==='pending')throw new Error('Waiting for School Admin approval.');
           if(status?.status==='rejected')throw new Error('Teacher request was rejected by School Admin'+(status.review_note?': '+status.review_note:'')+'.');
         }
+        if(selectedRole==='parent'||selectedRole==='student'){
+          const status=await schoolAccessStatus(data.user.id,selectedRole);
+          await client.auth.signOut();
+          if(status?.status==='pending')throw new Error('Waiting for School Admin approval.');
+          if(status?.status==='rejected')throw new Error('Your approval request was rejected by School Admin'+(status.review_note?': '+status.review_note:'')+'.');
+        }
         await client.auth.signOut();
-        throw new Error('This account is not linked to the selected role in this school.');
-      }
-      if(selectedRole==='student'){
-        try{await ensureStudentRecord(data.user)}
-        catch(studentErr){await client.auth.signOut();throw studentErr}
+        throw new Error('This account is not approved for the selected role yet.');
       }
       await openApp(data.user,selectedRole,requestedInstitute);
     }catch(err){message(friendly(err.message||err))}finally{busy($('loginBtn'),false)}
@@ -422,15 +507,29 @@
     e.preventDefault();
     if(!client)return message('Login service is unavailable.');
     const school=$('schoolName').value.trim(),name=$('fullName').value.trim(),phone=$('contactNumber').value.trim(),email=$('signupEmail').value.trim(),password=$('signupPassword').value;
-    const teacher=selectedRole==='teacher',student=selectedRole==='student',code=teacher?'':$('schoolCode').value.trim();
-    const studentCode=student?$('studentCode').value.trim():'';
+    const teacher=selectedRole==='teacher',student=selectedRole==='student',parent=selectedRole==='parent',member=parent||student;
+    const code=selectedRole==='admin'?$('schoolCode').value.trim():'';
     const teacherInvite=teacher?$('teacherInviteCode').value.trim():'',teacherStaff=teacher?$('teacherStaffCode').value.trim():'';
-    if(!name||!phone||!email||password.length<8||(teacher&&(!teacherInvite||!teacherStaff))||((selectedRole==='parent'||selectedRole==='student')&&!code)||(student&&!studentCode)||(selectedRole==='admin'&&!school))return message('Complete all required fields.');
-    busy($('signupBtn'),true,selectedRole==='admin'?'Creating / adding school...':'Creating account...');
+    const institutionId=member?$('memberSchoolId').value.trim():'';
+    const studentName=student?name:$('approvalStudentName').value.trim();
+    const guardianName=member?$('approvalGuardianName').value.trim():'';
+    const className=member?$('approvalClassName').value.trim():'';
+    const sectionName=member?$('approvalSectionName').value.trim():'';
+    const admissionNo=member?$('approvalAdmissionNo').value.trim():'';
+    const dateOfBirth=member?$('approvalDateOfBirth').value:'';
+    const relationship=parent?$('approvalRelationship').value.trim():'';
+    if(!name||!phone||!email||password.length<8||(teacher&&(!teacherInvite||!teacherStaff))||(member&&(!institutionId||!className))||(parent&&!studentName)||(selectedRole==='admin'&&!school))return message('Complete all required fields and select your school.');
+    busy($('signupBtn'),true,selectedRole==='admin'?'Creating / adding school...':teacher?'Sending teacher request...':'Creating approval request...');
     try{
       const logo=selectedRole==='admin'?await saveLogo($('schoolLogo').files?.[0]):'';
-      localStorage.setItem('edunizam_pending_signup',JSON.stringify({role:selectedRole,school,name,phone,code,studentCode,teacherInvite,teacherStaff,logo,email}));
-      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{full_name:name,signup_role:selectedRole,school_name:school||'',school_code:selectedRole==='admin'?'':code,registration_number:selectedRole==='admin'?code:'',student_code:studentCode,teacher_invite_code:teacherInvite,teacher_staff_code:teacherStaff,contact_number:phone}}});
+      const pending={role:selectedRole,school,name,phone,code,teacherInvite,teacherStaff,logo,email,institutionId,studentName,guardianName,className,sectionName,admissionNo,dateOfBirth,relationship};
+      localStorage.setItem('edunizam_pending_signup',JSON.stringify(pending));
+      const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:PROD_LOGIN_URL,data:{
+        full_name:name,signup_role:selectedRole,school_name:school||'',registration_number:selectedRole==='admin'?code:'',
+        teacher_invite_code:teacherInvite,teacher_staff_code:teacherStaff,contact_number:phone,
+        selected_school_id:institutionId,student_name:studentName,guardian_name:guardianName,class_name:className,
+        section_name:sectionName,admission_no:admissionNo,date_of_birth:dateOfBirth,relationship
+      }}});
       if(error){
         if(selectedRole==='admin'&&/already registered|already exists/i.test(String(error.message||error))){
           const existing=await addSchoolToExistingAdmin({email,password,school,registration:code,phone});
@@ -461,8 +560,7 @@
           $('resendVerifyBtn').classList.add('hidden');
           setTab('login');
           $('loginEmail').value=email;
-          if(selectedRole==='student'&&$('loginStudentCode'))$('loginStudentCode').value=studentCode||'';
-          message('This email already has an EduNizam account. Please use Log In for this role.');
+          if(selectedRole==='student'&&$('loginStudentCode'))message('This email already has an EduNizam account. Please use Log In for this role.');
           return;
         }
         localStorage.setItem('edunizam_verify_email',email);
@@ -486,19 +584,26 @@
       const teacherMeta=meta.signup_role==='teacher'&&meta.teacher_invite_code&&meta.teacher_staff_code;
       const standardMeta=meta.signup_role==='admin'
         ? !!meta.school_name
-        : (meta.signup_role&&meta.signup_role!=='teacher'&&meta.school_code);
+        : ((meta.signup_role==='parent'||meta.signup_role==='student')&&meta.selected_school_id);
       if(meta.full_name&&(teacherMeta||standardMeta)){
         pending={
           role:meta.signup_role,
           school:meta.school_name||'',
           name:meta.full_name,
           phone:meta.contact_number||'',
-          code:meta.signup_role==='admin'?(meta.registration_number||''):(meta.school_code||''),
-          studentCode:meta.student_code||'',
+          code:meta.signup_role==='admin'?(meta.registration_number||''):'',
           teacherInvite:meta.teacher_invite_code||'',
           teacherStaff:meta.teacher_staff_code||'',
           logo:'',
-          email:user.email||''
+          email:user.email||'',
+          institutionId:meta.selected_school_id||'',
+          studentName:meta.student_name||meta.full_name||'',
+          guardianName:meta.guardian_name||'',
+          className:meta.class_name||'',
+          sectionName:meta.section_name||'',
+          admissionNo:meta.admission_no||'',
+          dateOfBirth:meta.date_of_birth||'',
+          relationship:meta.relationship||''
         };
       }
     }
@@ -517,6 +622,30 @@
       message('Teacher verification request sent. School Admin approval ke baad isi email aur password se Teacher login karein.',true);
       return true;
     }
+    if(pending.role==='parent'||pending.role==='student'){
+      const {error}=await client.rpc('submit_school_access_request_v1',{
+        p_institution_id:pending.institutionId,
+        p_role:pending.role,
+        p_full_name:pending.name,
+        p_phone:pending.phone,
+        p_student_name:pending.studentName||pending.name,
+        p_guardian_name:pending.guardianName||null,
+        p_class_name:pending.className||null,
+        p_section_name:pending.sectionName||null,
+        p_admission_no:pending.admissionNo||null,
+        p_date_of_birth:pending.dateOfBirth||null,
+        p_relationship:pending.relationship||null
+      });
+      if(error)throw error;
+      localStorage.removeItem('edunizam_pending_signup');
+      localStorage.removeItem('edunizam_verify_email');
+      await client.auth.signOut();
+      show('authView');
+      setTab('login');
+      $('loginEmail').value=pending.email||user.email||'';
+      message('Profile sent successfully. Status: Waiting for School Admin Approval. After approval, login with email and password only.',true);
+      return true;
+    }
     let data,error;
     if(pending.role==='admin'){
       ({data,error}=await client.rpc('register_admin_school_v2',{
@@ -531,19 +660,6 @@
       }));
     }
     if(error)throw error;
-    if(pending.role==='student'){
-      const claimed=await client.rpc('claim_student_account_v1',{p_student_code:pending.studentCode||''});
-      if(claimed.error){
-        localStorage.removeItem('edunizam_pending_signup');
-        localStorage.removeItem('edunizam_verify_email');
-        await client.auth.signOut();
-        show('authView');setTab('login');
-        $('loginEmail').value=pending.email||user.email||'';
-        $('loginStudentCode').value=pending.studentCode||'';
-        message('Student account created, but Student Code could not be linked: '+friendly(claimed.error.message||claimed.error)+'. Check the Student Code and log in again.');
-        return true;
-      }
-    }
     if(pending.role==='admin'){
       let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
       settings.schoolName=pending.school;settings.schoolType='School';if(pending.logo)settings.schoolLogo=pending.logo;
@@ -709,7 +825,7 @@
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-confirm-password98').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-simple-approval99').catch(()=>{}));
 }
 </script>
 </body>
