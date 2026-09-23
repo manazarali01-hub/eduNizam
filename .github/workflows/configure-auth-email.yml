@@ -12,8 +12,8 @@ jobs:
     env:
       PROJECT_REF: qmdiexentozvhhfjvlmr
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SMTP_HOST: ${{ secrets.EDUNIZAM_SMTP_HOST }}
-      SMTP_PORT: ${{ secrets.EDUNIZAM_SMTP_PORT }}
+      SMTP_HOST: smtp-relay.brevo.com
+      SMTP_PORT: "587"
       SMTP_USER: ${{ secrets.EDUNIZAM_SMTP_USER }}
       SMTP_PASS: ${{ secrets.EDUNIZAM_SMTP_PASS }}
       SMTP_FROM_EMAIL: ${{ secrets.EDUNIZAM_SMTP_FROM_EMAIL }}
@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           missing=0
-          for key in SUPABASE_ACCESS_TOKEN SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS SMTP_FROM_EMAIL; do
+          for key in SUPABASE_ACCESS_TOKEN SMTP_USER SMTP_PASS SMTP_FROM_EMAIL; do
             if [ -z "${!key}" ]; then
               echo "::error::Missing required GitHub secret for ${key}"
               missing=1
