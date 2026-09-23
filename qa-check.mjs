@@ -87,7 +87,7 @@ if(!app.includes('window.editStudent=')) fail.push('Student Edit handler missing
 if(!app.includes("window.EDUNIZAM_CORE_CLOUD?.ready?.()")) fail.push('Student cloud sync guard missing.');
 if(!app.includes('deleteStudentByLocalId')) fail.push('Student delete is not synchronized with cloud.');
 if(!read('core-cloud.js').includes('deleteStudentByLocalId')) fail.push('Cloud student delete handler missing.');
-if(!read('cloud-setup.js').includes('create_owned_institution_v1')) fail.push('Multi-school creation UI missing.');
+if(!read('cloud-setup.js').includes('create_owned_institution_v2')) fail.push('Multi-school creation UI missing.');
 if(!read('storage-scope.js').includes('edunizam_school:')) fail.push('Per-school browser storage isolation missing.');
 if(!read('sw.js').includes("'./storage-scope.js'")) fail.push('PWA cache does not include storage isolation script.');
 if(!read('sw.js').includes("'./reliability-guardian.js'")) fail.push('PWA cache does not include Reliability Guardian.');
@@ -121,7 +121,7 @@ const cloudSetup=read('cloud-setup.js');
 if(!cloudSetup.includes("const selectedId=session?.institutionId||current.institutionId||''")) fail.push('Startup does not prioritize login-selected institute.');
 if(!cloudSetup.includes("session.institutionId=inst.id")) fail.push('Manual institute switching does not update session lock.');
 if(!login.includes("addSchoolToExistingAdmin")) fail.push('Existing Admin email cannot add a second school during signup.');
-if(!login.includes("create_owned_institution_v1")) fail.push('Multi-school signup RPC is missing.');
+if(!login.includes("create_owned_institution_v2")) fail.push('Multi-school signup RPC is missing.');
 if(!app.includes("b.onclick=async()=>")) fail.push('Quick actions do not await view navigation.');
 if(!app.includes("if(targetView==='students')openStudentForm()")) fail.push('Student quick action does not reliably open the form.');
 if(!login.includes('id="roleGuidance"')) fail.push('Role-specific same-school login guidance missing.');
@@ -140,7 +140,7 @@ if(!read('role-access-center.js').includes("teacherRequest.style.display=r==='te
 if(!fs.existsSync(path.join(root,'supabase/migrations/20260922223000_secure_student_parent_school_linking.sql'))) fail.push('Secure Student/Parent DB migration file missing.');
 if(!login.includes("client.auth.resend({")) fail.push('Verification email resend flow missing.');
 if(!login.includes("emailRedirectTo:PROD_LOGIN_URL")) fail.push('Signup verification redirect missing.');
-if(!read('cloud-setup.js').includes("create_owned_institution_v1")) fail.push('Multi-school creation UI missing.');
+if(!read('cloud-setup.js').includes("create_owned_institution_v2")) fail.push('Multi-school creation UI missing.');
 if(!index.includes('data-view="settings"')) fail.push('Settings navigation item missing.');
 if(!index.includes('data-view="troubleshoot"')) fail.push('Troubleshoot navigation item missing.');
 if(!index.includes('id="troubleshoot"')) fail.push('Troubleshoot section missing.');
