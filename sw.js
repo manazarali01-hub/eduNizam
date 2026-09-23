@@ -1,4 +1,4 @@
-const CACHE='edunizam-v93-duplicate-school-login'
+const CACHE='edunizam-v94-atomic-student-delete'
 const CORE=[
   './',
   './index.html',
