@@ -383,7 +383,7 @@
     const studentCode=student?$('studentCode').value.trim():'';
     const teacherInvite=teacher?$('teacherInviteCode').value.trim():'',teacherStaff=teacher?$('teacherStaffCode').value.trim():'';
     if(!name||!phone||!email||password.length<8||(teacher?(!teacherInvite||!teacherStaff):!code)||(student&&!studentCode)||(selectedRole==='admin'&&!school))return message('Complete all required fields.');
-    busy($('signupBtn'),true,'Creating account...');
+    busy($('signupBtn'),true,selectedRole==='admin'?'Creating / adding school...':'Creating account...');
     try{
       const logo=selectedRole==='admin'?await saveLogo($('schoolLogo').files?.[0]):'';
       localStorage.setItem('edunizam_pending_signup',JSON.stringify({role:selectedRole,school,name,phone,code,studentCode,teacherInvite,teacherStaff,logo,email}));
@@ -408,7 +408,8 @@
             localStorage.removeItem('edunizam_pending_signup');
             localStorage.removeItem('edunizam_verify_email');
             $('resendVerifyBtn').classList.add('hidden');
-            message('Existing Admin account found. New school added successfully.',true);
+            localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School added successfully. Registration No. '+code+' accepted and linked to your existing Admin account.'}));
+            message('School added successfully. Registration No. '+code+' accepted. Opening the school...',true);
             await openApp(existing.user,'admin',school);
             return;
           }
