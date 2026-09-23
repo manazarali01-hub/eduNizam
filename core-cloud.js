@@ -7,6 +7,33 @@
     const raw=String(Number(s?.id)||Date.now()).replace(/\D/g,'').slice(-8).padStart(8,'0');
     return 'STU-'+raw;
   }
+  function studentPayload(s,c){
+    return {
+      institution_id:cfg.institutionId,
+      local_id:Number(s.id),
+      auth_user_id:s.authUserId||null,
+      name:s.name,
+      guardian_name:s.father||null,
+      class_name:s.className||null,
+      section_name:s.sectionName||null,
+      phone:s.phone||null,
+      b_form_no:s.bFormNo||null,
+      guardian_cnic:s.guardianCnic||null,
+      date_of_birth:s.dateOfBirth||null,
+      admission_no:s.admissionNo||null,
+      address:s.address||null,
+      guardian_occupation:s.guardianOccupation||null,
+      caste:s.caste||null,
+      roll_no:s.rollNo||null,
+      student_code:s.studentId||fallbackStudentCode(s),
+      admission_application_id:s.admissionApplicationId||null,
+      admission_date:s.admissionDate||null,
+      fee_snapshot:s.feeSnapshot||null,
+      source:s.source||'manual',
+      created_by:c.state.user?.id||null,
+      updated_at:new Date().toISOString()
+    };
+  }
 
   function ready(){
     return !!(cloud()?.ready?.() && cloud()?.state?.client && cfg.institutionId);
@@ -44,33 +71,22 @@
     if(error) throw error;
   }
 
+  async function upsertStudent(student){
+    const c=await requireStaff(),client=c.state.client;
+    if(!student?.id||!String(student?.name||'').trim())throw new Error('Student name and local record id are required.');
+    const payload=studentPayload(student,c);
+    const {data,error}=await client
+      .from('core_students')
+      .upsert(payload,{onConflict:'institution_id,local_id'})
+      .select()
+      .single();
+    if(error)throw error;
+    return data;
+  }
+
   async function syncStudents(){
     const c=await requireStaff(),client=c.state.client;
-    const rows=read('edunizam_students',[]).map(s=>({
-      institution_id:cfg.institutionId,
-      local_id:Number(s.id),
-      auth_user_id:s.authUserId||null,
-      name:s.name,
-      guardian_name:s.father||null,
-      class_name:s.className||null,
-      section_name:s.sectionName||null,
-      phone:s.phone||null,
-      b_form_no:s.bFormNo||null,
-      guardian_cnic:s.guardianCnic||null,
-      date_of_birth:s.dateOfBirth||null,
-      admission_no:s.admissionNo||null,
-      address:s.address||null,
-      guardian_occupation:s.guardianOccupation||null,
-      caste:s.caste||null,
-      roll_no:s.rollNo||null,
-      student_code:s.studentId||fallbackStudentCode(s),
-      admission_application_id:s.admissionApplicationId||null,
-      admission_date:s.admissionDate||null,
-      fee_snapshot:s.feeSnapshot||null,
-      source:s.source||'manual',
-      created_by:c.state.user?.id||null,
-      updated_at:new Date().toISOString()
-    }));
+    const rows=read('edunizam_students',[]).map(s=>studentPayload(s,c));
     if(!rows.length) return [];
     const {data,error}=await client.from('core_students').upsert(rows,{onConflict:'institution_id,local_id'}).select();
     if(error) throw error; return data||[];
@@ -266,5 +282,5 @@
     return {ok:true,deleted:true};
   }
 
-  window.EDUNIZAM_CORE_CLOUD={ready,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
+  window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
 })();
