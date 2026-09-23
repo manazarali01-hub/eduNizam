@@ -12,11 +12,9 @@ EduNizam login supports:
 
 Brevo free SMTP can be used for transactional authentication email.
 
-GitHub repository secrets required by `.github/workflows/configure-auth-email.yml`:
+GitHub repository secrets required by `.github/workflows/configure-auth-email.yml` (Brevo host `smtp-relay.brevo.com` and port `587` are already configured):
 
 - `SUPABASE_ACCESS_TOKEN` — Supabase personal access token (existing deployment secret)
-- `EDUNIZAM_SMTP_HOST` — for Brevo: `smtp-relay.brevo.com`
-- `EDUNIZAM_SMTP_PORT` — `587`
 - `EDUNIZAM_SMTP_USER` — Brevo SMTP login shown on Brevo's SMTP page
 - `EDUNIZAM_SMTP_PASS` — Brevo SMTP key (not API key)
 - `EDUNIZAM_SMTP_FROM_EMAIL` — a verified sender email in Brevo
