@@ -50,7 +50,11 @@
     localStorage.setItem('edunizam_cloud_user_id',c.state.user.id);
     setLocalSession(role,c.state.user.email||c.state.user.id);
     if(window.EDUNIZAM_CLOUD_SETUP?.ensureInstitution){
-      await window.EDUNIZAM_CLOUD_SETUP.ensureInstitution();
+      const institutionReady=await window.EDUNIZAM_CLOUD_SETUP.ensureInstitution();
+      if(role==='head_of_institute'&&!institutionReady){
+        window.dispatchEvent(new CustomEvent('edunizam:school-selection-required'));
+        return false;
+      }
     }
     removeDemoLogin();
     return true;
