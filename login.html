@@ -85,7 +85,7 @@
             <div class="field"><label for="signupEmail">Email Address</label><input id="signupEmail" type="email" autocomplete="email" required></div>
             <div class="field"><label for="signupPassword">Password</label><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required></div>
           </div>
-          <div id="schoolCodeField" class="field"><label for="schoolCode">School Code / EMIS / Registration No.</label><input id="schoolCode" required></div>
+          <div id="schoolCodeField" class="field"><label for="schoolCode">School Code / EMIS / Registration No.</label><input id="schoolCode" required spellcheck="false" autocomplete="off" aria-describedby="schoolCodeHelp"><div id="schoolCodeHelp" class="help">Enter the school's official code/EMIS/registration number. If this Admin email already exists, the new school will be added to the same Admin account.</div></div>
           <div id="studentCodeField" class="field hidden"><label for="studentCode">Student Code</label><input id="studentCode" autocomplete="one-time-code" placeholder="Provided by School Admin"></div>
           <div id="teacherInviteField" class="field hidden"><label for="teacherInviteCode">Teacher Invite Code</label><input id="teacherInviteCode" autocomplete="one-time-code" placeholder="Provided by School Admin"></div>
           <div id="teacherStaffField" class="field hidden"><label for="teacherStaffCode">Staff Code</label><input id="teacherStaffCode" placeholder="e.g. T-001"></div>
@@ -314,6 +314,10 @@
     $('schoolCodeField').classList.toggle('hidden',teacher);
     $('schoolCode').required=!teacher;
     $('schoolCode').placeholder=admin?'School Code / EMIS / Registration No.':'School Code provided by Admin';
+    $('signupBtn').textContent=admin?'Create / Add School':'Create Account';
+    $('schoolCodeHelp').textContent=admin
+      ? 'Enter the school\'s official code/EMIS/registration number. If this Admin email already exists, the new school will be added to the same Admin account.'
+      : 'Enter the School Code provided by the School Admin.';
     $('studentCodeField').classList.toggle('hidden',!student);
     $('studentCode').required=student;
     $('teacherInviteField').classList.toggle('hidden',!teacher);
@@ -390,7 +394,8 @@
           localStorage.removeItem('edunizam_pending_signup');
           localStorage.removeItem('edunizam_verify_email');
           $('resendVerifyBtn').classList.add('hidden');
-          message('Existing Admin account found. New school added successfully.',true);
+          localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School added successfully. Registration No. '+code+' accepted and linked to your existing Admin account.'}));
+          message('School added successfully. Registration No. '+code+' accepted. Opening the school...',true);
           await openApp(existing.user,'admin',school);
           return;
         }
@@ -482,6 +487,7 @@
       let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
       settings.schoolName=pending.school;settings.schoolType='School';if(pending.logo)settings.schoolLogo=pending.logo;
       localStorage.setItem('edunizam_settings',JSON.stringify(settings));
+      localStorage.setItem('edunizam_flash_message',JSON.stringify({type:'success',text:'School account created successfully. Registration No. '+pending.code+' accepted.'}));
     }
     localStorage.removeItem('edunizam_pending_signup');
     localStorage.removeItem('edunizam_verify_email');
