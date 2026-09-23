@@ -25,7 +25,7 @@
     .roles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.role{min-height:118px;border:1px solid var(--line);background:#fbfefd;border-radius:18px;padding:16px;text-align:left;color:var(--ink);cursor:pointer;transition:.16s}.role:hover,.role:focus-visible{border-color:#81b8b0;transform:translateY(-1px);box-shadow:0 10px 26px rgba(23,50,74,.08)}.role .icon{display:block;font-size:1.8rem;margin-bottom:8px}.role strong{display:block}.role small{display:block;color:var(--muted);margin-top:4px}
     .head{display:flex;align-items:flex-start;gap:12px}.back{border:0;background:#eef7f5;color:var(--teal2);width:38px;height:38px;border-radius:11px;cursor:pointer;font-weight:900}
     .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.tab{border:1px solid var(--line);background:#f7fbfa;border-radius:12px;padding:11px;font-weight:800;cursor:pointer}.tab.active{background:var(--teal);color:#fff;border-color:var(--teal)}
-    .fields{display:grid;gap:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input{width:100%;border:1px solid #cadbd8;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);outline:none}.field input:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}
+    .fields{display:grid;gap:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input{width:100%;border:1px solid #cadbd8;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);outline:none}.field input:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}.password-wrap{position:relative}.password-wrap input{padding-right:72px}.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:#eef7f5;color:var(--teal2);border-radius:9px;padding:7px 9px;font-size:.75rem;font-weight:850;cursor:pointer}.password-toggle:hover{background:#e1f1ed}.password-toggle:focus-visible{outline:3px solid #e6b94c;outline-offset:2px}
     .primary{width:100%;border:0;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;padding:13px 16px;font-weight:850;cursor:pointer}.secondary{border:1px solid var(--line);background:#fff;color:var(--teal2);border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer}.link{border:0;background:none;color:var(--teal);font-weight:800;cursor:pointer;padding:0}
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.role-guidance{margin:2px 0 16px;padding:12px 14px;border:1px solid #d5e6e2;border-radius:13px;background:#f5fbf9;color:#405b58;font-size:.82rem;line-height:1.55}.role-guidance strong{color:var(--teal2)}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}.school-picker{margin-top:14px;padding:14px;border:1px solid #d5e6e2;border-radius:14px;background:#f8fcfb}.school-picker h3{margin:0 0 10px;font-size:1rem}.school-choice{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #e4efed}.school-choice:first-of-type{border-top:0}.school-choice small{display:block;color:var(--muted);margin-top:3px}.school-choice button{width:auto;padding:9px 12px}
     .mobile-brand{display:none}.skip{position:fixed;left:12px;top:12px;transform:translateY(-160%);background:#fff;color:#12324a;padding:10px 14px;border-radius:10px;z-index:999}.skip:focus{transform:none}
@@ -69,7 +69,7 @@
         <form id="loginForm" class="fields">
           <div id="adminLoginSchoolField" class="field"><label for="loginSchoolName">Institute / School Name</label><input id="loginSchoolName" autocomplete="organization" placeholder="e.g. Dar-ul-Islam School"></div>
           <div class="field"><label for="loginEmail">Email Address</label><input id="loginEmail" type="email" autocomplete="email" required></div>
-          <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+          <div class="field"><label for="loginPassword">Password</label><div class="password-wrap"><input id="loginPassword" type="password" autocomplete="current-password" required><button class="password-toggle" type="button" data-password-target="loginPassword" aria-label="Show password">Show</button></div></div>
           <div id="studentLoginCodeField" class="field hidden"><label for="loginStudentCode">Student Code <span class="help">(first link only)</span></label><input id="loginStudentCode" autocomplete="one-time-code" placeholder="Provided by School Admin"></div>
           <div class="row"><span></span><button id="forgotBtn" class="link" type="button">Forgot password?</button></div>
           <div class="help">Security: School name alone cannot reset access. A reset link is sent only to the registered email address.</div>
@@ -84,7 +84,7 @@
           </div>
           <div class="grid2">
             <div class="field"><label for="signupEmail">Email Address</label><input id="signupEmail" type="email" autocomplete="email" required></div>
-            <div class="field"><label for="signupPassword">Password</label><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required></div>
+            <div class="field"><label for="signupPassword">Password</label><div class="password-wrap"><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required><button class="password-toggle" type="button" data-password-target="signupPassword" aria-label="Show password">Show</button></div></div>
           </div>
           <div id="schoolCodeField" class="field"><label id="schoolCodeLabel" for="schoolCode">Registration No. <span class="help">(Optional)</span></label><input id="schoolCode" spellcheck="false" autocomplete="off" aria-describedby="schoolCodeHelp"><div id="schoolCodeHelp" class="help">Optional display information only. EduNizam generates a separate School Login Code automatically.</div></div>
           <div id="studentCodeField" class="field hidden"><label for="studentCode">Student Code</label><input id="studentCode" autocomplete="one-time-code" placeholder="Provided by School Admin"></div>
@@ -114,7 +114,7 @@
       <div id="resetView" class="view hidden">
         <div class="head"><button id="backReset" class="back" type="button">←</button><div><div class="eyebrow">Account Recovery</div><h2>Set New Password</h2></div></div>
         <form id="resetForm" class="fields">
-          <div class="field"><label for="newPassword">New Password</label><input id="newPassword" type="password" minlength="8" required></div>
+          <div class="field"><label for="newPassword">New Password</label><div class="password-wrap"><input id="newPassword" type="password" minlength="8" autocomplete="new-password" required><button class="password-toggle" type="button" data-password-target="newPassword" aria-label="Show password">Show</button></div></div>
           <button class="primary" type="submit">Save New Password</button>
         </form>
         <div id="resetStatus" class="status" role="status"></div>
@@ -589,6 +589,18 @@
     return clean;
   }
 
+  document.querySelectorAll('[data-password-target]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const input=$(btn.dataset.passwordTarget);
+      if(!input)return;
+      const showing=input.type==='text';
+      input.type=showing?'password':'text';
+      btn.textContent=showing?'Show':'Hide';
+      btn.setAttribute('aria-label',showing?'Show password':'Hide password');
+      btn.setAttribute('aria-pressed',String(!showing));
+    });
+  });
+
   $('forgotBtn').onclick=async()=>{
     const email=$('loginEmail').value.trim();
     if(!email)return message('Enter your registered email address first.');
@@ -683,7 +695,7 @@
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-authotp96').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-password-toggle97').catch(()=>{}));
 }
 </script>
 </body>
