@@ -134,24 +134,6 @@
       box.innerHTML=rows.length?'<h4>Recent Codes</h4>'+rows.map(x=>'<div class="access-list-item"><strong>'+esc(x.code)+'</strong> · '+esc(x.target_role)+' · '+x.use_count+'/'+x.max_uses+' used '+(x.active?'':'· inactive')+'</div>').join(''):'<div class="muted">No invite codes yet.</div>';
     }catch(e){box.textContent=e.message||String(e)}
   }
-  async function loadParentLinks(){
-    const box=document.getElementById('accessParentLinks');if(!box||role()!=='head'||!ready())return;
-    try{
-      const rows=await cloud().listParentStudentLinks();
-      box.innerHTML=rows.length?rows.map(x=>'<div class="access-list-item"><div><strong>'+esc(x.parent_name||'Parent / Guardian')+'</strong> → <strong>'+esc(x.student_name||'Student')+'</strong></div><div class="muted">'+(x.student_class?esc(x.student_class)+' · ':'')+(x.student_code?'Student Code: '+esc(x.student_code):'Verified school student')+'</div><div class="access-row"><span class="badge">'+esc(x.status)+'</span>'+(x.status==='pending'?'<button data-approve-parent="'+esc(x.parent_user_id)+'" data-student="'+esc(x.student_user_id)+'">Approve</button><button class="secondary" data-reject-parent="'+esc(x.parent_user_id)+'" data-student="'+esc(x.student_user_id)+'">Reject</button>':'')+'</div></div>').join(''):'<div class="muted">No parent link requests.</div>';
-      box.querySelectorAll('[data-approve-parent]').forEach(b=>b.onclick=()=>decide(b.dataset.approveParent,b.dataset.student,'approved'));
-      box.querySelectorAll('[data-reject-parent]').forEach(b=>b.onclick=()=>decide(b.dataset.rejectParent,b.dataset.student,'rejected'));
-    }catch(e){box.textContent=e.message||String(e)}
-  }
-  async function decide(parent,student,status){
-    const msg=document.getElementById('parentDecisionMsg');
-    try{
-      if(msg)msg.textContent=status==='approved'?'Approving parent-child link...':'Rejecting link...';
-      await cloud().updateParentStudentLink(parent,student,status);
-      if(msg)msg.textContent=status==='approved'?'Parent linked to this student successfully.':'Parent-child request rejected.';
-      loadParentLinks();
-    }catch(e){if(msg)msg.textContent=e.message||String(e)}
-  }
   function render(){
     const r=role(),badge=document.getElementById('accessRoleBadge');if(badge)badge.textContent=({head:'Head of Institute',teacher:'Teacher',parent:'Parent',student:'Student'}[r]||r);
     const admin=document.getElementById('inviteAdminCard'),accounts=document.getElementById('schoolAccountsCard'),approval=document.getElementById('parentApprovalCard'),teacherApproval=document.getElementById('teacherApprovalCard'),teacherRequest=document.getElementById('teacherRequestCard'),parent=document.getElementById('parentLinkCard');
