@@ -1,4 +1,4 @@
-const CACHE='edunizam-v90-signup-confirmation'
+const CACHE='edunizam-v91-optional-registration'
 const CORE=[
   './',
   './index.html',
