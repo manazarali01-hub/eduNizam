@@ -18,7 +18,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment_retry.outputs.page_url || steps.deployment_primary.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,13 +44,23 @@ jobs:
           path: "."
 
       - name: Deploy to GitHub Pages
-        id: deployment
+        id: deployment_primary
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      - name: Pause before Pages retry
+        if: steps.deployment_primary.outcome == 'failure'
+        run: sleep 15
+
+      - name: Retry GitHub Pages deployment
+        id: deployment_retry
+        if: steps.deployment_primary.outcome == 'failure'
         uses: actions/deploy-pages@v5
 
       - name: Verify live EduNizam deployment
         shell: bash
         run: |
-          BASE="${{ steps.deployment.outputs.page_url }}"
+          BASE="${{ steps.deployment_retry.outputs.page_url || steps.deployment_primary.outputs.page_url }}"
           BASE="${BASE%/}/"
           echo "Checking ${BASE}"
 
