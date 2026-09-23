@@ -100,6 +100,17 @@
         <div id="schoolPicker" class="school-picker hidden" aria-live="polite"></div>
       </div>
 
+      <div id="otpView" class="view hidden">
+        <div class="head"><button id="backOtp" class="back" type="button">←</button><div><div class="eyebrow">Email Verification</div><h2 id="otpTitle">Verify Email</h2><p id="otpText" class="subtitle">Enter the 6-digit code sent to your registered email.</p></div></div>
+        <form id="otpForm" class="fields">
+          <div class="field"><label for="otpCode">6-digit OTP</label><input id="otpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="123456" required></div>
+          <button id="verifyOtpBtn" class="primary" type="submit">Verify OTP</button>
+          <button id="resendOtpBtn" class="secondary" type="button">Resend Code</button>
+          <div class="help">You may also use the secure verification/reset link in the email. OTP codes require an email template that includes the Supabase token.</div>
+        </form>
+        <div id="otpStatus" class="status" role="status"></div>
+      </div>
+
       <div id="resetView" class="view hidden">
         <div class="head"><button id="backReset" class="back" type="button">←</button><div><div class="eyebrow">Account Recovery</div><h2>Set New Password</h2></div></div>
         <form id="resetForm" class="fields">
@@ -127,9 +138,11 @@
   const roleCloud={admin:'head_of_institute',teacher:'teacher',parent:'parent',student:'student'};
   const labels={admin:'Admin',teacher:'Teacher',parent:'Parent',student:'Student'};
   const PROD_LOGIN_URL='https://manazarali01-hub.github.io/eduNizam/login.html';
+  let otpMode='';
+  let otpEmail='';
 
   function show(id){
-    ['roleView','authView','resetView'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
+    ['roleView','authView','otpView','resetView'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
     window.scrollTo({top:0,behavior:'smooth'});
   }
   function message(text,ok=false,target='statusBox'){
@@ -453,7 +466,12 @@
         }
         localStorage.setItem('edunizam_verify_email',email);
         $('resendVerifyBtn').classList.remove('hidden');
-        message('Account created. Please verify your email. The verification link will return you to EduNizam.',true);
+        otpMode='signup';otpEmail=email;
+        $('otpTitle').textContent='Verify Your Email';
+        $('otpText').textContent='We sent a verification email to '+email+'. Enter the 6-digit OTP if your email shows one, or open the secure verification link.';
+        $('otpCode').value='';
+        message('',false,'otpStatus');
+        show('otpView');
         return
       }
       await completeSignup(data.user);
@@ -537,45 +555,112 @@
     return true;
   }
 
+  async function resendSignupVerification(){
+    if(!client)throw new Error('Login service is unavailable.');
+    const email=otpEmail||localStorage.getItem('edunizam_verify_email')||$('signupEmail').value.trim();
+    if(!email)throw new Error('Enter your email address first.');
+    const {error}=await client.auth.resend({
+      type:'signup',
+      email,
+      options:{emailRedirectTo:PROD_LOGIN_URL}
+    });
+    if(error)throw error;
+    otpMode='signup';otpEmail=email;
+    return email;
+  }
+
   $('resendVerifyBtn').onclick=async()=>{
-    if(!client)return message('Login service is unavailable.');
-    const email=localStorage.getItem('edunizam_verify_email')||$('signupEmail').value.trim();
-    if(!email)return message('Enter your email address first.');
     busy($('resendVerifyBtn'),true,'Sending...');
     try{
-      const {error}=await client.auth.resend({
-        type:'signup',
-        email,
-        options:{emailRedirectTo:PROD_LOGIN_URL}
-      });
-      if(error)throw error;
-      message('Verification email sent again. Please check your inbox and spam folder.',true);
+      const email=await resendSignupVerification();
+      message('Verification email sent again to '+email+'. Check inbox and spam folder.',true);
     }catch(err){message(friendly(err.message||err))}
     finally{busy($('resendVerifyBtn'),false)}
   };
 
+  async function sendRecovery(email){
+    if(!client)throw new Error('Login service is unavailable.');
+    const clean=String(email||'').trim();
+    if(!clean)throw new Error('Enter your registered email address first.');
+    const {error}=await client.auth.resetPasswordForEmail(clean,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});
+    if(error)throw error;
+    otpMode='recovery';otpEmail=clean;
+    localStorage.setItem('edunizam_recovery_email',clean);
+    return clean;
+  }
+
   $('forgotBtn').onclick=async()=>{
-    if(!client)return message('Login service is unavailable.');
     const email=$('loginEmail').value.trim();
     if(!email)return message('Enter your registered email address first.');
     busy($('forgotBtn'),true,'Sending...');
     try{
-      const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});
-      if(error)throw error;
-      message('If this email is registered, a password reset link has been sent. Check inbox and spam folder.',true);
+      await sendRecovery(email);
+      $('otpTitle').textContent='Password Recovery';
+      $('otpText').textContent='If this email is registered, a recovery email was sent. Enter the 6-digit OTP if shown, or open the secure reset link in that email.';
+      $('otpCode').value='';
+      message('',false,'otpStatus');
+      show('otpView');
     }catch(err){message(friendly(err.message||err))}
     finally{busy($('forgotBtn'),false)}
   };
+  $('otpForm').onsubmit=async e=>{
+    e.preventDefault();
+    if(!client)return message('Login service is unavailable.',false,'otpStatus');
+    const token=$('otpCode').value.replace(/\D/g,'').slice(0,6);
+    if(token.length!==6)return message('Enter the complete 6-digit OTP.',false,'otpStatus');
+    busy($('verifyOtpBtn'),true,'Verifying...');
+    try{
+      const email=otpEmail||localStorage.getItem(otpMode==='recovery'?'edunizam_recovery_email':'edunizam_verify_email')||'';
+      if(!email)throw new Error('Email verification session is missing. Start again.');
+      const type=otpMode==='recovery'?'recovery':'email';
+      const {data,error}=await client.auth.verifyOtp({email,token,type});
+      if(error)throw error;
+      if(otpMode==='recovery'){
+        message('OTP verified. Set your new password now.',true,'otpStatus');
+        show('resetView');
+        return;
+      }
+      const user=data?.user||data?.session?.user;
+      if(!user)throw new Error('Email verified but no user session was returned.');
+      localStorage.removeItem('edunizam_verify_email');
+      $('resendVerifyBtn').classList.add('hidden');
+      const completed=await completeSignup(user);
+      if(completed===false){
+        show('authView');
+        setTab('login');
+        $('loginEmail').value=email;
+        message('Email verified successfully. You can log in now.',true);
+      }
+    }catch(err){message(friendly(err.message||err),false,'otpStatus')}
+    finally{busy($('verifyOtpBtn'),false)}
+  };
+
+  $('resendOtpBtn').onclick=async()=>{
+    busy($('resendOtpBtn'),true,'Sending...');
+    try{
+      if(otpMode==='recovery'){
+        const email=await sendRecovery(otpEmail||localStorage.getItem('edunizam_recovery_email')||'');
+        message('Recovery email sent again to '+email+'.',true,'otpStatus');
+      }else{
+        const email=await resendSignupVerification();
+        message('Verification email sent again to '+email+'.',true,'otpStatus');
+      }
+    }catch(err){message(friendly(err.message||err),false,'otpStatus')}
+    finally{busy($('resendOtpBtn'),false)}
+  };
+
+  $('backOtp').onclick=()=>{show('authView');setTab('login')};
+
   $('resetForm').onsubmit=async e=>{
     e.preventDefault();const password=$('newPassword').value;if(password.length<8)return message('Use at least 8 characters.',false,'resetStatus');
-    try{const {error}=await client.auth.updateUser({password});if(error)throw error;message('Password changed successfully.',true,'resetStatus');setTimeout(()=>show('roleView'),700)}catch(err){message(friendly(err.message||err),false,'resetStatus')}
+    try{const {error}=await client.auth.updateUser({password});if(error)throw error;localStorage.removeItem('edunizam_recovery_email');otpMode='';otpEmail='';message('Password changed successfully.',true,'resetStatus');setTimeout(()=>show('roleView'),700)}catch(err){message(friendly(err.message||err),false,'resetStatus')}
   };
   $('backReset').onclick=()=>show('roleView');
 
   if(localStorage.getItem('edunizam_verify_email'))$('resendVerifyBtn').classList.remove('hidden');
 
   if(client){
-    client.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')show('resetView')});
+    client.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY'){otpMode='recovery';show('resetView')}});
     const params=new URLSearchParams(location.search);
     client.auth.getSession().then(async({data})=>{
       if(params.get('reset')==='1'&&data.session){show('resetView');return}
@@ -598,7 +683,7 @@
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-stability93').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260923-authotp95').catch(()=>{}));
 }
 </script>
 </body>
