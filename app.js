@@ -440,8 +440,30 @@ $('removeSchoolLogoBtn')?.addEventListener('click',()=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can change school settings.');
  state.settings.schoolLogo='';persist();renderSettings();logActivity('Institute logo removed');
 });
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260923-stability89',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+function showStartupFlash(){
+ try{
+   const raw=localStorage.getItem('edunizam_flash_message');
+   if(!raw)return;
+   localStorage.removeItem('edunizam_flash_message');
+   const msg=JSON.parse(raw);
+   if(!msg?.text)return;
+   const box=document.createElement('div');
+   box.setAttribute('role','status');
+   box.style.cssText='position:fixed;right:18px;top:18px;z-index:12000;max-width:min(460px,calc(100vw - 36px));padding:14px 16px;border-radius:14px;background:#ecfdf3;color:#166534;border:1px solid #b7e6c8;box-shadow:0 14px 40px rgba(15,23,42,.16);font-weight:700;line-height:1.45';
+   const close=document.createElement('button');
+   close.type='button';close.textContent='×';
+   close.setAttribute('aria-label','Close confirmation');
+   close.style.cssText='float:right;margin-left:12px;border:0;background:transparent;font-size:20px;cursor:pointer;color:inherit';
+   close.onclick=()=>box.remove();
+   const text=document.createElement('span');text.textContent=msg.text;
+   box.append(close,text);
+   document.body.appendChild(box);
+   setTimeout(()=>box.remove(),9000);
+ }catch(_){localStorage.removeItem('edunizam_flash_message')}
+}
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260923-stability90',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 renderAll();
+showStartupFlash();
 
 
 /* EDUNIZAM_ROLE_ACCESS_V1 — local demo access and class-wise fee setup */
