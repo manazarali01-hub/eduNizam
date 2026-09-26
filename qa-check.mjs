@@ -121,6 +121,14 @@ if(!read('premium-ui.css').includes('edunizam-girl-hero.webp')) fail.push('Dashb
 if(!read('premium-auth.css').includes('2026 Premium Natural Auth Appearance')) fail.push('Premium natural auth appearance layer missing.');
 if(!read('premium-auth.css').includes('edunizam-login-children.webp')) fail.push('Login natural school background missing.');
 if(!read('premium-auth.css').includes('.brand-i:after')) fail.push('Golden EduNizam i-dot treatment missing.');
+if(!read('premium-ui.js').includes('premiumizeNavIcons')) fail.push('Premium sidebar line-icon normalization missing.');
+if(!read('premium-ui.js').includes('iconSvg')) fail.push('Premium navigation SVG icon system missing.');
+if(!read('premium-ui.css').includes('.premium-nav-icon')) fail.push('Premium sidebar icon styling missing.');
+if(!read('premium-ui.css').includes('.topbar-title:before')) fail.push('Mobile topbar brand mark missing.');
+if(!read('premium-auth.css').includes('Pixel-level auth refinement')) fail.push('Pixel-level auth refinement layer missing.');
+if(!read('premium-auth.css').includes('url("assets/edunizam-login-children.webp") center/cover fixed no-repeat')) fail.push('Mobile login does not retain natural background image.');
+if(!read('login.html').includes('<svg viewBox="0 0 24 24"')) fail.push('Login role cards still lack premium line icons.');
+
 if(!read('sw.js').includes("'./assets/edunizam-premium-mark.svg'")) fail.push('PWA cache does not include premium brand mark.');
 if(!read('sw.js').includes("'./assets/edunizam-girl-hero.webp'")) fail.push('PWA cache does not include premium dashboard hero.');
 const manifest=JSON.parse(read('manifest.webmanifest'));
