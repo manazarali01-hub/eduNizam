@@ -25,7 +25,7 @@
     .roles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.role{min-height:118px;border:1px solid var(--line);background:#fbfefd;border-radius:18px;padding:16px;text-align:left;color:var(--ink);cursor:pointer;transition:.16s}.role:hover,.role:focus-visible{border-color:#81b8b0;transform:translateY(-1px);box-shadow:0 10px 26px rgba(23,50,74,.08)}.role .icon{display:block;font-size:1.8rem;margin-bottom:8px}.role strong{display:block}.role small{display:block;color:var(--muted);margin-top:4px}
     .head{display:flex;align-items:flex-start;gap:12px}.back{border:0;background:#eef7f5;color:var(--teal2);width:38px;height:38px;border-radius:11px;cursor:pointer;font-weight:900}
     .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.tab{border:1px solid var(--line);background:#f7fbfa;border-radius:12px;padding:11px;font-weight:800;cursor:pointer}.tab.active{background:var(--teal);color:#fff;border-color:var(--teal)}
-    .fields{display:grid;gap:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input{width:100%;border:1px solid #cadbd8;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);outline:none}.field input:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}.password-wrap{position:relative}.password-wrap input{padding-right:72px}.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:#eef7f5;color:var(--teal2);border-radius:9px;padding:7px 9px;font-size:.75rem;font-weight:850;cursor:pointer}.password-toggle:hover{background:#e1f1ed}.password-toggle:focus-visible{outline:3px solid #e6b94c;outline-offset:2px}
+    .fields{display:grid;gap:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input,.field select{width:100%;border:1px solid #cadbd8;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);outline:none}.field input:focus,.field select:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}.password-wrap{position:relative}.password-wrap input{padding-right:72px}.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:#eef7f5;color:var(--teal2);border-radius:9px;padding:7px 9px;font-size:.75rem;font-weight:850;cursor:pointer}.password-toggle:hover{background:#e1f1ed}.password-toggle:focus-visible{outline:3px solid #e6b94c;outline-offset:2px}
     .primary{width:100%;border:0;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;padding:13px 16px;font-weight:850;cursor:pointer}.secondary{border:1px solid var(--line);background:#fff;color:var(--teal2);border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer}.link{border:0;background:none;color:var(--teal);font-weight:800;cursor:pointer;padding:0}
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.role-guidance{margin:2px 0 16px;padding:12px 14px;border:1px solid #d5e6e2;border-radius:13px;background:#f5fbf9;color:#405b58;font-size:.82rem;line-height:1.55}.role-guidance strong{color:var(--teal2)}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}.school-picker{margin-top:14px;padding:14px;border:1px solid #d5e6e2;border-radius:14px;background:#f8fcfb}.school-picker h3{margin:0 0 10px;font-size:1rem}.school-choice{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #e4efed}.school-choice:first-of-type{border-top:0}.school-choice small{display:block;color:var(--muted);margin-top:3px}.school-choice button{width:auto;padding:9px 12px}.school-search-row{display:grid;grid-template-columns:1fr auto;gap:8px}.school-search-row button{width:auto}.school-search-results{display:grid;gap:8px}.school-search-result{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 11px;border:1px solid #dbe7e4;border-radius:11px;background:#fbfefd}.school-search-result small{display:block;color:var(--muted);margin-top:3px}.school-selected{padding:10px 12px;border-radius:11px;background:#ecfdf3;color:#166534;border:1px solid #b7e6c8;font-size:.82rem}
     .school-search-row input{min-width:0}.mobile-brand{display:none}.skip{position:fixed;left:12px;top:12px;transform:translateY(-160%);background:#fff;color:#12324a;padding:10px 14px;border-radius:10px;z-index:999}.skip:focus{transform:none}
@@ -40,7 +40,7 @@
       .view h2{font-size:clamp(1.55rem,7vw,2rem)}
       .roles{gap:10px}.role{min-height:96px;padding:14px}
       button,.tab,.role,.primary,.secondary,.back,.password-toggle{min-height:44px;touch-action:manipulation}
-      input{min-height:46px;font-size:16px}
+      input,select{min-height:46px;font-size:16px}
       .fields,.grid2,.school-search-results{min-width:0}
       .row{flex-wrap:wrap;align-items:flex-start}
       .school-picker,.school-search-results{max-height:42dvh;overflow:auto;overscroll-behavior:contain}
@@ -79,6 +79,7 @@
           <button class="role" type="button" data-role="teacher"><span class="icon">👩‍🏫</span><strong>Teacher</strong><small>Teaching Staff</small></button>
           <button class="role" type="button" data-role="parent"><span class="icon">👪</span><strong>Parent</strong><small>Parent / Guardian</small></button>
           <button class="role" type="button" data-role="student"><span class="icon">🎓</span><strong>Student</strong><small>Student Account</small></button>
+          <button class="role" id="admissionApplicantRole" type="button"><span class="icon">📝</span><strong>Student for Admission</strong><small>Apply to an existing school</small></button>
         </div>
       </div>
 
@@ -110,12 +111,14 @@
             <div class="field"><label for="signupPassword">Password</label><div class="password-wrap"><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required><button class="password-toggle" type="button" data-password-target="signupPassword" aria-label="Show password">Show</button></div></div>
           </div>
           <div id="memberSchoolField" class="field hidden">
-            <label for="memberSchoolSearch">School / Institute</label>
-            <div class="school-search-row"><input id="memberSchoolSearch" autocomplete="organization" placeholder="Type school name"><button id="findMemberSchoolBtn" class="secondary" type="button">Find School</button></div>
+            <label for="memberSchoolDropdown">School / Institute</label>
+            <select id="memberSchoolDropdown" aria-label="Select school"><option value="">Loading schools...</option></select>
+            <div class="help">Dropdown se school select karein, ya neeche school name search karein.</div>
+            <div class="school-search-row"><input id="memberSchoolSearch" autocomplete="organization" placeholder="Search school by name"><button id="findMemberSchoolBtn" class="secondary" type="button">Search School</button></div>
             <input id="memberSchoolId" type="hidden">
             <div id="memberSchoolSelected" class="school-selected hidden"></div>
             <div id="memberSchoolResults" class="school-search-results"></div>
-            <div class="help">No code required. Search and select your school once.</div>
+            <div class="help"><strong>Only Admin can add a new school.</strong> Teacher, Parent and Student must select an existing school.</div>
           </div>
           <div id="memberProfileFields" class="hidden fields">
             <div id="approvalStudentNameField" class="field hidden"><label for="approvalStudentName">Child Name</label><input id="approvalStudentName" autocomplete="name"></div>
@@ -385,10 +388,37 @@
     return data||null;
   }
   const safeHtml=value=>String(value??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  let memberSchoolRows=[];
+  function setMemberSchool(row){
+    if(!row)return clearMemberSchoolSelection();
+    $('memberSchoolId').value=row.institution_id||'';
+    $('memberSchoolDropdown').value=row.institution_id||'';
+    $('memberSchoolSearch').value=row.institution_name||'';
+    $('memberSchoolSelected').textContent='Selected: '+(row.institution_name||'School')+(row.registration_number?' · Reg. No. '+row.registration_number:'');
+    $('memberSchoolSelected').classList.remove('hidden');
+  }
   function clearMemberSchoolSelection(){
     $('memberSchoolId').value='';
+    if($('memberSchoolDropdown'))$('memberSchoolDropdown').value='';
     $('memberSchoolSelected').textContent='';
     $('memberSchoolSelected').classList.add('hidden');
+  }
+  async function loadMemberSchoolDropdown(){
+    const select=$('memberSchoolDropdown');
+    if(!select||!client)return;
+    select.innerHTML='<option value="">Loading schools...</option>';
+    try{
+      const {data,error}=await client.rpc('list_school_directory_v1',{p_limit:200});
+      if(error)throw error;
+      memberSchoolRows=data||[];
+      select.innerHTML='<option value="">Select your school</option>'+memberSchoolRows.map(x=>{
+        const suffix=x.registration_number?' · Reg. '+safeHtml(x.registration_number):'';
+        return '<option value="'+safeHtml(x.institution_id)+'">'+safeHtml(x.institution_name||'School')+suffix+'</option>';
+      }).join('');
+      if(!memberSchoolRows.length)select.innerHTML='<option value="">No schools available yet</option>';
+    }catch(err){
+      select.innerHTML='<option value="">Could not load schools — use search</option>';
+    }
   }
   async function searchMemberSchools(){
     const q=$('memberSchoolSearch').value.trim();
@@ -407,16 +437,19 @@
       box.querySelectorAll('[data-member-school]').forEach(btn=>btn.onclick=()=>{
         const row=rows[Number(btn.dataset.memberSchool)];
         if(!row)return;
-        $('memberSchoolId').value=row.institution_id||'';
-        $('memberSchoolSearch').value=row.institution_name||$('memberSchoolSearch').value;
-        $('memberSchoolSelected').textContent='Selected: '+(row.institution_name||'School')+(row.registration_number?' · Reg. No. '+row.registration_number:'');
-        $('memberSchoolSelected').classList.remove('hidden');
+        setMemberSchool(row);
         box.innerHTML='';
       });
     }catch(err){box.innerHTML='<div class="help">'+safeHtml(friendly(err.message||err))+'</div>'}
   }
   $('findMemberSchoolBtn').onclick=searchMemberSchools;
-  $('memberSchoolSearch').addEventListener('input',clearMemberSchoolSelection);
+  $('memberSchoolDropdown').addEventListener('change',e=>{
+    const row=memberSchoolRows.find(x=>String(x.institution_id)===String(e.target.value));
+    if(row)setMemberSchool(row);else clearMemberSchoolSelection();
+  });
+  $('memberSchoolSearch').addEventListener('input',()=>{
+    if($('memberSchoolSearch').value.trim()!==$('memberSchoolSelected').textContent.replace(/^Selected:\s*/,'').split(' · ')[0])clearMemberSchoolSelection();
+  });
   $('memberSchoolSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchMemberSchools()}});
 
   function chooseRole(role){
@@ -424,6 +457,7 @@
     clearMemberSchoolSelection();
     $('memberSchoolSearch').value='';
     $('memberSchoolResults').innerHTML='';
+    if(role!=='admin')loadMemberSchoolDropdown();
     $('roleTitle').textContent=labels[role]+' Access';
     const copy={
       admin:'Use your school name, Admin email and password.',
@@ -433,7 +467,7 @@
     };
     $('roleText').textContent=copy[role];
     $('roleGuidance').innerHTML=role==='admin'
-      ? '<strong>Admin:</strong> Create or open your school account.'
+      ? '<strong>Admin:</strong> Only Admin can create or add a school. Use this role to create/open your school account.'
       : role==='teacher'
         ? '<strong>Teacher:</strong> Select your school and send an approval request. No invite or staff code is needed.'
         : role==='student'
@@ -473,6 +507,7 @@
   }
 
   document.querySelectorAll('[data-role]').forEach(btn=>btn.addEventListener('click',()=>chooseRole(btn.dataset.role)));
+  $('admissionApplicantRole').addEventListener('click',()=>{location.href='admission.html'});
   $('backRole').onclick=()=>show('roleView');
   $('loginTab').onclick=()=>setTab('login');
   $('signupTab').onclick=()=>setTab('signup');
