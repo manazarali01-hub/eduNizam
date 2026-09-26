@@ -61,6 +61,30 @@
     }
     await persist(item);
   }
+  async function adminMarkStaffStatus(staffId,status){
+    if(!isHead())return;
+    const st=staff().find(x=>String(x.id)===String(staffId));if(!st)return;
+    const existing=rowFor(staffId);
+    if(existing?.checkInAt&&status!=='Present'){
+      return alert('Is Teacher ka check-in already recorded hai. Status/time correction ke liye Manual Time Adjustment use karein.');
+    }
+    let note=existing?.note||'';
+    if(status==='Absent'||status==='Leave')note=prompt(status+' reason / note (optional):',note)||'';
+    await persist({
+      id:existing?.id||staffId+'-'+today(),
+      staffId,date:today(),status,note,
+      checkInAt:existing?.checkInAt||'',
+      checkOutAt:existing?.checkOutAt||'',
+      checkInLat:existing?.checkInLat??null,
+      checkInLng:existing?.checkInLng??null,
+      checkInAccuracy:existing?.checkInAccuracy??null,
+      checkOutLat:existing?.checkOutLat??null,
+      checkOutLng:existing?.checkOutLng??null,
+      checkOutAccuracy:existing?.checkOutAccuracy??null,
+      staffName:st.fullName||''
+    });
+  }
+
   async function markStaffAbsent(staffId){
     if(!isHead())return;
     const st=staff().find(x=>String(x.id)===String(staffId));if(!st)return;
@@ -88,7 +112,7 @@
   function todayCard(st){
     const row=rowFor(st.id),badge=statusBadge(row||{});
     const teacherActions=canAct(st.id)?'<div class="paper-actions">'+(!row?.checkInAt?'<button data-clock-in="'+esc(st.id)+'">Clock In Now</button>':'')+(row?.checkInAt&&!row?.checkOutAt?'<button data-clock-out="'+esc(st.id)+'">Clock Out Now</button>':'')+'</div>':'';
-    const adminActions=isHead()&&!row?'<div class="paper-actions"><button class="secondary staff-absent-btn" data-mark-staff-absent="'+esc(st.id)+'">Mark Absent</button></div>':'';
+    const adminActions=isHead()?'<div class="paper-actions"><button data-admin-staff-status="'+esc(st.id)+'" data-status="Present">Present</button><button class="secondary" data-admin-staff-status="'+esc(st.id)+'" data-status="Absent">Absent</button><button class="secondary" data-admin-staff-status="'+esc(st.id)+'" data-status="Leave">Leave</button></div>':'';
     const actions=teacherActions+adminActions;
     return '<article class="paper-card timeclock-card"><div class="paper-card-top"><span class="mini-badge">'+esc(st.staffCode||'Staff')+'</span><span class="badge">'+esc(badge)+'</span></div><h3>'+esc(st.fullName)+'</h3><p class="muted">'+esc(st.designation||'Staff')+(st.phone?' · '+esc(st.phone):' · No contact number')+'</p><div class="time-punch-grid"><div><span>Check In</span><strong>'+displayTime(row?.checkInAt)+'</strong></div><div><span>Check Out</span><strong>'+displayTime(row?.checkOutAt)+'</strong></div><div><span>Worked</span><strong>'+duration(row||{})+'</strong></div></div>'+(row?.checkInAt?'<div class="paper-actions"><span>In: '+mapLink(row.checkInLat,row.checkInLng,row.checkInAccuracy)+'</span>'+(row?.checkOutAt?'<span>Out: '+mapLink(row.checkOutLat,row.checkOutLng,row.checkOutAccuracy)+'</span>':'')+'</div>':'')+actions+'</article>';
   }
@@ -102,13 +126,14 @@
     document.querySelectorAll('[data-clock-in]').forEach(b=>b.onclick=()=>clock(b.dataset.clockIn,'in'));
     document.querySelectorAll('[data-clock-out]').forEach(b=>b.onclick=()=>clock(b.dataset.clockOut,'out'));
     document.querySelectorAll('[data-mark-staff-absent]').forEach(b=>b.onclick=()=>markStaffAbsent(b.dataset.markStaffAbsent));
+    document.querySelectorAll('[data-admin-staff-status]').forEach(b=>b.onclick=()=>adminMarkStaffStatus(b.dataset.adminStaffStatus,b.dataset.status));
     $('staManualSave')?.addEventListener('click',manualSave);$('staMonth')?.addEventListener('change',e=>{const box=$('staLog');if(box)box.innerHTML=logRows(e.target.value)});
   }
   async function render(){
     const root=$('staffTimeApp');if(!root)return;
     if(cloudReady()&&!root.dataset.cloudLoaded){root.dataset.cloudLoaded='1';try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Staff time cloud sync:',e.message)}}
     const people=mine().filter(x=>x.status!=='inactive'),todayRows=people.map(x=>rowFor(x.id)).filter(Boolean),inside=todayRows.filter(x=>x.checkInAt&&!x.checkOutAt).length,complete=todayRows.filter(x=>x.checkOutAt).length;
-    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Time + Location':'Local Time Mode')+'</span><p class="muted">'+(isHead()?'Admin view: date, exact time and verified map location update here.':'Clock-in/out ke waqt current location permission required hai.')+'</p></div><strong>'+new Date().toLocaleString()+'</strong></div><div class="cards"><article class="card stat"><span>Visible Staff</span><strong>'+people.length+'</strong></article><article class="card stat"><span>Checked In</span><strong>'+inside+'</strong></article><article class="card stat"><span>Completed Today</span><strong>'+complete+'</strong></article><article class="card stat"><span>Not Marked</span><strong>'+Math.max(0,people.length-todayRows.length)+'</strong></article></div>'+manualEditor()+'<div class="section-head" style="margin-top:18px"><div><h3>Today Time Clock</h3><p class="muted">Second-level timestamps with device location.</p></div></div><div class="paper-grid">'+(people.length?people.map(todayCard).join(''):'<div class="empty-state">No linked staff profile.</div>')+'</div><article class="card" style="margin-top:18px"><div class="section-head"><div><h3>Monthly Time Log</h3><p class="muted">Exact attendance history, worked duration and location.</p></div><input id="staMonth" type="month" value="'+monthKey()+'"></div><div id="staLog">'+logRows(monthKey())+'</div></article>';
+    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Time + Location':'Local Time Mode')+'</span><p class="muted">'+(isHead()?'Admin view: kisi bhi Teacher ko Present / Absent / Leave mark karein; exact/back-date correction neeche Manual Time Adjustment se karein.':'Teacher sirf apni attendance Clock In/Out kar sakta hai; doosre Teacher ki attendance access nahi.')+'</p></div><strong>'+new Date().toLocaleString()+'</strong></div><div class="cards"><article class="card stat"><span>Visible Staff</span><strong>'+people.length+'</strong></article><article class="card stat"><span>Checked In</span><strong>'+inside+'</strong></article><article class="card stat"><span>Completed Today</span><strong>'+complete+'</strong></article><article class="card stat"><span>Not Marked</span><strong>'+Math.max(0,people.length-todayRows.length)+'</strong></article></div>'+manualEditor()+'<div class="section-head" style="margin-top:18px"><div><h3>Today Time Clock</h3><p class="muted">Second-level timestamps with device location.</p></div></div><div class="paper-grid">'+(people.length?people.map(todayCard).join(''):'<div class="empty-state">No linked staff profile.</div>')+'</div><article class="card" style="margin-top:18px"><div class="section-head"><div><h3>Monthly Time Log</h3><p class="muted">Exact attendance history, worked duration and location.</p></div><input id="staMonth" type="month" value="'+monthKey()+'"></div><div id="staLog">'+logRows(monthKey())+'</div></article>';
     bind();
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('staffTimeApp');if(root)delete root.dataset.cloudLoaded;render()});
