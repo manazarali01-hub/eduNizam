@@ -150,6 +150,29 @@ if(!login.includes('id="memberSchoolDropdown"')) fail.push('School dropdown miss
 if(!login.includes("list_school_directory_v1")) fail.push('School dropdown directory RPC missing from login.');
 if(!login.includes("selectedSchoolId")) fail.push('Member login does not verify a selected school.');
 if(!login.includes("requestedInstitutionId")) fail.push('Login cannot lock member access to selected school ID.');
+if(!login.includes("selectedInstitutionId=localPending?.institutionId||meta.selected_school_id||''")) fail.push('Signup completion is not locked to the selected school request.');
+const authBridgeE2E=read('auth-bridge.js');
+if(!authBridgeE2E.includes('refreshScopedRoleCache')) fail.push('Role-scoped cache refresh missing after member login.');
+if(!authBridgeE2E.includes('pullAllCloudToLocal')) fail.push('Member login does not reload RLS-filtered cloud data.');
+if(!authBridgeE2E.includes("location.reload()")) fail.push('Shared-device stale in-memory data reload guard missing.');
+const assignedRlsMigration='supabase/migrations/20260926051550_harden_assigned_student_role_access.sql';
+if(!exists(assignedRlsMigration)) fail.push('Assigned-student RLS hardening migration missing.');
+else{
+  const assignedSql=read(assignedRlsMigration);
+  if(!assignedSql.includes('heads teachers manage assigned attendance')) fail.push('Teacher attendance is not assignment-scoped in migration.');
+  if(!assignedSql.includes('heads teachers manage assigned results')) fail.push('Teacher results are not assignment-scoped in migration.');
+  if(!assignedSql.includes('heads manage fees')) fail.push('Fee writes are not Admin-only in migration.');
+  if(!assignedSql.includes('security invoker')) fail.push('Public core-student access helper is not SECURITY INVOKER.');
+}
+const adminProfileMigration='supabase/migrations/20260926051736_restrict_admin_settings_and_profile_management.sql';
+if(!exists(adminProfileMigration)) fail.push('Admin settings/profile hardening migration missing.');
+else{
+  const adminSql=read(adminProfileMigration);
+  if(!adminSql.includes('heads manage institution settings')) fail.push('Institution settings are not Admin-only in migration.');
+  if(!adminSql.includes('users update own profile')) fail.push('Safe own-profile update policy missing.');
+  if(!adminSql.includes('grant update(full_name,phone,updated_at)')) fail.push('Own-profile updates are not column-limited.');
+}
+
 if(!login.includes('id="admissionApplicantRole"')) fail.push('Student for Admission role entry missing.');
 if(!login.includes("location.href='admission.html'")) fail.push('Student for Admission role does not open admission portal.');
 if(!exists('admission.html')) fail.push('Standalone admission applicant portal missing.');
