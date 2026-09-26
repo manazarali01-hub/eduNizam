@@ -43,7 +43,10 @@
   }
   async function persist(item){
     try{const row=await saveCloud(item);if(row)item={...item,id:row.id,checkInAt:row.check_in_at||'',checkOutAt:row.check_out_at||''}}catch(e){if(cloudReady())return alert('Cloud time clock failed: '+(e.message||e))}
-    const rows=attendance().filter(x=>!(String(x.staffId)===String(item.staffId)&&x.date===item.date));rows.push(item);write(ATT_KEY,rows);render();
+    const rows=attendance().filter(x=>!(String(x.staffId)===String(item.staffId)&&x.date===item.date));rows.push(item);write(ATT_KEY,rows);
+    try{await window.EDUNIZAM_WORKFLOW_ALERTS?.staffAttendanceSaved?.(item)}catch(e){console.warn('Staff attendance alert:',e.message||e)}
+    window.dispatchEvent(new CustomEvent('edunizam:attendance-updated',{detail:{kind:'staff',date:item.date,staffId:item.staffId,status:item.status}}));
+    render();
   }
   async function clock(staffId,action){
     if(!canAct(staffId))return;let position;try{position=await locate()}catch(e){return alert(e.message||String(e))}const now=new Date().toISOString(),old=rowFor(staffId)||{},st=staff().find(x=>String(x.id)===String(staffId));
@@ -68,7 +71,7 @@
   function statusBadge(x){return x.checkInAt&&!x.checkOutAt?'On Campus':x.checkOutAt?'Completed':x.status||'Not Marked'}
   function todayCard(st){
     const row=rowFor(st.id),badge=statusBadge(row||{}),actions=canAct(st.id)?'<div class="paper-actions">'+(!row?.checkInAt?'<button data-clock-in="'+esc(st.id)+'">Clock In Now</button>':'')+(row?.checkInAt&&!row?.checkOutAt?'<button data-clock-out="'+esc(st.id)+'">Clock Out Now</button>':'')+'</div>':'';
-    return '<article class="paper-card timeclock-card"><div class="paper-card-top"><span class="mini-badge">'+esc(st.staffCode||'Staff')+'</span><span class="badge">'+esc(badge)+'</span></div><h3>'+esc(st.fullName)+'</h3><p class="muted">'+esc(st.designation||'Staff')+'</p><div class="time-punch-grid"><div><span>Check In</span><strong>'+displayTime(row?.checkInAt)+'</strong></div><div><span>Check Out</span><strong>'+displayTime(row?.checkOutAt)+'</strong></div><div><span>Worked</span><strong>'+duration(row||{})+'</strong></div></div>'+(row?.checkInAt?'<div class="paper-actions"><span>In: '+mapLink(row.checkInLat,row.checkInLng,row.checkInAccuracy)+'</span>'+(row?.checkOutAt?'<span>Out: '+mapLink(row.checkOutLat,row.checkOutLng,row.checkOutAccuracy)+'</span>':'')+'</div>':'')+actions+'</article>';
+    return '<article class="paper-card timeclock-card"><div class="paper-card-top"><span class="mini-badge">'+esc(st.staffCode||'Staff')+'</span><span class="badge">'+esc(badge)+'</span></div><h3>'+esc(st.fullName)+'</h3><p class="muted">'+esc(st.designation||'Staff')+(st.phone?' · '+esc(st.phone):' · No contact number')+'</p><div class="time-punch-grid"><div><span>Check In</span><strong>'+displayTime(row?.checkInAt)+'</strong></div><div><span>Check Out</span><strong>'+displayTime(row?.checkOutAt)+'</strong></div><div><span>Worked</span><strong>'+duration(row||{})+'</strong></div></div>'+(row?.checkInAt?'<div class="paper-actions"><span>In: '+mapLink(row.checkInLat,row.checkInLng,row.checkInAccuracy)+'</span>'+(row?.checkOutAt?'<span>Out: '+mapLink(row.checkOutLat,row.checkOutLng,row.checkOutAccuracy)+'</span>':'')+'</div>':'')+actions+'</article>';
   }
   function logRows(month){
     const ids=new Set(mine().map(x=>String(x.id))),rows=attendance().filter(x=>ids.has(String(x.staffId))&&String(x.date).startsWith(month)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
