@@ -650,3 +650,113 @@ input:focus,select:focus,textarea:focus{
     background-position:center,70% center!important;
   }
 }
+
+
+/* ===== Pixel-level product polish ===== */
+.nav-item{
+  display:flex!important;
+  align-items:center;
+  gap:10px;
+  min-height:42px;
+  padding:9px 10px!important;
+  font-size:12.5px;
+  line-height:1.25;
+}
+.premium-nav-icon{
+  width:30px;height:30px;flex:0 0 30px;
+  display:grid;place-items:center;
+  border-radius:9px;
+  color:#CBE4D8;
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.07);
+}
+.premium-nav-icon svg{width:16px;height:16px;display:block}
+.nav-item:hover .premium-nav-icon{background:rgba(255,255,255,.09);color:#fff}
+.nav-item.active .premium-nav-icon{
+  color:#F4DEAA;
+  background:rgba(255,255,255,.11);
+  border-color:rgba(244,222,170,.13);
+}
+.premium-nav-label{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.nav-group summary{
+  padding:10px 8px!important;
+  border-radius:10px;
+}
+.premium-dock-icon{
+  width:22px;height:22px;
+  display:grid;place-items:center;
+}
+.premium-dock-icon svg{width:20px;height:20px;display:block}
+.premium-mobile-dock button span{font-size:inherit!important}
+.section-head h2{font-size:clamp(1.35rem,2vw,1.75rem);line-height:1.14}
+.section-head h3{line-height:1.18}
+.view{scroll-margin-top:92px}
+.cards{margin-top:15px}
+.grid-2{gap:14px}
+.campus-hero{
+  min-height:310px;
+  padding:34px 36px;
+  align-items:center;
+}
+.campus-hero>div:first-child{max-width:650px}
+.campus-hero h2{font-size:clamp(2rem,3.1vw,3.15rem);line-height:1.02;letter-spacing:-.05em}
+.campus-hero p{max-width:620px;line-height:1.62;font-size:.98rem}
+.campus-hero-actions{margin-top:20px}
+.stat{padding:18px 18px 17px!important}
+.topbar{min-height:76px}
+.topbar-title h1{line-height:1.04}
+@media(max-width:950px){
+  .main{padding-left:12px;padding-right:12px}
+  .topbar-title{
+    position:relative;
+    min-height:42px;
+    padding-left:48px;
+  }
+  .topbar-title:before{
+    content:"";
+    position:absolute;left:2px;top:0;
+    width:38px;height:38px;
+    border-radius:12px;
+    background:#075347 url("assets/edunizam-premium-mark.svg") center/34px 34px no-repeat;
+    box-shadow:0 7px 18px rgba(19,70,58,.12);
+  }
+  .campus-hero{min-height:270px;padding:26px}
+  .campus-hero h2{font-size:clamp(1.9rem,6vw,2.55rem)}
+}
+@media(max-width:620px){
+  .main{padding-left:10px;padding-right:10px;padding-top:10px}
+  .topbar{
+    min-height:64px;
+    margin:-4px -2px 14px;
+    padding:8px 7px;
+  }
+  .topbar-title{padding-left:44px}
+  .topbar-title:before{width:36px;height:36px;background-size:32px 32px}
+  .topbar h1{font-size:21px}
+  .school-identity p{font-size:11px}
+  .campus-hero{
+    min-height:255px;
+    padding:20px;
+    border-radius:19px;
+    background-position:center,72% center!important;
+  }
+  .campus-hero h2{font-size:30px;max-width:86%}
+  .campus-hero p{font-size:13px;line-height:1.55;max-width:88%}
+  .campus-label{font-size:10px}
+  .campus-hero-actions{gap:8px;margin-top:16px}
+  .campus-hero-actions button{min-height:40px;padding:9px 11px;font-size:12px}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px}
+  .stat{min-height:98px!important;padding:13px!important}
+  .stat span{font-size:11px;line-height:1.25}
+  .stat strong{font-size:23px}
+  .grid-2{gap:10px}
+  .premium-mobile-dock{padding:6px;border-radius:18px}
+  .premium-mobile-dock button{min-height:50px}
+}
+@media(max-width:390px){
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .campus-hero h2{font-size:27px}
+}
+@media(max-width:340px){
+  .cards{grid-template-columns:1fr!important}
+}
