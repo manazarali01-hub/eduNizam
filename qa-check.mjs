@@ -194,6 +194,7 @@ for(const id of ['bulkAssignmentTeacher','bulkAssignmentClass','bulkAssignmentSe
 }
 if(!admissionsCloud.includes('resolveSchoolAccessLink')) fail.push('Manual Parent/Student link resolver API missing.');
 if(!admissionsCloud.includes('listAccessLinkIssues')) fail.push('Unresolved Parent/Student link detector missing.');
+if(!admissionsCloud.includes("class_name,section_name,admission_no,student_code")) fail.push('Linked student query does not load class section data for bulk assignment.');
 const roleAccessCenter=read('role-access-center.js');
 if(!roleAccessCenter.includes('resolveAccessLinksCard')) fail.push('Admin Resolve Link panel missing.');
 if(!roleAccessCenter.includes('resolveSchoolAccessLink')) fail.push('Resolve Link panel is not wired to backend.');
