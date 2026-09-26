@@ -133,6 +133,33 @@ if(!login.includes('registration_number,school_registration_code')) fail.push('D
 if(!login.includes("Waiting for School Admin approval.")) fail.push('Pending-approval login guidance missing.');
 if(!login.includes('id="memberSchoolField"')) fail.push('School search field missing.');
 if(!login.includes("search_school_directory_v1")) fail.push('School search RPC missing from login.');
+if(!login.includes('id="memberSchoolDropdown"')) fail.push('School dropdown missing for Teacher/Parent/Student access.');
+if(!login.includes("list_school_directory_v1")) fail.push('School dropdown directory RPC missing from login.');
+if(!login.includes("selectedSchoolId")) fail.push('Member login does not verify a selected school.');
+if(!login.includes("requestedInstitutionId")) fail.push('Login cannot lock member access to selected school ID.');
+if(!login.includes('id="admissionApplicantRole"')) fail.push('Student for Admission role entry missing.');
+if(!login.includes("location.href='admission.html'")) fail.push('Student for Admission role does not open admission portal.');
+if(!exists('admission.html')) fail.push('Standalone admission applicant portal missing.');
+else{
+  const admission=read('admission.html');
+  if(!admission.includes('id="schoolDropdown"')) fail.push('Admission applicant school dropdown missing.');
+  if(!admission.includes('id="schoolSearch"')) fail.push('Admission applicant school search missing.');
+  if(!admission.includes("list_school_directory_v1")) fail.push('Admission portal does not load school dropdown.');
+  if(!admission.includes("search_school_directory_v1")) fail.push('Admission portal school search RPC missing.');
+  if(!admission.includes(".from('applications').insert")) fail.push('Admission applicant submission is not wired to applications table.');
+  if(admission.includes('create_owned_institution')||admission.includes('register_admin_school')) fail.push('Admission applicant portal can create schools.');
+}
+if(!cloudSetup.includes("const isHead=")) fail.push('Cloud Setup has no Admin-only school creation guard.');
+if(!cloudSetup.includes("if(!isHead())return;")) fail.push('Add School action is not blocked for non-Admin roles.');
+const schoolDirectoryMigration='supabase/migrations/20260926054500_admin_only_school_creation_and_directory.sql';
+if(!exists(schoolDirectoryMigration)) fail.push('Admin-only school creation/directory migration missing.');
+else{
+  const schoolSql=read(schoolDirectoryMigration);
+  if(!schoolSql.includes('list_school_directory_v1')) fail.push('School directory dropdown RPC migration missing.');
+  if(!schoolSql.includes('Only an Admin account can add a school')) fail.push('Admin registration hardening missing.');
+  if(!schoolSql.includes('revoke all on table public.institutions from anon')) fail.push('Direct anonymous school-table access is not revoked.');
+}
+
 if(!login.includes("submit_school_access_request_v1")) fail.push('Parent/Student profile approval request RPC missing from login.');
 if(!login.includes("submit_teacher_school_request_v1")) fail.push('Teacher approval request RPC missing from login.');
 if(login.includes('id="teacherInviteField"')||login.includes('id="studentLoginCodeField"')) fail.push('Code fields remain in normal signup/login.');
