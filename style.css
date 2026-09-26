@@ -1102,3 +1102,77 @@ button{transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease}but
   .leave-summary{grid-template-columns:1fr}
   .leave-admin-decision .paper-actions{grid-template-columns:1fr}
 }
+
+
+/* ===== Admin attendance absence alerts ===== */
+.admin-attendance-alerts{
+  border-top:3px solid #b42318;
+  background:linear-gradient(180deg,#fff,#fffafa);
+}
+.attendance-alert-counts{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:10px 0 16px;
+}
+.attendance-alert-counts>div{
+  padding:11px 13px;
+  border:1px solid var(--edu-line);
+  border-radius:11px;
+  background:#fff;
+}
+.attendance-alert-counts span{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--edu-muted);
+  font-weight:800;
+}
+.attendance-alert-counts strong{
+  display:block;
+  margin-top:4px;
+  font-size:22px;
+  color:var(--edu-navy);
+}
+.attendance-alert-columns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.attendance-alert-columns>div{
+  min-width:0;
+  padding:13px;
+  border:1px solid #e2e9e8;
+  border-radius:12px;
+  background:#fff;
+}
+.attendance-alert-columns h3{margin:0 0 10px;color:var(--edu-navy)}
+.attendance-alert-person{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 0;
+  border-top:1px solid #edf1f0;
+}
+.attendance-alert-person:first-of-type{border-top:0}
+.attendance-alert-person>div{min-width:0}
+.attendance-alert-person strong{display:block;overflow-wrap:anywhere}
+.attendance-alert-person small{display:block;margin-top:3px;color:var(--edu-muted);overflow-wrap:anywhere}
+.attendance-alert-status{
+  flex:none;
+  padding:5px 8px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:850;
+}
+.attendance-alert-status.absent{background:#fff0ed;color:#9b2c20}
+.attendance-alert-status.pending{background:#fff7df;color:#805b11}
+@media(max-width:700px){
+  .attendance-alert-columns{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .attendance-alert-counts{grid-template-columns:1fr}
+  .attendance-alert-person{align-items:flex-start}
+}
