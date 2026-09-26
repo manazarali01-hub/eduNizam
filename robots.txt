@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /eduNizam/login.html
 
 Sitemap: https://manazarali01-hub.github.io/eduNizam/sitemap.xml
