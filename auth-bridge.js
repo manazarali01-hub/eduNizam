@@ -43,6 +43,31 @@
       schoolName
     }));
   }
+  async function refreshScopedRoleCache(roleValue,force=false){
+    const localRole=mapRole(roleValue);
+    if(!['teacher','parent','student'].includes(localRole))return false;
+    const c=cloud(),core=window.EDUNIZAM_CORE_CLOUD;
+    if(!c?.state?.user||!core?.pullAllCloudToLocal)return false;
+    const runtime=readRuntime();
+    let existing=null;try{existing=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null')}catch(_){}
+    const institutionId=String(existing?.institutionId||runtime.institutionId||'').trim();
+    if(!institutionId)return false;
+    const key='edunizam_role_cache_sync:'+c.state.user.id+':'+institutionId;
+    const last=Number(sessionStorage.getItem(key)||0);
+    if(!force&&last&&Date.now()-last<120000)return false;
+    try{
+      await core.pullAllCloudToLocal();
+      sessionStorage.setItem(key,String(Date.now()));
+      await window.EDUNIZAM_ROLE_SCOPE?.refresh?.();
+      window.dispatchEvent(new CustomEvent('edunizam:role-cache-refreshed',{detail:{role:localRole,institutionId}}));
+      return true;
+    }catch(e){
+      console.warn('Role-scoped cloud refresh:',e.message||e);
+      window.EDUNIZAM_RELIABILITY?.report?.('Role Data Refresh',e.message||String(e),'auth-bridge','warning');
+      return false;
+    }
+  }
+
   async function syncCloudRole(){
     const c=cloud();
     if(!configured()||!c.state.user)return false;
@@ -62,6 +87,8 @@
         return false;
       }
     }
+    setLocalSession(role,c.state.user.email||c.state.user.id);
+    await refreshScopedRoleCache(role);
     removeDemoLogin();
     return true;
   }
@@ -107,7 +134,12 @@
     },50);
   }
   window.addEventListener('edunizam:auth',()=>setTimeout(boot,0));
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden)return;
+    let s=null;try{s=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null')}catch(_){}
+    if(s?.role&&['teacher','parent','student'].includes(s.role))refreshScopedRoleCache(s.role).catch(()=>{});
+  });
   setTimeout(boot,0);
   setTimeout(boot,500);
-  window.EDUNIZAM_AUTH_BRIDGE={configured,syncCloudRole,clearLocalAuthState};
+  window.EDUNIZAM_AUTH_BRIDGE={configured,syncCloudRole,clearLocalAuthState,refreshScopedRoleCache};
 })();
