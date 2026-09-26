@@ -92,6 +92,27 @@
     if(error) throw error; return data||[];
   }
 
+  async function saveAttendanceDay(date,day){
+    const c=await requireStaff(),client=c.state.client;
+    const map=await studentMap();
+    const rows=[];
+    for(const [localId,status] of Object.entries(day||{})){
+      const student=map.get(Number(localId));if(!student)continue;
+      rows.push({
+        institution_id:cfg.institutionId,
+        student_id:student.id,
+        attendance_date:date,
+        status,
+        marked_by:c.state.user?.id||null,
+        updated_at:new Date().toISOString()
+      });
+    }
+    if(!rows.length)return {ok:true,saved:0};
+    const {error}=await client.from('attendance_records').upsert(rows,{onConflict:'student_id,attendance_date'});
+    if(error)throw error;
+    return {ok:true,saved:rows.length};
+  }
+
   async function syncAttendance(map){
     const c=cloud(),client=c.state.client,days=read('edunizam_attendance',{});
     const rows=[];
@@ -280,5 +301,5 @@
     };
   }
 
-  window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
+  window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,saveAttendanceDay,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
 })();
