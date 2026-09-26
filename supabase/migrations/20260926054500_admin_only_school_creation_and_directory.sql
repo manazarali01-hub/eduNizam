@@ -1,4 +1,5 @@
--- EduNizam: Admin-only school creation + public school dropdown/search directory.
+-- EduNizam: Admin-only school creation + searchable school directory.
+-- Public API functions are SECURITY INVOKER wrappers; privileged implementations stay in private schema.
 
 create or replace function private.list_school_directory_v1(p_limit integer default 100)
 returns table(
@@ -51,7 +52,7 @@ revoke all on table public.institutions from anon;
 revoke insert,delete,truncate,references,trigger on table public.institutions from authenticated;
 grant select,update on table public.institutions to authenticated;
 
-create or replace function public.register_admin_school_v2(
+create or replace function private.register_admin_school_v2(
   p_school_name text,
   p_registration_number text,
   p_full_name text,
@@ -66,7 +67,7 @@ returns table(
 )
 language plpgsql
 security definer
-set search_path='pg_catalog','public'
+set search_path=''
 as $$
 declare
   uid uuid := auth.uid();
@@ -148,5 +149,221 @@ begin
 end;
 $$;
 
+revoke execute on function private.register_admin_school_v2(text,text,text,text) from public,anon;
+grant execute on function private.register_admin_school_v2(text,text,text,text) to authenticated;
+
+create or replace function public.register_admin_school_v2(
+  p_school_name text,
+  p_registration_number text,
+  p_full_name text,
+  p_phone text
+)
+returns table(
+  account_role text,
+  institution_id uuid,
+  institution_name text,
+  school_code text,
+  registration_number text
+)
+language sql
+security invoker
+set search_path=''
+as $$
+  select * from private.register_admin_school_v2(
+    p_school_name,p_registration_number,p_full_name,p_phone
+  );
+$$;
+
 revoke execute on function public.register_admin_school_v2(text,text,text,text) from public,anon;
 grant execute on function public.register_admin_school_v2(text,text,text,text) to authenticated;
+
+create or replace function private.create_owned_institution_v2(
+  p_school_name text,
+  p_registration_number text default '',
+  p_phone text default ''
+)
+returns table(
+  id uuid,
+  name text,
+  institution_type text,
+  school_registration_code text,
+  registration_number text
+)
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare
+  uid uuid := auth.uid();
+  clean_school text := trim(coalesce(p_school_name,''));
+  clean_reg text := nullif(trim(coalesce(p_registration_number,'')),'');
+  clean_phone text := trim(coalesce(p_phone,''));
+  generated_code text;
+  inst public.institutions%rowtype;
+begin
+  if uid is null then raise exception 'Authentication required'; end if;
+  if not exists(
+    select 1 from public.user_profiles up
+    where up.user_id=uid and up.account_role='head_of_institute'
+  ) then
+    raise exception 'Head of Institute access required';
+  end if;
+  if clean_school='' then raise exception 'School name is required'; end if;
+
+  loop
+    generated_code := 'EDU-' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,8));
+    exit when not exists(
+      select 1 from public.institutions i
+      where upper(trim(coalesce(i.school_registration_code,'')))=generated_code
+    );
+  end loop;
+
+  insert into public.institutions(
+    owner_user_id,name,institution_type,admission_session,application_prefix,currency,
+    school_registration_code,registration_number
+  ) values(
+    uid,clean_school,'school',extract(year from current_date)::text,'ADM','PKR',
+    generated_code,clean_reg
+  ) returning * into inst;
+
+  insert into public.institution_settings(
+    institution_id,school_name,school_type,academic_session,phone,updated_by
+  ) values(
+    inst.id,inst.name,'school',extract(year from current_date)::text,clean_phone,uid
+  )
+  on conflict on constraint institution_settings_pkey do update
+  set school_name=excluded.school_name,
+      phone=excluded.phone,
+      updated_by=excluded.updated_by,
+      updated_at=now();
+
+  update public.user_profiles up
+  set institution_id=inst.id, updated_at=now()
+  where up.user_id=uid and up.account_role='head_of_institute';
+
+  return query
+  select inst.id,inst.name,inst.institution_type,inst.school_registration_code,inst.registration_number;
+end;
+$$;
+
+revoke execute on function private.create_owned_institution_v2(text,text,text) from public,anon;
+grant execute on function private.create_owned_institution_v2(text,text,text) to authenticated;
+
+create or replace function public.create_owned_institution_v2(
+  p_school_name text,
+  p_registration_number text default '',
+  p_phone text default ''
+)
+returns table(
+  id uuid,
+  name text,
+  institution_type text,
+  school_registration_code text,
+  registration_number text
+)
+language sql
+security invoker
+set search_path=''
+as $$
+  select * from private.create_owned_institution_v2(
+    p_school_name,p_registration_number,p_phone
+  );
+$$;
+
+revoke execute on function public.create_owned_institution_v2(text,text,text) from public,anon;
+grant execute on function public.create_owned_institution_v2(text,text,text) to authenticated;
+
+create or replace function private.create_owned_institution_v1(
+  p_school_name text,
+  p_school_code text,
+  p_phone text default ''
+)
+returns table(
+  id uuid,
+  name text,
+  institution_type text,
+  school_registration_code text
+)
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare
+  uid uuid:=auth.uid();
+  clean_school text:=trim(coalesce(p_school_name,''));
+  clean_code text:=upper(trim(coalesce(p_school_code,'')));
+  clean_phone text:=trim(coalesce(p_phone,''));
+  inst public.institutions%rowtype;
+begin
+  if uid is null then raise exception 'Authentication required'; end if;
+  if not exists(
+    select 1 from public.user_profiles
+    where user_id=uid and account_role='head_of_institute'
+  ) then
+    raise exception 'Head of Institute access required';
+  end if;
+  if clean_school='' then raise exception 'School name is required'; end if;
+  if clean_code='' then raise exception 'School code is required'; end if;
+
+  select * into inst
+  from public.institutions
+  where owner_user_id=uid
+    and upper(trim(coalesce(school_registration_code,'')))=clean_code
+  limit 1;
+
+  if inst.id is null then
+    if exists(
+      select 1 from public.institutions
+      where upper(trim(coalesce(school_registration_code,'')))=clean_code
+    ) then
+      raise exception 'This school code is already registered';
+    end if;
+
+    insert into public.institutions(
+      owner_user_id,name,institution_type,admission_session,application_prefix,currency,school_registration_code
+    ) values(
+      uid,clean_school,'school',extract(year from current_date)::text,'ADM','PKR',clean_code
+    ) returning * into inst;
+
+    insert into public.institution_settings(institution_id,school_name,school_type,academic_session,phone,updated_by)
+    values(inst.id,inst.name,'school',extract(year from current_date)::text,clean_phone,uid)
+    on conflict on constraint institution_settings_pkey do update
+    set school_name=excluded.school_name,
+        phone=excluded.phone,
+        updated_by=excluded.updated_by,
+        updated_at=now();
+  end if;
+
+  update public.user_profiles
+  set institution_id=inst.id, updated_at=now()
+  where user_id=uid and account_role='head_of_institute';
+
+  return query select inst.id,inst.name,inst.institution_type,inst.school_registration_code;
+end;
+$$;
+
+revoke execute on function private.create_owned_institution_v1(text,text,text) from public,anon;
+grant execute on function private.create_owned_institution_v1(text,text,text) to authenticated;
+
+create or replace function public.create_owned_institution_v1(
+  p_school_name text,
+  p_school_code text,
+  p_phone text default ''
+)
+returns table(
+  id uuid,
+  name text,
+  institution_type text,
+  school_registration_code text
+)
+language sql
+security invoker
+set search_path=''
+as $$
+  select * from private.create_owned_institution_v1(
+    p_school_name,p_school_code,p_phone
+  );
+$$;
+
+revoke execute on function public.create_owned_institution_v1(text,text,text) from public,anon;
+grant execute on function public.create_owned_institution_v1(text,text,text) to authenticated;
