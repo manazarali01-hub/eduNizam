@@ -325,6 +325,42 @@
     if(error)throw error;
     return Array.isArray(data)?data[0]:data;
   }
+  async function resolveSchoolAccessLink(requestId,coreStudentId){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('resolve_school_access_link_v1',{
+      p_request_id:requestId,
+      p_core_student_id:coreStudentId
+    });
+    if(error)throw error;
+    return Array.isArray(data)?data[0]:data;
+  }
+  async function listAccessLinkIssues(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    const {data:requests,error:reqErr}=await state.client.from('school_access_requests')
+      .select('id,requester_user_id,requested_role,full_name,student_name,class_name,section_name,admission_no,status,updated_at')
+      .eq('institution_id',cfg.institutionId)
+      .eq('status','approved')
+      .in('requested_role',['student','parent'])
+      .order('updated_at',{ascending:false});
+    if(reqErr)throw reqErr;
+    const {data:students,error:stuErr}=await state.client.from('core_students')
+      .select('id,auth_user_id,name,class_name,section_name,admission_no')
+      .eq('institution_id',cfg.institutionId)
+      .order('name');
+    if(stuErr)throw stuErr;
+    const {data:links,error:linkErr}=await state.client.from('parent_student_links')
+      .select('parent_user_id,student_user_id,status')
+      .eq('institution_id',cfg.institutionId)
+      .eq('status','approved');
+    if(linkErr)throw linkErr;
+    const studentByAuth=new Map((students||[]).filter(x=>x.auth_user_id).map(x=>[x.auth_user_id,x]));
+    const parentLinked=new Set((links||[]).map(x=>x.parent_user_id));
+    const issues=(requests||[]).filter(x=>{
+      if(x.requested_role==='student')return !studentByAuth.has(x.requester_user_id);
+      return !parentLinked.has(x.requester_user_id);
+    });
+    return {issues,students:students||[]};
+  }
 
   async function requestParentLinkByStudentCode(studentCode){
     if(!state.client||!state.user)throw new Error('Sign in first.');
@@ -496,7 +532,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,searchSchoolDirectory,submitSchoolAccessRequest,getMySchoolAccessRequest,listSchoolAccessRequests,decideSchoolAccessRequest,decideTeacherSchoolRequest,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,searchSchoolDirectory,submitSchoolAccessRequest,getMySchoolAccessRequest,listSchoolAccessRequests,decideSchoolAccessRequest,decideTeacherSchoolRequest,resolveSchoolAccessLink,listAccessLinkIssues,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
