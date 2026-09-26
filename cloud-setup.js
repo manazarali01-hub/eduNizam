@@ -2,6 +2,8 @@
   const KEY='edunizam_cloud_runtime_config';
   const get=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}};
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
+  const isHead=()=>{const r=session()?.role||'';return r==='head'||r==='admin'};
 
   function useInstitution(inst,reload=false){
     if(!inst?.id)return false;
@@ -167,6 +169,7 @@
 
     const schoolCard=document.createElement('article');
     schoolCard.className='card';
+    if(!isHead())schoolCard.style.display='none';
     schoolCard.id='multiSchoolCard';
     schoolCard.innerHTML='<div class="section-head"><div><h2>My Schools / Institutes</h2><p class="muted">Ek hi Admin account se multiple schools manage karein. Parent/Student school select karke approval request bhejte hain; Admin ko code share karne ki zarurat nahi.</p></div><button id="refreshSchoolsBtn" class="secondary">Refresh</button></div>'+
       '<div id="ownedSchoolsList" class="list"><div class="muted">Loading schools...</div></div>'+
@@ -189,6 +192,7 @@
 
     document.getElementById('refreshSchoolsBtn').onclick=loadOwnedSchools;
     document.getElementById('addOwnedSchoolBtn').onclick=async()=>{
+      if(!isHead())return;
       const cloud=window.EDUNIZAM_CLOUD,msgBox=document.getElementById('multiSchoolMsg');
       if(!cloud?.state?.client||!cloud?.state?.user){msgBox.textContent='Please sign in first.';return}
       const name=document.getElementById('newOwnedSchoolName').value.trim();
