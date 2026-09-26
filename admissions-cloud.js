@@ -102,8 +102,15 @@
     const {data,error}=await state.client.from('applications').select('*').eq('applicant_user_id',state.user.id).order('created_at',{ascending:false});
     if(error)throw error;return data||[];
   }
+  async function requireHeadRole(){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const r=await getMyRole();
+    if(r!=='head_of_institute')throw new Error('School Admin access required.');
+    return true;
+  }
   async function listInstitutionApplications(){
     if(!state.client)return[];
+    await requireHeadRole();
     let q=state.client.from('applications').select('*').order('created_at',{ascending:false});
     if(cfg.institutionId)q=q.eq('institution_id',cfg.institutionId);
     const {data,error}=await q;if(error)throw error;return data||[];
@@ -480,6 +487,7 @@
   }
   async function logAudit(action,entityType,entityId,details={}){
     if(!state.client||!state.user||!cfg.institutionId)return null;
+    await requireHeadRole();
     const {data,error}=await state.client.from('audit_logs').insert({
       institution_id:cfg.institutionId,user_id:state.user.id,action,entity_type:entityType,entity_id:String(entityId||''),details
     }).select().single();
@@ -497,6 +505,7 @@
   }
   async function listPayments(){
     if(!state.client)return[];
+    await requireHeadRole();
     const {data,error}=await state.client.from('payment_records')
       .select('*,applications(application_no,applicant_name,institution_id)')
       .order('created_at',{ascending:false});
@@ -504,6 +513,7 @@
   }
   async function updatePaymentStatus(id,status){
     if(!state.client||!state.user)throw new Error('Sign in first.');
+    await requireHeadRole();
     const payload={status};
     if(status==='Paid'||status==='Verified'){payload.verified_by=state.user.id;payload.verified_at=new Date().toISOString()}
     const {data,error}=await state.client.from('payment_records').update(payload).eq('id',id).select().single();
@@ -511,12 +521,14 @@
   }
   async function listAuditLogs(limit=50){
     if(!state.client)return[];
+    await requireHeadRole();
     let q=state.client.from('audit_logs').select('*').order('created_at',{ascending:false}).limit(limit);
     if(cfg.institutionId)q=q.eq('institution_id',cfg.institutionId);
     const {data,error}=await q;if(error)throw error;return data||[];
   }
   async function updateCloudApplicationStatus(id,status,note){
     if(!state.client||!state.user)throw new Error('Sign in first.');
+    await requireHeadRole();
     const payload={status,updated_at:new Date().toISOString()};
     if(note!==undefined)payload.admin_note=note;
     const {data,error}=await state.client.from('applications').update(payload).eq('id',id).select().single();
