@@ -1,4 +1,4 @@
-const CACHE='edunizam-v143-admin-audit'
+const CACHE='edunizam-v144-attendance-ownership'
 const CORE=[
   './',
   './index.html',
