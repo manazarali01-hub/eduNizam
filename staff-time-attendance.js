@@ -61,6 +61,22 @@
     }
     await persist(item);
   }
+  async function markStaffAbsent(staffId){
+    if(!isHead())return;
+    const st=staff().find(x=>String(x.id)===String(staffId));if(!st)return;
+    const existing=rowFor(staffId);
+    if(existing?.status==='Absent')return alert((st.fullName||'Staff')+' is already marked Absent today.');
+    if(existing?.checkInAt)return alert('This staff member already has a check-in record today.');
+    if(!confirm('Mark '+(st.fullName||'this staff member')+' Absent for today?'))return;
+    const note=prompt('Absent reason / note (optional):','')||'';
+    await persist({
+      id:existing?.id||staffId+'-'+today(),
+      staffId,date:today(),status:'Absent',note,
+      checkInAt:'',checkOutAt:'',
+      staffName:st.fullName||''
+    });
+  }
+
   async function manualSave(){
     if(!isHead())return;const staffId=$('staManualStaff')?.value,date=$('staManualDate')?.value,status=$('staManualStatus')?.value;
     if(!staffId||!date)return alert('Staff aur date select karein.');
@@ -70,7 +86,10 @@
   }
   function statusBadge(x){return x.checkInAt&&!x.checkOutAt?'On Campus':x.checkOutAt?'Completed':x.status||'Not Marked'}
   function todayCard(st){
-    const row=rowFor(st.id),badge=statusBadge(row||{}),actions=canAct(st.id)?'<div class="paper-actions">'+(!row?.checkInAt?'<button data-clock-in="'+esc(st.id)+'">Clock In Now</button>':'')+(row?.checkInAt&&!row?.checkOutAt?'<button data-clock-out="'+esc(st.id)+'">Clock Out Now</button>':'')+'</div>':'';
+    const row=rowFor(st.id),badge=statusBadge(row||{});
+    const teacherActions=canAct(st.id)?'<div class="paper-actions">'+(!row?.checkInAt?'<button data-clock-in="'+esc(st.id)+'">Clock In Now</button>':'')+(row?.checkInAt&&!row?.checkOutAt?'<button data-clock-out="'+esc(st.id)+'">Clock Out Now</button>':'')+'</div>':'';
+    const adminActions=isHead()&&!row?'<div class="paper-actions"><button class="secondary staff-absent-btn" data-mark-staff-absent="'+esc(st.id)+'">Mark Absent</button></div>':'';
+    const actions=teacherActions+adminActions;
     return '<article class="paper-card timeclock-card"><div class="paper-card-top"><span class="mini-badge">'+esc(st.staffCode||'Staff')+'</span><span class="badge">'+esc(badge)+'</span></div><h3>'+esc(st.fullName)+'</h3><p class="muted">'+esc(st.designation||'Staff')+(st.phone?' · '+esc(st.phone):' · No contact number')+'</p><div class="time-punch-grid"><div><span>Check In</span><strong>'+displayTime(row?.checkInAt)+'</strong></div><div><span>Check Out</span><strong>'+displayTime(row?.checkOutAt)+'</strong></div><div><span>Worked</span><strong>'+duration(row||{})+'</strong></div></div>'+(row?.checkInAt?'<div class="paper-actions"><span>In: '+mapLink(row.checkInLat,row.checkInLng,row.checkInAccuracy)+'</span>'+(row?.checkOutAt?'<span>Out: '+mapLink(row.checkOutLat,row.checkOutLng,row.checkOutAccuracy)+'</span>':'')+'</div>':'')+actions+'</article>';
   }
   function logRows(month){
@@ -80,7 +99,9 @@
   }
   function manualEditor(){if(!isHead())return'';return'<article class="card"><div class="section-head"><div><h3>Manual Time Adjustment</h3><p class="muted">Head exact time correct ya back-date kar sakta hai.</p></div></div><div class="form-grid"><select id="staManualStaff"><option value="">Select staff</option>'+staff().filter(x=>x.status!=='inactive').map(x=>'<option value="'+esc(x.id)+'">'+esc(x.fullName)+'</option>').join('')+'</select><input id="staManualDate" type="date" value="'+today()+'"><select id="staManualStatus"><option>Present</option><option>Absent</option><option>Leave</option><option>Half Day</option></select><input id="staManualIn" type="time"><input id="staManualOut" type="time"><input id="staManualNote" placeholder="Adjustment note"><button id="staManualSave">Save Exact Time</button></div></article>'}
   function bind(){
-    document.querySelectorAll('[data-clock-in]').forEach(b=>b.onclick=()=>clock(b.dataset.clockIn,'in'));document.querySelectorAll('[data-clock-out]').forEach(b=>b.onclick=()=>clock(b.dataset.clockOut,'out'));
+    document.querySelectorAll('[data-clock-in]').forEach(b=>b.onclick=()=>clock(b.dataset.clockIn,'in'));
+    document.querySelectorAll('[data-clock-out]').forEach(b=>b.onclick=()=>clock(b.dataset.clockOut,'out'));
+    document.querySelectorAll('[data-mark-staff-absent]').forEach(b=>b.onclick=()=>markStaffAbsent(b.dataset.markStaffAbsent));
     $('staManualSave')?.addEventListener('click',manualSave);$('staMonth')?.addEventListener('change',e=>{const box=$('staLog');if(box)box.innerHTML=logRows(e.target.value)});
   }
   async function render(){
