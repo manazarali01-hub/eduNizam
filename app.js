@@ -102,8 +102,10 @@ async function setView(view){
  if(view==='librarycenter'&&window.EDUNIZAM_LIBRARY_CENTER?.render)window.EDUNIZAM_LIBRARY_CENTER.render();
  if(view==='transportcenter'&&window.EDUNIZAM_TRANSPORT_CENTER?.render)window.EDUNIZAM_TRANSPORT_CENTER.render();
  if(view==='classcenter'&&window.EDUNIZAM_CLASS_SECTION_CENTER?.render)window.EDUNIZAM_CLASS_SECTION_CENTER.render();
+ if(view==='auditcenter'&&window.EDUNIZAM_AUDIT_CENTER?.render)window.EDUNIZAM_AUDIT_CENTER.render();
  if(view==='troubleshoot'&&window.EDUNIZAM_RELIABILITY?.render)window.EDUNIZAM_RELIABILITY.render();
 }
+window.EDUNIZAM_APP_NAV={setView};
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=async()=>{
   const targetView=b.dataset.jump;
