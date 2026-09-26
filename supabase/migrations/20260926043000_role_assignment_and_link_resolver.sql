@@ -1,6 +1,7 @@
 -- EduNizam: secure class-wise teacher assignment and manual Parent/Student link resolver
 
-create policy if not exists "school admin creates child links"
+drop policy if exists "school admin creates child links" on public.parent_student_links;
+create policy "school admin creates child links"
 on public.parent_student_links
 for insert
 to authenticated
