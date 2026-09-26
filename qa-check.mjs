@@ -158,6 +158,10 @@ else{
   if(!schoolSql.includes('list_school_directory_v1')) fail.push('School directory dropdown RPC migration missing.');
   if(!schoolSql.includes('Only an Admin account can add a school')) fail.push('Admin registration hardening missing.');
   if(!schoolSql.includes('revoke all on table public.institutions from anon')) fail.push('Direct anonymous school-table access is not revoked.');
+
+  if(!schoolSql.includes('security invoker')) fail.push('Public school directory/create wrappers are not SECURITY INVOKER.');
+  if(!schoolSql.includes('private.register_admin_school_v2')) fail.push('Admin school registration is not isolated in private schema.');
+  if(!schoolSql.includes('private.create_owned_institution_v2')) fail.push('Additional school creation is not isolated in private schema.');
 }
 
 if(!login.includes("submit_school_access_request_v1")) fail.push('Parent/Student profile approval request RPC missing from login.');
