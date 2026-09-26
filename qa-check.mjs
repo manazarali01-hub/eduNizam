@@ -421,6 +421,31 @@ else{
 
 
 if(!style.includes('admin-daily-actions')) fail.push('Admin Daily Desk responsive styles missing.');
+const seoPublic=read('edunizam.html');
+const seoSitemap=read('sitemap.xml');
+const seoRobots=read('robots.txt');
+if(!seoPublic.includes('index,follow,max-image-preview:large')) fail.push('Public EduNizam landing is not indexable.');
+if(!seoPublic.includes('href="https://manazarali01-hub.github.io/eduNizam/edunizam.html"')) fail.push('Public EduNizam canonical URL missing.');
+if(!seoPublic.includes('"@type":"SoftwareApplication"')) fail.push('Public EduNizam SoftwareApplication schema missing.');
+if(!seoPublic.includes('edunizam-login-children.webp')) fail.push('Public landing preferred image signal missing.');
+if(!index.includes('noindex,follow,noarchive')) fail.push('Private root app must remain noindex.');
+if(!read('login.html').includes('noindex,follow,noarchive')) fail.push('Login page must remain noindex.');
+if(!read('admission.html').includes('noindex,follow,noarchive')) fail.push('Admission application page must remain noindex.');
+if(!seoRobots.includes('Allow: /')) fail.push('robots.txt must allow crawling so noindex directives can be read.');
+if(seoRobots.includes('Disallow: /eduNizam/login.html')) fail.push('Login must not be robots-blocked while using noindex.');
+if(!seoRobots.includes('Sitemap: https://manazarali01-hub.github.io/eduNizam/sitemap.xml')) fail.push('robots.txt sitemap declaration missing.');
+if(!seoSitemap.includes('https://manazarali01-hub.github.io/eduNizam/edunizam.html')) fail.push('Public EduNizam landing missing from sitemap.');
+if(seoSitemap.includes('<loc>https://manazarali01-hub.github.io/eduNizam/</loc>')) fail.push('Private root app must not be in sitemap.');
+for(const privateUrl of ['login.html','admission.html','404.html']){
+  if(seoSitemap.includes(privateUrl)) fail.push('Private/noindex URL leaked into sitemap: '+privateUrl);
+}
+for(const page of ['features.html','school-management-system-pakistan.html','online-school-admissions.html','learning-resources-pakistan.html','about.html','privacy.html']){
+  const src=read(page);
+  if(!src.includes('"@type":"BreadcrumbList"')) fail.push('Breadcrumb schema missing: '+page);
+  if(!src.includes('https://manazarali01-hub.github.io/eduNizam/edunizam.html')) fail.push('Public hierarchy does not point to EduNizam landing: '+page);
+  if(!src.includes('primaryImageOfPage')) fail.push('Preferred image schema missing: '+page);
+}
+
 
 
 if(fail.length){
