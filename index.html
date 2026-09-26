@@ -1005,11 +1005,11 @@
             <button class="paper-tab active" data-admission-tab="rolehome" data-admission-roles="student,parent,teacher,head_of_institute">My Dashboard</button>
             <button class="paper-tab" data-admission-tab="apply" data-admission-roles="student,parent">Apply Online</button>
             <button class="paper-tab" data-admission-tab="track" data-admission-roles="student,parent">Track Application</button>
-            <button class="paper-tab" data-admission-tab="admin" data-admission-roles="teacher,head_of_institute">Admin Dashboard</button>
-            <button class="paper-tab" data-admission-tab="schedules" data-admission-roles="teacher,head_of_institute">Tests & Interviews</button>
-            <button class="paper-tab" data-admission-tab="merit" data-admission-roles="teacher,head_of_institute">Merit Lists</button>
+            <button class="paper-tab" data-admission-tab="admin" data-admission-roles="head_of_institute">Admin Dashboard</button>
+            <button class="paper-tab" data-admission-tab="schedules" data-admission-roles="head_of_institute">Tests & Interviews</button>
+            <button class="paper-tab" data-admission-tab="merit" data-admission-roles="head_of_institute">Merit Lists</button>
             <button class="paper-tab" data-admission-tab="notifications" data-admission-roles="student,parent,teacher,head_of_institute">Notifications</button>
-            <button class="paper-tab" data-admission-tab="payments" data-admission-roles="teacher,head_of_institute">Payments</button>
+            <button class="paper-tab" data-admission-tab="payments" data-admission-roles="head_of_institute">Payments</button>
             <button class="paper-tab" data-admission-tab="audit" data-admission-roles="head_of_institute">Audit Log</button>
             <button class="paper-tab" data-admission-tab="setup" data-admission-roles="head_of_institute">Portal Setup</button>
           </div>
@@ -1241,12 +1241,12 @@
           </div>
 
           <div id="admissionPaymentsPanel" class="hidden">
-            <div class="section-head"><div><h3>Payment Verification Queue</h3><p class="muted">Cloud Mode staff can review pending/paid admission fee records.</p></div><button id="refreshAdmissionPaymentsBtn" class="secondary">Refresh</button></div>
+            <div class="section-head"><div><h3>Payment Verification Queue</h3><p class="muted">Only School Admin can review and verify admission fee records.</p></div><button id="refreshAdmissionPaymentsBtn" class="secondary">Refresh</button></div>
             <div id="admissionPaymentsList" class="paper-grid"></div>
           </div>
 
           <div id="admissionAuditPanel" class="hidden">
-            <div class="section-head"><div><h3>Audit Log</h3><p class="muted">Recent staff/application/payment actions in Cloud Mode.</p></div><button id="refreshAdmissionAuditBtn" class="secondary">Refresh</button></div>
+            <div class="section-head"><div><h3>Audit Log</h3><p class="muted">Recent Admin application/payment actions in Cloud Mode.</p></div><button id="refreshAdmissionAuditBtn" class="secondary">Refresh</button></div>
             <div id="admissionAuditList" class="list"></div>
           </div>
 
@@ -1525,7 +1525,7 @@ e">≠</button>
   <script src="feature-loader.js?v=20260926-attendance125"></script>
   <script src="app.js?v=20260926-attendance127"></script>
   <script src="cloud-setup.js?v=20260926-schooldir130"></script>
-  <script src="admissions-cloud.js?v=20260926-sections117"></script>
+  <script src="admissions-cloud.js?v=20260926-admissionsecure142"></script>
   <script src="core-cloud.js?v=20260926-attendance128"></script>
   <script src="auth-bridge.js?v=20260926-e2e141"></script>
   <script src="account-security.js?v=20260921-auth72"></script>
