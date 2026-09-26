@@ -926,3 +926,39 @@ button{transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease}but
   }
   .nav-group .nav-item{min-height:46px;padding:11px 13px;font-size:14px}
 }
+
+
+/* ===== Mobile stability and touch ergonomics ===== */
+@media(max-width:700px){
+  html,body{overflow-x:hidden}
+  .main{min-width:0;padding:14px}
+  .topbar{position:sticky;top:0;margin:0 0 14px;padding:10px 12px;border-radius:14px}
+  .topbar-actions{align-items:stretch;gap:8px}
+  .topbar-actions>*{max-width:100%}
+  button,.nav-item,.secondary,.role-action-card{min-height:44px;touch-action:manipulation}
+  input,select,textarea{font-size:16px;min-height:44px}
+  .section-head{align-items:flex-start;flex-wrap:wrap}
+  .section-head>button,.section-head .quick-actions{max-width:100%}
+  .quick-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}
+  .quick-actions button{width:100%}
+  .card{padding:16px}
+  .row{grid-template-columns:1fr!important;align-items:stretch}
+  .row>*{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  .access-actions{display:grid!important;grid-template-columns:1fr;width:100%}
+  .access-actions>*{width:100%;min-width:0}
+  .form-grid{grid-template-columns:1fr!important}
+  .cards{grid-template-columns:1fr 1fr}
+  .list{overflow:visible}
+  .coverage-note,.muted{overflow-wrap:anywhere}
+  .schedule-table-wrap,.merit-table-wrap,.fee-structure-table{overscroll-behavior-x:contain}
+  .study-viewer,.admission-review{padding:8px}
+  .study-viewer-card,.admission-review-card{width:100%;max-width:none;max-height:96dvh;border-radius:14px}
+}
+@media(max-width:430px){
+  .cards{grid-template-columns:1fr}
+  .quick-actions{grid-template-columns:1fr}
+  .main{padding:10px}
+  .card{padding:14px;border-radius:14px}
+  .campus-hero{padding:18px;border-radius:16px}
+  .campus-hero h2{font-size:26px}
+}
