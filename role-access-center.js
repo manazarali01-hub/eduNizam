@@ -14,6 +14,17 @@
     s.textContent='.access-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.access-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.access-list-item{padding:11px 0;border-bottom:1px solid #e7efee}.access-list-item:last-child{border-bottom:0}.access-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.access-actions button{min-height:42px}#parentApprovalCard{grid-column:1/-1;order:-1}.access-nav-badge{display:inline-flex;min-width:22px;height:22px;align-items:center;justify-content:center;margin-left:auto;padding:0 6px;border-radius:999px;background:#b42318;color:#fff;font-size:.72rem;font-weight:900;line-height:1}.access-nav-badge.hidden{display:none!important}@media(max-width:760px){.access-grid{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
+  function ensureDashboardApprovalCard(){
+    const dashboard=document.getElementById('dashboard');
+    if(!dashboard||document.getElementById('dashboardAccessApprovalCard'))return;
+    const card=document.createElement('article');
+    card.className='card';
+    card.id='dashboardAccessApprovalCard';
+    card.innerHTML='<div class="section-head"><div><h2>Pending Access Requests</h2><p class="muted">Teacher, Parent aur Student approval requests.</p></div><button id="dashboardReviewAccessBtn" class="secondary" type="button">Review</button></div><div class="coverage-note"><strong id="dashboardPendingAccessCount">0</strong> request(s) waiting for approval.</div>';
+    const target=dashboard.querySelector('.grid-2')||dashboard;
+    target.parentNode.insertBefore(card,target);
+    document.getElementById('dashboardReviewAccessBtn')?.addEventListener('click',show);
+  }
   function inject(){
     if(document.querySelector('[data-view="access"]'))return;
     const nav=document.getElementById('nav')||document.querySelector('.sidebar nav');if(!nav)return;
@@ -49,6 +60,10 @@
     badge.textContent=n>99?'99+':String(n);
     badge.classList.toggle('hidden',n===0||role()!=='head');
     badge.title=n?n+' approval request'+(n===1?'':'s')+' waiting':'No approval requests waiting';
+    const dash=document.getElementById('dashboardAccessApprovalCard');
+    const dashCount=document.getElementById('dashboardPendingAccessCount');
+    if(dash)dash.style.display=role()==='head'?'block':'none';
+    if(dashCount)dashCount.textContent=String(n);
   }
   async function refreshPendingBadge(){
     if(role()!=='head'||!ready()){updatePendingBadge(0);return}
@@ -128,7 +143,7 @@
     }
   }
   function boot(){
-    injectStyle();inject();
+    injectStyle();inject();ensureDashboardApprovalCard();
     document.getElementById('refreshSchoolAccounts')?.addEventListener('click',loadInstitutionAccounts);
     document.getElementById('refreshSchoolAccessRequests')?.addEventListener('click',loadSchoolAccessRequests);
     document.getElementById('toggleReviewedRequests')?.addEventListener('click',()=>{showReviewed=!showReviewed;loadSchoolAccessRequests()});
