@@ -39,7 +39,7 @@
   };
   function institutionId(){return String(cfg().institutionId||'').trim()}
   function ready(){return !!(cloud()?.state?.client&&cloud()?.state?.user&&institutionId())}
-  function todayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function dayKey(value=new Date()){const d=value instanceof Date?value:new Date(value);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
   function actorName(id){
     if(!id)return 'System / Backend';
     const p=profiles.get(id);
@@ -121,8 +121,8 @@
     });
   }
   function renderStats(){
-    const today=todayKey();
-    const todayLogs=logs.filter(x=>String(x.created_at||'').slice(0,10)===today);
+    const today=dayKey();
+    const todayLogs=logs.filter(x=>x.created_at&&dayKey(x.created_at)===today);
     $('auditTodayCount').textContent=String(todayLogs.length);
     $('auditAttendanceCount').textContent=String(todayLogs.filter(x=>groups[x.entity_type]==='Attendance').length);
     $('auditAccessCount').textContent=String(todayLogs.filter(x=>groups[x.entity_type]==='Access').length);
