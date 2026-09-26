@@ -1,4 +1,4 @@
-const CACHE='edunizam-v98-training-simple'
+const CACHE='edunizam-v99-training-library'
 const CORE=[
   './',
   './index.html',
