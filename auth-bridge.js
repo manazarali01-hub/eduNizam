@@ -58,8 +58,14 @@
     try{
       await core.pullAllCloudToLocal();
       sessionStorage.setItem(key,String(Date.now()));
-      await window.EDUNIZAM_ROLE_SCOPE?.refresh?.();
       window.dispatchEvent(new CustomEvent('edunizam:role-cache-refreshed',{detail:{role:localRole,institutionId}}));
+      const reloadKey=key+':reloaded';
+      if(!sessionStorage.getItem(reloadKey)){
+        sessionStorage.setItem(reloadKey,'1');
+        location.reload();
+        return true;
+      }
+      await window.EDUNIZAM_ROLE_SCOPE?.refresh?.();
       return true;
     }catch(e){
       console.warn('Role-scoped cloud refresh:',e.message||e);
