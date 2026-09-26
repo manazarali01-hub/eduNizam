@@ -132,7 +132,10 @@
     document.getElementById('refreshSchoolAccounts')?.addEventListener('click',loadInstitutionAccounts);
     document.getElementById('refreshSchoolAccessRequests')?.addEventListener('click',loadSchoolAccessRequests);
     document.getElementById('toggleReviewedRequests')?.addEventListener('click',()=>{showReviewed=!showReviewed;loadSchoolAccessRequests()});
+    window.addEventListener('edunizam:auth',()=>setTimeout(()=>{render();refreshPendingBadge()},50));
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPendingBadge()});
     render();
+    setTimeout(refreshPendingBadge,1200);
   }
   setTimeout(boot,0);
   window.EDUNIZAM_ROLE_ACCESS={show,render};
