@@ -95,6 +95,19 @@ if(!read('sw.js').includes("'./storage-scope.js'")) fail.push('PWA cache does no
 if(!read('sw.js').includes("'./reliability-guardian.js'")) fail.push('PWA cache does not include Reliability Guardian.');
 if(!read('sw.js').includes("'./mobile-performance.css'")) fail.push('PWA cache does not include mobile performance styles.');
 if(!index.includes('mobile-performance.css')) fail.push('Mobile performance stylesheet is not loaded.');
+if(!exists('premium-ui.css')) fail.push('Premium visual system stylesheet missing.');
+if(!exists('premium-ui.js')) fail.push('Premium interaction shell missing.');
+if(!exists('premium-auth.css')) fail.push('Premium auth/admission stylesheet missing.');
+if(!index.includes('premium-ui.css')) fail.push('Premium visual system is not loaded.');
+if(!index.includes('premium-ui.js')) fail.push('Premium interaction shell is not loaded.');
+if(!read('login.html').includes('premium-auth.css')) fail.push('Premium auth styling is not loaded on login.');
+if(!read('admission.html').includes('premium-auth.css')) fail.push('Premium admission styling is not loaded.');
+if(!read('premium-ui.js').includes('premium-mobile-dock')) fail.push('Premium mobile quick navigation missing.');
+if(!read('premium-ui.js').includes('Cloud Connected')) fail.push('Premium cloud/network context is missing.');
+if(!read('premium-ui.css').includes('.premium-context-chip')) fail.push('Premium topbar context styling missing.');
+if(!read('premium-ui.css').includes('.premium-mobile-dock')) fail.push('Premium mobile dock styling missing.');
+if(!read('sw.js').includes("'./premium-ui.css'")||!read('sw.js').includes("'./premium-ui.js'")||!read('sw.js').includes("'./premium-auth.css'")) fail.push('PWA cache does not include premium UI assets.');
+
 const reliability=read('reliability-guardian.js');
 if(!reliability.includes('Main Thread Stall')) fail.push('Hang watchdog is missing.');
 if(!reliability.includes('function criticalCheck()')) fail.push('Automatic critical UI recovery is missing.');
