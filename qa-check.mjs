@@ -179,6 +179,17 @@ for(const fn of ['listInstitutionApplications','listPayments','updatePaymentStat
   if(!snippet.includes('requireHeadRole')) fail.push('Admissions Admin API guard missing: '+fn);
 }
 if(index.includes('data-admission-roles="teacher,head_of_institute"')) fail.push('Legacy Teacher admission-management tabs still exposed.');
+const messagingSecurityMigration='supabase/migrations/20260926053022_revoke_messaging_when_school_relationship_ends.sql';
+if(!exists(messagingSecurityMigration)) fail.push('Relationship-aware messaging migration missing.');
+else{
+  const msgSec=read(messagingSecurityMigration);
+  if(!msgSec.includes('private.is_school_conversation_participant_v2')) fail.push('Current messaging relationship helper missing.');
+  if(!msgSec.includes("l.status='approved'")) fail.push('Parent messaging access is not tied to approved link.');
+  if(!msgSec.includes('teacher_student_links')) fail.push('Teacher messaging access is not tied to current assignment.');
+  if(!msgSec.includes('current participants read school conversations')) fail.push('Conversation RLS does not use current relationship access.');
+  if(!msgSec.includes('Conversation access denied')) fail.push('Message send does not re-check current relationship.');
+}
+
 
 const assignedRlsMigration='supabase/migrations/20260926051550_harden_assigned_student_role_access.sql';
 if(!exists(assignedRlsMigration)) fail.push('Assigned-student RLS hardening migration missing.');
