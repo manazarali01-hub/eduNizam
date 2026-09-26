@@ -1,4 +1,4 @@
-const CACHE='edunizam-v140-premium-shell'
+const CACHE='edunizam-v141-e2e-role-security'
 const CORE=[
   './',
   './index.html',
