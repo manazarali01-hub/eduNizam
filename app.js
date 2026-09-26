@@ -257,7 +257,7 @@ function renderAttendance(){
  $('todayLabel').textContent=new Date().toLocaleDateString();
  const day=state.attendance[todayKey()]||{},editable=canManageAttendance();
  const list=scopedStudents();
- $('attendanceList').innerHTML=list.length?list.map(s=>{const v=day[s.id]??day[String(s.id)]??'';return '<div class="row attendance-row"><strong>'+esc(s.name)+'</strong><label><input type="radio" name="att_'+s.id+'" value="Present" '+(v==='Present'?'checked':'')+' '+(!editable?'disabled':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(v==='Absent'?'checked':'')+' '+(!editable?'disabled':'')+'> Absent</label></div>'}).join(''):'<div class="muted">No accessible students.</div>';
+ $('attendanceList').innerHTML=list.length?list.map(s=>{const v=day[s.id]??day[String(s.id)]??'';const info=[s.className&&('Class '+s.className+(s.sectionName?'/'+s.sectionName:'')),s.phone||'No contact number'].filter(Boolean).join(' · ');return '<div class="row attendance-row"><div><strong>'+esc(s.name)+'</strong><small style="display:block;margin-top:4px">'+esc(info)+'</small></div><label><input type="radio" name="att_'+s.id+'" value="Present" '+(v==='Present'?'checked':'')+' '+(!editable?'disabled':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(v==='Absent'?'checked':'')+' '+(!editable?'disabled':'')+'> Absent</label></div>'}).join(''):'<div class="muted">No accessible students.</div>';
  const btn=$('saveAttendanceBtn');if(btn)btn.style.display=editable?'inline-block':'none';
 }
 $('saveAttendanceBtn').onclick=async()=>{
