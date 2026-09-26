@@ -203,6 +203,14 @@ const style=read('style.css');
 if(!style.includes('Mobile stability and touch ergonomics')) fail.push('Shared mobile stability stylesheet layer missing.');
 if(!login.includes('min-height:100dvh')) fail.push('Mobile login keyboard-stability viewport rule missing.');
 if(!login.includes('min-height:44px')) fail.push('Mobile login touch target sizing missing.');
+const navigationEnhancements=read('navigation-enhancements.js');
+const roleDashboard=read('role-dashboard.js');
+if(!navigationEnhancements.includes("['Daily Work'")) fail.push('Daily Work navigation group missing.');
+if(!navigationEnhancements.includes('MutationObserver')) fail.push('Dynamic navigation items are not auto-grouped.');
+if(!roleDashboard.includes('adminDailyDesk')) fail.push('Admin Daily Desk missing.');
+if(!roleDashboard.includes('data-admin-jump')) fail.push('Admin Daily Desk shortcuts missing.');
+if(!style.includes('admin-daily-actions')) fail.push('Admin Daily Desk responsive styles missing.');
+
 
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
