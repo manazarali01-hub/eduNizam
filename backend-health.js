@@ -20,6 +20,16 @@
       if(error)throw error;
       const checks=[];
       checks.push(['Authenticated',!!data?.authenticated]);
+      try{
+        const roleCheck=await c.state.client.rpc('current_account_role');
+        checks.push(['Role approval service',!roleCheck.error]);
+        if((window.EDUNIZAM_ROLE_SCOPE?.role?.()||'')==='head'){
+          const reqCheck=await c.state.client.from('school_access_requests').select('id',{count:'exact',head:true});
+          checks.push(['Access request system',!reqCheck.error]);
+        }
+      }catch(_){
+        checks.push(['Role approval service',false]);
+      }
       for(const [k,v] of Object.entries(data?.tables||{}))checks.push(['Table: '+k,!!v]);
       for(const [k,v] of Object.entries(data?.functions||{}))checks.push(['Function: '+k,!!v]);
       for(const [k,v] of Object.entries(data?.storage||{}))checks.push(['Storage: '+k,!!v]);
