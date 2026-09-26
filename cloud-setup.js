@@ -177,7 +177,7 @@
     async function loadOwnedSchools(){
       const cloud=window.EDUNIZAM_CLOUD,box=document.getElementById('ownedSchoolsList');
       if(!cloud?.state?.client||!cloud?.state?.user){box.innerHTML='<div class="muted">Please sign in first.</div>';return}
-      const {data,error}=await cloud.state.client.from('institutions').select('id,name,institution_type,school_registration_code').eq('owner_user_id',cloud.state.user.id).order('created_at',{ascending:true});
+      const {data,error}=await cloud.state.client.from('institutions').select('id,name,institution_type,school_registration_code,registration_number').eq('owner_user_id',cloud.state.user.id).order('created_at',{ascending:true});
       if(error){box.innerHTML='<div class="muted">'+esc(error.message)+'</div>';return}
       const current=get().institutionId||'';
       box.innerHTML=(data||[]).length?(data||[]).map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span><small>Registration No.</small><br><strong>'+esc(s.registration_number||'Not provided')+'</strong></span><span>'+(s.id===current?'<span class="badge">Current</span>':'<button class="secondary" data-school-id="'+esc(s.id)+'">Switch</button>')+'</span></div>').join(''):'<div class="muted">No owned school found.</div>';
