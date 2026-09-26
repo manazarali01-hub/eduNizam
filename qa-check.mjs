@@ -344,6 +344,28 @@ if(!staffMigration.includes('teachers insert own staff attendance')) fail.push('
 if(!staffMigration.includes('teachers update own staff attendance')) fail.push('Teacher self clock update policy missing.');
 if(!read('supabase-academic-access-migration.sql').includes('i.owner_user_id=user_notifications.recipient_user_id')) fail.push('Notification recipient is not restricted to institution users.');
 if(!style.includes('admin-attendance-alerts')) fail.push('Admin attendance alert responsive styles missing.');
+const auditCenter=read('audit-activity-center.js');
+if(!auditCenter.includes('Audit & Activity Center')) fail.push('Admin Audit & Activity Center module missing.');
+if(!auditCenter.includes("role()!=='head'")) fail.push('Audit & Activity Center is not Admin-only.');
+if(!auditCenter.includes("from('audit_logs')")) fail.push('Audit Center is not connected to server audit logs.');
+if(!app.includes("view==='auditcenter'")) fail.push('App navigation does not render Audit Center.');
+if(!roleScope.includes("'auditcenter'")) fail.push('Admin role does not include Audit Center view.');
+if(!navigationEnhancements.includes("'auditcenter'")) fail.push('Audit Center is not grouped in navigation.');
+if(!index.includes('audit-activity-center.js')) fail.push('Audit Center script is not loaded.');
+if(!read('sw.js').includes("'./audit-activity-center.js'")) fail.push('PWA cache does not include Audit Center.');
+const auditMigration='supabase/migrations/20260926053511_add_server_side_admin_audit_activity.sql';
+if(!exists(auditMigration)) fail.push('Server-side Admin audit migration missing.');
+else{
+  const auditSql=read(auditMigration);
+  if(!auditSql.includes('private.capture_admin_audit_v1')) fail.push('Server-side audit trigger function missing.');
+  for(const table of ['attendance_records','fee_records','result_records','leave_requests','school_access_requests','core_students','staff_attendance_records','applications','payment_records']){
+    if(!auditSql.includes('audit_'+table)) fail.push('Audit trigger missing for '+table+'.');
+  }
+  for(const sensitive of ['b_form_no','guardian_cnic','check_in_latitude','check_in_longitude']){
+    if(auditSql.includes("'"+sensitive+"'")) fail.push('Sensitive field copied into audit payload: '+sensitive);
+  }
+}
+
 
 
 if(!style.includes('admin-daily-actions')) fail.push('Admin Daily Desk responsive styles missing.');
