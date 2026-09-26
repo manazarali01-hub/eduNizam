@@ -408,7 +408,7 @@
   async function listLinkedCoreStudents(){
     if(!state.client||!cfg.institutionId)return[];
     const {data,error}=await state.client.from('core_students')
-      .select('id,auth_user_id,name,class_name,student_code')
+      .select('id,auth_user_id,name,class_name,section_name,admission_no,student_code')
       .eq('institution_id',cfg.institutionId).not('auth_user_id','is',null).order('name');
     if(error)throw error;return data||[];
   }
