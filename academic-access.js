@@ -4,6 +4,7 @@
   const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
   const role=()=>session()?.role||'student';
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  let linkedStudentsCache=[];
   function ready(){return !!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId)}
   function injectStyle(){
     if(document.getElementById('academicAccessStyle'))return;
@@ -22,21 +23,57 @@
     const access=document.getElementById('access');if(!access||document.getElementById('teacherAssignmentCard'))return;
     const grid=access.querySelector('.access-grid');if(!grid)return;
     const card=document.createElement('article');card.className='card';card.id='teacherAssignmentCard';
-    card.innerHTML='<div class="section-head"><div><h3>Teacher–Student Assignment</h3><p class="muted">Head linked teachers ko students assign kare.</p></div><button id="refreshAssignmentsBtn" class="secondary">Refresh</button></div><div class="form-grid"><select id="assignmentTeacher"><option value="">Select teacher</option></select><select id="assignmentStudent"><option value="">Select linked student</option></select><button id="saveAssignmentBtn">Assign Student</button></div><div id="assignmentList" class="assignment-list"></div>';
+    card.innerHTML='<div class="section-head"><div><h3>Teacher–Student Assignment</h3><p class="muted">Single student ya poori class/section ko approved Teacher ke saath assign karein.</p></div><button id="refreshAssignmentsBtn" class="secondary">Refresh</button></div><h4>Single Student</h4><div class="form-grid"><select id="assignmentTeacher"><option value="">Select teacher</option></select><select id="assignmentStudent"><option value="">Select linked student</option></select><button id="saveAssignmentBtn">Assign Student</button></div><hr><h4>Whole Class / Section</h4><div class="form-grid"><select id="bulkAssignmentTeacher"><option value="">Select teacher</option></select><select id="bulkAssignmentClass"><option value="">Select class</option></select><select id="bulkAssignmentSection"><option value="">All sections</option></select><button id="assignWholeClassBtn">Assign Class</button></div><div id="bulkAssignmentMsg" class="coverage-note"></div><div id="assignmentList" class="assignment-list"></div>';
     grid.appendChild(card);
     card.querySelector('#refreshAssignmentsBtn').onclick=loadAssignments;
     card.querySelector('#saveAssignmentBtn').onclick=saveAssignment;
+    card.querySelector('#bulkAssignmentClass').onchange=populateBulkSections;
+    card.querySelector('#assignWholeClassBtn').onclick=assignWholeClass;
   }
   async function loadAssignments(){
     const teacherSel=document.getElementById('assignmentTeacher'),studentSel=document.getElementById('assignmentStudent'),box=document.getElementById('assignmentList');
     if(!teacherSel||!studentSel||!box||role()!=='head'||!ready())return;
     try{
       const [teachers,students,links]=await Promise.all([cloud().listInstitutionTeachers(),cloud().listLinkedCoreStudents(),cloud().listTeacherStudentLinks()]);
-      teacherSel.innerHTML='<option value="">Select teacher</option>'+teachers.map(x=>'<option value="'+esc(x.user_id)+'">'+esc(x.full_name||x.user_id)+'</option>').join('');
-      studentSel.innerHTML='<option value="">Select linked student</option>'+students.map(x=>'<option value="'+esc(x.auth_user_id)+'">'+esc(x.name)+' — '+esc(x.class_name||'Class')+'</option>').join('');
+      linkedStudentsCache=students||[];
+      const teacherOptions='<option value="">Select teacher</option>'+teachers.map(x=>'<option value="'+esc(x.user_id)+'">'+esc(x.full_name||x.user_id)+'</option>').join('');
+      teacherSel.innerHTML=teacherOptions;
+      const bulkTeacher=document.getElementById('bulkAssignmentTeacher');if(bulkTeacher)bulkTeacher.innerHTML=teacherOptions;
+      studentSel.innerHTML='<option value="">Select linked student</option>'+students.map(x=>'<option value="'+esc(x.auth_user_id)+'">'+esc(x.name)+' — '+esc(x.class_name||'Class')+(x.section_name?' / '+esc(x.section_name):'')+'</option>').join('');
+      const classSel=document.getElementById('bulkAssignmentClass');
+      if(classSel){const classes=[...new Set(linkedStudentsCache.map(x=>String(x.class_name||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));classSel.innerHTML='<option value="">Select class</option>'+classes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');populateBulkSections();}
       box.innerHTML=links.length?links.map(x=>'<div class="assignment-row"><span>'+esc(x.teacher_name||x.teacher_user_id)+'</span><span>'+esc(x.student_name||x.student_user_id)+'</span><button class="secondary" data-remove-assignment="'+esc(x.teacher_user_id)+'" data-student="'+esc(x.student_user_id)+'">Remove</button></div>').join(''):'<div class="muted">No assignments yet.</div>';
       box.querySelectorAll('[data-remove-assignment]').forEach(b=>b.onclick=async()=>{try{await cloud().removeTeacherStudentLink(b.dataset.removeAssignment,b.dataset.student);loadAssignments()}catch(e){alert(e.message||e)}});
     }catch(e){box.textContent=e.message||String(e)}
+  }
+  function populateBulkSections(){
+    const className=document.getElementById('bulkAssignmentClass')?.value||'';
+    const sectionSel=document.getElementById('bulkAssignmentSection');if(!sectionSel)return;
+    const sections=[...new Set(linkedStudentsCache.filter(x=>!className||String(x.class_name||'')===className).map(x=>String(x.section_name||'').trim()).filter(Boolean))].sort();
+    sectionSel.innerHTML='<option value="">All sections</option>'+sections.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+  }
+  async function assignWholeClass(){
+    if(role()!=='head'||!ready())return;
+    const teacher=document.getElementById('bulkAssignmentTeacher')?.value||'';
+    const className=document.getElementById('bulkAssignmentClass')?.value||'';
+    const sectionName=document.getElementById('bulkAssignmentSection')?.value||'';
+    const msg=document.getElementById('bulkAssignmentMsg');
+    if(!teacher||!className){if(msg)msg.textContent='Teacher aur class select karein.';return}
+    const btn=document.getElementById('assignWholeClassBtn');if(btn)btn.disabled=true;
+    try{
+      if(msg)msg.textContent='Assigning linked students...';
+      const {data,error}=await cloud().state.client.rpc('assign_teacher_class_v1',{
+        p_institution_id:cfg().institutionId,
+        p_teacher_user_id:teacher,
+        p_class_name:className,
+        p_section_name:sectionName||null
+      });
+      if(error)throw error;
+      const row=Array.isArray(data)?data[0]:data;
+      if(msg)msg.textContent=(row?.matched_students||0)+' linked student(s) matched · '+(row?.assigned_new||0)+' newly assigned · '+(row?.already_assigned||0)+' already assigned.';
+      await loadAssignments();
+    }catch(e){if(msg)msg.textContent=e.message||String(e)}
+    finally{if(btn)btn.disabled=false}
   }
   async function saveAssignment(){
     const t=document.getElementById('assignmentTeacher').value,s=document.getElementById('assignmentStudent').value;
