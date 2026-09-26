@@ -209,6 +209,7 @@ if(!navigationEnhancements.includes("['Daily Work'")) fail.push('Daily Work navi
 if(!navigationEnhancements.includes('MutationObserver')) fail.push('Dynamic navigation items are not auto-grouped.');
 if(!roleDashboard.includes('adminDailyDesk')) fail.push('Admin Daily Desk missing.');
 if(!roleDashboard.includes('data-admin-jump')) fail.push('Admin Daily Desk shortcuts missing.');
+if(!read('role-access-center.js').includes('admin-action-count')) fail.push('Admin Daily Desk approval count badge missing.');
 if(!style.includes('admin-daily-actions')) fail.push('Admin Daily Desk responsive styles missing.');
 
 
