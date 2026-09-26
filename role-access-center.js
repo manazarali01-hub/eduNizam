@@ -6,17 +6,18 @@
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
   function ready(){return !!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId)}
   let showReviewed=false;
+  let pendingRefreshTimer=null;
   const decisionsInFlight=new Set();
   function injectStyle(){
     if(document.getElementById('roleAccessStyle'))return;
     const s=document.createElement('style');s.id='roleAccessStyle';
-    s.textContent='.access-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.access-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.access-list-item{padding:11px 0;border-bottom:1px solid #e7efee}.access-list-item:last-child{border-bottom:0}.access-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.access-actions button{min-height:42px}#parentApprovalCard{grid-column:1/-1;order:-1}@media(max-width:760px){.access-grid{grid-template-columns:1fr}}';
+    s.textContent='.access-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.access-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.access-list-item{padding:11px 0;border-bottom:1px solid #e7efee}.access-list-item:last-child{border-bottom:0}.access-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.access-actions button{min-height:42px}#parentApprovalCard{grid-column:1/-1;order:-1}.access-nav-badge{display:inline-flex;min-width:22px;height:22px;align-items:center;justify-content:center;margin-left:auto;padding:0 6px;border-radius:999px;background:#b42318;color:#fff;font-size:.72rem;font-weight:900;line-height:1}.access-nav-badge.hidden{display:none!important}@media(max-width:760px){.access-grid{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
   function inject(){
     if(document.querySelector('[data-view="access"]'))return;
     const nav=document.getElementById('nav')||document.querySelector('.sidebar nav');if(!nav)return;
-    const b=document.createElement('button');b.className='nav-item';b.dataset.view='access';b.textContent='🔐  Access & Roles';
+    const b=document.createElement('button');b.className='nav-item';b.dataset.view='access';b.innerHTML='<span>🔐&nbsp; Access & Roles</span><span id="accessPendingBadge" class="access-nav-badge hidden" aria-label="Pending approval requests"></span>';
     const assistant=nav.querySelector('[data-view="assistant"]');assistant?nav.insertBefore(b,assistant):nav.appendChild(b);
     b.onclick=show;
     const main=document.querySelector('main');if(!main)return;
@@ -41,12 +42,28 @@
       box.innerHTML=summary+(rows.length?rows.map(x=>'<div class="access-list-item"><div class="access-row"><strong>'+esc(x.full_name||'Linked account')+'</strong><span class="badge">'+esc(labels[x.role]||x.role)+'</span></div><div class="muted">'+esc(x.phone||'Connected to this school Admin')+'</div></div>').join(''):'<div class="muted">No Teacher, Parent or Student login has been linked yet. New verified role accounts will appear here automatically.</div>');
     }catch(e){box.textContent=e.message||String(e)}
   }
+  function updatePendingBadge(count){
+    const badge=document.getElementById('accessPendingBadge');
+    if(!badge)return;
+    const n=Math.max(0,Number(count||0));
+    badge.textContent=n>99?'99+':String(n);
+    badge.classList.toggle('hidden',n===0||role()!=='head');
+    badge.title=n?n+' approval request'+(n===1?'':'s')+' waiting':'No approval requests waiting';
+  }
+  async function refreshPendingBadge(){
+    if(role()!=='head'||!ready()){updatePendingBadge(0);return}
+    try{
+      const rows=cloud().listSchoolAccessRequests?await cloud().listSchoolAccessRequests():[];
+      updatePendingBadge(rows.filter(x=>x.status==='pending').length);
+    }catch(_){/* keep current badge if refresh fails */}
+  }
   async function loadSchoolAccessRequests(){
     const box=document.getElementById('schoolAccessRequests');
     if(!box||role()!=='head'||!ready())return;
     try{
       const rows=cloud().listSchoolAccessRequests?await cloud().listSchoolAccessRequests():[];
       const pending=rows.filter(x=>x.status==='pending').sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+      updatePendingBadge(pending.length);
       const reviewed=rows.filter(x=>x.status!=='pending').sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
       const toggle=document.getElementById('toggleReviewedRequests');
       toggle.hidden=!reviewed.length;
@@ -100,7 +117,15 @@
     if(info)info.style.display=r==='head'?'none':'block';
     if(accounts)accounts.style.display=r==='head'?'block':'none';
     if(approval)approval.style.display=r==='head'?'block':'none';
-    if(r==='head'){loadInstitutionAccounts();loadSchoolAccessRequests()}
+    if(r==='head'){
+      loadInstitutionAccounts();loadSchoolAccessRequests();
+      clearInterval(pendingRefreshTimer);
+      pendingRefreshTimer=setInterval(refreshPendingBadge,60000);
+    }else{
+      updatePendingBadge(0);
+      clearInterval(pendingRefreshTimer);
+      pendingRefreshTimer=null;
+    }
   }
   function boot(){
     injectStyle();inject();
