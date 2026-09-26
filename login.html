@@ -377,7 +377,8 @@
     if(role.error)throw role.error;
     if(meta.signup_role==='teacher'||meta.signup_role==='parent'||meta.signup_role==='student'){
       if(role.data===meta.signup_role)return false;
-      const request=await schoolAccessStatus(user.id,meta.signup_role);
+      const selectedInstitutionId=localPending?.institutionId||meta.selected_school_id||'';
+      const request=await schoolAccessStatus(user.id,meta.signup_role,selectedInstitutionId);
       if(request?.status==='pending'||request?.status==='rejected')return false;
       return true;
     }
