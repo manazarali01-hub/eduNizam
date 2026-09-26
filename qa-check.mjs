@@ -338,6 +338,30 @@ const staffTime=read('staff-time-attendance.js');
 if(!staffTime.includes('data-mark-staff-absent')) fail.push('Admin one-click staff absent action missing.');
 if(!staffTime.includes('EDUNIZAM_WORKFLOW_ALERTS?.staffAttendanceSaved')) fail.push('Staff attendance does not trigger workflow alerts.');
 if(!staffTime.includes("st.phone?' · '")) fail.push('Staff attendance cards do not show contact number.');
+const attendanceAnalytics=read('attendance-analytics.js');
+if(!attendanceAnalytics.includes('Who Marked Attendance')) fail.push('Admin student attendance marker log missing.');
+if(!attendanceAnalytics.includes('marked_by')) fail.push('Student attendance analytics does not load marker identity.');
+if(!attendanceAnalytics.includes('markerProfiles')) fail.push('Attendance marker names are not resolved for Admin.');
+if(!staffTime.includes("role()==='teacher'&&mine()")) fail.push('Staff self-attendance action is not explicitly Teacher-only.');
+if(!staffTime.includes('data-admin-staff-status')) fail.push('Admin Teacher attendance Present/Absent/Leave controls missing.');
+if(!staffTime.includes('Teacher self')) fail.push('Admin staff attendance log does not identify Teacher self marking.');
+const attendanceOwnershipMigration='supabase/migrations/20260926054916_enforce_attendance_actor_and_teacher_ownership.sql';
+if(!exists(attendanceOwnershipMigration)) fail.push('Attendance actor ownership migration missing.');
+else{
+  const attOwn=read(attendanceOwnershipMigration);
+  if(!attOwn.includes('marked_by=(select auth.uid())')) fail.push('Attendance writes do not bind marker to authenticated actor.');
+  if(!attOwn.includes('teachers insert assigned attendance')) fail.push('Teacher assigned-student attendance insert policy missing.');
+  if(!attOwn.includes('heads manage staff attendance')) fail.push('Admin staff attendance management policy missing.');
+}
+const attendanceMembershipMigration='supabase/migrations/20260926055157_require_active_teacher_membership_for_attendance.sql';
+if(!exists(attendanceMembershipMigration)) fail.push('Active Teacher attendance membership migration missing.');
+else{
+  const attMember=read(attendanceMembershipMigration);
+  if(!attMember.includes("m.role='teacher'")) fail.push('Attendance policies do not require active Teacher membership.');
+  if(!attMember.includes('teachers read own attendance')) fail.push('Teacher staff attendance read-own policy missing.');
+  if(!attMember.includes('s.user_id=(select auth.uid())')) fail.push('Teacher staff attendance is not bound to own staff profile.');
+}
+
 const staffMigration=read('supabase-staff-time-training-community-migration.sql');
 if(!staffMigration.includes('check_in_at timestamptz')) fail.push('Staff attendance check-in timestamp column migration missing.');
 if(!staffMigration.includes('teachers insert own staff attendance')) fail.push('Teacher self clock-in insert policy missing.');
