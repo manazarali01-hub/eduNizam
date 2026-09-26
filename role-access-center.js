@@ -118,8 +118,15 @@
       if(msg){
         if(!approve)msg.textContent='Request rejected.';
         else if(result?.requested_role==='teacher')msg.textContent='Teacher approved and linked. Teacher can now log in with email + password.';
-        else if(result?.requested_role==='student')msg.textContent='Student approved and linked. Student can now log in with email + password.';
-        else msg.textContent='Parent approved and linked. Parent can now log in with email + password.';
+        else if(result?.requested_role==='student'){
+          msg.textContent=result?.student_record_linked
+            ?'Student approved and school record linked. Student can now log in with email + password.'
+            :'Student approved. Login is active, but the school record could not be matched automatically; Admin should review the student record.';
+        }else{
+          msg.textContent=result?.child_linked
+            ?'Parent approved and child linked. Parent can now log in with email + password.'
+            :'Parent approved. Login is active, but the child record is not linked yet. Approve/link the matching Student account or review the child details.';
+        }
       }
       await Promise.all([loadSchoolAccessRequests(),loadInstitutionAccounts()]);
     }catch(e){if(msg)msg.textContent=e.message||String(e)}
