@@ -4,6 +4,8 @@
   const EVENT_KEY='edunizam_reliability_events';
   const SAFE_KEY='edunizam_safe_performance_mode';
   const RELOAD_KEY='edunizam_last_auto_reload';
+  const BACKUP_KEY='edunizam_reliability_backup_v1';
+  const BACKUP_KEYS=['edunizam_settings','edunizam_students','edunizam_attendance','edunizam_fees','edunizam_results','edunizam_session','edunizam_cloud_runtime_config'];
   const state={
     startedAt:Date.now(),
     safeMode:false,
@@ -21,6 +23,82 @@
   const writeJson=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));return true}catch(_){return false}};
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  function snapshotCriticalState(reason='Automatic safety snapshot'){
+    const data={createdAt:new Date().toISOString(),reason,items:{}};
+    for(const key of BACKUP_KEYS){
+      try{
+        const value=localStorage.getItem(key);
+        if(value!==null)data.items[key]=value;
+      }catch(_){}
+    }
+    try{sessionStorage.setItem(BACKUP_KEY,JSON.stringify(data));return true}catch(_){return false}
+  }
+  function restoreCriticalState(){
+    let backup=null;
+    try{backup=JSON.parse(sessionStorage.getItem(BACKUP_KEY)||'null')}catch(_){}
+    if(!backup?.items)return false;
+    let restored=0;
+    for(const [key,value] of Object.entries(backup.items)){
+      try{
+        if(localStorage.getItem(key)==null){localStorage.setItem(key,value);restored++}
+      }catch(_){}
+    }
+    if(restored)report('State Recovery','Recovered '+restored+' missing local setting(s) from the safety snapshot.','Local state','warning');
+    return restored>0;
+  }
+  function validateStoredJson(){
+    const jsonKeys=['edunizam_settings','edunizam_students','edunizam_attendance','edunizam_fees','edunizam_results','edunizam_session','edunizam_cloud_runtime_config'];
+    let broken=0;
+    for(const key of jsonKeys){
+      let raw=null;
+      try{raw=localStorage.getItem(key)}catch(_){continue}
+      if(raw==null||raw==='')continue;
+      try{JSON.parse(raw)}
+      catch(_){
+        broken++;
+        try{localStorage.removeItem(key)}catch(__){}
+        report('Corrupt Local Data','Removed unreadable local value so the app can continue safely.',key,'error');
+      }
+    }
+    if(broken)restoreCriticalState();
+    return broken;
+  }
+  function repairInteractiveState(){
+    let fixed=0;
+    document.querySelectorAll('button[disabled]').forEach(btn=>{
+      const text=String(btn.textContent||'').toLowerCase();
+      if(/loading|saving|signing|sending|checking|processing|approving|rejecting/.test(text)){
+        btn.disabled=false;
+        if(btn.dataset.old){btn.textContent=btn.dataset.old;delete btn.dataset.old}
+        fixed++;
+      }
+    });
+    document.querySelectorAll('[aria-busy="true"]').forEach(el=>{el.removeAttribute('aria-busy');fixed++});
+    if(fixed)report('Control Recovery','Recovered '+fixed+' stuck control(s).','Interactive UI','warning');
+    return fixed;
+  }
+  async function repairCloudState(){
+    const client=window.EDUNIZAM_CLOUD?.state?.client;
+    if(!client||!navigator.onLine)return {ok:true,label:'Cloud repair not required'};
+    try{
+      const {data,error}=await client.auth.getSession();
+      if(error)throw error;
+      const session=data?.session;
+      if(!session){
+        const local=readJson('edunizam_session',null);
+        if(local){
+          try{localStorage.removeItem('edunizam_session')}catch(_){}
+          window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
+          report('Session Recovery','Removed stale local login because the secure cloud session had expired.','Authentication','warning');
+        }
+        return {ok:true,label:'Expired session cleaned'};
+      }
+      return {ok:true,label:'Cloud session valid'};
+    }catch(e){
+      report('Cloud Recovery',e.message||e,'Authentication','warning');
+      return {ok:false,label:'Cloud session repair needs attention'};
+    }
+  }
 
   function report(type,message,source='',severity='warning'){
     const item={type:String(type||'Issue'),message:String(message||'Unknown issue').slice(0,500),source:String(source||'').slice(0,250),severity,at:new Date().toISOString()};
@@ -70,6 +148,7 @@
 
   function repairUI(reason='Automatic UI repair'){
     try{
+      snapshotCriticalState(reason);
       document.documentElement.classList.remove('edu-feature-loading');
       document.body?.classList.remove('mobile-nav-lock');
       const sidebar=document.querySelector('.sidebar');
@@ -98,6 +177,7 @@
           if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
         });
       }
+      repairInteractiveState();
       state.repairs++;
       report('Auto Repair',reason,activeId||'UI','warning');
       render();
@@ -123,6 +203,7 @@
 
   function criticalCheck(){
     if(document.hidden)return;
+    validateStoredJson();
     const missing=['appMain','nav','dashboard'].filter(id=>!document.getElementById(id));
     if(missing.length){
       reloadOnce('Critical UI missing: '+missing.join(', '));
@@ -247,6 +328,8 @@
     checks.push({name:'Local storage',ok:storageOk});
     checks.push({name:'Internet',ok:navigator.onLine});
     checks.push({name:'Mobile layout',ok:!!document.querySelector('meta[name="viewport"]')});
+    const brokenJson=validateStoredJson();
+    checks.push({name:'Local data integrity',ok:brokenJson===0});
     checks.push(await cloudSessionCheck());
     const failed=checks.filter(x=>!x.ok).length;
     if(failed)repairUI('Self-check found '+failed+' issue(s)');
@@ -255,8 +338,12 @@
   }
 
   async function autoRepair(){
+    snapshotCriticalState('Before automatic maintenance');
+    validateStoredJson();
     repairUI('Automatic maintenance');
+    repairInteractiveState();
     await refreshServiceWorker();
+    await repairCloudState();
     if(navigator.onLine){
       try{await window.EDUNIZAM_ROLE_SCOPE?.refresh?.()}catch(e){report('Role Refresh',e.message||e,'Auto maintenance','warning')}
     }
@@ -326,8 +413,10 @@
     criticalCheck();
     render();
     setInterval(criticalCheck,30000);
+    snapshotCriticalState('Startup safety snapshot');
     setTimeout(()=>selfCheck().catch(()=>{}),1200);
     setTimeout(()=>refreshServiceWorker().catch(()=>{}),3500);
+    setInterval(()=>snapshotCriticalState('Periodic safety snapshot'),5*60*1000);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
@@ -335,6 +424,6 @@
 
   window.EDUNIZAM_RELIABILITY={
     state,report,withRetry,beginFeature,endFeature,repairUI,autoRepair,selfCheck,render,
-    enterSafeMode,exitSafeMode,refreshServiceWorker
+    enterSafeMode,exitSafeMode,refreshServiceWorker,snapshotCriticalState,restoreCriticalState,validateStoredJson,repairInteractiveState,repairCloudState
   };
 })();
