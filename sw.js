@@ -1,4 +1,4 @@
-const CACHE='edunizam-v145-attendance-ownership'
+const CACHE='edunizam-v150-premium-appearance'
 const CORE=[
   './',
   './index.html',
@@ -18,8 +18,9 @@ const CORE=[
   './navigation-enhancements.js',
   './ui-polish.js',
   './manifest.webmanifest',
-  './assets/edunizam-logo-approved.webp',
+  './assets/edunizam-premium-mark.svg',
   './assets/edunizam-login-children.webp',
+  './assets/edunizam-girl-hero.webp',
   './icon-192.svg',
   './icon-512.svg',
   './public.css',
