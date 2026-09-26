@@ -1,11 +1,11 @@
-:root{--navy:#12324a;--teal:#0f766e;--gold:#d7a438;--ink:#18313f;--muted:#667985;--line:#dce6e8;--bg:#f5f8fa}
+:root{--navy:#123b33;--teal:#08705d;--gold:#d7aa4a;--ink:#1d342f;--muted:#74827d;--line:#dce8e0;--bg:#f4f7f2}
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:linear-gradient(180deg,#f8fbfc,#eef5f5);line-height:1.65}
+body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:radial-gradient(circle at 92% 0,rgba(215,170,74,.08),transparent 24rem),linear-gradient(180deg,#fbfcf8,#f3f7f3);line-height:1.65}
 a{color:var(--teal)}
 .public-nav{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px max(20px,calc((100% - 1080px)/2));background:#fff;border-bottom:1px solid var(--line)}
-.public-brand{display:flex;align-items:center;gap:10px;color:var(--navy);text-decoration:none;font-weight:850}.public-mark{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;background:var(--teal);color:#fff}.public-links{display:flex;gap:16px;flex-wrap:wrap}.public-links a{text-decoration:none;font-weight:700}
+.public-brand{display:flex;align-items:center;gap:10px;color:var(--navy);text-decoration:none;font-weight:850}.public-mark{width:44px;height:44px;display:grid;place-items:center;border-radius:13px;background:#075347;color:#fff;box-shadow:0 8px 20px rgba(18,59,51,.12);overflow:hidden}.public-mark img{width:100%;height:100%;display:block;object-fit:contain}.public-links{display:flex;gap:16px;flex-wrap:wrap}.public-links a{text-decoration:none;font-weight:700}
 .public-main{width:min(1080px,calc(100% - 40px));margin:0 auto;padding:54px 0 64px}
-.public-hero{padding:44px;border-radius:24px;background:linear-gradient(130deg,#0d2639,#12324a 62%,#17616d);color:#fff;box-shadow:0 22px 55px rgba(18,50,74,.16)}
+.public-hero{padding:44px;border-radius:24px;background:linear-gradient(120deg,#043b35,#075347 60%,#0a745f);color:#fff;box-shadow:0 22px 55px rgba(18,70,58,.15)}
 .public-kicker{text-transform:uppercase;letter-spacing:.13em;font-size:12px;font-weight:850;color:#f0cf82}.public-hero h1{font-size:clamp(34px,6vw,62px);line-height:1.05;margin:10px 0 16px}.public-hero p{max-width:790px;color:#dbe9ed;font-size:18px}.public-cta{display:inline-block;margin-top:14px;padding:12px 18px;border-radius:11px;background:var(--teal);color:#fff;text-decoration:none;font-weight:800}
 .public-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}.public-card{padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 10px 28px rgba(18,50,74,.055)}.public-card h2,.public-card h3{margin-top:0;color:var(--navy)}
 .public-section{margin-top:38px}.public-section h2{color:var(--navy);font-size:30px;margin-bottom:8px}.public-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0;list-style:none}.public-list li{padding:15px 17px;background:#fff;border:1px solid var(--line);border-radius:13px}
@@ -23,3 +23,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .public-hero-compact{padding:36px}.public-hero-compact h1{font-size:clamp(34px,5vw,52px)}
 .prose{max-width:860px}.prose h2{margin-top:32px}.prose p{font-size:16px}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+.public-hero.premium-public-hero{position:relative;overflow:hidden;isolation:isolate;background-image:linear-gradient(90deg,rgba(4,59,53,.98) 0%,rgba(5,76,64,.94) 52%,rgba(5,76,64,.48) 100%),url("assets/edunizam-login-children.webp");background-size:cover;background-position:center,center 42%;min-height:430px;display:flex;align-items:center}
+.public-hero.premium-public-hero:after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 86% 14%,rgba(228,190,96,.18),transparent 18rem)}
+.public-hero.premium-public-hero>div{max-width:760px}
+.public-hero.premium-public-hero h1{letter-spacing:-.05em}
+.public-proof{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.public-proof span{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.13);font-size:12px;font-weight:800}
+.public-feature-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}.public-feature-list div{padding:16px 17px;border:1px solid var(--line);border-radius:14px;background:#fff}.public-feature-list strong{display:block;color:var(--navy);margin-bottom:4px}
+.public-cta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.public-cta-row .public-cta{margin-top:0}.public-cta-secondary{background:#fff!important;color:var(--navy)!important;border:1px solid rgba(255,255,255,.6)}
+@media(max-width:760px){.public-hero.premium-public-hero{min-height:390px;background-image:linear-gradient(90deg,rgba(4,59,53,.96),rgba(5,76,64,.72)),url("assets/edunizam-login-children.webp");background-position:center,62% center}.public-feature-list{grid-template-columns:1fr}}
