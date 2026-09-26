@@ -450,9 +450,6 @@ window.EDUNIZAM_FEE_BRIDGE={
     state.fees=JSON.parse(localStorage.getItem('edunizam_fees')||'[]');renderFees();renderStats();
   }
 };
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').classList.remove('hidden')});
-$('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').classList.add('hidden')};
 $('removeSchoolLogoBtn')?.addEventListener('click',()=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can change school settings.');
  state.settings.schoolLogo='';persist();renderSettings();logActivity('Institute logo removed');
@@ -478,7 +475,6 @@ function showStartupFlash(){
    setTimeout(()=>box.remove(),9000);
  }catch(_){localStorage.removeItem('edunizam_flash_message')}
 }
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=20260923-stability94',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 renderAll();
 showStartupFlash();
 
