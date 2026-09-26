@@ -1,4 +1,4 @@
-const CACHE='edunizam-v141-e2e-role-security'
+const CACHE='edunizam-v143-admin-audit'
 const CORE=[
   './',
   './index.html',
@@ -11,6 +11,7 @@ const CORE=[
   './mobile-performance.css',
   './premium-auth.css',
   './premium-ui.js',
+  './audit-activity-center.js',
   './premium-ui.css',
   './app.js',
   './feature-loader.js',
