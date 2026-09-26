@@ -1,8 +1,9 @@
-const CACHE='edunizam-v99-training-library'
+const CACHE='edunizam-v130-school-directory'
 const CORE=[
   './',
   './index.html',
   './login.html',
+  './admission.html',
   './style.css',
   './cloud-config.js',
   './storage-scope.js',
