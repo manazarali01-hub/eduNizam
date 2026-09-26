@@ -223,6 +223,24 @@ if(!leaveMigration.includes('heads decide institute leave')) fail.push('Admin-on
 if(leaveMigration.includes('create policy "teachers decide assigned leave"')) fail.push('Legacy Teacher leave-decision policy still present.');
 if(!leaveMigration.includes('leave_requests_decision_complete_check')) fail.push('Leave decision cause integrity constraint missing.');
 if(!leaveMigration.includes('decide_leave_request_v1')) fail.push('Leave decision RPC migration missing.');
+const workflowAlerts=read('workflow-alerts.js');
+if(!coreCloud.includes('async function saveAttendanceDay')) fail.push('Immediate student attendance cloud save missing.');
+if(!app.includes('EDUNIZAM_CORE_CLOUD.saveAttendanceDay')) fail.push('Attendance save does not sync current day to cloud.');
+if(!workflowAlerts.includes('Student Absence Report')) fail.push('Admin student absence notification missing.');
+if(!workflowAlerts.includes('adminAttendanceAlerts')) fail.push('Admin attendance alert dashboard card missing.');
+if(!workflowAlerts.includes('No contact number')) fail.push('Attendance alert contact-number fallback missing.');
+if(!workflowAlerts.includes('staffAttendanceSaved')) fail.push('Staff attendance changes do not refresh Admin alerts.');
+const staffTime=read('staff-time-attendance.js');
+if(!staffTime.includes('data-mark-staff-absent')) fail.push('Admin one-click staff absent action missing.');
+if(!staffTime.includes('EDUNIZAM_WORKFLOW_ALERTS?.staffAttendanceSaved')) fail.push('Staff attendance does not trigger workflow alerts.');
+if(!staffTime.includes("st.phone?' · '")) fail.push('Staff attendance cards do not show contact number.');
+const staffMigration=read('supabase-staff-time-training-community-migration.sql');
+if(!staffMigration.includes('check_in_at timestamptz')) fail.push('Staff attendance check-in timestamp column migration missing.');
+if(!staffMigration.includes('teachers insert own staff attendance')) fail.push('Teacher self clock-in insert policy missing.');
+if(!staffMigration.includes('teachers update own staff attendance')) fail.push('Teacher self clock update policy missing.');
+if(!read('supabase-academic-access-migration.sql').includes('i.owner_user_id=user_notifications.recipient_user_id')) fail.push('Notification recipient is not restricted to institution users.');
+if(!style.includes('admin-attendance-alerts')) fail.push('Admin attendance alert responsive styles missing.');
+
 
 if(!style.includes('admin-daily-actions')) fail.push('Admin Daily Desk responsive styles missing.');
 
