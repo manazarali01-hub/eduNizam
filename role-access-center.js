@@ -62,8 +62,17 @@
     badge.title=n?n+' approval request'+(n===1?'':'s')+' waiting':'No approval requests waiting';
     const dash=document.getElementById('dashboardAccessApprovalCard');
     const dashCount=document.getElementById('dashboardPendingAccessCount');
-    if(dash)dash.style.display=role()==='head'?'block':'none';
+    const dailyDesk=document.getElementById('adminDailyDesk');
+    if(dash)dash.style.display=role()==='head'&&!dailyDesk?'block':'none';
     if(dashCount)dashCount.textContent=String(n);
+    const dailyApproval=dailyDesk?.querySelector('[data-admin-jump="access"]');
+    if(dailyApproval){
+      let count=dailyApproval.querySelector('.admin-action-count');
+      if(!count){count=document.createElement('span');count.className='admin-action-count';dailyApproval.appendChild(count)}
+      count.textContent=n>99?'99+':String(n);
+      count.hidden=n===0;
+      dailyApproval.setAttribute('aria-label','Approvals'+(n?' — '+n+' pending':''));
+    }
   }
   async function refreshPendingBadge(){
     if(role()!=='head'||!ready()){updatePendingBadge(0);return}
