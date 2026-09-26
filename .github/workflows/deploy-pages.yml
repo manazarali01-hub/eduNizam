@@ -100,6 +100,12 @@ jobs:
           check_content "${BASE}login.html" "EduNizam Login"
           check_content "${BASE}sitemap.xml" "<urlset"
           check_content "${BASE}robots.txt" "Sitemap:"
+          check_content "${BASE}manifest.webmanifest" "icon-512.png"
+          check_content "${BASE}pwa-install.js" "beforeinstallprompt"
+          curl --fail --silent --show-error --location "${BASE}icon-192.png?verify=${GITHUB_SHA}" -o /tmp/icon-192.png
+          curl --fail --silent --show-error --location "${BASE}icon-512.png?verify=${GITHUB_SHA}" -o /tmp/icon-512.png
+          file /tmp/icon-192.png | grep -q "PNG image data, 192 x 192"
+          file /tmp/icon-512.png | grep -q "PNG image data, 512 x 512"
           echo "Sitemap headers:"
           curl --fail --silent --show-error --location --head -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}sitemap.xml?verify=${GITHUB_SHA}" | sed -n '1,20p'
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}app.js?verify=${GITHUB_SHA}" >/dev/null
