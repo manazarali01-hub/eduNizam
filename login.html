@@ -161,6 +161,33 @@
   const PROD_LOGIN_URL='https://manazarali01-hub.github.io/eduNizam/login.html';
   let otpMode='';
   let otpEmail='';
+  let emailCooldownTimer;
+  const emailCooldownSeconds=mode=>Math.max(0,Math.ceil((60000-(Date.now()-Number(sessionStorage.getItem('edunizam_'+mode+'_email_sent_at')||0)))/1000));
+  function refreshEmailCooldown(){
+    clearTimeout(emailCooldownTimer);
+    const controls=[
+      {button:$('forgotBtn'),mode:'recovery',label:'Forgot password?'},
+      {button:$('resendVerifyBtn'),mode:'signup',label:'Resend Verification Email'},
+      {button:$('resendOtpBtn'),mode:otpMode==='recovery'?'recovery':'signup',label:'Resend Code'}
+    ];
+    let active=false;
+    controls.forEach(({button,mode,label})=>{
+      const left=emailCooldownSeconds(mode);
+      if(button.dataset.old)return;
+      button.disabled=left>0;
+      button.textContent=left?(mode==='recovery'?'Retry':'Resend')+' in '+left+'s':label;
+      active=active||left>0;
+    });
+    if(active)emailCooldownTimer=setTimeout(refreshEmailCooldown,1000);
+  }
+  function markEmailSent(mode){
+    sessionStorage.setItem('edunizam_'+mode+'_email_sent_at',String(Date.now()));
+    refreshEmailCooldown();
+  }
+  function checkEmailCooldown(mode){
+    const left=emailCooldownSeconds(mode);
+    if(left)throw new Error('Please wait '+left+' seconds before requesting another email. Check your inbox and spam folder.');
+  }
 
   function show(id){
     ['roleView','authView','otpView','resetView'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
@@ -178,6 +205,8 @@
     const s=String(error||'');
     if(/invalid login credentials/i.test(s))return 'Email or password is incorrect.';
     if(/email not confirmed/i.test(s))return 'Please verify your email address, then log in.';
+    if(/otp_expired|token has expired|expired token/i.test(s))return 'This code has expired. Use Resend Code to request a new email.';
+    if(/over_email_send_rate_limit|email rate limit exceeded|too many email requests/i.test(s))return 'Email limit reached. Please wait before requesting another email; repeated clicks will not send it sooner.';
     if(/already registered|already exists/i.test(s))return 'An account already exists with this email.';
     return s;
   }
@@ -521,6 +550,7 @@
           message('This email already has an EduNizam account. Please use Log In for this role.');
           return;
         }
+        markEmailSent('signup');
         localStorage.setItem('edunizam_verify_email',email);
         $('resendVerifyBtn').classList.remove('hidden');
         otpMode='signup';otpEmail=email;
@@ -634,12 +664,14 @@
     if(!client)throw new Error('Login service is unavailable.');
     const email=otpEmail||localStorage.getItem('edunizam_verify_email')||$('signupEmail').value.trim();
     if(!email)throw new Error('Enter your email address first.');
+    checkEmailCooldown('signup');
     const {error}=await client.auth.resend({
       type:'signup',
       email,
       options:{emailRedirectTo:PROD_LOGIN_URL}
     });
     if(error)throw error;
+    markEmailSent('signup');
     otpMode='signup';otpEmail=email;
     return email;
   }
@@ -650,15 +682,17 @@
       const email=await resendSignupVerification();
       message('Verification email sent again to '+email+'. Check inbox and spam folder.',true);
     }catch(err){message(friendly(err.message||err))}
-    finally{busy($('resendVerifyBtn'),false)}
+    finally{busy($('resendVerifyBtn'),false);refreshEmailCooldown()}
   };
 
   async function sendRecovery(email){
     if(!client)throw new Error('Login service is unavailable.');
     const clean=String(email||'').trim();
     if(!clean)throw new Error('Enter your registered email address first.');
+    checkEmailCooldown('recovery');
     const {error}=await client.auth.resetPasswordForEmail(clean,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});
     if(error)throw error;
+    markEmailSent('recovery');
     otpMode='recovery';otpEmail=clean;
     localStorage.setItem('edunizam_recovery_email',clean);
     return clean;
@@ -688,7 +722,7 @@
       message('',false,'otpStatus');
       show('otpView');
     }catch(err){message(friendly(err.message||err))}
-    finally{busy($('forgotBtn'),false)}
+    finally{busy($('forgotBtn'),false);refreshEmailCooldown()}
   };
   $('otpForm').onsubmit=async e=>{
     e.preventDefault();
@@ -733,7 +767,7 @@
         message('Verification email sent again to '+email+'.',true,'otpStatus');
       }
     }catch(err){message(friendly(err.message||err),false,'otpStatus')}
-    finally{busy($('resendOtpBtn'),false)}
+    finally{busy($('resendOtpBtn'),false);refreshEmailCooldown()}
   };
 
   $('backOtp').onclick=()=>{show('authView');setTab('login')};
@@ -758,6 +792,7 @@
   $('backReset').onclick=()=>show('roleView');
 
   if(localStorage.getItem('edunizam_verify_email'))$('resendVerifyBtn').classList.remove('hidden');
+  refreshEmailCooldown();
 
   if(client){
     client.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY'){otpMode='recovery';show('resetView')}});
@@ -783,7 +818,7 @@
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260926-access-mobile96').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260926-email-retry97').catch(()=>{}));
 }
 </script>
 </body>

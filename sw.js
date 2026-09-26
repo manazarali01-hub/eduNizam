@@ -1,4 +1,4 @@
-const CACHE='edunizam-v96-access-mobile-polish'
+const CACHE='edunizam-v97-email-retry-guidance'
 const CORE=[
   './',
   './index.html',
