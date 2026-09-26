@@ -32,7 +32,7 @@
     if(!cloudReady())return;
     const {data,error}=await cloud().state.client.from('staff_attendance_records').select('*,staff_profiles(full_name,staff_code,user_id)').eq('institution_id',cfg().institutionId).order('attendance_date',{ascending:false});
     if(error)throw error;
-    const mapped=(data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,date:x.attendance_date,status:x.status,note:x.note||'',checkInAt:x.check_in_at||'',checkOutAt:x.check_out_at||'',checkInLat:x.check_in_latitude,checkInLng:x.check_in_longitude,checkInAccuracy:x.check_in_accuracy_m,checkOutLat:x.check_out_latitude,checkOutLng:x.check_out_longitude,checkOutAccuracy:x.check_out_accuracy_m,staffName:x.staff_profiles?.full_name||''}));
+    const mapped=(data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,date:x.attendance_date,status:x.status,note:x.note||'',checkInAt:x.check_in_at||'',checkOutAt:x.check_out_at||'',checkInLat:x.check_in_latitude,checkInLng:x.check_in_longitude,checkInAccuracy:x.check_in_accuracy_m,checkOutLat:x.check_out_latitude,checkOutLng:x.check_out_longitude,checkOutAccuracy:x.check_out_accuracy_m,staffName:x.staff_profiles?.full_name||'',staffUserId:x.staff_profiles?.user_id||'',markedBy:x.marked_by||''}));
     write(ATT_KEY,mapped);
   }
   async function saveCloud(item){
@@ -42,7 +42,7 @@
     if(error)throw error;return data;
   }
   async function persist(item){
-    try{const row=await saveCloud(item);if(row)item={...item,id:row.id,checkInAt:row.check_in_at||'',checkOutAt:row.check_out_at||''}}catch(e){if(cloudReady())return alert('Cloud time clock failed: '+(e.message||e))}
+    try{const row=await saveCloud(item);if(row)item={...item,id:row.id,checkInAt:row.check_in_at||'',checkOutAt:row.check_out_at||'',markedBy:row.marked_by||'',staffUserId:item.staffUserId||staff().find(x=>String(x.id)===String(item.staffId))?.userId||''}}catch(e){if(cloudReady())return alert('Cloud time clock failed: '+(e.message||e))}
     const rows=attendance().filter(x=>!(String(x.staffId)===String(item.staffId)&&x.date===item.date));rows.push(item);write(ATT_KEY,rows);
     try{await window.EDUNIZAM_WORKFLOW_ALERTS?.staffAttendanceSaved?.(item)}catch(e){console.warn('Staff attendance alert:',e.message||e)}
     window.dispatchEvent(new CustomEvent('edunizam:attendance-updated',{detail:{kind:'staff',date:item.date,staffId:item.staffId,status:item.status}}));
@@ -116,10 +116,15 @@
     const actions=teacherActions+adminActions;
     return '<article class="paper-card timeclock-card"><div class="paper-card-top"><span class="mini-badge">'+esc(st.staffCode||'Staff')+'</span><span class="badge">'+esc(badge)+'</span></div><h3>'+esc(st.fullName)+'</h3><p class="muted">'+esc(st.designation||'Staff')+(st.phone?' · '+esc(st.phone):' · No contact number')+'</p><div class="time-punch-grid"><div><span>Check In</span><strong>'+displayTime(row?.checkInAt)+'</strong></div><div><span>Check Out</span><strong>'+displayTime(row?.checkOutAt)+'</strong></div><div><span>Worked</span><strong>'+duration(row||{})+'</strong></div></div>'+(row?.checkInAt?'<div class="paper-actions"><span>In: '+mapLink(row.checkInLat,row.checkInLng,row.checkInAccuracy)+'</span>'+(row?.checkOutAt?'<span>Out: '+mapLink(row.checkOutLat,row.checkOutLng,row.checkOutAccuracy)+'</span>':'')+'</div>':'')+actions+'</article>';
   }
+  function staffMarkerLabel(row,st){
+    if(!row?.markedBy)return 'Local / not recorded';
+    const staffUser=String(row.staffUserId||st?.userId||'');
+    return staffUser&&String(row.markedBy)===staffUser?'Teacher self':'Admin';
+  }
   function logRows(month){
     const ids=new Set(mine().map(x=>String(x.id))),rows=attendance().filter(x=>ids.has(String(x.staffId))&&String(x.date).startsWith(month)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
     if(!rows.length)return'<div class="empty-state">Is month ka exact-time attendance record available nahi hai.</div>';
-    return '<div class="schedule-table-wrap"><table class="schedule-table"><thead><tr><th>Date</th><th>Staff</th><th>Status</th><th>Check In</th><th>Check Out</th><th>Worked</th><th>Verified Location</th></tr></thead><tbody>'+rows.map(x=>{const st=staff().find(s=>String(s.id)===String(x.staffId));return'<tr><td>'+esc(x.date)+'</td><td><strong>'+esc(st?.fullName||x.staffName||'Staff')+'</strong></td><td>'+esc(x.status)+'</td><td>'+displayTime(x.checkInAt)+'</td><td>'+displayTime(x.checkOutAt)+'</td><td>'+duration(x)+'</td><td><div class="paper-actions">'+mapLink(x.checkInLat,x.checkInLng,x.checkInAccuracy)+(x.checkOutAt?mapLink(x.checkOutLat,x.checkOutLng,x.checkOutAccuracy):'')+'</div></td></tr>'}).join('')+'</tbody></table></div>';
+    return '<div class="schedule-table-wrap"><table class="schedule-table"><thead><tr><th>Date</th><th>Staff</th><th>Status</th><th>Check In</th><th>Check Out</th><th>Worked</th>'+(isHead()?'<th>Marked By</th>':'')+'<th>Verified Location</th></tr></thead><tbody>'+rows.map(x=>{const st=staff().find(s=>String(s.id)===String(x.staffId));return'<tr><td>'+esc(x.date)+'</td><td><strong>'+esc(st?.fullName||x.staffName||'Staff')+'</strong></td><td>'+esc(x.status)+'</td><td>'+displayTime(x.checkInAt)+'</td><td>'+displayTime(x.checkOutAt)+'</td><td>'+duration(x)+'</td>'+(isHead()?'<td><span class="badge">'+esc(staffMarkerLabel(x,st))+'</span></td>':'')+'<td><div class="paper-actions">'+mapLink(x.checkInLat,x.checkInLng,x.checkInAccuracy)+(x.checkOutAt?mapLink(x.checkOutLat,x.checkOutLng,x.checkOutAccuracy):'')+'</div></td></tr>'}).join('')+'</tbody></table></div>';
   }
   function manualEditor(){if(!isHead())return'';return'<article class="card"><div class="section-head"><div><h3>Manual Time Adjustment</h3><p class="muted">Head exact time correct ya back-date kar sakta hai.</p></div></div><div class="form-grid"><select id="staManualStaff"><option value="">Select staff</option>'+staff().filter(x=>x.status!=='inactive').map(x=>'<option value="'+esc(x.id)+'">'+esc(x.fullName)+'</option>').join('')+'</select><input id="staManualDate" type="date" value="'+today()+'"><select id="staManualStatus"><option>Present</option><option>Absent</option><option>Leave</option><option>Half Day</option></select><input id="staManualIn" type="time"><input id="staManualOut" type="time"><input id="staManualNote" placeholder="Adjustment note"><button id="staManualSave">Save Exact Time</button></div></article>'}
   function bind(){
