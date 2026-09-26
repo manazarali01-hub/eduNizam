@@ -107,6 +107,26 @@ if(!read('premium-ui.js').includes('Cloud Connected')) fail.push('Premium cloud/
 if(!read('premium-ui.css').includes('.premium-context-chip')) fail.push('Premium topbar context styling missing.');
 if(!read('premium-ui.css').includes('.premium-mobile-dock')) fail.push('Premium mobile dock styling missing.');
 if(!read('sw.js').includes("'./premium-ui.css'")||!read('sw.js').includes("'./premium-ui.js'")||!read('sw.js').includes("'./premium-auth.css'")) fail.push('PWA cache does not include premium UI assets.');
+if(!exists('assets/edunizam-premium-mark.svg')) fail.push('Premium EduNizam brand mark missing.');
+else{
+  const premiumMark=read('assets/edunizam-premium-mark.svg');
+  if(!premiumMark.includes('#D7AA4A')&&!premiumMark.includes('#D9AE55')) fail.push('Premium brand mark has no restrained gold accent.');
+  if(!premiumMark.includes('#075347')&&!premiumMark.includes('#043B35')) fail.push('Premium brand mark has no deep emerald identity.');
+}
+if(!index.includes('assets/edunizam-premium-mark.svg')) fail.push('Main app does not use premium brand mark.');
+if(!login.includes('assets/edunizam-premium-mark.svg')) fail.push('Login does not use premium brand mark.');
+if(!read('admission.html').includes('assets/edunizam-premium-mark.svg')) fail.push('Admission portal does not use premium brand mark.');
+if(!read('premium-ui.css').includes('2026 Premium Emerald Appearance System')) fail.push('Premium emerald appearance layer missing.');
+if(!read('premium-ui.css').includes('edunizam-girl-hero.webp')) fail.push('Dashboard premium natural hero image missing.');
+if(!read('premium-auth.css').includes('2026 Premium Natural Auth Appearance')) fail.push('Premium natural auth appearance layer missing.');
+if(!read('premium-auth.css').includes('edunizam-login-children.webp')) fail.push('Login natural school background missing.');
+if(!read('premium-auth.css').includes('.brand-i:after')) fail.push('Golden EduNizam i-dot treatment missing.');
+if(!read('sw.js').includes("'./assets/edunizam-premium-mark.svg'")) fail.push('PWA cache does not include premium brand mark.');
+if(!read('sw.js').includes("'./assets/edunizam-girl-hero.webp'")) fail.push('PWA cache does not include premium dashboard hero.');
+const manifest=JSON.parse(read('manifest.webmanifest'));
+if(manifest.theme_color!=='#075347') fail.push('PWA theme color is not premium emerald.');
+if(manifest.background_color!=='#F4F7F2') fail.push('PWA background color is not premium warm off-white.');
+
 
 const reliability=read('reliability-guardian.js');
 if(!reliability.includes('Main Thread Stall')) fail.push('Hang watchdog is missing.');
