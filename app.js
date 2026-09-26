@@ -41,6 +41,12 @@ function persist(){
 }
 function logActivity(text){state.activity.push({text,time:new Date().toLocaleString()});persist();renderActivity();}
 async function setView(view){
+ if(window.EDUNIZAM_ROLE_SCOPE?.canView && !window.EDUNIZAM_ROLE_SCOPE.canView(view)){
+   window.EDUNIZAM_RELIABILITY?.report?.('Access Guard','Blocked a role from opening a restricted section.',String(view||''),'warning');
+   const fallback='dashboard';
+   if(view!==fallback&&window.EDUNIZAM_ROLE_SCOPE.canView(fallback))return setView(fallback);
+   return;
+ }
  const target=$(view);if(!target)return;
  try{
    if(window.EDUNIZAM_FEATURE_LOADER&&!window.EDUNIZAM_FEATURE_LOADER.isReady(view)){
