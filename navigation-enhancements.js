@@ -7,7 +7,7 @@
     ['School Operations','⚙',['admissions','financecenter','bulkimport','inventorycenter','librarycenter','transportcenter','gatecenter','parentcomplaints','helpdeskcenter','calendarcenter','functionscenter','ourstudents','attendanceanalytics']],
     ['Learning Resources','▤',['pastpapers','practice','study','schoolassessments','universities','vu']],
     ['Communication','✉',['communication','notifications']],
-    ['AI & System','✦',['assistant','settings','troubleshoot','help']]
+    ['AI & System','✦',['assistant','auditcenter','settings','troubleshoot','help']]
   ];
   const groupMap=new Map(groups.flatMap(([title,,views])=>views.map(v=>[v,title])));
   function findGroup(nav,title){return [...nav.querySelectorAll(':scope > .nav-group')].find(g=>g.dataset.groupTitle===title)}
