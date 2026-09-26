@@ -108,3 +108,174 @@ body{
 @media(prefers-reduced-motion:reduce){
   .role,.primary,.secondary,.tab,.back,.password-toggle{transition:none!important}
 }
+
+
+/* ===== 2026 Premium Natural Auth Appearance ===== */
+:root{
+  --pa-navy:#123B33;
+  --pa-navy2:#185244;
+  --pa-teal:#08705D;
+  --pa-teal2:#109176;
+  --pa-gold:#D7AA4A;
+  --pa-line:#DCE8E0;
+  --pa-ink:#1D342F;
+  --pa-muted:#75837D;
+}
+body{
+  background:
+    radial-gradient(circle at 10% 4%,rgba(215,170,74,.10),transparent 22rem),
+    radial-gradient(circle at 88% 16%,rgba(16,145,118,.075),transparent 29rem),
+    linear-gradient(180deg,#FBFCF8 0%,#F4F7F2 100%)!important;
+}
+.card{
+  background:rgba(255,255,252,.965)!important;
+  border-color:#DCE8E0!important;
+  box-shadow:0 28px 72px rgba(24,72,60,.12)!important;
+}
+.card:before{
+  background:linear-gradient(90deg,#08705D,#D7AA4A,#109176);
+}
+.story{
+  background-image:url("assets/edunizam-login-children.webp")!important;
+  background-position:center center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+.story:before{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(90deg,rgba(3,50,43,.38) 0%,rgba(3,50,43,.18) 30%,rgba(3,50,43,.04) 58%,rgba(255,255,255,.02) 100%),
+    linear-gradient(180deg,rgba(3,48,41,.06) 0%,rgba(3,48,41,.04) 55%,rgba(3,48,41,.14) 100%);
+}
+.story:after{
+  background:
+    radial-gradient(circle at 18% 10%,rgba(245,218,154,.16),transparent 19rem),
+    linear-gradient(180deg,rgba(255,255,255,.015),rgba(3,47,40,.05));
+}
+.story>*{position:relative;z-index:1}
+.logo-box{
+  background:rgba(255,255,250,.94) url("assets/edunizam-premium-mark.svg") center/76% no-repeat!important;
+  border:1px solid rgba(235,210,151,.62);
+  box-shadow:0 18px 38px rgba(8,57,47,.18)!important;
+  backdrop-filter:blur(10px);
+}
+.brand-title strong{letter-spacing:-.05em;text-shadow:0 3px 18px rgba(0,0,0,.24)!important}
+.brand-title .edu{color:#FFFDF7!important}
+.brand-title .nizam{color:#7CDBB0!important}
+.brand-i{position:relative;display:inline-block}
+.brand-i:after{
+  content:"";
+  position:absolute;
+  width:.18em;height:.18em;
+  left:50%;top:-.03em;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:#E0B758;
+  box-shadow:0 0 0 2px rgba(224,183,88,.14);
+}
+.brand-copy>span{
+  color:#F0E5C5!important;
+  background:rgba(6,72,61,.34)!important;
+  border-color:rgba(255,255,255,.13)!important;
+}
+.story-copy{margin-top:clamp(58px,8vh,88px)}
+.story h1{
+  color:#FFFDF8!important;
+  text-shadow:0 4px 24px rgba(2,37,32,.30)!important;
+  max-width:620px;
+}
+.story h1:after{
+  content:"";
+  display:block;
+  width:72px;height:3px;
+  margin-top:18px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#E3BC62,rgba(227,188,98,.18));
+}
+.story p .mini-chip{
+  color:#F8FBF8!important;
+  background:rgba(5,68,58,.32)!important;
+  border-color:rgba(255,255,255,.14)!important;
+  box-shadow:0 10px 28px rgba(3,48,41,.14)!important;
+}
+.benefits span{
+  color:#FFFDF8!important;
+  background:rgba(5,68,58,.30)!important;
+  border-color:rgba(255,255,255,.15)!important;
+  box-shadow:0 10px 26px rgba(3,48,41,.13)!important;
+}
+.role{
+  background:linear-gradient(180deg,#FFFFFC,#F8FBF8)!important;
+  border-color:#DCE8E0!important;
+}
+.role:hover,.role:focus-visible{
+  border-color:#B9D6C8!important;
+  box-shadow:0 14px 30px rgba(23,70,58,.085)!important;
+}
+.role .icon{
+  width:42px;height:42px;
+  display:grid!important;place-items:center;
+  margin:0 0 10px!important;
+  border-radius:13px;
+  background:linear-gradient(145deg,#EDF7F1,#FBF4DF);
+  border:1px solid #DDE9E1;
+  font-size:1.35rem!important;
+}
+.primary{
+  background:linear-gradient(135deg,#0A745F,#07594D)!important;
+  box-shadow:0 10px 22px rgba(8,112,93,.18)!important;
+}
+.secondary{background:#F0F7F2!important;color:#0A6B59!important;border-color:#D8E7DE!important}
+.tabs{background:#EFF4F0!important;border-color:#DDE7E0!important}
+.tab.active{background:#123B33!important}
+.role-guidance{
+  background:linear-gradient(180deg,#F8FBF8,#F1F7F3)!important;
+  border-color:#D8E7DE!important;
+}
+.mobile-brand{
+  background:rgba(255,255,252,.94)!important;
+  border-bottom-color:#E4ECE6!important;
+}
+.mobile-brand img{
+  width:52px!important;height:52px!important;
+  padding:3px;border-radius:15px;
+  background:#075347;
+  box-shadow:0 9px 22px rgba(16,59,51,.13);
+}
+.mobile-brand strong{font-size:1.18rem;letter-spacing:-.035em}
+.mobile-brand .brand-edu{color:#123B33!important}
+.mobile-brand .brand-nizam{color:#0A745F!important}
+body.admission-premium{
+  min-height:100vh;
+  background:
+    linear-gradient(90deg,rgba(250,251,247,.965) 0%,rgba(250,251,247,.93) 52%,rgba(246,249,244,.80) 100%),
+    url("assets/edunizam-girl-hero.webp") right center/cover fixed no-repeat!important;
+}
+.admission-premium .shell{position:relative;z-index:1}
+.admission-premium .top{
+  padding:10px 2px 4px;
+}
+.admission-brand img{
+  width:58px!important;height:58px!important;
+  padding:3px;
+  border-radius:17px;
+  background:#075347;
+  box-shadow:0 12px 26px rgba(15,67,55,.14);
+}
+.admission-brand strong{font-size:1.28rem;letter-spacing:-.04em}
+.admission-brand .brand-edu{color:#123B33!important}
+.admission-brand .brand-nizam{color:#0A745F!important}
+.admission-premium .card{
+  box-shadow:0 20px 50px rgba(23,70,58,.085)!important;
+}
+@media(max-width:820px){
+  .story:before{background:linear-gradient(90deg,rgba(3,50,43,.26),rgba(3,50,43,.06))}
+}
+@media(max-width:700px){
+  body.admission-premium{
+    background:
+      linear-gradient(rgba(250,251,247,.94),rgba(250,251,247,.94)),
+      url("assets/edunizam-girl-hero.webp") center/cover fixed no-repeat!important;
+  }
+}
