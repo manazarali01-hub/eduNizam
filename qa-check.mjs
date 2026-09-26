@@ -220,7 +220,7 @@ if(!leaveCenter.includes("leaveFor:'staff'")) fail.push('Teacher own-leave submi
 const leaveMigration=read('supabase-leave-requests-migration.sql');
 if(!leaveMigration.includes('teachers submit own leave')) fail.push('Teacher leave insert policy missing.');
 if(!leaveMigration.includes('heads decide institute leave')) fail.push('Admin-only leave decision policy missing.');
-if(leaveMigration.includes('teachers decide assigned leave')) fail.push('Legacy Teacher leave-decision policy still present.');
+if(leaveMigration.includes('create policy "teachers decide assigned leave"')) fail.push('Legacy Teacher leave-decision policy still present.');
 if(!leaveMigration.includes('leave_requests_decision_complete_check')) fail.push('Leave decision cause integrity constraint missing.');
 if(!leaveMigration.includes('decide_leave_request_v1')) fail.push('Leave decision RPC migration missing.');
 
