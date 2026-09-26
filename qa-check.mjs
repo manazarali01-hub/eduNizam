@@ -155,6 +155,31 @@ const authBridgeE2E=read('auth-bridge.js');
 if(!authBridgeE2E.includes('refreshScopedRoleCache')) fail.push('Role-scoped cache refresh missing after member login.');
 if(!authBridgeE2E.includes('pullAllCloudToLocal')) fail.push('Member login does not reload RLS-filtered cloud data.');
 if(!authBridgeE2E.includes("location.reload()")) fail.push('Shared-device stale in-memory data reload guard missing.');
+const admissionsSecurityMigration='supabase/migrations/20260926052611_harden_admissions_applicant_admin_boundaries.sql';
+if(!exists(admissionsSecurityMigration)) fail.push('Admissions applicant/Admin boundary migration missing.');
+else{
+  const admSec=read(admissionsSecurityMigration);
+  if(!admSec.includes('applicant insert safe application')) fail.push('Applicant safe-insert policy missing.');
+  if(!admSec.includes("status='Draft'")) fail.push('Applicant draft update boundary missing.');
+  if(!admSec.includes('heads update applications')) fail.push('Admin application decision policy missing.');
+  if(!admSec.includes('application owner or head read admission documents')) fail.push('Admission document privacy policy missing.');
+  if(!admSec.includes('applicant safe payment record')) fail.push('Applicant payment-verification boundary missing.');
+  if(admSec.includes('is_institution_staff(a.institution_id)')) fail.push('Admissions migration still grants Teacher/staff admission PII access.');
+}
+const auditSecurityMigration='supabase/migrations/20260926052724_restrict_audit_logs_to_school_admin.sql';
+if(!exists(auditSecurityMigration)) fail.push('Admin-only audit log migration missing.');
+else{
+  const auditSec=read(auditSecurityMigration);
+  if(!auditSec.includes('heads read audit logs')) fail.push('Audit log read is not Admin-only.');
+}
+if(!admissionsCloud.includes('async function requireHeadRole()')) fail.push('Admissions management APIs have no explicit Admin guard.');
+for(const fn of ['listInstitutionApplications','listPayments','updatePaymentStatus','listAuditLogs','updateCloudApplicationStatus']){
+  const pos=admissionsCloud.indexOf('async function '+fn);
+  const snippet=pos>=0?admissionsCloud.slice(pos,pos+520):'';
+  if(!snippet.includes('requireHeadRole')) fail.push('Admissions Admin API guard missing: '+fn);
+}
+if(index.includes('data-admission-roles="teacher,head_of_institute"')) fail.push('Legacy Teacher admission-management tabs still exposed.');
+
 const assignedRlsMigration='supabase/migrations/20260926051550_harden_assigned_student_role_access.sql';
 if(!exists(assignedRlsMigration)) fail.push('Assigned-student RLS hardening migration missing.');
 else{
