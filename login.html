@@ -28,9 +28,9 @@
     .fields{display:grid;gap:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input{width:100%;border:1px solid #cadbd8;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);outline:none}.field input:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}.password-wrap{position:relative}.password-wrap input{padding-right:72px}.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:#eef7f5;color:var(--teal2);border-radius:9px;padding:7px 9px;font-size:.75rem;font-weight:850;cursor:pointer}.password-toggle:hover{background:#e1f1ed}.password-toggle:focus-visible{outline:3px solid #e6b94c;outline-offset:2px}
     .primary{width:100%;border:0;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;padding:13px 16px;font-weight:850;cursor:pointer}.secondary{border:1px solid var(--line);background:#fff;color:var(--teal2);border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer}.link{border:0;background:none;color:var(--teal);font-weight:800;cursor:pointer;padding:0}
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px}.help{color:var(--muted);font-size:.78rem}.role-guidance{margin:2px 0 16px;padding:12px 14px;border:1px solid #d5e6e2;border-radius:13px;background:#f5fbf9;color:#405b58;font-size:.82rem;line-height:1.55}.role-guidance strong{color:var(--teal2)}.status{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;font-size:.85rem;line-height:1.45}.status.show{display:block}.status.bad{background:#fff1f0;color:var(--danger);border:1px solid #f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border:1px solid #b7e6c8}.school-picker{margin-top:14px;padding:14px;border:1px solid #d5e6e2;border-radius:14px;background:#f8fcfb}.school-picker h3{margin:0 0 10px;font-size:1rem}.school-choice{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #e4efed}.school-choice:first-of-type{border-top:0}.school-choice small{display:block;color:var(--muted);margin-top:3px}.school-choice button{width:auto;padding:9px 12px}.school-search-row{display:grid;grid-template-columns:1fr auto;gap:8px}.school-search-row button{width:auto}.school-search-results{display:grid;gap:8px}.school-search-result{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 11px;border:1px solid #dbe7e4;border-radius:11px;background:#fbfefd}.school-search-result small{display:block;color:var(--muted);margin-top:3px}.school-selected{padding:10px 12px;border-radius:11px;background:#ecfdf3;color:#166534;border:1px solid #b7e6c8;font-size:.82rem}
-    .mobile-brand{display:none}.skip{position:fixed;left:12px;top:12px;transform:translateY(-160%);background:#fff;color:#12324a;padding:10px 14px;border-radius:10px;z-index:999}.skip:focus{transform:none}
+    .school-search-row input{min-width:0}.mobile-brand{display:none}.skip{position:fixed;left:12px;top:12px;transform:translateY(-160%);background:#fff;color:#12324a;padding:10px 14px;border-radius:10px;z-index:999}.skip:focus{transform:none}
     :focus-visible{outline:3px solid #e6b94c;outline-offset:3px}
-    @media(max-width:1100px) and (min-width:821px){.story{padding:42px 38px 50px}.brand{gap:12px}.logo-box{width:112px;height:84px;flex-basis:112px}.brand-title strong{font-size:clamp(40px,4.8vw,58px)}.story-copy{margin-top:58px;width:min(500px,95%)}}@media(max-width:820px){.page{grid-template-columns:1fr}.story{display:none}.main{padding:18px}.card{padding:22px;border-radius:20px}.mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}.mobile-brand img{width:48px;height:48px}.grid2{grid-template-columns:1fr}}
+    @media(max-width:1100px) and (min-width:821px){.story{padding:42px 38px 50px}.brand{gap:12px}.logo-box{width:112px;height:84px;flex-basis:112px}.brand-title strong{font-size:clamp(40px,4.8vw,58px)}.story-copy{margin-top:58px;width:min(500px,95%)}}@media(max-width:820px){.page{grid-template-columns:1fr}.story{display:none}.main{padding:18px}.card{padding:22px;border-radius:20px}.mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}.mobile-brand img{width:48px;height:48px}.grid2{grid-template-columns:1fr}}@media(max-width:420px){.main{padding:12px}.card{padding:18px}.school-search-row{grid-template-columns:1fr}.school-search-row button{width:100%}.school-search-result{grid-template-columns:1fr}.school-search-result button{width:100%}}
   </style>
 </head>
 <body>
@@ -164,7 +164,7 @@
 
   function show(id){
     ['roleView','authView','otpView','resetView'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
-    window.scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo(0,0);
   }
   function message(text,ok=false,target='statusBox'){
     const el=$(target);el.textContent=text||'';el.className='status'+(text?' show ':' ')+(ok?'good':'bad');
@@ -368,6 +368,9 @@
 
   function chooseRole(role){
     selectedRole=role;
+    clearMemberSchoolSelection();
+    $('memberSchoolSearch').value='';
+    $('memberSchoolResults').innerHTML='';
     $('roleTitle').textContent=labels[role]+' Access';
     const copy={
       admin:'Use your school name, Admin email and password.',
@@ -404,10 +407,6 @@
     $('approvalGuardianLabel').innerHTML=student
       ? 'Father / Guardian Name <span class="help">(Optional)</span>'
       : 'Child Father / Guardian Name <span class="help">(Optional)</span>';
-    if(!member){
-      clearMemberSchoolSelection();
-      $('memberSchoolResults').innerHTML='';
-    }
     $('signupBtn').textContent=admin?'Create / Add School':'Send Approval Request';
     show('authView');
     setTab('login');
@@ -784,7 +783,7 @@
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260926-role-approval95').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260926-access-mobile96').catch(()=>{}));
 }
 </script>
 </body>

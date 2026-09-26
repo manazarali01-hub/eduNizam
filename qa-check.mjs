@@ -144,7 +144,8 @@ if(!read('role-access-center.js').includes('Teacher, Parent & Student Requests')
 if(!read('role-access-center.js').includes('data-school-access-approve')) fail.push('One-click Parent/Student approval button missing.');
 if(!read('role-access-center.js').includes('decideTeacherSchoolRequest')) fail.push('Teacher approval is not linked to Admin.');
 if(!read('core-cloud.js').includes("student_code:s.studentId||fallbackStudentCode(s)")) fail.push('Internal student cloud identity can be lost.');
-if(!read('role-access-center.js').includes("teacherRequest.style.display='none'")) fail.push('Legacy teacher code card is still exposed.');
+if(read('role-access-center.js').includes('id="teacherRequestCard"')||read('role-access-center.js').includes('id="inviteAdminCard"')) fail.push('Legacy code controls remain in Access & Roles.');
+if(!read('role-access-center.js').includes('id="toggleReviewedRequests"')) fail.push('Reviewed requests cannot be inspected after approval.');
 if(!fs.existsSync(path.join(root,'supabase-teacher-access-ambiguity-fix.sql'))) fail.push('Teacher access ambiguity fix SQL is missing from the repository.');
 if(!read('supabase-teacher-access-ambiguity-fix.sql').includes('teacher_access_requests_institution_id_requester_user_id_key')) fail.push('Teacher access upsert does not use the named unique constraint.');
 if(!fs.existsSync(path.join(root,'supabase/migrations/20260922223000_secure_student_parent_school_linking.sql'))) fail.push('Secure Student/Parent DB migration file missing.');

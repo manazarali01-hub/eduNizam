@@ -1,4 +1,4 @@
-const CACHE='edunizam-v95-simple-role-approval'
+const CACHE='edunizam-v96-access-mobile-polish'
 const CORE=[
   './',
   './index.html',
