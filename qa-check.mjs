@@ -114,7 +114,7 @@ else{
   if(!premiumMark.includes('#075347')&&!premiumMark.includes('#043B35')) fail.push('Premium brand mark has no deep emerald identity.');
 }
 if(!index.includes('assets/edunizam-premium-mark.svg')) fail.push('Main app does not use premium brand mark.');
-if(!login.includes('assets/edunizam-premium-mark.svg')) fail.push('Login does not use premium brand mark.');
+if(!read('login.html').includes('assets/edunizam-premium-mark.svg')) fail.push('Login does not use premium brand mark.');
 if(!read('admission.html').includes('assets/edunizam-premium-mark.svg')) fail.push('Admission portal does not use premium brand mark.');
 if(!read('premium-ui.css').includes('2026 Premium Emerald Appearance System')) fail.push('Premium emerald appearance layer missing.');
 if(!read('premium-ui.css').includes('edunizam-girl-hero.webp')) fail.push('Dashboard premium natural hero image missing.');
