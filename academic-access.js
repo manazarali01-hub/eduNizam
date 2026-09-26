@@ -15,14 +15,8 @@
     const access=document.getElementById('access');if(!access||document.getElementById('studentRecordLinkCard'))return;
     const grid=access.querySelector('.access-grid');if(!grid)return;
     const card=document.createElement('article');card.className='card';card.id='studentRecordLinkCard';
-    card.innerHTML='<h3>Link My Student Record</h3><p class="muted">Student apna school-issued Student Code enter karke attendance, fees aur results apne account se link kare.</p><div class="form-grid"><input id="claimStudentRecordCode" placeholder="Student code"><button id="claimStudentRecordBtn">Link My Record</button></div><div id="claimStudentRecordMsg" class="coverage-note"></div>';
+    card.innerHTML='<h3>My Student Record</h3><p class="muted">Koi Student Code required nahi. Admin approval ke waqt EduNizam aap ki profile ko school record se automatically match/link karta hai.</p><div id="claimStudentRecordMsg" class="coverage-note">Agar dashboard blank ho to Admin ko student profile/admission details review karni hongi; aap ko naya code enter karne ki zarurat nahi.</div>';
     grid.appendChild(card);
-    card.querySelector('#claimStudentRecordBtn').onclick=async()=>{
-      const msg=card.querySelector('#claimStudentRecordMsg'),code=card.querySelector('#claimStudentRecordCode').value.trim();
-      if(!code)return msg.textContent='Student code enter karein.';
-      try{msg.textContent='Linking record...';const x=await cloud().claimStudentRecord(code);msg.textContent='Linked successfully: '+(x?.student_name||'Student')+' '+(x?.class_name?'('+x.class_name+')':'');}
-      catch(e){msg.textContent=e.message||String(e)}
-    };
   }
   function mountAssignments(){
     const access=document.getElementById('access');if(!access||document.getElementById('teacherAssignmentCard'))return;
