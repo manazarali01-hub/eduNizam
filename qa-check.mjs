@@ -183,6 +183,26 @@ for(const roleName of ['student','parent','teacher','head']){
   if(!troubleshootPattern.test(app)) fail.push('Troubleshoot section is not available to role: '+roleName);
 }
 
+/* Recent role/link/mobile regression guards */
+if(/\?[^"'\s>]*\?/.test(index)) fail.push('Malformed double-query cache version found in index.html.');
+if(!roleScope.includes('function canView(view)')) fail.push('Role scope view guard is missing.');
+if(!app.includes('window.EDUNIZAM_ROLE_SCOPE?.canView')) fail.push('setView does not enforce role view guard.');
+const academicAccess=read('academic-access.js');
+if(!academicAccess.includes('assign_teacher_class_v1')) fail.push('Bulk teacher class assignment RPC is not wired to the UI.');
+for(const id of ['bulkAssignmentTeacher','bulkAssignmentClass','bulkAssignmentSection','assignWholeClassBtn']){
+  if(!academicAccess.includes(id)) fail.push('Bulk teacher assignment control missing: '+id);
+}
+if(!admissionsCloud.includes('resolveSchoolAccessLink')) fail.push('Manual Parent/Student link resolver API missing.');
+if(!admissionsCloud.includes('listAccessLinkIssues')) fail.push('Unresolved Parent/Student link detector missing.');
+const roleAccessCenter=read('role-access-center.js');
+if(!roleAccessCenter.includes('resolveAccessLinksCard')) fail.push('Admin Resolve Link panel missing.');
+if(!roleAccessCenter.includes('resolveSchoolAccessLink')) fail.push('Resolve Link panel is not wired to backend.');
+if(!roleAccessCenter.includes('dashboardAccessApprovalCard')) fail.push('Admin dashboard pending-approval card missing.');
+const style=read('style.css');
+if(!style.includes('Mobile stability and touch ergonomics')) fail.push('Shared mobile stability stylesheet layer missing.');
+if(!login.includes('min-height:100dvh')) fail.push('Mobile login keyboard-stability viewport rule missing.');
+if(!login.includes('min-height:44px')) fail.push('Mobile login touch target sizing missing.');
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
