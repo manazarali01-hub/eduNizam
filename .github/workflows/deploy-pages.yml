@@ -98,5 +98,9 @@ jobs:
 
           check_content "${BASE}" "EduNizam"
           check_content "${BASE}login.html" "EduNizam Login"
+          check_content "${BASE}sitemap.xml" "<urlset"
+          check_content "${BASE}robots.txt" "Sitemap:"
+          echo "Sitemap headers:"
+          curl --fail --silent --show-error --location --head -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}sitemap.xml?verify=${GITHUB_SHA}" | sed -n '1,20p'
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}app.js?verify=${GITHUB_SHA}" >/dev/null
           echo "Live deployment verification passed."
