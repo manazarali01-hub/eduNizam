@@ -33,7 +33,7 @@
     b.onclick=show;
     const main=document.querySelector('main');if(!main)return;
     const sec=document.createElement('section');sec.id='access';sec.className='view';
-    sec.innerHTML='<div class="section-head"><div><h2>Access & Role Center</h2><p class="muted">School Admin controls Teacher, Parent and Student access to this school.</p></div><span id="accessRoleBadge" class="badge"></span></div><div class="access-grid"><article class="card" id="claimInviteCard"><h3>School Link</h3><p class="muted">Teacher, Parent aur Student school select karke request bhejte hain. Admin approve ya reject karta hai.</p><div id="claimInviteMsg" class="coverage-note">Email verification aur Admin approval ke baad access milta hai. Koi code required nahi.</div></article><article class="card" id="schoolAccountsCard"><div class="section-head"><div><h3>School Login Accounts</h3><p class="muted">Is school ke Admin se connected Teacher, Parent aur Student logins.</p></div><button id="refreshSchoolAccounts" class="secondary">Refresh</button></div><div id="schoolLoginAccounts"><div class="muted">Loading linked accounts...</div></div></article><article class="card" id="parentApprovalCard"><div class="section-head"><div><h3>Teacher, Parent & Student Requests</h3><p class="muted">Profile dekhein aur Approve / Reject karein. Access sirf approval ke baad milega.</p></div><button id="refreshSchoolAccessRequests" class="secondary">Refresh</button></div><div id="schoolAccessDecisionMsg" class="coverage-note" role="status"></div><div id="schoolAccessRequests" aria-live="polite"></div><button id="toggleReviewedRequests" class="secondary" type="button" hidden>Show reviewed</button></article></div>';
+    sec.innerHTML='<div class="section-head"><div><h2>Access & Role Center</h2><p class="muted">School Admin controls Teacher, Parent and Student access to this school.</p></div><span id="accessRoleBadge" class="badge"></span></div><div class="access-grid"><article class="card" id="claimInviteCard"><h3>School Link</h3><p class="muted">Teacher, Parent aur Student school select karke request bhejte hain. Admin approve ya reject karta hai.</p><div id="claimInviteMsg" class="coverage-note">Email verification aur Admin approval ke baad access milta hai. Koi code required nahi.</div></article><article class="card" id="schoolAccountsCard"><div class="section-head"><div><h3>School Login Accounts</h3><p class="muted">Is school ke Admin se connected Teacher, Parent aur Student logins.</p></div><button id="refreshSchoolAccounts" class="secondary">Refresh</button></div><div id="schoolLoginAccounts"><div class="muted">Loading linked accounts...</div></div></article><article class="card" id="parentApprovalCard"><div class="section-head"><div><h3>Teacher, Parent & Student Requests</h3><p class="muted">Profile dekhein aur Approve / Reject karein. Access sirf approval ke baad milega.</p></div><button id="refreshSchoolAccessRequests" class="secondary">Refresh</button></div><div id="schoolAccessDecisionMsg" class="coverage-note" role="status"></div><div id="schoolAccessRequests" aria-live="polite"></div><button id="toggleReviewedRequests" class="secondary" type="button" hidden>Show reviewed</button></article><article class="card" id="resolveAccessLinksCard"><div class="section-head"><div><h3>Resolve Parent / Student Links</h3><p class="muted">Approved account automatic match na ho to correct student record select karke one-click link karein.</p></div><button id="refreshResolveLinks" class="secondary">Refresh</button></div><div id="resolveAccessLinksMsg" class="coverage-note"></div><div id="resolveAccessLinksList"></div></article></div>';
     main.appendChild(sec);
   }
   function show(){
@@ -104,6 +104,34 @@
       box.querySelectorAll('[data-school-access-reject]').forEach(b=>b.onclick=()=>decideSchoolAccess(b.dataset.schoolAccessReject,false,b.dataset.requestRole));
     }catch(e){box.textContent=e.message||String(e)}
   }
+  async function loadResolveLinks(){
+    const card=document.getElementById('resolveAccessLinksCard'),box=document.getElementById('resolveAccessLinksList'),msg=document.getElementById('resolveAccessLinksMsg');
+    if(!card||!box)return;
+    card.style.display=role()==='head'?'block':'none';
+    if(role()!=='head'||!ready())return;
+    try{
+      const result=cloud().listAccessLinkIssues?await cloud().listAccessLinkIssues():{issues:[],students:[]};
+      const issues=result?.issues||[],students=result?.students||[];
+      if(msg)msg.textContent=issues.length?issues.length+' approved account(s) need manual linking.':'All approved Parent/Student accounts are linked.';
+      box.innerHTML=issues.length?issues.map(x=>{
+        const options=students.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' — '+esc(s.class_name||'Class')+(s.section_name?' / '+esc(s.section_name):'')+(s.admission_no?' · Adm '+esc(s.admission_no):'')+(s.auth_user_id?' · linked':' · unlinked')+'</option>').join('');
+        const who=x.requested_role==='parent'?(x.student_name||x.full_name):(x.full_name||x.student_name||'Student');
+        return '<div class="access-list-item"><div class="access-row"><strong>'+esc(x.full_name||x.requested_role)+'</strong><span class="badge">'+esc(x.requested_role)+'</span></div><div class="muted">Expected student: '+esc(who||'Not provided')+(x.class_name?' · Class '+esc(x.class_name):'')+(x.section_name?' / '+esc(x.section_name):'')+(x.admission_no?' · Admission '+esc(x.admission_no):'')+'</div><div class="access-actions"><select data-resolve-select="'+esc(x.id)+'"><option value="">Select correct student record</option>'+options+'</select><button data-resolve-link="'+esc(x.id)+'" type="button">Resolve Link</button></div></div>';
+      }).join(''):'<div class="muted">No unresolved approved Parent/Student links.</div>';
+      box.querySelectorAll('[data-resolve-link]').forEach(btn=>btn.onclick=async()=>{
+        const id=btn.dataset.resolveLink,sel=box.querySelector('[data-resolve-select="'+CSS.escape(id)+'"]');
+        if(!sel?.value)return;
+        btn.disabled=true;
+        try{
+          if(msg)msg.textContent='Linking selected record...';
+          const r=await cloud().resolveSchoolAccessLink(id,sel.value);
+          if(msg)msg.textContent=(r?.requested_role==='parent'?'Parent-child':'Student-record')+' link completed: '+(r?.student_name||'Student')+'.';
+          await Promise.all([loadResolveLinks(),loadInstitutionAccounts()]);
+        }catch(e){if(msg)msg.textContent=e.message||String(e)}
+        finally{btn.disabled=false}
+      });
+    }catch(e){if(msg)msg.textContent=e.message||String(e);box.innerHTML=''}
+  }
   async function decideSchoolAccess(id,approve,requestRole){
     if(decisionsInFlight.has(id))return;
     decisionsInFlight.add(id);
@@ -128,19 +156,20 @@
             :'Parent approved. Login is active, but the child record is not linked yet. Approve/link the matching Student account or review the child details.';
         }
       }
-      await Promise.all([loadSchoolAccessRequests(),loadInstitutionAccounts()]);
+      await Promise.all([loadSchoolAccessRequests(),loadInstitutionAccounts(),loadResolveLinks()]);
     }catch(e){if(msg)msg.textContent=e.message||String(e)}
     finally{decisionsInFlight.delete(id);buttons.forEach(b=>b.disabled=false)}
   }
 
   function render(){
     const r=role(),badge=document.getElementById('accessRoleBadge');if(badge)badge.textContent=({head:'Head of Institute',teacher:'Teacher',parent:'Parent',student:'Student'}[r]||r);
-    const info=document.getElementById('claimInviteCard'),accounts=document.getElementById('schoolAccountsCard'),approval=document.getElementById('parentApprovalCard');
+    const info=document.getElementById('claimInviteCard'),accounts=document.getElementById('schoolAccountsCard'),approval=document.getElementById('parentApprovalCard'),resolver=document.getElementById('resolveAccessLinksCard');
     if(info)info.style.display=r==='head'?'none':'block';
     if(accounts)accounts.style.display=r==='head'?'block':'none';
     if(approval)approval.style.display=r==='head'?'block':'none';
+    if(resolver)resolver.style.display=r==='head'?'block':'none';
     if(r==='head'){
-      loadInstitutionAccounts();loadSchoolAccessRequests();
+      loadInstitutionAccounts();loadSchoolAccessRequests();loadResolveLinks();
       clearInterval(pendingRefreshTimer);
       pendingRefreshTimer=setInterval(refreshPendingBadge,60000);
     }else{
@@ -154,6 +183,7 @@
     document.getElementById('refreshSchoolAccounts')?.addEventListener('click',loadInstitutionAccounts);
     document.getElementById('refreshSchoolAccessRequests')?.addEventListener('click',loadSchoolAccessRequests);
     document.getElementById('toggleReviewedRequests')?.addEventListener('click',()=>{showReviewed=!showReviewed;loadSchoolAccessRequests()});
+    document.getElementById('refreshResolveLinks')?.addEventListener('click',loadResolveLinks);
     window.addEventListener('edunizam:auth',()=>setTimeout(()=>{render();refreshPendingBadge()},50));
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPendingBadge()});
     render();
