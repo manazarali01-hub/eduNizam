@@ -172,10 +172,11 @@ else{
   const auditSec=read(auditSecurityMigration);
   if(!auditSec.includes('heads read audit logs')) fail.push('Audit log read is not Admin-only.');
 }
-if(!admissionsCloud.includes('async function requireHeadRole()')) fail.push('Admissions management APIs have no explicit Admin guard.');
+const admissionsCloudE2E=read('admissions-cloud.js');
+if(!admissionsCloudE2E.includes('async function requireHeadRole()')) fail.push('Admissions management APIs have no explicit Admin guard.');
 for(const fn of ['listInstitutionApplications','listPayments','updatePaymentStatus','listAuditLogs','updateCloudApplicationStatus']){
-  const pos=admissionsCloud.indexOf('async function '+fn);
-  const snippet=pos>=0?admissionsCloud.slice(pos,pos+520):'';
+  const pos=admissionsCloudE2E.indexOf('async function '+fn);
+  const snippet=pos>=0?admissionsCloudE2E.slice(pos,pos+520):'';
   if(!snippet.includes('requireHeadRole')) fail.push('Admissions Admin API guard missing: '+fn);
 }
 if(index.includes('data-admission-roles="teacher,head_of_institute"')) fail.push('Legacy Teacher admission-management tabs still exposed.');
