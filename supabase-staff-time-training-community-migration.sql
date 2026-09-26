@@ -13,38 +13,47 @@ alter table public.staff_attendance_records
   check (check_in_at is null or check_out_at is null or check_out_at >= check_in_at);
 
 drop policy if exists "teachers clock own attendance" on public.staff_attendance_records;
-create policy "teachers clock own attendance" on public.staff_attendance_records
+drop policy if exists "teachers update own attendance clock" on public.staff_attendance_records;
+drop policy if exists "teachers insert own staff attendance" on public.staff_attendance_records;
+drop policy if exists "teachers update own staff attendance" on public.staff_attendance_records;
+
+create policy "teachers insert own staff attendance" on public.staff_attendance_records
 for insert to authenticated
 with check (
-  marked_by=auth.uid()
+  marked_by=(select auth.uid())
   and exists(
     select 1 from public.staff_profiles s
     where s.id=staff_attendance_records.staff_profile_id
       and s.institution_id=staff_attendance_records.institution_id
-      and s.user_id=auth.uid()
+      and s.user_id=(select auth.uid())
+      and coalesce(s.employment_status,'active')<>'inactive'
   )
 );
 
-drop policy if exists "teachers update own attendance clock" on public.staff_attendance_records;
-create policy "teachers update own attendance clock" on public.staff_attendance_records
+create policy "teachers update own staff attendance" on public.staff_attendance_records
 for update to authenticated
 using (
   exists(
     select 1 from public.staff_profiles s
     where s.id=staff_attendance_records.staff_profile_id
       and s.institution_id=staff_attendance_records.institution_id
-      and s.user_id=auth.uid()
+      and s.user_id=(select auth.uid())
   )
 )
 with check (
-  marked_by=auth.uid()
+  marked_by=(select auth.uid())
   and exists(
     select 1 from public.staff_profiles s
     where s.id=staff_attendance_records.staff_profile_id
       and s.institution_id=staff_attendance_records.institution_id
-      and s.user_id=auth.uid()
+      and s.user_id=(select auth.uid())
   )
 );
+
+revoke all on public.staff_attendance_records from anon;
+grant select,insert on public.staff_attendance_records to authenticated;
+grant update(status,note,check_in_at,check_out_at,check_in_latitude,check_in_longitude,check_in_accuracy_m,check_out_latitude,check_out_longitude,check_out_accuracy_m,marked_by,updated_at)
+on public.staff_attendance_records to authenticated;
 
 create table if not exists public.teacher_training_records (
   id uuid primary key default gen_random_uuid(),
