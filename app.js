@@ -260,12 +260,21 @@ function renderAttendance(){
  $('attendanceList').innerHTML=list.length?list.map(s=>{const v=day[s.id]??day[String(s.id)]??'';return '<div class="row attendance-row"><strong>'+esc(s.name)+'</strong><label><input type="radio" name="att_'+s.id+'" value="Present" '+(v==='Present'?'checked':'')+' '+(!editable?'disabled':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(v==='Absent'?'checked':'')+' '+(!editable?'disabled':'')+'> Absent</label></div>'}).join(''):'<div class="muted">No accessible students.</div>';
  const btn=$('saveAttendanceBtn');if(btn)btn.style.display=editable?'inline-block':'none';
 }
-$('saveAttendanceBtn').onclick=()=>{
+$('saveAttendanceBtn').onclick=async()=>{
  if(!canManageAttendance())return alert('Only Teacher or Head of Institute can save attendance.');
  const list=scopedStudents(),day={};
  for(const s of list){const x=document.querySelector('input[name="att_'+s.id+'"]:checked');if(!x)return alert('Mark Present or Absent for every visible student before saving.');day[s.id]=x.value;}
+ const btn=$('saveAttendanceBtn');if(btn)btn.disabled=true;
  state.attendance[todayKey()]=Object.assign({},state.attendance[todayKey()]||{},day);persist();logActivity('Attendance saved for '+todayKey());renderStats();
- window.EDUNIZAM_WORKFLOW_ALERTS?.attendanceSaved?.(day,todayKey());
+ try{
+   if(window.EDUNIZAM_CORE_CLOUD?.ready?.())await window.EDUNIZAM_CORE_CLOUD.saveAttendanceDay(todayKey(),day);
+ }catch(e){
+   recordDiagnostic('Attendance Cloud Sync',e.message||e,'Attendance');
+   alert('Attendance device par save ho gayi, lekin cloud sync fail hui. Admin ko remote absence report cloud reconnect hone ke baad milegi.');
+ }
+ try{await window.EDUNIZAM_WORKFLOW_ALERTS?.attendanceSaved?.(day,todayKey())}catch(e){console.warn('Attendance alerts:',e.message||e)}
+ window.dispatchEvent(new CustomEvent('edunizam:attendance-updated',{detail:{kind:'student',date:todayKey()}}));
+ if(btn)btn.disabled=false;
 };
 function fillStudentSelects(){
  const opts='<option value="">Select student</option>'+scopedStudents().map(s=>'<option value="'+s.id+'">'+esc(s.name)+'</option>').join('');
