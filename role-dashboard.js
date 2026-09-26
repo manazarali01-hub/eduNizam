@@ -24,10 +24,17 @@
     const all=read('edunizam_students',[]);
     const list=window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(all)||[];
     const title=r==='parent'?'My Child Dashboard':r==='teacher'?'My Assigned Students':'My Academic Dashboard';
-    box.innerHTML='<div class="section-head"><div><h2>'+title+'</h2><p class="muted">'+(r==='parent'?'Sirf approved linked child/children ki progress.':r==='teacher'?'Sirf Head ke assigned students.':'Aap ka linked school record.')+'</p></div><span class="badge">'+list.length+' record(s)</span></div>'+
-      (list.length?'<div class="cards">'+list.map(s=>{const x=statsFor(s);return '<article class="card stat"><span>'+esc(s.className||'Student')+'</span><strong style="font-size:20px">'+esc(s.name)+'</strong><small>Attendance '+x.attPct+'% · Avg '+x.avg+'% · Pending Rs '+x.pending.toLocaleString()+'</small></article>'}).join('')+'</div>':'<div class="empty-state">'+(r==='student'?'Student Code se apna record link karein.':r==='parent'?'Parent–Student link approve hone ke baad child yahan nazar aayega.':'Head se student assignment karwayen.')+'</div>');
+    const roleNote=r==='parent'
+      ?'Sirf Admin-approved linked child/children ki attendance, results aur fee summary.'
+      :r==='teacher'
+        ?'Sirf Admin-assigned students. Unassigned students is dashboard par nazar nahi aayenge.'
+        :'Sirf aap ka apna approved student record.';
+    box.innerHTML='<div class="section-head"><div><h2>'+title+'</h2><p class="muted">'+roleNote+'</p></div><span class="badge">'+list.length+' record(s)</span></div>'+
+      (list.length?'<div class="cards">'+list.map(s=>{const x=statsFor(s);return '<article class="card stat"><span>'+esc(s.className||'Student')+'</span><strong style="font-size:20px">'+esc(s.name)+'</strong><small>Attendance '+x.attPct+'% · Avg '+x.avg+'% · Pending Rs '+x.pending.toLocaleString()+'</small></article>'}).join('')+'</div>':'<div class="empty-state">'+(r==='student'?'Admin approval aur record link hone ke baad aap ki academic summary yahan nazar aayegi.':r==='parent'?'Admin approval aur child link hone ke baad child ki summary yahan nazar aayegi.':'Admin se student assignment hone ke baad assigned students yahan nazar aayenge.')+'</div>');
   }
   setTimeout(()=>{ensure();render()},300);
   window.addEventListener('storage',render);
+  window.addEventListener('edunizam:auth',()=>setTimeout(render,100));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
   window.EDUNIZAM_PARENT_DASHBOARD={render};
 })();
