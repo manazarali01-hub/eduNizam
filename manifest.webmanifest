@@ -1,1 +1,40 @@
-{"name":"EduNizam – AI School Assistant","short_name":"EduNizam","id":"./","start_url":"./","scope":"./","display":"standalone","display_override":["window-controls-overlay","standalone"],"background_color":"#F4F7F2","theme_color":"#075347","description":"Premium role-based school management, attendance, admissions, communication and academic operations.","icons":[{"src":"icon-192.svg","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},{"src":"icon-512.svg","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}
+{
+  "name": "EduNizam – AI School Assistant",
+  "short_name": "EduNizam",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "background_color": "#F4F7F2",
+  "theme_color": "#075347",
+  "description": "Premium role-based school management, attendance, admissions, communication and academic operations.",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
