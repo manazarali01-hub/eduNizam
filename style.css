@@ -1034,3 +1034,71 @@ button{transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease}but
   box-shadow:0 3px 8px rgba(180,35,24,.18);
 }
 .admin-action-count[hidden]{display:none!important}
+
+
+/* ===== Leave request approval workflow ===== */
+.leave-summary{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:0 0 16px;
+}
+.leave-summary>div{
+  padding:12px 14px;
+  border:1px solid var(--edu-line);
+  border-radius:12px;
+  background:#fff;
+}
+.leave-summary span{
+  display:block;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--edu-muted);
+}
+.leave-summary strong{display:block;margin-top:5px;font-size:22px;color:var(--edu-navy)}
+.leave-request-form label,.leave-admin-decision label{display:grid;gap:6px;font-weight:700;font-size:13px;color:var(--edu-navy)}
+.leave-request-form label input,.leave-request-form label select,.leave-request-form label textarea,.leave-admin-decision textarea{font-weight:400}
+.leave-reason-field{grid-column:1/-1}
+.leave-request-card{border-top:3px solid var(--edu-teal)}
+.leave-request-reason{
+  margin:12px 0;
+  padding:11px 12px;
+  border:1px solid #dfe8e7;
+  border-radius:11px;
+  background:#fbfdfd;
+}
+.leave-request-reason strong{color:var(--edu-navy);font-size:13px}
+.leave-request-reason p{margin:5px 0 0;white-space:pre-wrap;line-height:1.55}
+.leave-admin-decision{
+  margin-top:14px;
+  padding:13px;
+  border:1px solid #d8e5e4;
+  border-radius:12px;
+  background:#f8fcfb;
+}
+.leave-admin-decision .paper-actions{margin-top:10px}
+.leave-reject-btn{background:#fff0ed!important;color:#9b2c20!important;border-color:#f0c9c0!important}
+.leave-decision-result{
+  display:grid;
+  gap:5px;
+  margin-top:12px;
+  padding:11px 12px;
+  border-radius:11px;
+  border:1px solid #bddfcb;
+  background:#edf9f2;
+  color:#185e3b;
+}
+.leave-decision-result.rejected{border-color:#efc6bd;background:#fff2ef;color:#922d22}
+.leave-decision-result small{opacity:.75}
+@media(max-width:600px){
+  .leave-summary{grid-template-columns:1fr 1fr 1fr}
+  .leave-request-grid{grid-template-columns:1fr}
+  .leave-admin-decision .paper-actions{display:grid;grid-template-columns:1fr 1fr}
+  .leave-admin-decision .paper-actions button{width:100%}
+}
+@media(max-width:380px){
+  .leave-summary{grid-template-columns:1fr}
+  .leave-admin-decision .paper-actions{grid-template-columns:1fr}
+}
