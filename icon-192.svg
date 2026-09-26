@@ -1,12 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 512 512" role="img" aria-label="EduNizam app logo">
-  <rect width="512" height="512" rx="110" fill="#dff3ec"/>
-  <rect x="26" y="26" width="460" height="460" rx="96" fill="#ffffff" stroke="#0f766e" stroke-width="8"/>
-  <path d="M96 174 256 88l160 86-160 86z" fill="#0f8f62"/>
-  <path d="M372 190v88" stroke="#0f8f62" stroke-width="18" stroke-linecap="round"/>
-  <circle cx="372" cy="292" r="14" fill="#0f8f62"/>
-  <circle cx="256" cy="282" r="28" fill="#0f8f62"/>
-  <path d="M214 315c18 8 30 24 42 48 12-24 24-40 42-48v78c-14 15-28 29-42 42-14-13-28-27-42-42z" fill="#0f8f62"/>
-  <path d="M92 322c62-7 111 9 164 55v48c-56-44-107-57-164-48z" fill="#0f8f62"/>
-  <path d="M420 322c-62-7-111 9-164 55v48c56-44 107-57 164-48z" fill="#0f8f62"/>
-  <path d="M92 377c56-8 108 4 164 48M420 377c-56-8-108 4-164 48" fill="none" stroke="#0b6f55" stroke-width="16" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="EduNizam premium education shield">
+  <defs>
+    <linearGradient id="bg" x1="64" y1="40" x2="456" y2="472" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0B6B57"/>
+      <stop offset=".52" stop-color="#075347"/>
+      <stop offset="1" stop-color="#043B35"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="154" y1="112" x2="366" y2="422" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F3D58A"/>
+      <stop offset=".48" stop-color="#D9AE55"/>
+      <stop offset="1" stop-color="#B8862E"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="134" y1="286" x2="382" y2="398" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFDF5"/>
+      <stop offset="1" stop-color="#EEF7F2"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#012A25" flood-opacity=".28"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M58 182C111 108 176 70 256 70s145 38 198 112" fill="none" stroke="#FFFFFF" stroke-opacity=".06" stroke-width="34" stroke-linecap="round"/>
+  <circle cx="418" cy="96" r="72" fill="#FFFFFF" opacity=".035"/>
+  <circle cx="98" cy="410" r="94" fill="#D8AF59" opacity=".045"/>
+
+  <path d="M256 92c52 26 99 38 139 52v100c0 91-55 155-139 190-84-35-139-99-139-190V144c40-14 87-26 139-52Z"
+        fill="#063E37" fill-opacity=".48" stroke="url(#gold)" stroke-width="9" filter="url(#shadow)"/>
+
+  <path d="M256 166v112" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M256 172l11 24 26 3-19 18 5 26-23-13-23 13 5-26-19-18 26-3Z" fill="url(#gold)"/>
+
+  <path d="M133 292c49-10 87-1 123 30v78c-39-28-79-39-123-31V292Z"
+        fill="url(#paper)" stroke="#FFFFFF" stroke-opacity=".62" stroke-width="3"/>
+  <path d="M379 292c-49-10-87-1-123 30v78c39-28 79-39 123-31V292Z"
+        fill="url(#paper)" stroke="#FFFFFF" stroke-opacity=".62" stroke-width="3"/>
+  <path d="M256 322c-32-24-68-34-107-27M256 322c32-24 68-34 107-27"
+        fill="none" stroke="#C89A3F" stroke-opacity=".72" stroke-width="4" stroke-linecap="round"/>
+  <path d="M256 322v78" stroke="#D8AF59" stroke-width="5" stroke-linecap="round"/>
 </svg>
