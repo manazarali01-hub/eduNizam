@@ -171,8 +171,20 @@ with check (recipient_user_id=auth.uid());
 drop policy if exists "staff create institution notifications" on public.user_notifications;
 create policy "staff create institution notifications" on public.user_notifications
 for insert to authenticated with check (
-  created_by=auth.uid()
+  created_by=(select auth.uid())
   and public.is_institution_staff(institution_id)
+  and (
+    exists(
+      select 1 from public.institutions i
+      where i.id=user_notifications.institution_id
+        and i.owner_user_id=user_notifications.recipient_user_id
+    )
+    or exists(
+      select 1 from public.institution_members m
+      where m.institution_id=user_notifications.institution_id
+        and m.user_id=user_notifications.recipient_user_id
+    )
+  )
 );
 
 commit;
