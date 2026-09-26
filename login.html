@@ -9,8 +9,9 @@
   <meta name="description" content="Secure EduNizam access for Admin, Teacher, Parent and Student accounts.">
   <title>EduNizam Login</title>
   <link rel="icon" href="icon-192.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <script src="pwa-install.js?v=20260926-pwa152" defer></script>
   <style>
     :root{--teal:#0f766e;--teal2:#115e59;--ink:#17324a;--muted:#667b80;--line:#d9e7e4;--bg:#eef7f5;--white:#fff;--danger:#b42318;--ok:#067647}
     *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#eaf7f4,#f7fbfa)}
@@ -55,6 +56,7 @@
       .tabs{position:sticky;top:62px;z-index:2;background:#fff;padding:4px 0}
     }
     @media(max-width:360px){.roles{grid-template-columns:1fr}}
+      .pwa-install-login{width:100%;margin:0 0 16px;border-color:#c9ded8;background:#f7fbfa;color:#075347;font-weight:850}
   </style>
   <link rel="stylesheet" href="premium-auth.css?v=20260926-pixel151">
 </head>
@@ -70,6 +72,7 @@
   <main class="main">
     <section class="card" id="authCard">
       <div class="mobile-brand"><img src="assets/edunizam-premium-mark.svg" alt=""><strong><span class="brand-edu">Edu</span><span class="brand-nizam">N<span class="brand-i">ı</span>zam</span></strong></div>
+      <button id="loginInstallBtn" data-pwa-install class="secondary pwa-install-login" type="button" hidden>Install EduNizam App</button>
 
       <div id="roleView" class="view">
         <div class="eyebrow">EduNizam Access</div>
