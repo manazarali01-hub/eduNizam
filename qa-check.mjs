@@ -421,6 +421,24 @@ else{
 
 
 if(!style.includes('admin-daily-actions')) fail.push('Admin Daily Desk responsive styles missing.');
+const pwaManifest=read('manifest.webmanifest');
+const pwaInstall=read('pwa-install.js');
+const pwaSw=read('sw.js');
+if(!pwaManifest.includes('"icon-192.png"')||!pwaManifest.includes('"192x192"')) fail.push('PWA 192px PNG icon missing from manifest.');
+if(!pwaManifest.includes('"icon-512.png"')||!pwaManifest.includes('"512x512"')) fail.push('PWA 512px PNG icon missing from manifest.');
+if(!pwaManifest.includes('"prefer_related_applications": false')) fail.push('PWA manifest must keep prefer_related_applications false.');
+if(!pwaInstall.includes('beforeinstallprompt')) fail.push('Shared PWA native install prompt handler missing.');
+if(!pwaInstall.includes('manualHelp')) fail.push('PWA manual install fallback missing.');
+if(!pwaInstall.includes("serviceWorker.register('./sw.js?v=20260926-pwa152'")) fail.push('Shared PWA service worker registration missing.');
+for(const page of ['index.html','login.html','edunizam.html','admission.html','features.html','school-management-system-pakistan.html','online-school-admissions.html','learning-resources-pakistan.html','about.html','privacy.html']){
+  if(!read(page).includes('manifest.webmanifest')) fail.push('PWA manifest link missing: '+page);
+  if(!read(page).includes('pwa-install.js?v=20260926-pwa152')) fail.push('Shared PWA install controller missing: '+page);
+}
+if(!read('login.html').includes('data-pwa-install')) fail.push('Login install button missing.');
+if(!read('edunizam.html').includes('data-pwa-install')) fail.push('Public landing install button missing.');
+if(!pwaSw.includes("'./pwa-install.js'")) fail.push('PWA install controller not cached.');
+if(!pwaSw.includes("'./icon-192.png'")||!pwaSw.includes("'./icon-512.png'")) fail.push('PWA PNG icons not cached.');
+
 const seoPublic=read('edunizam.html');
 const seoSitemap=read('sitemap.xml');
 const seoRobots=read('robots.txt');
