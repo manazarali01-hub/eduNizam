@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en-PK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f766e">
+<meta name="robots" content="noindex,follow,noarchive">
+<title>EduNizam Admission Application</title>
+<link rel="icon" href="icon-192.svg" type="image/svg+xml">
+<style>
+:root{--teal:#0f766e;--teal2:#115e59;--ink:#17324a;--muted:#667b80;--line:#d9e7e4;--bg:#eef7f5;--ok:#067647;--bad:#b42318}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#eaf7f4,#f7fbfa);color:var(--ink)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.shell{width:min(1000px,calc(100% - 24px));margin:24px auto 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:12px}.brand img{width:54px;height:54px;border-radius:12px}.brand strong{font-size:1.25rem}.back{color:var(--teal);text-decoration:none;font-weight:800}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 14px 40px rgba(23,50,74,.08);margin-bottom:16px}
+h1,h2,h3{margin-top:0}.muted{color:var(--muted);line-height:1.55}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input,.field select,.field textarea{width:100%;border:1px solid #cadbd8;border-radius:11px;padding:11px 12px;background:#fff;color:var(--ink);outline:none}.field textarea{resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.primary,.secondary{border-radius:11px;padding:11px 14px;font-weight:800}.primary{border:0;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff}.secondary{border:1px solid var(--line);background:#fff;color:var(--teal2)}
+.search-row{display:grid;grid-template-columns:1fr auto;gap:8px}.results{display:grid;gap:8px;margin-top:10px}.result{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfefd}.result small{display:block;color:var(--muted);margin-top:3px}.selected{padding:10px 12px;border:1px solid #b7e6c8;background:#ecfdf3;color:#166534;border-radius:10px;margin-top:8px}
+.status{margin-top:12px;padding:10px 12px;border-radius:10px;background:#f7fbfa;border:1px solid var(--line)}.status.bad{background:#fff1f0;color:var(--bad);border-color:#f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border-color:#b7e6c8}
+.apps{display:grid;gap:10px}.app{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fbfefd}.app-head{display:flex;justify-content:space-between;gap:10px}.badge{padding:4px 8px;border-radius:999px;background:#eef7f5;color:var(--teal2);font-size:.75rem;font-weight:850}
+.full{grid-column:1/-1}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.search-row{grid-template-columns:1fr}.search-row button{width:100%}.shell{width:min(100% - 16px,1000px);margin-top:10px}.card{padding:16px;border-radius:16px}.top{align-items:flex-start;flex-direction:column}input,select,textarea,button{font-size:16px;min-height:44px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="top"><div class="brand"><img src="assets/edunizam-logo-approved.webp" alt="EduNizam"><div><strong>EduNizam</strong><div class="muted">Student Admission Portal</div></div></div><a class="back" href="login.html">← Back to Login</a></div>
+
+  <section class="card">
+    <h1>Apply for Admission</h1>
+    <p class="muted"><strong>Only School Admin can add a school.</strong> Admission applicants can only select/search an existing school and submit an application.</p>
+    <div class="field">
+      <label for="schoolDropdown">Select School</label>
+      <select id="schoolDropdown"><option value="">Loading schools...</option></select>
+    </div>
+    <div class="field" style="margin-top:10px">
+      <label for="schoolSearch">Or Search School</label>
+      <div class="search-row"><input id="schoolSearch" placeholder="Type school name"><button id="searchSchoolBtn" class="secondary" type="button">Search School</button></div>
+    </div>
+    <input id="schoolId" type="hidden">
+    <div id="selectedSchool" class="selected hidden"></div>
+    <div id="schoolResults" class="results"></div>
+  </section>
+
+  <section id="authCard" class="card">
+    <h2>Applicant Account</h2>
+    <p class="muted">Use your email and password to submit and track your admission applications.</p>
+    <div class="grid">
+      <div class="field"><label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email"></div>
+      <div class="field"><label for="authPassword">Password</label><input id="authPassword" type="password" minlength="8" autocomplete="current-password"></div>
+    </div>
+    <div class="actions"><button id="loginBtn" class="primary" type="button">Log In</button><button id="signupBtn" class="secondary" type="button">Create Applicant Account</button></div>
+    <div id="authStatus" class="status hidden"></div>
+  </section>
+
+  <section id="applicationCard" class="card hidden">
+    <div class="app-head"><div><h2>Admission Form</h2><p class="muted">Selected school ko application directly submit hogi.</p></div><button id="logoutBtn" class="secondary" type="button">Logout</button></div>
+    <div class="grid">
+      <div class="field"><label for="applicantName">Student Name</label><input id="applicantName" autocomplete="name"></div>
+      <div class="field"><label for="fatherName">Father / Guardian Name</label><input id="fatherName"></div>
+      <div class="field"><label for="cnic">B-Form / CNIC</label><input id="cnic"></div>
+      <div class="field"><label for="dob">Date of Birth</label><input id="dob" type="date"></div>
+      <div class="field"><label for="phone">Contact Number</label><input id="phone" type="tel"></div>
+      <div class="field"><label for="program">Class / Program Applying For</label><input id="program" placeholder="e.g. Grade 6"></div>
+      <div class="field"><label for="qualification">Previous Qualification / Class</label><input id="qualification"></div>
+      <div class="field"><label for="previousInstitute">Previous School / Institute</label><input id="previousInstitute"></div>
+      <div class="field"><label for="obtainedMarks">Obtained Marks <span class="muted">(Optional)</span></label><input id="obtainedMarks" type="number" min="0"></div>
+      <div class="field"><label for="totalMarks">Total Marks <span class="muted">(Optional)</span></label><input id="totalMarks" type="number" min="0"></div>
+      <div class="field"><label for="city">City</label><input id="city"></div>
+      <div class="field"><label for="district">District</label><input id="district"></div>
+      <div class="field full"><label for="address">Address</label><textarea id="address" rows="3"></textarea></div>
+    </div>
+    <div class="actions"><button id="submitApplicationBtn" class="primary" type="button">Submit Application</button></div>
+    <div id="applicationStatus" class="status hidden"></div>
+  </section>
+
+  <section id="myApplicationsCard" class="card hidden">
+    <h2>My Applications</h2>
+    <div id="myApplications" class="apps"><div class="muted">Loading...</div></div>
+  </section>
+</div>
+
+<script src="cloud-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
+  const client=(cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase)
+    ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
+    : null;
+  const safe=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  let schools=[],user=null;
+  function status(id,text,ok=false){const el=$(id);el.textContent=text||'';el.className='status'+(text?'':' hidden')+(text?(ok?' good':' bad'):'')}
+  function setSchool(row){
+    if(!row){$('schoolId').value='';$('selectedSchool').classList.add('hidden');return}
+    $('schoolId').value=row.institution_id||'';
+    $('schoolDropdown').value=row.institution_id||'';
+    $('schoolSearch').value=row.institution_name||'';
+    $('selectedSchool').textContent='Selected: '+(row.institution_name||'School')+(row.registration_number?' · Reg. No. '+row.registration_number:'');
+    $('selectedSchool').classList.remove('hidden');
+    localStorage.setItem('edunizam_admission_school',JSON.stringify(row));
+  }
+  async function loadSchools(){
+    if(!client)return;
+    const {data,error}=await client.rpc('list_school_directory_v1',{p_limit:200});
+    if(error){$('schoolDropdown').innerHTML='<option value="">Could not load schools</option>';return}
+    schools=data||[];
+    $('schoolDropdown').innerHTML='<option value="">Select school</option>'+schools.map(x=>'<option value="'+safe(x.institution_id)+'">'+safe(x.institution_name||'School')+(x.registration_number?' · Reg. '+safe(x.registration_number):'')+'</option>').join('');
+    try{const saved=JSON.parse(localStorage.getItem('edunizam_admission_school')||'null');if(saved?.institution_id&&schools.some(x=>x.institution_id===saved.institution_id))setSchool(saved)}catch(_){}
+  }
+  async function searchSchools(){
+    const q=$('schoolSearch').value.trim(),box=$('schoolResults');
+    if(q.length<2){box.innerHTML='<div class="muted">Type at least 2 letters.</div>';return}
+    box.innerHTML='<div class="muted">Searching...</div>';
+    const {data,error}=await client.rpc('search_school_directory_v1',{p_query:q});
+    if(error){box.innerHTML='<div class="muted">'+safe(error.message)+'</div>';return}
+    const rows=data||[];
+    box.innerHTML=rows.length?rows.map((x,i)=>'<div class="result"><div><strong>'+safe(x.institution_name||'School')+'</strong><small>'+safe([x.institution_type,x.registration_number&&('Reg. '+x.registration_number),x.address].filter(Boolean).join(' · '))+'</small></div><button type="button" class="secondary" data-school-result="'+i+'">Select</button></div>').join(''):'<div class="muted">No matching school found.</div>';
+    box.querySelectorAll('[data-school-result]').forEach(b=>b.onclick=()=>{setSchool(rows[Number(b.dataset.schoolResult)]);box.innerHTML=''});
+  }
+  function authUi(){
+    const logged=!!user;
+    $('authCard').classList.toggle('hidden',logged);
+    $('applicationCard').classList.toggle('hidden',!logged);
+    $('myApplicationsCard').classList.toggle('hidden',!logged);
+    if(logged){$('authEmail').value=user.email||'';loadMyApplications()}
+  }
+  async function refreshUser(){
+    if(!client)return;
+    const {data}=await client.auth.getUser();user=data?.user||null;authUi();
+  }
+  async function login(){
+    if(!client)return status('authStatus','Login service unavailable.');
+    const email=$('authEmail').value.trim(),password=$('authPassword').value;
+    if(!email||!password)return status('authStatus','Email aur password enter karein.');
+    const {data,error}=await client.auth.signInWithPassword({email,password});
+    if(error)return status('authStatus',error.message);
+    user=data.user;status('authStatus','');authUi();
+  }
+  async function signup(){
+    if(!client)return status('authStatus','Signup service unavailable.');
+    if(!$('schoolId').value)return status('authStatus','Pehle school select karein.');
+    const email=$('authEmail').value.trim(),password=$('authPassword').value;
+    if(!email||password.length<8)return status('authStatus','Valid email aur kam az kam 8 character password enter karein.');
+    const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:'https://manazarali01-hub.github.io/eduNizam/admission.html'}});
+    if(error)return status('authStatus',error.message);
+    if(data.session){user=data.user;status('authStatus','Applicant account created.',true);authUi()}
+    else status('authStatus','Verification email sent. Email verify karke isi Admission Portal ko dobara open karein.',true);
+  }
+  function makeApplicationNo(){const b=new Uint8Array(3);crypto.getRandomValues(b);return 'ADM-'+new Date().getFullYear()+'-'+Array.from(b,x=>x.toString(16).padStart(2,'0')).join('').toUpperCase()}
+  async function submitApplication(){
+    if(!user)return status('applicationStatus','Please log in first.');
+    const institutionId=$('schoolId').value;
+    const school=schools.find(x=>x.institution_id===institutionId)||(()=>{try{return JSON.parse(localStorage.getItem('edunizam_admission_school')||'null')}catch{return null}})();
+    const name=$('applicantName').value.trim(),father=$('fatherName').value.trim(),cnic=$('cnic').value.trim(),phone=$('phone').value.trim(),program=$('program').value.trim();
+    if(!institutionId||!name||!father||!cnic||!phone||!program)return status('applicationStatus','School, student name, guardian name, B-Form/CNIC, contact aur class/program required hain.');
+    const obtained=Number($('obtainedMarks').value||0),total=Number($('totalMarks').value||0),percentage=total>0?Math.round(obtained/total*10000)/100:null;
+    const payload={
+      institution_id:institutionId,applicant_user_id:user.id,application_no:makeApplicationNo(),status:'Submitted',
+      applicant_name:name,father_name:father,cnic,dob:$('dob').value||null,phone,email:user.email||null,
+      address:$('address').value.trim()||null,city:$('city').value.trim()||null,district:$('district').value.trim()||null,
+      program,qualification:$('qualification').value.trim()||null,previous_institute:$('previousInstitute').value.trim()||null,
+      obtained_marks:total>0?obtained:null,total_marks:total>0?total:null,percentage,
+      fee_status:'Unpaid',metadata:{school_name:school?.institution_name||'',source:'standalone-admission-portal'}
+    };
+    $('submitApplicationBtn').disabled=true;
+    const {data,error}=await client.from('applications').insert(payload).select().single();
+    $('submitApplicationBtn').disabled=false;
+    if(error)return status('applicationStatus',error.message);
+    status('applicationStatus','Application submitted successfully. Application No: '+data.application_no,true);
+    loadMyApplications();
+  }
+  async function loadMyApplications(){
+    if(!user)return;
+    const {data,error}=await client.from('applications').select('id,institution_id,application_no,status,applicant_name,program,admin_note,metadata,created_at').eq('applicant_user_id',user.id).order('created_at',{ascending:false});
+    if(error){$('myApplications').innerHTML='<div class="muted">'+safe(error.message)+'</div>';return}
+    $('myApplications').innerHTML=(data||[]).length?(data||[]).map(x=>'<div class="app"><div class="app-head"><strong>'+safe(x.application_no)+'</strong><span class="badge">'+safe(x.status)+'</span></div><div>'+safe(x.applicant_name)+' · '+safe(x.program||'Program')+'</div><div class="muted">'+safe(x.metadata?.school_name||'Selected school')+' · '+new Date(x.created_at).toLocaleString()+'</div>'+(x.admin_note?'<div class="status">'+safe(x.admin_note)+'</div>':'')+'</div>').join(''):'<div class="muted">No applications submitted yet.</div>';
+  }
+
+  $('schoolDropdown').onchange=e=>setSchool(schools.find(x=>x.institution_id===e.target.value)||null);
+  $('searchSchoolBtn').onclick=searchSchools;
+  $('schoolSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();searchSchools()}};
+  $('loginBtn').onclick=login;$('signupBtn').onclick=signup;$('submitApplicationBtn').onclick=submitApplication;
+  $('logoutBtn').onclick=async()=>{await client.auth.signOut();user=null;authUi()};
+  loadSchools();refreshUser();
+  client?.auth.onAuthStateChange((_event,session)=>{user=session?.user||null;authUi()});
+})();
+</script>
+</body>
+</html>
