@@ -4084,6 +4084,8 @@ create table if not exists public.teacher_training_records (
 create index if not exists teacher_training_institution_idx on public.teacher_training_records(institution_id,start_date desc);
 create index if not exists teacher_training_staff_idx on public.teacher_training_records(staff_profile_id,status);
 alter table public.teacher_training_records enable row level security;
+revoke all on public.teacher_training_records from anon;
+grant select, insert, update, delete on public.teacher_training_records to authenticated;
 
 drop policy if exists "heads manage teacher training" on public.teacher_training_records;
 create policy "heads manage teacher training" on public.teacher_training_records
@@ -4243,4 +4245,3 @@ create trigger enforce_teacher_profile_membership_trigger
 before insert or update on public.user_profiles
 for each row
 execute function public.enforce_teacher_profile_membership();
-
