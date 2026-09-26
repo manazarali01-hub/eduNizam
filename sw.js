@@ -1,4 +1,4 @@
-const CACHE='edunizam-v151-pixel-premium'
+const CACHE='edunizam-v152-pwa-install'
 const CORE=[
   './',
   './index.html',
@@ -11,6 +11,7 @@ const CORE=[
   './mobile-performance.css',
   './premium-auth.css',
   './premium-ui.js',
+  './pwa-install.js',
   './audit-activity-center.js',
   './premium-ui.css',
   './app.js',
@@ -23,9 +24,15 @@ const CORE=[
   './assets/edunizam-girl-hero.webp',
   './icon-192.svg',
   './icon-512.svg',
+  './icon-192.png',
+  './icon-512.png',
   './public.css',
   './about.html',
   './features.html',
+  './learning-resources-pakistan.html',
+  './online-school-admissions.html',
+  './school-management-system-pakistan.html',
+  './edunizam.html',
   './privacy.html',
   './404.html',];
 
