@@ -1,4 +1,4 @@
-const CACHE='edunizam-v97-email-retry-guidance'
+const CACHE='edunizam-v98-training-simple'
 const CORE=[
   './',
   './index.html',
