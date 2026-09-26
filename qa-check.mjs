@@ -210,6 +210,20 @@ if(!navigationEnhancements.includes('MutationObserver')) fail.push('Dynamic navi
 if(!roleDashboard.includes('adminDailyDesk')) fail.push('Admin Daily Desk missing.');
 if(!roleDashboard.includes('data-admin-jump')) fail.push('Admin Daily Desk shortcuts missing.');
 if(!read('role-access-center.js').includes('admin-action-count')) fail.push('Admin Daily Desk approval count badge missing.');
+const leaveCenter=read('leave-center.js');
+if(!leaveCenter.includes("canSubmit(){return ['student','parent','teacher'].includes(role())}")) fail.push('Teacher/Student/Parent leave submission roles missing.');
+if(!leaveCenter.includes("function isAdmin(){return role()==='head'}")) fail.push('Leave final decision is not restricted to Admin in UI.');
+if(!leaveCenter.includes("rpc('decide_leave_request_v1'")) fail.push('Leave Admin decision RPC is not wired.');
+if(!leaveCenter.includes('Admin decision reason / cause')) fail.push('Required leave decision cause field missing.');
+if(!leaveCenter.includes('Rejection cause')) fail.push('Leave rejection cause is not shown to the requester.');
+if(!leaveCenter.includes("leaveFor:'staff'")) fail.push('Teacher own-leave submission missing.');
+const leaveMigration=read('supabase-leave-requests-migration.sql');
+if(!leaveMigration.includes('teachers submit own leave')) fail.push('Teacher leave insert policy missing.');
+if(!leaveMigration.includes('heads decide institute leave')) fail.push('Admin-only leave decision policy missing.');
+if(leaveMigration.includes('teachers decide assigned leave')) fail.push('Legacy Teacher leave-decision policy still present.');
+if(!leaveMigration.includes('leave_requests_decision_complete_check')) fail.push('Leave decision cause integrity constraint missing.');
+if(!leaveMigration.includes('decide_leave_request_v1')) fail.push('Leave decision RPC migration missing.');
+
 if(!style.includes('admin-daily-actions')) fail.push('Admin Daily Desk responsive styles missing.');
 
 
