@@ -89,7 +89,10 @@ for(const page of ["about.html","features.html","privacy.html","school-managemen
   try{
     const jsonLd=htmlByPage[page].match(/<script\s+type=["']application\/ld\+json["']>([\s\S]*?)<\/script>/i)?.[1];
     const parsed=JSON.parse(jsonLd||"");
-    parsed.url===canonicalPages[page]?ok("seo:structured-data:"+page):bad("seo:structured-data:"+page,"missing/unexpected URL");
+    const graph=Array.isArray(parsed["@graph"])?parsed["@graph"]:[parsed];
+    const pageNode=graph.find(x=>x&&x.url===canonicalPages[page]&&x["@type"]!=="BreadcrumbList");
+    const breadcrumb=graph.find(x=>x?.["@type"]==="BreadcrumbList");
+    pageNode&&breadcrumb?ok("seo:structured-data:"+page):bad("seo:structured-data:"+page,"page node/breadcrumb missing or unexpected URL");
   }catch(e){bad("seo:structured-data:"+page,e.message)}
 }
 
