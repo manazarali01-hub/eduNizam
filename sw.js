@@ -1,4 +1,4 @@
-const CACHE='edunizam-v130-school-directory'
+const CACHE='edunizam-v140-premium-shell'
 const CORE=[
   './',
   './index.html',
@@ -9,6 +9,9 @@ const CORE=[
   './storage-scope.js',
   './reliability-guardian.js',
   './mobile-performance.css',
+  './premium-auth.css',
+  './premium-ui.js',
+  './premium-ui.css',
   './app.js',
   './feature-loader.js',
   './navigation-enhancements.js',
