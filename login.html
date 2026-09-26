@@ -90,6 +90,16 @@
           <button id="signupTab" class="tab" type="button">Sign Up</button>
         </div>
         <div id="roleGuidance" class="role-guidance"></div>
+          <div id="memberSchoolField" class="field hidden">
+            <label for="memberSchoolDropdown">School / Institute</label>
+            <select id="memberSchoolDropdown" aria-label="Select school"><option value="">Loading schools...</option></select>
+            <div class="help">Dropdown se school select karein, ya neeche school name search karein.</div>
+            <div class="school-search-row"><input id="memberSchoolSearch" autocomplete="organization" placeholder="Search school by name"><button id="findMemberSchoolBtn" class="secondary" type="button">Search School</button></div>
+            <input id="memberSchoolId" type="hidden">
+            <div id="memberSchoolSelected" class="school-selected hidden"></div>
+            <div id="memberSchoolResults" class="school-search-results"></div>
+            <div class="help"><strong>Only Admin can add a new school.</strong> Teacher, Parent and Student must select an existing school.</div>
+          </div>
 
         <form id="loginForm" class="fields">
           <div id="adminLoginSchoolField" class="field"><label for="loginSchoolName">Institute / School Name</label><input id="loginSchoolName" autocomplete="organization" placeholder="e.g. Dar-ul-Islam School"></div>
@@ -110,16 +120,7 @@
             <div class="field"><label for="signupEmail">Email Address</label><input id="signupEmail" type="email" autocomplete="email" required></div>
             <div class="field"><label for="signupPassword">Password</label><div class="password-wrap"><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required><button class="password-toggle" type="button" data-password-target="signupPassword" aria-label="Show password">Show</button></div></div>
           </div>
-          <div id="memberSchoolField" class="field hidden">
-            <label for="memberSchoolDropdown">School / Institute</label>
-            <select id="memberSchoolDropdown" aria-label="Select school"><option value="">Loading schools...</option></select>
-            <div class="help">Dropdown se school select karein, ya neeche school name search karein.</div>
-            <div class="school-search-row"><input id="memberSchoolSearch" autocomplete="organization" placeholder="Search school by name"><button id="findMemberSchoolBtn" class="secondary" type="button">Search School</button></div>
-            <input id="memberSchoolId" type="hidden">
-            <div id="memberSchoolSelected" class="school-selected hidden"></div>
-            <div id="memberSchoolResults" class="school-search-results"></div>
-            <div class="help"><strong>Only Admin can add a new school.</strong> Teacher, Parent and Student must select an existing school.</div>
-          </div>
+
           <div id="memberProfileFields" class="hidden fields">
             <div id="approvalStudentNameField" class="field hidden"><label for="approvalStudentName">Child Name</label><input id="approvalStudentName" autocomplete="name"></div>
             <div class="grid2">
@@ -285,8 +286,9 @@
       });
     });
   }
-  async function resolveInstitution(user,requestedName='',role=''){
+  async function resolveInstitution(user,requestedName='',role='',requestedInstitutionId=''){
     const wanted=normalizeInstituteName(requestedName);
+    const wantedId=String(requestedInstitutionId||'').trim();
 
     if(role==='admin'){
       const owner=await client.from('institutions').select('id,name,institution_type,registration_number,school_registration_code').eq('owner_user_id',user.id).order('created_at',{ascending:true});
@@ -313,6 +315,11 @@
       .map(x=>x.institutions)
       .filter(Boolean);
 
+    if(wantedId){
+      const exactById=memberSchools.find(x=>String(x.id)===wantedId);
+      if(exactById)return exactById;
+      return null;
+    }
     if(wanted){
       const exact=memberSchools.find(x=>normalizeInstituteName(x.name)===wanted);
       if(exact)return exact;
@@ -336,8 +343,8 @@
     }
     return null;
   }
-  async function openApp(user,role,requestedName=''){
-    const inst=await resolveInstitution(user,requestedName,role);
+  async function openApp(user,role,requestedName='',requestedInstitutionId=''){
+    const inst=await resolveInstitution(user,requestedName,role,requestedInstitutionId);
     if(role==='admin'&&!inst)throw new Error('No institute with this name is linked to this Admin account. Check the institute name and try again.');
     if(role!=='admin'&&!inst){
       const roleName=labels[role]||'User';
@@ -375,12 +382,14 @@
     }
     return role.data!==roleCloud[meta.signup_role];
   }
-  async function schoolAccessStatus(userId,role){
-    const {data,error}=await client
+  async function schoolAccessStatus(userId,role,institutionId=''){
+    let q=client
       .from('school_access_requests')
-      .select('status,review_note,requested_role,updated_at')
+      .select('status,review_note,requested_role,updated_at,institution_id')
       .eq('requester_user_id',userId)
-      .eq('requested_role',role)
+      .eq('requested_role',role);
+    if(institutionId)q=q.eq('institution_id',institutionId);
+    const {data,error}=await q
       .order('updated_at',{ascending:false})
       .limit(1)
       .maybeSingle();
@@ -517,8 +526,11 @@
     if(!client)return message('Login service is unavailable.');
     busy($('loginBtn'),true,'Signing in...');
     try{
-      const requestedInstitute=selectedRole==='admin'?$('loginSchoolName').value.trim():'';
+      const selectedSchoolId=selectedRole==='admin'?'':$('memberSchoolId').value.trim();
+      const selectedSchool=memberSchoolRows.find(x=>String(x.institution_id)===String(selectedSchoolId));
+      const requestedInstitute=selectedRole==='admin'?$('loginSchoolName').value.trim():(selectedSchool?.institution_name||$('memberSchoolSearch').value.trim());
       if(selectedRole==='admin'&&!requestedInstitute)throw new Error('Enter your institute / school name.');
+      if(selectedRole!=='admin'&&!selectedSchoolId)throw new Error('Select your school from the dropdown or search results.');
       const {data,error}=await client.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});
       if(error)throw error;
 
@@ -532,13 +544,13 @@
       if(role.error)throw role.error;
       if(role.data!==roleCloud[selectedRole]){
         if(selectedRole==='teacher'){
-          const status=await schoolAccessStatus(data.user.id,'teacher');
+          const status=await schoolAccessStatus(data.user.id,'teacher',selectedSchoolId);
           await client.auth.signOut();
           if(status?.status==='pending')throw new Error('Waiting for School Admin approval.');
           if(status?.status==='rejected')throw new Error('Teacher request was rejected by School Admin'+(status.review_note?': '+status.review_note:'')+'.');
         }
         if(selectedRole==='parent'||selectedRole==='student'){
-          const status=await schoolAccessStatus(data.user.id,selectedRole);
+          const status=await schoolAccessStatus(data.user.id,selectedRole,selectedSchoolId);
           await client.auth.signOut();
           if(status?.status==='pending')throw new Error('Waiting for School Admin approval.');
           if(status?.status==='rejected')throw new Error('Your approval request was rejected by School Admin'+(status.review_note?': '+status.review_note:'')+'.');
@@ -546,7 +558,7 @@
         await client.auth.signOut();
         throw new Error('This account is not approved for the selected role yet.');
       }
-      await openApp(data.user,selectedRole,requestedInstitute);
+      await openApp(data.user,selectedRole,requestedInstitute,selectedSchoolId);
     }catch(err){message(friendly(err.message||err))}finally{busy($('loginBtn'),false)}
   };
 
