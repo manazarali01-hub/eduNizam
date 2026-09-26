@@ -14,6 +14,7 @@
   const isStaff=()=>['teacher','head'].includes(role());
   const threshold=()=>75;
   let cloudRecords=[];
+  let markerProfiles=new Map();
 
   function localRecords(month){
     const ids=new Set(visibleStudents().map(s=>String(s.id))),rows=[];
@@ -32,7 +33,7 @@
     if(!cloudReady())return localRecords(month);
     const {start,end}=monthBounds(month);
     const {data,error}=await cloud().state.client.from('attendance_records')
-      .select('attendance_date,status,student_id,core_students(local_id,name,class_name,section_name,auth_user_id)')
+      .select('attendance_date,status,student_id,marked_by,updated_at,core_students(local_id,name,class_name,section_name,auth_user_id)')
       .eq('institution_id',cfg().institutionId)
       .gte('attendance_date',start).lt('attendance_date',end)
       .order('attendance_date',{ascending:true});
@@ -42,8 +43,23 @@
       studentId:String(x.core_students?.local_id??x.student_id),
       studentName:x.core_students?.name||'Student',
       className:x.core_students?.class_name||'',
-      sectionName:x.core_students?.section_name||''
+      sectionName:x.core_students?.section_name||'',
+      markedBy:x.marked_by||'',
+      updatedAt:x.updated_at||''
     }));
+    markerProfiles=new Map();
+    if(role()==='head'){
+      const ids=[...new Set(cloudRecords.map(x=>x.markedBy).filter(Boolean))];
+      if(ids.length){
+        const {data:profiles,error:profileError}=await cloud().state.client
+          .from('user_profiles')
+          .select('user_id,full_name,account_role')
+          .eq('institution_id',cfg().institutionId)
+          .in('user_id',ids);
+        if(profileError)throw profileError;
+        markerProfiles=new Map((profiles||[]).map(x=>[x.user_id,x]));
+      }
+    }
     return cloudRecords;
   }
 
@@ -98,6 +114,25 @@
     const lows=summary.filter(x=>x.percentage!==null&&x.percentage<threshold()).sort((a,b)=>a.percentage-b.percentage);
     return lows.length?lows.map(x=>'<div class="row"><strong>'+esc(x.name)+'</strong><span>'+esc(classKey(x))+'</span><span>'+x.percentage+'%</span><span>'+x.Absent+' absent</span><span></span></div>').join(''):'<div class="muted">Koi student '+threshold()+'% se neeche nahi hai.</div>';
   }
+  function markerLabel(userId){
+    const p=markerProfiles.get(userId);
+    if(p?.full_name){
+      const r=p.account_role==='teacher'?'Teacher':p.account_role==='head_of_institute'?'Admin':String(p.account_role||'').replaceAll('_',' ');
+      return (r?r+': ':'')+p.full_name;
+    }
+    if(userId&&userId===cloud()?.state?.user?.id)return 'Admin';
+    return userId?'School user':'Unknown';
+  }
+  function adminMarkerLog(rows,filter){
+    if(role()!=='head')return'';
+    let list=rows.slice();
+    if(filter!=='all')list=list.filter(x=>classKey(x)===filter);
+    list.sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
+    if(!list.length)return '<div class="empty-state">Is filter ke liye koi attendance marker record nahi hai.</div>';
+    return '<div class="aa-table-wrap"><table class="aa-table"><thead><tr><th>Date</th><th>Student</th><th>Class</th><th>Status</th><th>Marked By</th><th>Last Updated</th></tr></thead><tbody>'+
+      list.map(x=>'<tr><td>'+esc(x.date)+'</td><td><strong>'+esc(x.studentName)+'</strong></td><td>'+esc(classKey(x))+'</td><td><span class="badge">'+esc(x.status)+'</span></td><td>'+esc(markerLabel(x.markedBy))+'</td><td>'+esc(x.updatedAt?new Date(x.updatedAt).toLocaleString():'—')+'</td></tr>').join('')+
+      '</tbody></table></div>';
+  }
   function dailyGrid(summary,month){
     if(!summary.length)return '<div class="muted">No attendance marks.</div>';
     const days=new Set();summary.forEach(s=>Object.keys(s.dates).forEach(d=>days.add(d)));
@@ -130,6 +165,7 @@
         metricCards(summary)+
         '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Student Summary</h3><p class="muted">Monthly attendance counts and percentage.</p></div></div>'+rowsTable(summary)+'</article>'+
         '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Low Attendance Alerts</h3><p class="muted">Students below '+threshold()+'%.</p></div></div><div class="list">'+lowAlerts(summary)+'</div></article>'+
+        (role()==='head'?'<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Who Marked Attendance</h3><p class="muted">Admin audit view: date, class, student aur jis Teacher/Admin ne attendance last save ki.</p></div></div>'+adminMarkerLog(records,filter)+'</article>':'')+
         '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Daily Attendance Grid</h3><p class="muted">Marked school days in '+esc(month)+'.</p></div></div>'+dailyGrid(summary,month)+'</article>';
       $('aaMonth')?.addEventListener('change',()=>{root.dataset.month=$('aaMonth').value;render()});
       $('aaClass')?.addEventListener('change',()=>{root.dataset.classFilter=$('aaClass').value;render()});
