@@ -27,7 +27,7 @@
   function locate(){return new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(new Error('Location is not supported on this device.'));navigator.geolocation.getCurrentPosition(p=>resolve({latitude:Number(p.coords.latitude.toFixed(6)),longitude:Number(p.coords.longitude.toFixed(6)),accuracy:Math.round(p.coords.accuracy||0)}),e=>reject(new Error(e.code===1?'Location permission denied. Browser settings se location allow karein.':'Current location could not be verified.')),{enableHighAccuracy:true,timeout:15000,maximumAge:30000})})}
   function mapLink(lat,lng,accuracy){if(lat==null||lng==null)return'<span class="muted">Not captured</span>';const url='https://www.google.com/maps?q='+encodeURIComponent(lat+','+lng);return'<a class="secondary-link" href="'+url+'" target="_blank" rel="noopener">Map · ±'+Number(accuracy||0)+'m</a>'}
   function rowFor(staffId,date=today()){return attendance().find(x=>String(x.staffId)===String(staffId)&&x.date===date)||null}
-  function canAct(staffId){return !isHead()&&mine().some(x=>String(x.id)===String(staffId))}
+  function canAct(staffId){return role()==='teacher'&&mine().some(x=>String(x.id)===String(staffId))}
   async function pullCloud(){
     if(!cloudReady())return;
     const {data,error}=await cloud().state.client.from('staff_attendance_records').select('*,staff_profiles(full_name,staff_code,user_id)').eq('institution_id',cfg().institutionId).order('attendance_date',{ascending:false});
