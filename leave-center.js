@@ -82,6 +82,7 @@
         fromDate:x.from_date,toDate:x.to_date,numberOfDays:x.number_of_days||daysBetween(x.from_date,x.to_date),
         reason:x.reason,guardianNote:x.guardian_note||'',status:x.status,
         teacherResponse:x.teacher_response||'',teacherNote:x.teacher_note||'',teacherReviewedBy:x.teacher_reviewed_by||'',teacherReviewedAt:x.teacher_reviewed_at||'',
+        attachmentPath:x.attachment_path||'',attachmentName:x.attachment_name||'',attachmentType:x.attachment_type||'',
         decisionNote:x.decision_note||'',submittedBy:x.submitted_by||'',submittedIdentity:'',submittedRole:x.requester_role||'',createdAt:x.created_at,
         decidedAt:x.decided_at||'',decidedBy:x.decided_by||''
       };
@@ -124,6 +125,48 @@
     if(error)throw error;return Array.isArray(data)?data[0]:data;
   }
 
+  function validateAttachment(file){
+    if(!file)return;
+    const allowed=['image/jpeg','image/png','image/webp','application/pdf'];
+    if(!allowed.includes(file.type))throw new Error('Attachment must be JPG, PNG, WEBP or PDF.');
+    if(file.size>5*1024*1024)throw new Error('Attachment must be 5 MB or smaller.');
+  }
+  function safeFileName(name){
+    return String(name||'attachment').replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-100)||'attachment';
+  }
+  async function uploadLeaveAttachment(requestId,file){
+    if(!file)return null;
+    validateAttachment(file);
+    if(!cloudReady())throw new Error('Cloud Mode is required for leave attachments.');
+    const uid=currentUserId();
+    if(!uid)throw new Error('Sign in again before uploading the attachment.');
+    const path=cfg().institutionId+'/'+requestId+'/'+uid+'/'+Date.now()+'-'+safeFileName(file.name);
+    const client=cloud().state.client;
+    const {error:uploadError}=await client.storage.from('leave-request-files').upload(path,file,{upsert:false,contentType:file.type});
+    if(uploadError)throw uploadError;
+    try{
+      const {data,error}=await client.rpc('attach_leave_file_v1',{
+        p_request_id:requestId,p_storage_path:path,p_name:file.name,p_type:file.type
+      });
+      if(error)throw error;
+      return Array.isArray(data)?data[0]:data;
+    }catch(e){
+      client.storage.from('leave-request-files').remove([path]).catch(()=>{});
+      throw e;
+    }
+  }
+  async function openAttachment(id){
+    const item=read().find(x=>String(x.id)===String(id));
+    if(!item?.attachmentPath)return;
+    if(!cloudReady())return alert('Attachment open karne ke liye Cloud Mode / sign-in required hai.');
+    try{
+      const {data,error}=await cloud().state.client.storage.from('leave-request-files').createSignedUrl(item.attachmentPath,600);
+      if(error)throw error;
+      if(!data?.signedUrl)throw new Error('Signed attachment link unavailable.');
+      window.open(data.signedUrl,'_blank','noopener');
+    }catch(e){alert('Attachment open nahi ho saka: '+(e.message||e))}
+  }
+
   function renderDaysHelp(){
     const from=$('leaveFrom')?.value,to=$('leaveTo')?.value,n=daysBetween(from,to),el=$('leaveDays');
     if(el)el.value=n||'';
@@ -137,6 +180,7 @@
         '<label>Number of Days<input id="leaveDays" type="number" min="1" value="1" readonly></label>'+
         '<label class="leave-reason-field">Cause / Reason<textarea id="leaveReason" rows="4" placeholder="e.g. illness, family emergency, personal work"></textarea></label>'+
         '<label class="leave-reason-field">Additional Note <span class="muted">(Optional)</span><textarea id="leaveGuardianNote" rows="2" placeholder="Any additional detail"></textarea></label>'+
+        '<label class="leave-reason-field">Medical / Supporting Document <span class="muted">(Optional)</span><input id="leaveAttachment" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><small class="muted">JPG, PNG, WEBP or PDF · max 5 MB · private cloud file</small></label>'+
         '<button id="submitLeave">Submit Leave Request</button></div></article>';
     }
     const list=eligibleSubmitStudents();
@@ -148,6 +192,7 @@
       '<label>Number of Days<input id="leaveDays" type="number" min="1" value="1" readonly></label>'+
       '<label class="leave-reason-field">Cause of Leave<textarea id="leaveReason" rows="4" placeholder="Reason for leave"></textarea></label>'+
       '<label class="leave-reason-field">Parent / Guardian Note <span class="muted">(Optional)</span><textarea id="leaveGuardianNote" rows="2" placeholder="Optional parent/guardian note"></textarea></label>'+
+      '<label class="leave-reason-field">Medical / Supporting Document <span class="muted">(Optional)</span><input id="leaveAttachment" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><small class="muted">JPG, PNG, WEBP or PDF · max 5 MB · private cloud file</small></label>'+
       '<button id="submitLeave">Submit Request</button></div></article>';
   }
 
@@ -173,12 +218,15 @@
       '<h3>'+name+'</h3><p class="muted">'+esc(x.fromDate)+' → '+esc(x.toDate)+' · '+esc(x.numberOfDays||daysBetween(x.fromDate,x.toDate))+' day(s) · Submitted by '+esc((x.submittedRole||'user').replace(/^./,m=>m.toUpperCase()))+'</p>'+
       '<div class="leave-request-reason"><strong>Cause of leave:</strong><p>'+esc(x.reason||'')+'</p></div>'+
       (x.guardianNote?'<div class="coverage-note"><strong>Additional / guardian note:</strong> '+esc(x.guardianNote)+'</div>':'')+
+      (x.attachmentPath?'<div class="paper-actions"><button class="secondary" data-leave-attachment="'+esc(x.id)+'">Open '+esc(x.attachmentName||'Attachment')+'</button></div>':'')+
       pendingNote+teacherReviewBlock(x)+decision+
       (x.cloudSynced===false?'<div class="coverage-note"><strong>Local only:</strong> Cloud sync nahi hui; is device par record saved hai.</div>':'')+controls+'</article>';
   }
 
   async function submit(){
     const from=$('leaveFrom')?.value,to=$('leaveTo')?.value,reason=$('leaveReason')?.value.trim(),guardianNote=$('leaveGuardianNote')?.value.trim()||'',numberOfDays=daysBetween(from,to);
+    const attachmentFile=$('leaveAttachment')?.files?.[0]||null;
+    try{validateAttachment(attachmentFile)}catch(e){return alert(e.message||e)}
     if(!from||!to||!reason)return alert('Dates aur leave reason complete karein.');
     if(reason.length<3)return alert('Leave reason thora detail mein likhein.');
     if(!numberOfDays)return alert('To date, From date se pehle nahi ho sakti.');
@@ -193,11 +241,25 @@
     const btn=$('submitLeave');if(btn)btn.disabled=true;
     try{
       const row=await insertCloud(item);
-      if(row){item.id=row.id;item.cloudSynced=true;item.studentUserId=row.student_user_id||null;item.submittedBy=row.submitted_by;item.personName=row.leave_for==='staff'?(row.requester_name||item.personName):(row.student_name||item.personName);item.createdAt=row.created_at}
+      if(row){
+        item.id=row.id;item.cloudSynced=true;item.studentUserId=row.student_user_id||null;item.submittedBy=row.submitted_by;item.personName=row.leave_for==='staff'?(row.requester_name||item.personName):(row.student_name||item.personName);item.createdAt=row.created_at;
+        if(attachmentFile){
+          try{
+            const attached=await uploadLeaveAttachment(row.id,attachmentFile);
+            item.attachmentPath=attached?.attachment_path||'';
+            item.attachmentName=attached?.attachment_name||attachmentFile.name;
+            item.attachmentType=attached?.attachment_type||attachmentFile.type;
+          }catch(fileError){
+            alert('Leave request submit ho gayi, lekin attachment upload nahi ho saka: '+(fileError.message||fileError));
+          }
+        }
+      }else if(attachmentFile){
+        alert('Leave request Local Mode mein save ho gi; attachment ke liye Cloud Mode / sign-in required hai.');
+      }
     }catch(e){alert('Cloud submit unavailable; request sirf is device ke Local Mode mein save hogi. '+(e.message||e))}
     finally{if(btn)btn.disabled=false}
     const arr=read();arr.unshift(item);write(arr);
-    if($('leaveReason'))$('leaveReason').value='';if($('leaveGuardianNote'))$('leaveGuardianNote').value='';
+    if($('leaveReason'))$('leaveReason').value='';if($('leaveGuardianNote'))$('leaveGuardianNote').value='';if($('leaveAttachment'))$('leaveAttachment').value='';
     render(true);
   }
 
@@ -241,6 +303,7 @@
     document.querySelectorAll('[data-leave-teacher-reject]').forEach(b=>b.onclick=()=>reviewTeacher(b.dataset.leaveTeacherReject,'Recommend Rejection'));
     document.querySelectorAll('[data-leave-approve]').forEach(b=>b.onclick=()=>decide(b.dataset.leaveApprove,'Approved'));
     document.querySelectorAll('[data-leave-reject]').forEach(b=>b.onclick=()=>decide(b.dataset.leaveReject,'Rejected'));
+    document.querySelectorAll('[data-leave-attachment]').forEach(b=>b.onclick=()=>openAttachment(b.dataset.leaveAttachment));
   }
   function summary(arr){
     const pending=arr.filter(x=>x.status==='Pending').length,reviewed=arr.filter(x=>x.status==='Pending'&&x.teacherResponse).length,approved=arr.filter(x=>x.status==='Approved').length,rejected=arr.filter(x=>x.status==='Rejected').length;
