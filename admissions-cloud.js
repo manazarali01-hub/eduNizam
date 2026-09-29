@@ -154,7 +154,10 @@
       const {data,error}=await state.client.from('institutions').select('*').eq('id',profile.institution_id).maybeSingle();
       if(error)throw error;profileInstitution=data||null;
     }
-    const merged=[...(owned||[]),...((memberships||[]).map(x=>x.institutions).filter(Boolean)),...(profileInstitution?[profileInstitution]:[])];
+    // Membership/ownership are the authorization sources. A legacy profile
+    // institution may be stale after multi-school linking and must not surface
+    // an unapproved workspace.
+    const merged=[...(owned||[]),...((memberships||[]).map(x=>x.institutions).filter(Boolean))];
     return [...new Map(merged.map(x=>[x.id,x])).values()];
   }
   async function createInstitution(){
