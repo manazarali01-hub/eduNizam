@@ -5,6 +5,7 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const localRole=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role||'student'}catch{return'student'}};
   const ready=()=>!!(cfg().enabled&&cloud()?.state?.client&&cloud()?.state?.user);
+  const FREE_LAUNCH_MODE=true; // Familiarization phase: keep every institute free; preserve billing infrastructure for later.
   let owner=false,plans=[],institutions=[],adminRequests=[];
 
   async function isOwner(){
@@ -97,6 +98,11 @@
   }
 
   function instituteRows(){
+    if(FREE_LAUNCH_MODE){
+      return institutions.length?institutions.map(x=>
+        '<article class="card" style="margin-bottom:12px"><div class="section-head"><div><h3>'+esc(x.institution_name)+'</h3><p class="muted">'+esc(x.institution_type||'Institute')+' · '+x.student_count+' students · '+x.staff_count+' staff</p></div><span class="badge">Free Launch</span></div><p class="coverage-note">All school-management features are available without a paid-plan restriction during the familiarization phase.</p></article>'
+      ).join(''):'<div class="empty-state">Abhi koi institute registered nahi hai.</div>';
+    }
     const planOptions=plans.filter(p=>p.active).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+' · '+money(p.monthly_price_pkr)+'</option>').join('');
     return institutions.length?institutions.map(x=>
       '<article class="card" style="margin-bottom:12px">'+
@@ -149,6 +155,7 @@
   }
 
   async function savePlan(){
+    if(FREE_LAUNCH_MODE)return alert('EduNizam is currently in Free Launch Mode. Paid plan changes are intentionally disabled.');
     const id=$('ownerPlanId')?.value||'',code=$('ownerPlanCode')?.value.trim().toLowerCase(),name=$('ownerPlanName')?.value.trim();
     if(!code||!name)return alert('Plan code aur name required hain.');
     const payload={
@@ -168,6 +175,7 @@
   }
 
   async function saveSubscription(institutionId){
+    if(FREE_LAUNCH_MODE)return alert('EduNizam is currently free for all institutes. Subscription enforcement is disabled during the launch phase.');
     const planId=document.querySelector('[data-owner-plan="'+CSS.escape(institutionId)+'"]')?.value;
     const status=document.querySelector('[data-owner-status="'+CSS.escape(institutionId)+'"]')?.value;
     const trial=document.querySelector('[data-owner-trial="'+CSS.escape(institutionId)+'"]')?.value||null;
@@ -207,13 +215,13 @@
     root.innerHTML='<div class="coverage-note">Owner data loading...</div>';
     try{
       await load();
-      root.innerHTML=metricCards()+
+      root.innerHTML=(FREE_LAUNCH_MODE?'<div class="coverage-note"><strong>Free Launch Mode is active.</strong><br>All EduNizam school features remain free while the platform is being introduced. Subscription tables are preserved only for future use; no institute is blocked by a paid plan.</div>':'')+metricCards()+
         '<div class="section-head" style="margin-top:18px"><div><h3>School Admin Verification</h3><p class="muted">Admin approval se pehle Private Registration Number ya Government EMIS Code ko official record se verify karna mandatory hai.</p></div></div>'+
         adminRequestRows()+
-        '<div id="ownerPlanEditor" style="margin-top:16px">'+planEditor()+'</div>'+
+        (FREE_LAUNCH_MODE?'':'<div id="ownerPlanEditor" style="margin-top:16px">'+planEditor()+'</div>')+
         '<div class="section-head" style="margin-top:18px"><div><h3>Plans</h3><p class="muted">Plan pricing aur limits.</p></div></div>'+
-        planCards()+
-        '<div class="section-head" style="margin-top:18px"><div><h3>Institutes & Subscriptions</h3><p class="muted">Trial, active, past-due ya suspended status control karein.</p></div></div>'+
+        (FREE_LAUNCH_MODE?'':planCards())+
+        '<div class="section-head" style="margin-top:18px"><div><h3>'+(FREE_LAUNCH_MODE?'Institutes':'Institutes & Subscriptions')+'</h3><p class="muted">'+(FREE_LAUNCH_MODE?'Free launch access is active for every institute.':'Trial, active, past-due ya suspended status control karein.')+'</p></div></div>'+
         instituteRows();
       bind();
     }catch(e){
@@ -234,7 +242,9 @@
       if(error||!data)return;
       const card=document.createElement('article');card.className='card';card.id='currentSubscriptionCard';
       const p=data.subscription_plans||{};
-      card.innerHTML='<div class="section-head"><div><h2>Current EduNizam Plan</h2><p class="muted">Institute subscription status.</p></div><span class="academic-pill">'+esc(data.status||'active')+'</span></div>'+
+      card.innerHTML=FREE_LAUNCH_MODE
+        ?'<div class="section-head"><div><h2>EduNizam Free Launch</h2><p class="muted">All current school features are available free during the familiarization phase.</p></div><span class="academic-pill">Free</span></div><p>No paid-plan restriction is active for this institute.</p>'
+        :'<div class="section-head"><div><h2>Current EduNizam Plan</h2><p class="muted">Institute subscription status.</p></div><span class="academic-pill">'+esc(data.status||'active')+'</span></div>'+
         '<p><strong>'+esc(p.name||'Free')+'</strong> · '+money(p.monthly_price_pkr||0)+'/month</p>'+
         '<p class="muted">'+(data.trial_ends_at?'Trial ends: '+esc(String(data.trial_ends_at).slice(0,10))+' · ':'')+(data.current_period_end?'Period ends: '+esc(String(data.current_period_end).slice(0,10)):'')+'</p>';
       settings.prepend(card);
