@@ -89,7 +89,7 @@
   }
 
   async function upsertStudent(student){
-    const c=await requireStaff(),client=c.state.client;
+    const c=await requireHead(),client=c.state.client;
     if(!student?.id||!String(student?.name||'').trim())throw new Error('Student name and local record id are required.');
     const payload=studentPayload(student,c);
     const {data,error}=await client
@@ -102,7 +102,7 @@
   }
 
   async function syncStudents(){
-    const c=await requireStaff(),client=c.state.client;
+    const c=await requireHead(),client=c.state.client;
     const rows=read('edunizam_students',[]).map(s=>studentPayload(s,c));
     if(!rows.length) return [];
     const {data,error}=await client.from('core_students').upsert(rows,{onConflict:'institution_id,local_id'}).select();
@@ -370,7 +370,7 @@
   }
 
   async function deleteStudentByLocalId(localId){
-    const c=await requireStaff(),client=c.state.client;
+    const c=await requireHead(),client=c.state.client;
     const {data,error}=await client.rpc('delete_core_student_v1',{
       p_institution_id:cfg.institutionId,
       p_local_id:Number(localId)
