@@ -452,9 +452,13 @@
 
       <section id="attendance" class="view">
         <article class="card">
-          <div class="section-head"><h2>Daily Attendance</h2><span id="todayLabel" class="muted"></span></div>
+          <div class="section-head"><div><h2>Daily Attendance</h2><p class="muted">Teacher/Admin marking is timestamped in Cloud Mode.</p></div><span id="todayLabel" class="muted"></span></div>
           <div id="attendanceList" class="list"></div>
           <button id="saveAttendanceBtn">Save Attendance</button>
+        </article>
+        <article id="attendanceAuditCard" class="card hidden" style="margin-top:16px">
+          <div class="section-head"><div><h3>Attendance Marking Audit</h3><p class="muted">Admin view: who marked each student, class/section and exact save time.</p></div><button id="refreshAttendanceAuditBtn" class="secondary" type="button">Refresh</button></div>
+          <div id="attendanceAuditList"><div class="muted">Audit data loads in Cloud Mode.</div></div>
         </article>
       </section>
 
