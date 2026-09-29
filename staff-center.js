@@ -20,7 +20,11 @@
     }catch(_){}
     return[];
   }
-  function write(v){localStorage.setItem(KEY,JSON.stringify(v))}
+  function write(v){
+    const json=JSON.stringify(v);
+    localStorage.setItem(KEY,json);
+    localStorage.setItem(LEGACY_KEY,json);
+  }
   function splitList(v){return String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
   function profile(x){return x?.profileDetails||{}}
   function visibleLocal(rows){
