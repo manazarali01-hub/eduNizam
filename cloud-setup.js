@@ -63,22 +63,27 @@
         return true;
       }
 
-      const profile=await cloud.state.client
-        .from('user_profiles')
-        .select('institution_id')
-        .eq('user_id',cloud.state.user.id)
-        .maybeSingle();
+      // Non-admin accounts may have the same role in more than one school.
+      // Resolve the active school from approved memberships instead of relying on
+      // user_profiles.institution_id, which can represent only one institution.
+      const memberships=await cloud.state.client
+        .from('institution_members')
+        .select('institution_id,role,institutions(id,name,institution_type)')
+        .eq('user_id',cloud.state.user.id);
 
-      if(profile.data?.institution_id){
-        const found=await cloud.state.client
-          .from('institutions')
-          .select('id,name,institution_type')
-          .eq('id',profile.data.institution_id)
-          .maybeSingle();
-        if(found.data){
-          useInstitution(found.data,false);
-          return true;
-        }
+      if(memberships.error)throw memberships.error;
+      const schools=(memberships.data||[])
+        .map(row=>row.institutions)
+        .filter(Boolean);
+
+      if(schools.length){
+        let localSession=null;
+        try{localSession=JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch(_){}
+        const selectedId=String(localSession?.institutionId||current.institutionId||'').trim();
+        const preferred=schools.find(x=>String(x.id)===selectedId)||(schools.length===1?schools[0]:null);
+        if(!preferred)return false;
+        useInstitution(preferred,false);
+        return true;
       }
 
       return false;
