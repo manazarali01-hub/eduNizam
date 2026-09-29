@@ -29,6 +29,23 @@
       admission_application_id:s.admissionApplicationId||null,
       admission_date:s.admissionDate||null,
       fee_snapshot:s.feeSnapshot||null,
+      photo_path:s.photoPath||null,
+      profile_details:{
+        ...(s.profileDetails||{}),
+        gender:s.gender||s.profileDetails?.gender||null,
+        mother_name:s.motherName||s.profileDetails?.mother_name||null,
+        email:s.email||s.profileDetails?.email||null,
+        city:s.city||s.profileDetails?.city||null,
+        district:s.district||s.profileDetails?.district||null,
+        province:s.province||s.profileDetails?.province||null,
+        blood_group:s.bloodGroup||s.profileDetails?.blood_group||null,
+        emergency_contact:s.emergencyContact||s.profileDetails?.emergency_contact||null,
+        previous_school:s.previousSchool||s.profileDetails?.previous_school||null,
+        student_status:s.studentStatus||s.profileDetails?.student_status||'active',
+        health_notes:s.healthNotes||s.profileDetails?.health_notes||null,
+        special_needs_notes:s.specialNeedsNotes||s.profileDetails?.special_needs_notes||null,
+        remarks:s.remarks||s.profileDetails?.remarks||null
+      },
       source:s.source||'manual',
       created_by:c.state.user?.id||null,
       updated_at:new Date().toISOString()
@@ -240,7 +257,14 @@
       bFormNo:s.b_form_no||'',guardianCnic:s.guardian_cnic||'',dateOfBirth:s.date_of_birth||'',admissionNo:s.admission_no||'',
       address:s.address||'',guardianOccupation:s.guardian_occupation||'',caste:s.caste||'',
       rollNo:s.roll_no||'',studentId:s.student_code||'',admissionApplicationId:s.admission_application_id||'',
-      admissionDate:s.admission_date||'',feeSnapshot:s.fee_snapshot||null,authUserId:s.auth_user_id||null,source:s.source||'cloud'
+      admissionDate:s.admission_date||'',feeSnapshot:s.fee_snapshot||null,authUserId:s.auth_user_id||null,
+      photoPath:s.photo_path||'',profileDetails:s.profile_details||{},
+      gender:s.profile_details?.gender||'',motherName:s.profile_details?.mother_name||'',email:s.profile_details?.email||'',
+      city:s.profile_details?.city||'',district:s.profile_details?.district||'',province:s.profile_details?.province||'',
+      bloodGroup:s.profile_details?.blood_group||'',emergencyContact:s.profile_details?.emergency_contact||'',
+      previousSchool:s.profile_details?.previous_school||'',studentStatus:s.profile_details?.student_status||'active',
+      healthNotes:s.profile_details?.health_notes||'',specialNeedsNotes:s.profile_details?.special_needs_notes||'',
+      remarks:s.profile_details?.remarks||'',source:s.source||'cloud'
     }));
     write('edunizam_students',localStudents);
     const localIdByCloud=new Map(cloudStudents.map(s=>[s.id,Number(s.local_id)]));
@@ -284,6 +308,35 @@
     return {ok:true,students:localStudents.length};
   }
 
+  async function requireHead(){
+    const c=cloud(); if(!ready()) throw new Error('Cloud backend is not configured.');
+    const role=await c.getMyRole();
+    if(role!=='head_of_institute') throw new Error('Head of Institute access required.');
+    return c;
+  }
+  async function uploadStudentPhoto(localId,file){
+    if(!file)throw new Error('Select a profile image first.');
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Profile picture must be JPG, PNG or WEBP.');
+    if(file.size>2*1024*1024)throw new Error('Profile picture must be 2 MB or smaller.');
+    const c=await requireHead(),client=c.state.client;
+    const {data:student,error:findError}=await client.from('core_students')
+      .select('id,photo_path').eq('institution_id',cfg.institutionId).eq('local_id',Number(localId)).maybeSingle();
+    if(findError)throw findError;if(!student)throw new Error('Sync the student to cloud before uploading a photo.');
+    const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').slice(0,6)||'jpg';
+    const path=cfg.institutionId+'/student/'+student.id+'/'+Date.now()+'.'+ext;
+    const {error:upError}=await client.storage.from('school-profile-photos').upload(path,file,{upsert:false,contentType:file.type});
+    if(upError)throw upError;
+    const {data,error}=await client.from('core_students').update({photo_path:path,updated_at:new Date().toISOString()}).eq('id',student.id).select().single();
+    if(error)throw error;
+    if(student.photo_path&&student.photo_path!==path)client.storage.from('school-profile-photos').remove([student.photo_path]).catch(()=>{});
+    return data;
+  }
+  async function createProfilePhotoUrl(path,expiresIn=3600){
+    if(!path||!ready())return null;
+    const {data,error}=await cloud().state.client.storage.from('school-profile-photos').createSignedUrl(path,expiresIn);
+    if(error)throw error;return data?.signedUrl||null;
+  }
+
   async function deleteStudentByLocalId(localId){
     const c=await requireStaff(),client=c.state.client;
     const {data,error}=await client.rpc('delete_core_student_v1',{
@@ -301,5 +354,5 @@
     };
   }
 
-  window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,saveAttendanceDay,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
+  window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,uploadStudentPhoto,createProfilePhotoUrl,saveAttendanceDay,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
 })();
