@@ -125,7 +125,9 @@ function ensureStudentCode(student){
 }
 function clearStudentForm(){
   editingStudentId=null;
-  ['studentName','fatherName','studentClass','studentSection','studentPhone','studentBForm','guardianCnic','studentDob','admissionNo','studentAddress','guardianOccupation','studentCaste'].forEach(id=>{if($(id))$(id).value=''});
+  ['studentName','fatherName','studentClass','studentSection','studentPhone','studentBForm','guardianCnic','studentDob','admissionNo','studentAddress','guardianOccupation','studentCaste','studentGender','studentMotherName','studentEmail','studentCity','studentDistrict','studentProvince','studentBloodGroup','studentEmergencyContact','studentPreviousSchool','studentAdmissionDate','studentRollNo','studentHealthNotes','studentSpecialNeeds','studentRemarks'].forEach(id=>{if($(id))$(id).value=''});
+  if($('studentStatus'))$('studentStatus').value='active';
+  if($('studentPhotoFile'))$('studentPhotoFile').value='';
   const save=$('saveStudentBtn');if(save)save.textContent='Save Student';
 }
 function openStudentForm(){
@@ -139,20 +141,43 @@ const addStudentBtn=$('addStudentBtn');
 if(addStudentBtn)addStudentBtn.onclick=openStudentForm;
 $('saveStudentBtn').onclick=async()=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can add or edit students.');
- const name=$('studentName').value.trim(); if(!name)return alert('Enter student name');
- const patch={
+ const name=$('studentName').value.trim();
+ const required={
    name,
-   father:$('fatherName').value.trim(),
-   className:$('studentClass').value.trim(),
-   sectionName:$('studentSection')?.value.trim()||'',
-   phone:$('studentPhone').value.trim(),
-   bFormNo:$('studentBForm')?.value.trim()||'',
-   guardianCnic:$('guardianCnic')?.value.trim()||'',
-   dateOfBirth:$('studentDob')?.value||'',
+   className:$('studentClass')?.value.trim()||'',
    admissionNo:$('admissionNo')?.value.trim()||'',
+   dateOfBirth:$('studentDob')?.value||'',
+   gender:$('studentGender')?.value||'',
+   father:$('fatherName')?.value.trim()||'',
+   phone:$('studentPhone')?.value.trim()||'',
+   bFormNo:$('studentBForm')?.value.trim()||''
+ };
+ const missing=Object.entries(required).filter(([,v])=>!v).map(([k])=>({name:'Student name',className:'Class',admissionNo:'Admission No.',dateOfBirth:'Date of birth',gender:'Gender',father:'Guardian name',phone:'Guardian contact',bFormNo:'B-Form No.'}[k]||k));
+ if(missing.length)return alert('Required fields complete karein: '+missing.join(', '));
+ const photoFile=$('studentPhotoFile')?.files?.[0]||null;
+ if(photoFile&&!['image/jpeg','image/png','image/webp'].includes(photoFile.type))return alert('Profile picture JPG, PNG ya WEBP honi chahiye.');
+ if(photoFile&&photoFile.size>2*1024*1024)return alert('Profile picture 2 MB se chhoti honi chahiye.');
+ const patch={
+   ...required,
+   sectionName:$('studentSection')?.value.trim()||'',
+   guardianCnic:$('guardianCnic')?.value.trim()||'',
+   motherName:$('studentMotherName')?.value.trim()||'',
+   email:$('studentEmail')?.value.trim()||'',
    address:$('studentAddress')?.value.trim()||'',
+   city:$('studentCity')?.value.trim()||'',
+   district:$('studentDistrict')?.value.trim()||'',
+   province:$('studentProvince')?.value.trim()||'',
    guardianOccupation:$('guardianOccupation')?.value.trim()||'',
-   caste:$('studentCaste')?.value.trim()||''
+   caste:$('studentCaste')?.value.trim()||'',
+   bloodGroup:$('studentBloodGroup')?.value.trim()||'',
+   emergencyContact:$('studentEmergencyContact')?.value.trim()||'',
+   previousSchool:$('studentPreviousSchool')?.value.trim()||'',
+   admissionDate:$('studentAdmissionDate')?.value||'',
+   rollNo:$('studentRollNo')?.value.trim()||'',
+   studentStatus:$('studentStatus')?.value||'active',
+   healthNotes:$('studentHealthNotes')?.value.trim()||'',
+   specialNeedsNotes:$('studentSpecialNeeds')?.value.trim()||'',
+   remarks:$('studentRemarks')?.value.trim()||''
  };
  let savedStudent=null;
  if(editingStudentId!=null){
@@ -169,13 +194,22 @@ $('saveStudentBtn').onclick=async()=>{
  persist();clearStudentForm();$('studentFormWrap').classList.add('hidden');renderAll();
  try{
    if(window.EDUNIZAM_CORE_CLOUD?.ready?.()){
-     await window.EDUNIZAM_CORE_CLOUD.upsertStudent(savedStudent);
+     const cloudRow=await window.EDUNIZAM_CORE_CLOUD.upsertStudent(savedStudent);
+     if(cloudRow?.photo_path)savedStudent.photoPath=cloudRow.photo_path;
+     if(photoFile){
+       const photoRow=await window.EDUNIZAM_CORE_CLOUD.uploadStudentPhoto(savedStudent.id,photoFile);
+       savedStudent.photoPath=photoRow?.photo_path||savedStudent.photoPath||'';
+       persist();
+     }
+   }else if(photoFile){
+     alert('Student profile save ho gaya, lekin profile picture ke liye Cloud Mode required hai.');
    }
  }catch(e){
    console.warn('Student cloud sync:',e.message);
    recordDiagnostic('Student Cloud Sync',e.message||e,'Students');
-   alert('Student is saved on this device, but cloud sync failed. Open Troubleshoot to see the exact error, then retry Cloud Backup & Sync.');
+   alert('Student is saved on this device, but cloud/profile photo sync failed. Open Troubleshoot to see the exact error, then retry Cloud Backup & Sync.');
  }
+ renderStudents();
 };
 function scopedStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(state.students)||state.students}
 function renderStudents(){
@@ -183,8 +217,24 @@ function renderStudents(){
  state.students.forEach(s=>{if(!s.studentId){ensureStudentCode(s);addedCode=true}});
  if(addedCode)persist();
  const list=scopedStudents(),canManage=currentRole()==='head';
- $('studentList').innerHTML=list.length?list.map(s=>'<div class="row"><div><strong>'+esc(s.name)+'</strong><small style="display:block;margin-top:4px;color:#64748b">Student Code: '+esc(s.studentId||'-')+'</small></div><span>'+esc(s.father||'-')+'</span><span>'+esc(s.className||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canManage?'<span class="access-row"><button class="secondary" onclick="editStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Edit</button><button onclick="removeStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Delete</button></span>':'<span></span>')+'</div>').join(''):'<div class="muted">No accessible students.</div>';
+ $('studentList').innerHTML=list.length?list.map(s=>{
+   const initials=String(s.name||'?').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
+   const avatar='<span data-student-avatar-path="'+esc(s.photoPath||'')+'" style="width:42px;height:42px;border-radius:50%;display:inline-grid;place-items:center;background:#e8f4f0;color:#075347;font-weight:900;overflow:hidden;flex:0 0 42px">'+esc(initials)+'</span>';
+   const details=[s.admissionNo&&('Adm '+s.admissionNo),s.gender,s.bFormNo&&('B-Form '+s.bFormNo),s.studentStatus&&s.studentStatus!=='active'?s.studentStatus:''].filter(Boolean).join(' · ');
+   return '<div class="row"><div style="display:flex;gap:10px;align-items:center">'+avatar+'<div><strong>'+esc(s.name)+'</strong><small style="display:block;margin-top:4px;color:#64748b">Student Code: '+esc(s.studentId||'-')+(details?' · '+esc(details):'')+'</small></div></div><span>'+esc(s.father||'-')+'</span><span>'+esc([s.className,s.sectionName&&('Sec '+s.sectionName)].filter(Boolean).join(' · ')||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canManage?'<span class="access-row"><button class="secondary" onclick="editStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Edit</button><button onclick="removeStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Delete</button></span>':'<span></span>')+'</div>';
+ }).join(''):'<div class="muted">No accessible students.</div>';
+ hydrateStudentAvatars();
  const addBtn=$('addStudentBtn');if(addBtn)addBtn.style.display=canManage?'inline-block':'none';
+}
+async function hydrateStudentAvatars(){
+ if(!window.EDUNIZAM_CORE_CLOUD?.ready?.()||!window.EDUNIZAM_CORE_CLOUD?.createProfilePhotoUrl)return;
+ const nodes=[...document.querySelectorAll('[data-student-avatar-path]')].filter(n=>n.dataset.studentAvatarPath);
+ await Promise.all(nodes.map(async n=>{
+   try{
+     const url=await window.EDUNIZAM_CORE_CLOUD.createProfilePhotoUrl(n.dataset.studentAvatarPath,1800);
+     if(url)n.innerHTML='<img alt="Student profile" src="'+esc(url)+'" style="width:100%;height:100%;object-fit:cover">';
+   }catch(_){}
+ }));
 }
 window.editStudent=id=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can edit students.');
@@ -202,6 +252,22 @@ window.editStudent=id=>{
  if($('studentAddress'))$('studentAddress').value=s.address||'';
  if($('guardianOccupation'))$('guardianOccupation').value=s.guardianOccupation||'';
  if($('studentCaste'))$('studentCaste').value=s.caste||'';
+ if($('studentGender'))$('studentGender').value=s.gender||s.profileDetails?.gender||'';
+ if($('studentMotherName'))$('studentMotherName').value=s.motherName||s.profileDetails?.mother_name||'';
+ if($('studentEmail'))$('studentEmail').value=s.email||s.profileDetails?.email||'';
+ if($('studentCity'))$('studentCity').value=s.city||s.profileDetails?.city||'';
+ if($('studentDistrict'))$('studentDistrict').value=s.district||s.profileDetails?.district||'';
+ if($('studentProvince'))$('studentProvince').value=s.province||s.profileDetails?.province||'';
+ if($('studentBloodGroup'))$('studentBloodGroup').value=s.bloodGroup||s.profileDetails?.blood_group||'';
+ if($('studentEmergencyContact'))$('studentEmergencyContact').value=s.emergencyContact||s.profileDetails?.emergency_contact||'';
+ if($('studentPreviousSchool'))$('studentPreviousSchool').value=s.previousSchool||s.profileDetails?.previous_school||'';
+ if($('studentAdmissionDate'))$('studentAdmissionDate').value=s.admissionDate||'';
+ if($('studentRollNo'))$('studentRollNo').value=s.rollNo||'';
+ if($('studentStatus'))$('studentStatus').value=s.studentStatus||s.profileDetails?.student_status||'active';
+ if($('studentHealthNotes'))$('studentHealthNotes').value=s.healthNotes||s.profileDetails?.health_notes||'';
+ if($('studentSpecialNeeds'))$('studentSpecialNeeds').value=s.specialNeedsNotes||s.profileDetails?.special_needs_notes||'';
+ if($('studentRemarks'))$('studentRemarks').value=s.remarks||s.profileDetails?.remarks||'';
+ if($('studentPhotoFile'))$('studentPhotoFile').value='';
  $('studentFormWrap').classList.remove('hidden');
  $('saveStudentBtn').textContent='Update Student';
  $('studentName').focus();
@@ -248,6 +314,20 @@ window.addStudentFromAdmission=(student)=>{
     admissionDate:student.admissionDate||'',
     feeSnapshot:student.feeSnapshot||null,
     authUserId:student.authUserId||null,
+    photoPath:student.photoPath||'',
+    gender:student.gender||'',
+    motherName:student.motherName||'',
+    email:student.email||'',
+    city:student.city||'',
+    district:student.district||'',
+    province:student.province||'',
+    bloodGroup:student.bloodGroup||'',
+    emergencyContact:student.emergencyContact||'',
+    previousSchool:student.previousSchool||'',
+    studentStatus:student.studentStatus||'active',
+    healthNotes:student.healthNotes||'',
+    specialNeedsNotes:student.specialNeedsNotes||'',
+    remarks:student.remarks||'',
     source:'admission'
   };
   state.students.push(record);
