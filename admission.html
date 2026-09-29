@@ -5,191 +5,193 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#075347">
 <meta name="robots" content="noindex,follow,noarchive">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <script src="pwa-install.js?v=20260926-pwa152" defer></script>
-<title>EduNizam Admission Application</title>
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="pwa-install.js?v=20260926-pwa152" defer></script>
+<title>EduNizam Online Admission Portal</title>
 <link rel="icon" href="icon-192.svg" type="image/svg+xml">
-
 <style>
-:root{--teal:#0f766e;--teal2:#115e59;--ink:#17324a;--muted:#667b80;--line:#d9e7e4;--bg:#eef7f5;--ok:#067647;--bad:#b42318}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#eaf7f4,#f7fbfa);color:var(--ink)}
-button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
-.shell{width:min(1000px,calc(100% - 24px));margin:24px auto 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:12px}.brand img{width:54px;height:54px;border-radius:12px}.brand strong{font-size:1.25rem}.back{color:var(--teal);text-decoration:none;font-weight:800}
-.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 14px 40px rgba(23,50,74,.08);margin-bottom:16px}
-h1,h2,h3{margin-top:0}.muted{color:var(--muted);line-height:1.55}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:800}.field input,.field select,.field textarea{width:100%;border:1px solid #cadbd8;border-radius:11px;padding:11px 12px;background:#fff;color:var(--ink);outline:none}.field textarea{resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#65a9a0;box-shadow:0 0 0 3px rgba(15,118,110,.1)}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.primary,.secondary{border-radius:11px;padding:11px 14px;font-weight:800}.primary{border:0;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff}.secondary{border:1px solid var(--line);background:#fff;color:var(--teal2)}
+:root{--green:#075347;--green2:#0b7667;--ink:#17324a;--muted:#65777c;--line:#d8e6e2;--bg:#f2f8f6;--ok:#067647;--bad:#b42318;--warn:#8a6100}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#f8fbfa,#eef6f3);color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.shell{width:min(1080px,calc(100% - 24px));margin:20px auto 54px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:12px}.brand img{width:52px;height:52px}.brand strong{font-size:1.28rem}.brand .n{color:var(--green2)}.back{color:var(--green2);text-decoration:none;font-weight:850}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 14px 40px rgba(23,50,74,.06);margin-bottom:16px}h1,h2,h3{margin-top:0}.muted{color:var(--muted);line-height:1.55}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}.field{display:grid;gap:6px}.field label{font-size:.82rem;font-weight:850}.field input,.field select,.field textarea{width:100%;border:1px solid #cadbd7;border-radius:11px;padding:11px 12px;background:#fff;color:var(--ink);outline:none}.field textarea{resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#65a99f;box-shadow:0 0 0 3px rgba(7,83,71,.09)}
+.section-title{grid-column:1/-1;margin:10px 0 0;padding-top:10px;border-top:1px solid #edf2f0}.section-title strong{font-size:1rem}.section-title span{display:block;color:var(--muted);font-size:.82rem;margin-top:2px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.primary,.secondary{border-radius:11px;padding:11px 14px;font-weight:850;min-height:43px}.primary{border:0;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff}.secondary{border:1px solid var(--line);background:#fff;color:var(--green2)}button:disabled{opacity:.55;cursor:wait}
 .search-row{display:grid;grid-template-columns:1fr auto;gap:8px}.results{display:grid;gap:8px;margin-top:10px}.result{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfefd}.result small{display:block;color:var(--muted);margin-top:3px}.selected{padding:10px 12px;border:1px solid #b7e6c8;background:#ecfdf3;color:#166534;border-radius:10px;margin-top:8px}
-.status{margin-top:12px;padding:10px 12px;border-radius:10px;background:#f7fbfa;border:1px solid var(--line)}.status.bad{background:#fff1f0;color:var(--bad);border-color:#f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border-color:#b7e6c8}
-.apps{display:grid;gap:10px}.app{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fbfefd}.app-head{display:flex;justify-content:space-between;gap:10px}.badge{padding:4px 8px;border-radius:999px;background:#eef7f5;color:var(--teal2);font-size:.75rem;font-weight:850}
-.full{grid-column:1/-1}
-@media(max-width:700px){.grid{grid-template-columns:1fr}.search-row{grid-template-columns:1fr}.search-row button{width:100%}.shell{width:min(100% - 16px,1000px);margin-top:10px}.card{padding:16px;border-radius:16px}.top{align-items:flex-start;flex-direction:column}input,select,textarea,button{font-size:16px;min-height:44px}}
+.status{margin-top:12px;padding:10px 12px;border-radius:10px;background:#f7fbfa;border:1px solid var(--line)}.status.bad{background:#fff1f0;color:var(--bad);border-color:#f4c7c3}.status.good{background:#ecfdf3;color:var(--ok);border-color:#b7e6c8}.status.warn{background:#fff9e8;color:var(--warn);border-color:#f0dda4}
+.apps{display:grid;gap:12px}.app{padding:16px;border:1px solid var(--line);border-radius:15px;background:#fbfefd}.app-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.badge{padding:5px 9px;border-radius:999px;background:#eef7f5;color:var(--green2);font-size:.75rem;font-weight:850}.progress{display:flex;gap:4px;margin:12px 0}.progress i{height:5px;border-radius:6px;background:#dde8e5;flex:1}.progress i.on{background:var(--green2)}.meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:.82rem}.meta span{padding:4px 7px;border:1px solid #e4edeb;border-radius:8px;background:#fff}.callout{margin-top:10px;padding:10px 12px;border-radius:11px;background:#f3f8f6;border:1px solid var(--line)}.callout.good{background:#ecfdf3;border-color:#b7e6c8}.callout.warn{background:#fff9e8;border-color:#f0dda4}.payment-box{margin-top:12px;padding:13px;border-radius:12px;border:1px solid #cfe1dc;background:#fff}.payment-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.doc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.doc{padding:11px;border:1px solid var(--line);border-radius:12px;background:#fbfefd}.doc label{display:block;font-weight:850;font-size:.8rem;margin-bottom:6px}.doc small{display:block;color:var(--muted);margin-top:4px}.required::after{content:" *";color:#b42318}
+@media(max-width:720px){.grid,.payment-grid,.doc-grid{grid-template-columns:1fr}.search-row{grid-template-columns:1fr}.search-row button{width:100%}.shell{width:min(100% - 16px,1080px);margin-top:10px}.card{padding:16px;border-radius:16px}.top{align-items:flex-start;flex-direction:column}input,select,textarea,button{font-size:16px;min-height:44px}.section-title{grid-column:auto}.full{grid-column:auto}}
 </style>
 <link rel="stylesheet" href="premium-auth.css?v=20260926-pixel151">
 </head>
 <body class="admission-premium">
 <div class="shell">
-  <div class="top"><div class="brand admission-brand"><img src="assets/edunizam-premium-mark.svg" alt=""><div><strong><span class="brand-edu">Edu</span><span class="brand-nizam">N<span class="brand-i">ı</span>zam</span></strong><div class="muted">Student Admission Portal</div></div></div><a class="back" href="login.html">← Back to Login</a></div>
+  <div class="top"><div class="brand"><img src="assets/edunizam-premium-mark.svg" alt="EduNizam"><div><strong>Edu<span class="n">Nizam</span></strong><div class="muted">Online Student Admission</div></div></div><a class="back" href="login.html">← Back to Login</a></div>
 
   <section class="card">
     <h1>Apply for Admission</h1>
-    <p class="muted"><strong>Only School Admin can add a school.</strong> Admission applicants can only select/search an existing school and submit an application.</p>
-    <div class="field">
-      <label for="schoolDropdown">Select School</label>
-      <select id="schoolDropdown"><option value="">Loading schools...</option></select>
-    </div>
-    <div class="field" style="margin-top:10px">
-      <label for="schoolSearch">Or Search School</label>
-      <div class="search-row"><input id="schoolSearch" placeholder="Type school name"><button id="searchSchoolBtn" class="secondary" type="button">Search School</button></div>
-    </div>
-    <input id="schoolId" type="hidden">
-    <div id="selectedSchool" class="selected hidden"></div>
-    <div id="schoolResults" class="results"></div>
+    <p class="muted">Select an existing school, create an applicant account, submit complete student data and documents. School Admin reviews the application first; fee challan is issued only after approval.</p>
+    <div class="field"><label for="schoolDropdown">Select School</label><select id="schoolDropdown"><option value="">Loading schools...</option></select></div>
+    <div class="field" style="margin-top:10px"><label for="schoolSearch">Or Search School</label><div class="search-row"><input id="schoolSearch" placeholder="Type school name"><button id="searchSchoolBtn" class="secondary" type="button">Search School</button></div></div>
+    <input id="schoolId" type="hidden"><div id="selectedSchool" class="selected hidden"></div><div id="schoolResults" class="results"></div>
   </section>
 
   <section id="authCard" class="card">
-    <h2>Applicant Account</h2>
-    <p class="muted">Use your email and password to submit and track your admission applications.</p>
-    <div class="grid">
-      <div class="field"><label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email"></div>
-      <div class="field"><label for="authPassword">Password</label><input id="authPassword" type="password" minlength="8" autocomplete="current-password"></div>
-    </div>
-    <div class="actions"><button id="loginBtn" class="primary" type="button">Log In</button><button id="signupBtn" class="secondary" type="button">Create Applicant Account</button></div>
-    <div id="authStatus" class="status hidden"></div>
+    <h2>Applicant Account</h2><p class="muted">This account is only for submitting and tracking admission. It does not grant private school access before the school confirms admission.</p>
+    <div class="grid"><div class="field"><label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email"></div><div class="field"><label for="authPassword">Password</label><input id="authPassword" type="password" minlength="8" autocomplete="current-password"></div></div>
+    <div class="actions"><button id="loginBtn" class="primary" type="button">Log In</button><button id="signupBtn" class="secondary" type="button">Create Applicant Account</button></div><div id="authStatus" class="status hidden"></div>
   </section>
 
   <section id="applicationCard" class="card hidden">
-    <div class="app-head"><div><h2>Admission Form</h2><p class="muted">Selected school ko application directly submit hogi.</p></div><button id="logoutBtn" class="secondary" type="button">Logout</button></div>
+    <div class="app-head"><div><h2 id="formTitle">Admission Form</h2><p class="muted">Fields marked * are required. Documents are stored privately.</p></div><button id="logoutBtn" class="secondary" type="button">Logout</button></div>
     <div class="grid">
-      <div class="field"><label for="applicantName">Student Name</label><input id="applicantName" autocomplete="name"></div>
-      <div class="field"><label for="fatherName">Father / Guardian Name</label><input id="fatherName"></div>
-      <div class="field"><label for="cnic">B-Form / CNIC</label><input id="cnic"></div>
-      <div class="field"><label for="dob">Date of Birth</label><input id="dob" type="date"></div>
-      <div class="field"><label for="phone">Contact Number</label><input id="phone" type="tel"></div>
-      <div class="field"><label for="program">Class / Program Applying For</label><input id="program" placeholder="e.g. Grade 6"></div>
+      <div class="section-title"><strong>Student Details</strong><span>Basic identity and class information.</span></div>
+      <div class="field"><label class="required" for="applicantName">Student Name</label><input id="applicantName" autocomplete="name"></div>
+      <div class="field"><label class="required" for="fatherName">Father / Guardian Name</label><input id="fatherName"></div>
+      <div class="field"><label class="required" for="cnic">B-Form / CNIC</label><input id="cnic"></div>
+      <div class="field"><label class="required" for="dob">Date of Birth</label><input id="dob" type="date"></div>
+      <div class="field"><label class="required" for="gender">Gender</label><select id="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other / Prefer not to say</option></select></div>
+      <div class="field"><label class="required" for="phone">Student / Family Contact</label><input id="phone" type="tel"></div>
+      <div class="field"><label class="required" for="program">Class / Program Applying For</label><input id="program" placeholder="e.g. Grade 6"></div>
+      <div class="field"><label for="previousRegistration">Previous Registration No. <span class="muted">(Optional)</span></label><input id="previousRegistration"></div>
+
+      <div class="section-title"><strong>Parent / Guardian</strong><span>Used by the school for verification and contact.</span></div>
+      <div class="field"><label class="required" for="guardianCnic">Parent / Guardian CNIC</label><input id="guardianCnic"></div>
+      <div class="field"><label for="guardianEmail">Parent / Guardian Email <span class="muted">(Optional)</span></label><input id="guardianEmail" type="email"></div>
+      <div class="field"><label for="guardianOccupation">Occupation <span class="muted">(Optional)</span></label><input id="guardianOccupation"></div>
+      <div class="field"><label for="guardianRelationship">Relationship</label><input id="guardianRelationship" placeholder="Father, Mother, Guardian"></div>
+      <div class="field"><label for="emergencyContact">Emergency Contact <span class="muted">(Optional)</span></label><input id="emergencyContact" type="tel"></div>
+      <div class="field"><label for="bloodGroup">Blood Group <span class="muted">(Optional)</span></label><input id="bloodGroup" placeholder="e.g. B+"></div>
+
+      <div class="section-title"><strong>Previous Education</strong><span>Academic history where applicable.</span></div>
       <div class="field"><label for="qualification">Previous Qualification / Class</label><input id="qualification"></div>
       <div class="field"><label for="previousInstitute">Previous School / Institute</label><input id="previousInstitute"></div>
       <div class="field"><label for="obtainedMarks">Obtained Marks <span class="muted">(Optional)</span></label><input id="obtainedMarks" type="number" min="0"></div>
       <div class="field"><label for="totalMarks">Total Marks <span class="muted">(Optional)</span></label><input id="totalMarks" type="number" min="0"></div>
-      <div class="field"><label for="city">City</label><input id="city"></div>
-      <div class="field"><label for="district">District</label><input id="district"></div>
+
+      <div class="section-title"><strong>Address & Other Information</strong></div>
+      <div class="field"><label for="city">City</label><input id="city"></div><div class="field"><label for="district">District</label><input id="district"></div>
+      <div class="field"><label for="province">Province</label><input id="province"></div><div class="field"><label for="transportRequired">Transport Required?</label><select id="transportRequired"><option value="">Not specified</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div class="field"><label for="religion">Religion <span class="muted">(Optional)</span></label><input id="religion"></div><div class="field"><label for="caste">Caste <span class="muted">(Optional)</span></label><input id="caste"></div>
       <div class="field full"><label for="address">Address</label><textarea id="address" rows="3"></textarea></div>
+      <div class="field full"><label for="medicalNote">Medical / Special Needs Note <span class="muted">(Optional)</span></label><textarea id="medicalNote" rows="2"></textarea></div>
+      <div class="field full"><label for="remarks">Additional Remarks <span class="muted">(Optional)</span></label><textarea id="remarks" rows="2"></textarea></div>
+
+      <div class="section-title"><strong>Documents</strong><span>JPEG, PNG, WEBP or PDF · maximum 10 MB each. Requirements may vary by school.</span></div>
+      <div class="full doc-grid">
+        <div class="doc"><label class="required" for="studentPhotoFile">Student Photo</label><input id="studentPhotoFile" type="file" accept="image/jpeg,image/png,image/webp"><small>Recent student photo.</small></div>
+        <div class="doc"><label class="required" for="studentBformFile">B-Form / Student CNIC</label><input id="studentBformFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><small>Identity document.</small></div>
+        <div class="doc"><label class="required" for="guardianCnicFile">Parent / Guardian CNIC</label><input id="guardianCnicFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><small>Guardian identity document.</small></div>
+        <div class="doc"><label for="previousResultFile">Previous Result Card <span class="muted">(if applicable)</span></label><input id="previousResultFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div>
+        <div class="doc"><label for="leavingCertificateFile">School Leaving Certificate <span class="muted">(Optional)</span></label><input id="leavingCertificateFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div>
+        <div class="doc"><label for="characterCertificateFile">Character Certificate <span class="muted">(Optional)</span></label><input id="characterCertificateFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div>
+        <div class="doc"><label for="domicileFile">Domicile <span class="muted">(Optional)</span></label><input id="domicileFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div>
+        <div class="doc"><label for="otherDocumentFile">Other Supporting Document <span class="muted">(Optional)</span></label><input id="otherDocumentFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div>
+      </div>
     </div>
-    <div class="actions"><button id="submitApplicationBtn" class="primary" type="button">Submit Application</button></div>
+    <div class="actions"><button id="submitApplicationBtn" class="primary" type="button">Submit Complete Application</button><button id="cancelEditBtn" class="secondary hidden" type="button">Cancel Correction</button></div>
     <div id="applicationStatus" class="status hidden"></div>
   </section>
 
-  <section id="myApplicationsCard" class="card hidden">
-    <h2>My Applications</h2>
-    <div id="myApplications" class="apps"><div class="muted">Loading...</div></div>
-  </section>
+  <section id="myApplicationsCard" class="card hidden"><h2>My Applications</h2><p class="muted">Track review, challan, payment and final admission status here.</p><div id="myApplications" class="apps"><div class="muted">Loading...</div></div></section>
 </div>
 
 <script src="cloud-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (()=>{
-  const $=id=>document.getElementById(id);
-  const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
-  const client=(cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase)
-    ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
-    : null;
+  const $=id=>document.getElementById(id),cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
+  const client=(cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase)?window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
   const safe=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-  let schools=[],user=null;
-  function status(id,text,ok=false){const el=$(id);el.textContent=text||'';el.className='status'+(text?'':' hidden')+(text?(ok?' good':' bad'):'')}
-  function setSchool(row){
-    if(!row){$('schoolId').value='';$('selectedSchool').classList.add('hidden');return}
-    $('schoolId').value=row.institution_id||'';
-    $('schoolDropdown').value=row.institution_id||'';
-    $('schoolSearch').value=row.institution_name||'';
-    $('selectedSchool').textContent='Selected: '+(row.institution_name||'School')+(row.registration_number?' · Reg. No. '+row.registration_number:'');
-    $('selectedSchool').classList.remove('hidden');
-    localStorage.setItem('edunizam_admission_school',JSON.stringify(row));
-  }
-  async function loadSchools(){
-    if(!client)return;
-    const {data,error}=await client.rpc('list_school_directory_v1',{p_limit:200});
-    if(error){$('schoolDropdown').innerHTML='<option value="">Could not load schools</option>';return}
-    schools=data||[];
-    $('schoolDropdown').innerHTML='<option value="">Select school</option>'+schools.map(x=>'<option value="'+safe(x.institution_id)+'">'+safe(x.institution_name||'School')+(x.registration_number?' · Reg. '+safe(x.registration_number):'')+'</option>').join('');
-    try{const saved=JSON.parse(localStorage.getItem('edunizam_admission_school')||'null');if(saved?.institution_id&&schools.some(x=>x.institution_id===saved.institution_id))setSchool(saved)}catch(_){}
-  }
-  async function searchSchools(){
-    const q=$('schoolSearch').value.trim(),box=$('schoolResults');
-    if(q.length<2){box.innerHTML='<div class="muted">Type at least 2 letters.</div>';return}
-    box.innerHTML='<div class="muted">Searching...</div>';
-    const {data,error}=await client.rpc('search_school_directory_v1',{p_query:q});
-    if(error){box.innerHTML='<div class="muted">'+safe(error.message)+'</div>';return}
-    const rows=data||[];
-    box.innerHTML=rows.length?rows.map((x,i)=>'<div class="result"><div><strong>'+safe(x.institution_name||'School')+'</strong><small>'+safe([x.institution_type,x.registration_number&&('Reg. '+x.registration_number),x.address].filter(Boolean).join(' · '))+'</small></div><button type="button" class="secondary" data-school-result="'+i+'">Select</button></div>').join(''):'<div class="muted">No matching school found.</div>';
-    box.querySelectorAll('[data-school-result]').forEach(b=>b.onclick=()=>{setSchool(rows[Number(b.dataset.schoolResult)]);box.innerHTML=''});
-  }
-  function authUi(){
-    const logged=!!user;
-    $('authCard').classList.toggle('hidden',logged);
-    $('applicationCard').classList.toggle('hidden',!logged);
-    $('myApplicationsCard').classList.toggle('hidden',!logged);
-    if(logged){$('authEmail').value=user.email||'';loadMyApplications()}
-  }
-  async function refreshUser(){
-    if(!client)return;
-    const {data}=await client.auth.getUser();user=data?.user||null;authUi();
-  }
-  async function login(){
-    if(!client)return status('authStatus','Login service unavailable.');
-    const email=$('authEmail').value.trim(),password=$('authPassword').value;
-    if(!email||!password)return status('authStatus','Email aur password enter karein.');
-    const {data,error}=await client.auth.signInWithPassword({email,password});
-    if(error)return status('authStatus',error.message);
-    user=data.user;status('authStatus','');authUi();
-  }
-  async function signup(){
-    if(!client)return status('authStatus','Signup service unavailable.');
-    if(!$('schoolId').value)return status('authStatus','Pehle school select karein.');
-    const email=$('authEmail').value.trim(),password=$('authPassword').value;
-    if(!email||password.length<8)return status('authStatus','Valid email aur kam az kam 8 character password enter karein.');
-    const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:'https://manazarali01-hub.github.io/eduNizam/admission.html'}});
-    if(error)return status('authStatus',error.message);
-    if(data.session){user=data.user;status('authStatus','Applicant account created.',true);authUi()}
-    else status('authStatus','Verification email sent. Email verify karke isi Admission Portal ko dobara open karein.',true);
-  }
+  const allowedTypes=new Set(['image/jpeg','image/png','image/webp','application/pdf']),MAX_FILE=10*1024*1024;
+  let schools=[],user=null,editingId=null,lastRows=[];
+  const docFields=[['student_photo','studentPhotoFile',true],['student_bform','studentBformFile',true],['guardian_cnic','guardianCnicFile',true],['previous_result','previousResultFile',false],['school_leaving','leavingCertificateFile',false],['character_certificate','characterCertificateFile',false],['domicile','domicileFile',false],['other','otherDocumentFile',false]];
+  function status(id,text,ok=false,warn=false){const el=$(id);el.textContent=text||'';el.className='status'+(text?'':' hidden')+(text?(ok?' good':warn?' warn':' bad'):'')}
+  function setSchool(row){if(!row){$('schoolId').value='';$('selectedSchool').classList.add('hidden');return}$('schoolId').value=row.institution_id||'';$('schoolDropdown').value=row.institution_id||'';$('schoolSearch').value=row.institution_name||'';$('selectedSchool').textContent='Selected: '+(row.institution_name||'School')+(row.registration_number?' · Reg. No. '+row.registration_number:'');$('selectedSchool').classList.remove('hidden');localStorage.setItem('edunizam_admission_school',JSON.stringify(row))}
+  async function loadSchools(){if(!client)return;const {data,error}=await client.rpc('list_school_directory_v1',{p_limit:200});if(error){$('schoolDropdown').innerHTML='<option value="">Could not load schools</option>';return}schools=data||[];$('schoolDropdown').innerHTML='<option value="">Select school</option>'+schools.map(x=>'<option value="'+safe(x.institution_id)+'">'+safe(x.institution_name||'School')+(x.registration_number?' · Reg. '+safe(x.registration_number):'')+'</option>').join('');try{const saved=JSON.parse(localStorage.getItem('edunizam_admission_school')||'null');if(saved?.institution_id&&schools.some(x=>x.institution_id===saved.institution_id))setSchool(saved)}catch(_){}}
+  async function searchSchools(){const q=$('schoolSearch').value.trim(),box=$('schoolResults');if(q.length<2){box.innerHTML='<div class="muted">Type at least 2 letters.</div>';return}box.innerHTML='<div class="muted">Searching...</div>';const {data,error}=await client.rpc('search_school_directory_v1',{p_query:q});if(error){box.innerHTML='<div class="muted">'+safe(error.message)+'</div>';return}const rows=data||[];box.innerHTML=rows.length?rows.map((x,i)=>'<div class="result"><div><strong>'+safe(x.institution_name||'School')+'</strong><small>'+safe([x.institution_type,x.registration_number&&('Reg. '+x.registration_number),x.address].filter(Boolean).join(' · '))+'</small></div><button type="button" class="secondary" data-school-result="'+i+'">Select</button></div>').join(''):'<div class="muted">No matching school found.</div>';box.querySelectorAll('[data-school-result]').forEach(b=>b.onclick=()=>{setSchool(rows[Number(b.dataset.schoolResult)]);box.innerHTML=''})}
+  function authUi(){const logged=!!user;$('authCard').classList.toggle('hidden',logged);$('applicationCard').classList.toggle('hidden',!logged);$('myApplicationsCard').classList.toggle('hidden',!logged);if(logged){$('authEmail').value=user.email||'';loadMyApplications()}}
+  async function refreshUser(){if(!client)return;const {data}=await client.auth.getUser();user=data?.user||null;authUi()}
+  async function login(){if(!client)return status('authStatus','Login service unavailable.');const email=$('authEmail').value.trim(),password=$('authPassword').value;if(!email||!password)return status('authStatus','Email aur password enter karein.');const {data,error}=await client.auth.signInWithPassword({email,password});if(error)return status('authStatus',error.message);user=data.user;status('authStatus','');authUi()}
+  async function signup(){if(!client)return status('authStatus','Signup service unavailable.');if(!$('schoolId').value)return status('authStatus','Pehle school select karein.');const email=$('authEmail').value.trim(),password=$('authPassword').value;if(!email||password.length<8)return status('authStatus','Valid email aur kam az kam 8 character password enter karein.');const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:'https://edunizam.online/admission.html',data:{account_role:'student'}}});if(error)return status('authStatus',error.message);if(data.session){user=data.user;status('authStatus','Applicant account created.',true);authUi()}else status('authStatus','Verification email sent. Email verify karke isi Admission Portal ko dobara open karein.',true)}
   function makeApplicationNo(){const b=new Uint8Array(3);crypto.getRandomValues(b);return 'ADM-'+new Date().getFullYear()+'-'+Array.from(b,x=>x.toString(16).padStart(2,'0')).join('').toUpperCase()}
+  function val(id){return $(id)?.value?.trim?.()||''}
+  function validateFile(file,label){if(!file)return null;if(file.size>MAX_FILE)throw new Error(label+' is larger than 10 MB.');if(!allowedTypes.has(file.type))throw new Error(label+' file type is not allowed.');return file}
+  function formPayload(institutionId,school,applicationNo,statusName){
+    const obtained=Number(val('obtainedMarks')||0),total=Number(val('totalMarks')||0),percentage=total>0?Math.round(obtained/total*10000)/100:null;
+    return {institution_id:institutionId,applicant_user_id:user.id,application_no:applicationNo,status:statusName,applicant_name:val('applicantName'),father_name:val('fatherName'),cnic:val('cnic'),dob:val('dob')||null,gender:val('gender')||null,phone:val('phone'),email:user.email||null,address:val('address')||null,city:val('city')||null,district:val('district')||null,program:val('program'),qualification:val('qualification')||null,previous_institute:val('previousInstitute')||null,obtained_marks:total>0?obtained:null,total_marks:total>0?total:null,percentage,fee_status:'Unpaid',metadata:{school_name:school?.institution_name||'',source:'standalone-admission-portal',guardian_cnic:val('guardianCnic'),guardian_email:val('guardianEmail'),guardian_occupation:val('guardianOccupation'),guardian_relationship:val('guardianRelationship'),emergency_contact:val('emergencyContact'),blood_group:val('bloodGroup'),previous_registration:val('previousRegistration'),province:val('province'),transport_required:val('transportRequired'),religion:val('religion'),caste:val('caste'),medical_note:val('medicalNote'),remarks:val('remarks')}}
+  }
+  function validateForm(isCorrection=false){
+    const req=[['applicantName','Student name'],['fatherName','Father / Guardian name'],['cnic','B-Form / CNIC'],['dob','Date of birth'],['gender','Gender'],['phone','Contact'],['program','Class / program'],['guardianCnic','Guardian CNIC']];
+    for(const [id,label] of req)if(!val(id))throw new Error(label+' is required.');
+    if(!isCorrection){for(const [kind,id,required] of docFields){if(required&&!$(id)?.files?.[0])throw new Error($(''+id)?.previousElementSibling?.textContent?.replace(' *','')||kind+' document is required.');}}
+    for(const [kind,id] of docFields){const file=$(id)?.files?.[0];if(file)validateFile(file,kind)}
+  }
+  async function uploadDocument(app,file,kind){
+    validateFile(file,kind);
+    const ext=(file.name.split('.').pop()||'file').replace(/[^a-z0-9]/gi,'').slice(0,8),path=app.institution_id+'/'+app.id+'/'+kind+'-'+Date.now()+'.'+ext;
+    const {error:upError}=await client.storage.from('admission-documents').upload(path,file,{upsert:false,contentType:file.type});if(upError)throw upError;
+    const {error}=await client.from('application_documents').insert({application_id:app.id,uploaded_by:user.id,kind,storage_path:path,original_name:file.name,mime_type:file.type,size_bytes:file.size});if(error)throw error;
+    return path;
+  }
+  async function uploadSelectedDocuments(app){let count=0;for(const [kind,id] of docFields){const file=$(id)?.files?.[0];if(file){await uploadDocument(app,file,kind);count++}}return count}
+  function clearForm(){['applicantName','fatherName','cnic','dob','gender','phone','program','previousRegistration','guardianCnic','guardianEmail','guardianOccupation','guardianRelationship','emergencyContact','bloodGroup','qualification','previousInstitute','obtainedMarks','totalMarks','city','district','province','transportRequired','religion','caste','address','medicalNote','remarks'].forEach(id=>{if($(id))$(id).value=''});docFields.forEach(([,id])=>{if($(id))$(id).value=''});editingId=null;$('formTitle').textContent='Admission Form';$('submitApplicationBtn').textContent='Submit Complete Application';$('cancelEditBtn').classList.add('hidden')}
   async function submitApplication(){
-    if(!user)return status('applicationStatus','Please log in first.');
-    const institutionId=$('schoolId').value;
-    const school=schools.find(x=>x.institution_id===institutionId)||(()=>{try{return JSON.parse(localStorage.getItem('edunizam_admission_school')||'null')}catch{return null}})();
-    const name=$('applicantName').value.trim(),father=$('fatherName').value.trim(),cnic=$('cnic').value.trim(),phone=$('phone').value.trim(),program=$('program').value.trim();
-    if(!institutionId||!name||!father||!cnic||!phone||!program)return status('applicationStatus','School, student name, guardian name, B-Form/CNIC, contact aur class/program required hain.');
-    const obtained=Number($('obtainedMarks').value||0),total=Number($('totalMarks').value||0),percentage=total>0?Math.round(obtained/total*10000)/100:null;
-    const payload={
-      institution_id:institutionId,applicant_user_id:user.id,application_no:makeApplicationNo(),status:'Submitted',
-      applicant_name:name,father_name:father,cnic,dob:$('dob').value||null,phone,email:user.email||null,
-      address:$('address').value.trim()||null,city:$('city').value.trim()||null,district:$('district').value.trim()||null,
-      program,qualification:$('qualification').value.trim()||null,previous_institute:$('previousInstitute').value.trim()||null,
-      obtained_marks:total>0?obtained:null,total_marks:total>0?total:null,percentage,
-      fee_status:'Unpaid',metadata:{school_name:school?.institution_name||'',source:'standalone-admission-portal'}
-    };
-    $('submitApplicationBtn').disabled=true;
-    const {data,error}=await client.from('applications').insert(payload).select().single();
-    $('submitApplicationBtn').disabled=false;
-    if(error)return status('applicationStatus',error.message);
-    status('applicationStatus','Application submitted successfully. Application No: '+data.application_no,true);
-    loadMyApplications();
+    if(!user)return status('applicationStatus','Please log in first.');const institutionId=$('schoolId').value,school=schools.find(x=>x.institution_id===institutionId)||(()=>{try{return JSON.parse(localStorage.getItem('edunizam_admission_school')||'null')}catch{return null}})();
+    if(!institutionId)return status('applicationStatus','Select a school first.');
+    try{validateForm(!!editingId)}catch(e){return status('applicationStatus',e.message)}
+    const btn=$('submitApplicationBtn');btn.disabled=true;status('applicationStatus','Saving application and documents…',false,true);
+    try{
+      let app;
+      if(editingId){
+        const old=lastRows.find(x=>x.id===editingId);if(!old)throw new Error('Application not found.');
+        const payload=formPayload(institutionId,school,old.application_no,'Submitted');delete payload.institution_id;delete payload.applicant_user_id;delete payload.application_no;
+        const {data,error}=await client.from('applications').update(payload).eq('id',editingId).select().single();if(error)throw error;app=data;
+      }else{
+        const payload=formPayload(institutionId,school,makeApplicationNo(),'Submitted');
+        const {data,error}=await client.from('applications').insert(payload).select().single();if(error)throw error;app=data;
+      }
+      const uploaded=await uploadSelectedDocuments(app);
+      status('applicationStatus','Application '+app.application_no+' submitted successfully'+(uploaded?' with '+uploaded+' document(s).':'.'),true);
+      clearForm();await loadMyApplications();
+    }catch(e){status('applicationStatus','Application action failed: '+(e.message||e))}
+    finally{btn.disabled=false}
   }
-  async function loadMyApplications(){
-    if(!user)return;
-    const {data,error}=await client.from('applications').select('id,institution_id,application_no,status,applicant_name,program,admin_note,metadata,created_at').eq('applicant_user_id',user.id).order('created_at',{ascending:false});
-    if(error){$('myApplications').innerHTML='<div class="muted">'+safe(error.message)+'</div>';return}
-    $('myApplications').innerHTML=(data||[]).length?(data||[]).map(x=>'<div class="app"><div class="app-head"><strong>'+safe(x.application_no)+'</strong><span class="badge">'+safe(x.status)+'</span></div><div>'+safe(x.applicant_name)+' · '+safe(x.program||'Program')+'</div><div class="muted">'+safe(x.metadata?.school_name||'Selected school')+' · '+new Date(x.created_at).toLocaleString()+'</div>'+(x.admin_note?'<div class="status">'+safe(x.admin_note)+'</div>':'')+'</div>').join(''):'<div class="muted">No applications submitted yet.</div>';
+  function fillForCorrection(app){
+    editingId=app.id;setSchool(schools.find(x=>x.institution_id===app.institution_id)||{institution_id:app.institution_id,institution_name:app.metadata?.school_name||'Selected school'});
+    const map={applicantName:app.applicant_name,fatherName:app.father_name,cnic:app.cnic,dob:app.dob,gender:app.gender,phone:app.phone,program:app.program,qualification:app.qualification,previousInstitute:app.previous_institute,obtainedMarks:app.obtained_marks,totalMarks:app.total_marks,city:app.city,district:app.district,address:app.address,guardianCnic:app.metadata?.guardian_cnic,guardianEmail:app.metadata?.guardian_email,guardianOccupation:app.metadata?.guardian_occupation,guardianRelationship:app.metadata?.guardian_relationship,emergencyContact:app.metadata?.emergency_contact,bloodGroup:app.metadata?.blood_group,previousRegistration:app.metadata?.previous_registration,province:app.metadata?.province,transportRequired:app.metadata?.transport_required,religion:app.metadata?.religion,caste:app.metadata?.caste,medicalNote:app.metadata?.medical_note,remarks:app.metadata?.remarks};
+    Object.entries(map).forEach(([id,v])=>{if($(id))$(id).value=v??''});$('formTitle').textContent='Correct & Resubmit '+app.application_no;$('submitApplicationBtn').textContent='Resubmit Application';$('cancelEditBtn').classList.remove('hidden');window.scrollTo({top:$('applicationCard').offsetTop-20,behavior:'smooth'})
   }
-
-  $('schoolDropdown').onchange=e=>setSchool(schools.find(x=>x.institution_id===e.target.value)||null);
-  $('searchSchoolBtn').onclick=searchSchools;
-  $('schoolSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();searchSchools()}};
-  $('loginBtn').onclick=login;$('signupBtn').onclick=signup;$('submitApplicationBtn').onclick=submitApplication;
-  $('logoutBtn').onclick=async()=>{await client.auth.signOut();user=null;authUi()};
-  loadSchools();refreshUser();
-  client?.auth.onAuthStateChange((_event,session)=>{user=session?.user||null;authUi()});
+  const steps=['Submitted','Under Review','Needs Correction','Approved for Fee','Challan Issued','Payment Verification','Admission Confirmed'];
+  function progressFor(statusName){const map={'Draft':0,'Submitted':1,'Under Review':2,'Documents Pending':2,'Needs Correction':2,'Test / Interview':2,'Merit List':2,'Selected':3,'Approved for Fee':3,'Challan Issued':4,'Payment Verification':5,'Admission Confirmed':7,'Admitted':7,'Rejected':1,'Cancelled':1};const n=map[statusName]??1;return '<div class="progress" aria-label="Admission progress">'+Array.from({length:7},(_,i)=>'<i class="'+(i<n?'on':'')+'"></i>').join('')+'</div>'}
+  function printable(title,body){const w=window.open('','_blank');if(!w)return;w.document.write('<!doctype html><html><head><title>'+safe(title)+'</title><style>body{font-family:Arial;padding:32px;color:#17324a;line-height:1.5}.box{border:1px solid #ccd8d5;border-radius:10px;padding:16px;margin:14px 0}h1{color:#075347}</style></head><body><h1>EduNizam</h1>'+body+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),250)}
+  function printChallan(app){printable('Admission Fee Challan','<h2>Admission Fee Challan</h2><div class="box"><strong>Challan: '+safe(app.challan_no||'')+'</strong><br>Application: '+safe(app.application_no)+'<br>Student: '+safe(app.applicant_name)+'<br>Class / Program: '+safe(app.program||'')+'<br>Amount: PKR '+Number(app.challan_amount||0).toLocaleString()+'<br>Issued: '+safe(app.challan_issued_at?new Date(app.challan_issued_at).toLocaleString():'')+'</div><p>Submit payment according to school instructions and enter the transaction/reference in the portal.</p>')}
+  function printConfirmation(app){printable('Admission Confirmation','<h2>Admission Confirmed</h2><div class="box"><strong>Admission No: '+safe(app.admission_no||'')+'</strong><br>Application: '+safe(app.application_no)+'<br>Student: '+safe(app.applicant_name)+'<br>Class / Program: '+safe(app.program||'')+'<br>School: '+safe(app.metadata?.school_name||'')+'<br>Confirmed: '+safe(app.confirmed_at?new Date(app.confirmed_at).toLocaleString():'')+'</div>')}
+  async function uploadPaymentProof(app,file){if(!file)return null;validateFile(file,'Payment proof');const ext=(file.name.split('.').pop()||'file').replace(/[^a-z0-9]/gi,'').slice(0,8),path=app.institution_id+'/'+app.id+'/payment-proof-'+Date.now()+'.'+ext;const {error}=await client.storage.from('admission-documents').upload(path,file,{upsert:false,contentType:file.type});if(error)throw error;return path}
+  async function submitPayment(appId,card){
+    const app=lastRows.find(x=>x.id===appId);if(!app)return;const method=card.querySelector('[data-pay-method]')?.value||'',reference=card.querySelector('[data-pay-reference]')?.value?.trim()||'',amount=Number(card.querySelector('[data-pay-amount]')?.value||0),file=card.querySelector('[data-pay-proof]')?.files?.[0]||null,btn=card.querySelector('[data-pay-submit]');
+    if(!method||!reference||!amount)return alert('Payment method, amount and transaction/reference are required.');
+    if(file)try{validateFile(file,'Payment proof')}catch(e){return alert(e.message)}
+    btn.disabled=true;
+    try{const proof=await uploadPaymentProof(app,file);const {error}=await client.rpc('submit_admission_payment_v2',{p_application_id:app.id,p_method:method,p_reference:reference,p_amount:amount,p_proof_storage_path:proof});if(error)throw error;alert('Payment submitted for school verification.');await loadMyApplications()}catch(e){alert('Payment submit failed: '+(e.message||e))}finally{btn.disabled=false}
+  }
+  function appCard(x){
+    let action='',callout='';
+    if(x.status==='Needs Correction'){callout='<div class="callout warn"><strong>Correction requested.</strong><br>'+safe(x.admin_note||'Please update the requested information and resubmit.')+'</div>';action='<button class="secondary" data-edit-app="'+x.id+'">Correct & Resubmit</button>'}
+    else if(x.status==='Challan Issued'&&x.fee_status!=='Paid'){
+      callout='<div class="callout"><strong>Fee challan issued:</strong> '+safe(x.challan_no||'')+' · PKR '+Number(x.challan_amount||0).toLocaleString()+'</div>';
+      action='<button class="secondary" data-print-challan="'+x.id+'">Print Challan</button><div class="payment-box"><strong>Submit Payment for Verification</strong><div class="payment-grid" style="margin-top:9px"><div class="field"><label>Payment Method</label><select data-pay-method><option value="">Select</option><option>Bank Transfer</option><option>Easypaisa</option><option>JazzCash</option><option>Cash / School Office</option><option>Other</option></select></div><div class="field"><label>Amount</label><input data-pay-amount type="number" min="1" value="'+Number(x.challan_amount||0)+'"></div><div class="field"><label>Transaction / Reference</label><input data-pay-reference></div><div class="field"><label>Payment Proof <span class="muted">(Recommended)</span></label><input data-pay-proof type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div></div><button class="primary" style="margin-top:10px" data-pay-submit="'+x.id+'">Submit Payment</button></div>'
+    }else if(x.status==='Payment Verification'&&x.fee_status==='Pending Verification')callout='<div class="callout warn"><strong>Payment submitted.</strong> Waiting for School Admin verification.</div>';
+    else if(x.status==='Payment Verification'&&x.fee_status==='Paid')callout='<div class="callout good"><strong>Payment verified.</strong> School Admin will complete final admission confirmation.</div>';
+    else if(x.status==='Admission Confirmed'||x.status==='Admitted'){callout='<div class="callout good"><strong>Admission confirmed.</strong> Admission No: '+safe(x.admission_no||'Pending number')+'</div>';action='<button class="primary" data-print-confirm="'+x.id+'">Print Confirmation</button>'}
+    else if(x.status==='Rejected')callout='<div class="callout warn"><strong>Application rejected.</strong> '+safe(x.admin_note||'Contact the school for details.')+'</div>';
+    else if(x.admin_note)callout='<div class="callout">'+safe(x.admin_note)+'</div>';
+    return '<article class="app" data-app-card="'+x.id+'"><div class="app-head"><div><strong>'+safe(x.application_no)+'</strong><div>'+safe(x.applicant_name)+' · '+safe(x.program||'Program')+'</div></div><span class="badge">'+safe(x.status)+'</span></div>'+progressFor(x.status)+'<div class="meta"><span>'+safe(x.metadata?.school_name||'Selected school')+'</span><span>Fee: '+safe(x.fee_status||'Unpaid')+'</span><span>'+new Date(x.created_at).toLocaleDateString()+'</span></div>'+callout+'<div class="actions">'+action+'</div></article>'
+  }
+  async function loadMyApplications(){if(!user)return;const {data,error}=await client.from('applications').select('*').eq('applicant_user_id',user.id).order('created_at',{ascending:false});if(error){$('myApplications').innerHTML='<div class="muted">'+safe(error.message)+'</div>';return}lastRows=data||[];$('myApplications').innerHTML=lastRows.length?lastRows.map(appCard).join(''):'<div class="muted">No applications submitted yet.</div>';document.querySelectorAll('[data-edit-app]').forEach(b=>b.onclick=()=>fillForCorrection(lastRows.find(x=>x.id===b.dataset.editApp)));document.querySelectorAll('[data-print-challan]').forEach(b=>b.onclick=()=>printChallan(lastRows.find(x=>x.id===b.dataset.printChallan)));document.querySelectorAll('[data-print-confirm]').forEach(b=>b.onclick=()=>printConfirmation(lastRows.find(x=>x.id===b.dataset.printConfirm)));document.querySelectorAll('[data-pay-submit]').forEach(b=>b.onclick=()=>submitPayment(b.dataset.paySubmit,b.closest('[data-app-card]')))}
+  $('schoolDropdown').onchange=e=>setSchool(schools.find(x=>x.institution_id===e.target.value)||null);$('searchSchoolBtn').onclick=searchSchools;$('schoolSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();searchSchools()}};$('loginBtn').onclick=login;$('signupBtn').onclick=signup;$('submitApplicationBtn').onclick=submitApplication;$('cancelEditBtn').onclick=()=>{clearForm();status('applicationStatus','')};$('logoutBtn').onclick=async()=>{await client.auth.signOut();user=null;clearForm();authUi()};
+  loadSchools();refreshUser();client?.auth.onAuthStateChange((_event,session)=>{user=session?.user||null;authUi()});
 })();
 </script>
 </body>
