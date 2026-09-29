@@ -1,4 +1,4 @@
-const CACHE='edunizam-v159-public-root'
+const CACHE='edunizam-v161-public-root'
 const CORE=[
   './',
   './index.html',
