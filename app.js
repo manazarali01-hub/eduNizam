@@ -335,13 +335,38 @@ window.addStudentFromAdmission=(student)=>{
   return record;
 };
 function todayKey(){return localDateKey()}
+async function renderAttendanceAudit(){
+ const card=$('attendanceAuditCard'),list=$('attendanceAuditList');
+ if(!card||!list)return;
+ const isHead=currentRole()==='head';
+ card.classList.toggle('hidden',!isHead);
+ if(!isHead)return;
+ const core=window.EDUNIZAM_CORE_CLOUD;
+ if(!core?.ready?.()||!core?.listAttendanceAudit){
+   list.innerHTML='<div class="empty-state">Cloud Mode connect hone ke baad Teacher/Admin marking audit yahan show hoga.</div>';
+   return;
+ }
+ list.innerHTML='<div class="muted">Loading attendance audit...</div>';
+ try{
+   const rows=await core.listAttendanceAudit(todayKey());
+   list.innerHTML=rows.length?rows.map(x=>{
+     const cls=[x.className&&('Class '+x.className),x.sectionName&&('Section '+x.sectionName)].filter(Boolean).join(' · ');
+     const time=x.updatedAt?new Date(x.updatedAt).toLocaleString():'Time unavailable';
+     return '<div class="row"><div><strong>'+esc(x.studentName)+'</strong><small style="display:block;margin-top:4px">'+esc(cls||'Class not set')+'</small></div><span class="badge">'+esc(x.status)+'</span><span><strong>'+esc(x.markerName)+'</strong><small style="display:block;margin-top:4px">'+esc(x.markerRole)+'</small></span><span>'+esc(time)+'</span></div>';
+   }).join(''):'<div class="empty-state">Aaj ki cloud attendance abhi mark nahi hui.</div>';
+ }catch(e){
+   list.innerHTML='<div class="empty-state">Attendance audit load nahi ho saka: '+esc(e.message||e)+'</div>';
+ }
+}
 function renderAttendance(){
  $('todayLabel').textContent=new Date().toLocaleDateString();
  const day=state.attendance[todayKey()]||{},editable=canManageAttendance();
  const list=scopedStudents();
  $('attendanceList').innerHTML=list.length?list.map(s=>{const v=day[s.id]??day[String(s.id)]??'';const info=[s.className&&('Class '+s.className+(s.sectionName?'/'+s.sectionName:'')),s.phone||'No contact number'].filter(Boolean).join(' · ');return '<div class="row attendance-row"><div><strong>'+esc(s.name)+'</strong><small style="display:block;margin-top:4px">'+esc(info)+'</small></div><label><input type="radio" name="att_'+s.id+'" value="Present" '+(v==='Present'?'checked':'')+' '+(!editable?'disabled':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(v==='Absent'?'checked':'')+' '+(!editable?'disabled':'')+'> Absent</label></div>'}).join(''):'<div class="muted">No accessible students.</div>';
  const btn=$('saveAttendanceBtn');if(btn)btn.style.display=editable?'inline-block':'none';
+ renderAttendanceAudit();
 }
+$('refreshAttendanceAuditBtn')?.addEventListener('click',()=>renderAttendanceAudit());
 $('saveAttendanceBtn').onclick=async()=>{
  if(!canManageAttendance())return alert('Only Teacher or Head of Institute can save attendance.');
  const list=scopedStudents(),day={};
@@ -350,6 +375,7 @@ $('saveAttendanceBtn').onclick=async()=>{
  state.attendance[todayKey()]=Object.assign({},state.attendance[todayKey()]||{},day);persist();logActivity('Attendance saved for '+todayKey());renderStats();
  try{
    if(window.EDUNIZAM_CORE_CLOUD?.ready?.())await window.EDUNIZAM_CORE_CLOUD.saveAttendanceDay(todayKey(),day);
+   await renderAttendanceAudit();
  }catch(e){
    recordDiagnostic('Attendance Cloud Sync',e.message||e,'Attendance');
    alert('Attendance device par save ho gayi, lekin cloud sync fail hui. Admin ko remote absence report cloud reconnect hone ke baad milegi.');
