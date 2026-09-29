@@ -143,7 +143,33 @@
     const [risk,riskClass]=riskLabel(att,avg,weak.length);
 
     $('profileStudentName').textContent=s.name;
-    $('profileStudentMeta').textContent=[s.studentId&&('Student ID '+s.studentId),s.rollNo&&('Roll '+s.rollNo),s.className,s.father&&('Guardian: '+s.father)].filter(Boolean).join(' · ');
+    $('profileStudentMeta').textContent=[
+      s.studentId&&('Student ID '+s.studentId),
+      s.admissionNo&&('Admission '+s.admissionNo),
+      s.rollNo&&('Roll '+s.rollNo),
+      s.className,
+      s.sectionName&&('Section '+s.sectionName),
+      s.gender,
+      s.dateOfBirth&&('DOB '+s.dateOfBirth),
+      s.father&&('Guardian: '+s.father)
+    ].filter(Boolean).join(' · ');
+    const avatar=$('profileStudentAvatar');
+    if(avatar){
+      const initials=String(s.name||'Student').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'ST';
+      avatar.textContent=initials;
+      avatar.style.backgroundImage='';
+      avatar.classList.remove('has-photo');
+      if(s.photoPath&&window.EDUNIZAM_CORE_CLOUD?.ready?.()&&window.EDUNIZAM_CORE_CLOUD?.createProfilePhotoUrl){
+        try{
+          const photoUrl=await window.EDUNIZAM_CORE_CLOUD.createProfilePhotoUrl(s.photoPath,1800);
+          if(photoUrl){
+            avatar.textContent='';
+            avatar.style.backgroundImage='url("'+String(photoUrl).replace(/"/g,'%22')+'")';
+            avatar.classList.add('has-photo');
+          }
+        }catch(_){}
+      }
+    }
     $('profileAttendance').textContent=att==null?'No data':att+'%';
     $('profileAverage').textContent=avg==null?'No data':avg+'%';
     $('profileFeesPaid').textContent='Rs '+f.paid.toLocaleString();
