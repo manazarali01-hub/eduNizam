@@ -87,7 +87,10 @@
     if(!shown.length){
       shown=U.resources.filter(r=>r.universityId==='vu'&&r.category==='Past Papers'&&r.courseAgnostic&&(!src||r.source===src));
     }
-    $('vuLibrary').innerHTML=shown.length?shown.map(vuCard).join(''):'<div class="empty-state">VU official/community source is not configured for this filter yet.</div>';
+    if(!shown.length){
+      shown=U.resources.filter(r=>r.universityId==='vu'&&r.source==='official'&&['Handouts','Quizzes','Assignments'].includes(r.category)).slice(0,5);
+    }
+    $('vuLibrary').innerHTML=shown.map(vuCard).join('')+'<div class="coverage-note"><strong>Search guidance:</strong> Agar exact course-specific item indexed na ho to upar diye gaye official VU OCW/VULMS/course sources se current handout aur syllabus verify karein. EduNizam exact result invent nahi karta.</div>';
     const vu=U.resources.filter(r=>r.universityId==='vu');
     $('vuStatResources').textContent=vu.length;$('vuStatOfficial').textContent=vu.filter(x=>x.source==='official').length;$('vuStatVerified').textContent=vu.filter(x=>x.source==='verified').length;$('vuStatSaved').textContent=vuSaved().length;
     document.querySelectorAll('[data-vu-save]').forEach(b=>b.onclick=()=>{let x=vuSaved();x=x.includes(b.dataset.vuSave)?x.filter(v=>v!==b.dataset.vuSave):[b.dataset.vuSave,...x];putVu(x);renderVU()});
