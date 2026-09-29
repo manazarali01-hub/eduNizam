@@ -181,18 +181,35 @@
         <article class="card">
           <div class="section-head"><h2>Students</h2><button id="addStudentBtn">+ Add Student</button></div>
           <div class="form-grid hidden" id="studentFormWrap">
-            <input id="studentName" placeholder="Student name">
-            <input id="fatherName" placeholder="Father / Guardian name (optional)">
-            <input id="studentClass" placeholder="Class (optional)">
+            <div class="coverage-note" style="grid-column:1/-1"><strong>Student Profile</strong><br>Required: name, class, admission no., DOB, gender, guardian name/contact and B-Form. Remaining fields are optional and can be completed later.</div>
+            <input id="studentName" placeholder="Student name *">
+            <input id="fatherName" placeholder="Father / Guardian name *">
+            <input id="studentClass" placeholder="Class *">
             <input id="studentSection" placeholder="Section (optional)">
-            <input id="studentPhone" placeholder="Phone (optional)">
-            <input id="studentBForm" placeholder="B-Form No. (optional)">
-            <input id="guardianCnic" placeholder="Father / Guardian CNIC (optional)">
+            <input id="studentPhone" placeholder="Parent / Guardian contact *">
+            <input id="studentBForm" placeholder="B-Form No. *">
+            <select id="studentGender" aria-label="Gender"><option value="">Gender *</option><option>Male</option><option>Female</option><option>Other / Prefer not to say</option></select>
             <input id="studentDob" type="date" aria-label="Date of birth">
-            <input id="admissionNo" placeholder="Admission No. (optional)">
+            <input id="admissionNo" placeholder="Admission No. *">
+            <input id="guardianCnic" placeholder="Father / Guardian CNIC (optional)">
+            <input id="studentMotherName" placeholder="Mother name (optional)">
+            <input id="studentEmail" type="email" placeholder="Student / family email (optional)">
             <input id="studentAddress" placeholder="Address (optional)">
+            <input id="studentCity" placeholder="City (optional)">
+            <input id="studentDistrict" placeholder="District (optional)">
+            <input id="studentProvince" placeholder="Province (optional)">
             <input id="guardianOccupation" placeholder="Father / Guardian occupation (optional)">
             <input id="studentCaste" placeholder="Caste (optional)">
+            <input id="studentBloodGroup" placeholder="Blood group (optional)">
+            <input id="studentEmergencyContact" placeholder="Emergency contact (optional)">
+            <input id="studentPreviousSchool" placeholder="Previous school (optional)">
+            <input id="studentAdmissionDate" type="date" aria-label="Admission date">
+            <input id="studentRollNo" placeholder="Roll No. (optional)">
+            <select id="studentStatus"><option value="active">Active</option><option value="inactive">Inactive</option><option value="left">Left School</option><option value="graduated">Graduated</option></select>
+            <textarea id="studentHealthNotes" rows="2" placeholder="Health notes (optional)"></textarea>
+            <textarea id="studentSpecialNeeds" rows="2" placeholder="Special needs / support notes (optional)"></textarea>
+            <textarea id="studentRemarks" rows="2" placeholder="Remarks (optional)"></textarea>
+            <label class="coverage-note" style="display:grid;gap:6px"><strong>Profile Picture (optional)</strong><input id="studentPhotoFile" type="file" accept="image/jpeg,image/png,image/webp"><span>JPG/PNG/WEBP, max 2 MB. Private cloud storage is used.</span></label>
             <button id="saveStudentBtn">Save Student</button>
           </div>
           <div id="studentList" class="list"></div>
