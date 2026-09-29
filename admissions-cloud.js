@@ -141,22 +141,14 @@
   }
   async function listMyInstitutions(){
     if(!state.client||!state.user)return[];
-    const [{data:owned,error:ownedError},{data:memberships,error:memberError},{data:profile,error:profileError}]=await Promise.all([
+    const [{data:owned,error:ownedError},{data:memberships,error:memberError}]=await Promise.all([
       state.client.from('institutions').select('*').eq('owner_user_id',state.user.id).order('created_at',{ascending:true}),
-      state.client.from('institution_members').select('role,institutions(*)').eq('user_id',state.user.id),
-      state.client.from('user_profiles').select('institution_id').eq('user_id',state.user.id).maybeSingle()
+      state.client.from('institution_members').select('role,institutions(*)').eq('user_id',state.user.id)
     ]);
     if(ownedError)throw ownedError;
     if(memberError)throw memberError;
-    if(profileError)throw profileError;
-    let profileInstitution=null;
-    if(profile?.institution_id){
-      const {data,error}=await state.client.from('institutions').select('*').eq('id',profile.institution_id).maybeSingle();
-      if(error)throw error;profileInstitution=data||null;
-    }
-    // Membership/ownership are the authorization sources. A legacy profile
-    // institution may be stale after multi-school linking and must not surface
-    // an unapproved workspace.
+    // Membership/ownership are the only workspace sources. Legacy profile
+    // institution fields are intentionally ignored in multi-school mode.
     const merged=[...(owned||[]),...((memberships||[]).map(x=>x.institutions).filter(Boolean))];
     return [...new Map(merged.map(x=>[x.id,x])).values()];
   }
