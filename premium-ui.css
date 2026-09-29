@@ -760,3 +760,31 @@ input:focus,select:focus,textarea:focus{
 @media(max-width:340px){
   .cards{grid-template-columns:1fr!important}
 }
+
+
+/* ===== Student identity card polish ===== */
+.student-profile-header{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center!important;
+  gap:16px;
+}
+.profile-student-avatar{
+  width:76px;height:76px;flex:0 0 76px;
+  display:grid;place-items:center;
+  border-radius:22px;
+  color:#0A6655;
+  font-size:22px;font-weight:900;letter-spacing:-.03em;
+  background:#EAF6EF center/cover no-repeat;
+  border:1px solid #D4E7DB;
+  box-shadow:0 10px 24px rgba(23,70,57,.08);
+}
+.profile-student-avatar.has-photo{color:transparent;background-size:cover;background-position:center}
+.student-profile-identity{min-width:0}
+.student-profile-identity h2{margin:4px 0 5px}
+.student-profile-identity .muted{overflow-wrap:anywhere}
+@media(max-width:620px){
+  .student-profile-header{grid-template-columns:auto minmax(0,1fr)!important;gap:12px}
+  .student-profile-header #profileRiskBadge{grid-column:1/-1;width:max-content}
+  .profile-student-avatar{width:60px;height:60px;flex-basis:60px;border-radius:18px;font-size:18px}
+}
