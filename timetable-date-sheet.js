@@ -9,7 +9,8 @@
   const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
-  const canManage=()=>role()==='head';
+  const canManage=()=>['head','teacher'].includes(role());
+  const canManageItem=x=>role()==='head'||(role()==='teacher'&&String(x?.createdBy||'')===String(cloud()?.state?.user?.id||''));
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   const uuid=id=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(id||''));
 
@@ -76,7 +77,7 @@
       @media(max-width:700px){.schedule-toolbar{grid-template-columns:1fr}.schedule-toolbar button{width:100%}}
     `;document.head.appendChild(s);
   }
-  function managerNote(){return canManage()?'':'<div class="coverage-note">Timetable aur date sheet Head of Institute manage karta hai. Aap ko apni relevant class ka read-only schedule dikhaya ja raha hai.</div>'}
+  function managerNote(){return canManage()?'':'<div class="coverage-note">Timetable aur date sheet school staff manage karta hai. Aap ko apni relevant class ka read-only schedule dikhaya ja raha hai.</div>'}
 
   function timetableEditor(edit=null){
     if(!canManage())return managerNote();
@@ -130,7 +131,7 @@
     writeDateSheets(rows.filter(x=>String(x.id)!==String(editId)).concat(item));render();
   }
   async function remove(kind,id){
-    if(!canManage())return;const rows=kind==='timetable'?timetable():dateSheets(),item=rows.find(x=>String(x.id)===String(id));if(!item||!confirm('Delete '+(item.subject||'entry')+'?'))return;
+    if(!canManage())return;const rows=kind==='timetable'?timetable():dateSheets(),item=rows.find(x=>String(x.id)===String(id));if(!item||!canManageItem(item)||!confirm('Delete '+(item.subject||'entry')+'?'))return;
     try{await deleteCloud(kind,id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
     if(kind==='timetable')writeTimetable(rows.filter(x=>String(x.id)!==String(id)));else writeDateSheets(rows.filter(x=>String(x.id)!==String(id)));render();
   }
@@ -138,12 +139,12 @@
   function timetableRows(rows){
     if(!rows.length)return '<div class="empty-state">Is class ka timetable abhi available nahi hai.</div>';
     return DAYS.map(day=>{const list=rows.filter(x=>x.day===day).sort((a,b)=>Number(a.periodNumber)-Number(b.periodNumber)||String(a.time).localeCompare(String(b.time)));if(!list.length)return'';
-      return '<section class="schedule-day"><h3>'+day+'</h3><div class="schedule-table-wrap"><table class="schedule-table"><thead><tr><th>Period</th><th>Time</th><th>Subject</th><th>Teacher</th><th>Room</th>'+(canManage()?'<th>Actions</th>':'')+'</tr></thead><tbody>'+list.map(x=>'<tr><td>'+Number(x.periodNumber||0)+'</td><td>'+esc(x.time)+' – '+esc(x.endTime||'')+'</td><td><strong>'+esc(x.subject)+'</strong></td><td>'+esc(x.teacherName||'—')+'</td><td>'+esc(x.roomLabel||'—')+'</td>'+(canManage()?'<td><button data-tt-edit="'+esc(x.id)+'">Edit</button> <button class="secondary" data-tt-delete="'+esc(x.id)+'">Delete</button></td>':'')+'</tr>').join('')+'</tbody></table></div></section>';
+      return '<section class="schedule-day"><h3>'+day+'</h3><div class="schedule-table-wrap"><table class="schedule-table"><thead><tr><th>Period</th><th>Time</th><th>Subject</th><th>Teacher</th><th>Room</th>'+(canManage()?'<th>Actions</th>':'')+'</tr></thead><tbody>'+list.map(x=>'<tr><td>'+Number(x.periodNumber||0)+'</td><td>'+esc(x.time)+' – '+esc(x.endTime||'')+'</td><td><strong>'+esc(x.subject)+'</strong></td><td>'+esc(x.teacherName||'—')+'</td><td>'+esc(x.roomLabel||'—')+'</td>'+(canManage()?'<td>'+(canManageItem(x)?'<button data-tt-edit="'+esc(x.id)+'">Edit</button> <button class="secondary" data-tt-delete="'+esc(x.id)+'">Delete</button>':'<span class="muted">Read only</span>')+'</td>':'')+'</tr>').join('')+'</tbody></table></div></section>';
     }).join('');
   }
   function dateSheetRows(rows){
     if(!rows.length)return '<div class="empty-state">Is selection ke liye date sheet available nahi hai.</div>';
-    return '<div class="paper-grid">'+rows.map(x=>'<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(x.examName)+'</span><span class="badge">'+esc(x.examDate)+'</span></div><h3>'+esc(x.subject)+'</h3><p class="muted">'+esc(label(x))+' · '+esc(x.startTime)+' – '+esc(x.endTime||'')+(x.roomLabel?' · '+esc(x.roomLabel):'')+'</p><p>Total Marks: '+Number(x.totalMarks||0)+(x.notes?' · '+esc(x.notes):'')+'</p>'+(canManage()?'<div class="paper-actions"><button data-ds-edit="'+esc(x.id)+'">Edit</button><button class="secondary" data-ds-delete="'+esc(x.id)+'">Delete</button></div>':'')+'</article>').join('')+'</div>';
+    return '<div class="paper-grid">'+rows.map(x=>'<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(x.examName)+'</span><span class="badge">'+esc(x.examDate)+'</span></div><h3>'+esc(x.subject)+'</h3><p class="muted">'+esc(label(x))+' · '+esc(x.startTime)+' – '+esc(x.endTime||'')+(x.roomLabel?' · '+esc(x.roomLabel):'')+'</p><p>Total Marks: '+Number(x.totalMarks||0)+(x.notes?' · '+esc(x.notes):'')+'</p>'+(canManage()&&canManageItem(x)?'<div class="paper-actions"><button data-ds-edit="'+esc(x.id)+'">Edit</button><button class="secondary" data-ds-delete="'+esc(x.id)+'">Delete</button></div>':'')+'</article>').join('')+'</div>';
   }
   function printView(kind,rows,title){
     if(!rows.length)return alert('Print karne ke liye record available nahi hai.');
@@ -157,8 +158,8 @@
     $('dateExamFilter')?.addEventListener('change',e=>{const root=$('scheduleCenterApp');root.dataset.examFilter=e.target.value;render()});
     $('printSchedule')?.addEventListener('click',()=>{const root=$('scheduleCenterApp'),f=root.dataset.classFilter||'',rows=timetable().filter(accessible).filter(x=>!f||x.className+'|'+(x.sectionName||'')===f);printView('timetable',rows,'Weekly Timetable'+(f?' — '+label(splitClass(f)):'') )});
     $('printDateSheet')?.addEventListener('click',()=>{const root=$('scheduleCenterApp'),f=root.dataset.classFilter||'',ex=root.dataset.examFilter||'',rows=dateSheets().filter(accessible).filter(x=>(!f||x.className+'|'+(x.sectionName||'')===f)&&(!ex||x.examName===ex)).sort((a,b)=>a.examDate.localeCompare(b.examDate)||a.startTime.localeCompare(b.startTime));printView('datesheet',rows,'Date Sheet'+(ex?' — '+ex:'')+(f?' — '+label(splitClass(f)):'') )});
-    document.querySelectorAll('[data-tt-edit]').forEach(b=>b.onclick=()=>{const x=timetable().find(r=>String(r.id)===String(b.dataset.ttEdit));if(x){$('scheduleEditor').innerHTML=timetableEditor(x);bind()}});
-    document.querySelectorAll('[data-ds-edit]').forEach(b=>b.onclick=()=>{const x=dateSheets().find(r=>String(r.id)===String(b.dataset.dsEdit));if(x){$('scheduleEditor').innerHTML=dateSheetEditor(x);bind()}});
+    document.querySelectorAll('[data-tt-edit]').forEach(b=>b.onclick=()=>{const x=timetable().find(r=>String(r.id)===String(b.dataset.ttEdit));if(x&&canManageItem(x)){$('scheduleEditor').innerHTML=timetableEditor(x);bind()}});
+    document.querySelectorAll('[data-ds-edit]').forEach(b=>b.onclick=()=>{const x=dateSheets().find(r=>String(r.id)===String(b.dataset.dsEdit));if(x&&canManageItem(x)){$('scheduleEditor').innerHTML=dateSheetEditor(x);bind()}});
     document.querySelectorAll('[data-tt-delete]').forEach(b=>b.onclick=()=>remove('timetable',b.dataset.ttDelete));document.querySelectorAll('[data-ds-delete]').forEach(b=>b.onclick=()=>remove('datesheet',b.dataset.dsDelete));
   }
   async function render(){
