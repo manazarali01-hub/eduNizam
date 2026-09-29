@@ -511,13 +511,34 @@
       .order('created_at',{ascending:false});
     if(error)throw error;return data||[];
   }
-  async function updatePaymentStatus(id,status){
+  async function issueAdmissionChallan(applicationId,amount){
     if(!state.client||!state.user)throw new Error('Sign in first.');
     await requireHeadRole();
-    const payload={status};
-    if(status==='Paid'||status==='Verified'){payload.verified_by=state.user.id;payload.verified_at=new Date().toISOString()}
-    const {data,error}=await state.client.from('payment_records').update(payload).eq('id',id).select().single();
+    const {data,error}=await state.client.rpc('issue_admission_challan_v2',{p_application_id:applicationId,p_amount:Number(amount||0)});
     if(error)throw error;return data;
+  }
+  async function submitAdmissionPayment({applicationId,method,reference,amount,proofStoragePath=null}){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('submit_admission_payment_v2',{
+      p_application_id:applicationId,p_method:method,p_reference:reference||'',p_amount:Number(amount||0),p_proof_storage_path:proofStoragePath
+    });
+    if(error)throw error;return data;
+  }
+  async function verifyAdmissionPayment(id,decision,note=''){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    await requireHeadRole();
+    const normalized=decision==='Failed'?'Rejected':decision;
+    const {data,error}=await state.client.rpc('verify_admission_payment_v2',{p_payment_id:id,p_decision:normalized,p_note:note||''});
+    if(error)throw error;return data;
+  }
+  async function confirmAdmission(applicationId){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    await requireHeadRole();
+    const {data,error}=await state.client.rpc('confirm_admission_v2',{p_application_id:applicationId});
+    if(error)throw error;return data;
+  }
+  async function updatePaymentStatus(id,status){
+    return verifyAdmissionPayment(id,status,'');
   }
   async function listAuditLogs(limit=50){
     if(!state.client)return[];
@@ -544,7 +565,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,searchSchoolDirectory,submitSchoolAccessRequest,getMySchoolAccessRequest,listSchoolAccessRequests,decideSchoolAccessRequest,decideTeacherSchoolRequest,resolveSchoolAccessLink,listAccessLinkIssues,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,searchSchoolDirectory,submitSchoolAccessRequest,getMySchoolAccessRequest,listSchoolAccessRequests,decideSchoolAccessRequest,decideTeacherSchoolRequest,resolveSchoolAccessLink,listAccessLinkIssues,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,issueAdmissionChallan,submitAdmissionPayment,verifyAdmissionPayment,confirmAdmission,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
