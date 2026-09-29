@@ -102,6 +102,53 @@
     const {data,error}=await cloud().state.client.storage.from('school-profile-photos').createSignedUrl(path,1800);
     if(error)throw error;return data?.signedUrl||null;
   }
+  function selfEditorHtml(item){
+    if(!item)return '<div class="coverage-note">Your approved Teacher account is active, but a linked staff profile was not found. Ask the School Admin to review your Staff & Teacher record.</div>';
+    return '<article class="card"><div class="section-head"><div><h3>My Profile Details</h3><p class="muted">Update your personal contact details and photo. School-controlled employment fields remain locked.</p></div><span class="academic-pill">Teacher Self-Service</span></div>'+
+      '<div class="coverage-note"><strong>'+esc(item.fullName)+'</strong> · '+esc(item.designation||'Teacher')+(item.staffCode?' · Staff '+esc(item.staffCode):'')+(item.joiningDate?' · Joined '+esc(item.joiningDate):'')+'</div>'+
+      '<div class="form-grid">'+
+      '<input id="myStaffEmail" type="email" placeholder="Email (optional)" value="'+esc(item.email||'')+'">'+
+      '<input id="myStaffAddress" placeholder="Address (optional)" value="'+esc(item.address||'')+'">'+
+      '<input id="myStaffCity" placeholder="City (optional)" value="'+esc(item.city||'')+'">'+
+      '<input id="myStaffEmergency" placeholder="Emergency contact (optional)" value="'+esc(item.emergencyContact||'')+'">'+
+      '<label class="coverage-note"><strong>Profile picture (optional)</strong><input id="myStaffPhoto" type="file" accept="image/jpeg,image/png,image/webp"><span>JPG/PNG/WEBP · max 2 MB · private school storage</span></label>'+
+      '<button id="saveMyStaffProfile" type="button">Save My Profile</button></div></article>';
+  }
+  async function saveMyStaffProfile(){
+    if(isHead()||!cloudReady())return alert('Teacher self-service requires an approved signed-in Teacher account in Cloud Mode.');
+    const me=visibleLocal(read())[0];if(!me)return alert('Linked staff profile not found.');
+    const client=cloud().state.client,inst=cfg().institutionId,btn=$('saveMyStaffProfile');if(btn)btn.disabled=true;
+    try{
+      const {data,error}=await client.rpc('update_my_staff_profile_v1',{
+        p_institution_id:inst,
+        p_email:$('myStaffEmail')?.value.trim()||'',
+        p_address:$('myStaffAddress')?.value.trim()||'',
+        p_city:$('myStaffCity')?.value.trim()||'',
+        p_emergency_contact:$('myStaffEmergency')?.value.trim()||''
+      });
+      if(error)throw error;
+      let row=Array.isArray(data)?data[0]:data;
+      const file=$('myStaffPhoto')?.files?.[0]||null;
+      if(file){
+        if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Profile picture must be JPG, PNG or WEBP.');
+        if(file.size>2*1024*1024)throw new Error('Profile picture must be 2 MB or smaller.');
+        const {data:staffRow,error:findError}=await client.from('staff_profiles').select('id,photo_path').eq('institution_id',inst).eq('user_id',cloud().state.user.id).maybeSingle();
+        if(findError)throw findError;if(!staffRow)throw new Error('Linked staff profile not found.');
+        const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').slice(0,6)||'jpg';
+        const path=inst+'/staff/'+staffRow.id+'/'+Date.now()+'.'+ext;
+        const {error:uploadError}=await client.storage.from('school-profile-photos').upload(path,file,{upsert:false,contentType:file.type});
+        if(uploadError)throw uploadError;
+        const {data:photoRow,error:photoError}=await client.rpc('set_my_staff_photo_v1',{p_institution_id:inst,p_storage_path:path});
+        if(photoError){await client.storage.from('school-profile-photos').remove([path]).catch(()=>{});throw photoError}
+        row=Array.isArray(photoRow)?photoRow[0]:photoRow;
+        if(staffRow.photo_path&&staffRow.photo_path!==path)client.storage.from('school-profile-photos').remove([staffRow.photo_path]).catch(()=>{});
+      }
+      const item=mapCloud(row),rows=read().filter(x=>String(x.id)!==String(item.id));rows.push(item);write(rows);
+      window.EDUNIZAM_PREMIUM?.toast?.('Your profile was updated.','success');
+      render();
+    }catch(e){alert('Profile update failed: '+(e.message||e))}
+    finally{if(btn)btn.disabled=false}
+  }
   async function deleteCloud(id){
     if(!cloudReady())return;
     const rows=read(),item=rows.find(x=>String(x.id)===String(id));
@@ -123,7 +170,7 @@
   }
 
   async function editorHtml(edit=null){
-    if(!isHead())return '<div class="coverage-note">Teacher apna linked professional profile dekh sakta hai. Profile management Head of Institute ke paas hai.</div>';
+    if(!isHead())return selfEditorHtml(visibleLocal(read())[0]||null);
     const teachers=await listTeacherAccounts();
     const options='<option value="">No linked cloud account</option>'+teachers.map(t=>'<option value="'+esc(t.user_id)+'" '+(edit?.userId===t.user_id?'selected':'')+'>'+esc(t.full_name||t.user_id)+'</option>').join('');
     return '<article class="card"><div class="section-head"><div><h3>'+(edit?'Edit Staff / Teacher Profile':'Add Staff / Teacher Profile')+'</h3><p class="muted">Required: staff code, full name, designation, phone and joining date. Other professional fields are optional.</p></div></div>'+
@@ -191,7 +238,7 @@
     write(rows.filter(x=>String(x.id)!==String(id)));render();
   }
   async function edit(id){if(!isHead())return;const item=read().find(x=>String(x.id)===String(id));if(!item)return;const box=$('staffEditor');if(box)box.innerHTML=await editorHtml(item);bindEditor();window.scrollTo({top:box?.offsetTop||0,behavior:'smooth'})}
-  function bindEditor(){if($('saveStaffProfile'))$('saveStaffProfile').onclick=save;if($('cancelStaffEdit'))$('cancelStaffEdit').onclick=render}
+  function bindEditor(){if($('saveStaffProfile'))$('saveStaffProfile').onclick=save;if($('saveMyStaffProfile'))$('saveMyStaffProfile').onclick=saveMyStaffProfile;if($('cancelStaffEdit'))$('cancelStaffEdit').onclick=render}
   function bindCards(){document.querySelectorAll('[data-staff-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.staffEdit));document.querySelectorAll('[data-staff-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.staffDelete))}
   async function hydrateAvatars(){
     if(!cloudReady())return;
