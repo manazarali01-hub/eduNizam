@@ -52,7 +52,7 @@ for(const [page,source] of Object.entries(htmlByPage)){
 }
 
 // 2b) Crawl and indexing essentials
-const base="https://manazarali01-hub.github.io/eduNizam/";
+const base="https://edunizam.online/";
 const canonicalPages={
   "edunizam.html":base+"edunizam.html",
   "about.html":base+"about.html",
