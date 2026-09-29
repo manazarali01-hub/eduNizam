@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20260929-profile157';
+  const VERSION='20260929-admission158';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
