@@ -104,14 +104,25 @@
     s.textContent='.cloud-auth-screen{position:fixed;inset:0;z-index:10050;background:linear-gradient(135deg,#071b33,#0f766e);display:grid;place-items:center;padding:20px}.cloud-auth-card{width:min(560px,100%);background:#fff;border-radius:24px;padding:28px;box-shadow:0 28px 80px #001a}.cloud-auth-card h1{margin:0 0 6px;color:#0b2748}.cloud-auth-card p{color:#536579}.cloud-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.cloud-auth-tabs button{background:#f1f5f9;color:#334155;border:1px solid #dbe4ea}.cloud-auth-tabs button.active{background:#0f766e;color:#fff;border-color:#0f766e}.cloud-auth-grid{display:grid;gap:11px}.cloud-auth-grid input,.cloud-auth-grid select{width:100%;box-sizing:border-box}.cloud-auth-actions{display:flex;gap:10px;flex-wrap:wrap}.cloud-auth-note{margin-top:12px;padding:10px 12px;border-radius:12px;background:#f3f8fb;color:#466071;font-size:13px}.cloud-auth-error{color:#9b1c1c;min-height:20px;font-size:13px}.cloud-auth-success{color:#166534}.cloud-admin-badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#ecfdf5;color:#166534;font-size:12px;font-weight:700}@media(max-width:560px){.cloud-auth-card{padding:20px}.cloud-auth-tabs{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
-  function authScreen(){
-    removeDemoLogin();
+  function authScreen(message='Checking your secure school session…'){
+    removeDemoLogin();style();
+    let screen=document.getElementById('cloudAuthScreen');
+    if(!screen){
+      screen=document.createElement('div');screen.id='cloudAuthScreen';screen.className='cloud-auth-screen';
+      screen.innerHTML='<section class="cloud-auth-card"><div class="academic-kicker">EduNizam Secure Access</div><h1>Opening your school workspace</h1><p id="cloudAuthGuardMessage"></p><div class="cloud-auth-actions"><a class="secondary-link" href="login.html">Go to Login</a><a class="secondary-link" href="learn.html">Continue as Guest</a><button id="cloudAuthRetry" type="button">Retry</button></div></section>';
+      document.body.appendChild(screen);
+      screen.querySelector('#cloudAuthRetry').onclick=()=>boot();
+    }
+    const msg=screen.querySelector('#cloudAuthGuardMessage');if(msg)msg.textContent=message;
+    return screen;
   }
+  function hideAuthScreen(){document.getElementById('cloudAuthScreen')?.remove()}
+  function goToLogin(){if(!/\/login\.html$/i.test(location.pathname))location.replace('login.html')}
 
   async function boot(){
-    if(!configured())return;
+    if(!configured()){hideAuthScreen();return}
     const c=cloud();
-    removeDemoLogin();
+    authScreen();
 
     try{
       const {data,error}=await c.state.client.auth.getSession();
@@ -120,12 +131,17 @@
       if(!authUser){
         clearLocalAuthState();
         window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
+        goToLogin();
         return;
       }
       c.state.user=authUser;
-      await syncCloudRole();
+      const ok=await syncCloudRole();
+      if(!ok){goToLogin();return}
+      hideAuthScreen();
     }catch(e){
       console.warn('Cloud session guard:',e.message||e);
+      authScreen('Secure session check could not finish. Check your connection and Retry, or return to Login.');
+      return;
     }
 
     setTimeout(()=>{
