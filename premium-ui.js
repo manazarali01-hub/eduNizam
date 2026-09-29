@@ -80,7 +80,7 @@
     const sidebar=$('.sidebar'),inst=$('#sidebarInstitute');if(!sidebar||!inst||$('#premiumWorkspaceBadge'))return;
     const box=document.createElement('div');
     box.id='premiumWorkspaceBadge';box.className='premium-workspace-badge';
-    box.innerHTML='<span>✦ Premium Workspace</span><span>EduNizam</span>';
+    box.innerHTML='<span>✦ Free Launch Workspace</span><span>EduNizam</span>';
     inst.insertAdjacentElement('afterend',box);
   }
 
