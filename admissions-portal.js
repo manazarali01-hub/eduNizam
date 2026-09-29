@@ -279,7 +279,7 @@
     });
   }
   async function collectUploads(appId){
-    const fields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile'],['payment-proof','admPaymentProofFile']];
+    const fields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile']];
     const refs=[];
     for(const [kind,id] of fields){
       const file=$(id)?.files?.[0];
@@ -292,10 +292,12 @@
   const originalGetForm=getForm;
   getForm=function(status){
     const a=originalGetForm(status);
-    a.paymentMethod=$('admPaymentMethod')?.value||'';
-    a.feeStatus=$('admFeeStatus')?.value||'Unpaid';
-    a.feeReference=$('admFeeReference')?.value.trim()||'';
-    a.feeDate=$('admFeeDate')?.value||'';
+    // Admission payment is intentionally locked until School Admin approval.
+    // Never trust hidden/client-edited payment controls on a new application.
+    a.paymentMethod='';
+    a.feeStatus='Unpaid';
+    a.feeReference='';
+    a.feeDate='';
     a.attachments=[];
     return a;
   };
@@ -305,7 +307,7 @@
     const a=getForm(status);
     if(!valid(a,status==='Draft'))return alert(status==='Draft'?'Enter at least applicant name, CNIC or program.':'Please complete applicant name, guardian name, CNIC/B-Form, program and previous qualification.');
     try{a.attachments=await collectUploads(a.applicationId)}catch(e){console.error(e);return alert('Could not save one or more uploaded files on this device.')}
-    const uploadFields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile'],['payment-proof','admPaymentProofFile']];
+    const uploadFields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile']];
     const arr=apps();arr.push(a);write(KEY.apps,arr);
     let cloudNote='';
     const cloud=window.EDUNIZAM_CLOUD;
@@ -338,10 +340,7 @@
   };
 
   function printChallan(){
-    const s=setup(),id=nextId(),name=$('admApplicantName').value.trim()||'Applicant',program=$('admProgram').value||'',fee=feeForProgram(program);
-    const w=window.open('','_blank');if(!w)return;
-    w.document.write('<html><head><title>Admission Challan</title><style>body{font-family:Arial;padding:28px;color:#17324a}.print-brand{display:flex;align-items:center;gap:12px}.print-school-logo{width:62px;height:62px;object-fit:contain;border:1px solid #d8e2e7;border-radius:12px;padding:4px}.print-brand h1{font-size:22px;margin:0}.print-brand p{margin:3px 0;color:#667}.copy{border:1px solid #444;padding:18px;margin-bottom:22px}.row{display:flex;justify-content:space-between;gap:20px}</style></head><body>'+[1,2].map(i=>'<div class="copy">'+printBrand(s.institutionName,s.admissionSession)+'<div class="row"><strong>Admission Fee Challan</strong><span>Copy '+i+'</span></div><p>Application Ref: '+esc(id)+'</p><p>Applicant: '+esc(name)+'</p><p>Session: '+esc(s.admissionSession)+'</p><p>Program: '+esc(program||'Not selected')+'</p><p>Application Fee: PKR '+Number(fee.applicationFee||0).toLocaleString()+'</p><p>Date: __________ &nbsp;&nbsp; Bank/Transaction Ref: __________________</p><p>Authorized Signature: __________________</p></div>').join('')+'</body></html>');
-    w.document.close();w.focus();setTimeout(()=>w.print(),250);
+    alert('Fee challan is available only after School Admin approval. Open the application review workflow and issue the challan after approval.');
   }
 
   function exportFile(name,mime,text){
