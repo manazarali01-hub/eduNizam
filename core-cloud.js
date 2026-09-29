@@ -314,6 +314,38 @@
     if(role!=='head_of_institute') throw new Error('Head of Institute access required.');
     return c;
   }
+  async function listAttendanceAudit(date){
+    const c=await requireHead(),client=c.state.client;
+    const [attendanceRes,staffRes]=await Promise.all([
+      client.from('attendance_records')
+        .select('attendance_date,status,updated_at,marked_by,core_students(name,class_name,section_name)')
+        .eq('institution_id',cfg.institutionId)
+        .eq('attendance_date',date)
+        .order('updated_at',{ascending:false}),
+      client.from('staff_profiles')
+        .select('user_id,full_name,designation')
+        .eq('institution_id',cfg.institutionId)
+    ]);
+    if(attendanceRes.error)throw attendanceRes.error;
+    if(staffRes.error)throw staffRes.error;
+    const staffByUser=new Map((staffRes.data||[]).filter(x=>x.user_id).map(x=>[String(x.user_id),x]));
+    const headUserId=String(c.state.user?.id||'');
+    return (attendanceRes.data||[]).map(row=>{
+      const marker=staffByUser.get(String(row.marked_by||''));
+      return {
+        date:row.attendance_date,
+        status:row.status,
+        updatedAt:row.updated_at,
+        markedBy:row.marked_by||'',
+        markerName:String(row.marked_by||'')===headUserId?'School Admin':(marker?.full_name||'Authorized Staff'),
+        markerRole:String(row.marked_by||'')===headUserId?'Admin':(marker?.designation||'Teacher'),
+        studentName:row.core_students?.name||'Student',
+        className:row.core_students?.class_name||'',
+        sectionName:row.core_students?.section_name||''
+      };
+    });
+  }
+
   async function uploadStudentPhoto(localId,file){
     if(!file)throw new Error('Select a profile image first.');
     if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Profile picture must be JPG, PNG or WEBP.');
@@ -354,5 +386,5 @@
     };
   }
 
-  window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,uploadStudentPhoto,createProfilePhotoUrl,saveAttendanceDay,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
+  window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,uploadStudentPhoto,createProfilePhotoUrl,saveAttendanceDay,listAttendanceAudit,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
 })();
