@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://manazarali01-hub.github.io/eduNizam/sitemap.xml
+Sitemap: https://edunizam.online/sitemap.xml
