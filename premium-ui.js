@@ -84,6 +84,68 @@
     inst.insertAdjacentElement('afterend',box);
   }
 
+  const localRole=r=>r==='head_of_institute'?'head':(['head','teacher','parent','student'].includes(r)?r:'student');
+  async function workspaceChoices(){
+    const cloud=window.EDUNIZAM_CLOUD,client=cloud?.state?.client,user=cloud?.state?.user;
+    if(!client||!user)return[];
+    const [ownedRes,memberRes,profileRes]=await Promise.all([
+      client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).order('created_at',{ascending:true}),
+      client.from('institution_members').select('institution_id,role,institutions(id,name,institution_type)').eq('user_id',user.id),
+      client.from('user_profiles').select('institution_id,account_role').eq('user_id',user.id).maybeSingle()
+    ]);
+    if(ownedRes.error)throw ownedRes.error;
+    if(memberRes.error)throw memberRes.error;
+    const map=new Map();
+    (ownedRes.data||[]).forEach(x=>map.set(x.id,{...x,role:'head'}));
+    (memberRes.data||[]).forEach(m=>{
+      const x=m.institutions;if(!x?.id)return;
+      if(!map.has(x.id))map.set(x.id,{...x,role:localRole(m.role)});
+    });
+    const p=profileRes.data;
+    if(p?.institution_id&&!map.has(p.institution_id)){
+      const {data}=await client.from('institutions').select('id,name,institution_type').eq('id',p.institution_id).maybeSingle();
+      if(data?.id)map.set(data.id,{...data,role:localRole(p.account_role)});
+    }
+    return [...map.values()];
+  }
+  function closeWorkspaceModal(){document.getElementById('workspaceSwitchModal')?.remove()}
+  function showWorkspaceModal(items){
+    closeWorkspaceModal();
+    const current=String(session()?.institutionId||window.EDUNIZAM_CLOUD_CONFIG?.institutionId||'');
+    const modal=document.createElement('div');modal.id='workspaceSwitchModal';modal.className='workspace-switch-backdrop';
+    modal.innerHTML='<section class="workspace-switch-modal" role="dialog" aria-modal="true" aria-labelledby="workspaceSwitchTitle"><div class="section-head"><div><div class="academic-kicker">School Workspace</div><h2 id="workspaceSwitchTitle">Switch School</h2><p class="muted">Select the school and role you want to open.</p></div><button type="button" class="secondary" data-workspace-close>Close</button></div><div class="workspace-choice-list">'+items.map(x=>'<button type="button" class="workspace-choice '+(String(x.id)===current?'current':'')+'" data-workspace-id="'+esc(x.id)+'"><span><strong>'+esc(x.name||'School')+'</strong><small>'+esc(roleLabel(x.role))+' · '+esc(x.institution_type||'School')+'</small></span><em>'+(String(x.id)===current?'Current':'Open')+'</em></button>').join('')+'</div></section>';
+    document.body.appendChild(modal);
+    modal.querySelector('[data-workspace-close]').onclick=closeWorkspaceModal;
+    modal.addEventListener('click',e=>{if(e.target===modal)closeWorkspaceModal()});
+    modal.querySelectorAll('[data-workspace-id]').forEach(b=>b.onclick=()=>switchWorkspace(items.find(x=>String(x.id)===String(b.dataset.workspaceId))));
+    const onKey=e=>{if(e.key==='Escape'){closeWorkspaceModal();document.removeEventListener('keydown',onKey)}};document.addEventListener('keydown',onKey);
+  }
+  async function switchWorkspace(item){
+    if(!item?.id)return;
+    const current=String(session()?.institutionId||'');
+    if(String(item.id)===current){closeWorkspaceModal();return}
+    let runtime={};try{runtime=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}')}catch(_){}
+    runtime.enabled=true;runtime.institutionId=item.id;
+    localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify(runtime));
+    const s=session()||{};
+    localStorage.setItem('edunizam_session',JSON.stringify({...s,role:localRole(item.role),schoolName:item.name||'',institutionId:item.id,switchedAt:Date.now()}));
+    let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
+    settings.schoolName=item.name||settings.schoolName||'My School';
+    settings.schoolType=item.institution_type||settings.schoolType||'School';
+    localStorage.setItem('edunizam_settings',JSON.stringify(settings));
+    location.reload();
+  }
+  async function mountWorkspaceSwitcher(){
+    const actions=$('.topbar-actions');if(!actions||$('#premiumWorkspaceSwitch'))return;
+    const cloud=window.EDUNIZAM_CLOUD;if(!cloud?.state?.user)return;
+    try{
+      const items=await workspaceChoices();
+      if(items.length<2)return;
+      const button=document.createElement('button');button.id='premiumWorkspaceSwitch';button.className='premium-workspace-switch';button.type='button';button.innerHTML='<span>↔</span><span class="label">Switch School</span>';
+      button.onclick=()=>showWorkspaceModal(items);actions.appendChild(button);
+    }catch(e){console.warn('Workspace switch:',e.message||e)}
+  }
+
   function mountTopbarContext(){
     const actions=$('.topbar-actions');if(!actions)return;
     let wrap=$('#premiumContext');
@@ -162,6 +224,7 @@
 
   function refresh(){
     mountWorkspaceBadge();mountTopbarContext();premiumizeNavIcons();mountMobileDock();decorateViews();updateDockActive();
+    mountWorkspaceSwitcher();
   }
   function boot(){
     document.documentElement.classList.add('edunizam-premium');
