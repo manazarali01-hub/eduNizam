@@ -68,3 +68,17 @@ button,a,input,select,textarea{touch-action:manipulation}
   .main{background-attachment:scroll!important}
   .card,.paper-card{transform:none!important}
 }
+
+/* Production mobile form stability */
+input,select,textarea{min-width:0}
+@media(max-width:700px){
+  input,select,textarea{font-size:16px}
+  .form-grid,.grid-2,.analytics-grid,.check-grid{grid-template-columns:minmax(0,1fr)!important}
+  .section-head{flex-wrap:wrap}
+  .section-head>div{min-width:0;flex:1 1 220px}
+  .section-head>button,.section-head>.secondary{max-width:100%;white-space:normal}
+  .paper-actions,.quick-actions{align-items:stretch}
+  .paper-actions>*{max-width:100%}
+  .admission-review,.study-viewer{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
+  .admission-review-card,.study-viewer-card{width:100%;max-width:100%;overscroll-behavior:contain}
+}
