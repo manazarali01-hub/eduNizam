@@ -589,7 +589,12 @@
       const submitted=mine.length,selected=mine.filter(a=>['Selected','Admitted'].includes(a.status)).length,pending=mine.filter(a=>['Submitted','Under Review','Documents Pending','Test / Interview','Waitlisted'].includes(a.status)).length;
       stats.innerHTML='<article><span>Applications</span><strong>'+submitted+'</strong></article><article><span>In Process</span><strong>'+pending+'</strong></article><article><span>Selected</span><strong>'+selected+'</strong></article><article><span>Role</span><strong>Student</strong></article>';
       actions.innerHTML=action('apply','Apply Online','Submit a new admission application')+action('track','Track Status','Check application progress')+action('notifications','Notifications','See admission updates');
-      content.innerHTML=mine.length?'<div class="paper-grid">'+mine.slice(0,4).map(a=>'<article class="paper-card"><h3>'+esc(a.applicantName||a.applicant_name||'Application')+'</h3><p class="muted">'+esc(a.applicationId||a.application_no||'')+' · '+esc(a.program||'')+'</p><div class="paper-meta"><span>'+esc(a.status||'Submitted')+'</span></div></article>').join('')+'</div>':'<div class="empty-state">No application yet. Use Apply Online to start.</div>';
+      content.innerHTML=mine.length?'<div class="paper-grid">'+mine.slice(0,4).map(a=>{
+        const cloudId=a.id||a.cloudId||'',challan=a.challan_no||'',amount=Number(a.challan_amount||0),fee=a.fee_status||a.feeStatus||'Unpaid';
+        const canPay=cloudId&&challan&&['Challan Issued','Payment Verification'].includes(a.status)&&!['Paid','Exempted','Pending Verification'].includes(fee);
+        return '<article class="paper-card"><h3>'+esc(a.applicantName||a.applicant_name||'Application')+'</h3><p class="muted">'+esc(a.applicationId||a.application_no||'')+' · '+esc(a.program||'')+'</p><div class="paper-meta"><span>'+esc(a.status||'Submitted')+'</span><span>Fee: '+esc(fee)+'</span>'+(challan?'<span>Challan: '+esc(challan)+' · PKR '+amount.toLocaleString()+'</span>':'')+'</div>'+(canPay?'<div class="form-grid" style="margin-top:10px"><select data-app-pay-method="'+esc(cloudId)+'"><option value="">Payment method</option><option value="bank">Bank transfer/deposit</option><option value="raast">Raast</option><option value="jazzcash">JazzCash</option><option value="easypaisa">Easypaisa</option><option value="cash">Cash receipt</option></select><input data-app-pay-ref="'+esc(cloudId)+'" placeholder="Transaction / receipt reference"><input data-app-pay-proof="'+esc(cloudId)+'" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><button data-app-pay-submit="'+esc(cloudId)+'" data-app-pay-amount="'+amount+'">Submit Payment for Verification</button></div>':'')+'</article>';
+      }).join('')+'</div>':'<div class="empty-state">No application yet. Use Apply Online to start.</div>';
+      document.querySelectorAll('[data-app-pay-submit]').forEach(b=>b.onclick=()=>submitApplicantPayment(b));
     }else if(role==='parent'){
       sub.textContent='Manage linked student admission access and updates.';
       let links=[];if(cloud?.ready?.()&&cloud.state?.user){try{links=await cloud.getLinkedStudents()}catch(e){}}
@@ -609,6 +614,34 @@
       content.innerHTML='<div class="empty-state">Head of Institute has full admissions control.</div>';
     }
     document.querySelectorAll('[data-role-open]').forEach(b=>b.onclick=()=>showTab(b.dataset.roleOpen));
+  }
+
+  async function submitApplicantPayment(btn){
+    const cloud=window.EDUNIZAM_CLOUD,id=btn?.dataset.appPaySubmit,amount=Number(btn?.dataset.appPayAmount||0);
+    if(!cloud?.ready?.()||!cloud.state?.user)return alert('Sign in first.');
+    const method=document.querySelector('[data-app-pay-method="'+id+'"]')?.value||'';
+    const reference=document.querySelector('[data-app-pay-ref="'+id+'"]')?.value.trim()||'';
+    const file=document.querySelector('[data-app-pay-proof="'+id+'"]')?.files?.[0]||null;
+    if(!method)return alert('Select payment method.');
+    if(!reference)return alert('Enter transaction / receipt reference.');
+    if(!amount||amount<0)return alert('Invalid challan amount.');
+    if(file&&(!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type)||file.size>10*1024*1024))return alert('Payment proof must be JPG, PNG, WEBP or PDF and max 10 MB.');
+    btn.disabled=true;
+    let proofPath=null;
+    try{
+      if(file){
+        const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').slice(0,8)||'bin';
+        const path=(window.EDUNIZAM_CLOUD_CONFIG?.institutionId||'institution')+'/'+id+'/'+Date.now()+'-payment-proof.'+ext;
+        const {error}=await cloud.state.client.storage.from(window.EDUNIZAM_CLOUD_CONFIG?.admissionsStorageBucket||'admission-documents').upload(path,file,{upsert:false,contentType:file.type});
+        if(error)throw error;proofPath=path;
+      }
+      await cloud.submitAdmissionPayment({applicationId:id,method,reference,amount,proofStoragePath:proofPath});
+      window.EDUNIZAM_PREMIUM?.toast?.('Payment submitted for School Admin verification.','success');
+      await renderRoleHome();
+    }catch(e){
+      if(proofPath)cloud.state.client.storage.from(window.EDUNIZAM_CLOUD_CONFIG?.admissionsStorageBucket||'admission-documents').remove([proofPath]).catch(()=>{});
+      alert(e.message||'Payment submission failed.');
+    }finally{btn.disabled=false}
   }
 
   async function refreshCloudAuth(){
