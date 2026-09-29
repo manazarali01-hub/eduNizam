@@ -81,7 +81,12 @@
         try{localSession=JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch(_){}
         const selectedId=String(localSession?.institutionId||current.institutionId||'').trim();
         const preferred=schools.find(x=>String(x.id)===selectedId)||(schools.length===1?schools[0]:null);
-        if(!preferred)return false;
+        if(!preferred){
+          // More than one approved school exists and no safe active workspace can
+          // be inferred. Never silently open an arbitrary school.
+          window.dispatchEvent(new CustomEvent('edunizam:school-selection-required',{detail:{schools}}));
+          return false;
+        }
         useInstitution(preferred,false);
         return true;
       }
