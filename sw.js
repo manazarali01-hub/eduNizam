@@ -1,4 +1,4 @@
-const CACHE='edunizam-v161-public-root'
+const CACHE='edunizam-v167-public-root'
 const CORE=[
   './',
   './index.html',
@@ -39,7 +39,15 @@ const CORE=[
 
 self.addEventListener('install',event=>{
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)));
+  event.waitUntil((async()=>{
+    const cache=await caches.open(CACHE);
+    await Promise.allSettled(CORE.map(async url=>{
+      try{
+        const response=await fetch(url,{cache:'no-store'});
+        if(response?.ok)await cache.put(url,response.clone());
+      }catch(_){}
+    }));
+  })());
 });
 
 self.addEventListener('activate',event=>{
