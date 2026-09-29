@@ -178,12 +178,12 @@
     const parentIds=[...new Set(links.map(x=>x.parent_user_id).filter(Boolean))];
     const studentIds=[...new Set(links.map(x=>x.student_user_id).filter(Boolean))];
     const [parentsRes,studentsRes]=await Promise.all([
-      parentIds.length?state.client.from('user_profiles').select('user_id,full_name').eq('institution_id',cfg.institutionId).in('user_id',parentIds):Promise.resolve({data:[],error:null}),
+      parentIds.length?state.client.from('school_access_requests').select('requester_user_id,full_name').eq('institution_id',cfg.institutionId).eq('requested_role','parent').eq('status','approved').in('requester_user_id',parentIds):Promise.resolve({data:[],error:null}),
       studentIds.length?state.client.from('core_students').select('auth_user_id,name,class_name,student_code').eq('institution_id',cfg.institutionId).in('auth_user_id',studentIds):Promise.resolve({data:[],error:null})
     ]);
     if(parentsRes.error)throw parentsRes.error;
     if(studentsRes.error)throw studentsRes.error;
-    const pm=new Map((parentsRes.data||[]).map(x=>[x.user_id,x.full_name||'Parent']));
+    const pm=new Map((parentsRes.data||[]).map(x=>[x.requester_user_id,x.full_name||'Parent']));
     const sm=new Map((studentsRes.data||[]).map(x=>[x.auth_user_id,x]));
     return links.map(x=>({
       ...x,
@@ -387,30 +387,42 @@
       .order('created_at',{ascending:true});
     if(error)throw error;
     const ids=[...new Set((members||[]).map(x=>x.user_id).filter(Boolean))];
-    let profiles=[];
-    if(ids.length){
-      const profileRes=await state.client.from('user_profiles')
-        .select('user_id,full_name,phone,account_role,institution_id')
-        .eq('institution_id',cfg.institutionId)
-        .in('user_id',ids);
-      if(profileRes.error)throw profileRes.error;
-      profiles=profileRes.data||[];
-    }
-    const pm=new Map(profiles.map(x=>[x.user_id,x]));
-    return (members||[]).map(x=>({
-      ...x,
-      full_name:pm.get(x.user_id)?.full_name||'',
-      phone:pm.get(x.user_id)?.phone||'',
-      account_role:pm.get(x.user_id)?.account_role||x.role
-    }));
+    if(!ids.length)return[];
+    const [accessRes,staffRes,studentRes,profileRes]=await Promise.all([
+      state.client.from('school_access_requests').select('requester_user_id,requested_role,full_name,phone').eq('institution_id',cfg.institutionId).eq('status','approved').in('requester_user_id',ids),
+      state.client.from('staff_profiles').select('user_id,full_name,phone,designation').eq('institution_id',cfg.institutionId).in('user_id',ids),
+      state.client.from('core_students').select('auth_user_id,name,phone').eq('institution_id',cfg.institutionId).in('auth_user_id',ids),
+      state.client.from('user_profiles').select('user_id,full_name,phone,account_role').in('user_id',ids)
+    ]);
+    if(accessRes.error)throw accessRes.error;
+    if(staffRes.error)throw staffRes.error;
+    if(studentRes.error)throw studentRes.error;
+    const accessMap=new Map((accessRes.data||[]).map(x=>[x.requester_user_id,x]));
+    const staffMap=new Map((staffRes.data||[]).filter(x=>x.user_id).map(x=>[x.user_id,x]));
+    const studentMap=new Map((studentRes.data||[]).filter(x=>x.auth_user_id).map(x=>[x.auth_user_id,x]));
+    const profileMap=new Map((profileRes.data||[]).map(x=>[x.user_id,x]));
+    return (members||[]).map(x=>{
+      const access=accessMap.get(x.user_id),staff=staffMap.get(x.user_id),student=studentMap.get(x.user_id),profile=profileMap.get(x.user_id);
+      return {
+        ...x,
+        full_name:staff?.full_name||student?.name||access?.full_name||profile?.full_name||'',
+        phone:staff?.phone||student?.phone||access?.phone||profile?.phone||'',
+        account_role:x.role
+      };
+    });
   }
   async function listInstitutionTeachers(){
     if(!state.client||!cfg.institutionId)return[];
-    const {data,error}=await state.client.from('institution_members')
-      .select('user_id,role,user_profiles!institution_members_user_id_fkey(full_name)')
-      .eq('institution_id',cfg.institutionId).eq('role','teacher');
+    const {data:members,error}=await state.client.from('institution_members')
+      .select('user_id,role').eq('institution_id',cfg.institutionId).eq('role','teacher');
     if(error)throw error;
-    return (data||[]).map(x=>({user_id:x.user_id,role:x.role,full_name:x.user_profiles?.full_name||''}));
+    const ids=(members||[]).map(x=>x.user_id).filter(Boolean);
+    if(!ids.length)return[];
+    const {data:staff,error:staffError}=await state.client.from('staff_profiles')
+      .select('user_id,full_name').eq('institution_id',cfg.institutionId).in('user_id',ids);
+    if(staffError)throw staffError;
+    const names=new Map((staff||[]).filter(x=>x.user_id).map(x=>[x.user_id,x.full_name||'']));
+    return (members||[]).map(x=>({user_id:x.user_id,role:x.role,full_name:names.get(x.user_id)||'Teacher'}));
   }
   async function listLinkedCoreStudents(){
     if(!state.client||!cfg.institutionId)return[];
