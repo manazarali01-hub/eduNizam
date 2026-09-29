@@ -51,6 +51,80 @@
     if(remark){remark.disabled=!canRemark;remark.placeholder=canRemark?'Teacher remark / progress note':'Teacher remarks are view-only for this account';}
     if(save)save.classList.toggle('hidden',!canRemark);
     document.body.dataset.profileRole=role;
+    $('studentSelfProfileCard')?.classList.toggle('hidden',role!=='student');
+  }
+
+  function cloudReady(){
+    const c=window.EDUNIZAM_CLOUD,inst=window.EDUNIZAM_CLOUD_CONFIG?.institutionId;
+    return !!(c?.state?.client&&c?.state?.user&&inst);
+  }
+  function syncLocalStudentFromCloud(row){
+    if(!row)return;
+    const list=students(),idx=list.findIndex(x=>String(x.authUserId||'')===String(window.EDUNIZAM_CLOUD?.state?.user?.id||''));
+    if(idx<0)return;
+    const p=row.profile_details||{};
+    list[idx]={...list[idx],
+      address:row.address||'',photoPath:row.photo_path||list[idx].photoPath||'',
+      email:p.email||'',city:p.city||'',district:p.district||'',province:p.province||'',
+      bloodGroup:p.blood_group||'',emergencyContact:p.emergency_contact||'',
+      healthNotes:p.health_notes||'',specialNeedsNotes:p.special_needs_notes||'',
+      profileDetails:{...(list[idx].profileDetails||{}),...p}
+    };
+    write('edunizam_students',list);
+  }
+  function fillStudentSelfForm(s){
+    if(document.body.dataset.profileRole!=='student'||!s)return;
+    if($('selfStudentEmail'))$('selfStudentEmail').value=s.email||s.profileDetails?.email||'';
+    if($('selfStudentAddress'))$('selfStudentAddress').value=s.address||'';
+    if($('selfStudentCity'))$('selfStudentCity').value=s.city||s.profileDetails?.city||'';
+    if($('selfStudentDistrict'))$('selfStudentDistrict').value=s.district||s.profileDetails?.district||'';
+    if($('selfStudentProvince'))$('selfStudentProvince').value=s.province||s.profileDetails?.province||'';
+    if($('selfStudentBloodGroup'))$('selfStudentBloodGroup').value=s.bloodGroup||s.profileDetails?.blood_group||'';
+    if($('selfStudentEmergency'))$('selfStudentEmergency').value=s.emergencyContact||s.profileDetails?.emergency_contact||'';
+    if($('selfStudentHealth'))$('selfStudentHealth').value=s.healthNotes||s.profileDetails?.health_notes||'';
+    if($('selfStudentSpecialNeeds'))$('selfStudentSpecialNeeds').value=s.specialNeedsNotes||s.profileDetails?.special_needs_notes||'';
+    if($('selfStudentPhoto'))$('selfStudentPhoto').value='';
+  }
+  async function saveMyStudentProfile(){
+    if(document.body.dataset.profileRole!=='student')return;
+    if(!cloudReady())return alert('Profile self-service requires Cloud Mode and a signed-in Student account.');
+    const c=window.EDUNIZAM_CLOUD,client=c.state.client,inst=window.EDUNIZAM_CLOUD_CONFIG.institutionId,uid=c.state.user.id;
+    const btn=$('saveSelfStudentProfile');if(btn)btn.disabled=true;
+    try{
+      const {data,error}=await client.rpc('update_my_student_profile_v1',{
+        p_institution_id:inst,
+        p_email:$('selfStudentEmail')?.value.trim()||'',
+        p_address:$('selfStudentAddress')?.value.trim()||'',
+        p_city:$('selfStudentCity')?.value.trim()||'',
+        p_district:$('selfStudentDistrict')?.value.trim()||'',
+        p_province:$('selfStudentProvince')?.value.trim()||'',
+        p_blood_group:$('selfStudentBloodGroup')?.value.trim()||'',
+        p_emergency_contact:$('selfStudentEmergency')?.value.trim()||'',
+        p_health_notes:$('selfStudentHealth')?.value.trim()||'',
+        p_special_needs_notes:$('selfStudentSpecialNeeds')?.value.trim()||''
+      });
+      if(error)throw error;
+      let row=Array.isArray(data)?data[0]:data;
+      const file=$('selfStudentPhoto')?.files?.[0]||null;
+      if(file){
+        if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Profile picture must be JPG, PNG or WEBP.');
+        if(file.size>2*1024*1024)throw new Error('Profile picture must be 2 MB or smaller.');
+        const {data:student,error:studentError}=await client.from('core_students').select('id,photo_path').eq('institution_id',inst).eq('auth_user_id',uid).maybeSingle();
+        if(studentError)throw studentError;if(!student)throw new Error('Linked student profile not found.');
+        const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').slice(0,6)||'jpg';
+        const path=inst+'/student/'+student.id+'/'+Date.now()+'.'+ext;
+        const {error:uploadError}=await client.storage.from('school-profile-photos').upload(path,file,{upsert:false,contentType:file.type});
+        if(uploadError)throw uploadError;
+        const {data:photoRow,error:photoError}=await client.rpc('set_my_student_photo_v1',{p_institution_id:inst,p_storage_path:path});
+        if(photoError){await client.storage.from('school-profile-photos').remove([path]).catch(()=>{});throw photoError}
+        row=Array.isArray(photoRow)?photoRow[0]:photoRow;
+        if(student.photo_path&&student.photo_path!==path)client.storage.from('school-profile-photos').remove([student.photo_path]).catch(()=>{});
+      }
+      syncLocalStudentFromCloud(row);
+      await render();
+      window.EDUNIZAM_PREMIUM?.toast?.('Your profile was updated.','success');
+    }catch(e){alert('Profile update failed: '+(e.message||e))}
+    finally{if(btn)btn.disabled=false}
   }
 
   function studentAttendancePct(id){
@@ -178,6 +252,7 @@
     $('profilePracticeTests').textContent=p.list.length;
     $('profileRiskBadge').textContent=risk;
     $('profileRiskBadge').dataset.risk=riskClass;
+    fillStudentSelfForm(s);
 
     $('profileSubjectPerformance').innerHTML=subjects.length?subjects.map(x=>'<div class="subject-bar-row"><div><strong>'+esc(x.subject)+'</strong><span>'+x.avg+'%</span></div><div class="subject-bar"><i style="width:'+Math.max(0,Math.min(100,x.avg))+'%"></i></div></div>').join(''):'<div class="empty-state">No result data yet.</div>';
 
@@ -260,6 +335,7 @@
   $('saveProfileRemarkBtn')?.addEventListener('click',saveRemark);
   $('generateParentSummaryBtn')?.addEventListener('click',generateSummary);
   $('printStudentReportBtn')?.addEventListener('click',printReport);
+  $('saveSelfStudentProfile')?.addEventListener('click',saveMyStudentProfile);
 
   window.renderStudentPerformance=render;
   fillStudents();
