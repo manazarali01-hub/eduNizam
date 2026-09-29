@@ -243,6 +243,7 @@
       const row=await insertCloud(item);
       if(row){
         item.id=row.id;item.cloudSynced=true;item.studentUserId=row.student_user_id||null;item.submittedBy=row.submitted_by;item.personName=row.leave_for==='staff'?(row.requester_name||item.personName):(row.student_name||item.personName);item.createdAt=row.created_at;
+        try{await c.state.client.rpc('notify_leave_submission_v1',{p_request_id:row.id})}catch(e){console.warn('Leave submission notification:',e.message||e)}
         if(attachmentFile){
           try{
             const attached=await uploadLeaveAttachment(row.id,attachmentFile);
