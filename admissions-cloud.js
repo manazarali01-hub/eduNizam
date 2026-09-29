@@ -371,7 +371,11 @@
 
   async function requestParentLinkByStudentCode(studentCode){
     if(!state.client||!state.user)throw new Error('Sign in first.');
-    const {data,error}=await state.client.rpc('request_parent_link_by_student_code',{p_student_code:String(studentCode||'').trim()});
+    if(!cfg.institutionId)throw new Error('Select the school workspace first.');
+    const {data,error}=await state.client.rpc('request_parent_link_by_student_code_v2',{
+      p_institution_id:cfg.institutionId,
+      p_student_code:String(studentCode||'').trim()
+    });
     if(error)throw error;return data;
   }
   async function claimStudentRecord(studentCode){
