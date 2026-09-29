@@ -123,6 +123,17 @@
     if(userId&&userId===cloud()?.state?.user?.id)return 'Admin';
     return userId?'School user':'Unknown';
   }
+  function todayAbsentList(rows,filter){
+    if(role()!=='head')return'';
+    const d=new Date(),key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    let list=rows.filter(x=>x.date===key&&x.status==='Absent');
+    if(filter!=='all')list=list.filter(x=>classKey(x)===filter);
+    list.sort((a,b)=>classKey(a).localeCompare(classKey(b),undefined,{numeric:true})||a.studentName.localeCompare(b.studentName));
+    if(!list.length)return '<div class="muted">Aaj is view mein koi student Absent mark nahi hai.</div>';
+    return '<div class="aa-table-wrap"><table class="aa-table"><thead><tr><th>Student</th><th>Class</th><th>Marked By</th><th>Time</th></tr></thead><tbody>'+
+      list.map(x=>'<tr><td><strong>'+esc(x.studentName)+'</strong></td><td>'+esc(classKey(x))+'</td><td>'+esc(markerLabel(x.markedBy))+'</td><td>'+esc(x.updatedAt?new Date(x.updatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—')+'</td></tr>').join('')+
+      '</tbody></table></div>';
+  }
   function adminMarkerLog(rows,filter){
     if(role()!=='head')return'';
     let list=rows.slice();
@@ -165,7 +176,7 @@
         metricCards(summary)+
         '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Student Summary</h3><p class="muted">Monthly attendance counts and percentage.</p></div></div>'+rowsTable(summary)+'</article>'+
         '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Low Attendance Alerts</h3><p class="muted">Students below '+threshold()+'%.</p></div></div><div class="list">'+lowAlerts(summary)+'</div></article>'+
-        (role()==='head'?'<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Who Marked Attendance</h3><p class="muted">Admin audit view: date, class, student aur jis Teacher/Admin ne attendance last save ki.</p></div></div>'+adminMarkerLog(records,filter)+'</article>':'')+
+        (role()==='head'?'<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Today Absent Students</h3><p class="muted">Aaj Absent mark kiye gaye students ki named list.</p></div></div>'+todayAbsentList(records,filter)+'</article><article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Who Marked Attendance</h3><p class="muted">Admin audit view: date, class, student aur jis Teacher/Admin ne attendance last save ki.</p></div></div>'+adminMarkerLog(records,filter)+'</article>':'')+
         '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Daily Attendance Grid</h3><p class="muted">Marked school days in '+esc(month)+'.</p></div></div>'+dailyGrid(summary,month)+'</article>';
       $('aaMonth')?.addEventListener('change',()=>{root.dataset.month=$('aaMonth').value;render()});
       $('aaClass')?.addEventListener('change',()=>{root.dataset.classFilter=$('aaClass').value;render()});
