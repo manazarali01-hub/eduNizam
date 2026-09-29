@@ -327,6 +327,23 @@
             <div id="profileRiskBadge" class="badge">On Track</div>
           </article>
 
+          <article id="studentSelfProfileCard" class="card hidden">
+            <div class="section-head"><div><h3>My Profile Details</h3><p class="muted">You can update personal contact/health details and your photo. School-controlled fields such as class, admission number and B-Form remain locked.</p></div><span class="academic-pill">Student Self-Service</span></div>
+            <div class="form-grid">
+              <input id="selfStudentEmail" type="email" placeholder="Email (optional)">
+              <input id="selfStudentAddress" placeholder="Address (optional)">
+              <input id="selfStudentCity" placeholder="City (optional)">
+              <input id="selfStudentDistrict" placeholder="District (optional)">
+              <input id="selfStudentProvince" placeholder="Province (optional)">
+              <input id="selfStudentBloodGroup" placeholder="Blood group (optional)">
+              <input id="selfStudentEmergency" placeholder="Emergency contact (optional)">
+              <textarea id="selfStudentHealth" rows="2" placeholder="Health notes (optional)"></textarea>
+              <textarea id="selfStudentSpecialNeeds" rows="2" placeholder="Special needs / support notes (optional)"></textarea>
+              <label class="coverage-note"><strong>Profile picture (optional)</strong><input id="selfStudentPhoto" type="file" accept="image/jpeg,image/png,image/webp"><span>JPG/PNG/WEBP · max 2 MB · private school storage</span></label>
+              <button id="saveSelfStudentProfile" type="button">Save My Profile</button>
+            </div>
+          </article>
+
           <div class="pp-stats">
             <article><span>Attendance</span><strong id="profileAttendance">—</strong></article>
             <article><span>Result Average</span><strong id="profileAverage">—</strong></article>
