@@ -788,3 +788,46 @@ input:focus,select:focus,textarea:focus{
   .student-profile-header #profileRiskBadge{grid-column:1/-1;width:max-content}
   .profile-student-avatar{width:60px;height:60px;flex-basis:60px;border-radius:18px;font-size:18px}
 }
+
+
+/* ===== Multi-school workspace switcher ===== */
+.premium-workspace-switch{
+  display:inline-flex;align-items:center;gap:7px;
+  min-height:36px;padding:7px 11px;border-radius:999px;
+  border:1px solid #d8e6de!important;
+  background:#fff!important;color:#0a6655!important;
+  box-shadow:0 5px 14px rgba(20,47,61,.045)!important;
+  font-size:11px;font-weight:850;
+}
+.premium-workspace-switch:hover{transform:none!important;background:#f3faf6!important}
+.workspace-switch-backdrop{
+  position:fixed;inset:0;z-index:99998;
+  display:grid;place-items:center;padding:18px;
+  background:rgba(5,31,27,.52);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.workspace-switch-modal{
+  width:min(620px,100%);max-height:min(760px,88dvh);overflow:auto;
+  padding:22px;border-radius:22px;
+  background:#fbfdf9;border:1px solid #d9e7de;
+  box-shadow:0 28px 70px rgba(8,47,39,.24);
+}
+.workspace-choice-list{display:grid;gap:10px}
+.workspace-choice{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:14px 15px!important;text-align:left;
+  border:1px solid #dce8e1!important;border-radius:15px!important;
+  background:#fff!important;color:#173b32!important;box-shadow:none!important;
+}
+.workspace-choice:hover{transform:none!important;border-color:#a8cdbd!important;background:#f8fcf9!important}
+.workspace-choice.current{background:#eef8f2!important;border-color:#b9ddcd!important}
+.workspace-choice span{display:grid;gap:4px;min-width:0}
+.workspace-choice strong{font-size:14px;overflow-wrap:anywhere}
+.workspace-choice small{color:#70827a;font-size:11px}
+.workspace-choice em{flex:none;font-style:normal;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:#0b715d}
+@media(max-width:620px){
+  .premium-workspace-switch{width:36px;justify-content:center;padding:0}
+  .premium-workspace-switch .label{display:none}
+  .workspace-switch-backdrop{place-items:end center;padding:10px}
+  .workspace-switch-modal{width:100%;max-height:82dvh;border-radius:22px 22px 14px 14px;padding:17px}
+}
