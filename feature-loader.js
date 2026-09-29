@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20260926-attendance-owner145';
+  const VERSION='20260929-profile156';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
