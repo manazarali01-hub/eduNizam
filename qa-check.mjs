@@ -7,7 +7,7 @@ const ok=[];
 
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const exists=p=>fs.existsSync(path.join(root,p));
-const index=read('index.html');
+const index=read('app.html');
 const app=read('app.js');
 const feature=read('feature-loader.js');
 
@@ -430,7 +430,7 @@ if(!pwaManifest.includes('"prefer_related_applications": false')) fail.push('PWA
 if(!pwaInstall.includes('beforeinstallprompt')) fail.push('Shared PWA native install prompt handler missing.');
 if(!pwaInstall.includes('manualHelp')) fail.push('PWA manual install fallback missing.');
 if(!pwaInstall.includes("serviceWorker.register('./sw.js?v=20260926-pwa152'")) fail.push('Shared PWA service worker registration missing.');
-for(const page of ['index.html','login.html','edunizam.html','admission.html','features.html','school-management-system-pakistan.html','online-school-admissions.html','learning-resources-pakistan.html','about.html','privacy.html']){
+for(const page of ['index.html','app.html','login.html','edunizam.html','admission.html','features.html','school-management-system-pakistan.html','online-school-admissions.html','learning-resources-pakistan.html','about.html','privacy.html']){
   if(!read(page).includes('manifest.webmanifest')) fail.push('PWA manifest link missing: '+page);
   if(!read(page).includes('pwa-install.js?v=20260926-pwa152')) fail.push('Shared PWA install controller missing: '+page);
 }
@@ -439,28 +439,28 @@ if(!read('edunizam.html').includes('data-pwa-install')) fail.push('Public landin
 if(!pwaSw.includes("'./pwa-install.js'")) fail.push('PWA install controller not cached.');
 if(!pwaSw.includes("'./icon-192.png'")||!pwaSw.includes("'./icon-512.png'")) fail.push('PWA PNG icons not cached.');
 
-const seoPublic=read('edunizam.html');
+const seoPublic=read('index.html');
 const seoSitemap=read('sitemap.xml');
 const seoRobots=read('robots.txt');
 if(!seoPublic.includes('index,follow,max-image-preview:large')) fail.push('Public EduNizam landing is not indexable.');
-if(!seoPublic.includes('href="https://edunizam.online/edunizam.html"')) fail.push('Public EduNizam canonical URL missing.');
+if(!seoPublic.includes('href="https://edunizam.online/"')) fail.push('Public EduNizam canonical URL missing.');
 if(!seoPublic.includes('"@type":"SoftwareApplication"')) fail.push('Public EduNizam SoftwareApplication schema missing.');
 if(!seoPublic.includes('edunizam-login-children.webp')) fail.push('Public landing preferred image signal missing.');
-if(!index.includes('noindex,follow,noarchive')) fail.push('Private root app must remain noindex.');
+if(!index.includes('noindex,follow,noarchive')) fail.push('Private app.html must remain noindex.');
 if(!read('login.html').includes('noindex,follow,noarchive')) fail.push('Login page must remain noindex.');
 if(!read('admission.html').includes('noindex,follow,noarchive')) fail.push('Admission application page must remain noindex.');
 if(!seoRobots.includes('Allow: /')) fail.push('robots.txt must allow crawling so noindex directives can be read.');
 if(seoRobots.includes('Disallow: /eduNizam/login.html')) fail.push('Login must not be robots-blocked while using noindex.');
 if(!seoRobots.includes('Sitemap: https://edunizam.online/sitemap.xml')) fail.push('robots.txt sitemap declaration missing.');
-if(!seoSitemap.includes('https://edunizam.online/edunizam.html')) fail.push('Public EduNizam landing missing from sitemap.');
-if(seoSitemap.includes('<loc>https://edunizam.online/</loc>')) fail.push('Private root app must not be in sitemap.');
-for(const privateUrl of ['login.html','admission.html','404.html']){
+if(!seoSitemap.includes('<loc>https://edunizam.online/</loc>')) fail.push('Public EduNizam root landing missing from sitemap.');
+if(seoSitemap.includes('https://edunizam.online/edunizam.html')) fail.push('Legacy EduNizam landing should not be submitted separately from canonical root.');
+for(const privateUrl of ['app.html','login.html','admission.html','404.html']){
   if(seoSitemap.includes(privateUrl)) fail.push('Private/noindex URL leaked into sitemap: '+privateUrl);
 }
 for(const page of ['features.html','school-management-system-pakistan.html','online-school-admissions.html','learning-resources-pakistan.html','about.html','privacy.html']){
   const src=read(page);
   if(!src.includes('"@type":"BreadcrumbList"')) fail.push('Breadcrumb schema missing: '+page);
-  if(!src.includes('https://edunizam.online/edunizam.html')) fail.push('Public hierarchy does not point to EduNizam landing: '+page);
+  if(!src.includes('https://edunizam.online/')) fail.push('Public hierarchy does not point to EduNizam root landing: '+page);
   if(!src.includes('primaryImageOfPage')) fail.push('Preferred image schema missing: '+page);
 }
 

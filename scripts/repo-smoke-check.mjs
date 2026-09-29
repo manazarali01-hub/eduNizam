@@ -13,7 +13,7 @@ function bad(name,msg){fail.push({name,msg})}
 
 // 1) Required files
 const required=[
-  "index.html","style.css","app.js","manifest.webmanifest","sw.js",
+  "index.html","app.html","style.css","app.js","manifest.webmanifest","sw.js",
   "robots.txt","sitemap.xml","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","public.css",
   "past-papers-data.js","past-papers-inventory.js","university-data.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
@@ -24,9 +24,9 @@ const required=[
 for(const p of required){exists(p)?ok("file:"+p):bad("file:"+p,"missing")}
 
 // 2) HTML integrity, accessibility basics and local references
-const htmlPages=["index.html","login.html","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"];
+const htmlPages=["index.html","app.html","login.html","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"];
 const htmlByPage=Object.fromEntries(htmlPages.map(p=>[p,read(p)]));
-const html=htmlByPage["index.html"];
+const html=htmlByPage["app.html"];
 
 for(const [page,source] of Object.entries(htmlByPage)){
   const ids=[...source.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
@@ -54,7 +54,8 @@ for(const [page,source] of Object.entries(htmlByPage)){
 // 2b) Crawl and indexing essentials
 const base="https://edunizam.online/";
 const canonicalPages={
-  "edunizam.html":base+"edunizam.html",
+  "index.html":base,
+  "edunizam.html":base,
   "about.html":base+"about.html",
   "features.html":base+"features.html",
   "privacy.html":base+"privacy.html",
@@ -69,7 +70,7 @@ for(const [page,expected] of Object.entries(canonicalPages)){
   /<meta\s+name=["']robots["']\s+content=["'][^"']*index[^"']*follow/i.test(source)
     ?ok("seo:robots-meta:"+page):bad("seo:robots-meta:"+page,"index,follow missing");
 }
-for(const page of ["index.html","login.html","404.html"]){
+for(const page of ["app.html","login.html","404.html"]){
   /<meta\s+name=["']robots["']\s+content=["'][^"']*noindex/i.test(htmlByPage[page])
     ?ok("seo:noindex:"+page):bad("seo:noindex:"+page,"noindex missing");
 }
@@ -77,12 +78,12 @@ const appCanonical=html.match(/<link\s+rel=["']canonical["']\s+href=/i);
 !appCanonical?ok("seo:canonical:index-private"):bad("seo:canonical:index-private","private app should not publish a canonical search landing");
 
 try{
-  const landing=htmlByPage["edunizam.html"];
+  const landing=htmlByPage["index.html"];
   const jsonLd=landing.match(/<script\s+type=["']application\/ld\+json["']>([\s\S]*?)<\/script>/i)?.[1];
   const parsed=JSON.parse(jsonLd||"");
   const graph=Array.isArray(parsed["@graph"])?parsed["@graph"]:[];
   const appNode=graph.find(x=>x["@type"]==="SoftwareApplication");
-  appNode?.url===canonicalPages["edunizam.html"]?ok("seo:structured-data:edunizam"):bad("seo:structured-data:edunizam","SoftwareApplication landing data missing/unexpected");
+  appNode?.url===canonicalPages["index.html"]?ok("seo:structured-data:edunizam"):bad("seo:structured-data:edunizam","SoftwareApplication landing data missing/unexpected");
 }catch(e){bad("seo:structured-data:edunizam",e.message)}
 
 for(const page of ["about.html","features.html","privacy.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"]){
@@ -98,7 +99,7 @@ for(const page of ["about.html","features.html","privacy.html","school-managemen
 
 const sitemap=read("sitemap.xml");
 const sitemapUrls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
-const landingHtml=htmlByPage["edunizam.html"];
+const landingHtml=htmlByPage["index.html"];
 const homeLinks=[...landingHtml.matchAll(/href=["']([^"']+\.html)["']/g)].map(m=>m[1].replace(/^\.\//,''));
 const crawlFiles=["about.html","features.html","privacy.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"];
 const orphaned=crawlFiles.filter(p=>!homeLinks.includes(p) && !htmlByPage["features.html"].includes('href="'+p+'"'));
@@ -107,7 +108,7 @@ orphaned.length?bad("seo:orphan-public-pages",orphaned.join(", ")):ok("seo:orpha
 const expectedUrls=Object.values(canonicalPages);
 const missingSitemap=expectedUrls.filter(x=>!sitemapUrls.includes(x));
 missingSitemap.length?bad("seo:sitemap",missingSitemap.join(", ")):ok("seo:sitemap");
-if(sitemapUrls.some(x=>x===base||/login\.html|admission\.html|404\.html/i.test(x)))bad("seo:sitemap-private","private/root app URLs must not be listed");
+if(sitemapUrls.some(x=>/app\.html|login\.html|admission\.html|404\.html/i.test(x)))bad("seo:sitemap-private","private app URLs must not be listed");
 else ok("seo:sitemap-private");
 const robots=read("robots.txt");
 robots.includes("Sitemap: "+base+"sitemap.xml")?ok("seo:robots-sitemap"):bad("seo:robots-sitemap","sitemap directive missing");

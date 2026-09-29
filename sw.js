@@ -1,7 +1,8 @@
-const CACHE='edunizam-v152-pwa-install'
+const CACHE='edunizam-v153-public-root'
 const CORE=[
   './',
   './index.html',
+  './app.html',
   './login.html',
   './admission.html',
   './style.css',

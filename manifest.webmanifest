@@ -2,7 +2,7 @@
   "name": "EduNizam – AI School Assistant",
   "short_name": "EduNizam",
   "id": "./",
-  "start_url": "./",
+  "start_url": "./app.html",
   "scope": "./",
   "display": "standalone",
   "display_override": [
