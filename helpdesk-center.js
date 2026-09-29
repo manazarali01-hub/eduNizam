@@ -1,5 +1,7 @@
 (function(){
   const KEY='edunizam_helpdesk_tickets_v1';
+  const MAX_FILES=3;
+  const MAX_BYTES=25*1024*1024;
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
@@ -17,9 +19,14 @@
   function meKey(){return role()+':'+identity()}
   function visibleLocal(rows){return isHead()?rows:rows.filter(x=>x.creatorKey===meKey())}
   function ticketNo(){return 'HD-'+Date.now().toString(36).toUpperCase()}
+  function safeName(name){return String(name||'file').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-90)}
   function mapTicket(x){
     const s=x.core_students||{};
-    return {id:x.id,ticketNo:x.ticket_no,category:x.category,priority:x.priority,subject:x.subject,description:x.description,status:x.status,adminResponse:x.admin_response||'',studentId:s.local_id!=null?String(s.local_id):'',studentName:s.name||'',className:s.class_name||'',sectionName:s.section_name||'',creatorRole:x.creator_role||'',createdBy:x.created_by||'',creatorKey:'',createdAt:x.created_at,updatedAt:x.updated_at,resolvedAt:x.resolved_at||''};
+    return {id:x.id,ticketNo:x.ticket_no,category:x.category,priority:x.priority,subject:x.subject,description:x.description,status:x.status,adminResponse:x.admin_response||'',studentId:s.local_id!=null?String(s.local_id):'',studentName:s.name||'',className:s.class_name||'',sectionName:s.section_name||'',creatorRole:x.creator_role||'',createdBy:x.created_by||'',creatorKey:'',createdAt:x.created_at,updatedAt:x.updated_at,resolvedAt:x.resolved_at||'',attachments:[]};
+  }
+  async function signAttachment(a){
+    const {data,error}=await cloud().state.client.storage.from('helpdesk-media').createSignedUrl(a.storage_path,3600);
+    return {id:a.id,fileName:a.file_name||'Attachment',mediaType:a.media_type||'',mimeType:a.mime_type||'',sizeBytes:Number(a.size_bytes||0),storagePath:a.storage_path,url:error?'':(data?.signedUrl||'')};
   }
   async function cloudStudent(localId){
     if(!cloudReady()||!localId)return null;
@@ -31,10 +38,17 @@
   async function pullCloud(){
     if(!cloudReady())return read();
     const {data,error}=await cloud().state.client.from('school_helpdesk_tickets')
-      .select('*,core_students(local_id,name,class_name,section_name,auth_user_id)')
+      .select('*,core_students(local_id,name,class_name,section_name,auth_user_id),school_helpdesk_attachments(*)')
       .eq('institution_id',cfg().institutionId).order('created_at',{ascending:false});
     if(error)throw error;
-    const rows=(data||[]).map(mapTicket);write(rows);return rows;
+    const rows=[];
+    for(const raw of (data||[])){
+      const row=mapTicket(raw);
+      row.attachments=await Promise.all((raw.school_helpdesk_attachments||[]).map(signAttachment));
+      rows.push(row);
+    }
+    write(rows.map(x=>Object.assign({},x,{attachments:(x.attachments||[]).map(a=>({id:a.id,fileName:a.fileName,mediaType:a.mediaType,mimeType:a.mimeType,sizeBytes:a.sizeBytes,storagePath:a.storagePath,url:''}))})));
+    return rows;
   }
   async function createCloud(item){
     const cs=item.studentId?await cloudStudent(item.studentId):null;
@@ -47,6 +61,26 @@
     const {data,error}=await cloud().state.client.rpc('update_helpdesk_ticket',{p_ticket_id:id,p_status:status,p_admin_response:response||null});
     if(error)throw error;return data;
   }
+  async function uploadFiles(ticketId,files){
+    const uploaded=[];
+    for(const file of files){
+      const kind=file.type.startsWith('image/')?'image':file.type.startsWith('video/')?'video':'';
+      if(!kind)throw new Error('Only photo or video evidence is allowed.');
+      if(file.size>MAX_BYTES)throw new Error(file.name+' is larger than 25 MB.');
+      const path=cfg().institutionId+'/'+ticketId+'/'+cloud().state.user.id+'/'+Date.now()+'-'+safeName(file.name);
+      const {error:uploadError}=await cloud().state.client.storage.from('helpdesk-media').upload(path,file,{upsert:false,contentType:file.type});
+      if(uploadError)throw uploadError;
+      const {data:meta,error:metaError}=await cloud().state.client.from('school_helpdesk_attachments').insert({
+        ticket_id:ticketId,storage_path:path,file_name:file.name,mime_type:file.type,size_bytes:file.size,media_type:kind,uploaded_by:cloud().state.user.id
+      }).select().single();
+      if(metaError){
+        await cloud().state.client.storage.from('helpdesk-media').remove([path]).catch(()=>{});
+        throw metaError;
+      }
+      uploaded.push(meta);
+    }
+    return uploaded;
+  }
   function editor(){
     return '<article class="card"><h3>Submit Helpdesk Ticket</h3><div class="form-grid">'+
       '<select id="hdCategory">'+['Academics','Attendance','Fees','Transport','Behavior','Facilities','Technical','Admission','Other'].map(x=>'<option>'+x+'</option>').join('')+'</select>'+
@@ -54,17 +88,25 @@
       '<select id="hdStudent"><option value="">No student context</option>'+visibleStudents().map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' · '+esc((s.className||'-')+(s.sectionName?' - '+s.sectionName:''))+'</option>').join('')+'</select>'+
       '<input id="hdSubject" placeholder="Short subject">'+
       '<textarea id="hdDescription" rows="4" placeholder="Describe the issue / request"></textarea>'+
+      '<label class="coverage-note"><strong>Photo / Video Evidence <span class="muted">(Optional)</span></strong><input id="hdFiles" type="file" accept="image/*,video/*" multiple '+(cloudReady()?'':'disabled')+'><span class="muted">Up to 3 private photos/videos · max 25 MB each. '+(cloudReady()?'Only you and School Admin can view them.':'Cloud Mode is required for media uploads.')+'</span></label>'+
       '<button id="hdSubmit">Submit Ticket</button></div></article>';
   }
   function metrics(rows){
     const open=rows.filter(x=>x.status==='Open').length,progress=rows.filter(x=>x.status==='In Progress').length,resolved=rows.filter(x=>x.status==='Resolved').length,high=rows.filter(x=>x.priority==='High'&&!['Resolved','Closed'].includes(x.status)).length;
     return '<div class="cards"><article class="card stat"><span>Open</span><strong>'+open+'</strong></article><article class="card stat"><span>In Progress</span><strong>'+progress+'</strong></article><article class="card stat"><span>Resolved</span><strong>'+resolved+'</strong></article><article class="card stat"><span>High Priority</span><strong>'+high+'</strong></article></div>';
   }
+  function mediaHtml(a){
+    if(!a.url)return '<div class="coverage-note">'+esc(a.fileName)+' · private media available after Cloud sync.</div>';
+    if(a.mediaType==='image')return '<figure style="margin:10px 0"><img src="'+esc(a.url)+'" alt="'+esc(a.fileName)+'" style="max-width:100%;max-height:320px;border-radius:12px"><figcaption class="muted">'+esc(a.fileName)+'</figcaption></figure>';
+    return '<figure style="margin:10px 0"><video src="'+esc(a.url)+'" controls preload="metadata" style="width:100%;max-height:360px;border-radius:12px"></video><figcaption class="muted">'+esc(a.fileName)+'</figcaption></figure>';
+  }
   function ticketCard(x){
     const context=x.studentName?x.studentName+' · '+(x.className||'-')+(x.sectionName?' - '+x.sectionName:''):'General institute issue';
     return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(x.ticketNo)+'</span><span class="badge">'+esc(x.status)+'</span></div>'+
       '<h3>'+esc(x.subject)+'</h3><p class="muted">'+esc(x.category)+' · '+esc(x.priority)+' · '+esc(context)+'</p>'+
-      '<p>'+esc(x.description)+'</p>'+(x.adminResponse?'<p><strong>Head response:</strong> '+esc(x.adminResponse)+'</p>':'')+
+      '<p>'+esc(x.description)+'</p>'+
+      (x.attachments?.length?'<div class="helpdesk-media">'+x.attachments.map(mediaHtml).join('')+'</div>':'')+
+      (x.adminResponse?'<p><strong>Head response:</strong> '+esc(x.adminResponse)+'</p>':'')+
       '<p class="muted">'+new Date(x.createdAt).toLocaleString()+'</p><div class="paper-actions"><button class="secondary" data-hd-print="'+esc(x.id)+'">Print</button>'+
       (isHead()&&x.status==='Open'?'<button data-hd-progress="'+esc(x.id)+'">Start Work</button>':'')+
       (isHead()&&!['Resolved','Closed'].includes(x.status)?'<button data-hd-resolve="'+esc(x.id)+'">Resolve</button>':'')+
@@ -74,9 +116,26 @@
   }
   async function submit(){
     const subject=$('hdSubject')?.value.trim(),description=$('hdDescription')?.value.trim();if(!subject||!description)return alert('Subject aur description required hain.');
+    const files=[...($('hdFiles')?.files||[])];
+    if(files.length>MAX_FILES)return alert('Maximum 3 photo/video attachments allowed.');
+    for(const file of files){
+      if(!(file.type.startsWith('image/')||file.type.startsWith('video/')))return alert('Only photo/video attachments allowed.');
+      if(file.size>MAX_BYTES)return alert(file.name+' 25 MB se zyada hai.');
+    }
     const studentId=$('hdStudent')?.value||'',s=students().find(x=>String(x.id)===String(studentId));
-    let item={id:String(Date.now()),ticketNo:ticketNo(),category:$('hdCategory')?.value||'Other',priority:$('hdPriority')?.value||'Normal',subject,description,status:'Open',adminResponse:'',studentId:studentId||'',studentName:s?.name||'',className:s?.className||'',sectionName:s?.sectionName||'',creatorRole:role(),creatorKey:meKey(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),resolvedAt:''};
-    try{if(cloudReady()){await createCloud(item);await pullCloud();render();return}}catch(e){return alert('Cloud ticket submit failed: '+(e.message||e))}
+    let item={id:String(Date.now()),ticketNo:ticketNo(),category:$('hdCategory')?.value||'Other',priority:$('hdPriority')?.value||'Normal',subject,description,status:'Open',adminResponse:'',studentId:studentId||'',studentName:s?.name||'',className:s?.className||'',sectionName:s?.sectionName||'',creatorRole:role(),creatorKey:meKey(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),resolvedAt:'',attachments:[]};
+    try{
+      if(cloudReady()){
+        const created=await createCloud(item),row=Array.isArray(created)?created[0]:created,ticketId=row?.id;
+        if(!ticketId)throw new Error('Ticket was created but its ID was not returned.');
+        if(files.length){
+          try{await uploadFiles(ticketId,files)}
+          catch(fileError){alert('Ticket submit ho gaya, lekin media upload incomplete raha: '+(fileError.message||fileError))}
+        }
+        await pullCloud();render();return;
+      }
+    }catch(e){return alert('Cloud ticket submit failed: '+(e.message||e))}
+    if(files.length)return alert('Photo/video complaint ke liye Cloud Mode required hai.');
     const rows=read();rows.unshift(item);write(rows);render();
   }
   async function changeStatus(id,status){
@@ -112,7 +171,7 @@
     const filtered=filter==='all'?rows:rows.filter(x=>x.status===filter);
     root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div><select id="hdStatusFilter"><option value="all">All statuses</option>'+['Open','In Progress','Resolved','Closed'].map(x=>'<option '+(filter===x?'selected':'')+'>'+x+'</option>').join('')+'</select></div>'+
       metrics(rows)+editor()+
-      '<div class="section-head" style="margin-top:18px"><div><h3>'+ (isHead()?'Institute Tickets':'My Tickets') +'</h3><p class="muted">Structured issue tracking and resolution history.</p></div></div><div class="paper-grid">'+(filtered.length?filtered.map(ticketCard).join(''):'<div class="empty-state">No helpdesk tickets.</div>')+'</div>';
+      '<div class="section-head" style="margin-top:18px"><div><h3>'+ (isHead()?'Institute Tickets':'My Tickets') +'</h3><p class="muted">Structured issue tracking, private photo/video evidence and resolution history.</p></div></div><div class="paper-grid">'+(filtered.length?filtered.map(ticketCard).join(''):'<div class="empty-state">No helpdesk tickets.</div>')+'</div>';
     bind(filtered);
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('helpdeskCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
