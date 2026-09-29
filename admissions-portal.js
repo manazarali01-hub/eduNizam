@@ -450,7 +450,54 @@
     return html.replace('</div></article>','<button class="secondary-action" data-adm-review="'+esc(a.applicationId)+'">Review</button></div></article>');
   };
   const originalRenderAdmin=renderAdmin;
-  renderAdmin=function(){originalRenderAdmin();document.querySelectorAll('[data-adm-review]').forEach(b=>b.onclick=()=>openReview(b.dataset.admReview))};
+  async function renderCloudAdminApplications(){
+    const cloud=window.EDUNIZAM_CLOUD,el=$('admissionAdminList');
+    if(!el||!cloud?.ready?.()||!cloud.state?.user)return false;
+    let role;try{role=await cloud.getMyRole()}catch(_){return false}
+    if(role!=='head_of_institute')return false;
+    try{
+      const rows=await cloud.listInstitutionApplications();
+      const q=$('admissionAdminSearch')?.value?.trim().toLowerCase()||'',st=$('admissionStatusFilter')?.value||'',p=$('admissionProgramFilter')?.value||'';
+      const list=(rows||[]).filter(a=>(!q||[a.application_no,a.applicant_name,a.cnic,a.program,a.phone].join(' ').toLowerCase().includes(q))&&(!st||a.status===st)&&(!p||a.program===p));
+      const statusOptions=['Submitted','Under Review','Needs Correction','Approved for Fee','Rejected'];
+      el.innerHTML=list.length?list.map(a=>{
+        const f=feeForProgram(a.program),defaultAmount=(Number(f.admissionFee||0)+Number(f.monthlyFee||0)+Number(f.annualCharges||0)+Number(f.otherCharges||0))||Number(f.applicationFee||0);
+        const canChallan=['Approved for Fee','Selected'].includes(a.status)&&!a.challan_no;
+        const canConfirm=a.status==='Payment Verification'&&['Paid','Exempted'].includes(a.fee_status);
+        const opts=[...new Set([a.status,...statusOptions])].map(s=>'<option '+(s===a.status?'selected':'')+'>'+esc(s)+'</option>').join('');
+        return '<article class="paper-card" data-cloud-app-card="'+esc(a.id)+'"><div class="paper-card-top"><div><span class="mini-badge">'+esc(a.application_no)+'</span><span class="trust-badge trust-official">'+esc(a.status)+'</span></div></div><h3>'+esc(a.applicant_name)+'</h3><p class="muted">'+esc(a.program||'')+' · '+esc(a.metadata?.school_name||'Cloud application')+'</p><div class="paper-meta"><span>'+esc(a.cnic||'No B-Form')+'</span><span>'+esc(a.phone||'No phone')+'</span><span>Fee: '+esc(a.fee_status||'Unpaid')+'</span>'+(a.challan_no?'<span>Challan: '+esc(a.challan_no)+'</span>':'')+'</div><div class="form-grid"><select data-cloud-status="'+esc(a.id)+'">'+opts+'</select></div><div class="paper-actions"><button class="secondary-action" data-cloud-docs="'+esc(a.id)+'">Documents</button>'+(canChallan?'<button data-cloud-challan="'+esc(a.id)+'" data-default-amount="'+defaultAmount+'">Issue Fee Challan</button>':'')+(a.challan_no?'<span class="mini-badge">PKR '+Number(a.challan_amount||0).toLocaleString()+'</span>':'')+(canConfirm?'<button data-cloud-confirm="'+esc(a.id)+'">Confirm Admission</button>':'')+'</div>'+(a.admin_note?'<p class="coverage-note">'+esc(a.admin_note)+'</p>':'')+'<div data-cloud-doc-list="'+esc(a.id)+'"></div></article>';
+      }).join(''):'<div class="empty-state">No matching cloud applications.</div>';
+      document.querySelectorAll('[data-cloud-status]').forEach(s=>s.onchange=async()=>{
+        const note=['Needs Correction','Rejected'].includes(s.value)?prompt('Reason / note for applicant:','')||'':'';
+        try{await cloud.updateCloudApplicationStatus(s.dataset.cloudStatus,s.value,note);await cloud.logAudit('application_status_'+s.value.toLowerCase().replace(/[^a-z0-9]+/g,'_'),'application',s.dataset.cloudStatus,{status:s.value,note});renderCloudAdminApplications()}catch(e){alert(e.message||'Status update failed.')}
+      });
+      document.querySelectorAll('[data-cloud-challan]').forEach(b=>b.onclick=async()=>{
+        const amount=Number(prompt('Fee challan amount (PKR):',b.dataset.defaultAmount||'0'));if(!Number.isFinite(amount)||amount<0)return;
+        try{await cloud.issueAdmissionChallan(b.dataset.cloudChallan,amount);await cloud.logAudit('admission_challan_issued','application',b.dataset.cloudChallan,{amount});renderCloudAdminApplications()}catch(e){alert(e.message||'Could not issue challan.')}
+      });
+      document.querySelectorAll('[data-cloud-confirm]').forEach(b=>b.onclick=async()=>{
+        if(!confirm('Confirm this admission? A school-linked student record will be created.'))return;
+        try{const row=await cloud.confirmAdmission(b.dataset.cloudConfirm);await cloud.logAudit('admission_confirmed','application',b.dataset.cloudConfirm,{admission_no:row?.admission_no||''});alert('Admission confirmed'+(row?.admission_no?' · '+row.admission_no:'')+'.');renderCloudAdminApplications()}catch(e){alert(e.message||'Admission confirmation failed.')}
+      });
+      document.querySelectorAll('[data-cloud-docs]').forEach(b=>b.onclick=async()=>{
+        const box=document.querySelector('[data-cloud-doc-list="'+b.dataset.cloudDocs+'"]');if(!box)return;
+        box.innerHTML='<p class="muted">Loading documents…</p>';
+        try{
+          const docs=await cloud.listApplicationDocuments(b.dataset.cloudDocs);
+          if(!docs.length){box.innerHTML='<p class="muted">No uploaded documents.</p>';return}
+          const links=[];
+          for(const d of docs){let url='';try{url=await cloud.createSignedDocumentUrl(d.storage_path,300)}catch(_){}links.push('<a class="secondary-action" target="_blank" rel="noopener" href="'+esc(url||'#')+'">'+esc(d.kind)+' · '+esc(d.original_name||'Open')+'</a>')}
+          box.innerHTML='<div class="paper-actions" style="margin-top:10px">'+links.join('')+'</div>';
+        }catch(e){box.innerHTML='<p class="coverage-note">'+esc(e.message||'Could not load documents.')+'</p>'}
+      });
+      return true;
+    }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load cloud applications.')+'</div>';return true}
+  }
+  renderAdmin=function(){
+    originalRenderAdmin();
+    document.querySelectorAll('[data-adm-review]').forEach(b=>b.onclick=()=>openReview(b.dataset.admReview));
+    renderCloudAdminApplications();
+  };
 
   ['admReviewAcademicWeight','admReviewTestWeight','admReviewInterviewWeight','admReviewTestMarks','admReviewInterviewMarks'].forEach(id=>$(id)?.addEventListener('input',calculateMerit));
   $('printAdmissionChallanBtn').onclick=printChallan;
@@ -475,22 +522,23 @@
     const cloud=window.EDUNIZAM_CLOUD;
     if(!cloud?.ready?.()){el.innerHTML='<div class="empty-state">Cloud Mode is not configured. Local fee records remain visible inside applications.</div>';return;}
     try{
-      const role=await cloud.getMyRole();if(!['teacher','head_of_institute'].includes(role)){el.innerHTML='<div class="empty-state">Payment verification is available to authorized institution staff.</div>';return;}
+      const role=await cloud.getMyRole();if(role!=='head_of_institute'){el.innerHTML='<div class="empty-state">Payment verification is available to School Admin only.</div>';return;}
       const rows=await cloud.listPayments();
       el.innerHTML=rows.length?rows.map(p=>{
         const a=p.applications||{};
-        return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(p.method||'Payment')+'</span><span class="trust-badge trust-official">'+esc(p.status||'Pending')+'</span></div></div><h3>'+esc(a.applicant_name||'Applicant')+'</h3><p class="muted">'+esc(a.application_no||'')+' · PKR '+Number(p.amount||0).toLocaleString()+'</p><div class="paper-meta"><span>Ref: '+esc(p.reference||'N/A')+'</span><span>'+esc(p.gateway_provider||'Manual')+'</span></div><div class="paper-actions"><button data-pay-verify="'+esc(p.id)+'">Mark Paid</button><button class="secondary-action" data-pay-reject="'+esc(p.id)+'">Reject / Failed</button></div></article>';
+        return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(p.method||'Payment')+'</span><span class="trust-badge trust-official">'+esc(p.status||'Pending')+'</span></div></div><h3>'+esc(a.applicant_name||'Applicant')+'</h3><p class="muted">'+esc(a.application_no||'')+' · PKR '+Number(p.amount||0).toLocaleString()+'</p><div class="paper-meta"><span>Ref: '+esc(p.reference||'N/A')+'</span><span>'+esc(p.gateway_provider||'Manual')+'</span></div><div class="paper-actions"><button data-pay-verify="'+esc(p.id)+'">Mark Paid</button><button class="secondary-action" data-pay-reject="'+esc(p.id)+'">Reject Payment</button></div></article>';
       }).join(''):'<div class="empty-state">No cloud payment records yet.</div>';
       document.querySelectorAll('[data-pay-verify]').forEach(b=>b.onclick=()=>setCloudPaymentStatus(b.dataset.payVerify,'Paid'));
-      document.querySelectorAll('[data-pay-reject]').forEach(b=>b.onclick=()=>setCloudPaymentStatus(b.dataset.payReject,'Failed'));
+      document.querySelectorAll('[data-pay-reject]').forEach(b=>b.onclick=()=>setCloudPaymentStatus(b.dataset.payReject,'Rejected'));
     }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load payments.')+'</div>'}
   }
   async function setCloudPaymentStatus(id,status){
     const cloud=window.EDUNIZAM_CLOUD;
+    const note=status==='Rejected'?(prompt('Why is this payment being rejected?','Invalid / unverified payment proof')||'Payment rejected'):'';
     try{
-      await cloud.updatePaymentStatus(id,status);
-      await cloud.logAudit('payment_status_'+status.toLowerCase(),'payment',id,{status});
-      renderCloudPayments();renderAuditLog();
+      await cloud.verifyAdmissionPayment(id,status,note);
+      await cloud.logAudit('payment_status_'+status.toLowerCase(),'payment',id,{status,note});
+      renderCloudPayments();renderAuditLog();renderCloudAdminApplications();
     }catch(e){alert(e.message||'Payment update failed.')}
   }
   async function renderAuditLog(){
