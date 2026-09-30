@@ -831,3 +831,11 @@ input:focus,select:focus,textarea:focus{
   .workspace-switch-backdrop{place-items:end center;padding:10px}
   .workspace-switch-modal{width:100%;max-height:82dvh;border-radius:22px 22px 14px 14px;padding:17px}
 }
+
+
+/* EduNizam Global Education visual layer */
+:root{--global-blue:#2563eb;--global-navy:#102a56;--global-teal:#0f766e;--global-gold:#e0a82e}
+.sidebar{background:linear-gradient(180deg,#0e2851 0%,#123b69 58%,#0b625f 100%)!important}
+.academic-kicker{color:#2563eb!important}
+button:not(.nav-item):not(.secondary),.primary{background:linear-gradient(135deg,#2563eb,#0f766e)}
+.academic-pill{border-color:#cbdcf8!important;background:#eff6ff!important;color:#1e4f9d!important}
