@@ -429,7 +429,7 @@ if(!pwaManifest.includes('"icon-512.png"')||!pwaManifest.includes('"512x512"')) 
 if(!pwaManifest.includes('"prefer_related_applications": false')) fail.push('PWA manifest must keep prefer_related_applications false.');
 if(!pwaInstall.includes('beforeinstallprompt')) fail.push('Shared PWA native install prompt handler missing.');
 if(!pwaInstall.includes('manualHelp')) fail.push('PWA manual install fallback missing.');
-if(!pwaInstall.includes("serviceWorker.register('./sw.js?v=20260929-pwa167'")) fail.push('Shared PWA service worker registration missing.');
+if(!pwaInstall.includes("serviceWorker.register('./sw.js?v=20260930-auto168'")) fail.push('Shared PWA service worker registration missing.');
 for(const page of ['index.html','app.html','login.html','edunizam.html','admission.html','features.html','school-management-system-pakistan.html','online-school-admissions.html','learning-resources-pakistan.html','about.html','privacy.html']){
   if(!read(page).includes('manifest.webmanifest')) fail.push('PWA manifest link missing: '+page);
   if(!read(page).includes('pwa-install.js?v=20260929-pwa154')) fail.push('Shared PWA install controller missing: '+page);
