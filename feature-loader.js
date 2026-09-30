@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20260930-ui175';
+  const VERSION='20260930-teacher176';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
@@ -24,6 +24,8 @@
     help:['help-knowledge-center.js'],
     leavecenter:['leave-center.js'],
     examcenter:['exam-center.js'],
+    paperbuilder:['teacher-paper-builder.js'],
+    dailydiary:['daily-class-diary.js'],
     staffcenter:['staff-center.js'],
     stafftime:['staff-time-attendance.js'],
     staffpayroll:['staff-payroll.js'],
