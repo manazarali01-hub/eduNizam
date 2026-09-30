@@ -839,3 +839,18 @@ input:focus,select:focus,textarea:focus{
 .academic-kicker{color:#2563eb!important}
 button:not(.nav-item):not(.secondary),.primary{background:linear-gradient(135deg,#2563eb,#0f766e)}
 .academic-pill{border-color:#cbdcf8!important;background:#eff6ff!important;color:#1e4f9d!important}
+
+
+/* Global UI coherence pass */
+:root{--premium-navy:#102a56;--premium-teal:#2563eb;--premium-teal-2:#174a83;--premium-gold:#e0a82e}
+.sidebar{background:linear-gradient(180deg,#0b2145 0%,#123b69 58%,#0b625f 100%)!important}
+.nav-group{border-color:rgba(255,255,255,.08)!important;background:rgba(255,255,255,.025)!important}
+.nav-group summary{color:#d8e5f4!important}
+.nav-group[open] summary,.nav-group.has-active summary{color:#fff!important}
+.nav-group summary strong{font-weight:800;letter-spacing:.01em}
+.nav-group-items{display:grid;gap:4px;padding:0 6px 7px}
+.nav-item.active{background:linear-gradient(135deg,#2563eb,#0f766e)!important;color:#fff!important}
+.nav-item.active:before{background:#f1cf7d!important}
+.academic-pill,.premium-mobile-dock button.active{background:#eaf2ff!important;color:#174a83!important;border-color:#cadbf8!important}
+button:not(.nav-item):not(.secondary):not(.premium-search-trigger):not(.premium-mobile-dock button),.primary{background:linear-gradient(135deg,#2563eb,#0f766e)}
+@media(max-width:950px){.nav-group summary{min-height:46px}.nav-group-items{padding-bottom:9px}.sidebar nav{display:grid!important;grid-template-columns:1fr!important}}
