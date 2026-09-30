@@ -187,17 +187,17 @@
             <input id="studentClass" placeholder="Class / Grade / Year / Program / Semester *">
             <input id="studentSection" placeholder="Section (optional)">
             <input id="studentPhone" placeholder="Parent / Guardian contact *">
-            <input id="studentBForm" placeholder="Student ID / National ID / B-Form / Passport *">
+            <input id="studentBForm" placeholder="B-Form No. *">
             <select id="studentGender" aria-label="Gender"><option value="">Gender *</option><option>Male</option><option>Female</option><option>Other / Prefer not to say</option></select>
             <input id="studentDob" type="date" aria-label="Date of birth">
             <input id="admissionNo" placeholder="Admission No. *">
-            <input id="guardianCnic" placeholder="Guardian National ID / CNIC / Passport (optional)">
+            <input id="guardianCnic" placeholder="Father / Guardian CNIC (optional)">
             <input id="studentMotherName" placeholder="Mother name (optional)">
             <input id="studentEmail" type="email" placeholder="Student / family email (optional)">
             <input id="studentAddress" placeholder="Address (optional)">
             <input id="studentCity" placeholder="City (optional)">
-            <input id="studentDistrict" placeholder="District / County (optional)">
-            <input id="studentProvince" placeholder="Province / State / Region (optional)">
+            <input id="studentDistrict" placeholder="District (optional)">
+            <input id="studentProvince" placeholder="Province (optional)">
             <input id="guardianOccupation" placeholder="Father / Guardian occupation (optional)">
             <input id="studentCaste" placeholder="Caste (optional)">
             <input id="studentBloodGroup" placeholder="Blood group (optional)">
@@ -333,8 +333,8 @@
               <input id="selfStudentEmail" type="email" placeholder="Email (optional)">
               <input id="selfStudentAddress" placeholder="Address (optional)">
               <input id="selfStudentCity" placeholder="City (optional)">
-              <input id="selfStudentDistrict" placeholder="District / County (optional)">
-              <input id="selfStudentProvince" placeholder="Province / State / Region (optional)">
+              <input id="selfStudentDistrict" placeholder="District (optional)">
+              <input id="selfStudentProvince" placeholder="Province (optional)">
               <input id="selfStudentBloodGroup" placeholder="Blood group (optional)">
               <input id="selfStudentEmergency" placeholder="Emergency contact (optional)">
               <textarea id="selfStudentHealth" rows="2" placeholder="Health notes (optional)"></textarea>
@@ -1105,14 +1105,14 @@
             <div class="form-grid">
               <input id="admApplicantName" placeholder="Applicant full name">
               <input id="admFatherName" placeholder="Father / Guardian name">
-              <input id="admCnic" placeholder="Student ID / National ID / B-Form / Passport">
+              <input id="admCnic" placeholder="CNIC / B-Form">
               <input id="admDob" type="date">
               <select id="admGender"><option value="">Gender</option><option>Male</option><option>Female</option><option>Other / Prefer not to say</option></select>
               <input id="admPhone" placeholder="Mobile number">
               <input id="admEmail" type="email" placeholder="Email address">
               <input id="admAddress" placeholder="Address">
               <input id="admCity" placeholder="City">
-              <input id="admDistrict" placeholder="District / County">
+              <input id="admDistrict" placeholder="District">
               <select id="admProgram"><option value="">Select class / program</option></select>
               <div id="admProgramFeeSummary" class="program-fee-summary"></div>
               <select id="admQuota"><option value="">Admission category / quota</option></select>
@@ -1131,7 +1131,7 @@
               <h3>Photo & Document Uploads</h3>
               <div class="form-grid">
                 <label class="upload-field">Applicant Photo<input id="admPhotoFile" type="file" accept="image/*"></label>
-                <label class="upload-field">Student identity document<input id="admIdentityFile" type="file" accept="image/*,.pdf"></label>
+                <label class="upload-field">CNIC / B-Form<input id="admIdentityFile" type="file" accept="image/*,.pdf"></label>
                 <label class="upload-field">Previous Result / Transcript<input id="admResultFile" type="file" accept="image/*,.pdf"></label>
                 <label class="upload-field">Supporting Document<input id="admSupportFile" type="file" accept="image/*,.pdf"></label>
               </div>
@@ -1141,7 +1141,7 @@
 
             <div class="coverage-note" style="grid-column:1/-1">
               <strong>Admission fee workflow</strong><br>
-              Fee challan/invoice is generated only after the Institution Admin reviews and approves the application. Payment details are collected only after a challan has been issued.
+              Fee challan is generated only after the School Admin reviews and approves the application. Payment details are collected only after a challan has been issued.
             </div>
 
             <div class="request-panel hidden" aria-hidden="true">
@@ -1178,7 +1178,7 @@
               <h3>Track Application</h3>
               <div class="form-grid">
                 <input id="admissionTrackId" placeholder="Application ID e.g. ADM-2026-0001">
-                <input id="admissionTrackCnic" placeholder="Applicant identity number">
+                <input id="admissionTrackCnic" placeholder="Applicant CNIC / B-Form">
                 <button id="trackAdmissionBtn">Track Status</button>
               </div>
             </div>
@@ -1187,7 +1187,7 @@
 
           <div id="admissionAdminPanel" class="hidden">
             <div class="paper-search-row">
-              <input id="admissionAdminSearch" placeholder="Search Application ID, applicant, identity number, program">
+              <input id="admissionAdminSearch" placeholder="Search Application ID, applicant, CNIC, program">
             </div>
             <div class="quick-actions">
               <button id="exportAdmissionsCsvBtn">Export CSV</button>
@@ -1290,7 +1290,7 @@
           </div>
 
           <div id="admissionPaymentsPanel" class="hidden">
-            <div class="section-head"><div><h3>Payment Verification Queue</h3><p class="muted">Only Institution Admin can review and verify admission fee records.</p></div><button id="refreshAdmissionPaymentsBtn" class="secondary">Refresh</button></div>
+            <div class="section-head"><div><h3>Payment Verification Queue</h3><p class="muted">Only School Admin can review and verify admission fee records.</p></div><button id="refreshAdmissionPaymentsBtn" class="secondary">Refresh</button></div>
             <div id="admissionPaymentsList" class="paper-grid"></div>
           </div>
 
@@ -1350,7 +1350,7 @@
           <div class="section-head">
             <div>
               <h2>AI Assistant</h2>
-              <p class="muted">Institution admin help, exam preparation and step-by-step question solving.</p>
+              <p class="muted">School admin help, exam preparation and step-by-step question solving.</p>
             </div>
             <button id="mathModeBtn" class="secondary">∑ Math Editor</button>
           </div>
