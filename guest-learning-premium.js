@@ -62,7 +62,7 @@ function renderRecent(){
  box.innerHTML=arr.length?arr.map(t=>'<button type="button" data-smart-query="'+esc(t)+'">'+esc(t)+'</button>').join(''):'<span style="color:var(--muted);font-size:.8rem">Your searches stay on this device.</span>';
 }
 function showGlobalResults(query){
- const q=norm(query);if(!q)return;const results=allResources().filter(r=>norm(JSON.stringify(r)).includes(q)).slice(0,24);
+ const q=norm(query);if(!q)return;const words=q.split(' ').filter(Boolean), code=words.find(w=>/^[a-z]{2,5}[0-9]{3,4}$/.test(w)); const results=allResources().filter(r=>{const h=norm(JSON.stringify(r)); if(words.every(w=>h.includes(w)))return true; if(code&&r.section==='vu'&&/paper|midterm|final/i.test(String(r.type)))return !(r.courseCodes||[]).length||(r.courseCodes||[]).map(norm).includes(code); return false}).slice(0,24);
  const home=$('home');document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x===home));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='home'));history.replaceState(null,'','#home');
  let box=$('globalResults');if(!box){box=document.createElement('div');box.id='globalResults';home.insertBefore(box,home.firstChild)}
  box.innerHTML='<div class="section-head"><div><h2>Search results</h2><p>'+results.length+' matching public resources for “'+esc(query)+'”.</p></div></div><div class="grid">'+(results.length?results.map(resourceCard).join(''):emptyState(query))+'</div>';
