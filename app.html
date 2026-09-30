@@ -79,7 +79,7 @@
       <nav id="nav">
         <button class="nav-item active" data-view="dashboard">⌂  Dashboard</button>
         <button class="nav-item" data-view="students">👨‍🎓  Students</button>
-        <button class="nav-item" data-view="classcenter">🏫  Classes & Sections</button>
+        <button class="nav-item" data-view="classcenter">🏫  Academic Groups</button>
         <button class="nav-item" data-view="bulkimport">⇧  Bulk Import & Setup</button>
         <button class="nav-item" data-view="staffcenter">👩‍🏫  Staff & Teachers</button>
         <button class="nav-item" data-view="stafftime">⏱  Staff Time Clock</button>
@@ -181,10 +181,10 @@
         <article class="card">
           <div class="section-head"><h2>Students</h2><button id="addStudentBtn">+ Add Student</button></div>
           <div class="form-grid hidden" id="studentFormWrap">
-            <div class="coverage-note" style="grid-column:1/-1"><strong>Student Profile</strong><br>Required: name, class, admission no., DOB, gender, guardian name/contact and B-Form. Remaining fields are optional and can be completed later.</div>
+            <div class="coverage-note" style="grid-column:1/-1"><strong>Student Profile</strong><br>Required: name, academic group, admission/student no., DOB, gender and guardian/contact details. Pakistan-specific identity fields remain supported; other institutions can use applicable identity details.</div>
             <input id="studentName" placeholder="Student name *">
             <input id="fatherName" placeholder="Father / Guardian name *">
-            <input id="studentClass" placeholder="Class *">
+            <input id="studentClass" placeholder="Class / Grade / Year / Program / Semester *">
             <input id="studentSection" placeholder="Section (optional)">
             <input id="studentPhone" placeholder="Parent / Guardian contact *">
             <input id="studentBForm" placeholder="B-Form No. *">
@@ -220,8 +220,8 @@
         <div class="section-head">
           <div>
             <div class="academic-kicker">Academic Structure</div>
-            <h2>Classes & Sections</h2>
-            <p class="muted">Sections, class teachers, rooms aur student allocation manage karein.</p>
+            <h2>Academic Groups</h2>
+            <p class="muted">Classes/Grades, Years, Programs, Semesters, sections, instructors, rooms aur student allocation manage karein.</p>
           </div>
         </div>
         <div id="classSectionApp"></div>
