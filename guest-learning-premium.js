@@ -127,7 +127,8 @@ function bind(){
   const q=e.target.closest('[data-smart-query]');if(q){$('globalSearch').value=q.dataset.smartQuery;saveRecent(q.dataset.smartQuery);showGlobalResults(q.dataset.smartQuery);return}
   const p=e.target.closest('[data-preview-id]');if(p){openPreview(p.dataset.previewId);return}
   const f=e.target.closest('[data-fav-id]');if(f){toggleFav(f.dataset.favId);return}
-  const sh=e.target.closest('[data-share-id]');if(sh){shareResource(sh.dataset.shareId);return}\n  const st=e.target.closest('[data-study-id]');if(st){openStudy(st.dataset.studyId);return}
+  const sh=e.target.closest('[data-share-id]');if(sh){shareResource(sh.dataset.shareId);return}
+  const st=e.target.closest('[data-study-id]');if(st){openStudy(st.dataset.studyId);return}
   if(e.target.closest('[data-close-premium]')){$('premiumResourceModal')?.classList.remove('open');return}
   if(e.target.closest('[data-clear-smart]')){$('globalSearch').value='';$('globalResults')?.remove();return}
   const pr=e.target.closest('[data-print-url]');if(pr){const w=window.open(pr.dataset.printUrl,'_blank');if(w)setTimeout(()=>{try{w.print()}catch(_){}},900)}
