@@ -121,7 +121,8 @@
       backdrop.setAttribute('aria-hidden',String(!open));
       document.body.classList.toggle('mobile-nav-lock',open);
       menu.setAttribute('aria-expanded',String(open));
-      if(open)setTimeout(()=>sidebar.querySelector('.nav-search-wrap input')?.focus(),80);
+      // Keep the mobile keyboard closed when navigation opens. Search remains available on explicit tap.
+      if(!open && document.activeElement?.matches?.('.nav-search-wrap input'))document.activeElement.blur();
     };
     menu.onclick=()=>setOpen(!sidebar.classList.contains('mobile-nav-open'));
     close.onclick=()=>setOpen(false);
