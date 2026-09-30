@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20260930-private169';
+  const VERSION='20260930-help170';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
@@ -21,6 +21,7 @@
     ourstudents:['school-community.js'],
     inboxcenter:['messaging-center.js'],
     helpdeskcenter:['helpdesk-center.js'],
+    help:['help-knowledge-center.js'],
     leavecenter:['leave-center.js'],
     examcenter:['exam-center.js'],
     staffcenter:['staff-center.js'],
