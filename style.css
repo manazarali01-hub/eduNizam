@@ -598,7 +598,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
     inset:0;
     z-index:1001;
     background:rgba(5,21,31,.48);
-    backdrop-filter:blur(2px);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
     opacity:0;
     visibility:hidden;
     pointer-events:none;
@@ -1175,4 +1176,19 @@ button{transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease}but
 @media(max-width:480px){
   .attendance-alert-counts{grid-template-columns:1fr}
   .attendance-alert-person{align-items:flex-start}
+}
+
+
+/* Mobile navigation clarity: dim the page behind the drawer without blurring the sidebar or content. */
+@media(max-width:950px){
+  .mobile-nav-backdrop,.mobile-nav-backdrop.show{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  .sidebar,.sidebar.mobile-nav-open{
+    filter:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    opacity:1!important;
+  }
 }
