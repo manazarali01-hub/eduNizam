@@ -40,6 +40,44 @@
     const {data,error}=await cloud().state.client.storage.from(bucket()).createSignedUrl(a.storage_path,3600);
     return {id:a.id,fileName:a.file_name||'Attachment',mediaType:a.media_type,mimeType:a.mime_type||'',sizeBytes:Number(a.size_bytes||0),storagePath:a.storage_path,url:error?'':(data?.signedUrl||'')};
   }
+  async function listTeachers(){
+    if(!cloudReady())return[];
+    const {data,error}=await cloud().state.client.from('staff_profiles').select('user_id,full_name,designation').eq('institution_id',cfg().institutionId).not('user_id','is',null).order('full_name');
+    if(error)throw error;return (data||[]).filter(x=>x.user_id);
+  }
+  async function pullParentTeacherCloud(){
+    if(!cloudReady()||(!isParent()&&!isHead()))return[];
+    const {data,error}=await cloud().state.client.from('parent_teacher_complaints').select('*').eq('institution_id',cfg().institutionId).order('created_at',{ascending:false});
+    if(error)throw error;return data||[];
+  }
+  async function createParentTeacherComplaint(){
+    const teacher=$('ptTeacher')?.value,subject=$('ptSubject')?.value.trim(),message=$('ptMessage')?.value.trim(),severity=$('ptSeverity')?.value||'Concern';
+    if(!teacher||!subject||!message)return alert('Teacher, subject aur complaint details required hain.');
+    if(!cloudReady())return alert('Private parent complaint ke liye secure Cloud Mode required hai.');
+    const {error}=await cloud().state.client.rpc('create_parent_teacher_complaint_v1',{p_institution_id:cfg().institutionId,p_teacher_user_id:teacher,p_subject:subject,p_message:message,p_severity:severity});
+    if(error)return alert('Complaint send failed: '+(error.message||error));
+    $('ptSubject').value='';$('ptMessage').value='';await render();
+  }
+  async function resolveParentTeacherComplaint(id){
+    if(!isHead()||!cloudReady())return;
+    const note=prompt('Admin resolution note (optional):')||'';
+    const {error}=await cloud().state.client.rpc('resolve_parent_teacher_complaint_v1',{p_complaint_id:id,p_admin_note:note});
+    if(error)return alert('Resolve failed: '+(error.message||error));await render();
+  }
+  function parentTeacherCard(x,teacherMap){
+    const teacher=teacherMap.get(String(x.teacher_user_id));
+    return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">Private · '+esc(x.severity)+'</span><span class="badge">'+esc(x.status)+'</span></div><h3>'+esc(x.subject)+'</h3><p class="muted">Teacher: '+esc(teacher?.full_name||'School Teacher')+' · '+new Date(x.created_at).toLocaleString()+'</p><p>'+esc(x.message)+'</p>'+(x.admin_note?'<p><strong>Admin note:</strong> '+esc(x.admin_note)+'</p>':'')+(isHead()&&x.status!=='Resolved'?'<div class="paper-actions"><button data-pt-resolve="'+esc(x.id)+'">Mark Resolved</button></div>':'')+'</article>';
+  }
+  async function parentTeacherSection(){
+    if(!isParent()&&!isHead())return'';
+    if(!cloudReady())return isParent()?'<article class="card"><h3>Private Complaint to Admin</h3><div class="coverage-note">Secure Cloud Mode is required so your complaint cannot be seen by other parents, teachers or students.</div></article>':'';
+    try{
+      const [teachers,rows]=await Promise.all([listTeachers(),pullParentTeacherCloud()]);
+      const map=new Map(teachers.map(x=>[String(x.user_id),x]));
+      const form=isParent()?'<article class="card"><h3>Private Complaint About a Teacher</h3><p class="muted">This complaint is visible only to you and the School Admin. The teacher, students and other parents cannot see it.</p><div class="form-grid"><select id="ptTeacher"><option value="">Select teacher</option>'+teachers.map(t=>'<option value="'+esc(t.user_id)+'">'+esc(t.full_name||'Teacher')+(t.designation?' · '+esc(t.designation):'')+'</option>').join('')+'</select><select id="ptSeverity"><option>Concern</option><option>Serious</option><option>Information</option></select><input id="ptSubject" placeholder="Complaint subject"><textarea id="ptMessage" rows="4" placeholder="Write complaint details"></textarea><button id="ptSend">Send Privately to Admin</button></div></article>':'';
+      return form+'<div class="section-head" style="margin-top:18px"><div><h3>'+(isParent()?'My Private Teacher Complaints':'Private Parent Complaints About Teachers')+'</h3><p class="muted">Confidential: Admin and the complaint creator only.</p></div></div><div class="paper-grid">'+(rows.length?rows.map(x=>parentTeacherCard(x,map)).join(''):'<div class="empty-state">No private teacher complaints.</div>')+'</div>';
+    }catch(e){return '<div class="coverage-note">Private complaint service unavailable: '+esc(e.message||e)+'</div>'}
+  }
   async function pullCloud(){
     const {data,error}=await cloud().state.client.from('student_parent_complaints')
       .select('*,core_students(local_id,name,class_name,section_name,auth_user_id),student_parent_complaint_attachments(*)')
@@ -170,10 +208,11 @@
     let rows=read();
     if(cloudReady()){try{rows=await pullCloud()}catch(e){console.warn('Parent complaint cloud sync:',e.message);rows=[]}}
     else rows=localVisible(rows);
-    root.innerHTML='<div class="section-head"><span class="academic-pill">'+(cloudReady()?'Private Cloud Media':'Local Text Mode')+'</span></div>'+
+    const privateTeacherHtml=await parentTeacherSection();
+    root.innerHTML=privateTeacherHtml+'<div class="section-head"><span class="academic-pill">'+(cloudReady()?'Private Cloud Media':'Local Text Mode')+'</span></div>'+
       metrics(rows)+editor()+
       '<div class="section-head" style="margin-top:18px"><div><h3>'+ (isParent()?'Complaint Notices':'Sent Student Complaints') +'</h3><p class="muted">Parent acknowledgement aur media evidence history.</p></div></div><div class="paper-grid">'+(rows.length?rows.map(x=>card(x).replace('</div></article>','<button class="secondary" data-pc-print="'+esc(x.id)+'">Print Notice</button></div></article>')).join(''):'<div class="empty-state">No parent complaint notices.</div>')+'</div>';
-    bind(rows);
+    bind(rows);$('ptSend')?.addEventListener('click',createParentTeacherComplaint);document.querySelectorAll('[data-pt-resolve]').forEach(b=>b.onclick=()=>resolveParentTeacherComplaint(b.dataset.ptResolve));
   }
   window.addEventListener('edunizam:auth',render);
   setTimeout(render,0);setTimeout(render,900);
