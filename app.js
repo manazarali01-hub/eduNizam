@@ -449,6 +449,7 @@ $('saveSettingsBtn').onclick=async()=>{
   session:$('schoolSessionInput').value.trim(),
   phone:$('schoolPhoneInput').value.trim(),
   address:$('schoolAddressInput').value.trim(),
+  country:$('schoolCountryInput')?.value||'Pakistan',currency:$('schoolCurrencyInput')?.value||'PKR',locale:$('schoolLocaleInput')?.value||'en-PK',timezone:$('schoolTimezoneInput')?.value.trim()||'Asia/Karachi',
   schoolLogo:logo
  };
  persist();renderSettings();logActivity('School settings updated');
@@ -492,6 +493,10 @@ function renderSettings(){
  $('schoolSessionInput').value=state.settings.session||'';
  $('schoolPhoneInput').value=state.settings.phone||'';
  $('schoolAddressInput').value=state.settings.address||'';
+ if($('schoolCountryInput'))$('schoolCountryInput').value=state.settings.country||'Pakistan';
+ if($('schoolCurrencyInput'))$('schoolCurrencyInput').value=state.settings.currency||'PKR';
+ if($('schoolLocaleInput'))$('schoolLocaleInput').value=state.settings.locale||'en-PK';
+ if($('schoolTimezoneInput'))$('schoolTimezoneInput').value=state.settings.timezone||'Asia/Karachi';
  const topLogo=$('schoolLogoTop'),preview=$('schoolLogoPreview'),wrap=$('schoolLogoPreviewWrap'),sideLogo=$('sidebarSchoolLogo'),sideName=$('sidebarSchoolName'),sideType=$('sidebarSchoolType'),
  dashLogo=$('dashboardInstituteLogo'),dashFallback=$('dashboardInstituteFallback'),dashName=$('dashboardInstituteName'),dashMeta=$('dashboardInstituteMeta'),dashTitle=$('dashboardWelcomeTitle'),dashText=$('dashboardWelcomeText');
  const instituteName=state.settings.schoolName||'My School',instituteType=state.settings.schoolType||'School';
