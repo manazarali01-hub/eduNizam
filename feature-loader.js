@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20260930-sidebar179';
+  const VERSION='20260930-mobile181';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
@@ -105,7 +105,7 @@
     rel?.beginFeature?.(view);
     document.documentElement.classList.add('edu-feature-loading');
     try{
-      for(const src of list)await loadScript(src);
+      await Promise.all(list.map(src=>loadScript(src)));
     }catch(e){
       rel?.repairUI?.('Feature recovery: '+view);
       throw e;
