@@ -15,7 +15,7 @@
   function localFees(){try{return JSON.parse(localStorage.getItem('edunizam_fees')||'[]')}catch{return[]}}
   function localPayroll(){try{return JSON.parse(localStorage.getItem('edunizam_staff_payroll_v1')||'[]')}catch{return[]}}
   function settings(){try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}}
-  function money(v){return 'Rs '+Number(v||0).toLocaleString('en-PK')}
+  function money(v){const s=JSON.parse(localStorage.getItem('edunizam_settings')||'{}'),currency=s.currency||'PKR',locale=s.locale||'en-PK';try{return new Intl.NumberFormat(locale,{style:'currency',currency,maximumFractionDigits:2}).format(Number(v||0))}catch(e){return currency+' '+Number(v||0).toLocaleString()}}
   function nextMonth(month){
     const [y,m]=month.split('-').map(Number),d=new Date(y,m,1);
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';
