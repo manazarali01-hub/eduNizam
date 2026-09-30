@@ -1,0 +1,62 @@
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const KB=[
+['Getting Started','شروع کریں','Login & roles','لاگ اِن اور کردار','Use Login to sign in as Admin, Teacher, Student or Parent. School-specific tools follow role permissions and approval. Guest Learning is available separately without school approval.','Admin، Teacher، Student یا Parent کے طور پر Login کریں۔ اسکول کے مخصوص فیچرز role اور approval کے مطابق ملتے ہیں۔ Guest Learning اسکول approval کے بغیر الگ دستیاب ہے۔'],
+['Accounts','اکاؤنٹس','Approval & school access','منظوری اور اسکول رسائی','Teacher, Student and Parent school access is controlled by the school Admin. Use the correct school/account and wait for approval where required.','Teacher، Student اور Parent کی اسکول رسائی Admin کے control میں ہے۔ درست school/account منتخب کریں اور جہاں ضروری ہو approval کا انتظار کریں۔'],
+['Students','طلبہ','Student profiles','طالب علم پروفائل','Admin manages student records, optional profile details, documents and profile photo. Authorized users only see students allowed by their role.','Admin طالب علم کا ریکارڈ، اضافی profile details، documents اور تصویر manage کرتا ہے۔ ہر user کو صرف اپنے role کے مطابق authorized students نظر آتے ہیں۔'],
+['Attendance','حاضری','Student attendance','طلبہ کی حاضری','Admin and authorized teachers can mark attendance. Teacher access is limited to assigned students/classes; audit information records who marked attendance.','Admin اور authorized teachers حاضری لگا سکتے ہیں۔ Teacher صرف assigned students/classes تک محدود ہے اور audit میں attendance لگانے والے کا record رہتا ہے۔'],
+['Staff','عملہ','Staff attendance & payroll','عملہ حاضری اور تنخواہ','Staff Center manages teacher profiles. Staff Time and Payroll cover attendance, check-in/out, salary setup, monthly payroll and payslips where enabled.','Staff Center میں teacher profiles manage ہوتے ہیں۔ Staff Time اور Payroll میں حاضری، check-in/out، salary setup، monthly payroll اور payslips شامل ہیں۔'],
+['Academics','تعلیم','Results & performance','نتائج اور کارکردگی','Results and Student Performance combine assessment records, attendance and academic information for authorized users and parent-ready reporting.','Results اور Student Performance میں assessment، attendance اور academic information کو authorized users کے لیے یکجا کیا جاتا ہے اور parent report بن سکتی ہے۔'],
+['Fees','فیس','Fees & finance','فیس اور مالیات','Admin manages fee setup, records and finance tools. Parents/students only receive the information permitted for their linked account.','Admin fee setup، records اور finance tools manage کرتا ہے۔ Parent/Student کو صرف linked account کے مطابق اجازت یافتہ معلومات دکھائی جاتی ہیں۔'],
+['Admissions','داخلہ','Online admission','آن لائن داخلہ','Online admission collects applicant/student information and documents. School review and approval are required before the school workflow proceeds to confirmation and fee steps.','Online admission میں applicant/student data اور documents جمع ہوتے ہیں۔ confirmation اور fee workflow سے پہلے school review اور approval ضروری ہے۔'],
+['Leave','رخصت','Leave requests','چھٹی کی درخواست','Students/teachers can submit leave requests where their role allows it. Requests include dates/days and reason; authorized staff approve or reject with decision cause.','Student/Teacher اپنے role کے مطابق leave request دے سکتے ہیں۔ تاریخ/دن اور وجہ شامل ہوتی ہے؛ authorized staff approval یا rejection کی وجہ درج کرتے ہیں۔'],
+['Complaints','شکایات','Private complaints','نجی شکایات','A parent complaint about a teacher is confidential to that parent and School Admin. Student complaints created by Admin/authorized Teacher are shown to the linked parent under the protected workflow.','Parent کی Teacher کے خلاف شکایت صرف اسی Parent اور School Admin کے لیے confidential ہے۔ Admin/authorized Teacher کی Student complaint متعلقہ linked Parent کو محفوظ workflow میں دکھائی جاتی ہے۔'],
+['Communication','رابطہ','Messaging & notices','پیغامات اور نوٹس','Messaging, Notice Board and school communication tools are role-scoped. Use the relevant center for announcements, messages and school updates.','Messaging، Notice Board اور communication tools role-based ہیں۔ announcements، messages اور school updates کے لیے متعلقہ center استعمال کریں۔'],
+['Schedule','شیڈول','Timetable & date sheet','ٹائم ٹیبل اور ڈیٹ شیٹ','Schedule Center manages timetable and date-sheet information according to school permissions.','Schedule Center میں school permissions کے مطابق timetable اور date sheet manage ہوتے ہیں۔'],
+['Training','ٹریننگ','Teacher training','اساتذہ کی تربیت','Training Center supports assignments, progress, CPD information, evaluation and certificates where configured.','Training Center میں assignments، progress، CPD information، evaluation اور certificates manage کیے جا سکتے ہیں۔'],
+['Learning','تعلیم','Guest Learning Hub','گیسٹ لرننگ ہب','General learning resources can be used without school login through Learn Free as Guest. School-specific records remain protected.','General learning resources کو Learn Free as Guest کے ذریعے school login کے بغیر استعمال کیا جا سکتا ہے، جبکہ school-specific records محفوظ رہتے ہیں۔'],
+['Learning','تعلیم','Past papers & boards','پاسٹ پیپرز اور بورڈز','Past Papers provides board/class/subject/year/type filters. When an exact indexed paper is unavailable, EduNizam can direct you to an official/archive source instead of inventing a paper.','Past Papers میں board/class/subject/year/type filters ہیں۔ exact indexed paper نہ ہو تو EduNizam جعلی paper بنانے کے بجائے official/archive source دکھاتا ہے۔'],
+['Learning','تعلیم','Virtual University (VU)','ورچوئل یونیورسٹی','VU resources support course-code discovery such as CS101 and resource types including handouts, highlighted handouts, notes, quizzes, midterm/final and available past-paper sources.','VU میں CS101 جیسے course code سے search اور handouts، highlighted handouts، notes، quizzes، midterm/final اور دستیاب past-paper sources تلاش کیے جا سکتے ہیں۔'],
+['Practice','پریکٹس','Practice Center','پریکٹس سینٹر','Practice can be filtered by class, subject, chapter and difficulty, with question navigation and answer/explanation support.','Practice کو class، subject، chapter اور difficulty کے مطابق filter کیا جا سکتا ہے، ساتھ question navigation اور answer/explanation موجود ہے۔'],
+['Cloud','کلاؤڈ','Cloud sync & privacy','کلاؤڈ سنک اور پرائیویسی','Cloud features use authenticated access and role restrictions. Private media uses protected storage and signed access where implemented.','Cloud features authenticated access اور role restrictions استعمال کرتے ہیں۔ Private media محفوظ storage اور signed access کے ذریعے دیا جاتا ہے۔'],
+['App','ایپ','Install & automatic updates','انسٹال اور خودکار اپڈیٹس','EduNizam is installable as a PWA. The system checks for newer deployments, refreshes EduNizam caches and applies safe common-UI recovery without intentionally deleting school/student records.','EduNizam کو PWA کے طور پر install کیا جا سکتا ہے۔ system نئی deployment check کرتا، EduNizam cache refresh کرتا اور school/student records کو جان بوجھ کر delete کیے بغیر safe UI recovery کرتا ہے۔'],
+['Support','مدد','Helpdesk & troubleshooting','ہیلپ ڈیسک اور خرابی حل','Use Helpdesk for a tracked school/support issue. Troubleshoot includes reliability checks and safe recovery for stuck UI, feature loading and common runtime problems.','Tracked school/support issue کے لیے Helpdesk استعمال کریں۔ Troubleshoot میں stuck UI، feature loading اور عام runtime مسائل کے لیے reliability checks اور safe recovery شامل ہے۔']
+].map((x,i)=>({id:i,cat:x[0],catUr:x[1],title:x[2],titleUr:x[3],en:x[4],ur:x[5]}));
+let lang=localStorage.getItem('edunizam_help_lang')||'both';
+const text=(x,a,b)=>lang==='ur'?x[b]:lang==='en'?x[a]:x[a]+' / '+x[b];
+function score(x,q){q=q.toLowerCase();const hay=[x.cat,x.catUr,x.title,x.titleUr,x.en,x.ur].join(' ').toLowerCase();return q.split(/\s+/).filter(Boolean).reduce((n,w)=>n+(hay.includes(w)?1:0),0)}
+function results(q='',cat='all'){return KB.filter(x=>(cat==='all'||x.cat===cat)&&(!q.trim()||score(x,q)>0)).sort((a,b)=>score(b,q)-score(a,q))}
+function cards(rows){return rows.map(x=>'<article class="card"><span class="academic-pill">'+esc(text(x,'cat','catUr'))+'</span><h3>'+esc(text(x,'title','titleUr'))+'</h3>'+(lang!=='ur'?'<p>'+esc(x.en)+'</p>':'')+(lang!=='en'?'<p dir="rtl" style="text-align:right">'+esc(x.ur)+'</p>':'')+'</article>').join('')}
+function localAnswer(q){
+ const rows=results(q).slice(0,3);if(!rows.length)return lang==='ur'?'اس سوال سے متعلق Help Center میں براہ راست معلومات نہیں ملیں۔ سوال کو EduNizam کے کسی feature یا workflow کے نام کے ساتھ دوبارہ لکھیں۔':'No direct Help Center match was found. Try asking with the name of an EduNizam feature or workflow.';
+ return rows.map(x=>(lang!=='ur'?x.title+': '+x.en:'')+(lang==='both'?'\n':'')+(lang!=='en'?x.titleUr+': '+x.ur:'')).join('\n\n');
+}
+async function ask(){
+ const q=$('eduHelpAsk')?.value.trim();if(!q)return;
+ const out=$('eduHelpAnswer');out.textContent=lang==='ur'?'جواب تیار ہو رہا ہے…':'Preparing answer…';
+ const context=KB.map(x=>x.title+' / '+x.titleUr+'\nEN: '+x.en+'\nUR: '+x.ur).join('\n\n');
+ if(window.EDUNIZAM_AI?.ready?.()){
+  try{
+   const prompt='You are EduNizam Help Guide. Answer ONLY about EduNizam using the supplied knowledge base. Do not invent features or permissions. If information is absent, say so and direct the user to Helpdesk. Answer in '+(lang==='ur'?'Urdu':lang==='en'?'English':'both English and Urdu')+'. User question: '+q;
+   const r=await window.EDUNIZAM_AI.ask(prompt,{mode:'help',context:'EduNizam verified help knowledge:\n'+context});
+   out.textContent=r.answer||r.output||r.text||localAnswer(q);return;
+  }catch(e){}
+ }
+ out.textContent=localAnswer(q);
+}
+function render(){
+ const root=$('eduHelpCenter');if(!root)return;const q=$('eduHelpSearch')?.value||'',cat=$('eduHelpCategory')?.value||'all',rows=results(q,cat);
+ const cats=[...new Set(KB.map(x=>x.cat))];
+ root.innerHTML='<article class="card"><div class="section-head"><div><span class="academic-pill">Bilingual Knowledge Center</span><h3>Search EduNizam Help / EduNizam مدد تلاش کریں</h3></div><select id="eduHelpLang"><option value="both">English + اردو</option><option value="en">English</option><option value="ur">اردو</option></select></div><div class="form-grid"><input id="eduHelpSearch" value="'+esc(q)+'" placeholder="Search: attendance, complaint, VU, fee, admission..."><select id="eduHelpCategory"><option value="all">All Topics / تمام موضوعات</option>'+cats.map(x=>'<option '+(cat===x?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></div><p class="muted">'+rows.length+' help topics found / موضوعات ملے</p></article>'+
+ '<article class="card"><h3>Ask EduNizam AI / EduNizam AI سے پوچھیں</h3><p class="muted">Ask how any EduNizam feature, role or workflow works. AI uses this verified Help knowledge; offline/unavailable AI falls back to local search.</p><textarea id="eduHelpAsk" rows="3" placeholder="Example: Parent teacher ki complaint kaun dekh sakta hai?"></textarea><div class="quick-actions"><button id="eduHelpAskBtn">Ask / پوچھیں</button><button class="secondary" data-jump="helpdeskcenter">Open Helpdesk</button></div><div id="eduHelpAnswer" class="output muted" style="white-space:pre-wrap;margin-top:12px">Your answer will appear here. / جواب یہاں آئے گا۔</div></article>'+
+ '<div class="grid">'+cards(rows)+'</div>';
+ $('eduHelpLang').value=lang;$('eduHelpCategory').value=cat;
+ $('eduHelpLang').onchange=e=>{lang=e.target.value;localStorage.setItem('edunizam_help_lang',lang);render()};
+ $('eduHelpSearch').oninput=e=>{root.dataset.q=e.target.value;renderWith(e.target.value,$('eduHelpCategory')?.value||'all')};
+ $('eduHelpCategory').onchange=e=>renderWith($('eduHelpSearch')?.value||'',e.target.value);
+ $('eduHelpAskBtn').onclick=ask;$('eduHelpAsk').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask()}};
+}
+function renderWith(q,cat){const root=$('eduHelpCenter');if(!root)return;root.innerHTML='<div class="grid">'+cards(results(q,cat))+'</div>';setTimeout(render,0)}
+window.EDUNIZAM_HELP_KB={KB,render,search:results};setTimeout(render,0);
+})();
