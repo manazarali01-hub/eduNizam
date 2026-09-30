@@ -296,7 +296,7 @@ if(!app.includes("window.addEventListener('error'")) fail.push('Runtime JavaScri
 if(!app.includes("window.addEventListener('unhandledrejection'")) fail.push('Unhandled promise diagnostics missing.');
 if(!app.includes("writeDiagnostics([])")) fail.push('Diagnostics clear action missing.');
 if(!app.includes("recordDiagnostic('Student Cloud Sync'")) fail.push('Student cloud-sync failures are not surfaced in diagnostics.');
-if(!app.includes('Student is saved on this device, but cloud sync failed.')) fail.push('Student cloud-sync failure does not inform the user.');
+if(!app.includes('Student is saved on this device, but cloud/profile photo sync failed.')) fail.push('Student cloud-sync failure does not inform the user.');
 const roleHardening=read('supabase-role-linking-hardening.sql');
 if(!login.includes('Registration No. <span class="help">(Optional)</span>')) fail.push('Admin registration number is not optional in signup UI.');
 if(!login.includes("register_admin_school_v2")) fail.push('Admin signup does not use the optional-registration backend.');
@@ -346,7 +346,7 @@ const leaveCenter=read('leave-center.js');
 if(!leaveCenter.includes("canSubmit(){return ['student','parent','teacher'].includes(role())}")) fail.push('Teacher/Student/Parent leave submission roles missing.');
 if(!leaveCenter.includes("function isAdmin(){return role()==='head'}")) fail.push('Leave final decision is not restricted to Admin in UI.');
 if(!leaveCenter.includes("rpc('decide_leave_request_v1'")) fail.push('Leave Admin decision RPC is not wired.');
-if(!leaveCenter.includes('Admin decision reason / cause')) fail.push('Required leave decision cause field missing.');
+if(!leaveCenter.includes('Admin final decision reason / cause')) fail.push('Required leave decision cause field missing.');
 if(!leaveCenter.includes('Rejection cause')) fail.push('Leave rejection cause is not shown to the requester.');
 if(!leaveCenter.includes("leaveFor:'staff'")) fail.push('Teacher own-leave submission missing.');
 const leaveMigration=read('supabase-leave-requests-migration.sql');
@@ -429,10 +429,10 @@ if(!pwaManifest.includes('"icon-512.png"')||!pwaManifest.includes('"512x512"')) 
 if(!pwaManifest.includes('"prefer_related_applications": false')) fail.push('PWA manifest must keep prefer_related_applications false.');
 if(!pwaInstall.includes('beforeinstallprompt')) fail.push('Shared PWA native install prompt handler missing.');
 if(!pwaInstall.includes('manualHelp')) fail.push('PWA manual install fallback missing.');
-if(!pwaInstall.includes("serviceWorker.register('./sw.js?v=20260926-pwa152'")) fail.push('Shared PWA service worker registration missing.');
+if(!pwaInstall.includes("serviceWorker.register('./sw.js?v=20260929-pwa167'")) fail.push('Shared PWA service worker registration missing.');
 for(const page of ['index.html','app.html','login.html','edunizam.html','admission.html','features.html','school-management-system-pakistan.html','online-school-admissions.html','learning-resources-pakistan.html','about.html','privacy.html']){
   if(!read(page).includes('manifest.webmanifest')) fail.push('PWA manifest link missing: '+page);
-  if(!read(page).includes('pwa-install.js?v=20260926-pwa152')) fail.push('Shared PWA install controller missing: '+page);
+  if(!read(page).includes('pwa-install.js?v=20260929-pwa154')) fail.push('Shared PWA install controller missing: '+page);
 }
 if(!read('login.html').includes('data-pwa-install')) fail.push('Login install button missing.');
 if(!read('edunizam.html').includes('data-pwa-install')) fail.push('Public landing install button missing.');
