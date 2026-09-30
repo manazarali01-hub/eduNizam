@@ -16,7 +16,7 @@
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
   function classFees(){try{return JSON.parse(localStorage.getItem(CLASS_KEY)||'{}')}catch{return{}}}
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
-  function money(v){return 'Rs '+Number(v||0).toLocaleString('en-PK')}
+  function money(v){const s=JSON.parse(localStorage.getItem('edunizam_settings')||'{}'),currency=s.currency||'PKR',locale=s.locale||'en-PK';try{return new Intl.NumberFormat(locale,{style:'currency',currency,maximumFractionDigits:2}).format(Number(v||0))}catch(e){return currency+' '+Number(v||0).toLocaleString()}}
   function statusRisk(s){return s==='Paid'?'good':s==='Pending'?'medium':'high'}
   function visibleLocal(rows){
     if(isHead())return rows;
