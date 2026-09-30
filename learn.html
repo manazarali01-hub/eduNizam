@@ -54,7 +54,7 @@
       <span class="kicker">Free · No School Approval Required</span>
       <h1>Learn first. Join a school when you need to.</h1>
       <p>Past papers, Grade 5 & 8 resources, Pakistan boards, universities, Virtual University material and practice tools are open to every student. Guest learning does not expose or require any private school data.</p>
-      <div class="hero-actions"><button class="btn primary" data-open="past">Browse Past Papers</button><button class="btn" data-open="vu">Open VU Resources</button><button class="btn" data-open="practice">Start Practice</button></div>
+      <div class="hero-actions"><a class="btn primary" href="learn.html#past">Browse Past Papers</a><a class="btn" href="learn.html#vu">Open VU Resources</a><a class="btn" href="learn.html#practice">Start Practice</a></div>
     </section>
     <aside class="quick-card"><span class="kicker">What you can use</span><h2>Public learning only</h2><div class="quick-list">
       <div class="quick-item"><strong>Pakistan Boards</strong><small>Matric / Intermediate paper sources and official portals.</small></div>
@@ -68,7 +68,7 @@
 <main class="shell">
   <div class="search-wrap"><div class="searchbox"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="Search board, class, subject, VU course, resource…" aria-label="Search learning resources"><button id="clearSearch" class="btn" type="button">Clear</button></div></div>
   <nav class="tabs" aria-label="Learning sections">
-    <button class="tab active" data-tab="home">Overview</button><button class="tab" data-tab="past">Past Papers</button><button class="tab" data-tab="grade">Grade 5 & 8</button><button class="tab" data-tab="study">Study Library</button><button class="tab" data-tab="universities">Universities</button><button class="tab" data-tab="vu">VU</button><button class="tab" data-tab="practice">Practice</button>
+    <a class="tab active" data-tab="home" href="learn.html#home">Overview</a><a class="tab" data-tab="past" href="learn.html#past">Past Papers</a><a class="tab" data-tab="grade" href="learn.html#grade">Grade 5 & 8</a><a class="tab" data-tab="study" href="learn.html#study">Study Library</a><a class="tab" data-tab="universities" href="learn.html#universities">Universities</a><a class="tab" data-tab="vu" href="learn.html#vu">VU</a><a class="tab" data-tab="practice" href="learn.html#practice">Practice</a>
   </nav>
 
   <section id="home" class="section active">
@@ -126,7 +126,7 @@
     const cards=[
       ['Past Papers','Pakistan boards and available official/verified paper sources.','past'],['Grade 5 & 8','PECTAA model papers, assessment resources and historical archives.','grade'],['Study Library','Syllabi, model papers and quick revision material.','study'],['Universities','Official university and examination resources.','universities'],['Virtual University','VU course material, handouts, notes and supplementary past-paper sources.','vu'],['Practice Center','Free MCQs and questions with instant feedback.','practice']
     ];
-    $('homeCards').innerHTML=cards.map(x=>'<button class="card" data-home-open="'+x[2]+'" style="text-align:left;cursor:pointer"><span class="kicker">Free</span><h3>'+x[0]+'</h3><p>'+x[1]+'</p><span class="open">Explore →</span></button>').join('');
+    $('homeCards').innerHTML=cards.map(x=>'<a class="card" data-home-open="'+x[2]+'" href="learn.html#'+x[2]+'" style="text-align:left;cursor:pointer;text-decoration:none"><span class="kicker">Free</span><h3>'+x[0]+'</h3><p>'+x[1]+'</p><span class="open">Explore →</span></a>').join('');
   }
   function renderPast(){
     const d=window.EDUNIZAM_PAST_PAPERS||{},boards=d.boards||[],papers=d.papers||[];
