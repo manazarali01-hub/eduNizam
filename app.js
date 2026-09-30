@@ -152,7 +152,7 @@ $('saveStudentBtn').onclick=async()=>{
    phone:$('studentPhone')?.value.trim()||'',
    bFormNo:$('studentBForm')?.value.trim()||''
  };
- const missing=Object.entries(required).filter(([,v])=>!v).map(([k])=>({name:'Student name',className:'Class',admissionNo:'Admission No.',dateOfBirth:'Date of birth',gender:'Gender',father:'Guardian name',phone:'Guardian contact',bFormNo:'B-Form No.'}[k]||k));
+ const missing=Object.entries(required).filter(([,v])=>!v).map(([k])=>({name:'Student name',className:'Academic group',admissionNo:'Admission / Student No.',dateOfBirth:'Date of birth',gender:'Gender',father:'Guardian name',phone:'Guardian contact',bFormNo:'B-Form No.'}[k]||k));
  if(missing.length)return alert('Required fields complete karein: '+missing.join(', '));
  const photoFile=$('studentPhotoFile')?.files?.[0]||null;
  if(photoFile&&!['image/jpeg','image/png','image/webp'].includes(photoFile.type))return alert('Profile picture JPG, PNG ya WEBP honi chahiye.');
@@ -350,9 +350,9 @@ async function renderAttendanceAudit(){
  try{
    const rows=await core.listAttendanceAudit(todayKey());
    list.innerHTML=rows.length?rows.map(x=>{
-     const cls=[x.className&&('Class '+x.className),x.sectionName&&('Section '+x.sectionName)].filter(Boolean).join(' · ');
+     const cls=[x.className&&('Academic Group '+x.className),x.sectionName&&('Section '+x.sectionName)].filter(Boolean).join(' · ');
      const time=x.updatedAt?new Date(x.updatedAt).toLocaleString():'Time unavailable';
-     return '<div class="row"><div><strong>'+esc(x.studentName)+'</strong><small style="display:block;margin-top:4px">'+esc(cls||'Class not set')+'</small></div><span class="badge">'+esc(x.status)+'</span><span><strong>'+esc(x.markerName)+'</strong><small style="display:block;margin-top:4px">'+esc(x.markerRole)+'</small></span><span>'+esc(time)+'</span></div>';
+     return '<div class="row"><div><strong>'+esc(x.studentName)+'</strong><small style="display:block;margin-top:4px">'+esc(cls||'Academic group not set')+'</small></div><span class="badge">'+esc(x.status)+'</span><span><strong>'+esc(x.markerName)+'</strong><small style="display:block;margin-top:4px">'+esc(x.markerRole)+'</small></span><span>'+esc(time)+'</span></div>';
    }).join(''):'<div class="empty-state">Aaj ki cloud attendance abhi mark nahi hui.</div>';
  }catch(e){
    list.innerHTML='<div class="empty-state">Attendance audit load nahi ho saka: '+esc(e.message||e)+'</div>';
@@ -362,7 +362,7 @@ function renderAttendance(){
  $('todayLabel').textContent=new Date().toLocaleDateString();
  const day=state.attendance[todayKey()]||{},editable=canManageAttendance();
  const list=scopedStudents();
- $('attendanceList').innerHTML=list.length?list.map(s=>{const v=day[s.id]??day[String(s.id)]??'';const info=[s.className&&('Class '+s.className+(s.sectionName?'/'+s.sectionName:'')),s.phone||'No contact number'].filter(Boolean).join(' · ');return '<div class="row attendance-row"><div><strong>'+esc(s.name)+'</strong><small style="display:block;margin-top:4px">'+esc(info)+'</small></div><label><input type="radio" name="att_'+s.id+'" value="Present" '+(v==='Present'?'checked':'')+' '+(!editable?'disabled':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(v==='Absent'?'checked':'')+' '+(!editable?'disabled':'')+'> Absent</label></div>'}).join(''):'<div class="muted">No accessible students.</div>';
+ $('attendanceList').innerHTML=list.length?list.map(s=>{const v=day[s.id]??day[String(s.id)]??'';const info=[s.className&&('Academic Group '+s.className+(s.sectionName?'/'+s.sectionName:'')),s.phone||'No contact number'].filter(Boolean).join(' · ');return '<div class="row attendance-row"><div><strong>'+esc(s.name)+'</strong><small style="display:block;margin-top:4px">'+esc(info)+'</small></div><label><input type="radio" name="att_'+s.id+'" value="Present" '+(v==='Present'?'checked':'')+' '+(!editable?'disabled':'')+'> Present</label><label><input type="radio" name="att_'+s.id+'" value="Absent" '+(v==='Absent'?'checked':'')+' '+(!editable?'disabled':'')+'> Absent</label></div>'}).join(''):'<div class="muted">No accessible students.</div>';
  const btn=$('saveAttendanceBtn');if(btn)btn.style.display=editable?'inline-block':'none';
  renderAttendanceAudit();
 }
