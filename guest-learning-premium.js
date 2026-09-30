@@ -124,6 +124,32 @@ function enhancePastResults(){
  if(level==='vu'){grid.innerHTML=(uni().resources||[]).filter(x=>x.universityId==='vu'&&/past|midterm|final/i.test(x.category)).map(x=>resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',section:'vu'})).join('');$('paperSummary').textContent='Virtual University exam-preparation and past-paper sources.';return}
  if(session){const cards=[...grid.querySelectorAll('.card')];cards.forEach(c=>{if(!norm(c.textContent).includes(norm(session)))c.style.display='none'});if(cards.length&&!cards.some(c=>c.style.display!=='none'))grid.innerHTML=emptyState(session)}
 }
-function boot(){injectStyles();injectDirectory();injectSearchTools();injectPastFilters();injectSaved();bind()}
+
+function injectVUExplorer(){
+ const sec=$('vu');if(!sec||$('vuExplorer'))return;
+ const panel=document.createElement('div');panel.id='vuExplorer';panel.className='card';panel.style.marginBottom='16px';
+ panel.innerHTML='<div class="section-head"><div><h3 style="margin:0">VU Resource Finder</h3><p style="margin:4px 0 0">Find a course first, then choose Past Papers, Handouts, Highlighted Handouts, Notes, Quizzes, Midterm or Final Term.</p></div></div><div class="paper-filters past-advanced"><label class="filter-label search-wide">Course code or subject<input id="vuGuestQuery" type="search" placeholder="e.g. CS101, MTH301, STA301"></label><label class="filter-label">Resource type<select id="vuGuestType"><option value="">All VU Resources</option><option>Past Papers</option><option>Handouts</option><option>Highlighted Handouts</option><option>Notes</option><option>Quizzes</option><option>Midterm</option><option>Final Term</option></select></label><button id="vuGuestSearch" class="btn primary" type="button">Search VU</button></div><div id="vuGuestSummary" class="paper-summary"></div><div id="vuGuestResults" class="grid"></div>';
+ sec.insertBefore(panel,$('vuGrid'));
+ const run=()=>{
+  const query=norm($('vuGuestQuery').value),type=norm($('vuGuestType').value),catalog=window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[],resources=(uni().resources||[]).filter(x=>x.universityId==='vu');
+  const course=catalog.find(x=>norm(x.code)===query)||catalog.find(x=>query&&norm(x.code+' '+x.title).includes(query));
+  let rows=resources.filter(x=>{
+   const h=norm(JSON.stringify(x));
+   const typeOK=!type||h.includes(type)||(type==='midterm'&&/midterm/i.test(x.category||''))||(type==='final term'&&/final/i.test(x.category||''));
+   if(!typeOK)return false;
+   if(!query)return true;
+   const codes=(x.courseCodes||[]).map(norm);
+   return x.courseAgnostic||codes.includes(query)||h.includes(query);
+  });
+  if(course){
+   rows=[{id:'course:'+course.code,title:course.code+' — '+course.title,description:course.freshness,url:course.officialDetails,source:'official',type:'VU Course',board:'Virtual University',subject:course.category,courseCodes:[course.code],section:'vu'},...rows];
+  }
+  const unique=[];const seen=new Set();rows.forEach(x=>{const id=x.id||x.title;if(!seen.has(id)){seen.add(id);unique.push(x)}});
+  $('vuGuestSummary').textContent=unique.length+' useful VU result'+(unique.length===1?'':'s')+(query?' for “'+$('vuGuestQuery').value.trim()+'”':'')+'. Course-wide community sources are shown as supplementary when an exact paper is not indexed.';
+  $('vuGuestResults').innerHTML=unique.length?unique.slice(0,24).map(x=>x.section?resourceCard(x):resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',courseCodes:x.courseCodes||[],section:'vu'})).join(''):emptyState($('vuGuestQuery').value||$('vuGuestType').value||'VU resource');
+ };
+ $('vuGuestSearch').onclick=run;$('vuGuestQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});$('vuGuestType').onchange=run;run();
+}
+function boot(){injectStyles();injectDirectory();injectSearchTools();injectPastFilters();injectVUExplorer();injectSaved();bind()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
