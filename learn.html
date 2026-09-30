@@ -100,9 +100,25 @@
   const q=()=>norm($('globalSearch').value);
   const sourceBadge=s=>{const x=String(s||'').toLowerCase();const cls=x==='official'?'official':x==='verified'?'verified':x==='built-in'?'builtin':'';return '<span class="badge '+cls+'">'+esc(s||'Resource')+'</span>'};
   const match=(obj,extra='')=>{const needle=q();if(!needle)return true;return norm(JSON.stringify(obj)+' '+extra).includes(needle)};
-  function openTab(id){document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));window.scrollTo({top:Math.max(0,document.querySelector('.tabs').offsetTop-80),behavior:'smooth'});renderAll()}
-  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
-  document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openTab(b.dataset.open));
+  const validTabs=new Set(['home','past','grade','study','universities','vu','practice']);
+  function openTab(id){
+    id=validTabs.has(String(id||''))?String(id):'home';
+    document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===id));
+    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));
+    if(location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+    const tabs=document.querySelector('.tabs');
+    if(tabs){try{window.scrollTo({top:Math.max(0,tabs.offsetTop-80),behavior:'smooth'})}catch(_){window.scrollTo(0,Math.max(0,tabs.offsetTop-80))}}
+    renderAll();
+  }
+  // One delegated handler keeps Guest navigation working even after cards are re-rendered.
+  document.addEventListener('click',e=>{
+    const trigger=e.target.closest('[data-tab],[data-open],[data-home-open]');
+    if(!trigger)return;
+    const id=trigger.dataset.tab||trigger.dataset.open||trigger.dataset.homeOpen;
+    if(!validTabs.has(id))return;
+    e.preventDefault();
+    openTab(id);
+  });
   function resourceCard({title,description,url,source,tags=[]}){return '<article class="card">'+sourceBadge(source)+'<h3>'+esc(title)+'</h3><p>'+esc(description||'Useful learning resource.')+'</p><div class="meta">'+tags.filter(Boolean).map(t=>'<span class="badge">'+esc(t)+'</span>').join('')+'</div>'+(url?'<a class="open" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open resource ↗</a>':'')+'</article>'}
   function renderHome(){
     const pp=window.EDUNIZAM_PAST_PAPERS||{},sd=window.EDUNIZAM_STUDY_DATA||{},ud=window.EDUNIZAM_UNIVERSITY_DATA||{},pd=window.EDUNIZAM_PRACTICE_DATA||{};
@@ -111,7 +127,6 @@
       ['Past Papers','Pakistan boards and available official/verified paper sources.','past'],['Grade 5 & 8','PECTAA model papers, assessment resources and historical archives.','grade'],['Study Library','Syllabi, model papers and quick revision material.','study'],['Universities','Official university and examination resources.','universities'],['Virtual University','VU course material, handouts, notes and supplementary past-paper sources.','vu'],['Practice Center','Free MCQs and questions with instant feedback.','practice']
     ];
     $('homeCards').innerHTML=cards.map(x=>'<button class="card" data-home-open="'+x[2]+'" style="text-align:left;cursor:pointer"><span class="kicker">Free</span><h3>'+x[0]+'</h3><p>'+x[1]+'</p><span class="open">Explore →</span></button>').join('');
-    document.querySelectorAll('[data-home-open]').forEach(b=>b.onclick=()=>openTab(b.dataset.homeOpen));
   }
   function renderPast(){
     const d=window.EDUNIZAM_PAST_PAPERS||{},boards=d.boards||[],papers=d.papers||[];
@@ -144,6 +159,8 @@
   function renderAll(){renderHome();renderPast();renderGrade();renderStudy();renderUniversities();renderVU();renderPractice()}
   let timer;$('globalSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>{qi=0;renderAll()},120)});$('clearSearch').onclick=()=>{$('globalSearch').value='';qi=0;renderAll();$('globalSearch').focus()};
   renderAll();
+  const initialTab=location.hash.slice(1);if(validTabs.has(initialTab))openTab(initialTab);
+  window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
 <script src="pwa-install.js?v=20260929-pwa154" defer></script>
