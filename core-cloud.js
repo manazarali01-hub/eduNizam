@@ -1,4 +1,6 @@
 (function(){
+  let pullInFlight=null;
+  let lastPullAt=0;
   const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const read=(k,f)=>JSON.parse(localStorage.getItem(k)||JSON.stringify(f));
@@ -235,7 +237,10 @@
     write('edunizam_last_cloud_restore_backup',snapshot);
     return snapshot;
   }
-  async function pullAllCloudToLocal(){
+  async function pullAllCloudToLocal(force=false){
+    if(pullInFlight)return pullInFlight;
+    if(!force&&lastPullAt&&Date.now()-lastPullAt<60000)return {ok:true,cached:true};
+    pullInFlight=(async()=>{
     const c=cloud(); if(!ready()) throw new Error('Cloud backend is not configured.');
     createLocalBackup();
     const client=c.state.client;
@@ -305,7 +310,10 @@
         address:settingsRes.data.address||''
       });
     }
+    lastPullAt=Date.now();
     return {ok:true,students:localStudents.length};
+    })();
+    try{return await pullInFlight}finally{pullInFlight=null}
   }
 
   async function requireHead(){
