@@ -865,3 +865,10 @@ button:not(.nav-item):not(.secondary):not(.premium-search-trigger):not(.premium-
 
 .paper-presets{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.paper-presets button{min-height:38px}.paper-card .secondary+ .secondary{margin-left:6px}
 @media(max-width:560px){.paper-presets{display:grid;grid-template-columns:1fr 1fr}.paper-presets button:last-child{grid-column:1/-1}}
+
+/* Sidebar readability fix */
+.sidebar .nav-item{font-weight:700!important;color:#eef6ff!important;letter-spacing:.005em}
+.sidebar .nav-item span,.sidebar .nav-item strong{font-weight:700!important}
+.sidebar .nav-group summary,.sidebar .nav-group summary strong{font-weight:800!important;color:#ffffff!important}
+.sidebar .nav-item.active{font-weight:800!important;color:#ffffff!important}
+.sidebar .nav-item:hover{color:#ffffff!important;background:rgba(255,255,255,.11)!important}
