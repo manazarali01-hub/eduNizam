@@ -1,4 +1,4 @@
-const CACHE='edunizam-v167-public-root'
+const CACHE='edunizam-v168-system-auto'
 const CORE=[
   './',
   './index.html',
@@ -13,6 +13,7 @@ const CORE=[
   './premium-auth.css',
   './premium-ui.js',
   './pwa-install.js',
+  './system-auto-update.js',
   './audit-activity-center.js',
   './premium-ui.css',
   './app.js',
@@ -37,6 +38,8 @@ const CORE=[
   './privacy.html',
   './404.html',];
 
+self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});
+
 self.addEventListener('install',event=>{
   self.skipWaiting();
   event.waitUntil((async()=>{
@@ -53,7 +56,7 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
   event.waitUntil(Promise.all([
     caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('edunizam-')&&key!==CACHE).map(key=>caches.delete(key)))),
-    self.clients.claim()
+    self.clients.claim().then(()=>self.clients.matchAll({type:'window'}).then(clients=>clients.forEach(client=>client.postMessage({type:'EDUNIZAM_UPDATE_READY'}))))
   ]));
 });
 
