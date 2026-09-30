@@ -117,7 +117,6 @@
     return screen;
   }
   function hideAuthScreen(){document.getElementById('cloudAuthScreen')?.remove()}
-  function goToLogin(){if(!/\/login\.html$/i.test(location.pathname))location.replace('login.html')}
 
   async function boot(){
     if(!configured()){hideAuthScreen();return}
@@ -131,12 +130,12 @@
       if(!authUser){
         clearLocalAuthState();
         window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
-        goToLogin();
+        authScreen('No active school session was found. Choose Login to sign in, or Continue as Guest for public learning resources.');
         return;
       }
       c.state.user=authUser;
       const ok=await syncCloudRole();
-      if(!ok){goToLogin();return}
+      if(!ok){authScreen('Your school access could not be verified. Choose Login to continue securely, or Continue as Guest for public learning resources.');return}
       hideAuthScreen();
     }catch(e){
       console.warn('Cloud session guard:',e.message||e);
