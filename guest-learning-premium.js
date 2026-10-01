@@ -153,10 +153,40 @@ function bind(){
  $('searchPapers')?.addEventListener('click',()=>{saveRecent([$('paperBoard')?.selectedOptions[0]?.text,$('paperClass')?.selectedOptions[0]?.text,$('paperSubject')?.value,$('paperYear')?.value,$('paperSession')?.value].filter(x=>x&&!/^All/.test(x)).join(' '));setTimeout(enhancePastResults,0)});
 }
 function enhancePastResults(){
- const grid=$('pastGrid');if(!grid)return;const level=$('paperLevel')?.value||'',session=$('paperSession')?.value||'';
- if(level==='school'){grid.innerHTML=(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).map(x=>resourceCard({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTA',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'})).join('');$('paperSummary').textContent='School-level PECTA / assessment resources.';return}
- if(level==='vu'){grid.innerHTML=(uni().resources||[]).filter(x=>x.universityId==='vu'&&/past|midterm|final/i.test(x.category)).map(x=>resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',section:'vu'})).join('');$('paperSummary').textContent='Virtual University exam-preparation and past-paper sources.';return}
- if(session){const cards=[...grid.querySelectorAll('.card')];cards.forEach(c=>{if(!norm(c.textContent).includes(norm(session)))c.style.display='none'});if(cards.length&&!cards.some(c=>c.style.display!=='none'))grid.innerHTML=emptyState(session)}
+ const grid=$('pastGrid');if(!grid)return;
+ const level=$('paperLevel')?.value||'',session=$('paperSession')?.value||'';
+ const query=norm($('paperSearch')?.value||''),cl=$('paperClass')?.value||'',subject=norm($('paperSubject')?.value||''),year=$('paperYear')?.value||'';
+ if(level==='school'){
+  const rows=(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).filter(x=>{
+   if(cl&&String(x.grade)!==cl)return false;
+   if(subject&&subject!=='all subjects'&&!norm(x.subject).includes(subject)&&norm(x.subject)!=='all subjects')return false;
+   if(year&&String(x.year)!==year)return false;
+   if(query&&!norm(JSON.stringify(x)).includes(query))return false;
+   return true;
+  });
+  grid.innerHTML=rows.length?rows.map(x=>resourceCard({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTA',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'})).join(''):emptyState([cl&&('Grade '+cl),$('paperSubject')?.value,year,$('paperSearch')?.value].filter(Boolean).join(' ')||'school resources');
+  $('paperSummary').textContent=rows.length+' school-level PECTA / assessment result'+(rows.length===1?'':'s')+'.';
+  return;
+ }
+ if(level==='vu'){
+  const raw=String($('paperSearch')?.value||'').trim().toUpperCase();
+  const courseQuery=/^[A-Z]{2,5}\d{3}[A-Z]?$/.test(raw);
+  const rows=(uni().resources||[]).filter(x=>{
+   if(x.universityId!=='vu'||!/past|midterm|final/i.test(x.category||''))return false;
+   const h=norm(JSON.stringify(x));
+   if(query&&!h.includes(query)&&!(courseQuery&&x.courseAgnostic))return false;
+   return true;
+  });
+  grid.innerHTML=rows.length?rows.map(x=>resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',courseCodes:x.courseCodes||[],section:'vu'})).join(''):emptyState(raw||'VU exam resources');
+  $('paperSummary').textContent=rows.length+' Virtual University exam-preparation / past-paper result'+(rows.length===1?'':'s')+(raw?' for '+raw:'')+'.';
+  return;
+ }
+ if(session){
+  const cards=[...grid.querySelectorAll('.card')];cards.forEach(card=>{if(!norm(card.textContent).includes(norm(session)))card.style.display='none'});
+  const visible=cards.filter(card=>card.style.display!=='none');
+  $('paperSummary').textContent=visible.length+' result'+(visible.length===1?'':'s')+' for '+session+'.';
+  if(cards.length&&!visible.length)grid.innerHTML=emptyState(session);
+ }
 }
 
 function injectVUExplorer(){
@@ -167,6 +197,8 @@ function injectVUExplorer(){
  const run=()=>{
   const query=norm($('vuGuestQuery').value),type=norm($('vuGuestType').value),catalog=window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[],resources=(uni().resources||[]).filter(x=>x.universityId==='vu');
   const course=catalog.find(x=>norm(x.code)===query)||catalog.find(x=>query&&norm(x.code+' '+x.title).includes(query));
+  const rawCode=String($('vuGuestQuery').value||'').trim().toUpperCase();
+  const validCourseCode=/^[A-Z]{2,5}\d{3}[A-Z]?$/.test(rawCode);
   let rows=resources.filter(x=>{
    const h=norm(JSON.stringify(x));
    const typeOK=!type||h.includes(type)||(type==='midterm'&&/midterm/i.test(x.category||''))||(type==='final term'&&/final/i.test(x.category||''));
@@ -177,6 +209,8 @@ function injectVUExplorer(){
   });
   if(course){
    rows=[{id:'course:'+course.code,title:course.code+' — '+course.title,description:course.freshness,url:course.officialDetails,source:'official',type:'VU Course',board:'Virtual University',subject:course.category,courseCodes:[course.code],section:'vu'},...rows];
+  }else if(validCourseCode){
+   rows=[{id:'course-lookup:'+rawCode,title:rawCode+' — Official VU Course Lookup',description:'This course code is not yet stored in EduNizam’s local catalogue. Open the official VU course catalogue to verify the current title and course material.',url:'https://www.vu.edu.pk/academicprograms/coursescatalogue',source:'official',type:'VU Course Lookup',board:'Virtual University',courseCodes:[rawCode],section:'vu'},...rows];
   }
   const unique=[];const seen=new Set();rows.forEach(x=>{const id=x.id||x.title;if(!seen.has(id)){seen.add(id);unique.push(x)}});
   $('vuGuestSummary').textContent=unique.length+' useful VU result'+(unique.length===1?'':'s')+(query?' for “'+$('vuGuestQuery').value.trim()+'”':'')+'. Course-wide community sources are shown as supplementary when an exact paper is not indexed.';
