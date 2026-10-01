@@ -141,6 +141,9 @@ if(!read("index.html").includes('href="login.html">Login / Sign Up</a>'))bad("vi
 learn.includes('.search-wrap{position:relative;top:auto;z-index:2}')?ok("visitor:mobile-search-flow"):bad("visitor:mobile-search-flow","mobile search must not remain sticky over content");
 guestPremium.includes('flex-wrap:nowrap!important')?ok("visitor:mobile-chip-scroll"):bad("visitor:mobile-chip-scroll","mobile search chips must scroll horizontally");
 guestPremium.includes('search-tools-collapsed')?ok("visitor:search-collapse"):bad("visitor:search-collapse","search suggestions must collapse after submit");
+read("school-assessment-data.js").includes("pectaa-g5-math-curriculum")?ok("visitor:g5-math-resource"):bad("visitor:g5-math-resource","official Grade 5 Mathematics resource missing");
+guestPremium.includes("refreshGradeOptions")?ok("visitor:grade-filter-data"):bad("visitor:grade-filter-data","grade filters must reflect available resource data");
+guestPremium.includes("No exact resource of this type is currently indexed.")?ok("visitor:grade-fallback"):bad("visitor:grade-fallback","grade filters need a genuine-resource fallback");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
