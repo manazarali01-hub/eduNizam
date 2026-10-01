@@ -464,6 +464,11 @@ if(!guestLearn.includes('.practice-actions[hidden],.practice-actions[aria-hidden
 if(guestPractice.includes('No practice question matches these filters. Try another class, subject, chapter or difficulty.')) fail.push('Practice Center still contains the dead-end filter message.');
 const guestPremium=read('guest-learning-premium.js');
 for(const marker of ["function closePremium()","if(level==='university')","data-study-id","paperSession","paperLevel"]){if(!guestPremium.includes(marker)) fail.push('Guest Learning regression marker missing: '+marker)}
+for(const marker of ['guestStudySubject','guestStudyType','guestUniversitySummary','refreshTypes=()=>','data-hub-filter','function applyHubShortcut']){
+  if(!guestPremium.includes(marker)) fail.push('Complete Learning section control missing: '+marker);
+}
+if(!guestLearn.includes('(pp.papers||[]).length+(sd.materials||[]).length')) fail.push('Learning Hub overview does not count complete public resources.');
+if(!read('learning-complete-data.js').includes("id:'exam-focus-12'")) fail.push('Study Library exam-focus data missing.');
 if(!pwaSw.includes("'./pwa-install.js'")) fail.push('PWA install controller not cached.');
 if(!pwaSw.includes("'./icon-192.png'")||!pwaSw.includes("'./icon-512.png'")) fail.push('PWA PNG icons not cached.');
 
