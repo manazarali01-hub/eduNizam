@@ -1,4 +1,4 @@
-const CACHE='edunizam-v170-mobile183'
+const CACHE='edunizam-v171-mobile184'
 const CORE=[
   './',
   './index.html',
@@ -66,9 +66,9 @@ self.addEventListener('fetch',event=>{
   if(url.origin!==self.location.origin)return;
 
   const isNavigation=event.request.mode==='navigate';
-  const isCode=['script','style','document'].includes(event.request.destination);
+  const isCode=['script','style'].includes(event.request.destination);
 
-  if(isNavigation||isCode){
+  if(isNavigation){
     event.respondWith((async()=>{
       const cache=await caches.open(CACHE);
       try{
@@ -76,9 +76,25 @@ self.addEventListener('fetch',event=>{
         if(response?.ok)cache.put(event.request,response.clone());
         return response;
       }catch(_){
-        return (await cache.match(event.request)) ||
-          (isNavigation ? (await cache.match('./index.html')) : Response.error());
+        return (await cache.match(event.request,{ignoreSearch:true})) || (await cache.match('./index.html'));
       }
+    })());
+    return;
+  }
+
+  if(isCode){
+    event.respondWith((async()=>{
+      const cache=await caches.open(CACHE);
+      const cached=await cache.match(event.request,{ignoreSearch:true});
+      const refresh=fetch(event.request,{cache:'no-store'}).then(response=>{
+        if(response?.ok)cache.put(event.request,response.clone());
+        return response;
+      }).catch(()=>null);
+      if(cached){
+        event.waitUntil(refresh);
+        return cached;
+      }
+      return (await refresh) || Response.error();
     })());
     return;
   }
