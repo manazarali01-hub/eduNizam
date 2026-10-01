@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20260930-mobile181';
+  const VERSION='20261001-mobile183';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
