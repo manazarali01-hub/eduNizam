@@ -38,8 +38,9 @@
     }
     if($('vuLibrary')){
       ['vuSource','vuCourseLevel'].forEach(id=>$(id).addEventListener('change',renderVU));
+      $('vuMaterialType')?.addEventListener('change',()=>{vuTab='all';renderVU()});
       $('vuSearch').addEventListener('input',renderVU);
-      document.querySelectorAll('[data-vu-tab]').forEach(b=>b.onclick=()=>{vuTab=b.dataset.vuTab;renderVU()});
+      document.querySelectorAll('[data-vu-tab]').forEach(b=>b.onclick=()=>{vuTab=b.dataset.vuTab;if($('vuMaterialType'))$('vuMaterialType').value='';renderVU()});
       $('vuCourseSearchBtn').onclick=()=>{const c=$('vuCourseCode').value.trim().toUpperCase();$('vuSearch').value=c;renderVU()};
       $('vuAiStudyBtn').onclick=()=>vuAi('study');
       $('vuAiQuizBtn').onclick=()=>vuAi('quiz');
@@ -77,7 +78,8 @@
   function vuMaterialCards(course,filters={}){
     const rows=window.EDUNIZAM_VU_MATERIALS?.forCourse?.(course,filters)||[];
     if(!rows.length)return '';
-    return '<div class="coverage-note"><strong>'+rows.length+' material routes available for '+esc(course.code)+'.</strong> Official files may require VU login; community downloads are supplementary.</div><div class="paper-grid">'+rows.map(m=>{
+    const providers=new Set(rows.map(x=>x.source).filter(Boolean)).size,direct=rows.filter(x=>x.access==='direct_download').length,downloadable=rows.filter(x=>['direct_download','download_index'].includes(x.access)).length;
+    return '<div class="coverage-note"><strong>'+rows.length+' material routes for '+esc(course.code)+'.</strong> '+providers+' provider'+(providers===1?'':'s')+' · '+direct+' direct file'+(direct===1?'':'s')+' · '+downloadable+' downloadable/index route'+(downloadable===1?'':'s')+'. Official course material remains the primary source.</div><div class="paper-grid">'+rows.map(m=>{
       const badge=m.trust==='official'?'trust-official':'trust-community';
       return '<article class="paper-card"><div class="paper-card-top"><div><span class="trust-badge '+badge+'">'+esc(m.accessLabel||m.source)+'</span><span class="mini-badge">'+esc(m.type)+'</span><span class="mini-badge">'+esc(m.source||'VU')+'</span></div></div><h3>'+esc(m.title)+'</h3><p class="coverage-note">'+esc(m.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(m.url)+'">'+esc(m.actionLabel||'Open Resource')+'</a></div></article>';
     }).join('')+'</div>';
@@ -111,13 +113,23 @@
   }
 
   function refreshVUProviders(){
-    const el=$('vuProvider');if(!el)return;
-    const old=el.value,providers=['Virtual University',...(window.EDUNIZAM_VU_MATERIALS?.providers||[])];
-    el.innerHTML='<option value="">All Providers</option>'+providers.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
-    if(providers.includes(old))el.value=old;
+    const el=$('vuProvider'),typeEl=$('vuMaterialType'),materials=window.EDUNIZAM_VU_MATERIALS;
+    if(el){
+      const old=el.value,providers=['Virtual University',...(materials?.providers||[])];
+      el.innerHTML='<option value="">All Providers</option>'+providers.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+      if(providers.includes(old))el.value=old;
+    }
+    if(typeEl){
+      const oldType=typeEl.value,types=materials?.types||[];
+      typeEl.innerHTML='<option value="">All Material Types</option>'+types.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+      if(types.includes(oldType))typeEl.value=oldType;
+    }
   }
   function renderVU(){
+    refreshVUProviders();
     document.querySelectorAll('[data-vu-tab]').forEach(b=>b.classList.toggle('active',b.dataset.vuTab===vuTab));
+    const deepTypeMap={Handouts:'Course Notes / Handouts',Notes:'Short Notes','Highlighted Handouts':'Highlighted Handouts',Quizzes:'Quizzes / MCQs',Assignments:'Assignments','Midterm Past Papers':'Midterm Past Papers','Final Term Past Papers':'Finalterm Past Papers','Past Papers':'__exam__'};
+    const selectedType=$('vuMaterialType')?.value||'',materialType=selectedType||(deepTypeMap[vuTab]||'');
     const q=$('vuSearch').value.trim().toLowerCase(),src=$('vuSource').value,provider=$('vuProvider')?.value||'',access=$('vuAccess')?.value||'',level=$('vuCourseLevel').value;
     const courseQuery=/^[a-z]{2,5}\d{3,4}[a-z]?$/i.test(q);
     const arr=U.resources.filter(r=>{
@@ -132,11 +144,12 @@
     if(!shown.length){
       shown=U.resources.filter(r=>r.universityId==='vu'&&r.source==='official'&&['Handouts','Quizzes','Assignments'].includes(r.category)).slice(0,5);
     }
-    const coursePack=vuCoursePack(q,{source:src,provider,access});
+    const coursePack=vuCoursePack(q,{source:src,provider,access,type:materialType});
     $('vuLibrary').innerHTML=coursePack+shown.map(vuCard).join('')+'<div class="coverage-note"><strong>Search guidance:</strong> Course card ke official OCW links ko primary source rakhein. Community past papers/recalls supplementary hain; current syllabus, quizzes, assignments aur announcements VULMS/official course pages se verify karein.</div>';
-    refreshVUProviders();
-    const vu=U.resources.filter(r=>r.universityId==='vu');
-    $('vuStatResources').textContent=vu.length;$('vuStatOfficial').textContent=vu.filter(x=>x.source==='official').length;$('vuStatVerified').textContent=vu.filter(x=>x.source==='verified').length;$('vuStatSaved').textContent=vuSaved().length;
+    const materials=window.EDUNIZAM_VU_MATERIALS||{},catalog=window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[];
+    const providerCount=1+(materials.providers?.length||0);
+    const directFiles=(materials.directHandoutCourses?.length||0)+(materials.directHighlightedCourses?.length||0)+(materials.directSolvedFileCount||0);
+    $('vuStatResources').textContent=catalog.length;$('vuStatOfficial').textContent=providerCount;$('vuStatVerified').textContent=directFiles;$('vuStatSaved').textContent=vuSaved().length;
     document.querySelectorAll('[data-vu-save]').forEach(b=>b.onclick=()=>{let x=vuSaved();x=x.includes(b.dataset.vuSave)?x.filter(v=>v!==b.dataset.vuSave):[b.dataset.vuSave,...x];putVu(x);renderVU()});
     document.querySelectorAll('[data-vu-ai]').forEach(b=>b.onclick=()=>vuResourceAi(b.dataset.vuAi));
   }
