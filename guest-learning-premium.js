@@ -109,7 +109,7 @@ function injectSectionExplorers(){
   p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label">Grade<select id="guestGrade"><option value="">All Grades</option><option value="5">Grade 5</option><option value="8">Grade 8</option></select></label><label class="filter-label">Subject<select id="guestGradeSubject"><option value="">All Subjects</option></select></label><label class="filter-label">Resource type<select id="guestGradeType"><option value="">All Resources</option></select></label><button class="btn primary" id="guestGradeSearch">Filter Resources</button></div><div id="guestGradeResults" class="grid"></div>';
   grade.insertBefore(p,$('gradeGrid'));
   const data=()=>window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[];
-  const subjectParts=x=>String(x.subject||'').split('/').map(s=>s.trim()).filter(Boolean).filter(s=>!/^all subjects$/i.test(s));
+  const subjectParts=x=>String(x.subject||'').split('/').map(s=>s.trim()).filter(Boolean).filter(s=>!/^all subjects$/i.test(s)).map(s=>/^science$/i.test(s)?'General Science':s);
   const refreshGradeOptions=()=>{
    const g=$('guestGrade').value,currentSubject=$('guestGradeSubject').value,currentType=$('guestGradeType').value;
    const base=data().filter(x=>!g||String(x.grade)===g);
@@ -125,11 +125,11 @@ function injectSectionExplorers(){
   const run=()=>{
    refreshGradeOptions();
    const g=$('guestGrade').value,s=norm($('guestGradeSubject').value),t=norm($('guestGradeType').value);
-   const rows=data().filter(x=>(!g||String(x.grade)===g)&&(!s||norm(x.subject).includes(s)||norm(x.subject)==='all subjects')&&(!t||norm(x.type)===t));
+   const rows=data().filter(x=>{const subj=norm(x.subject),subjectOK=!s||subj.includes(s)||subj==='all subjects'||(s==='general science'&&/(^| )science( |$)/.test(subj));return (!g||String(x.grade)===g)&&subjectOK&&(!t||norm(x.type)===t)});
    if(rows.length){
     $('guestGradeResults').innerHTML=rows.map(x=>resourceCard({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTAA / School Education',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'})).join('');
    }else{
-    const nearest=data().filter(x=>(!g||String(x.grade)===g)&&(!s||norm(x.subject).includes(s)||norm(x.subject)==='all subjects')).slice(0,6);
+    const nearest=data().filter(x=>{const subj=norm(x.subject),subjectOK=!s||subj.includes(s)||subj==='all subjects'||(s==='general science'&&/(^| )science( |$)/.test(subj));return (!g||String(x.grade)===g)&&subjectOK}).slice(0,6);
     $('guestGradeResults').innerHTML=nearest.length
       ?'<div class="smart-empty"><h3>No exact resource of this type is currently indexed.</h3><p>Showing the closest genuine Grade '+esc(g||'5/8')+' resources instead. EduNizam does not invent an unavailable model paper.</p></div>'+nearest.map(x=>resourceCard({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTAA / School Education',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'})).join('')
       :emptyState('Grade '+g+' '+$('guestGradeSubject').value);
@@ -228,6 +228,7 @@ function injectSectionExplorers(){
    const chapter=chEl.value;
    const byChapter=bySubject.filter(x=>!chapter||x.chapter===chapter);
    const types=unique(byChapter.map(x=>x.type)).sort();setOptions(typeEl,'All Types',types,oldType);
+   [...typeEl.options].forEach(o=>{if(o.value==='mcq')o.textContent='MCQ';else if(o.value==='short')o.textContent='Short Answer';else if(o.value==='long')o.textContent='Long Answer'});
    const type=typeEl.value;
    const byType=byChapter.filter(x=>!type||x.type===type);
    const difficulties=unique(byType.map(x=>x.difficulty)).sort((a,b)=>['Easy','Medium','Hard'].indexOf(a)-['Easy','Medium','Hard'].indexOf(b));setOptions(dfEl,'All Levels',difficulties,oldDf);
