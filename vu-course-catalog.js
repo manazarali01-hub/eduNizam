@@ -16,6 +16,16 @@ window.EDUNIZAM_VU_COURSE_CATALOG={
       freshness:"Verify current semester handout/announcements in VULMS before relying on community past papers."
     },
     {
+      code:"MTH603",title:"Numerical Analysis",category:"Mathematics",level:"Undergraduate",creditHours:3,
+      prerequisite:"MTH101",lectureCount:45,
+      officialDetails:"https://ocw.vu.edu.pk/CourseDetails.aspx?cat=Mathematics&course=MTH603",
+      officialOverview:"https://ocw.vu.edu.pk/CourseOverview.aspx?cat=Mathematics&course=MTH603",
+      officialVideos:"https://ocw.vu.edu.pk/Videos.aspx?cat=Mathematics&course=MTH603",
+      officialReferences:"https://ocw.vu.edu.pk/ReferenceBooks.aspx?cat=Mathematics&course=MTH603",
+      officialLinks:"https://ocw.vu.edu.pk/Links.aspx?cat=Mathematics&course=MTH603",
+      freshness:"Official VU OpenCourseWare lists MTH603 as Numerical Analysis (3 credit hours). Use VULMS for current-semester quizzes, assignments and announcements."
+    },
+    {
       code:"CS201",title:"Introduction to Programming",category:"Computer Science/Information Technology",level:"Undergraduate",creditHours:3,
       prerequisite:"CS101",lectureCount:45,
       officialDetails:"https://ocw.vu.edu.pk/CourseDetails.aspx?cat=Computer+Science%2FInformation+Technology+&course=CS201",
