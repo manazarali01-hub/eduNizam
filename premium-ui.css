@@ -872,3 +872,51 @@ button:not(.nav-item):not(.secondary):not(.premium-search-trigger):not(.premium-
 .sidebar .nav-group summary,.sidebar .nav-group summary strong{font-weight:800!important;color:#ffffff!important}
 .sidebar .nav-item.active{font-weight:800!important;color:#ffffff!important}
 .sidebar .nav-item:hover{color:#ffffff!important;background:rgba(255,255,255,.11)!important}
+
+
+/* Mobile drawer reliability — one scroll container, no nested-scroll trap. */
+@media(max-width:950px){
+  .sidebar{
+    display:flex!important;
+    flex-direction:column!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow:hidden!important;
+    overscroll-behavior:contain;
+  }
+  .sidebar>.brand,
+  .sidebar>.sidebar-institute,
+  .sidebar>.premium-workspace-badge,
+  .sidebar>.nav-search-wrap{flex:0 0 auto}
+  .sidebar #nav,
+  .sidebar .nav-groups{
+    display:block!important;
+    flex:1 1 auto!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+    touch-action:pan-y;
+    padding-bottom:max(42px,env(safe-area-inset-bottom))!important;
+    scrollbar-gutter:stable;
+  }
+}
+.feature-loading-notice{
+  display:flex;align-items:center;gap:10px;
+  margin:0 0 14px;padding:11px 13px;
+  border:1px solid #cfe0d8;border-radius:13px;
+  background:#f7fbf8;color:#26483f;
+  font-size:13px;font-weight:750;
+}
+.feature-loading-notice.error{justify-content:space-between;flex-wrap:wrap;border-color:#efd0cc;background:#fff8f7;color:#7a3028}
+.feature-loading-notice .secondary{min-height:36px!important;padding:7px 11px!important}
+.feature-loading-spinner{
+  width:16px;height:16px;flex:0 0 16px;border-radius:50%;
+  border:2px solid rgba(15,118,110,.22);border-top-color:#0f766e;
+  animation:eduFeatureSpin .7s linear infinite;
+}
+@keyframes eduFeatureSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.feature-loading-spinner{animation:none}}
