@@ -85,9 +85,15 @@
   }
 
   const localRole=r=>r==='head_of_institute'?'head':(['head','teacher','parent','student'].includes(r)?r:'student');
-  async function workspaceChoices(){
+  const workspaceCache={userId:'',items:null,at:0,inflight:null};
+  async function workspaceChoices(force=false){
     const cloud=window.EDUNIZAM_CLOUD,client=cloud?.state?.client,user=cloud?.state?.user;
     if(!client||!user)return[];
+    const uid=String(user.id||'');
+    if(workspaceCache.userId!==uid){workspaceCache.userId=uid;workspaceCache.items=null;workspaceCache.at=0;workspaceCache.inflight=null}
+    if(!force&&workspaceCache.items&&Date.now()-workspaceCache.at<60000)return workspaceCache.items;
+    if(workspaceCache.inflight)return workspaceCache.inflight;
+    workspaceCache.inflight=(async()=>{
     const [ownedRes,memberRes,profileRes]=await Promise.all([
       client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).order('created_at',{ascending:true}),
       client.from('institution_members').select('institution_id,role,institutions(id,name,institution_type)').eq('user_id',user.id),
@@ -107,6 +113,12 @@
       if(data?.id)map.set(data.id,{...data,role:localRole(p.account_role)});
     }
     return [...map.values()];
+    })();
+    try{
+      const items=await workspaceCache.inflight;
+      workspaceCache.items=items;workspaceCache.at=Date.now();
+      return items;
+    }finally{workspaceCache.inflight=null}
   }
   function closeWorkspaceModal(){document.getElementById('workspaceSwitchModal')?.remove()}
   function showWorkspaceModal(items){
