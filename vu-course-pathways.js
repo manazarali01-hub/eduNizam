@@ -12,7 +12,18 @@ const CATEGORY_ALIASES={
   'Mathematics / Statistics':'Mathematics',
   'Mass Communication / English':'Mass Communication'
 };
+const CODE_CATEGORY={
+ 'BIO201':'Biotechnology','BIO202':'Biotechnology','BIO203':'Molecular Biology','BIO204':'Biotechnology',
+ 'BIO301':'Bioinformatics','BIO302':'Molecular Biology','BIO303':'Biotechnology','BIO401':'Bioinformatics',
+ 'BIO502':'Biotechnology','BIO731':'Molecular Biology','BIO732':'Molecular Biology','BIO733':'Zoology','BIO734':'Biotechnology'
+};
+const PREFIX_CATEGORY={'BIF':'Bioinformatics'};
+
 const canonicalCategory=course=>{
+  const code=String(course?.code||'').trim().toUpperCase();
+  if(CODE_CATEGORY[code])return CODE_CATEGORY[code];
+  const prefix=(code.match(/^([A-Z]+)/)||[])[1]||'';
+  if(PREFIX_CATEGORY[prefix])return PREFIX_CATEGORY[prefix];
   const raw=String(course?.category||'').trim();
   const aliased=CATEGORY_ALIASES[raw]||raw;
   return OFFICIAL_CATEGORIES.has(aliased)?aliased:'';
