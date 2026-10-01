@@ -262,6 +262,7 @@ function communityFor(course){
  const code=String(course?.code||'').toUpperCase();
  return COMMUNITY.flatMap(x=>{
   const base={...x,id:x.id+'-'+code,courseCode:code,title:code+' · '+x.title};
+  if(x.id==='vustudyhub-project'&&!['CS519','CS619'].includes(code))return [];
   if(x.id==='virtualuniversitypk-handouts')base.url='https://virtualuniversitypk.com/?s='+encodeURIComponent(code);
   if(x.id==='vustudy-final'||x.id==='vustudy-current')base.url='https://vustudy.com/?s='+encodeURIComponent(code);
   if(x.id==='vumalik-past')base.url='https://vumalik.blogspot.com/search?q='+encodeURIComponent(code);
