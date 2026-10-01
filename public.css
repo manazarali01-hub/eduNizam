@@ -47,3 +47,51 @@ body{background:radial-gradient(circle at 90% 0,rgba(37,99,235,.10),transparent 
 .public-kicker{color:#f5ce70}.public-cta{background:linear-gradient(135deg,#2563eb,#0f766e)}
 .public-card,.public-feature-list div,.public-list li{border-color:#dbe4f0;box-shadow:0 12px 30px rgba(16,42,86,.055)}
 @media(max-width:760px){.public-hero.premium-public-hero{background-image:linear-gradient(90deg,rgba(16,42,86,.96),rgba(15,118,110,.72)),url("assets/edunizam-login-children.webp")}}
+
+
+/* ===== Visitor access & mobile navigation hardening · 2026-10-01 ===== */
+.public-links a[href="login.html"]{
+  padding:7px 11px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#2563eb,#0f766e);
+  color:#fff;
+}
+.public-links a[href="login.html"]:hover{filter:brightness(.98)}
+@media(max-width:760px){
+  .public-nav{
+    padding:12px 14px 10px;
+    gap:10px;
+    position:relative;
+  }
+  .public-brand{min-height:44px}
+  .public-links{
+    width:100%;
+    max-width:100%;
+    flex-wrap:nowrap;
+    gap:8px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:2px 0 5px;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .public-links::-webkit-scrollbar{display:none}
+  .public-links a{
+    flex:0 0 auto;
+    white-space:nowrap;
+    scroll-snap-align:start;
+    padding:7px 9px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fff;
+  }
+  .public-links a[href="login.html"]{
+    border-color:transparent;
+    background:linear-gradient(135deg,#2563eb,#0f766e);
+    color:#fff;
+  }
+  .public-cta-row{display:grid;grid-template-columns:1fr}
+  .public-cta-row .public-cta{width:100%;text-align:center}
+  .public-footer{line-height:2}
+}
