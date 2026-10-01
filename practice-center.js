@@ -10,7 +10,7 @@
   function fill(){
     const students=JSON.parse(localStorage.getItem('edunizam_students')||'[]');
     if($('practiceStudent'))$('practiceStudent').innerHTML='<option value="">Student (optional)</option>'+students.map(s=>'<option value="'+s.id+'">'+esc(s.name)+' · '+esc(s.className||'')+'</option>').join('');
-    $('practiceBoard').innerHTML='<option value="">All Boards</option>'+D.boards.map(x=>'<option>'+esc(x)+'</option>').join('');
+    $('practiceBoard').innerHTML='<option value="">Board context (optional)</option>'+D.boards.map(x=>'<option>'+esc(x)+'</option>').join('');
     fillSubjects();fillChapters();
     $('practiceBankBadge').textContent=D.questions.length+' Questions';
     updateStats();
@@ -48,7 +48,8 @@
     current=pool.slice(0,Math.min(c.count,pool.length));
     secondsLeft=c.minutes*60;
     $('practiceBuildPanel').classList.add('hidden');$('practiceResultPanel').classList.add('hidden');$('practiceTestPanel').classList.remove('hidden');
-    $('practiceTestTitle').textContent=(c.board?c.board+' · ':'')+'Class '+c.cls+' · '+c.subject+(c.chapter?' · '+c.chapter:'');
+    const levelLabel=Number(c.cls)<=8?'Grade '+c.cls:'Class '+c.cls;
+    $('practiceTestTitle').textContent='EduNizam concept practice · '+levelLabel+' · '+c.subject+(c.chapter?' · '+c.chapter:'')+(c.board?' · Target board: '+c.board:'');
     renderQuestions();tick();clearInterval(timer);timer=setInterval(()=>{secondsLeft--;tick();if(secondsLeft<=0){clearInterval(timer);submit()}},1000);
   }
   function renderQuestions(){
@@ -70,7 +71,7 @@
         autoTotal++;
         const el=document.querySelector('input[name="pq_'+i+'"]:checked');
         const chosen=el?Number(el.value):null,correct=chosen===q.answer;
-        if(correct)autoCorrect++;else weak.push({subject:q.subject,chapter:q.chapter});
+        if(correct)autoCorrect++;else weak.push({classLevel:q.classLevel,subject:q.subject,chapter:q.chapter});
         return {id:q.id,type:q.type,correct,chosen};
       }else{
         const ans=document.querySelector('[data-text-answer="'+i+'"]')?.value.trim()||'';
@@ -105,22 +106,25 @@
     $('practiceHistoryPanel').innerHTML=h.length?h.map(x=>'<article class="paper-card"><h3>'+esc(x.config.subject)+' · Class '+x.config.cls+'</h3><p class="muted">'+new Date(x.at).toLocaleString()+(x.studentName?' · '+esc(x.studentName):'')+'</p><div class="paper-meta"><span>'+x.pct+'%</span><span>'+x.autoCorrect+'/'+x.autoTotal+' MCQs</span><span>'+esc(x.config.type)+'</span></div></article>').join(''):'<div class="empty-state">No tests taken yet.</div>';
   }
   function renderWeak(){
-    const map={};history().flatMap(x=>x.weak||[]).forEach(w=>{const k=w.subject+'|'+w.chapter;(map[k]??={subject:w.subject,chapter:w.chapter,count:0}).count++});
+    const map={};
+    history().forEach(rec=>(rec.weak||[]).forEach(w=>{const cl=Number(w.classLevel||rec.config?.cls||0),k=cl+'|'+w.subject+'|'+w.chapter;(map[k]??={classLevel:cl,subject:w.subject,chapter:w.chapter,count:0}).count++}));
     const arr=Object.values(map).sort((a,b)=>b.count-a.count);
-    $('practiceWeakPanel').innerHTML=arr.length?arr.map(x=>'<article class="paper-card"><h3>'+esc(x.chapter||'General')+'</h3><p class="muted">'+esc(x.subject)+'</p><div class="paper-meta"><span>'+x.count+' mistakes</span></div><button data-practice-weak="'+esc(x.subject)+'|'+esc(x.chapter)+'">Practice Again</button></article>').join(''):'<div class="empty-state">No weak topics yet. Complete a test first.</div>';
-    document.querySelectorAll('[data-practice-weak]').forEach(b=>b.onclick=()=>{const [s,ch]=b.dataset.practiceWeak.split('|');showTab('build');$('practiceSubject').value=s;fillChapters();$('practiceChapter').value=ch});
+    $('practiceWeakPanel').innerHTML=arr.length?arr.map(x=>'<article class="paper-card"><h3>'+esc(x.chapter||'General')+'</h3><p class="muted">'+esc((x.classLevel<=8?'Grade ':'Class ')+x.classLevel+' · '+x.subject)+'</p><div class="paper-meta"><span>'+x.count+' mistakes</span></div><button data-practice-weak data-class="'+esc(x.classLevel)+'" data-subject="'+esc(x.subject)+'" data-chapter="'+esc(x.chapter)+'">Practice Again</button></article>').join(''):'<div class="empty-state">No weak topics yet. Complete a test first.</div>';
+    document.querySelectorAll('[data-practice-weak]').forEach(b=>b.onclick=()=>{showTab('build');$('practiceClass').value=b.dataset.class;fillSubjects();$('practiceSubject').value=b.dataset.subject;fillChapters();$('practiceChapter').value=b.dataset.chapter});
   }
   function printBuild(){
     const c=getConfig(),pool=poolFor(c).slice(0,c.count);
     if(!c.cls||!c.subject||!pool.length)return alert('Select class and subject with available questions.');
     const w=window.open('','_blank');if(!w)return;
-    w.document.write('<html><head><title>EduNizam Test</title><style>body{font-family:Arial;padding:32px}h1{font-size:22px}.q{margin:20px 0}.opts{margin-left:20px;line-height:1.8}</style></head><body><h1>EduNizam Practice Test</h1><p>Class '+c.cls+' · '+esc(c.subject)+(c.chapter?' · '+esc(c.chapter):'')+'</p>'+pool.map((q,i)=>'<div class="q"><strong>Q'+(i+1)+'. '+esc(q.question)+'</strong>'+(q.options?'<div class="opts">'+q.options.map((o,j)=>String.fromCharCode(65+j)+'. '+esc(o)).join('<br>')+'</div>':'<div style="height:80px"></div>')+'</div>').join('')+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),300);
+    const levelLabel=Number(c.cls)<=8?'Grade '+c.cls:'Class '+c.cls;
+    w.document.write('<html><head><title>EduNizam Test</title><style>body{font-family:Arial;padding:32px}h1{font-size:22px}.q{margin:20px 0}.opts{margin-left:20px;line-height:1.8}</style></head><body><h1>EduNizam Concept Practice Test</h1><p>'+levelLabel+' · '+esc(c.subject)+(c.chapter?' · '+esc(c.chapter):'')+(c.board?' · Target board context: '+esc(c.board):'')+'</p>'+pool.map((q,i)=>'<div class="q"><strong>Q'+(i+1)+'. '+esc(q.question)+'</strong>'+(q.options?'<div class="opts">'+q.options.map((o,j)=>String.fromCharCode(65+j)+'. '+esc(o)).join('<br>')+'</div>':'<div style="height:80px"></div>')+'</div>').join('')+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),300);
   }
   function aiGenerate(){
     const c=getConfig();
     if(!c.cls||!c.subject)return alert('Select class and subject.');
     if(window.setView)window.setView('assistant');
-    $('aiPrompt').value='Generate a premium '+c.count+'-question '+(c.type==='mixed'?'mixed':c.type)+' test for Class '+c.cls+' '+c.subject+(c.chapter?' chapter '+c.chapter:'')+(c.difficulty?' at '+c.difficulty+' difficulty':'')+'. Include answer key, explanations and board-exam style wording.';
+    const levelLabel=Number(c.cls)<=8?'Grade '+c.cls:'Class '+c.cls;
+    $('aiPrompt').value='Generate a premium '+c.count+'-question '+(c.type==='mixed'?'mixed':c.type)+' test for '+levelLabel+' '+c.subject+(c.chapter?' chapter '+c.chapter:'')+(c.difficulty?' at '+c.difficulty+' difficulty':'')+(c.board?' using '+c.board+' as exam-style context where applicable':'')+'. Include answer key and explanations. Do not claim the questions are official board questions unless an official source is explicitly provided.';
     $('aiOutput').textContent='Test-generation request prepared. AI backend will generate it when connected.';
   }
 
