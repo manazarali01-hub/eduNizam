@@ -102,6 +102,23 @@ jobs:
           check_content "${BASE}robots.txt" "Sitemap:"
           check_content "${BASE}manifest.webmanifest" "icon-512.png"
           check_content "${BASE}pwa-install.js" "beforeinstallprompt"
+
+          verify_exact_file() {
+            local rel="$1"
+            local out="/tmp/live-$(basename "${rel}")"
+            curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}${rel}?verify=${GITHUB_SHA}" -o "${out}"
+            if ! cmp -s "${rel}" "${out}"; then
+              echo "Live file mismatch: ${rel}"
+              sha256sum "${rel}" "${out}" || true
+              return 1
+            fi
+            echo "Exact live file verified: ${rel}"
+          }
+
+          verify_exact_file "app.html"
+          verify_exact_file "premium-ui.css"
+          verify_exact_file "sw.js"
+
           curl --fail --silent --show-error --location "${BASE}icon-192.png?verify=${GITHUB_SHA}" -o /tmp/icon-192.png
           curl --fail --silent --show-error --location "${BASE}icon-512.png?verify=${GITHUB_SHA}" -o /tmp/icon-512.png
           file /tmp/icon-192.png | grep -q "PNG image data, 192 x 192"
