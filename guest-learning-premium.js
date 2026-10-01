@@ -16,6 +16,7 @@ function allResources(){
  (window.EDUNIZAM_STUDY_DATA?.materials||[]).forEach(x=>out.push({id:'study:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,content:x.content||'',source:x.source,type:x.type,board:x.board,classLevel:(x.classLevels||[]).join('/'),subject:x.subject,section:'study'}));
  (uni().resources||[]).forEach(x=>{const u=(uni().universities||[]).find(y=>y.id===x.universityId);out.push({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:u?.name||'',courseCodes:x.courseCodes||[],section:x.universityId==='vu'?'vu':'universities'})});
  (window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).forEach(x=>out.push({id:'course:'+x.code,title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails,source:'official',type:'VU Course',board:'Virtual University of Pakistan',subject:x.category,courseCodes:[x.code],section:'vu'}));
+ (window.EDUNIZAM_PUBLIC_LINKS||[]).forEach(x=>out.push({...x}));
  return out;
 }
 function injectStyles(){
@@ -37,7 +38,7 @@ function injectStyles(){
 function injectDirectory(){
  const home=$('home');if(!home)return;
  const wrap=document.createElement('div');wrap.className='hub-directory';wrap.innerHTML='<div class="section-head"><div><h2>Learning Hub</h2><p>Choose a resource center. All items below are public and need no school approval.</p></div></div><div class="grid">'+[
- ['Past Papers','past','past'],['Virtual University','vu','vu-all'],['Pakistani Universities','universities','universities'],['Matric Boards','past','matric'],['Intermediate Boards','past','intermediate'],['PECTA / School Education','grade','grade'],['Notes','study','notes'],['Handouts','vu','handouts'],['Highlighted Handouts','vu','highlighted'],['MCQs','practice','practice'],['Quizzes','practice','practice'],['Guess Papers','study','guess'],['Model Papers','grade','models'],['Pairing Schemes','study','pairing'],['Date Sheets','vu','datesheet'],['Results / Result Links','vu','results'],['Study Library','study','study'],['Educational Resources','study','study'],['Search All Resources','home','search'],['My Saved Resources','home','saved']
+ ['Past Papers','past','past'],['Virtual University','vu','vu-all'],['Pakistani Universities','universities','universities'],['Matric Boards','past','matric'],['Intermediate Boards','past','intermediate'],['PECTA / School Education','grade','grade'],['Notes','study','notes'],['Handouts','vu','handouts'],['Highlighted Handouts','vu','highlighted'],['MCQs','practice','practice'],['Quizzes','practice','practice'],['Guess Papers','study','guess'],['Model Papers','grade','models'],['Pairing Schemes','study','pairing'],['Date Sheets','home','datesheet'],['Results / Result Links','home','results'],['Study Library','study','study'],['Educational Resources','study','study'],['Search All Resources','home','search'],['My Saved Resources','home','saved']
  ].map(([t,id,filter])=>'<a href="#'+id+'" data-tab="'+id+'" data-hub-filter="'+filter+'" class="card hub-link"><strong>'+t+'</strong><span>Open →</span></a>').join('')+'</div>';
  home.insertBefore(wrap,home.children[1]||null);
 }
@@ -205,7 +206,7 @@ function injectSectionExplorers(){
  }
  const practice=$('practice');if(practice&&!$('practiceExplorer')){
   const p=document.createElement('div');p.id='practiceExplorer';p.className='card';p.style.marginBottom='16px';
-  p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label">Class<select id="guestPracticeClass"><option value="">All Classes</option></select></label><label class="filter-label">Subject<select id="guestPracticeSubject"><option value="">All Subjects</option></select></label><label class="filter-label">Chapter<select id="guestPracticeChapter"><option value="">All Chapters</option></select></label><label class="filter-label">Difficulty<select id="guestPracticeDifficulty"><option value="">All Levels</option></select></label><button class="btn primary" id="guestPracticeApply">Start Practice</button></div><div id="guestPracticeSummary" class="paper-summary"></div>';
+  p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label">Class<select id="guestPracticeClass"><option value="">All Classes</option></select></label><label class="filter-label">Subject<select id="guestPracticeSubject"><option value="">All Subjects</option></select></label><label class="filter-label">Chapter<select id="guestPracticeChapter"><option value="">All Chapters</option></select></label><label class="filter-label">Question type<select id="guestPracticeType"><option value="">All Types</option></select></label><label class="filter-label">Difficulty<select id="guestPracticeDifficulty"><option value="">All Levels</option></select></label><button class="btn primary" id="guestPracticeApply">Start Practice</button></div><div id="guestPracticeSummary" class="paper-summary"></div>';
   practice.insertBefore(p,practice.firstChild.nextSibling);
   const baseActions=practice.querySelector('.practice-actions');if(baseActions){baseActions.hidden=true;baseActions.style.display='none';baseActions.setAttribute('aria-hidden','true')}
   const allQuestions=()=>window.EDUNIZAM_PRACTICE_DATA?.questions||[];
@@ -215,8 +216,8 @@ function injectSectionExplorers(){
    if(values.includes(current))el.value=current;
   };
   function refreshPracticeOptions(){
-   const all=allQuestions(),clEl=$('guestPracticeClass'),subEl=$('guestPracticeSubject'),chEl=$('guestPracticeChapter'),dfEl=$('guestPracticeDifficulty');
-   const oldCl=clEl.value,oldSub=subEl.value,oldCh=chEl.value,oldDf=dfEl.value;
+   const all=allQuestions(),clEl=$('guestPracticeClass'),subEl=$('guestPracticeSubject'),chEl=$('guestPracticeChapter'),typeEl=$('guestPracticeType'),dfEl=$('guestPracticeDifficulty');
+   const oldCl=clEl.value,oldSub=subEl.value,oldCh=chEl.value,oldType=typeEl.value,oldDf=dfEl.value;
    const classes=unique(all.map(x=>String(x.classLevel))).sort((a,b)=>Number(a)-Number(b));setOptions(clEl,'All Classes',classes,oldCl);
    const cl=clEl.value;
    const byClass=all.filter(x=>!cl||String(x.classLevel)===cl);
@@ -226,15 +227,19 @@ function injectSectionExplorers(){
    const chapters=unique(bySubject.map(x=>x.chapter)).sort();setOptions(chEl,'All Chapters',chapters,oldCh);
    const chapter=chEl.value;
    const byChapter=bySubject.filter(x=>!chapter||x.chapter===chapter);
-   const difficulties=unique(byChapter.map(x=>x.difficulty)).sort((a,b)=>['Easy','Medium','Hard'].indexOf(a)-['Easy','Medium','Hard'].indexOf(b));setOptions(dfEl,'All Levels',difficulties,oldDf);
+   const types=unique(byChapter.map(x=>x.type)).sort();setOptions(typeEl,'All Types',types,oldType);
+   const type=typeEl.value;
+   const byType=byChapter.filter(x=>!type||x.type===type);
+   const difficulties=unique(byType.map(x=>x.difficulty)).sort((a,b)=>['Easy','Medium','Hard'].indexOf(a)-['Easy','Medium','Hard'].indexOf(b));setOptions(dfEl,'All Levels',difficulties,oldDf);
    const diff=dfEl.value;
-   const count=byChapter.filter(x=>!diff||x.difficulty===diff).length;
+   const count=byType.filter(x=>!diff||x.difficulty===diff).length;
    $('guestPracticeSummary').textContent=count+' practice question'+(count===1?'':'s')+' available for the selected filters.';
    $('guestPracticeApply').textContent='Start Practice'+(count?' ('+count+')':'');
   }
   $('guestPracticeClass').onchange=()=>{refreshPracticeOptions();applyPracticeFilters()};
   $('guestPracticeSubject').onchange=()=>{refreshPracticeOptions();applyPracticeFilters()};
   $('guestPracticeChapter').onchange=()=>{refreshPracticeOptions();applyPracticeFilters()};
+  $('guestPracticeType').onchange=()=>{refreshPracticeOptions();applyPracticeFilters()};
   $('guestPracticeDifficulty').onchange=()=>{refreshPracticeOptions();applyPracticeFilters()};
   $('guestPracticeApply').onclick=applyPracticeFilters;
   refreshPracticeOptions();applyPracticeFilters();
@@ -258,9 +263,9 @@ function renderGuestPractice(){
  if(next)next.onclick=()=>{if(guestPracticeIndex<guestPracticeRows.length-1){guestPracticeIndex++;renderGuestPractice()}};
 }
 function applyPracticeFilters(){
- const cl=$('guestPracticeClass')?.value||'',sub=$('guestPracticeSubject')?.value||'',chapter=$('guestPracticeChapter')?.value||'',diff=$('guestPracticeDifficulty')?.value||'';
+ const cl=$('guestPracticeClass')?.value||'',sub=$('guestPracticeSubject')?.value||'',chapter=$('guestPracticeChapter')?.value||'',type=$('guestPracticeType')?.value||'',diff=$('guestPracticeDifficulty')?.value||'';
  const all=window.EDUNIZAM_PRACTICE_DATA?.questions||[];
- guestPracticeRows=all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub)&&(!chapter||x.chapter===chapter)&&(!diff||x.difficulty===diff));guestPracticeIndex=0;
+ guestPracticeRows=all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub)&&(!chapter||x.chapter===chapter)&&(!type||x.type===type)&&(!diff||x.difficulty===diff));guestPracticeIndex=0;
  if(!guestPracticeRows.length){
   const nearest=all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub));
   guestPracticeRows=nearest.length?nearest:all;guestPracticeIndex=0;
@@ -300,8 +305,8 @@ function applyHubShortcut(kind){
  if(kind==='models'){selectAndFire('guestGradeType','Model Paper');return}
  if(kind==='handouts'){selectAndFire('vuGuestType','Handouts');return}
  if(kind==='highlighted'){selectAndFire('vuGuestType','Highlighted Handouts');return}
- if(kind==='datesheet'){selectAndFire('vuGuestType','Date Sheet');return}
- if(kind==='results'){selectAndFire('vuGuestType','Results / Notices');return}
+ if(kind==='datesheet'){$('globalSearch').value='date sheet';showGlobalResults('date sheet');document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');return}
+ if(kind==='results'){$('globalSearch').value='results';showGlobalResults('results');document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');return}
  if(kind==='search'){setTimeout(()=>$('globalSearch')?.focus(),0);return}
  if(kind==='saved'){setTimeout(()=>$('savedResources')?.scrollIntoView({behavior:'smooth',block:'start'}),0)}
 }
