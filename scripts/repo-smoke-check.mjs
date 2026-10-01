@@ -151,6 +151,10 @@ guestPremium.includes("baseActions.hidden=true")?ok("visitor:practice-nav"):bad(
 guestPremium.includes("baseActions.style.display='none'")?ok("visitor:practice-nav-force-hide"):bad("visitor:practice-nav-force-hide","legacy practice navigation must be force-hidden");
 learn.includes('.practice-actions[hidden],.practice-actions[aria-hidden="true"]{display:none!important}')?ok("visitor:practice-hidden-css"):bad("visitor:practice-hidden-css","hidden Practice navigation CSS guard missing");
 !guestPremium.includes("No practice question matches these filters. Try another class, subject, chapter or difficulty.")?ok("visitor:practice-no-dead-end"):bad("visitor:practice-no-dead-end","dead-end practice message remains");
+for(const marker of ["guestStudySubject","guestStudyType","guestUniversitySummary","refreshTypes=()=>","data-hub-filter","function applyHubShortcut"]){
+  guestPremium.includes(marker)?ok("learning:control:"+marker):bad("learning:control:"+marker,"missing");
+}
+learn.includes("(pp.papers||[]).length+(sd.materials||[]).length")?ok("learning:overview-total"):bad("learning:overview-total","overview must count all public resources");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
