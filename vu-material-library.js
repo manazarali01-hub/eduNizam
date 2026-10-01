@@ -87,6 +87,38 @@ const COMMUNITY=[
  }
 ];
 
+const DIRECT_HANDOUTS={
+ 'CS101':'1N_9ZMxbyw5UsXZOOgzKW__6sRaqRglL0',
+ 'CS201':'1jR56zBmr1POMe471zmDdh44n99TTCioE',
+ 'CS301':'1mhg8XcEOBfIQanKzzT8GxsMMT4oEM7UX',
+ 'CS302':'1gHwqOUWyH4ad9D_TO9ya-FP2mZByagoG',
+ 'CS304':'1b_fzOcgU63CfOlvd85fcTI9lvVdJDeHW',
+ 'CS401':'1nBuOO2P0PlJBHKLwKYqKQ178upsyNyk2',
+ 'CS402':'1RDYvmBd1aWDOI7SfjjOoV5laiUC9CmZG',
+ 'CS403':'1ykT6xsLDLkkz5pBW9I1ry35Wm-KVug-C',
+ 'CS408':'1otMjBWHTvALDtEheAhWecgmUZmQTW4JP',
+ 'CS501':'1H-UF1W7QfQRv58D1QeSt5yycYDalVRVq',
+ 'CS502':'1efBVH4m_pBe7UzpS0XryQ1d0V2SDi2ZP',
+ 'CS504':'1m8Lo_KiY9Pa3ZSIgClUpPCqs7dj2OQeJ',
+ 'CS506':'1IFBB5Jzoo9hI3vX2dnE9H0aaZ86zF5zZ',
+ 'CS507':'1ew6mHy1F6G7nrW6lae377-_yr0aBzwv1',
+ 'CS601':'11k00zleUSW1sVn5XA9FyyT_UU3FRrMMn',
+ 'CS604':'1sgBZYGPYD2orODOfCnIoJ6p2XCRGdms1',
+ 'CS606':'1LRMvWu3C-NKwQOHtt4IqIXks_-YTkpXk',
+ 'CS610':'1knUa58NawAluTiDSUmx-j_DW3zsP0-1D',
+ 'CS614':'1P6Rz4VJ7k9hfwyh_ci6gZQJEGkkB_6v9',
+ 'CS615':'1E5UpRPxPft69_wOiHEvROE7Y8IiQSpEz',
+ 'ECO401':'1J8yTihYRxDzKCkia_EWPAKNzRCpSVeZc',
+ 'EDU101':'1-_3upXbNZ4YEQSvWcaveiVwgRAcgcNoT',
+ 'ENG101':'1UiG73PCVq_h3XPMUEVPRmrpzA3K7kBzH',
+ 'ISL201':'14fOIM3vNwQSzw5OMVAeJpMRc6rWG6KyS',
+ 'IT430':'1yPSofZULLSYqMj7rGs0biQjjU58ri9-4',
+ 'MCM101':'1-FKqPp5lSz3jN4iv7AJ5JrxAXjZeLgBt',
+ 'MGT101':'1t3PP9ql8PpJf0fayLbP3MzCJke5JD5N6',
+ 'MGT501':'1cdt4HJg_P_FkRhowDFpJ8Fq8AS6LZbk_',
+ 'MGT502':'1GT-cre9XqgD40KQbhHOnODLLqMQiyKvA'
+};
+
 const DIRECT_HIGHLIGHTED={
  'CS101':'1N_9ZMxbyw5UsXZOOgzKW__6sRaqRglL0',
  'CS201':'1hs_Goz7E2tapouq90Fo8XE66Tv_pPp3H',
@@ -152,15 +184,20 @@ function officialFor(course){
 
 function communityFor(course){
  const code=String(course?.code||'').toUpperCase();
- return COMMUNITY.map(x=>{
-  const row={...x,id:x.id+'-'+code,courseCode:code,title:code+' · '+x.title};
-  if(x.id==='vuanswer-highlighted'&&DIRECT_HIGHLIGHTED[code]){
-   row.url=driveDownload(DIRECT_HIGHLIGHTED[code]);
-   row.access='direct_download';
-   row.title=code+' · Highlighted Handouts — Direct PDF Download';
-   row.note='Verified community highlighted-handout download mirrored on Google Drive. Supplementary revision material; confirm concepts against current official VU handouts.';
+ return COMMUNITY.flatMap(x=>{
+  const base={...x,id:x.id+'-'+code,courseCode:code,title:code+' · '+x.title};
+  const out=[];
+  if(x.id==='vuanswer-handouts'&&DIRECT_HANDOUTS[code]){
+   out.push({...base,id:'direct-handout-'+code,url:driveDownload(DIRECT_HANDOUTS[code]),access:'direct_download',title:code+' · Handouts — Direct PDF Download',note:'Verified community handout mirror on Google Drive. Use the official VU OCW/VULMS handout as the primary current-semester source.'});
+   out.push({...base,id:'handout-index-'+code,title:code+' · Updated Handouts — Download Index'});
+   return out;
   }
-  return row;
+  if(x.id==='vuanswer-highlighted'&&DIRECT_HIGHLIGHTED[code]){
+   out.push({...base,id:'direct-highlighted-'+code,url:driveDownload(DIRECT_HIGHLIGHTED[code]),access:'direct_download',title:code+' · Highlighted Handouts — Direct PDF Download',note:'Verified community highlighted-handout download mirrored on Google Drive. Supplementary revision material; confirm concepts against current official VU handouts.'});
+   out.push({...base,id:'highlighted-index-'+code,title:code+' · Highlighted Handouts — Download Index'});
+   return out;
+  }
+  return [base];
  });
 }
 
@@ -177,6 +214,7 @@ window.EDUNIZAM_VU_MATERIALS={
  types:TYPES,
  communitySources:COMMUNITY,
  directHighlightedCourses:Object.keys(DIRECT_HIGHLIGHTED),
+ directHandoutCourses:Object.keys(DIRECT_HANDOUTS),
  forCourse,
  actionLabel,
  accessLabel
