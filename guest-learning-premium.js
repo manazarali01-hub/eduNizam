@@ -363,7 +363,7 @@ function enhancePastResults(){
  }
  if(level==='vu'){
   const raw=String($('paperSearch')?.value||'').trim().toUpperCase();
-  const courseQuery=/^[A-Z]{2,5}\d{3}[A-Z]?$/.test(raw);
+  const courseQuery=/^[A-Z]{2,5}\d{3,4}[A-Z]?$/.test(raw);
   const rows=(uni().resources||[]).filter(x=>{
    if(x.universityId!=='vu'||!/past|midterm|final/i.test(x.category||''))return false;
    const h=norm(JSON.stringify(x));
@@ -393,7 +393,7 @@ function injectVUExplorer(){
   const query=norm($('vuGuestQuery').value),type=norm($('vuGuestType').value),catalog=window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[],resources=(uni().resources||[]).filter(x=>x.universityId==='vu');
   const rawInput=String($('vuGuestQuery').value||'').trim();
   const rawCode=rawInput.toUpperCase().replace(/[\\s-]+/g,'');
-  const validCourseCode=/^[A-Z]{2,5}\\d{3}[A-Z]?$/.test(rawCode);
+  const validCourseCode=/^[A-Z]{2,5}\\d{3,4}[A-Z]?$/.test(rawCode);
   const lookupQuery=validCourseCode?norm(rawCode):query;
   const course=catalog.find(x=>norm(x.code)===lookupQuery)||catalog.find(x=>lookupQuery&&norm(x.code+' '+x.title).includes(lookupQuery));
   let rows=resources.filter(x=>{
