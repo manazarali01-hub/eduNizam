@@ -15,7 +15,7 @@ function bad(name,msg){fail.push({name,msg})}
 const required=[
   "index.html","app.html","style.css","app.js","manifest.webmanifest","sw.js",
   "robots.txt","sitemap.xml","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html","public.css",
-  "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","learning-search-engine.js","guest-learning-nav.js","guest-learning-premium.js",
+  "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","practice-complete-data.js","learning-search-engine.js","guest-learning-nav.js","guest-learning-premium.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
   "school-community.js","navigation-enhancements.js","ui-polish.js",
@@ -160,6 +160,9 @@ completeData.includes("EDUNIZAM_PUBLIC_LINKS")?ok("learning:public-links"):bad("
 guestPremium.includes("guestPracticeType")?ok("learning:practice-type"):bad("learning:practice-type","Practice question-type filter missing");
 guestPremium.includes("kind==='practice'")?ok("learning:practice-shortcut"):bad("learning:practice-shortcut","MCQ/Quiz shortcut missing");
 guestPremium.includes("showGlobalResults('date sheet')")&&guestPremium.includes("showGlobalResults('results')")?ok("learning:public-shortcuts"):bad("learning:public-shortcuts","date sheet/results shortcuts missing");
+for(const marker of ["guestPracticeOrder","guestPracticeLimit","practiceSessionStats","finishGuestPractice","Session complete","Practice Again"]){
+  guestPremium.includes(marker)?ok("learning:practice-session:"+marker):bad("learning:practice-session:"+marker,"missing");
+}
 learn.includes("(window.EDUNIZAM_PUBLIC_LINKS||[]).length")?ok("learning:public-count"):bad("learning:public-count","overview excludes public portal links");
 
 // 4) Browser JS syntax
@@ -181,6 +184,7 @@ swCache&&swCache===activeCache?ok("sw:cache-version-aligned"):bad("sw:cache-vers
 build&&build===registerBuild?ok("sw:build-version-aligned"):bad("sw:build-version-aligned",build+" != "+registerBuild);
 if(!/addEventListener\(['"]activate['"]/.test(sw))bad("sw:activate","activate handler missing");else ok("sw:activate");
 if(!/request\.method|e\.request\.method/.test(sw))bad("sw:get-guard","non-GET guard missing");else ok("sw:get-guard");
+if(sw.includes("'./practice-complete-data.js'"))ok("sw:practice-complete-cache");else bad("sw:practice-complete-cache","practice-complete-data.js missing from cache");
 const swAssets=[...sw.matchAll(/['"]\.\/([^'"]+)['"]/g)].map(m=>m[1]);
 const missingSw=[...new Set(swAssets.filter(p=>!exists(p)))];
 missingSw.length?bad("sw:assets",missingSw.join(", ")):ok("sw:assets");
@@ -222,7 +226,7 @@ try{
 // 6b) Complete public Learning Hub coverage
 try{
   const lctx=vm.createContext({window:{}});
-  for(const p of ["past-papers-data.js","school-assessment-data.js","study-data.js","university-data.js","vu-course-catalog.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","learning-search-engine.js"])evalBrowserFile(p,lctx);
+  for(const p of ["past-papers-data.js","school-assessment-data.js","study-data.js","university-data.js","vu-course-catalog.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","practice-complete-data.js","learning-search-engine.js"])evalBrowserFile(p,lctx);
   const w=lctx.window;
   const counts={
     boards:w.EDUNIZAM_PAST_PAPERS?.boards?.length||0,
@@ -234,7 +238,7 @@ try{
     vuCourses:w.EDUNIZAM_VU_COURSE_CATALOG?.courses?.length||0,
     practice:w.EDUNIZAM_PRACTICE_DATA?.questions?.length||0
   };
-  const minimums={boards:30,papers:100,grade:20,study:35,universities:25,universityResources:55,vuCourses:250,practice:85};
+  const minimums={boards:30,papers:100,grade:20,study:35,universities:25,universityResources:55,vuCourses:250,practice:290};
   for(const [k,min] of Object.entries(minimums)){
     counts[k]>=min?ok("learning:coverage:"+k):bad("learning:coverage:"+k,counts[k]+" < "+min);
   }
@@ -246,8 +250,20 @@ try{
   for(const cl of [5,8]){
     const rows=questions.filter(x=>Number(x.classLevel)===cl);
     const subjects=new Set(rows.map(x=>x.subject));
-    rows.length>=10&&subjects.size>=5?ok("learning:practice-primary:"+cl):bad("learning:practice-primary:"+cl,rows.length+" questions / "+subjects.size+" subjects");
+    rows.length>=40&&subjects.size>=5?ok("learning:practice-primary:"+cl):bad("learning:practice-primary:"+cl,rows.length+" questions / "+subjects.size+" subjects");
   }
+  const practiceDataAll=w.EDUNIZAM_PRACTICE_DATA||{};
+  let incompletePractice=[];
+  for(const [cl,subjects] of Object.entries(practiceDataAll.subjects||{})){
+    for(const subject of subjects||[]){
+      for(const chapter of practiceDataAll.chapters?.[cl+"|"+subject]||[]){
+        const rows=questions.filter(x=>String(x.classLevel)===String(cl)&&x.subject===subject&&x.chapter===chapter);
+        const types=new Set(rows.map(x=>x.type)),diffs=new Set(rows.map(x=>x.difficulty));
+        if(rows.length<3||!["mcq","short","long"].every(t=>types.has(t))||!["Easy","Medium","Hard"].every(d=>diffs.has(d))) incompletePractice.push(cl+"|"+subject+"|"+chapter);
+      }
+    }
+  }
+  incompletePractice.length?bad("learning:practice-complete-coverage",incompletePractice.slice(0,8).join(", ")):ok("learning:practice-complete-coverage");
   const search=w.EDUNIZAM_LEARNING_SEARCH;
   if(!search?.search||!search?.normalize)bad("learning:smart-search","search engine missing");
   else{
