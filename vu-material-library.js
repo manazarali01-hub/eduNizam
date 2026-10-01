@@ -7,7 +7,7 @@ const TYPES=[
  'Quizzes / MCQs','Midterm Past Papers','Finalterm Past Papers',
  'Current Papers / Recalls','Solved Past Papers','Preparation Videos',
  'PPT Slides','Practicals / Lab Manuals','Books / References','Final Project / Viva',
- 'Grading Scheme','Course Overview','Useful Links','Offline App Library'
+ 'Syllabus / Study Guide','Grading Scheme','Course Overview','Useful Links','Offline App Library'
 ];
 
 const COMMUNITY=[
@@ -160,6 +160,86 @@ const COMMUNITY=[
   id:'vumalik-past',type:'Solved Past Papers',title:'VU Malik Solved Past Paper Archive',
   url:'https://vumalik.blogspot.com/',source:'VU Malik',trust:'verified',
   access:'download_index',note:'Course-specific solved MCQ/subjective paper posts with Moaaz, Waqar Siddhu, Hadi and Malik references on many subjects.'
+ },
+ {
+  id:'vuedu-handouts',type:'Course Notes / Handouts',title:'VUEDU VU Handouts',
+  url:'https://vuedu.dev/documents?type=handouts',source:'VUEDU',trust:'verified',
+  access:'download_index',note:'Current free/no-registration Pakistani document library with VU handouts and instant-access downloads.'
+ },
+ {
+  id:'vuedu-notes',type:'Short Notes',title:'VUEDU Notes',
+  url:'https://vuedu.dev/documents?type=notes',source:'VUEDU',trust:'verified',
+  access:'download_index',note:'Current VU and Pakistani-university note library with free document access.'
+ },
+ {
+  id:'vuedu-papers',type:'Solved Past Papers',title:'VUEDU Past Papers',
+  url:'https://vuedu.dev/documents?type=past-papers',source:'VUEDU',trust:'verified',
+  access:'download_index',note:'Free course-organized past-paper document library; verify recalled/solved material against official handouts.'
+ },
+ {
+  id:'vuedu-mcqs',type:'Quizzes / MCQs',title:'VUEDU Online MCQ Practice',
+  url:'https://vuedu.dev/quiz',source:'VUEDU',trust:'verified',
+  access:'open',note:'Current online MCQ practice collections including VU course-specific mid/final practice sets.'
+ },
+ {
+  id:'vuedu-syllabus',type:'Syllabus / Study Guide',title:'VUEDU Syllabus / Study Guides',
+  url:'https://vuedu.dev/documents?type=syllabus',source:'VUEDU',trust:'verified',
+  access:'download_index',note:'Free syllabus and study-guide document index; official VU course outline/VULMS remains the source of truth.'
+ },
+ {
+  id:'vulmstools-handouts',type:'Course Notes / Handouts',title:'VU LMS Tools Handouts',
+  url:'https://www.vulmstools.com/',source:'VU LMS Tools',trust:'verified',
+  access:'download_index',note:'Current JavaScript-based VU study tool offering course handout preview/downloads.'
+ },
+ {
+  id:'vulmstools-mid',type:'Midterm Past Papers',title:'VU LMS Tools Midterm Papers',
+  url:'https://www.vulmstools.com/',source:'VU LMS Tools',trust:'verified',
+  access:'download_index',note:'Course-code midterm paper practice/download library.'
+ },
+ {
+  id:'vulmstools-final',type:'Finalterm Past Papers',title:'VU LMS Tools Final Term Papers',
+  url:'https://www.vulmstools.com/',source:'VU LMS Tools',trust:'verified',
+  access:'download_index',note:'Course-code final-term paper practice/download library.'
+ },
+ {
+  id:'vulmstools-assignments',type:'Assignments',title:'VU LMS Tools Assignment Study',
+  url:'https://www.vulmstools.com/',source:'VU LMS Tools',trust:'verified',
+  access:'open',note:'Solved-assignment study help. Use to understand methods; write and submit current graded work according to VULMS rules.'
+ },
+ {
+  id:'vulmstools-gdb',type:'GDB / Current Semester',title:'VU LMS Tools GDB Help',
+  url:'https://www.vulmstools.com/',source:'VU LMS Tools',trust:'verified',
+  access:'open',note:'Structured GDB study help; current graded responses should be written independently and follow VULMS instructions.'
+ },
+ {
+  id:'vulmstools-quiz',type:'Quizzes / MCQs',title:'VU LMS Tools MCQ Quiz Generator',
+  url:'https://www.vulmstools.com/',source:'VU LMS Tools',trust:'verified',
+  access:'open',note:'Timed MCQ practice generated from course handouts with explanations.'
+ },
+ {
+  id:'vulmstools-reviews',type:'Current Papers / Recalls',title:'VU LMS Tools Paper Reviews',
+  url:'https://www.vulmstools.com/',source:'VU LMS Tools',trust:'verified',
+  access:'open',note:'Recent student paper-review/recall area. Semester-specific community reports are supplementary only.'
+ },
+ {
+  id:'vustudentshelper-all',type:'Course Notes / Handouts',title:'VU Students Helper Archive',
+  url:'https://vustudentshelper.blogspot.com/',source:'VU Students Helper',trust:'legacy',
+  access:'download_index',note:'Legacy broad backup archive covering handouts, lectures, past papers, GDBs, quizzes and assignments across many VU course codes.'
+ },
+ {
+  id:'vustudentshelper-papers',type:'Solved Past Papers',title:'VU Students Helper Past Papers',
+  url:'https://vustudentshelper.blogspot.com/p/vu-past-papers.html',source:'VU Students Helper',trust:'legacy',
+  access:'download_index',note:'Legacy backup paper archive. Prefer current sources first and verify answers against current official handouts.'
+ },
+ {
+  id:'vubooks-handouts',type:'Course Notes / Handouts',title:'VU Books Handouts PDF',
+  url:'https://vubookhandouts.blogspot.com/',source:'VU Books Handouts',trust:'legacy',
+  access:'download_index',note:'Legacy PDF/PPT handout archive for selected common VU courses.'
+ },
+ {
+  id:'vubooks-ppt',type:'PPT Slides',title:'VU Books Handouts PPT Slides',
+  url:'https://vubookhandouts.blogspot.com/',source:'VU Books Handouts',trust:'legacy',
+  access:'download_index',note:'Legacy PowerPoint/slide backup for selected courses.'
  }
 ];
 
@@ -235,7 +315,7 @@ const DIRECT_HIGHLIGHTED={
 const driveDownload=id=>'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id);
 
 const actionLabel=x=>x.access==='direct_download'?'Download Now':x.access==='login_required'?'Login to Download':x.access==='download_index'?'Open Download Index':x.access==='official_open'?'Open Official Material':'Open Resource';
-const accessLabel=x=>x.access==='direct_download'?'Verified Community · Direct Download':x.access==='login_required'?'Official · Login Required':x.access==='download_index'?'Verified Community · Downloads':x.access==='official_open'?'Official · Open':'Verified Community';
+const accessLabel=x=>x.trust==='legacy'?(x.access==='download_index'?'Legacy Backup · Downloads':'Legacy Backup'):x.access==='direct_download'?'Verified Community · Direct Download':x.access==='login_required'?'Official · Login Required':x.access==='download_index'?'Verified Community · Downloads':x.access==='official_open'?'Official · Open':'Verified Community';
 
 function officialFor(course){
  const p=window.EDUNIZAM_VU_PATHWAYS?.forCourse?.(course);
@@ -254,6 +334,7 @@ function officialFor(course){
   official('grading','Grading Scheme',course.code+' Grading Scheme',p.grading,'official_open','Official OCW course grading-scheme page where published. Current semester rules should still be confirmed in VULMS.'),
   official('overview','Course Overview',course.code+' Course Overview',p.overview,'official_open','Official synopsis, learning outcomes and course calendar where published.'),
   official('links','Useful Links',course.code+' Related / Useful Links',p.links,'official_open','Official OCW related-links page for this course where published.'),
+  official('bookshop','Books / References',course.code+' Official VU Bookshop / Printed Material','https://bookshop.vu.edu.pk/','official_open','VU states lecture handouts and course DVDs/material are available through its online bookshop, including for the public where available.'),
   official('vulms','GDB / Current Semester',course.code+' VULMS — Current Semester',p.vulms,'login_required','Official current-semester source for quizzes, assignments, GDBs, announcements and enrolled handouts.')
  ];
 }
@@ -288,6 +369,7 @@ function forCourse(course,{type='',source='',provider='',access=''}={}){
  if(type)rows=rows.filter(x=>x.type===type);
  if(source==='official')rows=rows.filter(x=>x.trust==='official');
  if(source==='verified')rows=rows.filter(x=>x.trust==='verified');
+ if(source==='legacy')rows=rows.filter(x=>x.trust==='legacy');
  if(provider)rows=rows.filter(x=>x.source===provider);
  if(access==='downloadable')rows=rows.filter(x=>['direct_download','download_index'].includes(x.access));
  else if(access)rows=rows.filter(x=>x.access===access);
