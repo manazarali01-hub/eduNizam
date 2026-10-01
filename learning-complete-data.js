@@ -145,6 +145,26 @@ if(U){
   U.updatedAt='2026-10-01';
 }
 
+/* Public navigation links for date sheets/results.
+   Exact direct URLs change frequently, so EduNizam points to the official board/university portal
+   and labels these as portal links instead of inventing a current direct page. */
+window.EDUNIZAM_PUBLIC_LINKS=window.EDUNIZAM_PUBLIC_LINKS||[];
+if(PP){
+  (PP.boards||[]).forEach(b=>{
+    addUnique(window.EDUNIZAM_PUBLIC_LINKS,[
+      {id:'datesheet-'+b.id,title:b.name+' Official Date Sheet / Examination Portal',description:'Official board portal for current date sheets, examination schedules and notices. Direct paths may change by session.',url:b.officialUrl,source:'official',type:'Date Sheet / Examination Portal',board:b.name,section:'home'},
+      {id:'results-'+b.id,title:b.name+' Official Results Portal',description:'Official board portal for current result links and result announcements. Direct result URLs may change by examination session.',url:b.officialUrl,source:'official',type:'Results / Result Link',board:b.name,section:'home'}
+    ]);
+  });
+}
+if(U){
+  (U.universities||[]).filter(x=>x.id!=='hec-directory').forEach(x=>{
+    addUnique(window.EDUNIZAM_PUBLIC_LINKS,[
+      {id:'uni-results-'+x.id,title:x.name+' Official Results / Examination Portal',description:'Official university portal for current examination notices and result information. Availability varies by institution.',url:x.officialUrl,source:'official',type:'Results / Examination Portal',board:x.name,section:'home'}
+    ]);
+  });
+}
+
 /* Expand locally indexed VU course codes using titles verified from official VU catalogue/study-scheme sources.
    Unknown codes still fall back to the official searchable catalogue. */
 const VC=window.EDUNIZAM_VU_COURSE_CATALOG;
