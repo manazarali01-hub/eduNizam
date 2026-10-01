@@ -140,8 +140,69 @@ function injectSectionExplorers(){
   $('guestGradeType').onchange=run;
   refreshGradeOptions();run();
  }
- const study=$('study');if(study&&!$('studyExplorer')){const p=document.createElement('div');p.id='studyExplorer';p.className='card';p.style.marginBottom='16px';p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label search-wide">Search Study Library<input id="guestStudyQuery" type="search" placeholder="e.g. Class 10 Physics, formula sheet, syllabus"></label><label class="filter-label">Class<select id="guestStudyClass"><option value="">All Classes</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label><button class="btn primary" id="guestStudySearch">Search Library</button></div><div id="guestStudyResults" class="grid"></div>';study.insertBefore(p,$('studyGrid'));const run=()=>{const q=norm($('guestStudyQuery').value),cl=$('guestStudyClass').value;const rows=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>(!q||norm(JSON.stringify(x)).includes(q))&&(!cl||(x.classLevels||[]).map(String).includes(cl)));$('guestStudyResults').innerHTML=rows.length?rows.map(x=>studyCard(x)).join(''):emptyState($('guestStudyQuery').value||('Class '+cl));};$('guestStudySearch').onclick=run;$('guestStudyQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});$('guestStudyClass').onchange=run;run();}
- const unis=$('universities');if(unis&&!$('universityExplorer')){const p=document.createElement('div');p.id='universityExplorer';p.className='card';p.style.marginBottom='16px';const us=(uni().universities||[]).filter(x=>x.id!=='vu');p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label search-wide">University<select id="guestUniversity"><option value="">All Universities</option>'+us.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('')+'</select></label><label class="filter-label">Resource<select id="guestUniversityType"><option value="">All Resources</option><option>Past Papers</option><option>Academic Resources</option></select></label><button class="btn primary" id="guestUniversitySearch">Show Resources</button></div><div id="guestUniversityResults" class="grid"></div>';unis.insertBefore(p,$('universityGrid'));const run=()=>{const id=$('guestUniversity').value,t=norm($('guestUniversityType').value);let rows=(uni().resources||[]).filter(x=>x.universityId!=='vu'&&(!id||x.universityId===id)&&(!t||norm(x.category).includes(t)));if(id&&!rows.length){const u=us.find(x=>x.id===id);if(u)rows=[{id:u.id+'-portal',universityId:u.id,title:u.name+' Official Portal',url:u.officialUrl,source:'official',category:'Academic Resources',note:'Official university portal for current academic and examination resources.'}]};$('guestUniversityResults').innerHTML=rows.length?rows.map(x=>{const u=us.find(y=>y.id===x.universityId);return resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:u?.name||'',section:'universities'})}).join(''):emptyState('university resources');};$('guestUniversitySearch').onclick=run;$('guestUniversity').onchange=run;$('guestUniversityType').onchange=run;run();}
+ const study=$('study');if(study&&!$('studyExplorer')){
+  const p=document.createElement('div');p.id='studyExplorer';p.className='card';p.style.marginBottom='16px';
+  p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label search-wide">Search Study Library<input id="guestStudyQuery" type="search" placeholder="e.g. Class 10 Physics, pairing scheme, formula sheet"></label><label class="filter-label">Class<select id="guestStudyClass"><option value="">All Classes</option></select></label><label class="filter-label">Subject<select id="guestStudySubject"><option value="">All Subjects</option></select></label><label class="filter-label">Resource type<select id="guestStudyType"><option value="">All Resources</option></select></label><button class="btn primary" id="guestStudySearch">Search Library</button></div><div id="guestStudySummary" class="paper-summary"></div><div id="guestStudyResults" class="grid"></div>';
+  study.insertBefore(p,$('studyGrid'));
+  const data=()=>window.EDUNIZAM_STUDY_DATA?.materials||[];
+  const parts=v=>String(v||'').split('/').map(x=>x.trim()).filter(Boolean).filter(x=>!/^all subjects$/i.test(x));
+  const refresh=()=>{
+   const clEl=$('guestStudyClass'),subEl=$('guestStudySubject'),typeEl=$('guestStudyType');
+   const oldCl=clEl.value,oldSub=subEl.value,oldType=typeEl.value;
+   const classes=[...new Set(data().flatMap(x=>(x.classLevels||[]).map(String)))].sort((a,b)=>Number(a)-Number(b));
+   clEl.innerHTML='<option value="">All Classes</option>'+classes.map(x=>'<option value="'+esc(x)+'">Class '+esc(x)+'</option>').join('');
+   if(classes.includes(oldCl))clEl.value=oldCl;
+   const base=data().filter(x=>!clEl.value||(x.classLevels||[]).map(String).includes(clEl.value));
+   const subjects=[...new Set(base.flatMap(x=>parts(x.subject)))].sort();
+   subEl.innerHTML='<option value="">All Subjects</option>'+subjects.map(x=>'<option>'+esc(x)+'</option>').join('');
+   if(subjects.includes(oldSub))subEl.value=oldSub;
+   const bySubject=base.filter(x=>!subEl.value||norm(x.subject).includes(norm(subEl.value))||norm(x.subject)==='all subjects');
+   const types=[...new Set(bySubject.map(x=>x.type).filter(Boolean))].sort();
+   typeEl.innerHTML='<option value="">All Resources</option>'+types.map(x=>'<option>'+esc(x)+'</option>').join('');
+   if(types.includes(oldType))typeEl.value=oldType;
+  };
+  const run=()=>{
+   refresh();
+   const q=norm($('guestStudyQuery').value),cl=$('guestStudyClass').value,sub=norm($('guestStudySubject').value),type=norm($('guestStudyType').value);
+   const rows=data().filter(x=>(!q||norm(JSON.stringify(x)).includes(q))&&(!cl||(x.classLevels||[]).map(String).includes(cl))&&(!sub||norm(x.subject).includes(sub)||norm(x.subject)==='all subjects')&&(!type||norm(x.type)===type));
+   $('guestStudySummary').textContent=rows.length+' study resource'+(rows.length===1?'':'s')+' available for the selected filters.';
+   $('guestStudyResults').innerHTML=rows.length?rows.map(x=>studyCard(x)).join(''):emptyState($('guestStudyQuery').value||[$('guestStudyClass').value,$('guestStudySubject').value,$('guestStudyType').value].filter(Boolean).join(' '));
+  };
+  $('guestStudySearch').onclick=run;
+  $('guestStudyQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});
+  $('guestStudyClass').onchange=()=>{refresh();run()};
+  $('guestStudySubject').onchange=()=>{refresh();run()};
+  $('guestStudyType').onchange=run;
+  refresh();run();
+ }
+ const unis=$('universities');if(unis&&!$('universityExplorer')){
+  const p=document.createElement('div');p.id='universityExplorer';p.className='card';p.style.marginBottom='16px';
+  const universities=()=> (uni().universities||[]).filter(x=>x.id!=='vu');
+  const resources=()=> (uni().resources||[]).filter(x=>x.universityId!=='vu');
+  p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label search-wide">University<select id="guestUniversity"><option value="">All Universities</option></select></label><label class="filter-label">Resource<select id="guestUniversityType"><option value="">All Resources</option></select></label><button class="btn primary" id="guestUniversitySearch">Show Resources</button></div><div id="guestUniversitySummary" class="paper-summary"></div><div id="guestUniversityResults" class="grid"></div>';
+  unis.insertBefore(p,$('universityGrid'));
+  const refresh=()=>{
+   const idEl=$('guestUniversity'),typeEl=$('guestUniversityType'),oldId=idEl.value,oldType=typeEl.value,us=universities();
+   idEl.innerHTML='<option value="">All Universities</option>'+us.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');
+   if(us.some(x=>x.id===oldId))idEl.value=oldId;
+   const base=resources().filter(x=>!idEl.value||x.universityId===idEl.value);
+   const types=[...new Set(base.map(x=>x.category).filter(Boolean))].sort();
+   typeEl.innerHTML='<option value="">All Resources</option>'+types.map(x=>'<option>'+esc(x)+'</option>').join('');
+   if(types.includes(oldType))typeEl.value=oldType;
+  };
+  const run=()=>{
+   refresh();
+   const id=$('guestUniversity').value,t=norm($('guestUniversityType').value),us=universities();
+   let rows=resources().filter(x=>(!id||x.universityId===id)&&(!t||norm(x.category)===t));
+   if(id&&!rows.length){const u=us.find(x=>x.id===id);if(u)rows=[{id:u.id+'-portal',universityId:u.id,title:u.name+' Official Portal',url:u.officialUrl,source:'official',category:'Academic Resources',note:'Official university portal for current academic, examination and student resources.'}]}
+   $('guestUniversitySummary').textContent=rows.length+' university resource'+(rows.length===1?'':'s')+' available for the selected filters.';
+   $('guestUniversityResults').innerHTML=rows.length?rows.map(x=>{const u=us.find(y=>y.id===x.universityId);return resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:u?.name||'',section:'universities'})}).join(''):emptyState('university resources');
+  };
+  $('guestUniversitySearch').onclick=run;
+  $('guestUniversity').onchange=()=>{refresh();run()};
+  $('guestUniversityType').onchange=run;
+  refresh();run();
+ }
  const practice=$('practice');if(practice&&!$('practiceExplorer')){
   const p=document.createElement('div');p.id='practiceExplorer';p.className='card';p.style.marginBottom='16px';
   p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label">Class<select id="guestPracticeClass"><option value="">All Classes</option></select></label><label class="filter-label">Subject<select id="guestPracticeSubject"><option value="">All Subjects</option></select></label><label class="filter-label">Chapter<select id="guestPracticeChapter"><option value="">All Chapters</option></select></label><label class="filter-label">Difficulty<select id="guestPracticeDifficulty"><option value="">All Levels</option></select></label><button class="btn primary" id="guestPracticeApply">Start Practice</button></div><div id="guestPracticeSummary" class="paper-summary"></div>';
@@ -297,8 +358,10 @@ function enhancePastResults(){
 function injectVUExplorer(){
  const sec=$('vu');if(!sec||$('vuExplorer'))return;
  const panel=document.createElement('div');panel.id='vuExplorer';panel.className='card';panel.style.marginBottom='16px';
- panel.innerHTML='<div class="section-head"><div><h3 style="margin:0">VU Resource Finder</h3><p style="margin:4px 0 0">Find a course first, then choose Past Papers, Handouts, Highlighted Handouts, Notes, Quizzes, Midterm or Final Term.</p></div></div><div class="paper-filters past-advanced"><label class="filter-label search-wide">Course code or subject<input id="vuGuestQuery" type="search" placeholder="e.g. CS101, MTH301, STA301"></label><label class="filter-label">Resource type<select id="vuGuestType"><option value="">All VU Resources</option><option>Past Papers</option><option>Handouts</option><option>Highlighted Handouts</option><option>Notes</option><option>Quizzes</option><option>Midterm</option><option>Final Term</option></select></label><button id="vuGuestSearch" class="btn primary" type="button">Search VU</button></div><div id="vuGuestSummary" class="paper-summary"></div><div id="vuGuestResults" class="grid"></div>';
+ panel.innerHTML='<div class="section-head"><div><h3 style="margin:0">VU Resource Finder</h3><p style="margin:4px 0 0">Search a course code/title and choose from every VU resource category currently indexed in EduNizam.</p></div></div><div class="paper-filters past-advanced"><label class="filter-label search-wide">Course code or subject<input id="vuGuestQuery" type="search" placeholder="e.g. CS101, MTH301, STA301"></label><label class="filter-label">Resource type<select id="vuGuestType"><option value="">All VU Resources</option></select></label><button id="vuGuestSearch" class="btn primary" type="button">Search VU</button></div><div id="vuGuestSummary" class="paper-summary"></div><div id="vuGuestResults" class="grid"></div>';
  sec.insertBefore(panel,$('vuGrid'));
+ const refreshTypes=()=>{const el=$('vuGuestType'),old=el.value,types=[...new Set((uni().resources||[]).filter(x=>x.universityId==='vu').map(x=>x.category).filter(Boolean))].sort();el.innerHTML='<option value="">All VU Resources</option>'+types.map(x=>'<option>'+esc(x)+'</option>').join('');if(types.includes(old))el.value=old};
+ refreshTypes();
  const run=()=>{
   const query=norm($('vuGuestQuery').value),type=norm($('vuGuestType').value),catalog=window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[],resources=(uni().resources||[]).filter(x=>x.universityId==='vu');
   const course=catalog.find(x=>norm(x.code)===query)||catalog.find(x=>query&&norm(x.code+' '+x.title).includes(query));
