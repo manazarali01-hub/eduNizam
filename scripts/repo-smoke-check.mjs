@@ -35,7 +35,7 @@ for(const [page,source] of Object.entries(htmlByPage)){
 
   const refs=[...source.matchAll(/(?:src|href)=["']([^"'?#]+)(?:[?#][^"']*)?["']/g)]
     .map(m=>m[1])
-    .filter(x=>!/^https?:\/\//i.test(x)&&!x.startsWith("#")&&!x.startsWith("data:")&&!x.startsWith("mailto:"));
+    .filter(x=>!/^https?:\/\//i.test(x)&&!x.startsWith("#")&&!/^[a-z][a-z0-9+.-]*:/i.test(x));
   const missing=[...new Set(refs.map(x=>x.replace(/^\.\//,"")).filter(x=>x&&!exists(x)))];
   missing.length?bad("html:local-assets:"+page,missing.join(", ")):ok("html:local-assets:"+page);
 
