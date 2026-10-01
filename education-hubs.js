@@ -79,7 +79,7 @@
     if(!rows.length)return '';
     return '<div class="coverage-note"><strong>'+rows.length+' material routes available for '+esc(course.code)+'.</strong> Official files may require VU login; community downloads are supplementary.</div><div class="paper-grid">'+rows.map(m=>{
       const badge=m.trust==='official'?'trust-official':'trust-community';
-      return '<article class="paper-card"><div class="paper-card-top"><div><span class="trust-badge '+badge+'">'+esc(m.accessLabel||m.source)+'</span><span class="mini-badge">'+esc(m.type)+'</span></div></div><h3>'+esc(m.title)+'</h3><p class="coverage-note">'+esc(m.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(m.url)+'">'+esc(m.actionLabel||'Open Resource')+'</a></div></article>';
+      return '<article class="paper-card"><div class="paper-card-top"><div><span class="trust-badge '+badge+'">'+esc(m.accessLabel||m.source)+'</span><span class="mini-badge">'+esc(m.type)+'</span><span class="mini-badge">'+esc(m.source||'VU')+'</span></div></div><h3>'+esc(m.title)+'</h3><p class="coverage-note">'+esc(m.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(m.url)+'">'+esc(m.actionLabel||'Open Resource')+'</a></div></article>';
     }).join('')+'</div>';
   }
 
@@ -118,7 +118,7 @@
   }
   function renderVU(){
     document.querySelectorAll('[data-vu-tab]').forEach(b=>b.classList.toggle('active',b.dataset.vuTab===vuTab));
-    const q=$('vuSearch').value.trim().toLowerCase(),src=$('vuSource').value,provider=$('vuProvider')?.value||'',level=$('vuCourseLevel').value;
+    const q=$('vuSearch').value.trim().toLowerCase(),src=$('vuSource').value,provider=$('vuProvider')?.value||'',access=$('vuAccess')?.value||'',level=$('vuCourseLevel').value;
     const courseQuery=/^[a-z]{2,5}\d{3,4}[a-z]?$/i.test(q);
     const arr=U.resources.filter(r=>{
       const text=[r.title,r.category,r.note,(r.courseCodes||[]).join(' ')].join(' ').toLowerCase();
@@ -132,7 +132,7 @@
     if(!shown.length){
       shown=U.resources.filter(r=>r.universityId==='vu'&&r.source==='official'&&['Handouts','Quizzes','Assignments'].includes(r.category)).slice(0,5);
     }
-    const coursePack=vuCoursePack(q,{source:src,provider});
+    const coursePack=vuCoursePack(q,{source:src,provider,access});
     $('vuLibrary').innerHTML=coursePack+shown.map(vuCard).join('')+'<div class="coverage-note"><strong>Search guidance:</strong> Course card ke official OCW links ko primary source rakhein. Community past papers/recalls supplementary hain; current syllabus, quizzes, assignments aur announcements VULMS/official course pages se verify karein.</div>';
     refreshVUProviders();
     const vu=U.resources.filter(r=>r.universityId==='vu');
@@ -157,6 +157,7 @@
   window.renderSchoolAssessments=renderSchool;
   window.renderUniversityHub=renderUniversities;
   $('vuProvider')?.addEventListener('change',renderVU);
+  $('vuAccess')?.addEventListener('change',renderVU);
   window.renderVUSpecial=renderVU;
   schoolInit();uniInit();
 })();
