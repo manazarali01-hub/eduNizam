@@ -50,7 +50,7 @@ function injectStyles(){
 function injectDirectory(){
  const home=$('home');if(!home)return;
  const wrap=document.createElement('div');wrap.className='hub-directory';wrap.innerHTML='<div class="section-head"><div><h2>Learning Hub</h2><p>Choose a resource center. All items below are public and need no school approval.</p></div></div><div class="grid">'+[
- ['Past Papers','past','past'],['Virtual University','vu','vu-all'],['Pakistani Universities','universities','universities'],['Matric Boards','past','matric'],['Intermediate Boards','past','intermediate'],['PECTA / School Education','grade','grade'],['Notes','study','notes'],['Handouts','vu','handouts'],['Highlighted Handouts','vu','highlighted'],['MCQs','practice','practice'],['Quizzes','practice','practice'],['Guess Papers','study','guess'],['Model Papers','grade','models'],['Pairing Schemes','study','pairing'],['Date Sheets','home','datesheet'],['Results / Result Links','home','results'],['Study Library','study','study'],['Educational Resources','study','study'],['Search All Resources','home','search'],['My Saved Resources','home','saved']
+ ['Past Papers','past','past'],['Virtual University','vu','vu-all'],['Pakistani Universities','universities','universities'],['Matric Boards','past','matric'],['Intermediate Boards','past','intermediate'],['PECTA / School Education','grade','grade'],['Notes','study','notes'],['Handouts','vu','handouts'],['Highlighted Handouts','vu','highlighted'],['MCQs','practice','practice'],['Practice Quizzes','practice','practice'],['VU Quizzes','vu','vu-quizzes'],['Guess Papers','study','guess'],['Model Papers','grade','models'],['Pairing Schemes','study','pairing'],['Date Sheets','home','datesheet'],['Results / Result Links','home','results'],['Study Library','study','study'],['Educational Resources','study','study'],['Search All Resources','home','search'],['My Saved Resources','home','saved']
  ].map(([t,id,filter])=>'<a href="#'+id+'" data-tab="'+id+'" data-hub-filter="'+filter+'" class="card hub-link"><strong>'+t+'</strong><span>Open →</span></a>').join('')+'</div>';
  home.insertBefore(wrap,home.children[1]||null);
 }
@@ -157,7 +157,7 @@ function injectSectionExplorers(){
   const run=()=>{
    refreshGradeOptions();
    const g=$('guestGrade').value,s=norm($('guestGradeSubject').value),t=norm($('guestGradeType').value);
-   const rows=data().filter(x=>{const subj=norm(x.subject),subjectOK=!s||subj.includes(s)||subj==='all subjects'||(s==='general science'&&/(^| )science( |$)/.test(subj));return (!g||String(x.grade)===g)&&subjectOK&&(!t||norm(x.type)===t)});
+   const rows=data().filter(x=>{const subj=norm(x.subject),xt=norm(x.type),subjectOK=!s||subj.includes(s)||subj==='all subjects'||(s==='general science'&&/(^| )science( |$)/.test(subj)),typeOK=!t||xt===t||(t.startsWith('model paper')&&xt.startsWith('model paper'));return (!g||String(x.grade)===g)&&subjectOK&&typeOK});
    if(rows.length){
     $('guestGradeResults').innerHTML=rows.map(x=>resourceCard({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTAA / School Education',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'})).join('');
    }else{
@@ -212,7 +212,7 @@ function injectSectionExplorers(){
   const p=document.createElement('div');p.id='universityExplorer';p.className='card';p.style.marginBottom='16px';
   const universities=()=> (uni().universities||[]).filter(x=>x.id!=='vu');
   const resources=()=> (uni().resources||[]).filter(x=>x.universityId!=='vu');
-  p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label search-wide">University<select id="guestUniversity"><option value="">All Universities</option></select></label><label class="filter-label">Resource<select id="guestUniversityType"><option value="">All Resources</option></select></label><button class="btn primary" id="guestUniversitySearch">Show Resources</button></div><div id="guestUniversitySummary" class="paper-summary"></div><div id="guestUniversityResults" class="grid"></div>';
+  p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label search-wide">Search university/resource<input id="guestUniversityQuery" type="search" placeholder="e.g. Punjab University past papers"></label><label class="filter-label">University<select id="guestUniversity"><option value="">All Universities</option></select></label><label class="filter-label">Resource<select id="guestUniversityType"><option value="">All Resources</option></select></label><button class="btn primary" id="guestUniversitySearch">Search Resources</button></div><div id="guestUniversitySummary" class="paper-summary"></div><div id="guestUniversityResults" class="grid"></div>';
   unis.insertBefore(p,$('universityGrid'));
   const refresh=()=>{
    const idEl=$('guestUniversity'),typeEl=$('guestUniversityType'),oldId=idEl.value,oldType=typeEl.value,us=universities();
@@ -225,13 +225,17 @@ function injectSectionExplorers(){
   };
   const run=()=>{
    refresh();
-   const id=$('guestUniversity').value,t=norm($('guestUniversityType').value),us=universities();
-   let rows=resources().filter(x=>(!id||x.universityId===id)&&(!t||norm(x.category)===t));
-   if(id&&!rows.length){const u=us.find(x=>x.id===id);if(u)rows=[{id:u.id+'-portal',universityId:u.id,title:u.name+' Official Portal',url:u.officialUrl,source:'official',category:'Academic Resources',note:'Official university portal for current academic, examination and student resources.'}]}
-   $('guestUniversitySummary').textContent=rows.length+' university resource'+(rows.length===1?'':'s')+' available for the selected filters.';
-   $('guestUniversityResults').innerHTML=rows.length?rows.map(x=>{const u=us.find(y=>y.id===x.universityId);return resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:u?.name||'',section:'universities'})}).join(''):emptyState('university resources');
+   const id=$('guestUniversity').value,t=norm($('guestUniversityType').value),q=norm($('guestUniversityQuery').value),us=universities();
+   let rows=resources().filter(x=>{
+    const u=us.find(y=>y.id===x.universityId);
+    return (!id||x.universityId===id)&&(!t||norm(x.category)===t)&&(!q||norm(JSON.stringify(x)+' '+(u?.name||'')).includes(q));
+   });
+   if(id&&!rows.length&&!q){const u=us.find(x=>x.id===id);if(u)rows=[{id:u.id+'-portal',universityId:u.id,title:u.name+' Official Portal',url:u.officialUrl,source:'official',category:'Academic Resources',note:'Official university portal for current academic, examination and student resources.'}]}
+   $('guestUniversitySummary').textContent=rows.length+' university resource'+(rows.length===1?'':'s')+(q?' matching “'+$('guestUniversityQuery').value.trim()+'”':'')+'.';
+   $('guestUniversityResults').innerHTML=rows.length?rows.map(x=>{const u=us.find(y=>y.id===x.universityId);return resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:u?.name||'',section:'universities'})}).join(''):emptyState($('guestUniversityQuery').value||'university resources');
   };
   $('guestUniversitySearch').onclick=run;
+  $('guestUniversityQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});
   $('guestUniversity').onchange=()=>{refresh();run()};
   $('guestUniversityType').onchange=run;
   refresh();run();
@@ -335,9 +339,10 @@ function applyHubShortcut(kind){
  if(kind==='notes'){selectAndFire('guestStudyType','Quick Revision')||selectAndFire('guestStudyType','Formula Sheet');return}
  if(kind==='guess'){selectAndFire('guestStudyType','Guess / Practice Sheet');return}
  if(kind==='pairing'){selectAndFire('guestStudyType','Pairing Schemes / Model Papers');return}
- if(kind==='models'){selectAndFire('guestGradeType','Model Paper');return}
+ if(kind==='models'){selectAndFire('guestGradeType','Model Papers')||selectAndFire('guestGradeType','Model Paper');return}
  if(kind==='handouts'){selectAndFire('vuGuestType','Handouts');return}
  if(kind==='highlighted'){selectAndFire('vuGuestType','Highlighted Handouts');return}
+ if(kind==='vu-quizzes'){selectAndFire('vuGuestType','Quizzes');return}
  if(kind==='practice'){selectAndFire('guestPracticeType','mcq');return}
  if(kind==='datesheet'){$('globalSearch').value='date sheet';showGlobalResults('date sheet');document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');return}
  if(kind==='results'){$('globalSearch').value='results';showGlobalResults('results');document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');return}
@@ -348,6 +353,16 @@ function bind(){
  document.addEventListener('click',e=>{
   const hub=e.target.closest('[data-hub-filter]');if(hub){setTimeout(()=>applyHubShortcut(hub.dataset.hubFilter),0)}
   const q=e.target.closest('[data-smart-query]');if(q){$('globalSearch').value=q.dataset.smartQuery;saveRecent(q.dataset.smartQuery);renderSuggestions();showGlobalResults(q.dataset.smartQuery);document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');$('globalSearch')?.blur();return}
+  const startPractice=e.target.closest('[data-start-practice]');if(startPractice){
+   document.querySelector('.tab[data-tab="practice"]')?.click();
+   setTimeout(()=>{
+    selectAndFire('guestPracticeClass',String(startPractice.dataset.practiceClass||''));
+    selectAndFire('guestPracticeSubject',String(startPractice.dataset.practiceSubject||''));
+    applyPracticeFilters();
+    $('practiceExplorer')?.scrollIntoView({behavior:'smooth',block:'start'});
+   },60);
+   return;
+  }
   const p=e.target.closest('[data-preview-id]');if(p){openPreview(p.dataset.previewId);return}
   const f=e.target.closest('[data-fav-id]');if(f){toggleFav(f.dataset.favId);return}
   const sh=e.target.closest('[data-share-id]');if(sh){shareResource(sh.dataset.shareId);return}
