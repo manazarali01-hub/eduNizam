@@ -441,6 +441,9 @@ const guestLearn=read('learn.html');
 if(!guestLearn.includes('href="login.html">Login / Sign Up</a>')) fail.push('Guest Learning has no visible Login / Sign Up entry.');
 if(!guestLearn.includes('guest-learning-premium.js?v=')) fail.push('Guest Learning premium controller missing.');
 if(/style\.display\s*=/.test(read('guest-learning-nav.js'))) fail.push('Guest navigation can leave stale inline display state.');
+if(!guestLearn.includes('.search-wrap{position:relative;top:auto;z-index:2}')) fail.push('Mobile Guest search must not stay sticky over learning results.');
+if(!read('guest-learning-premium.js').includes('flex-wrap:nowrap!important')) fail.push('Mobile Guest search chips must remain in a horizontal scroller.');
+if(!read('guest-learning-premium.js').includes('search-tools-collapsed')) fail.push('Guest search suggestions do not collapse after a search is submitted.');
 const guestPremium=read('guest-learning-premium.js');
 for(const marker of ["function closePremium()","if(level==='university')","data-study-id","paperSession","paperLevel"]){if(!guestPremium.includes(marker)) fail.push('Guest Learning regression marker missing: '+marker)}
 if(!pwaSw.includes("'./pwa-install.js'")) fail.push('PWA install controller not cached.');
