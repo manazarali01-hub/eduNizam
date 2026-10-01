@@ -126,6 +126,42 @@ function siblingFacts(cl,subject,chapter){
   }
   return out;
 }
+function siblingExamples(cl,subject,chapter){
+  const out=[];
+  for(const [k,v] of Object.entries(B)){
+    const [c,s,ch]=k.split('|');
+    if(c===String(cl)&&s===subject&&ch!==chapter)out.push(v.example);
+  }
+  return out;
+}
+function generatedQuestion({cl,subject,chapter,type,difficulty,bp,prefix}){
+  const urdu=subject==='Urdu';
+  const id=prefix+'-'+type+'-'+difficulty.toLowerCase();
+  if(type==='mcq'){
+    const useExample=difficulty!=='Easy';
+    const correct=useExample?bp.example:bp.fact;
+    const pool=(useExample?siblingExamples(cl,subject,chapter):siblingFacts(cl,subject,chapter)).filter(x=>x!==correct);
+    const fillers=urdu
+      ?['یہ بیان اس موضوع سے متعلق نہیں ہے۔','یہ مثال موضوع کے بنیادی خیال کی وضاحت نہیں کرتی۔','یہ جواب دی گئی تعریف یا اصول سے مطابقت نہیں رکھتا۔']
+      :generic;
+    const distractors=[...pool,...fillers].slice(0,3);
+    while(distractors.length<3)distractors.push(fillers[distractors.length%fillers.length]);
+    const question=urdu
+      ?(difficulty==='Easy'?'“'+chapter+'” کے بارے میں درست بنیادی بیان منتخب کریں۔':difficulty==='Medium'?'“'+chapter+'” کی درست مثال منتخب کریں۔':'“'+chapter+'” کو سب سے بہتر واضح کرنے والا جواب منتخب کریں۔')
+      :(difficulty==='Easy'?'Choose the best core idea for “'+chapter+'”.':difficulty==='Medium'?'Which example best demonstrates “'+chapter+'”?':'Which choice most accurately applies the idea of “'+chapter+'”?');
+    return {id,classLevel:Number(cl),subject,chapter,type,difficulty,question,options:[correct,...distractors],answer:0,explanation:bp.fact+' '+bp.example};
+  }
+  if(type==='short'){
+    const question=urdu
+      ?(difficulty==='Easy'?'“'+chapter+'” کی مختصر تعریف یا بنیادی خیال لکھیں۔':difficulty==='Medium'?'“'+chapter+'” کو مختصر طور پر سمجھائیں اور ایک درست مثال دیں۔':'“'+chapter+'” کے اصول کو مختصر دلیل یا اطلاق کے ساتھ واضح کریں۔')
+      :(difficulty==='Easy'?'State the key idea of “'+chapter+'” in one or two sentences.':difficulty==='Medium'?'Briefly explain “'+chapter+'” and include one correct example.':'Explain how the idea of “'+chapter+'” can be applied or justified, using a concise example.');
+    return {id,classLevel:Number(cl),subject,chapter,type,difficulty,question,answerText:bp.fact+' Example: '+bp.example};
+  }
+  const question=urdu
+    ?(difficulty==='Easy'?'“'+chapter+'” کی وضاحت کریں اور ایک درست مثال شامل کریں۔':difficulty==='Medium'?'“'+chapter+'” کی تفصیلی وضاحت مثال اور اہم نکات کے ساتھ کریں۔':'“'+chapter+'” کا جامع جواب لکھیں جس میں بنیادی خیال، دلیل اور درست مثال یا اطلاق شامل ہو۔')
+    :(difficulty==='Easy'?'Explain “'+chapter+'” clearly and include one correct example.':difficulty==='Medium'?'Explain “'+chapter+'” in detail, including its key idea and a relevant example or application.':'Write a complete explanation of “'+chapter+'”, connecting the core idea to a justified example or application.');
+  return {id,classLevel:Number(cl),subject,chapter,type:'long',difficulty,question,answerText:'A strong answer should include: '+bp.fact+' Example/application: '+bp.example};
+}
 
 for(const [cl,subjects] of Object.entries(PD.subjects||{})){
   for(const subject of subjects||[]){
@@ -159,16 +195,24 @@ for(const [cl,subjects] of Object.entries(PD.subjects||{})){
       if(!(byKey.get(key)||[]).some(x=>x.difficulty==='Hard')){
         add({id:prefix+'-hard',classLevel:Number(cl),subject,chapter,type:'long',difficulty:'Hard',question:'Explain “'+chapter+'” in detail and connect the concept to an example or application.',answerText:'A strong answer should include: '+bp.fact+' Example/application: '+bp.example});
       }
+      for(const typeName of ['mcq','short','long']){
+        for(const difficultyName of ['Easy','Medium','Hard']){
+          if(!(byKey.get(key)||[]).some(x=>x.type===typeName&&x.difficulty===difficultyName)){
+            add(generatedQuestion({cl,subject,chapter,type:typeName,difficulty:difficultyName,bp,prefix}));
+          }
+        }
+      }
     }
   }
 }
 
 PD.completionStandard={
   updatedAt:'2026-10-01',
-  minimumPerChapter:3,
+  minimumPerChapter:9,
   requiredTypes:['mcq','short','long'],
   requiredDifficulties:['Easy','Medium','Hard'],
-  note:'Every visible Practice chapter is backed by MCQ, short-answer and long-answer practice. Existing curriculum-specific questions are retained; missing practice types are filled with EduNizam built-in concept questions.'
+  requiredTypeDifficultyMatrix:true,
+  note:'Every visible Practice chapter is backed by every MCQ/short/long × Easy/Medium/Hard combination. Existing curriculum-specific questions are retained; missing combinations are filled with EduNizam built-in concept questions.'
 };
 window.EDUNIZAM_PRACTICE_BLUEPRINTS=B;
 })();
