@@ -149,7 +149,9 @@ function generatedQuestion({cl,subject,chapter,type,difficulty,bp,prefix}){
     const question=urdu
       ?(difficulty==='Easy'?'“'+chapter+'” کے بارے میں درست بنیادی بیان منتخب کریں۔':difficulty==='Medium'?'“'+chapter+'” کی درست مثال منتخب کریں۔':'“'+chapter+'” کو سب سے بہتر واضح کرنے والا جواب منتخب کریں۔')
       :(difficulty==='Easy'?'Choose the best core idea for “'+chapter+'”.':difficulty==='Medium'?'Which example best demonstrates “'+chapter+'”?':'Which choice most accurately applies the idea of “'+chapter+'”?');
-    return {id,classLevel:Number(cl),subject,chapter,type,difficulty,question,options:[correct,...distractors],answer:0,explanation:bp.fact+' '+bp.example};
+    const answer=parseInt(hash(id+'|answer'),36)%4;
+    const options=[...distractors];options.splice(answer,0,correct);
+    return {id,classLevel:Number(cl),subject,chapter,type,difficulty,question,options,answer,explanation:bp.fact+' '+bp.example};
   }
   if(type==='short'){
     const question=urdu
