@@ -249,7 +249,7 @@ function injectSectionExplorers(){
 let guestPracticeRows=[],guestPracticeIndex=0;
 function renderGuestPractice(){
  const x=guestPracticeRows[guestPracticeIndex];if(!x)return;
- $('practiceMeta').innerHTML='<span class="badge">Class '+esc(x.classLevel)+'</span><span class="badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.chapter||'General')+'</span><span class="badge">'+esc(x.difficulty)+'</span><span class="badge">Question '+(guestPracticeIndex+1)+' of '+guestPracticeRows.length+'</span>';
+ $('practiceMeta').innerHTML='<span class="badge">Class '+esc(x.classLevel)+'</span><span class="badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.chapter||'General')+'</span><span class="badge">'+esc(x.type==='mcq'?'MCQ':x.type==='short'?'Short Answer':x.type==='long'?'Long Answer':x.type)+'</span><span class="badge">'+esc(x.difficulty)+'</span><span class="badge">Question '+(guestPracticeIndex+1)+' of '+guestPracticeRows.length+'</span>';
  $('practiceQuestion').textContent=x.question;$('practiceExplain').hidden=true;$('practiceExplain').textContent='';
  const nav='<div class="guest-actions" style="margin-top:12px"><button class="secondary" id="guestPracticePrev" '+(guestPracticeIndex===0?'disabled':'')+'>Previous</button><button class="primary-action" id="guestPracticeNext" '+(guestPracticeIndex>=guestPracticeRows.length-1?'disabled':'')+'>Next Question</button></div>';
  if(x.type==='mcq'){
@@ -306,6 +306,7 @@ function applyHubShortcut(kind){
  if(kind==='models'){selectAndFire('guestGradeType','Model Paper');return}
  if(kind==='handouts'){selectAndFire('vuGuestType','Handouts');return}
  if(kind==='highlighted'){selectAndFire('vuGuestType','Highlighted Handouts');return}
+ if(kind==='practice'){selectAndFire('guestPracticeType','mcq');return}
  if(kind==='datesheet'){$('globalSearch').value='date sheet';showGlobalResults('date sheet');document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');return}
  if(kind==='results'){$('globalSearch').value='results';showGlobalResults('results');document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');return}
  if(kind==='search'){setTimeout(()=>$('globalSearch')?.focus(),0);return}
