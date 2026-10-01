@@ -37,8 +37,8 @@ function injectStyles(){
 function injectDirectory(){
  const home=$('home');if(!home)return;
  const wrap=document.createElement('div');wrap.className='hub-directory';wrap.innerHTML='<div class="section-head"><div><h2>Learning Hub</h2><p>Choose a resource center. All items below are public and need no school approval.</p></div></div><div class="grid">'+[
- ['Past Papers','past'],['Virtual University','vu'],['Pakistani Universities','universities'],['Matric Boards','past'],['Intermediate Boards','past'],['PECTA / School Education','grade'],['Notes','study'],['Handouts','vu'],['Highlighted Handouts','vu'],['MCQs','practice'],['Quizzes','practice'],['Guess Papers','study'],['Model Papers','grade'],['Pairing Schemes','study'],['Date Sheets','universities'],['Results / Result Links','universities'],['Study Library','study'],['Educational Resources','study'],['Search All Resources','home'],['My Saved Resources','home']
- ].map(([t,id])=>'<a href="#'+id+'" data-tab="'+id+'" class="card hub-link"><strong>'+t+'</strong><span>Open →</span></a>').join('')+'</div>';
+ ['Past Papers','past','past'],['Virtual University','vu','vu-all'],['Pakistani Universities','universities','universities'],['Matric Boards','past','matric'],['Intermediate Boards','past','intermediate'],['PECTA / School Education','grade','grade'],['Notes','study','notes'],['Handouts','vu','handouts'],['Highlighted Handouts','vu','highlighted'],['MCQs','practice','practice'],['Quizzes','practice','practice'],['Guess Papers','study','guess'],['Model Papers','grade','models'],['Pairing Schemes','study','pairing'],['Date Sheets','vu','datesheet'],['Results / Result Links','vu','results'],['Study Library','study','study'],['Educational Resources','study','study'],['Search All Resources','home','search'],['My Saved Resources','home','saved']
+ ].map(([t,id,filter])=>'<a href="#'+id+'" data-tab="'+id+'" data-hub-filter="'+filter+'" class="card hub-link"><strong>'+t+'</strong><span>Open →</span></a>').join('')+'</div>';
  home.insertBefore(wrap,home.children[1]||null);
 }
 function injectSearchTools(){
@@ -286,8 +286,28 @@ function openPreview(id){
 function closePremium(){const m=$('premiumResourceModal');if(m)m.classList.remove('open');document.body.classList.remove('guest-modal-open')}
 function toggleFav(id){let x=favorites();x=x.some(v=>v.id===id)?x.filter(v=>v.id!==id):[{id},...x];setJSON(FKEY,x);renderSaved();document.querySelectorAll('[data-fav-id="'+CSS.escape(id)+'"]').forEach(b=>{const on=x.some(v=>v.id===id);b.textContent=on?'★ Saved':'☆ Save';b.classList.toggle('favorite-on',on)})}
 async function shareResource(id){const r=allResources().find(x=>x.id===id);if(!r)return;try{if(navigator.share)await navigator.share({title:r.title,text:r.description||'',url:r.url});else{await navigator.clipboard.writeText(r.url);alert('Resource link copied.')}}catch(_){}}
+function selectAndFire(id,value){
+ const el=$(id);if(!el)return false;
+ const opt=[...el.options].find(o=>o.value===value||o.textContent===value);if(!opt)return false;
+ el.value=opt.value;el.dispatchEvent(new Event('change',{bubbles:true}));return true;
+}
+function applyHubShortcut(kind){
+ if(kind==='matric'){selectAndFire('paperLevel','matric');return}
+ if(kind==='intermediate'){selectAndFire('paperLevel','intermediate');return}
+ if(kind==='notes'){selectAndFire('guestStudyType','Quick Revision')||selectAndFire('guestStudyType','Formula Sheet');return}
+ if(kind==='guess'){selectAndFire('guestStudyType','Guess / Practice Sheet');return}
+ if(kind==='pairing'){selectAndFire('guestStudyType','Pairing Schemes / Model Papers');return}
+ if(kind==='models'){selectAndFire('guestGradeType','Model Paper');return}
+ if(kind==='handouts'){selectAndFire('vuGuestType','Handouts');return}
+ if(kind==='highlighted'){selectAndFire('vuGuestType','Highlighted Handouts');return}
+ if(kind==='datesheet'){selectAndFire('vuGuestType','Date Sheet');return}
+ if(kind==='results'){selectAndFire('vuGuestType','Results / Notices');return}
+ if(kind==='search'){setTimeout(()=>$('globalSearch')?.focus(),0);return}
+ if(kind==='saved'){setTimeout(()=>$('savedResources')?.scrollIntoView({behavior:'smooth',block:'start'}),0)}
+}
 function bind(){
  document.addEventListener('click',e=>{
+  const hub=e.target.closest('[data-hub-filter]');if(hub){setTimeout(()=>applyHubShortcut(hub.dataset.hubFilter),0)}
   const q=e.target.closest('[data-smart-query]');if(q){$('globalSearch').value=q.dataset.smartQuery;saveRecent(q.dataset.smartQuery);renderSuggestions();showGlobalResults(q.dataset.smartQuery);document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');$('globalSearch')?.blur();return}
   const p=e.target.closest('[data-preview-id]');if(p){openPreview(p.dataset.previewId);return}
   const f=e.target.closest('[data-fav-id]');if(f){toggleFav(f.dataset.favId);return}
