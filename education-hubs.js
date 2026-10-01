@@ -74,6 +74,33 @@
     const context=exactCode?'<p class="muted"><strong>Exact course match:</strong> '+esc(searchedCode)+'</p>':(fallbackCode?'<p class="muted"><strong>Source fallback for:</strong> '+esc(searchedCode)+'</p>':'');
     return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+(exactCode?'Exact Course Result':(fallbackCode?'Source Fallback':esc(r.category)))+'</span> '+badge+'</div><button class="icon-btn" data-vu-save="'+r.id+'">'+(saved?'★':'☆')+'</button></div><h3>'+esc(r.title)+'</h3>'+context+'<p class="coverage-note">'+esc(r.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(r.url)+'">Open Resource</a><button class="secondary-action" data-vu-ai="'+r.id+'">AI Use</button></div></article>';
   }
+  function vuCoursePack(code){
+    const raw=String(code||'').trim().toUpperCase();
+    if(!raw)return '';
+    const catalog=window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[];
+    const matches=catalog.filter(x=>String(x.code+' '+x.title+' '+x.category).toUpperCase().includes(raw)).slice(0,10);
+    const exact=catalog.find(x=>String(x.code).toUpperCase()===raw);
+    const card=x=>{
+      const p=window.EDUNIZAM_VU_PATHWAYS?.forCourse?.(x)||{};
+      const links=[
+        ['Course Info',x.officialDetails||p.details||p.search,'primary-link'],
+        ['Overview',x.officialOverview||p.overview,'secondary-link'],
+        ['Video Lectures',x.officialVideos||p.videos,'secondary-link'],
+        ['Reference Books',x.officialReferences||p.references,'secondary-link'],
+        ['Assignments',x.officialAssignments||p.assignments,'secondary-link'],
+        ['Useful Links',x.officialLinks||p.links,'secondary-link']
+      ].filter(y=>y[1]).map(y=>'<a class="'+y[2]+'" target="_blank" rel="noopener" href="'+esc(y[1])+'">'+y[0]+'</a>').join('');
+      return '<article class="paper-card"><div class="paper-card-top"><div><span class="trust-badge trust-official">Official VU Course</span> <span class="mini-badge">'+esc(x.category||'VU')+'</span></div></div><h3>'+esc(x.code)+' — '+esc(x.title)+'</h3><p class="coverage-note">'+esc(x.freshness||'Use official VU OCW and VULMS for current-semester material.')+'</p><div class="paper-actions">'+links+'</div></article>';
+    };
+    if(exact)return card(exact);
+    if(matches.length&&raw.length>=2)return matches.map(card).join('');
+    if(/^[A-Z]{2,5}\d{3,4}[A-Z]?$/.test(raw)){
+      const url='https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(raw);
+      return '<article class="paper-card"><div class="paper-card-top"><div><span class="trust-badge trust-official">Official VU Lookup</span></div></div><h3>'+esc(raw)+'</h3><p class="coverage-note">This code is not matched to a local EduNizam course title yet. Verify it in official VU OpenCourseWare; no exact title or paper is invented.</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(url)+'">Search Official OCW</a></div></article>';
+    }
+    return '';
+  }
+
   function renderVU(){
     document.querySelectorAll('[data-vu-tab]').forEach(b=>b.classList.toggle('active',b.dataset.vuTab===vuTab));
     const q=$('vuSearch').value.trim().toLowerCase(),src=$('vuSource').value,level=$('vuCourseLevel').value;
@@ -90,7 +117,8 @@
     if(!shown.length){
       shown=U.resources.filter(r=>r.universityId==='vu'&&r.source==='official'&&['Handouts','Quizzes','Assignments'].includes(r.category)).slice(0,5);
     }
-    $('vuLibrary').innerHTML=shown.map(vuCard).join('')+'<div class="coverage-note"><strong>Search guidance:</strong> Agar exact course-specific item indexed na ho to upar diye gaye official VU OCW/VULMS/course sources se current handout aur syllabus verify karein. EduNizam exact result invent nahi karta.</div>';
+    const coursePack=vuCoursePack(q);
+    $('vuLibrary').innerHTML=coursePack+shown.map(vuCard).join('')+'<div class="coverage-note"><strong>Search guidance:</strong> Course card ke official OCW links ko primary source rakhein. Community past papers/recalls supplementary hain; current syllabus, quizzes, assignments aur announcements VULMS/official course pages se verify karein.</div>';
     const vu=U.resources.filter(r=>r.universityId==='vu');
     $('vuStatResources').textContent=vu.length;$('vuStatOfficial').textContent=vu.filter(x=>x.source==='official').length;$('vuStatVerified').textContent=vu.filter(x=>x.source==='verified').length;$('vuStatSaved').textContent=vuSaved().length;
     document.querySelectorAll('[data-vu-save]').forEach(b=>b.onclick=()=>{let x=vuSaved();x=x.includes(b.dataset.vuSave)?x.filter(v=>v!==b.dataset.vuSave):[b.dataset.vuSave,...x];putVu(x);renderVU()});
