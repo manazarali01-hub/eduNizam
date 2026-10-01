@@ -129,17 +129,17 @@ const COMMUNITY=[
  {
   id:'vustudyhub-materials',type:'Course Notes / Handouts',title:'VU Study Hub Materials',
   url:'https://vustudyhub.com/materials.php',source:'VU Study Hub',trust:'verified',
-  access:'download_index',note:'Current community library for handouts, assignments, quizzes, GDBs and past papers; includes course-specific resources and recent semester uploads.'
+  access:'open',note:'Current community browse index for handouts, assignments, quizzes, GDBs and past papers. Some course pages currently contain demo/placeholders, so EduNizam does not label this provider as download-ready unless a real file is exposed.'
  },
  {
   id:'vustudyhub-assignments',type:'Assignments',title:'VU Study Hub Assignments',
   url:'https://vustudyhub.com/assignments.php',source:'VU Study Hub',trust:'verified',
-  access:'download_index',note:'Course and semester-oriented assignment preparation/resources.'
+  access:'open',note:'Course and semester-oriented assignment preparation/resources. Some current entries are demo placeholders; browse before relying on a file.'
  },
  {
   id:'vustudyhub-quizzes',type:'Quizzes / MCQs',title:'VU Study Hub Quizzes',
   url:'https://vustudyhub.com/quizzes.php',source:'VU Study Hub',trust:'verified',
-  access:'download_index',note:'Course-wise quiz preparation resources where published.'
+  access:'open',note:'Course-wise quiz preparation resources where published. Some current entries are demo placeholders; browse before relying on a file.'
  },
  {
   id:'vustudyhub-project',type:'Final Project / Viva',title:'CS619 / CS519 Final Project Hub',
@@ -283,17 +283,22 @@ function communityFor(course){
  });
 }
 
-function forCourse(course,{type='',source='',provider=''}={}){
+function forCourse(course,{type='',source='',provider='',access=''}={}){
  let rows=[...officialFor(course),...communityFor(course)];
  if(type)rows=rows.filter(x=>x.type===type);
  if(source==='official')rows=rows.filter(x=>x.trust==='official');
  if(source==='verified')rows=rows.filter(x=>x.trust==='verified');
  if(provider)rows=rows.filter(x=>x.source===provider);
- return rows.map(x=>({...x,actionLabel:actionLabel(x),accessLabel:accessLabel(x)}));
+ if(access==='downloadable')rows=rows.filter(x=>['direct_download','download_index'].includes(x.access));
+ else if(access)rows=rows.filter(x=>x.access===access);
+ const rank={direct_download:0,download_index:1,official_open:2,login_required:3,open:4};
+ rows.sort((a,b)=>(rank[a.access]??9)-(rank[b.access]??9)||String(a.source||'').localeCompare(String(b.source||'')));
+ return rows.map(x=>({...x,verifiedAt:x.verifiedAt||'2026-10-01',actionLabel:actionLabel(x),accessLabel:accessLabel(x)}));
 }
 
 window.EDUNIZAM_VU_MATERIALS={
  updatedAt:'2026-10-01',
+ verificationNote:'Source capabilities were rechecked on 2026-10-01. Community resources remain supplementary and can change independently of EduNizam.',
  types:TYPES,
  communitySources:COMMUNITY,
  providers:[...new Set(COMMUNITY.map(x=>x.source))].sort(),
