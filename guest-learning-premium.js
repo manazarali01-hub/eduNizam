@@ -391,15 +391,18 @@ function injectVUExplorer(){
  refreshTypes();
  const run=()=>{
   const query=norm($('vuGuestQuery').value),type=norm($('vuGuestType').value),catalog=window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[],resources=(uni().resources||[]).filter(x=>x.universityId==='vu');
-  const course=catalog.find(x=>norm(x.code)===query)||catalog.find(x=>query&&norm(x.code+' '+x.title).includes(query));
-  const rawCode=String($('vuGuestQuery').value||'').trim().toUpperCase();
-  const validCourseCode=/^[A-Z]{2,5}\d{3}[A-Z]?$/.test(rawCode);
+  const rawInput=String($('vuGuestQuery').value||'').trim();
+  const rawCode=rawInput.toUpperCase().replace(/[\\s-]+/g,'');
+  const validCourseCode=/^[A-Z]{2,5}\\d{3}[A-Z]?$/.test(rawCode);
+  const lookupQuery=validCourseCode?norm(rawCode):query;
+  const course=catalog.find(x=>norm(x.code)===lookupQuery)||catalog.find(x=>lookupQuery&&norm(x.code+' '+x.title).includes(lookupQuery));
   let rows=resources.filter(x=>{
    const h=norm(JSON.stringify(x));
    const typeOK=!type||h.includes(type)||(type==='midterm'&&/midterm/i.test(x.category||''))||(type==='final term'&&/final/i.test(x.category||''));
    if(!typeOK)return false;
    if(!query)return true;
    const codes=(x.courseCodes||[]).map(norm);
+   if(validCourseCode)return x.courseAgnostic||!codes.length||codes.includes(lookupQuery)||h.includes(lookupQuery);
    return x.courseAgnostic||codes.includes(query)||h.includes(query);
   });
   if(course){
