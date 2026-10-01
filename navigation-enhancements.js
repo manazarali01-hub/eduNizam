@@ -20,9 +20,11 @@
   }
   function mount(){
     const nav=document.getElementById('nav');if(!nav||nav.dataset.enhanced==='1')return;
-    const buttons=[...nav.querySelectorAll(':scope > .nav-item')];if(!buttons.length)return;
+    const buttons=[...nav.querySelectorAll(':scope > .nav-item')];
     nav.dataset.enhanced='1';nav.classList.add('nav-groups');
-    const search=document.createElement('div');search.className='nav-search-wrap';search.innerHTML='<span aria-hidden="true">⌕</span><input id="navFeatureSearch" type="search" placeholder="Find a feature…" aria-label="Find a feature"><kbd>Ctrl K</kbd>';nav.before(search);
+    let search=document.querySelector('.sidebar > .nav-search-wrap');
+    if(!search){search=document.createElement('div');search.className='nav-search-wrap';search.innerHTML='<span aria-hidden="true">⌕</span><input id="navFeatureSearch" type="search" placeholder="Find a feature…" aria-label="Find a feature"><kbd>Ctrl K</kbd>';nav.before(search)}
+    if(buttons.length){
     const byView=new Map(buttons.map(b=>[b.dataset.view,b]));
     for(const [title,icon,views] of groups){
       const details=document.createElement('details');details.className='nav-group';details.dataset.groupTitle=title;details.open=title==='Overview'||title==='Daily Work';
@@ -30,6 +32,7 @@
       const box=document.createElement('div');box.className='nav-group-items';views.forEach(v=>{const b=byView.get(v);if(b){box.appendChild(b);byView.delete(v)}});details.appendChild(box);if(box.children.length||['Daily Work','Communication'].includes(title))nav.appendChild(details);
     }
     if(byView.size){const details=document.createElement('details');details.className='nav-group';details.dataset.groupTitle='More';details.innerHTML='<summary><span>＋</span><strong>More</strong><small>›</small></summary><div class="nav-group-items"></div>';const box=details.lastElementChild;byView.forEach(b=>box.appendChild(b));nav.appendChild(details)}
+    }
     nav.querySelectorAll('.nav-group').forEach(group=>{
       group.addEventListener('toggle',()=>{
         if(!group.open)return;
