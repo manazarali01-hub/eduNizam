@@ -155,6 +155,12 @@ for(const marker of ["guestStudySubject","guestStudyType","guestUniversitySummar
   guestPremium.includes(marker)?ok("learning:control:"+marker):bad("learning:control:"+marker,"missing");
 }
 learn.includes("(pp.papers||[]).length+(sd.materials||[]).length")?ok("learning:overview-total"):bad("learning:overview-total","overview must count all public resources");
+const completeData=read("learning-complete-data.js");
+completeData.includes("EDUNIZAM_PUBLIC_LINKS")?ok("learning:public-links"):bad("learning:public-links","official date-sheet/result links missing");
+guestPremium.includes("guestPracticeType")?ok("learning:practice-type"):bad("learning:practice-type","Practice question-type filter missing");
+guestPremium.includes("kind==='practice'")?ok("learning:practice-shortcut"):bad("learning:practice-shortcut","MCQ/Quiz shortcut missing");
+guestPremium.includes("showGlobalResults('date sheet')")&&guestPremium.includes("showGlobalResults('results')")?ok("learning:public-shortcuts"):bad("learning:public-shortcuts","date sheet/results shortcuts missing");
+learn.includes("(window.EDUNIZAM_PUBLIC_LINKS||[]).length")?ok("learning:public-count"):bad("learning:public-count","overview excludes public portal links");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
