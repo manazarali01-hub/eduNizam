@@ -11,7 +11,27 @@ function recent(){return getJSON(RKEY,[])}
 function saveRecent(q){q=String(q||'').trim();if(q.length<2)return;setJSON(RKEY,[q,...recent().filter(x=>x!==q)].slice(0,6));renderRecent()}
 function practiceHistory(){return getJSON(PKEY,[])}
 function pushPracticeHistory(item){setJSON(PKEY,[item,...practiceHistory()].slice(0,20));renderPracticeHistory()}
-function renderPracticeHistory(){const box=$('guestPracticeHistory');if(!box)return;const rows=practiceHistory();if(!rows.length){box.innerHTML='<span style="color:var(--muted)">No completed practice session on this device yet.</span>';return}const best=Math.max(...rows.map(x=>Number(x.scorePct||0)));const recent=rows[0];box.innerHTML='<strong>Practice history:</strong> '+rows.length+' session'+(rows.length===1?'':'s')+' · Best MCQ score '+best+'% · Last: '+esc(recent.label||'Mixed practice')+' ('+Number(recent.scorePct||0)+'%) <button class="btn" id="guestPracticeClearHistory" type="button" style="margin-left:6px">Clear history</button>';const b=$('guestPracticeClearHistory');if(b)b.onclick=()=>{setJSON(PKEY,[]);renderPracticeHistory()}}
+function practiceWeakTopics(){
+ const score=new Map();
+ practiceHistory().forEach(s=>(s.weakTopics||[]).forEach(x=>{const key=[x.classLevel,x.subject,x.chapter].join('|'),prev=score.get(key)||{classLevel:x.classLevel,subject:x.subject,chapter:x.chapter,count:0};prev.count+=Number(x.count||1);score.set(key,prev)}));
+ return [...score.values()].sort((a,b)=>b.count-a.count);
+}
+function renderPracticeHistory(){
+ const box=$('guestPracticeHistory');if(!box)return;const rows=practiceHistory(),weak=practiceWeakTopics().slice(0,4);
+ if(!rows.length){box.innerHTML='<span style="color:var(--muted)">No completed practice session on this device yet.</span>';return}
+ const best=Math.max(...rows.map(x=>Number(x.scorePct||0))),recent=rows[0];
+ box.innerHTML='<div><strong>Practice history:</strong> '+rows.length+' session'+(rows.length===1?'':'s')+' · Best MCQ score '+best+'% · Last: '+esc(recent.label||'Mixed practice')+' ('+Number(recent.scorePct||0)+'%) <button class="btn" id="guestPracticeClearHistory" type="button" style="margin-left:6px">Clear history</button></div>'+(weak.length?'<div class="search-suggestions" style="margin-top:8px"><strong style="align-self:center">Weak topics:</strong>'+weak.map(x=>'<button type="button" data-practice-weak data-class="'+esc(x.classLevel)+'" data-subject="'+esc(x.subject)+'" data-chapter="'+esc(x.chapter)+'">'+esc(x.subject+' · '+x.chapter)+' ('+x.count+')</button>').join('')+'</div>':'');
+ const b=$('guestPracticeClearHistory');if(b)b.onclick=()=>{setJSON(PKEY,[]);renderPracticeHistory()};
+ box.querySelectorAll('[data-practice-weak]').forEach(b=>b.onclick=()=>{
+   selectAndFire('guestPracticeClass',String(b.dataset.class||''));
+   selectAndFire('guestPracticeSubject',b.dataset.subject||'');
+   selectAndFire('guestPracticeChapter',b.dataset.chapter||'');
+   if($('guestPracticeOrder'))$('guestPracticeOrder').value='random';
+   if($('guestPracticeLimit'))$('guestPracticeLimit').value='10';
+   applyPracticeFilters();
+   $('practiceExplorer')?.scrollIntoView({behavior:'smooth',block:'start'});
+ });
+}
 function practiceResume(){return getJSON(PRESUME,null)}
 function clearPracticeResume(){try{localStorage.removeItem(PRESUME)}catch(_){}renderPracticeResume()}
 function savePracticeResume(){if(!guestPracticeRows.length||guestPracticeFinished)return;setJSON(PRESUME,{ids:guestPracticeRows.map(x=>x.id),index:guestPracticeIndex,attempts:[...guestPracticeAttempts.entries()],savedAt:new Date().toISOString()});renderPracticeResume()}
@@ -333,7 +353,8 @@ function finishGuestPractice(){
  const st=practiceSessionStats(),pct=st.mcqAttempted?Math.round(st.correct/st.mcqAttempted*100):0,skipped=st.pending;
  const missed=guestPracticeRows.filter(q=>{const a=guestPracticeAttempts.get(q.id);return !a||(a.kind==='mcq'&&a.correct!==true)});
  const label=[$('guestPracticeClass')?.value&&((Number($('guestPracticeClass').value)<=8?'Grade ':'Class ')+$('guestPracticeClass').value),$('guestPracticeSubject')?.value,$('guestPracticeChapter')?.value].filter(Boolean).join(' · ')||'Mixed practice';
- pushPracticeHistory({at:new Date().toISOString(),label,count:guestPracticeRows.length,mcqAttempted:st.mcqAttempted,correct:st.correct,reviewed:st.reviewed,skipped,scorePct:pct});
+ const weakMap=new Map();missed.forEach(x=>{const key=[x.classLevel,x.subject,x.chapter||'General'].join('|'),v=weakMap.get(key)||{classLevel:x.classLevel,subject:x.subject,chapter:x.chapter||'General',count:0};v.count++;weakMap.set(key,v)});
+ pushPracticeHistory({at:new Date().toISOString(),label,count:guestPracticeRows.length,mcqAttempted:st.mcqAttempted,correct:st.correct,reviewed:st.reviewed,skipped,scorePct:pct,weakTopics:[...weakMap.values()]});
  $('practiceMeta').innerHTML='<span class="badge">Session complete</span><span class="badge">'+guestPracticeRows.length+' questions</span><span class="badge">'+pct+'% MCQ score</span>';
  $('practiceQuestion').textContent='Practice session completed.';
  $('practiceExplain').hidden=false;
