@@ -35,14 +35,42 @@ const rows=[
  ['IT601','System and Network Administration','Computer Science/Information Technology','https://www.vu.edu.pk/AcademicPrograms/studyscheme?sp=Information_Technology'],
  ['IT602','Information Technology Infrastructure','Computer Science/Information Technology','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=7'],
  ['STA302','Data Analytics and Business Intelligence','Probability & Statistics','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=292'],
- ['STAT404','Regression and Correlation','Probability & Statistics','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=292']
+ ['STAT404','Regression and Correlation','Probability & Statistics','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=292'],
+ ['BT101','Ecology, Biodiversity & Evolution-I','Biotechnology','https://ocw.vu.edu.pk/CourseDetails.aspx?cat=Biotechnology&course=BT101',true],
+ ['CHE201','Physical Chemistry','Biotechnology','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology'],
+ ['BIO101','Basic I-Biology','Biotechnology','https://www.vu.edu.pk/AcademicDepartment/ProgramDetails?StudyProgramID=277'],
+ ['VU001','Introduction to e-Learning','Humanities Distribution','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=174'],
+ ['CS201P','Introduction to Programming (Practical)','Computer Science/Information Technology','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=174'],
+ ['MCM499','Capstone Project','Mass Communication','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=8'],
+ ['MCM512','Media Lab','Mass Communication','https://www.vu.edu.pk/AcademicPrograms/StudyScheme.aspx?sp=Mass_Communication'],
+ ['MCM517','Online Journalism','Mass Communication','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=8'],
+ ['MCM520','Contemporary Mass Media','Mass Communication','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=8'],
+ ['MCM532','Magazine Journalism','Mass Communication','https://www.vu.edu.pk/AcademicPrograms/StudyScheme.aspx?sp=Mass_Communication'],
+ ['MCM612','Media Lab','Mass Communication','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=8'],
+ ['MCM611','Seminar on Contemporary Issues in Media','Mass Communication','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=8'],
+ ['MCMI619','Internship Report-Mass Communication','Mass Communication','https://www.vu.edu.pk/AcademicPrograms/StudyScheme.aspx?sp=Mass_Communication'],
+ ['BIO504T','Biochemistry I (Theory)','Biotechnology','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology'],
+ ['BIO505T','Essentials of Genetics (Theory)','Biotechnology','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology'],
+ ['BIO506T','Biochemistry II (Theory)','Biotechnology','https://www.vu.edu.pk/AcademicDepartment/ProgramDetails?StudyProgramID=295'],
+ ['BIO5101','Introduction to Biotechnology','Biotechnology','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology'],
+ ['BIO5105','Cell Biology','Biotechnology','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Associate_Degree_in_Biotechnology'],
+ ['MB502T','Molecular Biology (Theory)','Molecular Biology','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology'],
+ ['MIC501T','Microbiology (Theory)','Biotechnology','https://www.vu.edu.pk/AcademicDepartment/ProgramDetails?StudyProgramID=295'],
+ ['BT611T','Food Biotechnology (Theory)','Biotechnology','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology'],
+ ['BT614T','Industrial Biotechnology (Theory)','Biotechnology','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology'],
+ ['BT513T','Principles of Biochemical Engineering (Theory)','Biotechnology','https://www.vu.edu.pk/AcademicDepartment/ProgramDetails?StudyProgramID=295'],
+ ['BT612T','Fermentation Technology (Theory)','Biotechnology','https://www.vu.edu.pk/AcademicDepartment/ProgramDetails?StudyProgramID=295'],
+ ['ZOO512T','Animal Diversity: Invertebrates (Theory)','Zoology','https://www.vu.edu.pk/AcademicDepartment/ProgramDetails?StudyProgramID=277'],
+ ['ZOO513T','Animal Diversity: Chordates (Theory)','Zoology','https://www.vu.edu.pk/AcademicDepartment/ProgramDetails?StudyProgramID=277'],
+ ['ECO613','Globalization and Economics','Economics','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=174'],
+ ['PAK522','Ideology and Constitution of Pakistan','Humanities Distribution','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology']
 ];
 const seen=new Set(C.courses.map(x=>String(x.code||'').toUpperCase()));
-for(const [code,title,category,officialDetails] of rows){
+for(const [code,title,category,officialDetails,ocwVerified=false] of rows){
  if(seen.has(code))continue;
  C.courses.push({
    code,title,category,level:'Undergraduate / Program-specific',
-   officialDetails,ocwVerified:false,
+   officialDetails,ocwVerified,
    freshness:'Verified from current Virtual University study-scheme/program pages on 2026-10-01. OCW course-material route was not independently verified, so use the official study scheme and VULMS for current material.'
  });
  seen.add(code);
