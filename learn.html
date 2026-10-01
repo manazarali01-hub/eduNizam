@@ -72,7 +72,7 @@
   </nav>
 
   <section id="home" class="section active">
-    <div class="stats"><div class="stat"><strong id="boardCount">—</strong><span>Boards listed</span></div><div class="stat"><strong id="resourceCount">—</strong><span>Learning resources</span></div><div class="stat"><strong id="uniCount">—</strong><span>Universities</span></div><div class="stat"><strong id="questionCount">—</strong><span>Practice questions</span></div></div>
+    <div class="stats"><div class="stat"><strong id="boardCount">—</strong><span>Boards listed</span></div><div class="stat"><strong id="resourceCount">—</strong><span>Public resources</span></div><div class="stat"><strong id="uniCount">—</strong><span>Universities</span></div><div class="stat"><strong id="questionCount">—</strong><span>Practice questions</span></div></div>
     <div class="section-head"><div><h2>Student-first learning</h2><p>Choose any general learning feature without creating a school account.</p></div></div>
     <div class="grid" id="homeCards"></div>
   </section>
@@ -98,14 +98,14 @@
 
 <footer class="footer"><div class="shell row"><span>EduNizam Learning Hub — free public learning tools.</span><span><a href="./">Home</a> · <a href="privacy.html">Privacy</a> · <a href="about.html">About</a> · <a href="login.html">Login / Sign Up</a></span></div></footer>
 
-<script src="past-papers-data.js?v=20261001-visitor193"></script>
-<script src="study-data.js?v=20261001-visitor193"></script>
-<script src="school-assessment-data.js?v=20261001-visitor193"></script>
-<script src="university-data.js?v=20261001-visitor193"></script>
-<script src="vu-course-catalog.js?v=20261001-visitor193"></script>
-<script src="practice-data.js?v=20261001-visitor193"></script>
-<script src="learning-premium-data.js?v=20261001-visitor193"></script>
-<script src="learning-complete-data.js?v=20261001-visitor193"></script>
+<script src="past-papers-data.js?v=20261001-visitor194"></script>
+<script src="study-data.js?v=20261001-visitor194"></script>
+<script src="school-assessment-data.js?v=20261001-visitor194"></script>
+<script src="university-data.js?v=20261001-visitor194"></script>
+<script src="vu-course-catalog.js?v=20261001-visitor194"></script>
+<script src="practice-data.js?v=20261001-visitor194"></script>
+<script src="learning-premium-data.js?v=20261001-visitor194"></script>
+<script src="learning-complete-data.js?v=20261001-visitor194"></script>
 <script>
 (()=>{
   const $=id=>document.getElementById(id);
@@ -136,7 +136,7 @@
   function resourceCard({title,description,url,source,tags=[],paper=false}){const actions=url?(paper?'<div class="paper-actions"><button class="btn preview-paper" type="button" data-url="'+esc(url)+'" data-title="'+esc(title)+'">Preview</button><button class="btn print-paper" type="button" data-url="'+esc(url)+'">Print</button><a class="btn primary" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Save / Open</a></div>':'<a class="open" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open resource ↗</a>'):'';return '<article class="card">'+sourceBadge(source)+'<h3>'+esc(title)+'</h3><p>'+esc(description||'Useful learning resource.')+'</p><div class="meta">'+tags.filter(Boolean).map(t=>'<span class="badge">'+esc(t)+'</span>').join('')+'</div>'+actions+'</article>'}
   function renderHome(){
     const pp=window.EDUNIZAM_PAST_PAPERS||{},sd=window.EDUNIZAM_STUDY_DATA||{},ud=window.EDUNIZAM_UNIVERSITY_DATA||{},pd=window.EDUNIZAM_PRACTICE_DATA||{};
-    $('boardCount').textContent=(pp.boards||[]).length;$('resourceCount').textContent=(sd.materials||[]).length+(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).length;$('uniCount').textContent=(ud.universities||[]).length;$('questionCount').textContent=(pd.questions||[]).length;
+    $('boardCount').textContent=(pp.boards||[]).length;$('resourceCount').textContent=(pp.papers||[]).length+(sd.materials||[]).length+(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).length+(ud.resources||[]).length+(window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).length;$('uniCount').textContent=(ud.universities||[]).length;$('questionCount').textContent=(pd.questions||[]).length;
     const cards=[
       ['Past Papers','Pakistan boards and available official/verified paper sources.','past'],['Grade 5 & 8','PECTAA model papers, assessment resources and historical archives.','grade'],['Study Library','Syllabi, model papers and quick revision material.','study'],['Universities','Official university and examination resources.','universities'],['Virtual University','VU course material, handouts, notes and supplementary past-paper sources.','vu'],['Practice Center','Free MCQs and questions with instant feedback.','practice']
     ];
@@ -236,9 +236,9 @@
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
-<script src="guest-learning-nav.js?v=20261001-visitor193"></script>
-<script src="guest-learning-premium.js?v=20261001-visitor193"></script>
-<script src="pwa-install.js?v=20261001-visitor193" defer></script>
-<script src="system-auto-update.js?v=20261001-visitor193" defer></script>
+<script src="guest-learning-nav.js?v=20261001-visitor194"></script>
+<script src="guest-learning-premium.js?v=20261001-visitor194"></script>
+<script src="pwa-install.js?v=20261001-visitor194" defer></script>
+<script src="system-auto-update.js?v=20261001-visitor194" defer></script>
 </body>
 </html>
