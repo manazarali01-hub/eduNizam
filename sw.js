@@ -1,4 +1,4 @@
-const CACHE='edunizam-v185-visitor198'
+const CACHE='edunizam-v186-visitor199'
 const CORE=[
   './',
   './index.html',
@@ -39,6 +39,7 @@ const CORE=[
   './learning-premium-data.js',
   './learning-complete-data.js',
   './learning-required-data.js',
+  './learning-search-engine.js',
   './guest-learning-nav.js',
   './guest-learning-premium.js',
   './about.html',
