@@ -1,4 +1,4 @@
-const CACHE='edunizam-v168-system-auto'
+const CACHE='edunizam-v169-mobile182'
 const CORE=[
   './',
   './index.html',
