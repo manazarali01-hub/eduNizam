@@ -452,6 +452,8 @@ const guestPractice=read('guest-learning-premium.js');
 if(!practiceData.includes('id:"q21"')||!practiceData.includes('chapter:"Periodic Table"')||!practiceData.includes('difficulty:"Medium"')) fail.push('Grade 9 Chemistry Periodic Table medium practice coverage missing.');
 if(!guestPractice.includes('refreshPracticeOptions')) fail.push('Practice Center filters are not question-backed.');
 if(!guestPractice.includes("baseActions.hidden=true")) fail.push('Duplicate legacy Practice navigation remains visible.');
+if(!guestPractice.includes("baseActions.style.display='none'")) fail.push('Legacy Practice navigation is not force-hidden against author CSS.');
+if(!guestLearn.includes('.practice-actions[hidden],.practice-actions[aria-hidden="true"]{display:none!important}')) fail.push('Practice hidden-state CSS guard missing.');
 if(guestPractice.includes('No practice question matches these filters. Try another class, subject, chapter or difficulty.')) fail.push('Practice Center still contains the dead-end filter message.');
 const guestPremium=read('guest-learning-premium.js');
 for(const marker of ["function closePremium()","if(level==='university')","data-study-id","paperSession","paperLevel"]){if(!guestPremium.includes(marker)) fail.push('Guest Learning regression marker missing: '+marker)}
