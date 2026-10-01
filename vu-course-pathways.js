@@ -35,9 +35,11 @@ function forCourse(course){
     details:direct?route('CourseDetails',course):queryUrl(course),
     overview:direct?route('CourseOverview',course):queryUrl(course),
     videos:direct?route('Videos',course):queryUrl(course),
+    notes:direct?route('Notes',course):queryUrl(course),
     references:direct?route('ReferenceBooks',course):queryUrl(course),
     assignments:direct?route('Assignments',course):queryUrl(course),
     links:direct?route('Links',course):queryUrl(course),
+    grading:direct?route('GradingScheme',course):queryUrl(course),
     catalogue:'https://ocw.vu.edu.pk/Courses.aspx',
     vulms:'https://vulms.vu.edu.pk/'
   };
@@ -51,9 +53,11 @@ function enrichCatalogue(catalogue){
       course.officialDetails=course.officialDetails||p.details;
       course.officialOverview=course.officialOverview||p.overview;
       course.officialVideos=course.officialVideos||p.videos;
+      course.officialNotes=course.officialNotes||p.notes;
       course.officialReferences=course.officialReferences||p.references;
       course.officialAssignments=course.officialAssignments||p.assignments;
       course.officialLinks=course.officialLinks||p.links;
+      course.officialGrading=course.officialGrading||p.grading;
       course.officialCategory=p.category;
     }
   });
