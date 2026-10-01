@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-const norm=v=>String(v??'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const norm=v=>window.EDUNIZAM_LEARNING_SEARCH?.normalize?.(v)||String(v??'').normalize('NFKC').toLocaleLowerCase('en-PK').replace(/[^\\p{L}\\p{N}]+/gu,' ').trim();
 const FKEY='edunizam_guest_favorites', RKEY='edunizam_guest_recent_searches';
 const getJSON=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(_){return d}};
 const setJSON=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
@@ -17,6 +17,18 @@ function allResources(){
  (uni().resources||[]).forEach(x=>{const u=(uni().universities||[]).find(y=>y.id===x.universityId);out.push({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:u?.name||'',courseCodes:x.courseCodes||[],section:x.universityId==='vu'?'vu':'universities'})});
  (window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).forEach(x=>out.push({id:'course:'+x.code,title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails,source:'official',type:'VU Course',board:'Virtual University of Pakistan',subject:x.category,courseCodes:[x.code],section:'vu'}));
  (window.EDUNIZAM_PUBLIC_LINKS||[]).forEach(x=>out.push({...x}));
+ const practiceGroups=new Map();
+ (window.EDUNIZAM_PRACTICE_DATA?.questions||[]).forEach(x=>{
+  const key=String(x.classLevel)+'|'+String(x.subject||'General');
+  const current=practiceGroups.get(key)||{classLevel:x.classLevel,subject:x.subject||'General',count:0};
+  current.count++;practiceGroups.set(key,current);
+ });
+ practiceGroups.forEach(x=>out.push({
+  id:'practice:'+x.classLevel+':'+x.subject,
+  title:(Number(x.classLevel)<=8?'Grade ':'Class ')+x.classLevel+' '+x.subject+' Practice',
+  description:x.count+' built-in practice question'+(x.count===1?'':'s')+' with answers and explanations.',
+  source:'built-in',type:'Practice / Quiz',board:'EduNizam',classLevel:x.classLevel,subject:x.subject,section:'practice'
+ }));
  return out;
 }
 function injectStyles(){
