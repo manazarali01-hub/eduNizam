@@ -15,7 +15,7 @@ function bad(name,msg){fail.push({name,msg})}
 const required=[
   "index.html","app.html","style.css","app.js","manifest.webmanifest","sw.js",
   "robots.txt","sitemap.xml","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html","public.css",
-  "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","guest-learning-nav.js","guest-learning-premium.js",
+  "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","learning-search-engine.js","guest-learning-nav.js","guest-learning-premium.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
   "school-community.js","navigation-enhancements.js","ui-polish.js",
@@ -171,6 +171,14 @@ for(const p of jsFiles){
 
 // 5) Service worker cache references
 const sw=read("sw.js");
+const autoUpdate=read("system-auto-update.js");
+const pwaInstallSource=read("pwa-install.js");
+const swCache=sw.match(/const CACHE=['"]([^'"]+)['"]/)?.[1]||"";
+const activeCache=autoUpdate.match(/const ACTIVE_CACHE=['"]([^'"]+)['"]/)?.[1]||"";
+const build=autoUpdate.match(/const BUILD=['"]([^'"]+)['"]/)?.[1]||"";
+const registerBuild=pwaInstallSource.match(/sw\.js\?v=([^'"]+)/)?.[1]||"";
+swCache&&swCache===activeCache?ok("sw:cache-version-aligned"):bad("sw:cache-version-aligned",swCache+" != "+activeCache);
+build&&build===registerBuild?ok("sw:build-version-aligned"):bad("sw:build-version-aligned",build+" != "+registerBuild);
 if(!/addEventListener\(['"]activate['"]/.test(sw))bad("sw:activate","activate handler missing");else ok("sw:activate");
 if(!/request\.method|e\.request\.method/.test(sw))bad("sw:get-guard","non-GET guard missing");else ok("sw:get-guard");
 const swAssets=[...sw.matchAll(/['"]\.\/([^'"]+)['"]/g)].map(m=>m[1]);
@@ -214,7 +222,7 @@ try{
 // 6b) Complete public Learning Hub coverage
 try{
   const lctx=vm.createContext({window:{}});
-  for(const p of ["past-papers-data.js","school-assessment-data.js","study-data.js","university-data.js","vu-course-catalog.js","practice-data.js","learning-premium-data.js","learning-complete-data.js"])evalBrowserFile(p,lctx);
+  for(const p of ["past-papers-data.js","school-assessment-data.js","study-data.js","university-data.js","vu-course-catalog.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","learning-search-engine.js"])evalBrowserFile(p,lctx);
   const w=lctx.window;
   const counts={
     boards:w.EDUNIZAM_PAST_PAPERS?.boards?.length||0,
@@ -226,7 +234,7 @@ try{
     vuCourses:w.EDUNIZAM_VU_COURSE_CATALOG?.courses?.length||0,
     practice:w.EDUNIZAM_PRACTICE_DATA?.questions?.length||0
   };
-  const minimums={boards:30,papers:100,grade:20,study:25,universities:25,universityResources:45,vuCourses:30,practice:50};
+  const minimums={boards:30,papers:100,grade:20,study:35,universities:25,universityResources:55,vuCourses:250,practice:85};
   for(const [k,min] of Object.entries(minimums)){
     counts[k]>=min?ok("learning:coverage:"+k):bad("learning:coverage:"+k,counts[k]+" < "+min);
   }
@@ -234,6 +242,25 @@ try{
   for(const cl of [9,10,11,12]){
     const subjects=new Set(questions.filter(x=>Number(x.classLevel)===cl).map(x=>x.subject));
     subjects.size>=9?ok("learning:practice-subjects:"+cl):bad("learning:practice-subjects:"+cl,subjects.size+" subjects");
+  }
+  for(const cl of [5,8]){
+    const rows=questions.filter(x=>Number(x.classLevel)===cl);
+    const subjects=new Set(rows.map(x=>x.subject));
+    rows.length>=10&&subjects.size>=5?ok("learning:practice-primary:"+cl):bad("learning:practice-primary:"+cl,rows.length+" questions / "+subjects.size+" subjects");
+  }
+  const search=w.EDUNIZAM_LEARNING_SEARCH;
+  if(!search?.search||!search?.normalize)bad("learning:smart-search","search engine missing");
+  else{
+    const searchable=[];
+    (w.EDUNIZAM_PAST_PAPERS?.papers||[]).forEach(x=>{const b=(w.EDUNIZAM_PAST_PAPERS?.boards||[]).find(y=>y.id===x.boardId);searchable.push({id:'paper:'+x.id,title:x.title,description:x.note,type:x.type==='past'?'Past Paper':x.type,board:b?.name||'',classLevel:x.classLevel,subject:x.subject,section:'past'})});
+    (w.EDUNIZAM_UNIVERSITY_DATA?.resources||[]).filter(x=>x.universityId==='vu').forEach(x=>searchable.push({id:'vu:'+x.id,title:x.title,description:x.note,type:x.category,source:x.source,courseCodes:x.courseCodes||[],section:'vu'}));
+    (w.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).forEach(x=>searchable.push({id:'course:'+x.code,title:x.code+' — '+x.title,type:'VU Course',source:'official',courseCodes:[x.code],section:'vu'}));
+    const a=search.search(searchable,'10th class math Gujranwala board');
+    const b=search.search(searchable,'Mth 603 quizzes');
+    const ur=search.search(searchable,'دسویں جماعت ریاضی گوجرانوالہ');
+    a.some(x=>String(x.title).includes('Gujranwala Class 10'))?ok("learning:search-natural"):bad("learning:search-natural","natural board query failed");
+    b.some(x=>String(x.type).toLowerCase().includes('quiz'))?ok("learning:search-vu-type"):bad("learning:search-vu-type","spaced VU course + resource type failed");
+    ur.some(x=>String(x.title).includes('Gujranwala Class 10'))?ok("learning:search-urdu"):bad("learning:search-urdu","Urdu board query failed");
   }
   const grade=w.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[];
   const g5=new Set(grade.filter(x=>Number(x.grade)===5).flatMap(x=>String(x.subject||"").split("/").map(s=>s.trim())).filter(x=>x&&x!=="All Subjects"));
