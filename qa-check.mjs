@@ -469,6 +469,11 @@ for(const marker of ['guestStudySubject','guestStudyType','guestUniversitySummar
 }
 if(!guestLearn.includes('(pp.papers||[]).length+(sd.materials||[]).length')) fail.push('Learning Hub overview does not count complete public resources.');
 if(!read('learning-complete-data.js').includes("id:'exam-focus-12'")) fail.push('Study Library exam-focus data missing.');
+if(!read('learning-complete-data.js').includes('EDUNIZAM_PUBLIC_LINKS')) fail.push('Official public date-sheet/result links data missing.');
+if(!guestPremium.includes('guestPracticeType')) fail.push('Practice Center question-type filter missing.');
+if(!guestPremium.includes("kind==='practice'")) fail.push('MCQ/Quiz directory shortcut is not connected to Practice Center.');
+if(!guestPremium.includes("showGlobalResults('date sheet')")||!guestPremium.includes("showGlobalResults('results')")) fail.push('Date Sheet / Result directory shortcuts are not global public searches.');
+if(!guestLearn.includes('(window.EDUNIZAM_PUBLIC_LINKS||[]).length')) fail.push('Overview public-resource total excludes date-sheet/result portal links.');
 if(!pwaSw.includes("'./pwa-install.js'")) fail.push('PWA install controller not cached.');
 if(!pwaSw.includes("'./icon-192.png'")||!pwaSw.includes("'./icon-512.png'")) fail.push('PWA PNG icons not cached.');
 
