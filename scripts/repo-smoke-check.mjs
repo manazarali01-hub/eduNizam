@@ -15,7 +15,7 @@ function bad(name,msg){fail.push({name,msg})}
 const required=[
   "index.html","app.html","style.css","app.js","manifest.webmanifest","sw.js",
   "robots.txt","sitemap.xml","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html","public.css",
-  "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","practice-complete-data.js","learning-search-engine.js","guest-learning-nav.js","guest-learning-premium.js",
+  "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","practice-complete-data.js","practice-session-core.js","learning-search-engine.js","guest-learning-nav.js","guest-learning-premium.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
   "school-community.js","navigation-enhancements.js","ui-polish.js",
@@ -188,6 +188,7 @@ build&&build===registerBuild?ok("sw:build-version-aligned"):bad("sw:build-versio
 if(!/addEventListener\(['"]activate['"]/.test(sw))bad("sw:activate","activate handler missing");else ok("sw:activate");
 if(!/request\.method|e\.request\.method/.test(sw))bad("sw:get-guard","non-GET guard missing");else ok("sw:get-guard");
 if(sw.includes("'./practice-complete-data.js'"))ok("sw:practice-complete-cache");else bad("sw:practice-complete-cache","practice-complete-data.js missing from cache");
+if(sw.includes("'./practice-session-core.js'"))ok("sw:practice-core-cache");else bad("sw:practice-core-cache","practice-session-core.js missing from cache");
 const swAssets=[...sw.matchAll(/['"]\.\/([^'"]+)['"]/g)].map(m=>m[1]);
 const missingSw=[...new Set(swAssets.filter(p=>!exists(p)))];
 missingSw.length?bad("sw:assets",missingSw.join(", ")):ok("sw:assets");
@@ -229,7 +230,7 @@ try{
 // 6b) Complete public Learning Hub coverage
 try{
   const lctx=vm.createContext({window:{}});
-  for(const p of ["past-papers-data.js","school-assessment-data.js","study-data.js","university-data.js","vu-course-catalog.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","practice-complete-data.js","learning-search-engine.js"])evalBrowserFile(p,lctx);
+  for(const p of ["past-papers-data.js","school-assessment-data.js","study-data.js","university-data.js","vu-course-catalog.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","practice-complete-data.js","practice-session-core.js","learning-search-engine.js"])evalBrowserFile(p,lctx);
   const w=lctx.window;
   const counts={
     boards:w.EDUNIZAM_PAST_PAPERS?.boards?.length||0,
@@ -270,6 +271,34 @@ try{
     }
   }
   incompletePractice.length?bad("learning:practice-complete-coverage",incompletePractice.slice(0,8).join(", ")):ok("learning:practice-complete-coverage");
+  const core=w.EDUNIZAM_PRACTICE_CORE;
+  if(!core?.filterQuestions||!core?.selectSession||!core?.sessionStats||!core?.auditMatrix)bad("learning:practice-core","Practice core API missing");
+  else{
+    const matrix=core.auditMatrix(practiceDataAll);
+    matrix.length?bad("learning:practice-core-matrix",matrix.slice(0,5).map(x=>JSON.stringify(x)).join(" | ")):ok("learning:practice-core-matrix");
+    let comboFailures=[];
+    for(const [cl,subjects] of Object.entries(practiceDataAll.subjects||{})){
+      for(const subject of subjects||[]){
+        for(const chapter of practiceDataAll.chapters?.[cl+"|"+subject]||[]){
+          for(const type of ["mcq","short","long"])for(const difficulty of ["Easy","Medium","Hard"]){
+            const rows=core.filterQuestions(questions,{classLevel:cl,subject,chapter,type,difficulty});
+            if(!rows.length)comboFailures.push(cl+"|"+subject+"|"+chapter+"|"+type+"|"+difficulty);
+          }
+        }
+      }
+    }
+    comboFailures.length?bad("learning:practice-filter-matrix",comboFailures.slice(0,5).join(", ")):ok("learning:practice-filter-matrix");
+    const pool=core.filterQuestions(questions,{classLevel:"9",subject:"Mathematics"});
+    const seq=core.selectSession(pool,{}, {order:"sequential",limit:"10"});
+    const rnd=core.selectSession(pool,{}, {order:"random",limit:"10",random:()=>0.25});
+    seq.length===Math.min(10,pool.length)?ok("learning:practice-limit"):bad("learning:practice-limit",seq.length+" rows");
+    rnd.length===seq.length?ok("learning:practice-random-size"):bad("learning:practice-random-size",rnd.length+" != "+seq.length);
+    const attempts=new Map();
+    if(seq[0])attempts.set(seq[0].id,{kind:"mcq",correct:true});
+    if(seq[1])attempts.set(seq[1].id,{kind:"written"});
+    const stats=core.sessionStats(seq,attempts);
+    stats.attempted===attempts.size&&stats.pending===Math.max(0,seq.length-attempts.size)&&stats.correct===1?ok("learning:practice-score-stats"):bad("learning:practice-score-stats",JSON.stringify(stats));
+  }
   const search=w.EDUNIZAM_LEARNING_SEARCH;
   if(!search?.search||!search?.normalize)bad("learning:smart-search","search engine missing");
   else{
