@@ -451,6 +451,90 @@ const DIRECT_HIGHLIGHTED={
 };
 const driveDownload=id=>'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id);
 
+const DIRECT_SOLVED={
+ 'CS101':[
+  ['Midterm Past Papers','Moaaz','Subjective','1MPLM8HJArr638db_cv3lYv9PA5mWPpZ8'],
+  ['Midterm Past Papers','Waqar Siddhu','Subjective','1YRgfKoyVLnbSpEn1UUh0-ShjGSxizRC7'],
+  ['Midterm Past Papers','Junaid','Subjective','1QryShf1tOJxvCEulaBAYmYvuLkVFA72j'],
+  ['Finalterm Past Papers','Moaaz','Subjective','1FjccHUrSit1KH5Y6DA_qEw-zjiaIAcjj'],
+  ['Finalterm Past Papers','Waqar Siddhu','Subjective','1KJYM8FUqpPv3y4-i76YRRT97QOLUKi7E'],
+  ['Finalterm Past Papers','Junaid','Subjective','1snz-GbMCYRYbIJkVwMSTgP11Hi6zPNXY']
+ ],
+ 'CS201':[
+  ['Midterm Past Papers','Moaaz','MCQs','11eWJesg--MYnKqMRxWJnkrZ3odzfy1rB'],
+  ['Midterm Past Papers','Waqar Siddhu','MCQs','1WnxB6zldZgpcK519-UKRW8d9hTAWygwv'],
+  ['Midterm Past Papers','Junaid','MCQs','1yaJM596lEnZqUQtNU9KfNPNDNQ8vGpvN'],
+  ['Midterm Past Papers','Moaaz','Subjective','1Hwd2i3rr-EPi7v_M0UQ5j-gjIzLEDDPL'],
+  ['Midterm Past Papers','Waqar Siddhu','Subjective','12HzaJ9BYq5pEj-mfhrWYgSt9dEu2W1en'],
+  ['Finalterm Past Papers','Moaaz','MCQs','19yl27SJLi_eYYMDWRTNvmGeqYLI1lgXM'],
+  ['Finalterm Past Papers','Waqar Siddhu','MCQs','1JIMLSFoevwVFCKhbVPShevCqQGR_38KB'],
+  ['Finalterm Past Papers','Junaid','MCQs','1FPjqiznjqvJejNghgUrgVZBuwA1jjUDa'],
+  ['Finalterm Past Papers','Moaaz','Subjective','1khuk-HUAWzh66tNvq_qpr4rjUZwlw5iP'],
+  ['Finalterm Past Papers','Waqar Siddhu','Subjective','1m_8ZFz_x7r3LU70yoYToPUlXrqSOtJDU'],
+  ['Finalterm Past Papers','Junaid','Subjective','1NbJsEA2fa8W1ecsPrSvkchwJBQkHGajW']
+ ],
+ 'ENG101':[
+  ['Midterm Past Papers','Moaaz','MCQs','1hlV0dPpDCm7jyCKkkQhN3CwqSwHBHNSP'],
+  ['Midterm Past Papers','Junaid','MCQs','1EG7jgTfUqODJK-4tcuXJYdU6VakcICUW'],
+  ['Midterm Past Papers','Moaaz','Subjective','1u8mEDNXND3sfGhrCHBKVN3-a812jIFYT'],
+  ['Finalterm Past Papers','Waqar Siddhu','MCQs','1mXvQLVknKZGiidiZO1Fp-3CS4fA1IAol'],
+  ['Finalterm Past Papers','Waqar Siddhu','Subjective','1CmV3SUBSrFbTj4QbyiumG5zC_nW_n7KG']
+ ],
+ 'ENG201':[
+  ['Midterm Past Papers','Moaaz','MCQs','13Vl1ts32bfFOlaqeGudqgMou3qqWEkcG'],
+  ['Midterm Past Papers','Junaid','MCQs','1FP-sQoYw99UoPFRxfT7NR0KK5k4-utS-'],
+  ['Midterm Past Papers','Moaaz','Subjective','1OiNuHQ0-WSPpRRxUffjxo5-WetQK3aG8'],
+  ['Finalterm Past Papers','Moaaz','MCQs','1ERUHaGkwipVd3JxEzuXiXwnP9HB2f8sD'],
+  ['Finalterm Past Papers','Moaaz','Subjective','158z1PwWZxH387rtMy5HKojkWvWHmomZW']
+ ],
+ 'MTH202':[
+  ['Midterm Past Papers','Moaaz','MCQs','1w1awsviuAsrMl7h0-cfudwB3CJ5jDVsD'],
+  ['Midterm Past Papers','Waqar Siddhu','MCQs','1ybAdF2mkr_Hqttq_F5IHjH73x2LmKutD'],
+  ['Midterm Past Papers','Junaid','MCQs','10L32LXWme2Eb-MBjaASP_SIU55HhWtTn'],
+  ['Midterm Past Papers','Moaaz','Subjective','1vwMs5OQHQLnPUJ5hi5hWmsZaY4HkVqTe'],
+  ['Midterm Past Papers','Waqar Siddhu','Subjective','156S8ggLVSPAcOSa5mH8tXfjWGxx9u3I7'],
+  ['Finalterm Past Papers','Moaaz','MCQs','1VHvN4kKgKTGFOmvLfCeVCZEYZrTTOSep'],
+  ['Finalterm Past Papers','Waqar Siddhu','MCQs','1tkGXQ8ezqY2YVKX6bwQ30JxJFuyW1sY-'],
+  ['Finalterm Past Papers','Moaaz','Subjective','1C8ZK65GvIrjWxovQh8Ntz_2a9m179Kfg'],
+  ['Finalterm Past Papers','Waqar Siddhu','Subjective','13JWFn-wX9CERiw_YG1xPr8QztHZZijSn']
+ ],
+ 'MTH301':[
+  ['Midterm Past Papers','Waqar Siddhu','MCQs','1OejyEUSBDg_gDodKxjuHMvGgpH81zHoZ'],
+  ['Midterm Past Papers','Junaid','MCQs','1Qd1HxKHKROl1So5OqxPTF3qmO2d5-NU7'],
+  ['Midterm Past Papers','Waqar Siddhu','Subjective','1JS2RZNHOQG49L9vNLAGmCYsYzhnkcWzM'],
+  ['Finalterm Past Papers','Waqar Siddhu','MCQs','19AlyZkN7EfmwMTWTvn-zA8qtgRs1-mWb'],
+  ['Finalterm Past Papers','Waqar Siddhu','Subjective','1koWUTGbcby9aMrK4Cg7j4xa1JrETbENu']
+ ],
+ 'MTH501':[
+  ['Midterm Past Papers','Waqar Siddhu','MCQs','1srvDVBwedgTzLte0pyj8g1MiPfCgjiaI'],
+  ['Midterm Past Papers','Junaid','MCQs','17wJmLVFxVEmJ2EiRrMVVw4AwdhM5H-0l'],
+  ['Midterm Past Papers','Waqar Siddhu','Subjective','1WO8b-N5Pl0WsuhXtBcK857R6YcqBddfM'],
+  ['Finalterm Past Papers','Waqar Siddhu','MCQs','1ywzuPLriWFqI93SttxXEwr72pGxIAOGw'],
+  ['Finalterm Past Papers','Junaid','MCQs','108K2upc5C6l_U04jbTiK4DnsluZz2c2e'],
+  ['Finalterm Past Papers','Waqar Siddhu','Subjective','1-3b8m23Mx53WQAnKGgSkL_O01MP57KDE']
+ ],
+ 'STA301':[
+  ['Midterm Past Papers','Moaaz','MCQs','1nXuqabsXWn6GcsNO4HpMXGFfng9oqnXa'],
+  ['Midterm Past Papers','Waqar Siddhu','MCQs','1EgAxZT_Rq8lyOj6VQKAD0mV2qzHxhbLg'],
+  ['Midterm Past Papers','Junaid','MCQs','1VjZN7L3Bc_lT19awGilOq7ejb-By3OSo'],
+  ['Midterm Past Papers','Moaaz','Subjective','1exTN5Os8EbNXV8zNAhL3G5-BkrDUdVWT'],
+  ['Midterm Past Papers','Waqar Siddhu','Subjective','1gJpWgHX75TRJxatjYMEda9gAF3rYw77B'],
+  ['Finalterm Past Papers','Moaaz','MCQs','1nAMkxt2KzD49Iu6CmjImUmQ3i0NuszKS'],
+  ['Finalterm Past Papers','Waqar Siddhu','MCQs','1oDqz0VvQDV-oqZkGhpvm1KE1oSCyTyJm'],
+  ['Finalterm Past Papers','Junaid','MCQs','15ohs7RVhQOLv-KHrUODgnZCKcBwLpFl4'],
+  ['Finalterm Past Papers','Moaaz','Subjective','1x5mtxQnCIAaWa4zlakh24nXski6e1RP7'],
+  ['Finalterm Past Papers','Waqar Siddhu','Subjective','19rB319OGervkXH0NS_Y4JlDNEI8W8drk'],
+  ['Finalterm Past Papers','Junaid','Subjective','124eAWnSNVdNw4w_Bc4mini3slBfj_4TF']
+ ]
+};
+const directSolvedRows=code=>(DIRECT_SOLVED[code]||[]).map(([type,author,part,id],i)=>({
+ id:'direct-solved-'+code+'-'+type.replace(/\W+/g,'-').toLowerCase()+'-'+author.replace(/\W+/g,'-').toLowerCase()+'-'+i,
+ courseCode:code,type,title:code+' · '+type.replace(' Past Papers','')+' '+part+' · '+author,
+ url:driveDownload(id),source:author,via:'VUAnswer',trust:'verified',access:'direct_download',
+ note:'Direct solved-paper file indexed by VUAnswer under '+author+'. Community exam-preparation material; verify answers and syllabus against current official VU handouts.'
+}));
+
+
 const FINALTERM_DEPARTMENT_ROUTES={
  'CS':'https://vuanswer.pk/vu-all-cs-subjects-finalterm-past-papers/',
  'MTH':'https://vuanswer.pk/vu-mth-finalterm-past-papers/',
@@ -503,7 +587,7 @@ function officialFor(course){
 function communityFor(course){
  const code=String(course?.code||'').toUpperCase();
  const deptFinal=finaltermDepartmentUrl(code);
- const baseRows=COMMUNITY.flatMap(x=>{
+ const baseRows=[...directSolvedRows(code),...COMMUNITY.flatMap(x=>{
   const base={...x,id:x.id+'-'+code,courseCode:code,title:code+' · '+x.title};
   if(x.id==='vustudyhub-project'&&!['CS519','CS619'].includes(code))return [];
   if(x.id==='vustudyhub-internship'&&code!=='CSI619')return [];
@@ -525,7 +609,7 @@ function communityFor(course){
    return out;
   }
   return [base];
- });
+ })];
  if(deptFinal){
   baseRows.unshift({
    id:'vuanswer-dept-final-'+code,courseCode:code,type:'Finalterm Past Papers',
@@ -556,9 +640,10 @@ window.EDUNIZAM_VU_MATERIALS={
  verificationNote:'Source capabilities were rechecked on 2026-10-01. Community resources remain supplementary and can change independently of EduNizam.',
  types:TYPES,
  communitySources:COMMUNITY,
- providers:[...new Set(COMMUNITY.map(x=>x.source))].sort(),
+ providers:[...new Set(COMMUNITY.map(x=>x.source).concat(['Moaaz','Waqar Siddhu','Junaid']))].sort(),
  directHighlightedCourses:Object.keys(DIRECT_HIGHLIGHTED),
  directHandoutCourses:Object.keys(DIRECT_HANDOUTS),
+ directSolvedCourses:Object.keys(DIRECT_SOLVED),
  forCourse,
  actionLabel,
  accessLabel
