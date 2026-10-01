@@ -6,7 +6,8 @@ const TYPES=[
  'Lecture Videos','Reference Books','Assignments','GDB / Current Semester',
  'Quizzes / MCQs','Midterm Past Papers','Finalterm Past Papers',
  'Current Papers / Recalls','Solved Past Papers','Preparation Videos',
- 'Grading Scheme','Course Overview','Useful Links'
+ 'PPT Slides','Practicals / Lab Manuals','Books / References','Final Project / Viva',
+ 'Grading Scheme','Course Overview','Useful Links','Offline App Library'
 ];
 
 const COMMUNITY=[
@@ -84,6 +85,81 @@ const COMMUNITY=[
   id:'vuinsider-handouts',type:'Course Notes / Handouts',title:'VU Handouts PDF Archive',
   url:'https://vuinsider.com/threads/vu-handouts-pdfs.120/',source:'VU Insider',trust:'verified',
   access:'download_index',note:'Community-organized VU handout PDF archive across many course codes.'
+ },
+ {
+  id:'vuctn-past',type:'Solved Past Papers',title:'VU CTN Past Papers with Drive Links',
+  url:'https://www.vuctn.com/',source:'VU CTN',trust:'verified',
+  access:'download_index',note:'VU CTN exposes past papers, handouts, short notes, quizzes, grand quizzes and Drive-linked paper collections. Some legacy category links may move, so use the main resource hub when a category link changes.'
+ },
+ {
+  id:'vuctn-short',type:'Short Notes',title:'VU CTN Short Notes',
+  url:'https://www.vuctn.com/',source:'VU CTN',trust:'verified',
+  access:'download_index',note:'Community short-note collections and course-oriented revision material.'
+ },
+ {
+  id:'vuctn-ppt',type:'PPT Slides',title:'VU CTN PPT Slides',
+  url:'https://www.vuctn.com/',source:'VU CTN',trust:'verified',
+  access:'download_index',note:'Community PPT/PDF slide collections for VU subjects where available.'
+ },
+ {
+  id:'vuctn-quiz',type:'Quizzes / MCQs',title:'VU CTN Quiz / Grand Quiz Files',
+  url:'https://www.vuctn.com/',source:'VU CTN',trust:'verified',
+  access:'download_index',note:'Community quiz and grand-quiz preparation files.'
+ },
+ {
+  id:'vuctn-books',type:'Books / References',title:'VU CTN Books / Reference Material',
+  url:'https://www.vuctn.com/',source:'VU CTN',trust:'verified',
+  access:'download_index',note:'Supplementary books/reference resources where listed by the community hub.'
+ },
+ {
+  id:'vustudy-final',type:'Finalterm Past Papers',title:'VUStudy Final Term Past Papers',
+  url:'https://vustudy.com/final-term-past-papers/',source:'VUStudy',trust:'verified',
+  access:'download_index',note:'Large course-wise final-term paper directory including Moaaz, Waqar Siddhu and other student-prepared materials.'
+ },
+ {
+  id:'vustudy-current',type:'Current Papers / Recalls',title:'VUStudy Current / Recent Papers',
+  url:'https://vustudy.com/vu-final-term-papers/',source:'VUStudy',trust:'verified',
+  access:'download_index',note:'Community current/recent paper and MCQ posts; semester-specific and supplementary only.'
+ },
+ {
+  id:'virtualuniversitypk-handouts',type:'Course Notes / Handouts',title:'VirtualUniversityPK Handouts PDF Library',
+  url:'https://virtualuniversitypk.com/vu-handouts/',source:'VirtualUniversityPK',trust:'verified',
+  access:'download_index',note:'Broad subject-wise handout library with direct PDF download pages across ACC, BIF, BIO, CS, ECO, EDU, ENG, MGT, MTH, PSY, STA and other VU prefixes.'
+ },
+ {
+  id:'vustudyhub-materials',type:'Course Notes / Handouts',title:'VU Study Hub Materials',
+  url:'https://vustudyhub.com/materials.php',source:'VU Study Hub',trust:'verified',
+  access:'download_index',note:'Current community library for handouts, assignments, quizzes, GDBs and past papers; includes course-specific resources and recent semester uploads.'
+ },
+ {
+  id:'vustudyhub-assignments',type:'Assignments',title:'VU Study Hub Assignments',
+  url:'https://vustudyhub.com/assignments.php',source:'VU Study Hub',trust:'verified',
+  access:'download_index',note:'Course and semester-oriented assignment preparation/resources.'
+ },
+ {
+  id:'vustudyhub-quizzes',type:'Quizzes / MCQs',title:'VU Study Hub Quizzes',
+  url:'https://vustudyhub.com/quizzes.php',source:'VU Study Hub',trust:'verified',
+  access:'download_index',note:'Course-wise quiz preparation resources where published.'
+ },
+ {
+  id:'vustudyhub-project',type:'Final Project / Viva',title:'CS619 / CS519 Final Project Hub',
+  url:'https://vustudyhub.com/projects.php',source:'VU Study Hub',trust:'verified',
+  access:'download_index',note:'Project ideas, SRS, design documents, test cases, final report guidance, presentations, viva preparation, project guidelines and video tutorials for CS619/CS519.'
+ },
+ {
+  id:'vuctn-practicals',type:'Practicals / Lab Manuals',title:'VU Practical / Lab Resources',
+  url:'https://www.vuctn.com/',source:'VU CTN',trust:'verified',
+  access:'download_index',note:'Community practical/manual resources where available for lab-oriented courses.'
+ },
+ {
+  id:'acadora-offline',type:'Offline App Library',title:'Acadora Offline VU Library',
+  url:'https://wasii.dev/acadora',source:'Acadora',trust:'verified',
+  access:'open',note:'Free Android study app/library for VU past papers, handouts, notes and assignments with offline-ready access and course search.'
+ },
+ {
+  id:'vumalik-past',type:'Solved Past Papers',title:'VU Malik Solved Past Paper Archive',
+  url:'https://vumalik.blogspot.com/',source:'VU Malik',trust:'verified',
+  access:'download_index',note:'Course-specific solved MCQ/subjective paper posts with Moaaz, Waqar Siddhu, Hadi and Malik references on many subjects.'
  }
 ];
 
@@ -186,6 +262,11 @@ function communityFor(course){
  const code=String(course?.code||'').toUpperCase();
  return COMMUNITY.flatMap(x=>{
   const base={...x,id:x.id+'-'+code,courseCode:code,title:code+' · '+x.title};
+  if(x.id==='virtualuniversitypk-handouts')base.url='https://virtualuniversitypk.com/?s='+encodeURIComponent(code);
+  if(x.id==='vustudy-final'||x.id==='vustudy-current')base.url='https://vustudy.com/?s='+encodeURIComponent(code);
+  if(x.id==='vumalik-past')base.url='https://vumalik.blogspot.com/search?q='+encodeURIComponent(code);
+  if(x.id==='vuctn-past'||x.id==='vuctn-short'||x.id==='vuctn-ppt'||x.id==='vuctn-quiz'||x.id==='vuctn-books'||x.id==='vuctn-practicals')base.url='https://www.vuctn.com/search?q='+encodeURIComponent(code);
+  if(x.id==='vustudyhub-materials'||x.id==='vustudyhub-assignments'||x.id==='vustudyhub-quizzes')base.url=x.url;
   const out=[];
   if(x.id==='vuanswer-handouts'&&DIRECT_HANDOUTS[code]){
    out.push({...base,id:'direct-handout-'+code,url:driveDownload(DIRECT_HANDOUTS[code]),access:'direct_download',title:code+' · Handouts — Direct PDF Download',note:'Verified community handout mirror on Google Drive. Use the official VU OCW/VULMS handout as the primary current-semester source.'});
@@ -201,11 +282,12 @@ function communityFor(course){
  });
 }
 
-function forCourse(course,{type='',source=''}={}){
+function forCourse(course,{type='',source='',provider=''}={}){
  let rows=[...officialFor(course),...communityFor(course)];
  if(type)rows=rows.filter(x=>x.type===type);
  if(source==='official')rows=rows.filter(x=>x.trust==='official');
  if(source==='verified')rows=rows.filter(x=>x.trust==='verified');
+ if(provider)rows=rows.filter(x=>x.source===provider);
  return rows.map(x=>({...x,actionLabel:actionLabel(x),accessLabel:accessLabel(x)}));
 }
 
@@ -213,6 +295,7 @@ window.EDUNIZAM_VU_MATERIALS={
  updatedAt:'2026-10-01',
  types:TYPES,
  communitySources:COMMUNITY,
+ providers:[...new Set(COMMUNITY.map(x=>x.source))].sort(),
  directHighlightedCourses:Object.keys(DIRECT_HIGHLIGHTED),
  directHandoutCourses:Object.keys(DIRECT_HANDOUTS),
  forCourse,
