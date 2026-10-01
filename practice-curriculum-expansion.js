@@ -1,0 +1,112 @@
+(function(){
+'use strict';
+const PD=window.EDUNIZAM_PRACTICE_DATA;
+if(!PD)return;
+const X={
+'9|Biology|Biodiversity':{fact:'Biodiversity is the variety of living organisms and can be described at genetic, species and ecosystem levels.',example:'A forest containing many plant, animal and microorganism species has greater species diversity than a habitat with very few species.'},
+'9|Biology|Cell Cycle':{fact:'The cell cycle includes growth, DNA replication and cell division, helping organisms grow and replace cells.',example:'Before mitosis, DNA is replicated so daughter cells can receive corresponding genetic information.'},
+'9|Chemistry|Fundamentals of Chemistry':{fact:'Chemistry studies matter, its composition, properties and the changes it undergoes.',example:'Distinguishing an element from a compound depends on composition and whether chemical decomposition is possible.'},
+'9|Chemistry|Structure of Molecules':{fact:'Molecules form when atoms bond, and molecular structure influences physical and chemical properties.',example:'Covalent bonds involve shared electron pairs between atoms.'},
+'9|Chemistry|Physical States of Matter':{fact:'Solids, liquids and gases differ in particle arrangement, motion and intermolecular spacing.',example:'Gas particles are much farther apart and move more freely than particles in a solid.'},
+'9|Computer Science|Data and Information':{fact:'Data are raw facts, while information is processed or organized data that has meaning in context.',example:'A list of marks is data; a calculated class average is information derived from those marks.'},
+'9|Computer Science|Programming Basics':{fact:'Programming uses variables, expressions, decisions and repetition to describe a solution that a computer can execute.',example:'An if statement chooses between actions based on whether a condition is true or false.'},
+'9|English|Vocabulary':{fact:'Vocabulary skills include understanding word meaning, context, synonyms, antonyms and appropriate usage.',example:'The surrounding sentence can help a reader infer the meaning of an unfamiliar word.'},
+'9|English|Reading Comprehension':{fact:'Reading comprehension involves identifying main ideas, supporting details, purpose and reasonable inferences from a text.',example:'A valid inference should be supported by evidence in the passage rather than by an unrelated guess.'},
+'9|English|Writing Skills':{fact:'Clear writing organizes ideas into focused sentences and paragraphs with suitable grammar, punctuation and transitions.',example:'A paragraph is easier to follow when its supporting sentences relate directly to its topic sentence.'},
+'9|Islamiat / Ethics|Character and Social Duties':{fact:'Responsible social conduct includes honesty, fairness, respect, fulfilling duties and avoiding harm to others.',example:'Returning borrowed property on time demonstrates responsibility and trustworthiness.'},
+'9|Mathematics|Logarithms':{fact:'A logarithm expresses an exponent: log base b of a equals c means b raised to c equals a, for valid positive bases and arguments.',example:'Because 10 squared equals 100, log base 10 of 100 equals 2.'},
+'9|Mathematics|Algebraic Expressions':{fact:'Algebraic expressions combine numbers, variables and operations and can be simplified by collecting like terms and using algebraic rules.',example:'3x + 2x simplifies to 5x because the terms are like terms.'},
+'9|Mathematics|Coordinate Geometry':{fact:'Coordinate geometry represents points using ordered pairs and studies geometric relationships through algebra.',example:'The point (3, -2) lies 3 units to the right and 2 units below the origin.'},
+'9|Pakistan Studies|Geography of Pakistan':{fact:'Pakistan’s geography includes mountains, plateaus, plains, deserts, rivers and coastal areas that influence settlement and economic activity.',example:'The Indus River system is central to irrigation and agriculture in large parts of Pakistan.'},
+'9|Pakistan Studies|Ideology and Citizenship':{fact:'Citizenship involves rights, responsibilities, participation in society and respect for constitutional and civic principles.',example:'Obeying lawful rules and protecting public property are examples of civic responsibility.'},
+'9|Physics|Physical Quantities and Measurement':{fact:'Physical quantities are measured using units, and reliable measurement considers instruments, precision and uncertainty.',example:'Length is an SI base quantity measured in metres.'},
+'9|Physics|Turning Effect of Forces':{fact:'The turning effect of a force depends on the force and its perpendicular distance from the pivot.',example:'A longer spanner can produce a larger moment for the same applied force.'},
+'9|Physics|Gravitation':{fact:'Gravitation is the attractive interaction between masses and explains weight and orbital motion.',example:'An object’s weight depends on its mass and the local gravitational field strength.'},
+'9|Urdu|الفاظ و معانی':{fact:'الفاظ و معانی میں لفظ کے مفہوم، مترادف، متضاد اور سیاق کے مطابق درست استعمال کو سمجھا جاتا ہے۔',example:'کسی لفظ کا درست معنی جاننے کے لیے جملے کے سیاق کو بھی دیکھا جاتا ہے۔'},
+'9|Urdu|فہم':{fact:'فہم میں عبارت کا مرکزی خیال، اہم نکات، شواہد اور مصنف کا مقصد سمجھ کر جواب دیا جاتا ہے۔',example:'جواب دیتے وقت عبارت سے متعلقہ دلیل یا جملہ تلاش کرنا فہم کو مضبوط بناتا ہے۔'},
+'9|Urdu|تحریر':{fact:'اچھی تحریر میں خیالات کی ترتیب، واضح جملے، درست املا اور مناسب ربط ضروری ہے۔',example:'پیراگراف کا ہر جملہ مرکزی خیال سے متعلق ہو تو تحریر زیادہ واضح ہوتی ہے۔'},
+
+'10|Biology|Coordination and Control':{fact:'Coordination and control allow organisms to detect changes and produce suitable responses using nervous and hormonal mechanisms.',example:'A reflex action can produce a rapid response to a stimulus through a reflex pathway.'},
+'10|Biology|Support and Movement':{fact:'Support and movement depend on structures such as the skeleton, joints and muscles working together.',example:'Muscles can move bones around joints by contracting and relaxing in coordinated pairs.'},
+'10|Biology|Reproduction':{fact:'Reproduction produces new individuals and transfers biological information between generations.',example:'Sexual reproduction combines genetic material from two gametes and can increase variation.'},
+'10|Chemistry|Organic Chemistry':{fact:'Organic chemistry studies carbon compounds, their structures, functional groups and reactions.',example:'Hydrocarbons contain only carbon and hydrogen atoms.'},
+'10|Chemistry|Hydrocarbons':{fact:'Hydrocarbons are compounds made only of carbon and hydrogen and include families such as alkanes and alkenes.',example:'An alkene contains at least one carbon-carbon double bond.'},
+'10|Chemistry|Biochemistry':{fact:'Biochemistry studies chemical substances and reactions in living organisms, including carbohydrates, proteins and lipids.',example:'Proteins are built from amino-acid units linked together.'},
+'10|Computer Science|Programming Concepts':{fact:'Programming concepts include variables, conditions, loops, functions and structured problem solving.',example:'A loop repeats a block of instructions while its continuation condition is satisfied.'},
+'10|Computer Science|Networks and Internet':{fact:'Computer networks connect devices so they can exchange data and share resources using agreed communication rules.',example:'A router forwards data between different networks.'},
+'10|English|Vocabulary':{fact:'Vocabulary development uses context, word relationships and accurate usage to improve reading and writing.',example:'Recognizing prefixes and suffixes can help infer the meaning of unfamiliar words.'},
+'10|English|Reading Comprehension':{fact:'Comprehension requires finding explicit information, interpreting ideas and supporting inferences with text evidence.',example:'A conclusion about a character should be linked to the character’s words or actions in the passage.'},
+'10|English|Writing Skills':{fact:'Effective writing uses a clear purpose, logical organization, suitable tone and accurate language.',example:'Transitions such as however, therefore and for example help show relationships between ideas.'},
+'10|Islamiat / Ethics|Social Justice and Responsibility':{fact:'Social justice and responsibility emphasize fairness, respect for rights, care for others and accountable conduct.',example:'Applying the same fair rule to people in similar situations supports justice.'},
+'10|Mathematics|Variations':{fact:'Variation describes relationships in which one quantity changes in a predictable way with another.',example:'In direct variation y = kx, doubling x doubles y when k is constant.'},
+'10|Mathematics|Partial Fractions':{fact:'Partial fractions rewrite a rational expression as a sum of simpler rational expressions when suitable factorization is available.',example:'A fraction with a denominator factored into linear factors can often be decomposed into terms over those factors.'},
+'10|Mathematics|Sets and Functions':{fact:'Sets collect distinct objects, while a function assigns each input in its domain exactly one output.',example:'If f(x)=2x, then f(3)=6.'},
+'10|Pakistan Studies|Economy and Resources':{fact:'Economic activity depends on human, agricultural, industrial, energy and natural resources and how efficiently they are managed.',example:'Reliable energy and transport systems can support industrial production and trade.'},
+'10|Pakistan Studies|Citizenship and Foreign Relations':{fact:'Citizenship concerns rights and duties within the state, while foreign relations involve cooperation and interaction with other states.',example:'Voting where eligible and respecting the law are forms of civic participation and responsibility.'},
+'10|Physics|Simple Harmonic Motion and Waves':{fact:'Oscillatory motion repeats around an equilibrium position, while waves transfer energy through disturbances.',example:'Wave speed is related to frequency and wavelength by v = fλ.'},
+'10|Physics|Sound':{fact:'Sound is a mechanical wave produced by vibrations and requires a medium for transmission.',example:'Increasing frequency generally raises the perceived pitch of a sound.'},
+'10|Physics|Geometrical Optics':{fact:'Geometrical optics models light using rays and explains reflection and refraction.',example:'The angle of reflection equals the angle of incidence for a reflected ray.'},
+'10|Physics|Electrostatics':{fact:'Electrostatics studies electric charges at rest and the forces, fields and potentials associated with them.',example:'Like charges repel and unlike charges attract.'},
+'10|Urdu|الفاظ و معانی':{fact:'الفاظ و معانی میں درست مفہوم، مترادف، متضاد اور محاوراتی یا سیاقی استعمال پر توجہ دی جاتی ہے۔',example:'ایک ہی لفظ مختلف سیاق میں مختلف مفہوم دے سکتا ہے، اس لیے پورا جملہ دیکھنا ضروری ہے۔'},
+'10|Urdu|فہم':{fact:'فہم میں عبارت کے مرکزی خیال، جزئیات، استدلال اور مصنف کے مقصد کو سمجھا جاتا ہے۔',example:'عبارت سے ثبوت دے کر جواب لکھنا محض اندازہ لگانے سے زیادہ مضبوط طریقہ ہے۔'},
+'10|Urdu|تحریر':{fact:'موثر تحریر میں خیالات کی منطقی ترتیب، درست زبان، مناسب عنوان اور مربوط پیراگراف شامل ہوتے ہیں۔',example:'تحریر شروع کرنے سے پہلے مختصر خاکہ بنانا خیالات کو بہتر ترتیب دیتا ہے۔'},
+
+'11|Biology|Biological Molecules':{fact:'Biological molecules include carbohydrates, lipids, proteins and nucleic acids, each with characteristic structures and functions.',example:'Proteins are polymers whose amino-acid sequence influences their structure and function.'},
+'11|Biology|Enzymes':{fact:'Enzymes are biological catalysts that speed reactions by lowering activation energy and are affected by conditions such as temperature and pH.',example:'An enzyme can lose activity if extreme temperature disrupts its functional shape.'},
+'11|Chemistry|Atomic Structure':{fact:'Atomic structure describes nuclei, electrons, energy levels and how electron arrangement relates to chemical behaviour.',example:'Atomic number equals the number of protons in the nucleus.'},
+'11|Chemistry|Chemical Bonding':{fact:'Chemical bonds form through interactions of valence electrons and include ionic and covalent bonding.',example:'An ionic bond involves electrostatic attraction between oppositely charged ions.'},
+'11|Computer Science|Algorithms and Programming':{fact:'Algorithms define logical solution steps, while programs implement those steps in a programming language.',example:'Testing an algorithm with sample inputs can reveal logical errors before full implementation.'},
+'11|Computer Science|Data Representation':{fact:'Computers represent data using binary patterns that can encode numbers, text, images and other information.',example:'Eight binary digits form one byte.'},
+'11|English|Reading Comprehension':{fact:'Advanced comprehension combines literal understanding, inference, evaluation and evidence-based interpretation.',example:'A claim about a writer’s tone should be supported by specific word choices in the text.'},
+'11|English|Writing Skills':{fact:'Academic writing develops a focused argument or explanation using organized paragraphs, evidence and accurate language.',example:'A thesis or controlling idea helps keep a longer response focused.'},
+'11|Islamiat / Ethics|Rights and Duties':{fact:'Ethical rights and duties are connected: people should respect others’ legitimate rights while fulfilling personal and social responsibilities.',example:'Respecting another person’s property while responsibly caring for shared property reflects both rights and duties.'},
+'11|Mathematics|Number Systems':{fact:'Number systems classify numbers and their properties, including real numbers and other structured sets used in algebra.',example:'Every integer is rational because it can be written as an integer divided by 1.'},
+'11|Mathematics|Sets Functions and Groups':{fact:'Sets organize elements, functions map inputs to outputs, and algebraic structures study operations with defined properties.',example:'A function must assign each input exactly one output.'},
+'11|Mathematics|Matrices and Determinants':{fact:'Matrices organize rectangular arrays of numbers, while determinants provide scalar information for square matrices.',example:'A 2 by 3 matrix has two rows and three columns.'},
+'11|Physics|Measurements':{fact:'Physics measurements use units, significant figures and uncertainty to communicate experimentally determined quantities.',example:'Repeated measurements can help estimate random variation in an experiment.'},
+'11|Physics|Motion and Force':{fact:'Motion is described by quantities such as displacement, velocity and acceleration, while forces change motion according to dynamics.',example:'For constant mass, Newton’s second law can be written F = ma.'},
+'11|Physics|Circular Motion':{fact:'Circular motion requires inward centripetal acceleration directed toward the centre of the path.',example:'For uniform circular motion, changing direction means velocity changes even when speed is constant.'},
+'11|Statistics|Data Presentation':{fact:'Data can be organized using tables, charts and graphs selected to match the type of variable and purpose of analysis.',example:'A histogram is useful for showing the distribution of continuous numerical data grouped into intervals.'},
+'11|Statistics|Measures of Dispersion':{fact:'Measures of dispersion describe how spread out data values are around a centre.',example:'Range is the difference between the maximum and minimum values.'},
+'11|Urdu|الفاظ و معانی':{fact:'اعلیٰ سطح پر الفاظ و معانی میں سیاق، مترادف، متضاد، محاورہ اور موزوں لفظ کے انتخاب پر توجہ دی جاتی ہے۔',example:'لفظ کا درست مفہوم متعین کرنے کے لیے پورے جملے اور عبارت کے سیاق کو دیکھنا مفید ہے۔'},
+'11|Urdu|فہم':{fact:'فہم میں متن کا مرکزی خیال، دلیل، لہجہ اور اہم شواہد اخذ کر کے منظم جواب دیا جاتا ہے۔',example:'کسی نتیجے کی تائید کے لیے عبارت سے متعلقہ ثبوت پیش کرنا مضبوط جواب کی علامت ہے۔'},
+'11|Urdu|تحریر':{fact:'اعلیٰ جماعت کی تحریر میں واضح موقف، منطقی ترتیب، مناسب اسلوب اور درست زبان اہم ہیں۔',example:'تمہید، مرکزی نکات اور نتیجہ ایک طویل جواب کو منظم بناتے ہیں۔'},
+
+'12|Biology|Evolution':{fact:'Evolution describes changes in inherited characteristics of populations across generations.',example:'Natural selection can increase the frequency of heritable traits that improve reproductive success in a given environment.'},
+'12|Biology|Biotechnology':{fact:'Biotechnology applies biological systems, cells or molecules to develop useful products and processes.',example:'Recombinant DNA methods can be used to produce a desired protein in a host organism.'},
+'12|Chemistry|Hydrocarbons':{fact:'Hydrocarbons contain only carbon and hydrogen and can be classified by bonding and structure.',example:'Alkenes contain at least one carbon-carbon double bond.'},
+'12|Chemistry|Functional Groups':{fact:'Functional groups are characteristic atom groups that strongly influence the reactions and properties of organic compounds.',example:'The hydroxyl group is characteristic of alcohols.'},
+'12|Computer Science|Programming and Data Structures':{fact:'Programming combines algorithms with data structures so information can be stored, accessed and processed efficiently.',example:'An array stores multiple values under one structure and accesses items by position.'},
+'12|Computer Science|Networks and Security':{fact:'Network security protects data and services using controls such as authentication, access rules and secure communication.',example:'Strong authentication reduces the risk of unauthorized account access.'},
+'12|English|Grammar':{fact:'Advanced grammar supports precise meaning through correct sentence structure, agreement, tense, clauses and punctuation.',example:'A dependent clause cannot usually stand alone as a complete sentence.'},
+'12|English|Reading Comprehension':{fact:'Senior-level comprehension requires interpreting arguments, evidence, tone, purpose and implicit meaning.',example:'Evaluating an argument includes checking whether its evidence actually supports its conclusion.'},
+'12|Mathematics|Functions and Limits':{fact:'Functions describe input-output relationships, while limits describe the value a function approaches near a point.',example:'Limits provide the foundation for defining derivatives.'},
+'12|Mathematics|Analytic Geometry':{fact:'Analytic geometry uses coordinates and algebraic equations to study geometric objects and relationships.',example:'The slope between two distinct points is the change in y divided by the change in x.'},
+'12|Mathematics|Linear Programming':{fact:'Linear programming optimizes a linear objective subject to linear constraints and feasibility conditions.',example:'A feasible region contains the points satisfying all constraints simultaneously.'},
+'12|Pakistan Studies|Constitution and Governance':{fact:'Constitutional governance defines institutions, powers, rights and procedures through which the state is administered.',example:'Checks, procedures and defined institutional roles help organize public authority under a constitution.'},
+'12|Pakistan Studies|Population and Society':{fact:'Population studies examine distribution, growth, migration, urbanization and their social and economic effects.',example:'Rapid urbanization can increase demand for housing, transport, education and health services.'},
+'12|Physics|Electromagnetism':{fact:'Electromagnetism links electric currents and magnetic fields and explains many electrical devices.',example:'A current-carrying conductor produces a magnetic field around it.'},
+'12|Physics|Alternating Current':{fact:'Alternating current changes direction periodically and is characterized by quantities such as frequency and rms values.',example:'Household power systems commonly distribute electrical energy using alternating current.'},
+'12|Physics|Modern Physics':{fact:'Modern physics includes quantum and nuclear ideas needed to explain phenomena beyond classical models.',example:'Photon energy is proportional to frequency according to E = hf.'},
+'12|Statistics|Probability Distributions':{fact:'A probability distribution describes how probabilities are assigned to possible values of a random variable.',example:'The probabilities of all mutually exclusive possible values in a discrete distribution sum to 1.'},
+'12|Statistics|Sampling':{fact:'Sampling selects part of a population so data can be collected efficiently while trying to remain representative.',example:'Random sampling helps reduce systematic selection bias.'},
+'12|Statistics|Correlation and Regression':{fact:'Correlation summarizes association between variables, while regression models how an outcome changes with one or more predictors.',example:'A strong correlation does not by itself prove that one variable causes the other.'},
+'12|Urdu|الفاظ و معانی':{fact:'بارہویں جماعت میں الفاظ و معانی کے مطالعے میں سیاقی مفہوم، مترادف، متضاد اور موزوں لفظ کے انتخاب کو اہمیت دی جاتی ہے۔',example:'عبارت کے مجموعی مفہوم سے کسی مشکل لفظ کا مناسب معنی اخذ کیا جا سکتا ہے۔'},
+'12|Urdu|فہم':{fact:'فہم میں متن کے مرکزی خیال، دلیل، اسلوب اور پوشیدہ مفہوم کو شواہد کے ساتھ سمجھا جاتا ہے۔',example:'متن کے کسی دعوے کی وضاحت کرتے وقت متعلقہ سطر یا دلیل کی طرف اشارہ جواب کو مضبوط بناتا ہے۔'},
+'12|Urdu|تحریر':{fact:'موثر اعلیٰ سطحی تحریر میں واضح موضوع، منطقی ترتیب، مربوط پیراگراف اور درست زبان شامل ہوتی ہے۔',example:'تحریر کے اختتام پر مرکزی نکتے کو جامع انداز میں سمیٹنا جواب کو مکمل بناتا ہے۔'}
+};
+PD.chapters=PD.chapters||{};
+PD.subjects=PD.subjects||{};
+for(const [key,bp] of Object.entries(X)){
+  const [cl,subject,chapter]=key.split('|');
+  PD.subjects[cl]=PD.subjects[cl]||[];
+  if(!PD.subjects[cl].includes(subject))PD.subjects[cl].push(subject);
+  const k=cl+'|'+subject;
+  PD.chapters[k]=PD.chapters[k]||[];
+  if(!PD.chapters[k].includes(chapter))PD.chapters[k].push(chapter);
+}
+Object.keys(PD.subjects).forEach(k=>PD.subjects[k].sort());
+Object.keys(PD.chapters).forEach(k=>PD.chapters[k].sort());
+window.EDUNIZAM_PRACTICE_EXTRA_BLUEPRINTS=Object.assign(window.EDUNIZAM_PRACTICE_EXTRA_BLUEPRINTS||{},X);
+window.EDUNIZAM_PRACTICE_CURRICULUM_EXPANSION={updatedAt:'2026-10-01',topicGroups:Object.keys(X).length,note:'Additional concept-focused topic groups for Grades 9-12. These are not labelled as board-specific unless a source explicitly says so.'};
+})();
