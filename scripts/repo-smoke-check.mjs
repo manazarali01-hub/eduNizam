@@ -276,6 +276,9 @@ try{
   else{
     const matrix=core.auditMatrix(practiceDataAll);
     matrix.length?bad("learning:practice-core-matrix",matrix.slice(0,5).map(x=>JSON.stringify(x)).join(" | ")):ok("learning:practice-core-matrix");
+    const generatedMcq=questions.filter(x=>String(x.id||"").startsWith("pc-")&&x.type==="mcq");
+    const answerPositions=new Set(generatedMcq.map(x=>x.answer));
+    answerPositions.size>=3?ok("learning:practice-answer-distribution"):bad("learning:practice-answer-distribution","only "+[...answerPositions].join(",")+" used");
     let comboFailures=[];
     for(const [cl,subjects] of Object.entries(practiceDataAll.subjects||{})){
       for(const subject of subjects||[]){
