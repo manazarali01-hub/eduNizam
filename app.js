@@ -48,15 +48,8 @@ async function setView(view){
    return;
  }
  const target=$(view);if(!target)return;
- try{
-   if(window.EDUNIZAM_FEATURE_LOADER&&!window.EDUNIZAM_FEATURE_LOADER.isReady(view)){
-     await window.EDUNIZAM_FEATURE_LOADER.ensure(view);
-   }
- }catch(e){
-   console.error('Feature load failed:',view,e);
-   alert('This section could not load. Please retry.');
-   return;
- }
+ const nav=document.querySelector('[data-view="'+view+'"]');
+ // Make navigation feel instant on mobile: reveal the destination before waiting for lazy feature code.
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
  document.querySelectorAll('.nav-item').forEach(v=>{
    const active=v.dataset.view===view;
@@ -64,9 +57,32 @@ async function setView(view){
    if(active)v.setAttribute('aria-current','page');else v.removeAttribute('aria-current');
  });
  target.classList.add('active');
- const nav=document.querySelector('[data-view="'+view+'"]');
  const navGroup=nav?.closest?.('details.nav-group');if(navGroup)navGroup.open=true;
  $('page-title').textContent=nav?.textContent?.trim()||view;
+ const loader=window.EDUNIZAM_FEATURE_LOADER;
+ let loadingNotice=null;
+ if(loader&&!loader.isReady(view)){
+   loadingNotice=document.createElement('div');
+   loadingNotice.className='feature-loading-notice';
+   loadingNotice.setAttribute('role','status');
+   loadingNotice.setAttribute('aria-live','polite');
+   loadingNotice.innerHTML='<span class="feature-loading-spinner" aria-hidden="true"></span><span>Opening section…</span>';
+   target.prepend(loadingNotice);
+   // Give the browser one paint so taps never look frozen while scripts are fetched.
+   await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
+   try{
+     await loader.ensure(view);
+     loadingNotice.remove();
+     loadingNotice=null;
+   }catch(e){
+     console.error('Feature load failed:',view,e);
+     loadingNotice.className='feature-loading-notice error';
+     loadingNotice.innerHTML='<span>This section could not load. Check the connection and try again.</span><button type="button" class="secondary">Retry</button>';
+     loadingNotice.querySelector('button').onclick=()=>setView(view);
+     window.EDUNIZAM_PREMIUM?.toast?.('Section load failed. Tap Retry.','error');
+     return;
+   }
+ }
  if(view==='attendance')renderAttendance();
  if(view==='attendanceanalytics'&&window.EDUNIZAM_ATTENDANCE_ANALYTICS?.render)window.EDUNIZAM_ATTENDANCE_ANALYTICS.render();
  if(view==='pastpapers')renderPastPapers();
