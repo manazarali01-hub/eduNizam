@@ -449,12 +449,15 @@ if(!guestLearn.includes('href="login.html">Login / Sign Up</a>')) fail.push('Gue
 if(!guestLearn.includes('guest-learning-premium.js?v=')) fail.push('Guest Learning premium controller missing.');
 if(!exists('learning-complete-data.js')) fail.push('Complete Learning Hub data layer missing.');
 if(!exists('learning-required-data.js')) fail.push('Required Learning Hub expansion data missing.');
+if(!exists('practice-complete-data.js')) fail.push('Complete Practice Center question bank missing.');
 if(!exists('learning-search-engine.js')) fail.push('Learning Hub smart search engine missing.');
 if(!guestLearn.includes('learning-complete-data.js?v=')) fail.push('Complete Learning Hub data layer is not loaded.');
 if(!guestLearn.includes('learning-required-data.js?v=')) fail.push('Required Learning Hub expansion data is not loaded.');
+if(!guestLearn.includes('practice-complete-data.js?v=')) fail.push('Complete Practice Center question bank is not loaded.');
 if(!guestLearn.includes('learning-search-engine.js?v=')) fail.push('Learning Hub smart search engine is not loaded.');
 if(!pwaSw.includes("'./learning-complete-data.js'")) fail.push('Complete Learning Hub data layer is not cached by PWA.');
 if(!pwaSw.includes("'./learning-required-data.js'")) fail.push('Required Learning Hub expansion data is not cached by PWA.');
+if(!pwaSw.includes("'./practice-complete-data.js'")) fail.push('Complete Practice Center question bank is not cached by PWA.');
 if(!pwaSw.includes("'./learning-search-engine.js'")) fail.push('Learning Hub smart search engine is not cached by PWA.');
 const learningComplete=read('learning-complete-data.js');
 for(const marker of ['portal-','pectaa-g5-english','pectaa-g8-english-model','pectaa-curriculum-ebooks','hec-directory','vu-datesheet','ACC311','q53']){
@@ -498,6 +501,13 @@ for(const marker of ['MTH603','CS202','EDU510','g5-math-01','g8-sci-04']){
 }
 if(!guestPremium.includes("data-start-practice")) fail.push('Global search Practice result cannot launch Practice Center.');
 if(!guestPremium.includes("kind==='vu-quizzes'")) fail.push('VU Quizzes shortcut missing.');
+for(const marker of ['guestPracticeOrder','guestPracticeLimit','practiceSessionStats','finishGuestPractice','Session complete','Practice Again']){
+  if(!guestPremium.includes(marker)) fail.push('Complete Practice session control missing: '+marker);
+}
+const completePractice=read('practice-complete-data.js');
+for(const marker of ['minimumPerChapter:3',"requiredTypes:['mcq','short','long']","requiredDifficulties:['Easy','Medium','Hard']",'EDUNIZAM_PRACTICE_BLUEPRINTS']){
+  if(!completePractice.includes(marker)) fail.push('Complete Practice data marker missing: '+marker);
+}
 if(!pwaSw.includes("'./pwa-install.js'")) fail.push('PWA install controller not cached.');
 if(!pwaSw.includes("'./icon-192.png'")||!pwaSw.includes("'./icon-512.png'")) fail.push('PWA PNG icons not cached.');
 
