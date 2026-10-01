@@ -20,6 +20,7 @@ const CODE_CATEGORY={
 const PREFIX_CATEGORY={'BIF':'Bioinformatics'};
 
 const canonicalCategory=course=>{
+  if(course?.ocwVerified===false)return '';
   const code=String(course?.code||'').trim().toUpperCase();
   if(CODE_CATEGORY[code])return CODE_CATEGORY[code];
   const prefix=(code.match(/^([A-Z]+)/)||[])[1]||'';
