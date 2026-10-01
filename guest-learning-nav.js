@@ -23,11 +23,12 @@
     return '';
   }
   document.addEventListener('click',function(e){
+    if(e.defaultPrevented)return;
     var id=target(e.target);
     if(!id)return;
     if(e.preventDefault)e.preventDefault();
     show(id);
-  },true);
+  },false);
   window.addEventListener('hashchange',function(){var id=window.location.hash.substring(1);if(ids[id])show(id);});
   window.EDUNIZAM_GUEST_NAV={show:show};
   var first=window.location.hash.substring(1);if(ids[first])show(first);
