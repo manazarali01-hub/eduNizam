@@ -63,7 +63,9 @@ const rows=[
  ['ZOO512T','Animal Diversity: Invertebrates (Theory)','Zoology','https://www.vu.edu.pk/AcademicDepartment/ProgramDetails?StudyProgramID=277'],
  ['ZOO513T','Animal Diversity: Chordates (Theory)','Zoology','https://www.vu.edu.pk/AcademicDepartment/ProgramDetails?StudyProgramID=277'],
  ['ECO613','Globalization and Economics','Economics','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=174'],
- ['PAK522','Ideology and Constitution of Pakistan','Humanities Distribution','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology']
+ ['PAK522','Ideology and Constitution of Pakistan','Humanities Distribution','https://www.vu.edu.pk/AcademicPrograms/StudyScheme?sp=Biotechnology'],
+ ['MCM431','Development Communication','Mass Communication','https://www.vu.edu.pk/AcademicPrograms/StudyScheme.aspx?sp=Mass_Communication'],
+ ['MCM531','Community Journalism','Mass Communication','https://www.vu.edu.pk/AboutUs/ProgramDetails?StudyProgramID=8']
 ];
 const seen=new Set(C.courses.map(x=>String(x.code||'').toUpperCase()));
 for(const [code,title,category,officialDetails,ocwVerified=false] of rows){
