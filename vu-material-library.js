@@ -270,8 +270,48 @@ const DIRECT_HANDOUTS={
  'CS614':'1P6Rz4VJ7k9hfwyh_ci6gZQJEGkkB_6v9',
  'CS615':'1E5UpRPxPft69_wOiHEvROE7Y8IiQSpEz',
  'ECO401':'1J8yTihYRxDzKCkia_EWPAKNzRCpSVeZc',
+ 'ECO402':'1Q7qnTyjpHkUm5A-NrUxAsUwWqoiwZJNm',
+ 'ECO403':'14i6XcQM-oa2p2tKlGalSIt8cJag4JypR',
+ 'ECO601':'1V184DUcwY3bI96h2LWksTX7kjoW-l10S',
+ 'ECO606':'1NY5siTXIfuWqGvej4lE9E5sFuRtBaIE9',
  'EDU101':'1-_3upXbNZ4YEQSvWcaveiVwgRAcgcNoT',
+ 'EDU301':'1D_-2GaqmValegyJsLl1pOaQq5UpZkgDk',
+ 'EDU302':'1tGOAITqywBgnqjRAJERMUUCuZh5LugJd',
+ 'EDU303':'1BvPC7hl9WWpIjNZe6P_SNUo_WQjXh3ab',
+ 'EDU304':'1FzZOdBGzkW5bAZB2IPBvByfo2WhYkdU8',
+ 'EDU305':'11XMjizMLtyq7isLgw7PWzMRH2mrA8bhh',
+ 'EDU401':'14TjCfQUyEaQi-DOu4MpI3cd_WfBez6KS',
+ 'EDU402':'1PtN0MQDmazmjLcXztbmaefyHzdfGAxZJ',
+ 'EDU403':'1xoM_ghvYhKmlFOfgUpGb9GmtGHlJ-83j',
+ 'EDU406':'1emrb4dZ_fWue9oS4Fyz5fei8nKNdwoZg',
+ 'EDU430':'1DpVYHsqg1kZTJF11-7Yu8Nn6bqsKhMDN',
+ 'EDU431':'1HBeBxpENb9wdvJpywq2FJMMaHkkzx2bX',
+ 'EDU516':'1KbSYDNE8-JCeOKyZ86djS-06FisXFFEt',
+ 'EDU601':'1A_xk9LgVWwMvtA0qdWXbZsTfz84Evq_d',
+ 'EDU602':'1PzTvQ6QNzBlajg760NxX16XAP6q7LnFC',
+ 'EDU654':'1llKW3BcpS9jP6kW0BrBDYVAZ0UOSjV3u',
+ 'ENG001':'13XaMshhMvnDzwmNo-FVeGoLjaFmwf-9z',
  'ENG101':'1UiG73PCVq_h3XPMUEVPRmrpzA3K7kBzH',
+ 'ENG201':'1UJIQ5kdCmUS5BVszggYgv1lJnxZwW-rL',
+ 'ENG501':'1sNc0jKYgmDsJIU-Pt2Wxtrbx0jdoqWeW',
+ 'ENG502':'1gaSjdIyaYMIKcoMCa0sInbD93ZTuqO3f',
+ 'ENG503':'1pYXvEzhZiiAmpJ_l7R8ye6HWGalB-b3W',
+ 'ENG504':'1-qW12sLzFXed69SN907hZtrv85wQ8VjN',
+ 'ENG505':'1yEjKeifcDJqvO0RW1h3w2RiLmVHlCmU1',
+ 'ENG506':'1Ovqgf6Ij2MSU8lju86vN2aUOju02PIiB',
+ 'ENG508':'1xPdPnFydF4zPxNaCGQDp_oCyClrdoUDf',
+ 'ENG509':'1vSyMVPiZvV8UKDseVmjCmx8spEygxu89',
+ 'ENG511':'1piF73elzgpdT1M78un0aziCp74XUodql',
+ 'ENG513':'17ijQZRGkOVXShMZ3-aN76r0dnqXOVijZ',
+ 'ENG514':'1QaBl24hNyzwcCWqlGl_vngO1D5txRX4Y',
+ 'ENG515':'1DeG2A74wCh26j-vhN5qR3HM4mVjtQtpf',
+ 'ENG517':'11-MbfossdvT5CzBz37sbGAy8OusPRNZk',
+ 'ENG518':'1tmQeaKU3NxZpgNHfMXBf07jTOWXL1pKz',
+ 'ENG519':'1_2m9AJ0ZuD_pX39l506dOgvgsTwtyS3Y',
+ 'ENG520':'1Ws-rhBjZOKAPitJEv7OebcFmTld3Nkhk',
+ 'ENG522':'1m6KImhTht9cggo9UXCvJW8Q7IGJx32ab',
+ 'ENG523':'1brVonkscDugg-IJKvMd7mau3goLQqGKP',
+ 'ENG529':'1FCjpVAtwvJCgnwoUFCqnyJF1lDCx_yDd',
  'ISL201':'14fOIM3vNwQSzw5OMVAeJpMRc6rWG6KyS',
  'IT430':'1yPSofZULLSYqMj7rGs0biQjjU58ri9-4',
  'MCM101':'1-FKqPp5lSz3jN4iv7AJ5JrxAXjZeLgBt',
@@ -393,6 +433,21 @@ const DIRECT_HIGHLIGHTED={
 };
 const driveDownload=id=>'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id);
 
+const FINALTERM_DEPARTMENT_ROUTES={
+ 'CS':'https://vuanswer.pk/vu-all-cs-subjects-finalterm-past-papers/',
+ 'MTH':'https://vuanswer.pk/vu-mth-finalterm-past-papers/',
+ 'ENG':'https://vuanswer.pk/vu-eng-finalterm-past-papers/',
+ 'EDU':'https://vuanswer.pk/vu-edu-subjects-finalterm-past-papers/',
+ 'PSY':'https://vuanswer.pk/vu-psy-finalterm-past-papers/',
+ 'MGT':'https://vuanswer.pk/vu-mgt-finalterm-past-papers/'
+};
+const finaltermDepartmentUrl=code=>{
+ const prefix=(String(code||'').toUpperCase().match(/^([A-Z]+)/)||[])[1]||'';
+ return FINALTERM_DEPARTMENT_ROUTES[prefix]||'';
+};
+
+
+
 const actionLabel=x=>x.access==='direct_download'?'Download Now':x.access==='login_required'?'Login to Download':x.access==='download_index'?'Open Download Index':x.access==='official_open'?'Open Official Material':'Open Resource';
 const accessLabel=x=>x.trust==='legacy'?(x.access==='download_index'?'Legacy Backup · Downloads':'Legacy Backup'):x.access==='direct_download'?'Verified Community · Direct Download':x.access==='login_required'?'Official · Login Required':x.access==='download_index'?'Verified Community · Downloads':x.access==='official_open'?'Official · Open':'Verified Community';
 
@@ -429,7 +484,8 @@ function officialFor(course){
 
 function communityFor(course){
  const code=String(course?.code||'').toUpperCase();
- return COMMUNITY.flatMap(x=>{
+ const deptFinal=finaltermDepartmentUrl(code);
+ const baseRows=COMMUNITY.flatMap(x=>{
   const base={...x,id:x.id+'-'+code,courseCode:code,title:code+' · '+x.title};
   if(x.id==='vustudyhub-project'&&!['CS519','CS619'].includes(code))return [];
   if(x.id==='vustudyhub-internship'&&code!=='CSI619')return [];
@@ -452,6 +508,15 @@ function communityFor(course){
   }
   return [base];
  });
+ if(deptFinal){
+  baseRows.unshift({
+   id:'vuanswer-dept-final-'+code,courseCode:code,type:'Finalterm Past Papers',
+   title:code+' · Department Finalterm Past Papers',
+   url:deptFinal,source:'VUAnswer',trust:'verified',access:'download_index',
+   note:'Department-specific VUAnswer final-term index with course-wise solved MCQs, subjective papers, notes/current files where available.'
+  });
+ }
+ return baseRows;
 }
 
 function forCourse(course,{type='',source='',provider='',access=''}={}){
