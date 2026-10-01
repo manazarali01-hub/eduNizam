@@ -13,7 +13,7 @@ function allResources(){
  const out=[];
  (pp().papers||[]).forEach(x=>{const b=(pp().boards||[]).find(y=>y.id===x.boardId);out.push({id:'paper:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.type==='past'?'Past Paper':x.type,board:b?.name||'',classLevel:x.classLevel,subject:x.subject,year:x.year,session:x.session,section:'past'})});
  (window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).forEach(x=>out.push({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTA / School Education',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'}));
- (window.EDUNIZAM_STUDY_DATA?.materials||[]).forEach(x=>out.push({id:'study:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:x.board,classLevel:(x.classLevels||[]).join('/'),subject:x.subject,section:'study'}));
+ (window.EDUNIZAM_STUDY_DATA?.materials||[]).forEach(x=>out.push({id:'study:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,content:x.content||'',source:x.source,type:x.type,board:x.board,classLevel:(x.classLevels||[]).join('/'),subject:x.subject,section:'study'}));
  (uni().resources||[]).forEach(x=>{const u=(uni().universities||[]).find(y=>y.id===x.universityId);out.push({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:u?.name||'',courseCodes:x.courseCodes||[],section:x.universityId==='vu'?'vu':'universities'})});
  (window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).forEach(x=>out.push({id:'course:'+x.code,title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails,source:'official',type:'VU Course',board:'Virtual University of Pakistan',subject:x.category,courseCodes:[x.code],section:'vu'}));
  return out;
@@ -23,7 +23,7 @@ function injectStyles(){
  .premium-tools{display:grid;gap:12px;margin:0 0 18px}.search-suggestions{display:flex;gap:7px;flex-wrap:wrap}.search-suggestions button,.recent-chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;cursor:pointer;color:var(--ink)}
  .guest-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.guest-actions button,.guest-actions a{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-weight:800;text-decoration:none;cursor:pointer}.guest-actions .primary-action{background:var(--green);color:#fff;border-color:var(--green)}
  .favorite-on{color:#8a6200;background:#fff7d9!important}.saved-panel{margin:12px 0 20px}.saved-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.smart-empty{grid-column:1/-1;padding:22px;border:1px dashed #b9ccc7;border-radius:18px;background:#fff}.smart-empty h3{margin:0 0 7px}.smart-empty p{color:var(--muted)}.related-row{display:flex;gap:8px;flex-wrap:wrap}.related-row button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer}
- .premium-modal{position:fixed;inset:0;z-index:95;background:rgba(10,27,31,.72);display:none;place-items:center;padding:14px}.premium-modal.open{display:grid}.premium-dialog{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:20px}.premium-dialog-head{display:flex;justify-content:space-between;gap:12px}.premium-meta{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.premium-preview-frame{width:100%;height:50vh;border:1px solid var(--line);border-radius:12px;background:#f4f7f6}.filter-label{display:grid;gap:5px;font-size:.76rem;font-weight:800}.filter-label select{font-weight:400}.past-advanced{grid-template-columns:repeat(4,minmax(0,1fr))!important}.past-advanced .paper-search{grid-column:span 2}.past-advanced .search-wide{grid-column:span 2}.hub-directory{margin:0 0 18px}.hub-directory .grid{grid-template-columns:repeat(4,minmax(0,1fr))}.hub-link{cursor:pointer;text-decoration:none}.hub-link strong{display:block;font-size:1rem}.hub-link span{font-size:.78rem;color:var(--muted)}
+ body.guest-modal-open{overflow:hidden!important}.premium-modal{position:fixed;inset:0;z-index:95;background:rgba(10,27,31,.72);display:none;place-items:center;padding:14px}.premium-modal.open{display:grid}.premium-dialog{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:20px}.premium-dialog-head{display:flex;justify-content:space-between;gap:12px}.premium-meta{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.premium-preview-frame{width:100%;height:50vh;border:1px solid var(--line);border-radius:12px;background:#f4f7f6}.filter-label{display:grid;gap:5px;font-size:.76rem;font-weight:800}.filter-label select{font-weight:400}.past-advanced{grid-template-columns:repeat(4,minmax(0,1fr))!important}.past-advanced .paper-search{grid-column:span 2}.past-advanced .search-wide{grid-column:span 2}.hub-directory{margin:0 0 18px}.hub-directory .grid{grid-template-columns:repeat(4,minmax(0,1fr))}.hub-link{cursor:pointer;text-decoration:none}.hub-link strong{display:block;font-size:1rem}.hub-link span{font-size:.78rem;color:var(--muted)}
  @media(max-width:900px){.past-advanced{grid-template-columns:repeat(2,minmax(0,1fr))!important}.hub-directory .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
  /* Keep VU course codes/cards inside normal document flow while scrolling. */
  .hub-directory,.premium-tools,#globalSearchResults,#savedResourcesPanel{position:relative;z-index:1;isolation:isolate;overflow:visible}
@@ -63,7 +63,7 @@ function renderRecent(){
 }
 function showGlobalResults(query){
  const q=norm(query);if(!q)return;const words=q.split(' ').filter(Boolean), code=words.find(w=>/^[a-z]{2,5}[0-9]{3,4}$/.test(w)); const results=allResources().filter(r=>{const h=norm(JSON.stringify(r)); if(words.every(w=>h.includes(w)))return true; if(code&&r.section==='vu'&&/paper|midterm|final/i.test(String(r.type)))return !(r.courseCodes||[]).length||(r.courseCodes||[]).map(norm).includes(code); return false}).slice(0,24);
- const home=$('home');document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x===home));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='home'));history.replaceState(null,'','#home');
+ const home=$('home');window.EDUNIZAM_GUEST_NAV?.show?.('home');document.querySelectorAll('.section').forEach(x=>{x.style.removeProperty('display');x.classList.toggle('active',x===home)});document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='home'));history.replaceState(null,'','#home');
  let box=$('globalResults');if(!box){box=document.createElement('div');box.id='globalResults';home.insertBefore(box,home.firstChild)}
  box.innerHTML='<div class="section-head"><div><h2>Search results</h2><p>'+results.length+' matching public resources for “'+esc(query)+'”.</p></div></div><div class="grid">'+(results.length?results.map(resourceCard).join(''):emptyState(query))+'</div>';
  box.scrollIntoView({behavior:'smooth',block:'start'});
@@ -72,8 +72,13 @@ function emptyState(query){
  return '<div class="smart-empty"><h3>Exact resource not available yet.</h3><p>EduNizam did not find a genuine indexed match for “'+esc(query)+'”. Try a broader term or open a trusted resource center.</p><div class="related-row"><button data-tab="past">Past Papers</button><button data-tab="vu">Virtual University</button><button data-tab="grade">PECTA Grade 5/8</button><button data-tab="study">Study Library</button><button data-clear-smart>Reset search</button></div></div>';
 }
 function resourceCard(r){
- const fav=favorites().some(x=>x.id===r.id);const meta=[r.board,r.classLevel&&('Class '+r.classLevel),r.subject,r.year,r.session,r.type].filter(Boolean);
- return '<article class="card"><span class="badge '+(r.source==='official'?'official':r.source==='verified'?'verified':'builtin')+'">'+esc(r.source==='official'?'Official Source':r.source==='verified'?'External Study Resource':'EduNizam Resource')+'</span><h3>'+esc(r.title)+'</h3><p>'+esc(r.description||'Public educational resource.')+'</p><div class="meta">'+meta.map(x=>'<span class="badge">'+esc(x)+'</span>').join('')+'</div><div class="guest-actions"><button class="primary-action" data-preview-id="'+esc(r.id)+'">Preview</button><a href="'+esc(r.url||'#')+'" target="_blank" rel="noopener noreferrer">Open</a><button data-share-id="'+esc(r.id)+'">Share</button><button class="'+(fav?'favorite-on':'')+'" data-fav-id="'+esc(r.id)+'">'+(fav?'★ Saved':'☆ Save')+'</button></div></article>';
+ const fav=favorites().some(x=>x.id===r.id),url=String(r.url||'').trim(),studyId=String(r.id||'').startsWith('study:')?String(r.id).slice(6):'',builtIn=!!(studyId&&r.content&&!url);const meta=[r.board,r.classLevel&&('Class '+r.classLevel),r.subject,r.year,r.session,r.type].filter(Boolean);
+ let actions='<div class="guest-actions">';
+ if(builtIn)actions+='<button class="primary-action" data-study-id="'+esc(studyId)+'">Read Now</button>';
+ else if(url)actions+='<button class="primary-action" data-preview-id="'+esc(r.id)+'">Preview</button><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open</a><button data-share-id="'+esc(r.id)+'">Share</button>';
+ else actions+='<button class="primary-action" type="button" disabled aria-disabled="true">Source unavailable</button>';
+ actions+='<button class="'+(fav?'favorite-on':'')+'" data-fav-id="'+esc(r.id)+'">'+(fav?'★ Saved':'☆ Save')+'</button></div>';
+ return '<article class="card resource-card"><span class="badge '+(r.source==='official'?'official':r.source==='verified'?'verified':'builtin')+'">'+esc(r.source==='official'?'Official Source':r.source==='verified'?'External Study Resource':'EduNizam Resource')+'</span><h3>'+esc(r.title)+'</h3><p>'+esc(r.description||'Public educational resource.')+'</p><div class="meta">'+meta.map(x=>'<span class="badge">'+esc(x)+'</span>').join('')+'</div>'+actions+'</article>';
 }
 function injectPastFilters(){
  const f=document.querySelector('#past .paper-filters');if(!f)return;f.classList.add('past-advanced');
@@ -84,15 +89,18 @@ function injectPastFilters(){
  cascadePast();
 }
 function cascadePast(){
- const d=pp(),level=$('paperLevel')?.value||'',board=$('paperBoard')?.value||'',current=$('paperClass')?.value||'';
- let classes=level==='school'?['5','8']:level==='matric'?['9','10']:level==='intermediate'?['11','12']:['9','10','11','12'];
+ const d=pp(),level=$('paperLevel')?.value||'',board=$('paperBoard')?.value||'',current=$('paperClass')?.value||'',special=['school','university','vu'].includes(level);
+ if($('paperBoard')){$('paperBoard').disabled=special;if(special)$('paperBoard').value=''}
+ let classes=level==='school'?['5','8']:level==='matric'?['9','10']:level==='intermediate'?['11','12']:special?[]:['9','10','11','12'];
  const b=(d.boards||[]).find(x=>x.id===board);if(b)classes=classes.filter(x=>(b.classes||[]).map(String).includes(x));
  $('paperClass').innerHTML='<option value="">All Classes</option>'+classes.map(x=>'<option value="'+x+'">'+(x==='11'?'11th / 1st Year':x==='12'?'12th / 2nd Year':x==='5'?'Grade 5':x==='8'?'Grade 8':x+'th Class')+'</option>').join('');
+ $('paperClass').disabled=level==='university'||level==='vu';
  if(classes.includes(current))$('paperClass').value=current;
- const cl=$('paperClass').value;const subs=cl?(d.subjects?.[cl]||[]):[...new Set(Object.values(d.subjects||{}).flat())].sort();
+ const cl=$('paperClass').value;const subs=(level==='university'||level==='vu')?[]:(cl?(d.subjects?.[cl]||[]):[...new Set(Object.values(d.subjects||{}).flat())].sort());
  $('paperSubject').innerHTML='<option value="">All Subjects</option>'+subs.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');
+ $('paperSubject').disabled=level==='university'||level==='vu';
 }
-
+ 
 function injectSectionExplorers(){
  const grade=$('grade');if(grade&&!$('gradeExplorer')){const p=document.createElement('div');p.id='gradeExplorer';p.className='card';p.style.marginBottom='16px';p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label">Grade<select id="guestGrade"><option value="">All Grades</option><option value="5">Grade 5</option><option value="8">Grade 8</option></select></label><label class="filter-label">Subject<select id="guestGradeSubject"><option value="">All Subjects</option><option>English</option><option>Urdu</option><option>Mathematics</option><option>Science</option><option>Islamiat</option></select></label><label class="filter-label">Resource type<select id="guestGradeType"><option value="">All Resources</option><option>Model Paper</option><option>Historical Past Papers</option><option>Assessment Pattern</option><option>Assessment Report</option></select></label><button class="btn primary" id="guestGradeSearch">Filter Resources</button></div><div id="guestGradeResults" class="grid"></div>';grade.insertBefore(p,$('gradeGrid'));const run=()=>{const g=$('guestGrade').value,s=norm($('guestGradeSubject').value),t=norm($('guestGradeType').value);const rows=(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).filter(x=>(!g||String(x.grade)===g)&&(!s||norm(x.subject).includes(s)||norm(x.subject).includes('all subjects'))&&(!t||norm(x.type).includes(t)));$('guestGradeResults').innerHTML=rows.length?rows.map(x=>resourceCard({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTA / School Education',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'})).join(''):emptyState('Grade '+g+' '+s);};$('guestGradeSearch').onclick=run;['guestGrade','guestGradeSubject','guestGradeType'].forEach(id=>$(id).onchange=run);run();}
  const study=$('study');if(study&&!$('studyExplorer')){const p=document.createElement('div');p.id='studyExplorer';p.className='card';p.style.marginBottom='16px';p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label search-wide">Search Study Library<input id="guestStudyQuery" type="search" placeholder="e.g. Class 10 Physics, formula sheet, syllabus"></label><label class="filter-label">Class<select id="guestStudyClass"><option value="">All Classes</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label><button class="btn primary" id="guestStudySearch">Search Library</button></div><div id="guestStudyResults" class="grid"></div>';study.insertBefore(p,$('studyGrid'));const run=()=>{const q=norm($('guestStudyQuery').value),cl=$('guestStudyClass').value;const rows=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>(!q||norm(JSON.stringify(x)).includes(q))&&(!cl||(x.classLevels||[]).map(String).includes(cl)));$('guestStudyResults').innerHTML=rows.length?rows.map(x=>studyCard(x)).join(''):emptyState($('guestStudyQuery').value||('Class '+cl));};$('guestStudySearch').onclick=run;$('guestStudyQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});$('guestStudyClass').onchange=run;run();}
@@ -130,13 +138,14 @@ function injectSaved(){
 }
 function renderSaved(){const box=$('savedResources');if(!box)return;const ids=favorites().map(x=>x.id),map=new Map(allResources().map(x=>[x.id,x]));const rows=ids.map(id=>map.get(id)).filter(Boolean);box.innerHTML=rows.length?rows.map(resourceCard).join(''):'<div class="empty">No saved resources yet. Use ☆ Save on any resource.</div>'}
 function openPreview(id){
- const r=allResources().find(x=>x.id===id);if(!r)return;let m=$('premiumResourceModal');if(!m){m=document.createElement('div');m.id='premiumResourceModal';m.className='premium-modal';m.innerHTML='<div class="premium-dialog" role="dialog" aria-modal="true" aria-labelledby="premiumPreviewTitle"><div class="premium-dialog-head"><h2 id="premiumPreviewTitle" style="margin:0"></h2><button class="btn" data-close-premium>Close</button></div><div id="premiumPreviewMeta" class="premium-meta"></div><p id="premiumPreviewDesc"></p><div id="premiumPreviewBody"></div><div id="premiumPreviewActions" class="guest-actions"></div></div>';document.body.appendChild(m)}
+ const r=allResources().find(x=>x.id===id);if(!r)return;if(!r.url&&r.content&&String(r.id).startsWith('study:')){openStudy(String(r.id).slice(6));return}let m=$('premiumResourceModal');if(!m){m=document.createElement('div');m.id='premiumResourceModal';m.className='premium-modal';m.innerHTML='<div class="premium-dialog" role="dialog" aria-modal="true" aria-labelledby="premiumPreviewTitle"><div class="premium-dialog-head"><h2 id="premiumPreviewTitle" style="margin:0"></h2><button class="btn" data-close-premium>Close</button></div><div id="premiumPreviewMeta" class="premium-meta"></div><p id="premiumPreviewDesc"></p><div id="premiumPreviewBody"></div><div id="premiumPreviewActions" class="guest-actions"></div></div>';document.body.appendChild(m)}
  $('premiumPreviewTitle').textContent=r.title;$('premiumPreviewDesc').textContent=r.description||'';
  $('premiumPreviewMeta').innerHTML=[r.board,r.classLevel&&('Class '+r.classLevel),r.subject,r.year,r.session,r.type,r.source==='official'?'Official Source':'External / EduNizam Resource'].filter(Boolean).map(x=>'<span class="badge">'+esc(x)+'</span>').join('');
  const isPdf=/\.pdf(?:$|[?#])/i.test(r.url||'');$('premiumPreviewBody').innerHTML=isPdf?'<iframe class="premium-preview-frame" src="'+esc(r.url)+'" title="'+esc(r.title)+'"></iframe>':'<div class="notice">This source is a web page rather than a directly hosted document. Open it at the source to view the genuine content.</div>';
  $('premiumPreviewActions').innerHTML='<a class="primary-action" href="'+esc(r.url||'#')+'" target="_blank" rel="noopener noreferrer">Open Source</a>'+(isPdf?'<button data-print-url="'+esc(r.url)+'">Print</button>':'')+'<button data-share-id="'+esc(r.id)+'">Share</button><button data-fav-id="'+esc(r.id)+'">'+(favorites().some(x=>x.id===r.id)?'★ Saved':'☆ Save')+'</button>';
- m.classList.add('open');
+ m.classList.add('open');document.body.classList.add('guest-modal-open');
 }
+function closePremium(){const m=$('premiumResourceModal');if(m)m.classList.remove('open');document.body.classList.remove('guest-modal-open')}
 function toggleFav(id){let x=favorites();x=x.some(v=>v.id===id)?x.filter(v=>v.id!==id):[{id},...x];setJSON(FKEY,x);renderSaved();document.querySelectorAll('[data-fav-id="'+CSS.escape(id)+'"]').forEach(b=>{const on=x.some(v=>v.id===id);b.textContent=on?'★ Saved':'☆ Save';b.classList.toggle('favorite-on',on)})}
 async function shareResource(id){const r=allResources().find(x=>x.id===id);if(!r)return;try{if(navigator.share)await navigator.share({title:r.title,text:r.description||'',url:r.url});else{await navigator.clipboard.writeText(r.url);alert('Resource link copied.')}}catch(_){}}
 function bind(){
@@ -146,11 +155,16 @@ function bind(){
   const f=e.target.closest('[data-fav-id]');if(f){toggleFav(f.dataset.favId);return}
   const sh=e.target.closest('[data-share-id]');if(sh){shareResource(sh.dataset.shareId);return}
   const st=e.target.closest('[data-study-id]');if(st){openStudy(st.dataset.studyId);return}
-  if(e.target.closest('[data-close-premium]')){$('premiumResourceModal')?.classList.remove('open');return}
+  if(e.target.closest('[data-close-premium]')){closePremium();return}
   if(e.target.closest('[data-clear-smart]')){$('globalSearch').value='';$('globalResults')?.remove();return}
   const pr=e.target.closest('[data-print-url]');if(pr){const w=window.open(pr.dataset.printUrl,'_blank');if(w)setTimeout(()=>{try{w.print()}catch(_){}},900)}
  });
  $('searchPapers')?.addEventListener('click',()=>{saveRecent([$('paperBoard')?.selectedOptions[0]?.text,$('paperClass')?.selectedOptions[0]?.text,$('paperSubject')?.value,$('paperYear')?.value,$('paperSession')?.value].filter(x=>x&&!/^All/.test(x)).join(' '));setTimeout(enhancePastResults,0)});
+ ['paperLevel','paperBoard','paperClass','paperSubject','paperYear','paperType','paperSession'].forEach(id=>$(id)?.addEventListener('change',()=>setTimeout(()=>$('searchPapers')?.click(),0)));
+ $('clearSearch')?.addEventListener('click',()=>{$('globalResults')?.remove();renderSuggestions()});
+ $('globalSearch')?.addEventListener('input',()=>{$('globalResults')?.remove()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closePremium()});
+ document.addEventListener('click',e=>{if(e.target?.id==='premiumResourceModal')closePremium()});
 }
 function enhancePastResults(){
  const grid=$('pastGrid');if(!grid)return;
@@ -166,6 +180,20 @@ function enhancePastResults(){
   });
   grid.innerHTML=rows.length?rows.map(x=>resourceCard({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTA',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'})).join(''):emptyState([cl&&('Grade '+cl),$('paperSubject')?.value,year,$('paperSearch')?.value].filter(Boolean).join(' ')||'school resources');
   $('paperSummary').textContent=rows.length+' school-level PECTA / assessment result'+(rows.length===1?'':'s')+'.';
+  return;
+ }
+ if(level==='university'){
+  const universities=(uni().universities||[]).filter(x=>x.id!=='vu'),resources=(uni().resources||[]).filter(x=>x.universityId!=='vu');
+  let rows=resources.filter(x=>{
+   if(!/past|paper|exam/i.test(String(x.category||'')+' '+String(x.title||'')))return false;
+   if(query&&!norm(JSON.stringify(x)+' '+(universities.find(u=>u.id===x.universityId)?.name||'')).includes(query))return false;
+   return true;
+  }).map(x=>{const u=universities.find(y=>y.id===x.universityId);return {id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:u?.name||'',section:'universities'}});
+  if(query&&!rows.length){
+   rows=universities.filter(u=>norm(u.name).includes(query)).map(u=>({id:'uni-portal:'+u.id,title:u.name+' Official Examination / Academic Portal',description:'Official university source for current examination notices, past-paper availability and academic resources.',url:u.officialUrl,source:'official',type:'University Portal',board:u.name,section:'universities'}));
+  }
+  grid.innerHTML=rows.length?rows.slice(0,24).map(resourceCard).join(''):emptyState($('paperSearch')?.value||'university past papers');
+  $('paperSummary').textContent=rows.length+' university examination / past-paper result'+(rows.length===1?'':'s')+(query?' for “'+$('paperSearch').value.trim()+'”':'')+'.';
   return;
  }
  if(level==='vu'){
