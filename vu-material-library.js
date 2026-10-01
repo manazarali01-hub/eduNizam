@@ -264,6 +264,40 @@ const COMMUNITY=[
 ];
 
 const DIRECT_HANDOUTS={
+ 'BIF101':'1bPhSMm1v5sy274zbkX44P7y4wPQqAzXC',
+ 'BIF401':'1yokcCqlPt_GoVBqrN2vx2hZjeAuBsixR',
+ 'BIF501':'1KjDTL-D1lWVpQPnxtJBojCHWuCO_newR',
+ 'BIF602':'1AF1uDmcGDgu_ZhFs6qUPGpRTVM5AXxTJ',
+ 'BIO101':'14CKSe_4p4ISL3zzNnFXYvRcsa-ziJm4b',
+ 'BIO201':'1ugH3pzOG_A_wBLU2uhR6tcBJnCm10vly',
+ 'BIO202':'1WWaALma69PmVuofOmFoKap9W-sTcK9xZ',
+ 'BIO203':'1O43eJkRBOFsJdjwrnfFImCpwfj5-PkrN',
+ 'BIO204':'1KJIb1_2S9eTUCLB7aX8rbPUOpYjRdMED',
+ 'BIO301':'1FRYrUoM2vfYx2-0GXNKMy2v8XvY_bbD5',
+ 'BIO302':'1OI4Q74i9kbuIpSmofxIcnlTZeLU2O03F',
+ 'BIO303':'1Rt5RMzxmkJpSn0wagUb64ASKlwtXUQaY',
+ 'BIO503':'192cLA048KFN5-RfIR1oT7Ksqu6pbVR6h',
+ 'BIO504':'123I79zMJxfMYgw4plHc4g0YqKEN9ShnP',
+ 'BIO505':'1RZ_jSL47fiX6DgVrvv3BQCweV-da2i0S',
+ 'BIO506':'1Zz7LFdDFLzdgC9Vh6KNj9-llDPrRRuEB',
+ 'BT101':'1aOk-ZquPi_wjb3vqqpRbcovziv2TKs72',
+ 'BT102':'1uk8aSy7-ekjFo1z2mT03ApwrG9QFspQa',
+ 'BT201':'14MMaQH-oKYGyG60UJbBLNFISb0OT8KmX',
+ 'BT302':'1JAMvhnrOzlvYfwr9hXRN2_nnrycqrj36',
+ 'BT401':'1r5SR2pBNOzVeNi1D2E1UdlVDklmmgS-g',
+ 'BT402':'14YINgoyyKHd-hVhWFSoADF821CM2UJST',
+ 'BT404':'1wpsUAqOEP5FZgkygub-g4RAyI7_0cePj',
+ 'BT405':'1p3DOIq9T5oazgeQvjVDegXDlnR3VD2Lu',
+ 'BT406':'1FtQiABCmFgUa6N0v9e7QUnM7GADkxZVC',
+ 'BT501':'1DTnAAU2SfULn_ZxWHtPl6xFnZR1i0zaw',
+ 'BT503':'1WQD2pwxcbYhlReKfzTZQ3xhtyQrY7thX',
+ 'BT505':'1jozxHEVRwz6htC-_IeDxs0qY-xQuuV-T',
+ 'BT511T':'1xMmbNMeo6rwgujDUAK79kavra1gzBLxI',
+ 'BT601':'1Ft9Ol1aW2EbL9gv8w1TdDXen4ymykraw',
+ 'BT603':'1heNxkcYNjY20CWjxxL5c-h-4NabocK7n',
+ 'BT605':'1Clsw-XntrXC4Ke5B6T3HHeqEnsMPWRY4',
+ 'CHE201':'1JTDYzQ5JJY8XAJXn3RbCl70MukXuMAGr',
+ 'CHE301':'10eUYHZeGyHf7rriKnvg40Vu37M-fvsTw',
  'CS101':'1N_9ZMxbyw5UsXZOOgzKW__6sRaqRglL0',
  'CS201':'1jR56zBmr1POMe471zmDdh44n99TTCioE',
  'CS301':'1mhg8XcEOBfIQanKzzT8GxsMMT4oEM7UX',
@@ -579,10 +613,12 @@ function officialFor(course){
    official('vulms','GDB / Current Semester',course.code+' Current Semester in VULMS',p.vulms,'login_required','Current quizzes, assignments, GDBs, announcements and enrolled-course files are available in VULMS.')
   ];
   if(/P$/.test(course.code))rows.push(official('practical','Practicals / Lab Manuals',course.code+' Practical Course / Lab Study Scheme',course.officialDetails||p.search,'official_open','Official VU program/study-scheme route for this practical course. Use VULMS for the current lab instructions/files.'));
-  if(['CS519','CS619'].includes(course.code))rows.push(official('project','Final Project / Viva',course.code+' Official Final Project Route',course.officialDetails||'https://www.vu.edu.pk/contact','official_open','Official VU program route for the final project. Current project instructions, supervisor communication and deliverables should be confirmed through VULMS/official project channels.'));
-  if(course.code==='CSI619'){
-   rows.push(official('internship','Internship / Field Experience',course.code+' Official Internship / Field Experience Route',course.officialDetails||p.search,'official_open','Official VU study-scheme route for field experience/internship requirements; current instructions should be checked in VULMS.'));
-   rows.push(official('internship-guide','Syllabus / Study Guide',course.code+' Internship Study Scheme',course.officialDetails||p.search,'official_open','Official study-scheme context for the internship/field experience course.'));
+  const isProject=['CS519','CS619'].includes(course.code)||/\b(project|capstone)\b/i.test(String(course.title||''));
+  const isInternship=/internship|field experience/i.test(String(course.title||''))||/I619$/i.test(course.code);
+  if(isProject)rows.push(official('project','Final Project / Viva',course.code+' Official Project / Capstone Route',course.officialDetails||'https://www.vu.edu.pk/contact','official_open','Official VU program/study-scheme route for this project or capstone course. Current supervisor, deliverable and viva requirements should be confirmed through VULMS/official project channels.'));
+  if(isInternship){
+   rows.push(official('internship','Internship / Field Experience',course.code+' Official Internship / Field Experience Route',course.officialDetails||p.search,'official_open','Official VU study-scheme/program route for internship or field-experience requirements; current instructions should be checked in VULMS.'));
+   rows.push(official('internship-guide','Syllabus / Study Guide',course.code+' Internship / Field Experience Study Scheme',course.officialDetails||p.search,'official_open','Official study-scheme context for this internship/field-experience course.'));
   }
   return rows;
  }
