@@ -322,10 +322,16 @@ function officialFor(course){
  if(!p)return[];
  const direct=!!p.direct;
  const official=(id,type,title,url,access,note)=>({id:'official-'+id,type,title,url,source:'Virtual University',trust:'official',access,note,courseCode:course.code});
- if(!direct)return[
-  official('lookup','Course Overview',course.code+' Official OCW Lookup',p.search,'official_open','Open the official VU course search for this code. Exact material pages are not generated until the OCW category is known.'),
-  official('vulms','GDB / Current Semester',course.code+' Current Semester in VULMS',p.vulms,'login_required','Current quizzes, assignments, GDBs, announcements and enrolled-course files are available in VULMS.')
- ];
+ if(!direct){
+  const rows=[
+   official('details','Course Overview',course.code+' Official VU Course / Study Scheme',course.officialDetails||p.search,'official_open','Official VU study-scheme/program route for this course. An exact OCW material page is not claimed unless independently verified.'),
+   official('vulms','GDB / Current Semester',course.code+' Current Semester in VULMS',p.vulms,'login_required','Current quizzes, assignments, GDBs, announcements and enrolled-course files are available in VULMS.')
+  ];
+  if(/P$/.test(course.code))rows.push(official('practical','Practicals / Lab Manuals',course.code+' Practical Course / Lab Study Scheme',course.officialDetails||p.search,'official_open','Official VU program/study-scheme route for this practical course. Use VULMS for the current lab instructions/files.'));
+  if(['CS519','CS619'].includes(course.code))rows.push(official('project','Final Project / Viva',course.code+' Official Final Project Route',course.officialDetails||'https://www.vu.edu.pk/contact','official_open','Official VU program route for the final project. Current project instructions, supervisor communication and deliverables should be confirmed through VULMS/official project channels.'));
+  if(course.code==='CSI619')rows.push(official('internship','Syllabus / Study Guide',course.code+' Official Internship / Field Experience Route',course.officialDetails||p.search,'official_open','Official VU study-scheme route for field experience/internship requirements; current instructions should be checked in VULMS.'));
+  return rows;
+ }
  return[
   official('notes','Course Notes / Handouts',course.code+' Course Notes / Handouts',p.notes,'login_required','Official OCW Notes page. Published files are visible publicly; VU may require login before the actual file download.'),
   official('videos','Lecture Videos',course.code+' Lecture Videos',p.videos,'login_required','Official VU lecture-video page. Video listings are public; download can require OCW login.'),
