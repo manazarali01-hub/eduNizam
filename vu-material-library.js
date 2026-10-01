@@ -257,6 +257,11 @@ const COMMUNITY=[
   access:'download_index',note:'Alternative highlighted-handout collection organized by VU subject/course.'
  },
  {
+  id:'vuapex-highlighted',type:'Highlighted Handouts',title:'VU Apex Highlighted Handouts',
+  url:'https://vuapex.com.pk/vu-highlighted-handouts/',source:'VU Apex',trust:'verified',
+  access:'download_index',note:'Alternative highlighted-handout collection for Virtual University subjects. Use as supplementary revision material and verify against official course handouts.'
+ },
+ {
   id:'nva-handouts',type:'Course Notes / Handouts',title:'NVA Education VU Handout Pages',
   url:'https://nvaeducation.com/books/vu/',source:'NVA Education',trust:'verified',
   access:'open',note:'Course-specific VU handout pages with embedded/linked Google Drive material. Some downloads may require the provider’s sharing step, so this is labelled as a browse/download page rather than a direct file.'
@@ -684,8 +689,16 @@ function forCourse(course,{type='',source='',provider='',access=''}={}){
  if(provider)rows=rows.filter(x=>x.source===provider);
  if(access==='downloadable')rows=rows.filter(x=>['direct_download','download_index'].includes(x.access));
  else if(access)rows=rows.filter(x=>x.access===access);
- const rank={direct_download:0,download_index:1,official_open:2,login_required:3,open:4};
- rows.sort((a,b)=>(rank[a.access]??9)-(rank[b.access]??9)||String(a.source||'').localeCompare(String(b.source||'')));
+ const priority=x=>{
+  if(x.access==='direct_download')return 0;
+  if(x.trust==='official'&&x.access==='official_open')return 1;
+  if(x.trust==='official'&&x.access==='login_required')return 2;
+  if(x.trust==='verified'&&x.access==='download_index')return 3;
+  if(x.trust==='verified'&&x.access==='open')return 4;
+  if(x.trust==='legacy')return 6;
+  return 5;
+ };
+ rows.sort((a,b)=>priority(a)-priority(b)||String(a.type||'').localeCompare(String(b.type||''))||String(a.source||'').localeCompare(String(b.source||'')));
  return rows.map(x=>({...x,verifiedAt:x.verifiedAt||'2026-10-01',actionLabel:actionLabel(x),accessLabel:accessLabel(x)}));
 }
 
