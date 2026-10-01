@@ -2,7 +2,7 @@
 'use strict';
 const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const norm=v=>window.EDUNIZAM_LEARNING_SEARCH?.normalize?.(v)||String(v??'').normalize('NFKC').toLocaleLowerCase('en-PK').replace(/[^\\p{L}\\p{N}]+/gu,' ').trim();
-const FKEY='edunizam_guest_favorites', RKEY='edunizam_guest_recent_searches', PKEY='edunizam_guest_practice_history';
+const FKEY='edunizam_guest_favorites', RKEY='edunizam_guest_recent_searches', PKEY='edunizam_guest_practice_history', PRESUME='edunizam_guest_practice_resume';
 const getJSON=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(_){return d}};
 const setJSON=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
 const pp=()=>window.EDUNIZAM_PAST_PAPERS||{}, uni=()=>window.EDUNIZAM_UNIVERSITY_DATA||{};
@@ -12,6 +12,11 @@ function saveRecent(q){q=String(q||'').trim();if(q.length<2)return;setJSON(RKEY,
 function practiceHistory(){return getJSON(PKEY,[])}
 function pushPracticeHistory(item){setJSON(PKEY,[item,...practiceHistory()].slice(0,20));renderPracticeHistory()}
 function renderPracticeHistory(){const box=$('guestPracticeHistory');if(!box)return;const rows=practiceHistory();if(!rows.length){box.innerHTML='<span style="color:var(--muted)">No completed practice session on this device yet.</span>';return}const best=Math.max(...rows.map(x=>Number(x.scorePct||0)));const recent=rows[0];box.innerHTML='<strong>Practice history:</strong> '+rows.length+' session'+(rows.length===1?'':'s')+' · Best MCQ score '+best+'% · Last: '+esc(recent.label||'Mixed practice')+' ('+Number(recent.scorePct||0)+'%) <button class="btn" id="guestPracticeClearHistory" type="button" style="margin-left:6px">Clear history</button>';const b=$('guestPracticeClearHistory');if(b)b.onclick=()=>{setJSON(PKEY,[]);renderPracticeHistory()}}
+function practiceResume(){return getJSON(PRESUME,null)}
+function clearPracticeResume(){try{localStorage.removeItem(PRESUME)}catch(_){}renderPracticeResume()}
+function savePracticeResume(){if(!guestPracticeRows.length||guestPracticeFinished)return;setJSON(PRESUME,{ids:guestPracticeRows.map(x=>x.id),index:guestPracticeIndex,attempts:[...guestPracticeAttempts.entries()],savedAt:new Date().toISOString()});renderPracticeResume()}
+function renderPracticeResume(){const b=$('guestPracticeResume');if(!b)return;const s=practiceResume(),count=Array.isArray(s?.ids)?s.ids.length:0;b.hidden=!count;b.textContent=count?'Resume Last Session ('+count+')':'Resume Last Session'}
+function restorePracticeResume(){const s=practiceResume(),all=window.EDUNIZAM_PRACTICE_DATA?.questions||[];if(!s||!Array.isArray(s.ids))return;const map=new Map(all.map(x=>[x.id,x]));const rows=s.ids.map(id=>map.get(id)).filter(Boolean);if(!rows.length){clearPracticeResume();return}guestPracticeRows=rows;guestPracticeIndex=Math.max(0,Math.min(Number(s.index||0),rows.length-1));guestPracticeAttempts=new Map(Array.isArray(s.attempts)?s.attempts:[]);guestPracticeFinished=false;renderGuestPractice();$('practiceExplorer')?.scrollIntoView({behavior:'smooth',block:'start'})}
 function allResources(){
  const out=[];
  (pp().papers||[]).forEach(x=>{const b=(pp().boards||[]).find(y=>y.id===x.boardId);out.push({id:'paper:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.type==='past'?'Past Paper':x.type,board:b?.name||'',classLevel:x.classLevel,subject:x.subject,year:x.year,session:x.session,section:'past'})});
@@ -263,7 +268,7 @@ function injectSectionExplorers(){
    '<label class="filter-label">Order<select id="guestPracticeOrder"><option value="sequential">Sequential</option><option value="random">Random</option></select></label>'+
    '<label class="filter-label">Session size<select id="guestPracticeLimit"><option value="10">10 questions</option><option value="20">20 questions</option><option value="all">All matching questions</option></select></label>'+
    '<button class="btn primary" id="guestPracticeApply">Start Practice</button>'+
-   '<button class="btn" id="guestPracticeRestart" type="button">Restart Session</button>'+
+   '<button class="btn" id="guestPracticeRestart" type="button">Restart Session</button><button class="btn" id="guestPracticeResume" type="button" hidden>Resume Last Session</button>'+
    '</div><div id="guestPracticeCoverage" class="paper-summary"></div><div id="guestPracticeSummary" class="paper-summary" aria-live="polite"></div><div id="guestPracticeSession" class="paper-summary" aria-live="polite"></div><div id="guestPracticeHistory" class="paper-summary" aria-live="polite"></div>';
   practice.insertBefore(p,practice.firstChild.nextSibling);
   const baseActions=practice.querySelector('.practice-actions');if(baseActions){baseActions.hidden=true;baseActions.style.display='none';baseActions.setAttribute('aria-hidden','true')}
@@ -300,8 +305,9 @@ function injectSectionExplorers(){
   ['guestPracticeClass','guestPracticeSubject','guestPracticeChapter','guestPracticeType','guestPracticeDifficulty'].forEach(id=>$(id).onchange=refreshPracticeOptions);
   $('guestPracticeApply').onclick=applyPracticeFilters;
   $('guestPracticeRestart').onclick=()=>applyPracticeFilters();
+  $('guestPracticeResume').onclick=restorePracticeResume;
   refreshPracticeOptions();
-  applyPracticeFilters();
+  const savedResume=practiceResume();if(savedResume&&Array.isArray(savedResume.ids)&&savedResume.ids.length){renderPracticeResume();const box=$('guestPracticeSummary');if(box)box.textContent='An unfinished practice session is available. Resume it or start a new session with the filters above.'}else applyPracticeFilters();
   renderPracticeHistory();
  }
 }
@@ -335,6 +341,7 @@ function finishGuestPractice(){
  $('guestPracticeChange').onclick=()=>{$('practiceExplorer')?.scrollIntoView({behavior:'smooth',block:'start'})};
  updatePracticeSessionStatus();
  renderPracticeHistory();
+ clearPracticeResume();
 }
 function renderGuestPractice(){
  const x=guestPracticeRows[guestPracticeIndex];if(!x)return;
@@ -356,17 +363,17 @@ function renderGuestPractice(){
    const n=Number(b.dataset.guestAnswer);
    if(guestPracticeAttempts.has(x.id))return;
    guestPracticeAttempts.set(x.id,{kind:'mcq',choice:n,correct:n===x.answer});
-   paint(n);updatePracticeSessionStatus();
+   paint(n);updatePracticeSessionStatus();savePracticeResume();
   });
  }else{
   $('practiceOptions').innerHTML='<button class="option" id="guestShowAnswer">Show suggested answer</button>'+nav;
   const show=()=>{$('practiceExplain').hidden=false;$('practiceExplain').textContent=x.answerText||'Review this answer with your current textbook/teacher.';$('guestShowAnswer').disabled=true};
   if(attempt&&attempt.kind==='written')show();
-  else $('guestShowAnswer').onclick=()=>{if(!guestPracticeAttempts.has(x.id))guestPracticeAttempts.set(x.id,{kind:'written'});show();updatePracticeSessionStatus()};
+  else $('guestShowAnswer').onclick=()=>{if(!guestPracticeAttempts.has(x.id))guestPracticeAttempts.set(x.id,{kind:'written'});show();updatePracticeSessionStatus();savePracticeResume()};
  }
  const prev=$('guestPracticePrev'),next=$('guestPracticeNext');
- if(prev)prev.onclick=()=>{if(guestPracticeIndex>0){guestPracticeIndex--;renderGuestPractice()}};
- if(next)next.onclick=()=>{if(isLast)finishGuestPractice();else{guestPracticeIndex++;renderGuestPractice()}};
+ if(prev)prev.onclick=()=>{if(guestPracticeIndex>0){guestPracticeIndex--;savePracticeResume();renderGuestPractice()}};
+ if(next)next.onclick=()=>{if(isLast)finishGuestPractice();else{guestPracticeIndex++;savePracticeResume();renderGuestPractice()}};
  updatePracticeSessionStatus();
 }
 function applyPracticeFilters(){
@@ -383,6 +390,7 @@ function applyPracticeFilters(){
  rows=window.EDUNIZAM_PRACTICE_CORE?.selectSession?.(rows,{}, {order,limit})||
   (order==='random'?shufflePractice(rows):rows).slice(0,limit==='all'?rows.length:Math.max(1,Number(limit)||10));
  guestPracticeRows=rows;guestPracticeIndex=0;guestPracticeAttempts=new Map();guestPracticeFinished=false;
+ if(guestPracticeRows.length)savePracticeResume();
  if(!guestPracticeRows.length){$('practiceMeta').innerHTML='';$('practiceQuestion').textContent='No practice questions are available yet.';$('practiceOptions').innerHTML='';$('practiceExplain').hidden=true;updatePracticeSessionStatus();return}
  renderGuestPractice();
 }
