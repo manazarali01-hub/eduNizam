@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
-const BUILD='20261001-visitor195', KEY='edunizam_system_build', RELOAD='edunizam_update_reload';
-const ACTIVE_CACHE='edunizam-v182-visitor195';
+const BUILD='20261001-visitor199', KEY='edunizam_system_build', RELOAD='edunizam_update_reload';
+const ACTIVE_CACHE='edunizam-v186-visitor199';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}
