@@ -138,6 +138,9 @@ for(const marker of ["function closePremium()","if(level==='university')","data-
   guestPremium.includes(marker)?ok("visitor:premium:"+marker):bad("visitor:premium:"+marker,"missing");
 }
 if(!read("index.html").includes('href="login.html">Login / Sign Up</a>'))bad("visitor:landing-login","Public landing must expose Login / Sign Up");else ok("visitor:landing-login");
+learn.includes('.search-wrap{position:relative;top:auto;z-index:2}')?ok("visitor:mobile-search-flow"):bad("visitor:mobile-search-flow","mobile search must not remain sticky over content");
+guestPremium.includes('flex-wrap:nowrap!important')?ok("visitor:mobile-chip-scroll"):bad("visitor:mobile-chip-scroll","mobile search chips must scroll horizontally");
+guestPremium.includes('search-tools-collapsed')?ok("visitor:search-collapse"):bad("visitor:search-collapse","search suggestions must collapse after submit");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
