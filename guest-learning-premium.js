@@ -260,6 +260,7 @@ function injectSectionExplorers(){
  const practice=$('practice');if(practice&&!$('practiceExplorer')){
   const p=document.createElement('div');p.id='practiceExplorer';p.className='card';p.style.marginBottom='16px';
   p.innerHTML='<div class="paper-filters past-advanced">'+
+   '<label class="filter-label search-wide">Search topic/question<input id="guestPracticeQuery" type="search" placeholder="e.g. gravitation, logarithms, genetics"></label>'+ 
    '<label class="filter-label">Class<select id="guestPracticeClass"><option value="">All Classes</option></select></label>'+
    '<label class="filter-label">Subject<select id="guestPracticeSubject"><option value="">All Subjects</option></select></label>'+
    '<label class="filter-label">Chapter<select id="guestPracticeChapter"><option value="">All Chapters</option></select></label>'+
@@ -295,14 +296,16 @@ function injectSectionExplorers(){
    const type=typeEl.value;
    const byType=byChapter.filter(x=>!type||x.type===type);
    const difficulties=unique(byType.map(x=>x.difficulty)).sort((a,b)=>['Easy','Medium','Hard'].indexOf(a)-['Easy','Medium','Hard'].indexOf(b));setOptions(dfEl,'All Levels',difficulties,oldDf);
-   const diff=dfEl.value;
-   const count=byType.filter(x=>!diff||x.difficulty===diff).length;
+   const diff=dfEl.value,q=norm($('guestPracticeQuery')?.value||'');
+   const count=byType.filter(x=>(!diff||x.difficulty===diff)&&(!q||norm([x.subject,x.chapter,x.question].join(' ')).includes(q))).length;
    const totalChapters=unique(all.map(x=>String(x.classLevel)+'|'+x.subject+'|'+x.chapter)).length,totalSubjects=unique(all.map(x=>String(x.classLevel)+'|'+x.subject)).length;
    $('guestPracticeCoverage').textContent=all.length+' built-in questions · '+totalChapters+' chapter/topic groups · '+totalSubjects+' class-subject groups. Practice is concept-focused unless a board/source is explicitly labelled.';
    $('guestPracticeSummary').textContent=count+' practice question'+(count===1?'':'s')+' available for the selected filters.';
    $('guestPracticeApply').textContent='Start Practice'+(count?' ('+count+')':'');
   }
   ['guestPracticeClass','guestPracticeSubject','guestPracticeChapter','guestPracticeType','guestPracticeDifficulty'].forEach(id=>$(id).onchange=refreshPracticeOptions);
+  $('guestPracticeQuery').addEventListener('input',refreshPracticeOptions);
+  $('guestPracticeQuery').addEventListener('keydown',e=>{if(e.key==='Enter')applyPracticeFilters()});
   $('guestPracticeApply').onclick=applyPracticeFilters;
   $('guestPracticeRestart').onclick=()=>applyPracticeFilters();
   $('guestPracticeResume').onclick=restorePracticeResume;
@@ -377,10 +380,12 @@ function renderGuestPractice(){
  updatePracticeSessionStatus();
 }
 function applyPracticeFilters(){
- const cl=$('guestPracticeClass')?.value||'',sub=$('guestPracticeSubject')?.value||'',chapter=$('guestPracticeChapter')?.value||'',type=$('guestPracticeType')?.value||'',diff=$('guestPracticeDifficulty')?.value||'';
+ const cl=$('guestPracticeClass')?.value||'',sub=$('guestPracticeSubject')?.value||'',chapter=$('guestPracticeChapter')?.value||'',type=$('guestPracticeType')?.value||'',diff=$('guestPracticeDifficulty')?.value||'',q=norm($('guestPracticeQuery')?.value||'');
  const all=window.EDUNIZAM_PRACTICE_DATA?.questions||[];
  let rows=window.EDUNIZAM_PRACTICE_CORE?.filterQuestions?.(all,{classLevel:cl,subject:sub,chapter,type,difficulty:diff})||
   all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub)&&(!chapter||x.chapter===chapter)&&(!type||x.type===type)&&(!diff||x.difficulty===diff));
+ if(q)rows=rows.filter(x=>norm([x.subject,x.chapter,x.question,x.explanation,x.answerText].join(' ')).includes(q));
+ if(!rows.length&&q){guestPracticeRows=[];guestPracticeAttempts=new Map();guestPracticeFinished=false;$('guestPracticeSummary').textContent='No practice question matched “'+$('guestPracticeQuery').value.trim()+'” with the selected filters. Try a broader keyword or clear one filter.';$('practiceMeta').innerHTML='';$('practiceQuestion').textContent='No matching practice question.';$('practiceOptions').innerHTML='';$('practiceExplain').hidden=true;updatePracticeSessionStatus();return}
  if(!rows.length){
   const nearest=window.EDUNIZAM_PRACTICE_CORE?.filterQuestions?.(all,{classLevel:cl,subject:sub})||all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub));
   rows=nearest.length?nearest:all;
