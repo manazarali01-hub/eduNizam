@@ -144,6 +144,11 @@ guestPremium.includes('search-tools-collapsed')?ok("visitor:search-collapse"):ba
 read("school-assessment-data.js").includes("pectaa-g5-math-curriculum")?ok("visitor:g5-math-resource"):bad("visitor:g5-math-resource","official Grade 5 Mathematics resource missing");
 guestPremium.includes("refreshGradeOptions")?ok("visitor:grade-filter-data"):bad("visitor:grade-filter-data","grade filters must reflect available resource data");
 guestPremium.includes("No exact resource of this type is currently indexed.")?ok("visitor:grade-fallback"):bad("visitor:grade-fallback","grade filters need a genuine-resource fallback");
+const practiceData=read("practice-data.js");
+practiceData.includes('id:"q21"')&&practiceData.includes('chapter:"Periodic Table"')&&practiceData.includes('difficulty:"Medium"')?ok("visitor:practice-periodic-table"):bad("visitor:practice-periodic-table","Grade 9 Chemistry Periodic Table medium question missing");
+guestPremium.includes("refreshPracticeOptions")?ok("visitor:practice-data-filters"):bad("visitor:practice-data-filters","practice filters must come from available questions");
+guestPremium.includes("baseActions.hidden=true")?ok("visitor:practice-nav"):bad("visitor:practice-nav","legacy duplicate practice navigation must be hidden");
+!guestPremium.includes("No practice question matches these filters. Try another class, subject, chapter or difficulty.")?ok("visitor:practice-no-dead-end"):bad("visitor:practice-no-dead-end","dead-end practice message remains");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
