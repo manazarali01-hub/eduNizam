@@ -264,7 +264,7 @@ function injectSectionExplorers(){
    '<label class="filter-label">Session size<select id="guestPracticeLimit"><option value="10">10 questions</option><option value="20">20 questions</option><option value="all">All matching questions</option></select></label>'+
    '<button class="btn primary" id="guestPracticeApply">Start Practice</button>'+
    '<button class="btn" id="guestPracticeRestart" type="button">Restart Session</button>'+
-   '</div><div id="guestPracticeSummary" class="paper-summary" aria-live="polite"></div><div id="guestPracticeSession" class="paper-summary" aria-live="polite"></div><div id="guestPracticeHistory" class="paper-summary" aria-live="polite"></div>';
+   '</div><div id="guestPracticeCoverage" class="paper-summary"></div><div id="guestPracticeSummary" class="paper-summary" aria-live="polite"></div><div id="guestPracticeSession" class="paper-summary" aria-live="polite"></div><div id="guestPracticeHistory" class="paper-summary" aria-live="polite"></div>';
   practice.insertBefore(p,practice.firstChild.nextSibling);
   const baseActions=practice.querySelector('.practice-actions');if(baseActions){baseActions.hidden=true;baseActions.style.display='none';baseActions.setAttribute('aria-hidden','true')}
   const allQuestions=()=>window.EDUNIZAM_PRACTICE_DATA?.questions||[];
@@ -292,6 +292,8 @@ function injectSectionExplorers(){
    const difficulties=unique(byType.map(x=>x.difficulty)).sort((a,b)=>['Easy','Medium','Hard'].indexOf(a)-['Easy','Medium','Hard'].indexOf(b));setOptions(dfEl,'All Levels',difficulties,oldDf);
    const diff=dfEl.value;
    const count=byType.filter(x=>!diff||x.difficulty===diff).length;
+   const totalChapters=unique(all.map(x=>String(x.classLevel)+'|'+x.subject+'|'+x.chapter)).length,totalSubjects=unique(all.map(x=>String(x.classLevel)+'|'+x.subject)).length;
+   $('guestPracticeCoverage').textContent=all.length+' built-in questions · '+totalChapters+' chapter/topic groups · '+totalSubjects+' class-subject groups. Practice is concept-focused unless a board/source is explicitly labelled.';
    $('guestPracticeSummary').textContent=count+' practice question'+(count===1?'':'s')+' available for the selected filters.';
    $('guestPracticeApply').textContent='Start Practice'+(count?' ('+count+')':'');
   }
@@ -555,9 +557,11 @@ function injectVUExplorer(){
    ].join('');
   }
   const unique=[];const seen=new Set();rows.forEach(x=>{const id=x.id||x.title;if(!seen.has(id)){seen.add(id);unique.push(x)}});
+  const categoryCourses=category&&!query&&source!=='verified'?catalog().filter(x=>x.category===category).slice(0,30):[];
+  const categoryHtml=categoryCourses.map(x=>resourceCard({id:'course:'+x.code,title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails||('https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(x.code)),source:'official',type:'VU Course',board:'Virtual University',subject:x.category,courseCodes:[x.code],section:'vu'})).join('');
   const courseState=course?' · Course matched: '+course.code+' — '+course.title:(validCourseCode?' · Course code will be verified through official VU lookup':'');
-  $('vuGuestSummary').textContent=unique.length+' indexed VU resource'+(unique.length===1?'':'s')+(query?' for “'+rawInput+'”':'')+courseState+'. Official current-semester material remains the primary source.';
-  $('vuGuestResults').innerHTML=courseRow+(unique.length?unique.slice(0,30).map(x=>resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',courseCodes:x.courseCodes||[],section:'vu'})).join(''):(!course&&!validCourseCode?emptyState(rawInput||$('vuGuestType').value||'VU resource'):''));
+  $('vuGuestSummary').textContent=(categoryCourses.length?categoryCourses.length+' course'+(categoryCourses.length===1?'':'s')+' · ':'')+unique.length+' indexed VU resource'+(unique.length===1?'':'s')+(query?' for “'+rawInput+'”':'')+courseState+'. Local catalogue: '+catalog().length+' courses. Official current-semester material remains the primary source.';
+  $('vuGuestResults').innerHTML=courseRow+categoryHtml+(unique.length?unique.slice(0,30).map(x=>resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',courseCodes:x.courseCodes||[],section:'vu'})).join(''):(!course&&!validCourseCode&&!categoryCourses.length?emptyState(rawInput||$('vuGuestType').value||'VU resource'):''));
  };
  $('vuGuestSearch').onclick=run;
  $('vuGuestQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});
