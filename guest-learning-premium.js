@@ -142,7 +142,42 @@ function injectSectionExplorers(){
  }
  const study=$('study');if(study&&!$('studyExplorer')){const p=document.createElement('div');p.id='studyExplorer';p.className='card';p.style.marginBottom='16px';p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label search-wide">Search Study Library<input id="guestStudyQuery" type="search" placeholder="e.g. Class 10 Physics, formula sheet, syllabus"></label><label class="filter-label">Class<select id="guestStudyClass"><option value="">All Classes</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label><button class="btn primary" id="guestStudySearch">Search Library</button></div><div id="guestStudyResults" class="grid"></div>';study.insertBefore(p,$('studyGrid'));const run=()=>{const q=norm($('guestStudyQuery').value),cl=$('guestStudyClass').value;const rows=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>(!q||norm(JSON.stringify(x)).includes(q))&&(!cl||(x.classLevels||[]).map(String).includes(cl)));$('guestStudyResults').innerHTML=rows.length?rows.map(x=>studyCard(x)).join(''):emptyState($('guestStudyQuery').value||('Class '+cl));};$('guestStudySearch').onclick=run;$('guestStudyQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});$('guestStudyClass').onchange=run;run();}
  const unis=$('universities');if(unis&&!$('universityExplorer')){const p=document.createElement('div');p.id='universityExplorer';p.className='card';p.style.marginBottom='16px';const us=(uni().universities||[]).filter(x=>x.id!=='vu');p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label search-wide">University<select id="guestUniversity"><option value="">All Universities</option>'+us.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('')+'</select></label><label class="filter-label">Resource<select id="guestUniversityType"><option value="">All Resources</option><option>Past Papers</option><option>Academic Resources</option></select></label><button class="btn primary" id="guestUniversitySearch">Show Resources</button></div><div id="guestUniversityResults" class="grid"></div>';unis.insertBefore(p,$('universityGrid'));const run=()=>{const id=$('guestUniversity').value,t=norm($('guestUniversityType').value);let rows=(uni().resources||[]).filter(x=>x.universityId!=='vu'&&(!id||x.universityId===id)&&(!t||norm(x.category).includes(t)));if(id&&!rows.length){const u=us.find(x=>x.id===id);if(u)rows=[{id:u.id+'-portal',universityId:u.id,title:u.name+' Official Portal',url:u.officialUrl,source:'official',category:'Academic Resources',note:'Official university portal for current academic and examination resources.'}]};$('guestUniversityResults').innerHTML=rows.length?rows.map(x=>{const u=us.find(y=>y.id===x.universityId);return resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:u?.name||'',section:'universities'})}).join(''):emptyState('university resources');};$('guestUniversitySearch').onclick=run;$('guestUniversity').onchange=run;$('guestUniversityType').onchange=run;run();}
- const practice=$('practice');if(practice&&!$('practiceExplorer')){const p=document.createElement('div');p.id='practiceExplorer';p.className='card';p.style.marginBottom='16px';p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label">Class<select id="guestPracticeClass"><option value="">All Classes</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label><label class="filter-label">Subject<select id="guestPracticeSubject"><option value="">All Subjects</option></select></label><label class="filter-label">Chapter<select id="guestPracticeChapter"><option value="">All Chapters</option></select></label><label class="filter-label">Difficulty<select id="guestPracticeDifficulty"><option value="">All Levels</option><option>Easy</option><option>Medium</option><option>Hard</option></select></label><button class="btn primary" id="guestPracticeApply">Start Filtered Practice</button></div>';practice.insertBefore(p,practice.firstChild.nextSibling);const subjects=()=>{const cl=$('guestPracticeClass').value,d=window.EDUNIZAM_PRACTICE_DATA||{},arr=cl?(d.subjects?.[cl]||[]):[...new Set(Object.values(d.subjects||{}).flat())].sort();$('guestPracticeSubject').innerHTML='<option value="">All Subjects</option>'+arr.map(x=>'<option>'+esc(x)+'</option>').join('')};const chapters=()=>{const cl=$('guestPracticeClass').value,sub=$('guestPracticeSubject').value,d=window.EDUNIZAM_PRACTICE_DATA||{},key=cl&&sub?(cl+'|'+sub):'',arr=key?(d.chapters?.[key]||[]):[];$('guestPracticeChapter').innerHTML='<option value="">All Chapters</option>'+arr.map(x=>'<option>'+esc(x)+'</option>').join('')};$('guestPracticeClass').onchange=()=>{subjects();chapters()};$('guestPracticeSubject').onchange=chapters;$('guestPracticeApply').onclick=applyPracticeFilters;subjects();chapters();}
+ const practice=$('practice');if(practice&&!$('practiceExplorer')){
+  const p=document.createElement('div');p.id='practiceExplorer';p.className='card';p.style.marginBottom='16px';
+  p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label">Class<select id="guestPracticeClass"><option value="">All Classes</option></select></label><label class="filter-label">Subject<select id="guestPracticeSubject"><option value="">All Subjects</option></select></label><label class="filter-label">Chapter<select id="guestPracticeChapter"><option value="">All Chapters</option></select></label><label class="filter-label">Difficulty<select id="guestPracticeDifficulty"><option value="">All Levels</option></select></label><button class="btn primary" id="guestPracticeApply">Start Practice</button></div><div id="guestPracticeSummary" class="paper-summary"></div>';
+  practice.insertBefore(p,practice.firstChild.nextSibling);
+  const baseActions=practice.querySelector('.practice-actions');if(baseActions)baseActions.hidden=true;
+  const allQuestions=()=>window.EDUNIZAM_PRACTICE_DATA?.questions||[];
+  const unique=arr=>[...new Set(arr.filter(Boolean))];
+  const setOptions=(el,allLabel,values,current)=>{
+   el.innerHTML='<option value="">'+allLabel+'</option>'+values.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');
+   if(values.includes(current))el.value=current;
+  };
+  function refreshPracticeOptions(){
+   const all=allQuestions(),clEl=$('guestPracticeClass'),subEl=$('guestPracticeSubject'),chEl=$('guestPracticeChapter'),dfEl=$('guestPracticeDifficulty');
+   const oldCl=clEl.value,oldSub=subEl.value,oldCh=chEl.value,oldDf=dfEl.value;
+   const classes=unique(all.map(x=>String(x.classLevel))).sort((a,b)=>Number(a)-Number(b));setOptions(clEl,'All Classes',classes,oldCl);
+   const cl=clEl.value;
+   const byClass=all.filter(x=>!cl||String(x.classLevel)===cl);
+   const subjects=unique(byClass.map(x=>x.subject)).sort();setOptions(subEl,'All Subjects',subjects,oldSub);
+   const sub=subEl.value;
+   const bySubject=byClass.filter(x=>!sub||x.subject===sub);
+   const chapters=unique(bySubject.map(x=>x.chapter)).sort();setOptions(chEl,'All Chapters',chapters,oldCh);
+   const chapter=chEl.value;
+   const byChapter=bySubject.filter(x=>!chapter||x.chapter===chapter);
+   const difficulties=unique(byChapter.map(x=>x.difficulty)).sort((a,b)=>['Easy','Medium','Hard'].indexOf(a)-['Easy','Medium','Hard'].indexOf(b));setOptions(dfEl,'All Levels',difficulties,oldDf);
+   const diff=dfEl.value;
+   const count=byChapter.filter(x=>!diff||x.difficulty===diff).length;
+   $('guestPracticeSummary').textContent=count+' practice question'+(count===1?'':'s')+' available for the selected filters.';
+   $('guestPracticeApply').textContent='Start Practice'+(count?' ('+count+')':'');
+  }
+  $('guestPracticeClass').onchange=()=>{refreshPracticeOptions();applyPracticeFilters()};
+  $('guestPracticeSubject').onchange=()=>{refreshPracticeOptions();applyPracticeFilters()};
+  $('guestPracticeChapter').onchange=()=>{refreshPracticeOptions();applyPracticeFilters()};
+  $('guestPracticeDifficulty').onchange=()=>{refreshPracticeOptions();applyPracticeFilters()};
+  $('guestPracticeApply').onclick=applyPracticeFilters;
+  refreshPracticeOptions();applyPracticeFilters();
+ }
 }
 let guestPracticeRows=[],guestPracticeIndex=0;
 function renderGuestPractice(){
@@ -165,7 +200,12 @@ function applyPracticeFilters(){
  const cl=$('guestPracticeClass')?.value||'',sub=$('guestPracticeSubject')?.value||'',chapter=$('guestPracticeChapter')?.value||'',diff=$('guestPracticeDifficulty')?.value||'';
  const all=window.EDUNIZAM_PRACTICE_DATA?.questions||[];
  guestPracticeRows=all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub)&&(!chapter||x.chapter===chapter)&&(!diff||x.difficulty===diff));guestPracticeIndex=0;
- if(!guestPracticeRows.length){$('practiceMeta').innerHTML='';$('practiceQuestion').textContent='No practice question matches these filters. Try another class, subject, chapter or difficulty.';$('practiceOptions').innerHTML='';$('practiceExplain').hidden=true;return}
+ if(!guestPracticeRows.length){
+  const nearest=all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub));
+  guestPracticeRows=nearest.length?nearest:all;guestPracticeIndex=0;
+  $('guestPracticeSummary')&&($('guestPracticeSummary').textContent='That exact combination is not available. Showing the closest genuine practice questions instead.');
+ }
+ if(!guestPracticeRows.length){$('practiceMeta').innerHTML='';$('practiceQuestion').textContent='No practice questions are available yet.';$('practiceOptions').innerHTML='';$('practiceExplain').hidden=true;return}
  renderGuestPractice();
 }
 function studyCard(x){if(x.url||x.fileUrl)return resourceCard({id:'study:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:x.board,classLevel:(x.classLevels||[]).join('/'),subject:x.subject,section:'study'});return '<article class="card"><span class="badge builtin">EduNizam Resource</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.note||'Built-in study material available instantly.')+'</p><div class="meta"><span class="badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.type)+'</span></div><div class="guest-actions"><button class="primary-action" data-study-id="'+esc(x.id)+'">Read Now</button><button data-fav-id="study:'+esc(x.id)+'">☆ Save</button></div></article>'}
