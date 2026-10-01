@@ -146,7 +146,7 @@ function injectSectionExplorers(){
   const p=document.createElement('div');p.id='practiceExplorer';p.className='card';p.style.marginBottom='16px';
   p.innerHTML='<div class="paper-filters past-advanced"><label class="filter-label">Class<select id="guestPracticeClass"><option value="">All Classes</option></select></label><label class="filter-label">Subject<select id="guestPracticeSubject"><option value="">All Subjects</option></select></label><label class="filter-label">Chapter<select id="guestPracticeChapter"><option value="">All Chapters</option></select></label><label class="filter-label">Difficulty<select id="guestPracticeDifficulty"><option value="">All Levels</option></select></label><button class="btn primary" id="guestPracticeApply">Start Practice</button></div><div id="guestPracticeSummary" class="paper-summary"></div>';
   practice.insertBefore(p,practice.firstChild.nextSibling);
-  const baseActions=practice.querySelector('.practice-actions');if(baseActions)baseActions.hidden=true;
+  const baseActions=practice.querySelector('.practice-actions');if(baseActions){baseActions.hidden=true;baseActions.style.display='none';baseActions.setAttribute('aria-hidden','true')}
   const allQuestions=()=>window.EDUNIZAM_PRACTICE_DATA?.questions||[];
   const unique=arr=>[...new Set(arr.filter(Boolean))];
   const setOptions=(el,allLabel,values,current)=>{
