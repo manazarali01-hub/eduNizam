@@ -117,7 +117,12 @@ jobs:
 
           verify_exact_file "app.html"
           verify_exact_file "premium-ui.css"
+          verify_exact_file "premium-ui.js"
           verify_exact_file "sw.js"
+          verify_exact_file "pwa-install.js"
+          verify_exact_file "system-auto-update.js"
+          verify_exact_file "learn.html"
+          verify_exact_file "guest-learning-premium.js"
 
           curl --fail --silent --show-error --location "${BASE}icon-192.png?verify=${GITHUB_SHA}" -o /tmp/icon-192.png
           curl --fail --silent --show-error --location "${BASE}icon-512.png?verify=${GITHUB_SHA}" -o /tmp/icon-512.png
