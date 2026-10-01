@@ -1,6 +1,7 @@
 (()=>{
 'use strict';
-const BUILD='20260930-auto1', KEY='edunizam_system_build', RELOAD='edunizam_update_reload';
+const BUILD='20261001-mobile183', KEY='edunizam_system_build', RELOAD='edunizam_update_reload';
+const ACTIVE_CACHE='edunizam-v170-mobile183';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}
@@ -17,7 +18,7 @@ function repairCommonUI(){
 async function clearOldCaches(){
   if(!('caches' in window))return;
   const keys=await caches.keys();
-  await Promise.all(keys.filter(k=>k.startsWith('edunizam-')&&k!=='edunizam-v168-system-auto').map(k=>caches.delete(k)));
+  await Promise.all(keys.filter(k=>k.startsWith('edunizam-')&&k!==ACTIVE_CACHE).map(k=>caches.delete(k)));
 }
 async function activateUpdate(reg){
   if(reg?.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
