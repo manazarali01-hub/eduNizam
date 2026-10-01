@@ -148,6 +148,8 @@ const practiceData=read("practice-data.js");
 practiceData.includes('id:"q21"')&&practiceData.includes('chapter:"Periodic Table"')&&practiceData.includes('difficulty:"Medium"')?ok("visitor:practice-periodic-table"):bad("visitor:practice-periodic-table","Grade 9 Chemistry Periodic Table medium question missing");
 guestPremium.includes("refreshPracticeOptions")?ok("visitor:practice-data-filters"):bad("visitor:practice-data-filters","practice filters must come from available questions");
 guestPremium.includes("baseActions.hidden=true")?ok("visitor:practice-nav"):bad("visitor:practice-nav","legacy duplicate practice navigation must be hidden");
+guestPremium.includes("baseActions.style.display='none'")?ok("visitor:practice-nav-force-hide"):bad("visitor:practice-nav-force-hide","legacy practice navigation must be force-hidden");
+learn.includes('.practice-actions[hidden],.practice-actions[aria-hidden="true"]{display:none!important}')?ok("visitor:practice-hidden-css"):bad("visitor:practice-hidden-css","hidden Practice navigation CSS guard missing");
 !guestPremium.includes("No practice question matches these filters. Try another class, subject, chapter or difficulty.")?ok("visitor:practice-no-dead-end"):bad("visitor:practice-no-dead-end","dead-end practice message remains");
 
 // 4) Browser JS syntax
