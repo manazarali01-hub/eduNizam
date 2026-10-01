@@ -527,7 +527,9 @@ function injectVUExplorer(){
   const rawCode=rawInput.toUpperCase().replace(/[\\s-]+/g,'');
   const validCourseCode=/^[A-Z]{2,5}\\d{3,4}[A-Z]?$/.test(rawCode);
   const lookupQuery=validCourseCode?norm(rawCode):query;
-  const course=catalog().find(x=>norm(x.code)===lookupQuery)||catalog().find(x=>lookupQuery&&norm(x.code+' '+x.title).includes(lookupQuery));
+  const courseMatches=lookupQuery?catalog().filter(x=>norm(x.code+' '+x.title+' '+x.category).includes(lookupQuery)).slice(0,30):[];
+  const exactCourse=catalog().find(x=>norm(x.code)===lookupQuery);
+  const course=exactCourse||(courseMatches.length===1?courseMatches[0]:null);
   let rows=resources().filter(x=>{
    const h=norm(JSON.stringify(x)),codes=(x.courseCodes||[]).map(norm);
    const typeOK=!type||h.includes(type)||(type==='midterm'&&/midterm/i.test(x.category||''))||(type==='final term'&&/final/i.test(x.category||''));
@@ -566,10 +568,12 @@ function injectVUExplorer(){
   }
   const unique=[];const seen=new Set();rows.forEach(x=>{const id=x.id||x.title;if(!seen.has(id)){seen.add(id);unique.push(x)}});
   const categoryCourses=category&&!query&&source!=='verified'?catalog().filter(x=>x.category===category).slice(0,30):[];
-  const categoryHtml=categoryCourses.map(x=>resourceCard({id:'course:'+x.code,title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails||('https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(x.code)),source:'official',type:'VU Course',board:'Virtual University',subject:x.category,courseCodes:[x.code],section:'vu'})).join('');
+  const queryCourses=query&&!exactCourse&&source!=='verified'?courseMatches:[];
+  const visibleCourses=categoryCourses.length?categoryCourses:queryCourses;
+  const categoryHtml=visibleCourses.map(x=>resourceCard({id:'course:'+x.code,title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails||('https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(x.code)),source:'official',type:'VU Course',board:'Virtual University',subject:x.category,courseCodes:[x.code],section:'vu'})).join('');
   const courseState=course?' · Course matched: '+course.code+' — '+course.title:(validCourseCode?' · Course code will be verified through official VU lookup':'');
-  $('vuGuestSummary').textContent=(categoryCourses.length?categoryCourses.length+' course'+(categoryCourses.length===1?'':'s')+' · ':'')+unique.length+' indexed VU resource'+(unique.length===1?'':'s')+(query?' for “'+rawInput+'”':'')+courseState+'. Local catalogue: '+catalog().length+' courses. Official current-semester material remains the primary source.';
-  $('vuGuestResults').innerHTML=courseRow+categoryHtml+(unique.length?unique.slice(0,30).map(x=>resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',courseCodes:x.courseCodes||[],section:'vu'})).join(''):(!course&&!validCourseCode&&!categoryCourses.length?emptyState(rawInput||$('vuGuestType').value||'VU resource'):''));
+  $('vuGuestSummary').textContent=(visibleCourses.length?visibleCourses.length+' matching course'+(visibleCourses.length===1?'':'s')+' · ':'')+unique.length+' indexed VU resource'+(unique.length===1?'':'s')+(query?' for “'+rawInput+'”':'')+courseState+'. Local catalogue: '+catalog().length+' courses. Official current-semester material remains the primary source.';
+  $('vuGuestResults').innerHTML=courseRow+categoryHtml+(unique.length?unique.slice(0,30).map(x=>resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',courseCodes:x.courseCodes||[],section:'vu'})).join(''):(!course&&!validCourseCode&&!visibleCourses.length?emptyState(rawInput||$('vuGuestType').value||'VU resource'):''));
  };
  $('vuGuestSearch').onclick=run;
  $('vuGuestQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});
