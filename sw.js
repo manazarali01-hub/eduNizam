@@ -1,4 +1,4 @@
-const CACHE='edunizam-v174-visitor187'
+const CACHE='edunizam-v175-visitor188'
 const CORE=[
   './',
   './index.html',
@@ -29,6 +29,16 @@ const CORE=[
   './icon-192.png',
   './icon-512.png',
   './public.css',
+  './learn.html',
+  './past-papers-data.js',
+  './study-data.js',
+  './school-assessment-data.js',
+  './university-data.js',
+  './vu-course-catalog.js',
+  './practice-data.js',
+  './learning-premium-data.js',
+  './guest-learning-nav.js',
+  './guest-learning-premium.js',
   './about.html',
   './features.html',
   './learning-resources-pakistan.html',
