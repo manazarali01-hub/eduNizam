@@ -556,20 +556,20 @@ function injectVUExplorer(){
   let courseRow='';
   const quick=$('vuGuestQuick');quick.innerHTML='';
   if(course){
-   const officialSearch='https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(course.code);
-   const officialCats=['Accounting, Banking & Finance','Bioinformatics','Biotechnology','Computer Science/Information Technology','Economics','English','Humanities Distribution','Law','Management','Marketing','Mass Communication','Mathematics','Molecular Biology','Physics','Power System','Probability & Statistics','Psychology','Sociology','Zoology'];
-   const ocwCat=officialCats.includes(course.category)?course.category:'';
-   const ocwBase=ocwCat?'?cat='+encodeURIComponent(ocwCat)+'&course='+encodeURIComponent(course.code):'';
-   courseRow=resourceCard({id:'course:'+course.code,title:course.code+' — '+course.title,description:course.freshness,url:course.officialDetails||officialSearch,source:'official',type:'VU Course',board:'Virtual University',subject:course.category,courseCodes:[course.code],section:'vu'});
-   const courseQuick=ocwCat?[
-    quickCard(course.code+' Course Details','Official VU OpenCourseWare course information and published learning material.','https://ocw.vu.edu.pk/CourseDetails.aspx'+ocwBase,'Official OCW'),
-    quickCard(course.code+' Course Overview','Official synopsis, learning outcomes and course calendar where published.','https://ocw.vu.edu.pk/CourseOverview.aspx'+ocwBase,'Official OCW'),
-    quickCard(course.code+' Video Lectures','Official VU OpenCourseWare lecture videos for this course where published.','https://ocw.vu.edu.pk/Videos.aspx'+ocwBase,'Official OCW'),
-    quickCard(course.code+' Reference Books','Official VU OpenCourseWare reference-book page where published.','https://ocw.vu.edu.pk/ReferenceBooks.aspx'+ocwBase,'Official OCW')
+   const p=window.EDUNIZAM_VU_PATHWAYS?.forCourse?.(course)||{};
+   const officialSearch=p.search||('https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(course.code));
+   courseRow=resourceCard({id:'course:'+course.code,title:course.code+' — '+course.title,description:course.freshness,url:course.officialDetails||p.details||officialSearch,source:'official',type:'VU Course',board:'Virtual University',subject:course.category,courseCodes:[course.code],section:'vu'});
+   const courseQuick=p.direct?[
+    quickCard(course.code+' Course Details','Official VU OpenCourseWare course information and published learning material.',p.details,'Official OCW'),
+    quickCard(course.code+' Course Overview','Official synopsis, learning outcomes and course calendar where published.',p.overview,'Official OCW'),
+    quickCard(course.code+' Video Lectures','Official VU OpenCourseWare lecture videos for this course where published.',p.videos,'Official OCW'),
+    quickCard(course.code+' Reference Books','Official VU OpenCourseWare reference-book page where published.',p.references,'Official OCW'),
+    quickCard(course.code+' Assignments','Official VU OpenCourseWare assignment page where published. Current graded work remains in VULMS.',p.assignments,'Official OCW'),
+    quickCard(course.code+' Useful Links','Official VU OpenCourseWare course links page where published.',p.links,'Official OCW')
    ]:[quickCard(course.code+' OpenCourseWare','Search the official VU OpenCourseWare directory for this exact course code.',officialSearch,'Official OCW')];
    quick.innerHTML=courseQuick.concat([
-    quickCard('VU Course Catalogue','Verify the current course title, credit hours and course content in the official VU catalogue.','https://vu.edu.pk/AcademicPrograms/CoursesCatalogue','Official Catalogue'),
-    quickCard('VULMS — Current Semester','Use VULMS for current handouts, quizzes, assignments, GDBs and announcements.','https://vulms.vu.edu.pk/','Official VULMS')
+    quickCard('VU Course Catalogue','Verify the current course title, credit hours and course content in the official VU catalogue.',p.catalogue||'https://ocw.vu.edu.pk/Courses.aspx','Official Catalogue'),
+    quickCard('VULMS — Current Semester','Use VULMS for current handouts, quizzes, assignments, GDBs and announcements.',p.vulms||'https://vulms.vu.edu.pk/','Official VULMS')
    ]).join('');
   }else if(validCourseCode){
    const officialSearch='https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(rawCode);
