@@ -450,14 +450,17 @@ if(!guestLearn.includes('guest-learning-premium.js?v=')) fail.push('Guest Learni
 if(!exists('learning-complete-data.js')) fail.push('Complete Learning Hub data layer missing.');
 if(!exists('learning-required-data.js')) fail.push('Required Learning Hub expansion data missing.');
 if(!exists('practice-complete-data.js')) fail.push('Complete Practice Center question bank missing.');
+if(!exists('practice-session-core.js')) fail.push('Practice Center session core missing.');
 if(!exists('learning-search-engine.js')) fail.push('Learning Hub smart search engine missing.');
 if(!guestLearn.includes('learning-complete-data.js?v=')) fail.push('Complete Learning Hub data layer is not loaded.');
 if(!guestLearn.includes('learning-required-data.js?v=')) fail.push('Required Learning Hub expansion data is not loaded.');
 if(!guestLearn.includes('practice-complete-data.js?v=')) fail.push('Complete Practice Center question bank is not loaded.');
+if(!guestLearn.includes('practice-session-core.js?v=')) fail.push('Practice Center session core is not loaded.');
 if(!guestLearn.includes('learning-search-engine.js?v=')) fail.push('Learning Hub smart search engine is not loaded.');
 if(!pwaSw.includes("'./learning-complete-data.js'")) fail.push('Complete Learning Hub data layer is not cached by PWA.');
 if(!pwaSw.includes("'./learning-required-data.js'")) fail.push('Required Learning Hub expansion data is not cached by PWA.');
 if(!pwaSw.includes("'./practice-complete-data.js'")) fail.push('Complete Practice Center question bank is not cached by PWA.');
+if(!pwaSw.includes("'./practice-session-core.js'")) fail.push('Practice Center session core is not cached by PWA.');
 if(!pwaSw.includes("'./learning-search-engine.js'")) fail.push('Learning Hub smart search engine is not cached by PWA.');
 const learningComplete=read('learning-complete-data.js');
 for(const marker of ['portal-','pectaa-g5-english','pectaa-g8-english-model','pectaa-curriculum-ebooks','hec-directory','vu-datesheet','ACC311','q53']){
@@ -506,6 +509,10 @@ for(const marker of ['guestPracticeOrder','guestPracticeLimit','practiceSessionS
 }
 for(const marker of ['#practiceExplorer select,#practiceExplorer button','min-height:46px','.practice-box .option','touch-action:manipulation']){
   if(!guestPremium.includes(marker)) fail.push('Mobile Practice UI guard missing: '+marker);
+}
+const practiceCore=read('practice-session-core.js');
+for(const marker of ['filterQuestions','selectSession','sessionStats','auditMatrix']){
+  if(!practiceCore.includes(marker)) fail.push('Practice session core marker missing: '+marker);
 }
 const completePractice=read('practice-complete-data.js');
 for(const marker of ['minimumPerChapter:9',"requiredTypes:['mcq','short','long']","requiredDifficulties:['Easy','Medium','Hard']",'requiredTypeDifficultyMatrix:true','EDUNIZAM_PRACTICE_BLUEPRINTS']){
