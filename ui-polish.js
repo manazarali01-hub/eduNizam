@@ -1,6 +1,7 @@
 (function(){
   const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const $=selector=>document.querySelector(selector);
+  let mobileNavController=null;
 
   function addProgressBar(){
     if($('#eduScrollProgress'))return;
@@ -113,17 +114,23 @@
     topbar.insertBefore(menu,topbar.firstChild);
 
     const setOpen=open=>{
-      sidebar.classList.toggle('mobile-nav-open',open);
-      backdrop.classList.toggle('show',open);
-      backdrop.style.display=open?'block':'none';
-      backdrop.style.pointerEvents=open?'auto':'none';
-      backdrop.style.visibility=open?'visible':'hidden';
-      backdrop.setAttribute('aria-hidden',String(!open));
-      document.body.classList.toggle('mobile-nav-lock',open);
-      menu.setAttribute('aria-expanded',String(open));
-      // Keep the mobile keyboard closed when navigation opens. Search remains available on explicit tap.
-      if(!open && document.activeElement?.matches?.('.nav-search-wrap input'))document.activeElement.blur();
+      const shouldOpen=!!open&&innerWidth<=950;
+      sidebar.classList.toggle('mobile-nav-open',shouldOpen);
+      backdrop.classList.toggle('show',shouldOpen);
+      backdrop.style.display=shouldOpen?'block':'none';
+      backdrop.style.pointerEvents=shouldOpen?'auto':'none';
+      backdrop.style.visibility=shouldOpen?'visible':'hidden';
+      backdrop.setAttribute('aria-hidden',String(!shouldOpen));
+      document.body.classList.toggle('mobile-nav-lock',shouldOpen);
+      menu.setAttribute('aria-expanded',String(shouldOpen));
+      // Keep the mobile keyboard closed when navigation closes. Search remains available on explicit tap.
+      if(!shouldOpen && document.activeElement?.matches?.('.nav-search-wrap input'))document.activeElement.blur();
     };
+    const reconcileMobileNav=()=>{
+      const open=innerWidth<=950&&sidebar.classList.contains('mobile-nav-open');
+      setOpen(open);
+    };
+    mobileNavController={open:()=>setOpen(true),close:()=>setOpen(false),reconcile:reconcileMobileNav};
     menu.onclick=()=>setOpen(!sidebar.classList.contains('mobile-nav-open'));
     close.onclick=()=>setOpen(false);
     backdrop.onclick=()=>setOpen(false);
@@ -133,8 +140,16 @@
     document.addEventListener('keydown',event=>{
       if(event.key==='Escape'&&sidebar.classList.contains('mobile-nav-open'))setOpen(false);
     });
+    const classObserver=new MutationObserver(()=>{
+      if(!sidebar.classList.contains('mobile-nav-open')&&document.body.classList.contains('mobile-nav-lock'))setOpen(false);
+    });
+    classObserver.observe(sidebar,{attributes:true,attributeFilter:['class']});
     addEventListener('resize',()=>{
-      if(innerWidth>950)setOpen(false);
+      if(innerWidth>950)setOpen(false);else reconcileMobileNav();
+    });
+    addEventListener('pageshow',()=>setOpen(false));
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden&&!sidebar.classList.contains('mobile-nav-open'))setOpen(false);
     });
   }
 
@@ -146,5 +161,5 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
   else mount();
-  window.EDUNIZAM_UI_POLISH={reveal,decorateActiveNav,addMobileNavigation};
+  window.EDUNIZAM_UI_POLISH={reveal,decorateActiveNav,addMobileNavigation,closeMobileNavigation:()=>mobileNavController?.close?.(),reconcileMobileNavigation:()=>mobileNavController?.reconcile?.()};
 })();
