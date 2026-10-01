@@ -160,8 +160,11 @@ completeData.includes("EDUNIZAM_PUBLIC_LINKS")?ok("learning:public-links"):bad("
 guestPremium.includes("guestPracticeType")?ok("learning:practice-type"):bad("learning:practice-type","Practice question-type filter missing");
 guestPremium.includes("kind==='practice'")?ok("learning:practice-shortcut"):bad("learning:practice-shortcut","MCQ/Quiz shortcut missing");
 guestPremium.includes("showGlobalResults('date sheet')")&&guestPremium.includes("showGlobalResults('results')")?ok("learning:public-shortcuts"):bad("learning:public-shortcuts","date sheet/results shortcuts missing");
-for(const marker of ["guestPracticeOrder","guestPracticeLimit","practiceSessionStats","finishGuestPractice","Session complete","Practice Again"]){
+for(const marker of ["guestPracticeOrder","guestPracticeLimit","practiceSessionStats","finishGuestPractice","Session complete","Practice Again","Pending: ","Practice questions answered"]){
   guestPremium.includes(marker)?ok("learning:practice-session:"+marker):bad("learning:practice-session:"+marker,"missing");
+}
+for(const marker of ["#practiceExplorer select,#practiceExplorer button","min-height:46px",".practice-box .option","touch-action:manipulation"]){
+  guestPremium.includes(marker)?ok("learning:practice-mobile:"+marker):bad("learning:practice-mobile:"+marker,"missing");
 }
 learn.includes("(window.EDUNIZAM_PUBLIC_LINKS||[]).length")?ok("learning:public-count"):bad("learning:public-count","overview excludes public portal links");
 
@@ -238,7 +241,7 @@ try{
     vuCourses:w.EDUNIZAM_VU_COURSE_CATALOG?.courses?.length||0,
     practice:w.EDUNIZAM_PRACTICE_DATA?.questions?.length||0
   };
-  const minimums={boards:30,papers:100,grade:20,study:35,universities:25,universityResources:55,vuCourses:250,practice:290};
+  const minimums={boards:30,papers:100,grade:20,study:35,universities:25,universityResources:55,vuCourses:250,practice:760};
   for(const [k,min] of Object.entries(minimums)){
     counts[k]>=min?ok("learning:coverage:"+k):bad("learning:coverage:"+k,counts[k]+" < "+min);
   }
@@ -258,8 +261,11 @@ try{
     for(const subject of subjects||[]){
       for(const chapter of practiceDataAll.chapters?.[cl+"|"+subject]||[]){
         const rows=questions.filter(x=>String(x.classLevel)===String(cl)&&x.subject===subject&&x.chapter===chapter);
-        const types=new Set(rows.map(x=>x.type)),diffs=new Set(rows.map(x=>x.difficulty));
-        if(rows.length<3||!["mcq","short","long"].every(t=>types.has(t))||!["Easy","Medium","Hard"].every(d=>diffs.has(d))) incompletePractice.push(cl+"|"+subject+"|"+chapter);
+        const matrixMissing=[];
+        for(const type of ["mcq","short","long"])for(const diff of ["Easy","Medium","Hard"]){
+          if(!rows.some(x=>x.type===type&&x.difficulty===diff))matrixMissing.push(type+"/"+diff);
+        }
+        if(rows.length<9||matrixMissing.length) incompletePractice.push(cl+"|"+subject+"|"+chapter+" ["+matrixMissing.join(",")+"]");
       }
     }
   }
