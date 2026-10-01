@@ -20,7 +20,7 @@ function allResources(){
 }
 function injectStyles(){
  const s=document.createElement('style');s.textContent=`
- .premium-tools{display:grid;gap:12px;margin:0 0 18px}.search-suggestions{display:flex;gap:7px;flex-wrap:wrap}.search-suggestions button,.recent-chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;cursor:pointer;color:var(--ink)}
+ .premium-tools{display:grid;gap:12px;margin:8px 0 18px;min-width:0}.search-suggestions{display:flex;gap:7px;flex-wrap:wrap;min-width:0}.search-suggestions button,.recent-chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;cursor:pointer;color:var(--ink)}.recent-search-block{min-width:0}.recent-search-title{display:block;font-size:.8rem;margin:0 0 7px}
  .guest-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.guest-actions button,.guest-actions a{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-weight:800;text-decoration:none;cursor:pointer}.guest-actions .primary-action{background:var(--green);color:#fff;border-color:var(--green)}
  .favorite-on{color:#8a6200;background:#fff7d9!important}.saved-panel{margin:12px 0 20px}.saved-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.smart-empty{grid-column:1/-1;padding:22px;border:1px dashed #b9ccc7;border-radius:18px;background:#fff}.smart-empty h3{margin:0 0 7px}.smart-empty p{color:var(--muted)}.related-row{display:flex;gap:8px;flex-wrap:wrap}.related-row button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer}
  body.guest-modal-open{overflow:hidden!important}.premium-modal{position:fixed;inset:0;z-index:95;background:rgba(10,27,31,.72);display:none;place-items:center;padding:14px}.premium-modal.open{display:grid}.premium-dialog{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:20px}.premium-dialog-head{display:flex;justify-content:space-between;gap:12px}.premium-meta{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.premium-preview-frame{width:100%;height:50vh;border:1px solid var(--line);border-radius:12px;background:#f4f7f6}.filter-label{display:grid;gap:5px;font-size:.76rem;font-weight:800}.filter-label select{font-weight:400}.past-advanced{grid-template-columns:repeat(4,minmax(0,1fr))!important}.past-advanced .paper-search{grid-column:span 2}.past-advanced .search-wide{grid-column:span 2}.hub-directory{margin:0 0 18px}.hub-directory .grid{grid-template-columns:repeat(4,minmax(0,1fr))}.hub-link{cursor:pointer;text-decoration:none}.hub-link strong{display:block;font-size:1rem}.hub-link span{font-size:.78rem;color:var(--muted)}
@@ -30,7 +30,7 @@ function injectStyles(){
  .hub-directory .card,.resource-card,.premium-tools .card{position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;z-index:auto!important;transform:none;min-width:0;max-width:100%;overflow:hidden}
  .hub-directory .card *,.resource-card *,.premium-tools .card *{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:normal}
  .badge,.recent-chip,.search-suggestions button{position:static!important;z-index:auto!important;max-width:100%;white-space:normal;overflow-wrap:anywhere}
- @media(max-width:620px){.past-advanced{grid-template-columns:1fr!important}.past-advanced .paper-search,.past-advanced .search-wide{grid-column:auto}.hub-directory .grid{grid-template-columns:1fr;overflow:visible}.guest-actions>*{flex:1 1 auto;text-align:center}.premium-dialog{padding:14px}.premium-preview-frame{height:42vh}.hub-directory .card,.resource-card{width:100%;contain:layout paint}}
+ @media(max-width:620px){.past-advanced{grid-template-columns:1fr!important}.past-advanced .paper-search,.past-advanced .search-wide{grid-column:auto}.hub-directory .grid{grid-template-columns:1fr;overflow:visible}.guest-actions>*{flex:1 1 auto;text-align:center}.premium-dialog{padding:14px}.premium-preview-frame{height:42vh}.hub-directory .card,.resource-card{width:100%;contain:layout paint}.premium-tools{gap:8px;margin:7px 0 12px;overflow:hidden}.search-suggestions{flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;padding:1px 1px 5px;max-width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch}.search-suggestions::-webkit-scrollbar{display:none}.search-suggestions button,.recent-chip{flex:0 0 auto!important;width:auto!important;max-width:min(82vw,360px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.recent-search-block{overflow:hidden}.recent-search-title{margin-bottom:5px}.search-tools-collapsed #searchSuggestions{display:none}.search-tools-collapsed .recent-search-block{display:none}}
 
  `;document.head.appendChild(s);
 }
@@ -43,12 +43,13 @@ function injectDirectory(){
 }
 function injectSearchTools(){
  const sw=document.querySelector('.search-wrap');if(!sw)return;
- const tools=document.createElement('div');tools.className='premium-tools';tools.innerHTML='<div id="searchSuggestions" class="search-suggestions" aria-label="Search suggestions"></div><div><strong style="font-size:.8rem">Recent searches</strong><div id="recentSearches" class="search-suggestions"></div></div>';
+ const tools=document.createElement('div');tools.className='premium-tools';tools.innerHTML='<div id="searchSuggestions" class="search-suggestions" aria-label="Search suggestions"></div><div class="recent-search-block"><strong class="recent-search-title">Recent searches</strong><div id="recentSearches" class="search-suggestions"></div></div>';
  sw.appendChild(tools);
  const input=$('globalSearch');input.placeholder='What do you want to study?';
  input.setAttribute('autocomplete','off');
- input.addEventListener('keydown',e=>{if(e.key==='Enter'){saveRecent(input.value);showGlobalResults(input.value)}});
- input.addEventListener('input',renderSuggestions);
+ input.addEventListener('keydown',e=>{if(e.key==='Enter'){saveRecent(input.value);renderSuggestions();showGlobalResults(input.value);tools.classList.add('search-tools-collapsed');input.blur()}});
+ input.addEventListener('input',()=>{tools.classList.remove('search-tools-collapsed');renderSuggestions()});
+ input.addEventListener('focus',()=>tools.classList.remove('search-tools-collapsed'));
  renderRecent();renderSuggestions();
 }
 function renderSuggestions(){
@@ -150,18 +151,18 @@ function toggleFav(id){let x=favorites();x=x.some(v=>v.id===id)?x.filter(v=>v.id
 async function shareResource(id){const r=allResources().find(x=>x.id===id);if(!r)return;try{if(navigator.share)await navigator.share({title:r.title,text:r.description||'',url:r.url});else{await navigator.clipboard.writeText(r.url);alert('Resource link copied.')}}catch(_){}}
 function bind(){
  document.addEventListener('click',e=>{
-  const q=e.target.closest('[data-smart-query]');if(q){$('globalSearch').value=q.dataset.smartQuery;saveRecent(q.dataset.smartQuery);showGlobalResults(q.dataset.smartQuery);return}
+  const q=e.target.closest('[data-smart-query]');if(q){$('globalSearch').value=q.dataset.smartQuery;saveRecent(q.dataset.smartQuery);renderSuggestions();showGlobalResults(q.dataset.smartQuery);document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');$('globalSearch')?.blur();return}
   const p=e.target.closest('[data-preview-id]');if(p){openPreview(p.dataset.previewId);return}
   const f=e.target.closest('[data-fav-id]');if(f){toggleFav(f.dataset.favId);return}
   const sh=e.target.closest('[data-share-id]');if(sh){shareResource(sh.dataset.shareId);return}
   const st=e.target.closest('[data-study-id]');if(st){openStudy(st.dataset.studyId);return}
   if(e.target.closest('[data-close-premium]')){closePremium();return}
-  if(e.target.closest('[data-clear-smart]')){$('globalSearch').value='';$('globalResults')?.remove();return}
+  if(e.target.closest('[data-clear-smart]')){$('globalSearch').value='';$('globalResults')?.remove();document.querySelector('.premium-tools')?.classList.remove('search-tools-collapsed');renderSuggestions();return}
   const pr=e.target.closest('[data-print-url]');if(pr){const w=window.open(pr.dataset.printUrl,'_blank');if(w)setTimeout(()=>{try{w.print()}catch(_){}},900)}
  });
  $('searchPapers')?.addEventListener('click',()=>{saveRecent([$('paperBoard')?.selectedOptions[0]?.text,$('paperClass')?.selectedOptions[0]?.text,$('paperSubject')?.value,$('paperYear')?.value,$('paperSession')?.value].filter(x=>x&&!/^All/.test(x)).join(' '));setTimeout(enhancePastResults,0)});
  ['paperLevel','paperBoard','paperClass','paperSubject','paperYear','paperType','paperSession'].forEach(id=>$(id)?.addEventListener('change',()=>setTimeout(()=>$('searchPapers')?.click(),0)));
- $('clearSearch')?.addEventListener('click',()=>{$('globalResults')?.remove();renderSuggestions()});
+ $('clearSearch')?.addEventListener('click',()=>{$('globalResults')?.remove();document.querySelector('.premium-tools')?.classList.remove('search-tools-collapsed');renderSuggestions()});
  $('globalSearch')?.addEventListener('input',()=>{$('globalResults')?.remove()});
  document.addEventListener('keydown',e=>{if(e.key==='Escape')closePremium()});
  document.addEventListener('click',e=>{if(e.target?.id==='premiumResourceModal')closePremium()});
