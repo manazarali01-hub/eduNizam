@@ -501,11 +501,14 @@ for(const marker of ['MTH603','CS202','EDU510','g5-math-01','g8-sci-04']){
 }
 if(!guestPremium.includes("data-start-practice")) fail.push('Global search Practice result cannot launch Practice Center.');
 if(!guestPremium.includes("kind==='vu-quizzes'")) fail.push('VU Quizzes shortcut missing.');
-for(const marker of ['guestPracticeOrder','guestPracticeLimit','practiceSessionStats','finishGuestPractice','Session complete','Practice Again']){
+for(const marker of ['guestPracticeOrder','guestPracticeLimit','practiceSessionStats','finishGuestPractice','Session complete','Practice Again','Pending: ','Practice questions answered']){
   if(!guestPremium.includes(marker)) fail.push('Complete Practice session control missing: '+marker);
 }
+for(const marker of ['#practiceExplorer select,#practiceExplorer button','min-height:46px','.practice-box .option','touch-action:manipulation']){
+  if(!guestPremium.includes(marker)) fail.push('Mobile Practice UI guard missing: '+marker);
+}
 const completePractice=read('practice-complete-data.js');
-for(const marker of ['minimumPerChapter:3',"requiredTypes:['mcq','short','long']","requiredDifficulties:['Easy','Medium','Hard']",'EDUNIZAM_PRACTICE_BLUEPRINTS']){
+for(const marker of ['minimumPerChapter:9',"requiredTypes:['mcq','short','long']","requiredDifficulties:['Easy','Medium','Hard']",'requiredTypeDifficultyMatrix:true','EDUNIZAM_PRACTICE_BLUEPRINTS']){
   if(!completePractice.includes(marker)) fail.push('Complete Practice data marker missing: '+marker);
 }
 if(!pwaSw.includes("'./pwa-install.js'")) fail.push('PWA install controller not cached.');
