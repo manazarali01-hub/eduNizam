@@ -5,8 +5,7 @@
     if(!ids[id]) id='home';
     var sections=document.querySelectorAll('.section'),i;
     for(i=0;i<sections.length;i++){
-      if(sections[i].id===id){sections[i].classList.add('active');sections[i].style.display='block';}
-      else{sections[i].classList.remove('active');sections[i].style.display='none';}
+      sections[i].classList.toggle('active',sections[i].id===id);
     }
     var tabs=document.querySelectorAll('[data-tab]');
     for(i=0;i<tabs.length;i++) tabs[i].classList.toggle('active',tabs[i].getAttribute('data-tab')===id);
