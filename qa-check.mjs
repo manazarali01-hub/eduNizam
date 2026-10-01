@@ -440,6 +440,13 @@ if(!read('edunizam.html').includes('data-pwa-install')) fail.push('Public landin
 const guestLearn=read('learn.html');
 if(!guestLearn.includes('href="login.html">Login / Sign Up</a>')) fail.push('Guest Learning has no visible Login / Sign Up entry.');
 if(!guestLearn.includes('guest-learning-premium.js?v=')) fail.push('Guest Learning premium controller missing.');
+if(!exists('learning-complete-data.js')) fail.push('Complete Learning Hub data layer missing.');
+if(!guestLearn.includes('learning-complete-data.js?v=')) fail.push('Complete Learning Hub data layer is not loaded.');
+if(!pwaSw.includes("'./learning-complete-data.js'")) fail.push('Complete Learning Hub data layer is not cached by PWA.');
+const learningComplete=read('learning-complete-data.js');
+for(const marker of ['portal-','pectaa-g5-english','pectaa-g8-english-model','pectaa-curriculum-ebooks','hec-directory','vu-datesheet','ACC311','q53']){
+  if(!learningComplete.includes(marker)) fail.push('Learning Hub complete-data marker missing: '+marker);
+}
 if(/style\.display\s*=/.test(read('guest-learning-nav.js'))) fail.push('Guest navigation can leave stale inline display state.');
 if(!guestLearn.includes('.search-wrap{position:relative;top:auto;z-index:2}')) fail.push('Mobile Guest search must not stay sticky over learning results.');
 if(!read('guest-learning-premium.js').includes('flex-wrap:nowrap!important')) fail.push('Mobile Guest search chips must remain in a horizontal scroller.');
