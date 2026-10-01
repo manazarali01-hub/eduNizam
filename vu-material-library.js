@@ -682,7 +682,8 @@ function communityFor(course){
 
 function forCourse(course,{type='',source='',provider='',access=''}={}){
  let rows=[...officialFor(course),...communityFor(course)];
- if(type)rows=rows.filter(x=>x.type===type);
+ if(type==='__exam__')rows=rows.filter(x=>['Midterm Past Papers','Finalterm Past Papers','Current Papers / Recalls','Solved Past Papers'].includes(x.type));
+ else if(type)rows=rows.filter(x=>x.type===type);
  if(source==='official')rows=rows.filter(x=>x.trust==='official');
  if(source==='verified')rows=rows.filter(x=>x.trust==='verified');
  if(source==='legacy')rows=rows.filter(x=>x.trust==='legacy');
@@ -711,6 +712,7 @@ window.EDUNIZAM_VU_MATERIALS={
  directHighlightedCourses:Object.keys(DIRECT_HIGHLIGHTED),
  directHandoutCourses:Object.keys(DIRECT_HANDOUTS),
  directSolvedCourses:Object.keys(DIRECT_SOLVED),
+ directSolvedFileCount:Object.values(DIRECT_SOLVED).reduce((n,rows)=>n+rows.length,0),
  forCourse,
  actionLabel,
  accessLabel
