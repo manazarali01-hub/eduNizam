@@ -74,6 +74,15 @@
     const context=exactCode?'<p class="muted"><strong>Exact course match:</strong> '+esc(searchedCode)+'</p>':(fallbackCode?'<p class="muted"><strong>Source fallback for:</strong> '+esc(searchedCode)+'</p>':'');
     return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+(exactCode?'Exact Course Result':(fallbackCode?'Source Fallback':esc(r.category)))+'</span> '+badge+'</div><button class="icon-btn" data-vu-save="'+r.id+'">'+(saved?'★':'☆')+'</button></div><h3>'+esc(r.title)+'</h3>'+context+'<p class="coverage-note">'+esc(r.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(r.url)+'">Open Resource</a><button class="secondary-action" data-vu-ai="'+r.id+'">AI Use</button></div></article>';
   }
+  function vuMaterialCards(course){
+    const rows=window.EDUNIZAM_VU_MATERIALS?.forCourse?.(course)||[];
+    if(!rows.length)return '';
+    return '<div class="coverage-note"><strong>'+rows.length+' material routes available for '+esc(course.code)+'.</strong> Official files may require VU login; community downloads are supplementary.</div><div class="paper-grid">'+rows.map(m=>{
+      const badge=m.trust==='official'?'trust-official':'trust-community';
+      return '<article class="paper-card"><div class="paper-card-top"><div><span class="trust-badge '+badge+'">'+esc(m.accessLabel||m.source)+'</span><span class="mini-badge">'+esc(m.type)+'</span></div></div><h3>'+esc(m.title)+'</h3><p class="coverage-note">'+esc(m.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(m.url)+'">'+esc(m.actionLabel||'Open Resource')+'</a></div></article>';
+    }).join('')+'</div>';
+  }
+
   function vuCoursePack(code){
     const raw=String(code||'').trim().toUpperCase();
     if(!raw)return '';
@@ -92,8 +101,8 @@
       ].filter(y=>y[1]).map(y=>'<a class="'+y[2]+'" target="_blank" rel="noopener" href="'+esc(y[1])+'">'+y[0]+'</a>').join('');
       return '<article class="paper-card"><div class="paper-card-top"><div><span class="trust-badge trust-official">Official VU Course</span> <span class="mini-badge">'+esc(x.category||'VU')+'</span></div></div><h3>'+esc(x.code)+' — '+esc(x.title)+'</h3><p class="coverage-note">'+esc(x.freshness||'Use official VU OCW and VULMS for current-semester material.')+'</p><div class="paper-actions">'+links+'</div></article>';
     };
-    if(exact)return card(exact);
-    if(matches.length&&raw.length>=2)return matches.map(card).join('');
+    if(exact)return card(exact)+vuMaterialCards(exact);
+    if(matches.length&&raw.length>=2)return matches.map(card).join('')+'<div class="coverage-note">Multiple courses match this search. Enter an exact course code to open its full handouts, notes, videos, assignments and exam-material download pack.</div>';
     if(/^[A-Z]{2,5}\d{3,4}[A-Z]?$/.test(raw)){
       const url='https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(raw);
       return '<article class="paper-card"><div class="paper-card-top"><div><span class="trust-badge trust-official">Official VU Lookup</span></div></div><h3>'+esc(raw)+'</h3><p class="coverage-note">This code is not matched to a local EduNizam course title yet. Verify it in official VU OpenCourseWare; no exact title or paper is invented.</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(url)+'">Search Official OCW</a></div></article>';
