@@ -95,7 +95,8 @@ const B={
 '12|Urdu|قواعد':{fact:'اردو قواعد میں درست جملہ سازی، لفظی ربط اور زبان کے قواعد کے مطابق اظہار پر توجہ دی جاتی ہے۔',example:'درست ضمیر اور فعل کا استعمال جملے کے معنی کو واضح اور درست بناتا ہے۔'}
 };
 
-const slug=v=>String(v||'').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,42)||'topic';
+const slug=v=>String(v||'').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,32)||'topic';
+const hash=v=>{let h=2166136261;for(const ch of String(v||'')){h^=ch.codePointAt(0);h=Math.imul(h,16777619)}return (h>>>0).toString(36)};
 const questions=PD.questions=Array.isArray(PD.questions)?PD.questions:[];
 const existing=new Set(questions.map(x=>x.id));
 const byKey=new Map();
@@ -133,7 +134,7 @@ for(const [cl,subjects] of Object.entries(PD.subjects||{})){
       const bp=B[key];
       if(!bp)continue;
       const rows=byKey.get(key)||[];
-      const prefix='pc-'+cl+'-'+slug(subject)+'-'+slug(chapter);
+      const prefix='pc-'+cl+'-'+slug(subject)+'-'+slug(chapter)+'-'+hash(subject+'|'+chapter);
       if(!rows.some(x=>x.type==='mcq')){
         const distractors=[...siblingFacts(cl,subject,chapter),...generic].filter(x=>x!==bp.fact).slice(0,3);
         while(distractors.length<3)distractors.push(generic[distractors.length%generic.length]);
@@ -145,6 +146,18 @@ for(const [cl,subjects] of Object.entries(PD.subjects||{})){
       }
       if(!rows.some(x=>x.type==='long')){
         add({id:prefix+'-long',classLevel:Number(cl),subject,chapter,type:'long',difficulty:'Hard',question:'Explain the central idea of “'+chapter+'” in your own words. Include one correct example, application or supporting detail.',answerText:'A strong answer should explain this idea: '+bp.fact+' A suitable example/application is: '+bp.example});
+      }
+      const now=byKey.get(key)||[];
+      if(!now.some(x=>x.difficulty==='Easy')){
+        const distractors=[...siblingFacts(cl,subject,chapter),...generic].filter(x=>x!==bp.fact).slice(0,3);
+        while(distractors.length<3)distractors.push(generic[distractors.length%generic.length]);
+        add({id:prefix+'-easy',classLevel:Number(cl),subject,chapter,type:'mcq',difficulty:'Easy',question:'Choose the best core idea for “'+chapter+'”.',options:[bp.fact,...distractors],answer:0,explanation:bp.fact});
+      }
+      if(!(byKey.get(key)||[]).some(x=>x.difficulty==='Medium')){
+        add({id:prefix+'-medium',classLevel:Number(cl),subject,chapter,type:'short',difficulty:'Medium',question:'Briefly explain “'+chapter+'” and include one correct example.',answerText:bp.fact+' Example: '+bp.example});
+      }
+      if(!(byKey.get(key)||[]).some(x=>x.difficulty==='Hard')){
+        add({id:prefix+'-hard',classLevel:Number(cl),subject,chapter,type:'long',difficulty:'Hard',question:'Explain “'+chapter+'” in detail and connect the concept to an example or application.',answerText:'A strong answer should include: '+bp.fact+' Example/application: '+bp.example});
       }
     }
   }
