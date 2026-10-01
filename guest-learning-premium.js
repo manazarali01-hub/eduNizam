@@ -43,7 +43,16 @@ function injectStyles(){
  .hub-directory .card,.resource-card,.premium-tools .card{position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;z-index:auto!important;transform:none;min-width:0;max-width:100%;overflow:hidden}
  .hub-directory .card *,.resource-card *,.premium-tools .card *{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:normal}
  .badge,.recent-chip,.search-suggestions button{position:static!important;z-index:auto!important;max-width:100%;white-space:normal;overflow-wrap:anywhere}
- @media(max-width:620px){.past-advanced{grid-template-columns:1fr!important}.past-advanced .paper-search,.past-advanced .search-wide{grid-column:auto}.hub-directory .grid{grid-template-columns:1fr;overflow:visible}.guest-actions>*{flex:1 1 auto;text-align:center}.premium-dialog{padding:14px}.premium-preview-frame{height:42vh}.hub-directory .card,.resource-card{width:100%;contain:layout paint}.premium-tools{gap:8px;margin:7px 0 12px;overflow:hidden}.search-suggestions{flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;padding:1px 1px 5px;max-width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch}.search-suggestions::-webkit-scrollbar{display:none}.search-suggestions button,.recent-chip{flex:0 0 auto!important;width:auto!important;max-width:min(82vw,360px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.recent-search-block{overflow:hidden}.recent-search-title{margin-bottom:5px}.search-tools-collapsed #searchSuggestions{display:none}.search-tools-collapsed .recent-search-block{display:none}}
+ #practiceExplorer,.practice-box{min-width:0;max-width:100%;overflow:visible;scroll-margin-top:86px}
+ #practiceExplorer .paper-filters{position:static!important;top:auto!important;overflow:visible!important}
+ #practiceExplorer select,#practiceExplorer button,.practice-box button{touch-action:manipulation}
+ #guestPracticeSession{display:grid;gap:7px;margin-top:10px;overflow-wrap:anywhere}
+ #guestPracticeSession progress{height:12px;accent-color:var(--green)}
+ .practice-box .question{overflow-wrap:anywhere;line-height:1.55}
+ .practice-box .options{display:grid;gap:9px;min-width:0}
+ .practice-box .option{width:100%;min-height:48px;text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+ .practice-box .explain{overflow-wrap:anywhere;line-height:1.55}
+ @media(max-width:620px){.past-advanced{grid-template-columns:1fr!important}.past-advanced .paper-search,.past-advanced .search-wide{grid-column:auto}.hub-directory .grid{grid-template-columns:1fr;overflow:visible}.guest-actions>*{flex:1 1 auto;text-align:center}.premium-dialog{padding:14px}.premium-preview-frame{height:42vh}.hub-directory .card,.resource-card{width:100%;contain:layout paint}.premium-tools{gap:8px;margin:7px 0 12px;overflow:hidden}#practiceExplorer{padding:12px!important;margin-left:0!important;margin-right:0!important}#practiceExplorer .paper-filters{gap:10px!important}#practiceExplorer select,#practiceExplorer button{width:100%;min-height:46px;font-size:16px}#practiceExplorer .filter-label{font-size:.8rem}.practice-box{padding:14px!important}.practice-box .option{min-height:50px;font-size:15px}.practice-box .guest-actions{display:grid;grid-template-columns:1fr 1fr}.practice-box .guest-actions>*{width:100%;min-height:46px}.practice-box .meta{gap:5px}#guestPracticeSession{font-size:.82rem}.search-suggestions{flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;padding:1px 1px 5px;max-width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch}.search-suggestions::-webkit-scrollbar{display:none}.search-suggestions button,.recent-chip{flex:0 0 auto!important;width:auto!important;max-width:min(82vw,360px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.recent-search-block{overflow:hidden}.recent-search-title{margin-bottom:5px}.search-tools-collapsed #searchSuggestions{display:none}.search-tools-collapsed .recent-search-block{display:none}}
 
  `;document.head.appendChild(s);
 }
@@ -252,7 +261,7 @@ function injectSectionExplorers(){
    '<label class="filter-label">Session size<select id="guestPracticeLimit"><option value="10">10 questions</option><option value="20">20 questions</option><option value="all">All matching questions</option></select></label>'+
    '<button class="btn primary" id="guestPracticeApply">Start Practice</button>'+
    '<button class="btn" id="guestPracticeRestart" type="button">Restart Session</button>'+
-   '</div><div id="guestPracticeSummary" class="paper-summary"></div><div id="guestPracticeSession" class="paper-summary"></div>';
+   '</div><div id="guestPracticeSummary" class="paper-summary" aria-live="polite"></div><div id="guestPracticeSession" class="paper-summary" aria-live="polite"></div>';
   practice.insertBefore(p,practice.firstChild.nextSibling);
   const baseActions=practice.querySelector('.practice-actions');if(baseActions){baseActions.hidden=true;baseActions.style.display='none';baseActions.setAttribute('aria-hidden','true')}
   const allQuestions=()=>window.EDUNIZAM_PRACTICE_DATA?.questions||[];
@@ -299,21 +308,21 @@ function shufflePractice(rows){
 function practiceSessionStats(){
  const attempts=[...guestPracticeAttempts.values()];
  const mcq=attempts.filter(x=>x.kind==='mcq'),written=attempts.filter(x=>x.kind==='written');
- return {attempted:attempts.length,correct:mcq.filter(x=>x.correct).length,mcqAttempted:mcq.length,reviewed:written.length,skipped:Math.max(0,guestPracticeRows.length-attempts.length)};
+ return {attempted:attempts.length,correct:mcq.filter(x=>x.correct).length,mcqAttempted:mcq.length,reviewed:written.length,pending:Math.max(0,guestPracticeRows.length-attempts.length)};
 }
 function updatePracticeSessionStatus(){
  const box=$('guestPracticeSession');if(!box)return;
  if(!guestPracticeRows.length){box.textContent='';return}
- const st=practiceSessionStats(),done=Math.min(guestPracticeIndex+1,guestPracticeRows.length),pct=Math.round(done/guestPracticeRows.length*100);
- box.innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><strong>Progress '+done+'/'+guestPracticeRows.length+'</strong><span>MCQ score: '+st.correct+'/'+st.mcqAttempted+'</span><span>Written reviewed: '+st.reviewed+'</span><span>Skipped: '+st.skipped+'</span></div><progress max="'+guestPracticeRows.length+'" value="'+done+'" style="width:100%;margin-top:7px"></progress><span style="font-size:.78rem;color:var(--muted)">'+pct+'% through this session</span>';
+ const st=practiceSessionStats(),position=Math.min(guestPracticeIndex+1,guestPracticeRows.length),pct=Math.round(st.attempted/guestPracticeRows.length*100);
+ box.innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><strong>Question '+position+'/'+guestPracticeRows.length+'</strong><span>Answered: '+st.attempted+'</span><span>MCQ score: '+st.correct+'/'+st.mcqAttempted+'</span><span>Written reviewed: '+st.reviewed+'</span><span>Pending: '+st.pending+'</span></div><progress max="'+guestPracticeRows.length+'" value="'+st.attempted+'" style="width:100%;margin-top:7px" aria-label="Practice questions answered"></progress><span style="font-size:.78rem;color:var(--muted)">'+pct+'% answered</span>';
 }
 function finishGuestPractice(){
  guestPracticeFinished=true;
- const st=practiceSessionStats(),pct=st.mcqAttempted?Math.round(st.correct/st.mcqAttempted*100):0;
+ const st=practiceSessionStats(),pct=st.mcqAttempted?Math.round(st.correct/st.mcqAttempted*100):0,skipped=st.pending;
  $('practiceMeta').innerHTML='<span class="badge">Session complete</span><span class="badge">'+guestPracticeRows.length+' questions</span>';
  $('practiceQuestion').textContent='Practice session completed.';
  $('practiceExplain').hidden=false;
- $('practiceExplain').textContent=st.mcqAttempted?'MCQ score: '+st.correct+'/'+st.mcqAttempted+' ('+pct+'%). Written answers reviewed: '+st.reviewed+'. Skipped: '+st.skipped+'.':'Written answers reviewed: '+st.reviewed+'. Skipped: '+st.skipped+'.';
+ $('practiceExplain').textContent=st.mcqAttempted?'MCQ score: '+st.correct+'/'+st.mcqAttempted+' ('+pct+'%). Written answers reviewed: '+st.reviewed+'. Skipped: '+skipped+'.':'Written answers reviewed: '+st.reviewed+'. Skipped: '+skipped+'.';
  $('practiceOptions').innerHTML='<div class="guest-actions"><button class="primary-action" id="guestPracticeAgain">Practice Again</button><button id="guestPracticeChange">Change Filters</button></div>';
  $('guestPracticeAgain').onclick=()=>applyPracticeFilters();
  $('guestPracticeChange').onclick=()=>{$('practiceExplorer')?.scrollIntoView({behavior:'smooth',block:'start'})};
