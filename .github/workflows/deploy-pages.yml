@@ -30,11 +30,9 @@ jobs:
           node-version: "22"
 
       - name: Run repository smoke checks
-        continue-on-error: true
         run: node scripts/repo-smoke-check.mjs
 
       - name: Run EduNizam QA gate
-        continue-on-error: true
         run: node qa-check.mjs
 
       - name: Check latest main commit
