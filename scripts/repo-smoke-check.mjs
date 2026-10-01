@@ -14,8 +14,8 @@ function bad(name,msg){fail.push({name,msg})}
 // 1) Required files
 const required=[
   "index.html","app.html","style.css","app.js","manifest.webmanifest","sw.js",
-  "robots.txt","sitemap.xml","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","public.css",
-  "past-papers-data.js","past-papers-inventory.js","university-data.js",
+  "robots.txt","sitemap.xml","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html","public.css",
+  "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","guest-learning-nav.js","guest-learning-premium.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
   "school-community.js","navigation-enhancements.js","ui-polish.js",
@@ -24,7 +24,7 @@ const required=[
 for(const p of required){exists(p)?ok("file:"+p):bad("file:"+p,"missing")}
 
 // 2) HTML integrity, accessibility basics and local references
-const htmlPages=["index.html","app.html","login.html","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"];
+const htmlPages=["index.html","app.html","login.html","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html"];
 const htmlByPage=Object.fromEntries(htmlPages.map(p=>[p,read(p)]));
 const html=htmlByPage["app.html"];
 
@@ -61,7 +61,8 @@ const canonicalPages={
   "privacy.html":base+"privacy.html",
   "school-management-system-pakistan.html":base+"school-management-system-pakistan.html",
   "online-school-admissions.html":base+"online-school-admissions.html",
-  "learning-resources-pakistan.html":base+"learning-resources-pakistan.html"
+  "learning-resources-pakistan.html":base+"learning-resources-pakistan.html",
+  "learn.html":base+"learn.html"
 };
 for(const [page,expected] of Object.entries(canonicalPages)){
   const source=htmlByPage[page];
@@ -101,7 +102,7 @@ const sitemap=read("sitemap.xml");
 const sitemapUrls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
 const landingHtml=htmlByPage["index.html"];
 const homeLinks=[...landingHtml.matchAll(/href=["']([^"']+\.html)["']/g)].map(m=>m[1].replace(/^\.\//,''));
-const crawlFiles=["about.html","features.html","privacy.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"];
+const crawlFiles=["about.html","features.html","privacy.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html"];
 const orphaned=crawlFiles.filter(p=>!homeLinks.includes(p) && !htmlByPage["features.html"].includes('href="'+p+'"'));
 orphaned.length?bad("seo:orphan-public-pages",orphaned.join(", ")):ok("seo:orphan-public-pages");
 
@@ -120,10 +121,23 @@ try{
   const manifest=JSON.parse(read("manifest.webmanifest"));
   if(!manifest.name||!manifest.short_name||!manifest.start_url)bad("manifest:required-fields","name/short_name/start_url required");
   else ok("manifest:required-fields");
+  manifest.start_url==="./login.html"?ok("manifest:secure-entry"):bad("manifest:secure-entry","installed app must start at login.html");
   const icons=Array.isArray(manifest.icons)?manifest.icons:[];
   for(const icon of icons){if(!exists(icon.src))bad("manifest:icon",icon.src+" missing")}
   if(icons.length)ok("manifest:icons");else bad("manifest:icons","no icons declared");
 }catch(e){bad("manifest:json",e.message)}
+
+// 3b) Visitor / Guest Learning regression guards
+const learn=htmlByPage["learn.html"];
+if(!learn.includes('href="login.html">Login / Sign Up</a>'))bad("visitor:login-entry","Guest Learning must expose Login / Sign Up");else ok("visitor:login-entry");
+if(!learn.includes('guest-learning-nav.js?v=')||!learn.includes('guest-learning-premium.js?v='))bad("visitor:guest-bundle","Guest Learning scripts missing");else ok("visitor:guest-bundle");
+const guestNav=read("guest-learning-nav.js");
+if(/style\.display\s*=/.test(guestNav))bad("visitor:nav-inline-display","Guest navigation must not leave stale inline display locks");else ok("visitor:nav-inline-display");
+const guestPremium=read("guest-learning-premium.js");
+for(const marker of ["function closePremium()","if(level==='university')","data-study-id","paperSession","paperLevel"]){
+  guestPremium.includes(marker)?ok("visitor:premium:"+marker):bad("visitor:premium:"+marker,"missing");
+}
+if(!read("index.html").includes('href="login.html">Login / Sign Up</a>'))bad("visitor:landing-login","Public landing must expose Login / Sign Up");else ok("visitor:landing-login");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
