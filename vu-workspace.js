@@ -52,7 +52,7 @@
     if(name==='personal')renderPersonal();
   }
 
-  function validCourseCode(code){return /^[A-Z]{2,5}\d{3}[A-Z]?$/.test(code)}
+  function validCourseCode(code){return /^[A-Z]{2,5}\d{3,4}[A-Z]?$/.test(code)}
   function courses(){return read(KEY.courses)}
   function courseByCode(code){return courses().find(c=>c.code===code)}
 
