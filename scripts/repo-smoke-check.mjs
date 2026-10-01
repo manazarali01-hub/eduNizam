@@ -15,7 +15,7 @@ function bad(name,msg){fail.push({name,msg})}
 const required=[
   "index.html","app.html","style.css","app.js","manifest.webmanifest","sw.js",
   "robots.txt","sitemap.xml","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html","public.css",
-  "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","guest-learning-nav.js","guest-learning-premium.js",
+  "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","guest-learning-nav.js","guest-learning-premium.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
   "school-community.js","navigation-enhancements.js","ui-polish.js",
@@ -200,6 +200,37 @@ try{
   const dupC=[...new Set(codes.filter((x,i)=>codes.indexOf(x)!==i))];
   if(dupC.length)bad("data:vu-course-codes",dupC.join(", "));else ok("data:vu-course-codes");
 }catch(e){bad("data:vu-catalog",e.message)}
+
+// 6b) Complete public Learning Hub coverage
+try{
+  const lctx=vm.createContext({window:{}});
+  for(const p of ["past-papers-data.js","school-assessment-data.js","study-data.js","university-data.js","vu-course-catalog.js","practice-data.js","learning-premium-data.js","learning-complete-data.js"])evalBrowserFile(p,lctx);
+  const w=lctx.window;
+  const counts={
+    boards:w.EDUNIZAM_PAST_PAPERS?.boards?.length||0,
+    papers:w.EDUNIZAM_PAST_PAPERS?.papers?.length||0,
+    grade:w.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources?.length||0,
+    study:w.EDUNIZAM_STUDY_DATA?.materials?.length||0,
+    universities:w.EDUNIZAM_UNIVERSITY_DATA?.universities?.length||0,
+    universityResources:w.EDUNIZAM_UNIVERSITY_DATA?.resources?.length||0,
+    vuCourses:w.EDUNIZAM_VU_COURSE_CATALOG?.courses?.length||0,
+    practice:w.EDUNIZAM_PRACTICE_DATA?.questions?.length||0
+  };
+  const minimums={boards:30,papers:100,grade:20,study:25,universities:25,universityResources:45,vuCourses:30,practice:50};
+  for(const [k,min] of Object.entries(minimums)){
+    counts[k]>=min?ok("learning:coverage:"+k):bad("learning:coverage:"+k,counts[k]+" < "+min);
+  }
+  const questions=w.EDUNIZAM_PRACTICE_DATA?.questions||[];
+  for(const cl of [9,10,11,12]){
+    const subjects=new Set(questions.filter(x=>Number(x.classLevel)===cl).map(x=>x.subject));
+    subjects.size>=9?ok("learning:practice-subjects:"+cl):bad("learning:practice-subjects:"+cl,subjects.size+" subjects");
+  }
+  const grade=w.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[];
+  const g5=new Set(grade.filter(x=>Number(x.grade)===5).flatMap(x=>String(x.subject||"").split("/").map(s=>s.trim())).filter(x=>x&&x!=="All Subjects"));
+  const g8=new Set(grade.filter(x=>Number(x.grade)===8).flatMap(x=>String(x.subject||"").split("/").map(s=>s.trim())).filter(x=>x&&x!=="All Subjects"));
+  g5.size>=5?ok("learning:g5-subjects"):bad("learning:g5-subjects",g5.size+" subjects");
+  g8.size>=6?ok("learning:g8-subjects"):bad("learning:g8-subjects",g8.size+" subjects");
+}catch(e){bad("learning:complete-data",e.message)}
 
 // 7) Secret hygiene in browser files
 const browserText=["index.html",...jsFiles].map(read).join("\n");
