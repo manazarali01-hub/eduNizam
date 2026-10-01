@@ -98,14 +98,15 @@
 
 <footer class="footer"><div class="shell row"><span>EduNizam Learning Hub — free public learning tools.</span><span><a href="./">Home</a> · <a href="privacy.html">Privacy</a> · <a href="about.html">About</a> · <a href="login.html">Login / Sign Up</a></span></div></footer>
 
-<script src="past-papers-data.js?v=20261001-visitor196"></script>
-<script src="study-data.js?v=20261001-visitor196"></script>
-<script src="school-assessment-data.js?v=20261001-visitor196"></script>
-<script src="university-data.js?v=20261001-visitor196"></script>
-<script src="vu-course-catalog.js?v=20261001-visitor196"></script>
-<script src="practice-data.js?v=20261001-visitor196"></script>
-<script src="learning-premium-data.js?v=20261001-visitor196"></script>
-<script src="learning-complete-data.js?v=20261001-visitor196"></script>
+<script src="past-papers-data.js?v=20261001-visitor197"></script>
+<script src="study-data.js?v=20261001-visitor197"></script>
+<script src="school-assessment-data.js?v=20261001-visitor197"></script>
+<script src="university-data.js?v=20261001-visitor197"></script>
+<script src="vu-course-catalog.js?v=20261001-visitor197"></script>
+<script src="practice-data.js?v=20261001-visitor197"></script>
+<script src="learning-premium-data.js?v=20261001-visitor197"></script>
+<script src="learning-complete-data.js?v=20261001-visitor197"></script>
+<script src="learning-required-data.js?v=20261001-visitor197"></script>
 <script>
 (()=>{
   const $=id=>document.getElementById(id);
@@ -211,7 +212,7 @@
   }
   function renderVU(){
     const d=window.EDUNIZAM_UNIVERSITY_DATA||{},catalog=window.EDUNIZAM_VU_COURSE_CATALOG||{},needle=q(),rows=[];
-    (catalog.courses||[]).filter(x=>match(x)).forEach(x=>rows.push(resourceCard({title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails,source:'official',tags:[x.category,x.creditHours+' CH']})));
+    (catalog.courses||[]).filter(x=>match(x)).forEach(x=>rows.push(resourceCard({title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails,source:'official',tags:[x.category,x.creditHours?(x.creditHours+' CH'):'Official OCW']})));
     (d.resources||[]).filter(x=>x.universityId==='vu').filter(x=>match(x)).forEach(x=>rows.push(resourceCard({title:x.title,description:x.note,url:x.url,source:x.source,tags:[x.category,x.sourceName]})));
     if(needle && !rows.length){(d.resources||[]).filter(x=>x.universityId==='vu'&&x.courseAgnostic).slice(0,6).forEach(x=>rows.push(resourceCard({title:x.title,description:'No exact indexed match was found for this search. This is a useful VU-wide source; verify current material in VULMS/OCW. '+(x.note||''),url:x.url,source:x.source,tags:[x.category]})))}
     $('vuGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">Search a VU course code, subject or resource type. EduNizam will not invent an exact result.</div>';
@@ -236,9 +237,9 @@
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
-<script src="guest-learning-nav.js?v=20261001-visitor196"></script>
-<script src="guest-learning-premium.js?v=20261001-visitor196"></script>
-<script src="pwa-install.js?v=20261001-visitor196" defer></script>
-<script src="system-auto-update.js?v=20261001-visitor196" defer></script>
+<script src="guest-learning-nav.js?v=20261001-visitor197"></script>
+<script src="guest-learning-premium.js?v=20261001-visitor197"></script>
+<script src="pwa-install.js?v=20261001-visitor197" defer></script>
+<script src="system-auto-update.js?v=20261001-visitor197" defer></script>
 </body>
 </html>
