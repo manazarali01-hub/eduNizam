@@ -98,13 +98,13 @@
 
 <footer class="footer"><div class="shell row"><span>EduNizam Learning Hub — free public learning tools.</span><span><a href="./">Home</a> · <a href="privacy.html">Privacy</a> · <a href="about.html">About</a> · <a href="login.html">Login / Sign Up</a></span></div></footer>
 
-<script src="past-papers-data.js?v=20260930-1133"></script>
-<script src="study-data.js?v=20260930-1133"></script>
-<script src="school-assessment-data.js?v=20261001-visitor190"></script>
-<script src="university-data.js?v=20260930-1133"></script>
-<script src="vu-course-catalog.js?v=20260930-1133"></script>
-<script src="practice-data.js?v=20261001-visitor192"></script>
-<script src="learning-premium-data.js?v=20261001-visitor187"></script>
+<script src="past-papers-data.js?v=20261001-visitor193"></script>
+<script src="study-data.js?v=20261001-visitor193"></script>
+<script src="school-assessment-data.js?v=20261001-visitor193"></script>
+<script src="university-data.js?v=20261001-visitor193"></script>
+<script src="vu-course-catalog.js?v=20261001-visitor193"></script>
+<script src="practice-data.js?v=20261001-visitor193"></script>
+<script src="learning-premium-data.js?v=20261001-visitor193"></script>\n<script src="learning-complete-data.js?v=20261001-visitor193"></script>
 <script>
 (()=>{
   const $=id=>document.getElementById(id);
@@ -176,8 +176,28 @@
       if(text&&!norm(JSON.stringify(b)).includes(text))return false;
       return true;
     }).forEach(b=>rows.push(resourceCard({title:b.name+' Past Paper Portal',description:(b.region||'Pakistan')+' · Classes '+(b.classes||[]).join(', ')+(b.archiveUrl?' · Past-paper archive available':' · Official board portal'),url:b.archiveUrl||b.officialUrl,source:b.archiveUrl?'verified':'official',tags:[b.region,'Classes '+(b.classes||[]).join('/')],paper:true})));
+    if(!rows.length&&selectedBoard){
+      rows.push(resourceCard({
+        title:selectedBoard.name+' Examination / Paper Portal',
+        description:'No exact indexed paper matched every selected filter. Open the board source to choose the required class, subject, year or paper type. EduNizam does not invent unavailable papers.',
+        url:selectedBoard.archiveUrl||selectedBoard.officialUrl,
+        source:selectedBoard.archiveUrl?'verified':'official',
+        tags:[selectedBoard.region,'Classes '+(selectedBoard.classes||[]).join('/'),'Portal fallback'],
+        paper:true
+      }));
+    }
+    if(!rows.length&&text){
+      boards.filter(b=>norm(JSON.stringify(b)).includes(text)).slice(0,6).forEach(b=>rows.push(resourceCard({
+        title:b.name+' Examination / Paper Portal',
+        description:'Closest genuine board resource matching your search. Choose the exact subject/year at the source.',
+        url:b.archiveUrl||b.officialUrl,
+        source:b.archiveUrl?'verified':'official',
+        tags:[b.region,'Classes '+(b.classes||[]).join('/')],
+        paper:true
+      })));
+    }
     $('paperSummary').textContent=rows.length+' result'+(rows.length===1?'':'s')+(selectedBoard?' for '+selectedBoard.name:'')+'.';
-    $('pastGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No exact indexed paper matched these filters. Try fewer filters or open the selected board portal. EduNizam will not invent a paper that is not indexed.</div>';
+    $('pastGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No exact indexed paper matched these filters. Try a board name or a broader search. EduNizam will not invent a paper that is not indexed.</div>';
   }
   function renderGrade(){const rows=(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).filter(x=>match(x)).map(x=>resourceCard({title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,tags:['Grade '+x.grade,x.subject,x.year,x.type]}));$('gradeGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No Grade 5/8 resource matched this search.</div>'}
   function renderStudy(){const rows=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>match(x)).map(x=>resourceCard({title:x.title,description:x.note||(x.content?'Built-in quick revision sheet.':''),url:x.fileUrl||x.url,source:x.source,tags:[x.board,x.subject,x.type,(x.classLevels||[]).length?'Class '+x.classLevels.join('/'):'']}));$('studyGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No study resource matched this search.</div>'}
@@ -215,9 +235,9 @@
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
-<script src="guest-learning-nav.js?v=20261001-visitor192"></script>
-<script src="guest-learning-premium.js?v=20261001-visitor192"></script>
-<script src="pwa-install.js?v=20261001-visitor192" defer></script>
-<script src="system-auto-update.js?v=20261001-visitor192" defer></script>
+<script src="guest-learning-nav.js?v=20261001-visitor193"></script>
+<script src="guest-learning-premium.js?v=20261001-visitor193"></script>
+<script src="pwa-install.js?v=20261001-visitor193" defer></script>
+<script src="system-auto-update.js?v=20261001-visitor193" defer></script>
 </body>
 </html>
