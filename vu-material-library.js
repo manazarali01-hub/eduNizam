@@ -245,6 +245,21 @@ const COMMUNITY=[
   id:'vubooks-ppt',type:'PPT Slides',title:'VU Books Handouts PPT Slides',
   url:'https://vubookhandouts.blogspot.com/',source:'VU Books Handouts',trust:'legacy',
   access:'download_index',note:'Legacy PowerPoint/slide backup for selected courses.'
+ },
+ {
+  id:'vubookshoppk-handouts',type:'Course Notes / Handouts',title:'VUBookshopPK Updated Handouts',
+  url:'https://vubookshoppk.com/vu-handouts-pdf/',source:'VUBookshopPK',trust:'verified',
+  access:'download_index',note:'Current broad VU handout directory grouped by subject prefixes, including MKT, MTH, PSY, SOC, STA, IT, MCM, MGMT and other departments.'
+ },
+ {
+  id:'vuacademy-highlighted',type:'Highlighted Handouts',title:'VU Academy Highlighted Handouts',
+  url:'https://vuacedmy.com/academic/handouts/highlighted-handouts.php',source:'VU Academy',trust:'verified',
+  access:'download_index',note:'Alternative highlighted-handout collection organized by VU subject/course.'
+ },
+ {
+  id:'nva-handouts',type:'Course Notes / Handouts',title:'NVA Education VU Handout Pages',
+  url:'https://nvaeducation.com/books/vu/',source:'NVA Education',trust:'verified',
+  access:'open',note:'Course-specific VU handout pages with embedded/linked Google Drive material. Some downloads may require the provider’s sharing step, so this is labelled as a browse/download page rather than a direct file.'
  }
 ];
 
@@ -593,6 +608,9 @@ function communityFor(course){
   if(x.id==='vustudyhub-internship'&&code!=='CSI619')return [];
   if(x.id==='vuctn-practicals'&&!(/P$/.test(code)||/practical|lab/i.test(String(course?.title||''))))return [];
   if(x.id==='virtualuniversitypk-handouts')base.url='https://virtualuniversitypk.com/?s='+encodeURIComponent(code);
+  if(x.id==='nva-handouts')base.url='https://www.google.com/search?q='+encodeURIComponent('site:nvaeducation.com/books/vu/ '+code+' handouts');
+  if(x.id==='vubookshoppk-handouts')base.url='https://vubookshoppk.com/vu-handouts-pdf/';
+  if(x.id==='vuacademy-highlighted')base.url='https://vuacedmy.com/academic/handouts/highlighted-handouts.php';
   if(x.id==='vustudy-final'||x.id==='vustudy-current')base.url='https://vustudy.com/?s='+encodeURIComponent(code);
   if(x.id==='vumalik-past')base.url='https://vumalik.blogspot.com/search?q='+encodeURIComponent(code);
   if(x.id==='vuctn-past'||x.id==='vuctn-short'||x.id==='vuctn-ppt'||x.id==='vuctn-quiz'||x.id==='vuctn-books'||x.id==='vuctn-practicals')base.url='https://www.vuctn.com/search?q='+encodeURIComponent(code);
