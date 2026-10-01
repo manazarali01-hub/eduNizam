@@ -59,7 +59,7 @@
     setVisible(!installed());
     if('serviceWorker' in navigator){
       window.addEventListener('load',()=>{
-        navigator.serviceWorker.register('./sw.js?v=20261001-visitor192',{updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=20261001-visitor193',{updateViaCache:'none'})
           .then(reg=>reg.update())
           .catch(()=>{});
       },{once:true});
