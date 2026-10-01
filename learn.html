@@ -66,7 +66,7 @@
 </div>
 
 <main class="shell">
-  <div class="search-wrap"><div class="searchbox"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="Search board, class, subject, VU course, resource…" aria-label="Search learning resources"><button id="clearSearch" class="btn" type="button">Clear</button></div></div>
+  <div class="search-wrap"><div class="searchbox"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="Search board, class, subject, VU course, resource…" aria-label="Search learning resources"><button id="runGlobalSearch" class="btn primary" type="button">Search</button><button id="clearSearch" class="btn" type="button">Clear</button></div></div>
   <nav class="tabs" aria-label="Learning sections">
     <a class="tab active" data-tab="home" href="learn.html#home">Overview</a><a class="tab" data-tab="past" href="learn.html#past">Past Papers</a><a class="tab" data-tab="grade" href="learn.html#grade">Grade 5 & 8</a><a class="tab" data-tab="study" href="learn.html#study">Study Library</a><a class="tab" data-tab="universities" href="learn.html#universities">Universities</a><a class="tab" data-tab="vu" href="learn.html#vu">VU</a><a class="tab" data-tab="practice" href="learn.html#practice">Practice</a>
   </nav>
@@ -98,23 +98,24 @@
 
 <footer class="footer"><div class="shell row"><span>EduNizam Learning Hub — free public learning tools.</span><span><a href="./">Home</a> · <a href="privacy.html">Privacy</a> · <a href="about.html">About</a> · <a href="login.html">Login / Sign Up</a></span></div></footer>
 
-<script src="past-papers-data.js?v=20261001-visitor198"></script>
-<script src="study-data.js?v=20261001-visitor198"></script>
-<script src="school-assessment-data.js?v=20261001-visitor198"></script>
-<script src="university-data.js?v=20261001-visitor198"></script>
-<script src="vu-course-catalog.js?v=20261001-visitor198"></script>
-<script src="practice-data.js?v=20261001-visitor198"></script>
-<script src="learning-premium-data.js?v=20261001-visitor198"></script>
-<script src="learning-complete-data.js?v=20261001-visitor198"></script>
-<script src="learning-required-data.js?v=20261001-visitor198"></script>
+<script src="past-papers-data.js?v=20261001-visitor199"></script>
+<script src="study-data.js?v=20261001-visitor199"></script>
+<script src="school-assessment-data.js?v=20261001-visitor199"></script>
+<script src="university-data.js?v=20261001-visitor199"></script>
+<script src="vu-course-catalog.js?v=20261001-visitor199"></script>
+<script src="practice-data.js?v=20261001-visitor199"></script>
+<script src="learning-premium-data.js?v=20261001-visitor199"></script>
+<script src="learning-complete-data.js?v=20261001-visitor199"></script>
+<script src="learning-required-data.js?v=20261001-visitor199"></script>
+<script src="learning-search-engine.js?v=20261001-visitor199"></script>
 <script>
 (()=>{
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-  const norm=v=>String(v??'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const norm=v=>window.EDUNIZAM_LEARNING_SEARCH?.normalize?.(v)||String(v??'').normalize('NFKC').toLocaleLowerCase('en-PK').replace(/[^\\p{L}\\p{N}]+/gu,' ').trim();
   const q=()=>norm($('globalSearch').value);
   const sourceBadge=s=>{const x=String(s||'').toLowerCase();const cls=x==='official'?'official':x==='verified'?'verified':x==='built-in'?'builtin':'';return '<span class="badge '+cls+'">'+esc(s||'Resource')+'</span>'};
-  const match=(obj,extra='')=>{const needle=q();if(!needle)return true;return norm(JSON.stringify(obj)+' '+extra).includes(needle)};
+  const match=(obj,extra='')=>{const raw=$('globalSearch').value,needle=norm(raw);if(!needle)return true;const candidate={...obj,description:[obj?.note,obj?.description,extra].filter(Boolean).join(' ')};return !!window.EDUNIZAM_LEARNING_SEARCH?.search?.([candidate],raw)?.length||norm(JSON.stringify(obj)+' '+extra).includes(needle)};
   const validTabs=new Set(['home','past','grade','study','universities','vu','practice']);
   function openTab(id){
     id=validTabs.has(String(id||''))?String(id):'home';
@@ -237,9 +238,9 @@
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
-<script src="guest-learning-nav.js?v=20261001-visitor198"></script>
-<script src="guest-learning-premium.js?v=20261001-visitor198"></script>
-<script src="pwa-install.js?v=20261001-visitor198" defer></script>
-<script src="system-auto-update.js?v=20261001-visitor198" defer></script>
+<script src="guest-learning-nav.js?v=20261001-visitor199"></script>
+<script src="guest-learning-premium.js?v=20261001-visitor199"></script>
+<script src="pwa-install.js?v=20261001-visitor199" defer></script>
+<script src="system-auto-update.js?v=20261001-visitor199" defer></script>
 </body>
 </html>
