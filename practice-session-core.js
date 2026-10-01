@@ -29,7 +29,9 @@ function selectSession(all,filters={},options={}){
   return rows;
 }
 function attemptValues(attempts){
-  if(attempts instanceof Map)return [...attempts.values()];
+  if(attempts&&typeof attempts.values==='function'&&typeof attempts.size==='number'){
+    try{return [...attempts.values()]}catch(_){}
+  }
   if(Array.isArray(attempts))return attempts;
   if(attempts&&typeof attempts==='object')return Object.values(attempts);
   return [];
