@@ -5,7 +5,8 @@ const TYPES=[
  'Course Notes / Handouts','Highlighted Handouts','Short Notes',
  'Lecture Videos','Reference Books','Assignments','GDB / Current Semester',
  'Quizzes / MCQs','Midterm Past Papers','Finalterm Past Papers',
- 'Solved Past Papers','Grading Scheme','Course Overview','Useful Links'
+ 'Current Papers / Recalls','Solved Past Papers','Preparation Videos',
+ 'Grading Scheme','Course Overview','Useful Links'
 ];
 
 const COMMUNITY=[
@@ -30,6 +31,16 @@ const COMMUNITY=[
   access:'download_index',note:'Course-wise midterm solved papers, MCQs, notes and preparation files in PDF/Word where listed.'
  },
  {
+  id:'vuanswer-midterm-mcqs',type:'Quizzes / MCQs',title:'Midterm MCQs / Quiz Practice',
+  url:'https://vuanswer.pk/vu-midterm-past-papers-all-subjects/',source:'VUAnswer',trust:'verified',
+  access:'download_index',note:'Many course sections include solved MCQs, quiz files, lecture-wise objective practice and short preparation files.'
+ },
+ {
+  id:'vuanswer-current-recalls',type:'Current Papers / Recalls',title:'Current / Recent Paper Recall Files',
+  url:'https://vuanswer.pk/vu-midterm-past-papers-all-subjects/',source:'VUAnswer',trust:'verified',
+  access:'download_index',note:'Community-recalled/current-paper files are mixed into course sections where available. Treat recalls as supplementary and semester-specific.'
+ },
+ {
   id:'vuanswer-final',type:'Finalterm Past Papers',title:'Finalterm Past Papers — All Subjects',
   url:'https://vuanswer.pk/vu-finalterm-past-papers-all-subjects/',source:'VUAnswer',trust:'verified',
   access:'download_index',note:'Course-wise finalterm solved papers, MCQs, notes and preparation files where listed.'
@@ -45,6 +56,11 @@ const COMMUNITY=[
   access:'download_index',note:'Community assignment-solution archive. Use for learning/reference only; current graded work must follow VULMS instructions and academic-integrity rules.'
  },
  {
+  id:'vuinsider-gdb',type:'GDB / Current Semester',title:'GDB Study / Solution Archive',
+  url:'https://vuinsider.com/forums/gdb-solutions.2/',source:'VU Insider',trust:'verified',
+  access:'download_index',note:'Community GDB study/solution archive. Use only for understanding and comparison; write current graded GDB work yourself and follow VULMS instructions.'
+ },
+ {
   id:'vuedutech-midterm',type:'Midterm Past Papers',title:'Course-wise Midterm Past Papers',
   url:'https://vuedutech.com/past-papers/midterm-pastpapers/',source:'VU Updates Tech',trust:'verified',
   access:'download_index',note:'Searchable course-wise midterm preparation/past-paper download index.'
@@ -55,9 +71,14 @@ const COMMUNITY=[
   access:'download_index',note:'Course-wise finalterm preparation/past-paper download index covering many VU subjects.'
  },
  {
-  id:'vuedutech-final-videos',type:'Lecture Videos',title:'Finalterm Preparation Videos',
+  id:'vuedutech-final-videos',type:'Preparation Videos',title:'Finalterm Preparation Videos',
   url:'https://vuedutech.com/past-papers/finalterm-Preparation-video/',source:'VU Updates Tech',trust:'verified',
   access:'open',note:'Supplementary course-wise exam-preparation videos; official VU lecture videos remain the primary lecture source.'
+ },
+ {
+  id:'vuanswer-final-mcqs',type:'Quizzes / MCQs',title:'Finalterm MCQs / Quiz Practice',
+  url:'https://vuanswer.pk/vu-finalterm-past-papers-all-subjects/',source:'VUAnswer',trust:'verified',
+  access:'download_index',note:'Finalterm course sections frequently include solved MCQs, quizzes and objective-practice files alongside papers and short notes.'
  },
  {
   id:'vuinsider-handouts',type:'Course Notes / Handouts',title:'VU Handouts PDF Archive',
