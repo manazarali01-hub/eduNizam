@@ -431,6 +431,13 @@ if(!pwaManifest.includes('"start_url": "./login.html"')) fail.push('Installed PW
 if(!pwaInstall.includes('beforeinstallprompt')) fail.push('Shared PWA native install prompt handler missing.');
 if(!pwaInstall.includes('manualHelp')) fail.push('PWA manual install fallback missing.');
 if(!pwaInstall.includes("serviceWorker.register('./sw.js?v=")) fail.push('Shared PWA service worker registration missing.');
+const autoUpdate=read('system-auto-update.js');
+const swCache=pwaSw.match(/const CACHE=['"]([^'"]+)['"]/)?.[1]||'';
+const activeCache=autoUpdate.match(/const ACTIVE_CACHE=['"]([^'"]+)['"]/)?.[1]||'';
+const build=autoUpdate.match(/const BUILD=['"]([^'"]+)['"]/)?.[1]||'';
+const registerBuild=pwaInstall.match(/sw\.js\?v=([^'"]+)/)?.[1]||'';
+if(!swCache||swCache!==activeCache) fail.push('PWA active cache version does not match service worker cache.');
+if(!build||build!==registerBuild) fail.push('PWA install registration version does not match system build.');
 for(const page of ['index.html','app.html','login.html','edunizam.html','admission.html','features.html','school-management-system-pakistan.html','online-school-admissions.html','learning-resources-pakistan.html','learn.html','about.html','privacy.html']){
   if(!read(page).includes('manifest.webmanifest')) fail.push('PWA manifest link missing: '+page);
   if(!read(page).includes('pwa-install.js?v=')) fail.push('Shared PWA install controller missing: '+page);
@@ -441,8 +448,14 @@ const guestLearn=read('learn.html');
 if(!guestLearn.includes('href="login.html">Login / Sign Up</a>')) fail.push('Guest Learning has no visible Login / Sign Up entry.');
 if(!guestLearn.includes('guest-learning-premium.js?v=')) fail.push('Guest Learning premium controller missing.');
 if(!exists('learning-complete-data.js')) fail.push('Complete Learning Hub data layer missing.');
+if(!exists('learning-required-data.js')) fail.push('Required Learning Hub expansion data missing.');
+if(!exists('learning-search-engine.js')) fail.push('Learning Hub smart search engine missing.');
 if(!guestLearn.includes('learning-complete-data.js?v=')) fail.push('Complete Learning Hub data layer is not loaded.');
+if(!guestLearn.includes('learning-required-data.js?v=')) fail.push('Required Learning Hub expansion data is not loaded.');
+if(!guestLearn.includes('learning-search-engine.js?v=')) fail.push('Learning Hub smart search engine is not loaded.');
 if(!pwaSw.includes("'./learning-complete-data.js'")) fail.push('Complete Learning Hub data layer is not cached by PWA.');
+if(!pwaSw.includes("'./learning-required-data.js'")) fail.push('Required Learning Hub expansion data is not cached by PWA.');
+if(!pwaSw.includes("'./learning-search-engine.js'")) fail.push('Learning Hub smart search engine is not cached by PWA.');
 const learningComplete=read('learning-complete-data.js');
 for(const marker of ['portal-','pectaa-g5-english','pectaa-g8-english-model','pectaa-curriculum-ebooks','hec-directory','vu-datesheet','ACC311','q53']){
   if(!learningComplete.includes(marker)) fail.push('Learning Hub complete-data marker missing: '+marker);
@@ -474,6 +487,17 @@ if(!guestPremium.includes('guestPracticeType')) fail.push('Practice Center quest
 if(!guestPremium.includes("kind==='practice'")) fail.push('MCQ/Quiz directory shortcut is not connected to Practice Center.');
 if(!guestPremium.includes("showGlobalResults('date sheet')")||!guestPremium.includes("showGlobalResults('results')")) fail.push('Date Sheet / Result directory shortcuts are not global public searches.');
 if(!guestLearn.includes('(window.EDUNIZAM_PUBLIC_LINKS||[]).length')) fail.push('Overview public-resource total excludes date-sheet/result portal links.');
+if(!guestLearn.includes('id="runGlobalSearch"')) fail.push('Guest Learning global Search button missing.');
+const smartSearch=read('learning-search-engine.js');
+for(const marker of ['EDUNIZAM_LEARNING_SEARCH','courseCode','دسویں','gujranwala','requestedVuFamily']){
+  if(!smartSearch.includes(marker)) fail.push('Smart Learning search marker missing: '+marker);
+}
+const requiredLearning=read('learning-required-data.js');
+for(const marker of ['MTH603','CS202','EDU510','g5-math-01','g8-sci-04']){
+  if(!requiredLearning.includes(marker)) fail.push('Required Learning data marker missing: '+marker);
+}
+if(!guestPremium.includes("data-start-practice")) fail.push('Global search Practice result cannot launch Practice Center.');
+if(!guestPremium.includes("kind==='vu-quizzes'")) fail.push('VU Quizzes shortcut missing.');
 if(!pwaSw.includes("'./pwa-install.js'")) fail.push('PWA install controller not cached.');
 if(!pwaSw.includes("'./icon-192.png'")||!pwaSw.includes("'./icon-512.png'")) fail.push('PWA PNG icons not cached.');
 
