@@ -1,13 +1,25 @@
 (()=>{
 'use strict';
-const BUILD='20261001-mobile184', KEY='edunizam_system_build', RELOAD='edunizam_update_reload';
-const ACTIVE_CACHE='edunizam-v171-mobile184';
+const BUILD='20261001-mobile185', KEY='edunizam_system_build', RELOAD='edunizam_update_reload';
+const ACTIVE_CACHE='edunizam-v172-mobile185';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}
 function repairCommonUI(){
   document.documentElement.classList.remove('edu-feature-loading');
   document.body?.classList.remove('mobile-nav-lock');
+  const sidebar=document.querySelector('.sidebar');
+  if(sidebar)sidebar.classList.remove('mobile-nav-open');
+  const backdrop=document.getElementById('eduMobileNavBackdrop');
+  if(backdrop){
+    backdrop.classList.remove('show');
+    backdrop.style.display='none';
+    backdrop.style.pointerEvents='none';
+    backdrop.style.visibility='hidden';
+    backdrop.setAttribute('aria-hidden','true');
+  }
+  const menu=document.getElementById('eduMobileMenuBtn');
+  if(menu)menu.setAttribute('aria-expanded','false');
   document.querySelectorAll('[aria-busy="true"]').forEach(x=>x.removeAttribute('aria-busy'));
   document.querySelectorAll('button[disabled]').forEach(btn=>{
     const t=(btn.textContent||'').toLowerCase();
