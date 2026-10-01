@@ -301,14 +301,10 @@ function injectSectionExplorers(){
 }
 let guestPracticeRows=[],guestPracticeIndex=0,guestPracticeAttempts=new Map(),guestPracticeFinished=false;
 function shufflePractice(rows){
- const out=[...rows];
- for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}
- return out;
+ return window.EDUNIZAM_PRACTICE_CORE?.shuffled?.(rows)||[...rows];
 }
 function practiceSessionStats(){
- const attempts=[...guestPracticeAttempts.values()];
- const mcq=attempts.filter(x=>x.kind==='mcq'),written=attempts.filter(x=>x.kind==='written');
- return {attempted:attempts.length,correct:mcq.filter(x=>x.correct).length,mcqAttempted:mcq.length,reviewed:written.length,pending:Math.max(0,guestPracticeRows.length-attempts.length)};
+ return window.EDUNIZAM_PRACTICE_CORE?.sessionStats?.(guestPracticeRows,guestPracticeAttempts)||{attempted:0,correct:0,mcqAttempted:0,reviewed:0,pending:guestPracticeRows.length};
 }
 function updatePracticeSessionStatus(){
  const box=$('guestPracticeSession');if(!box)return;
@@ -364,15 +360,16 @@ function renderGuestPractice(){
 function applyPracticeFilters(){
  const cl=$('guestPracticeClass')?.value||'',sub=$('guestPracticeSubject')?.value||'',chapter=$('guestPracticeChapter')?.value||'',type=$('guestPracticeType')?.value||'',diff=$('guestPracticeDifficulty')?.value||'';
  const all=window.EDUNIZAM_PRACTICE_DATA?.questions||[];
- let rows=all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub)&&(!chapter||x.chapter===chapter)&&(!type||x.type===type)&&(!diff||x.difficulty===diff));
+ let rows=window.EDUNIZAM_PRACTICE_CORE?.filterQuestions?.(all,{classLevel:cl,subject:sub,chapter,type,difficulty:diff})||
+  all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub)&&(!chapter||x.chapter===chapter)&&(!type||x.type===type)&&(!diff||x.difficulty===diff));
  if(!rows.length){
-  const nearest=all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub));
+  const nearest=window.EDUNIZAM_PRACTICE_CORE?.filterQuestions?.(all,{classLevel:cl,subject:sub})||all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub));
   rows=nearest.length?nearest:all;
   $('guestPracticeSummary')&&($('guestPracticeSummary').textContent='That exact combination is not available. Showing the closest genuine practice questions instead.');
  }
- if($('guestPracticeOrder')?.value==='random')rows=shufflePractice(rows);
- const limit=$('guestPracticeLimit')?.value||'10';
- if(limit!=='all')rows=rows.slice(0,Math.max(1,Number(limit)||10));
+ const order=$('guestPracticeOrder')?.value||'sequential',limit=$('guestPracticeLimit')?.value||'10';
+ rows=window.EDUNIZAM_PRACTICE_CORE?.selectSession?.(rows,{}, {order,limit})||
+  (order==='random'?shufflePractice(rows):rows).slice(0,limit==='all'?rows.length:Math.max(1,Number(limit)||10));
  guestPracticeRows=rows;guestPracticeIndex=0;guestPracticeAttempts=new Map();guestPracticeFinished=false;
  if(!guestPracticeRows.length){$('practiceMeta').innerHTML='';$('practiceQuestion').textContent='No practice questions are available yet.';$('practiceOptions').innerHTML='';$('practiceExplain').hidden=true;updatePracticeSessionStatus();return}
  renderGuestPractice();
