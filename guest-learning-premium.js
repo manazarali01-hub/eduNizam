@@ -54,29 +54,48 @@ function injectDirectory(){
  ].map(([t,id,filter])=>'<a href="#'+id+'" data-tab="'+id+'" data-hub-filter="'+filter+'" class="card hub-link"><strong>'+t+'</strong><span>Open →</span></a>').join('')+'</div>';
  home.insertBefore(wrap,home.children[1]||null);
 }
+function submitGlobalSearch(){
+ const input=$('globalSearch');if(!input)return;
+ const query=String(input.value||'').trim();if(!query)return;
+ saveRecent(query);renderSuggestions();showGlobalResults(query);
+ document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');
+ input.blur();
+}
 function injectSearchTools(){
  const sw=document.querySelector('.search-wrap');if(!sw)return;
  const tools=document.createElement('div');tools.className='premium-tools';tools.innerHTML='<div id="searchSuggestions" class="search-suggestions" aria-label="Search suggestions"></div><div class="recent-search-block"><strong class="recent-search-title">Recent searches</strong><div id="recentSearches" class="search-suggestions"></div></div>';
  sw.appendChild(tools);
- const input=$('globalSearch');input.placeholder='What do you want to study?';
+ const input=$('globalSearch');input.placeholder='What do you want to study? / کیا پڑھنا چاہتے ہیں؟';
  input.setAttribute('autocomplete','off');
- input.addEventListener('keydown',e=>{if(e.key==='Enter'){saveRecent(input.value);renderSuggestions();showGlobalResults(input.value);tools.classList.add('search-tools-collapsed');input.blur()}});
+ let submit=$('runGlobalSearch');
+ if(!submit){
+  submit=document.createElement('button');submit.id='runGlobalSearch';submit.className='btn primary';submit.type='button';submit.textContent='Search';
+  $('clearSearch')?.before(submit);
+ }
+ input.addEventListener('keydown',e=>{if(e.key==='Enter')submitGlobalSearch()});
+ submit?.addEventListener('click',submitGlobalSearch);
  input.addEventListener('input',()=>{tools.classList.remove('search-tools-collapsed');renderSuggestions()});
  input.addEventListener('focus',()=>tools.classList.remove('search-tools-collapsed'));
  renderRecent();renderSuggestions();
 }
 function renderSuggestions(){
  const box=$('searchSuggestions'),input=$('globalSearch');if(!box||!input)return;
- const q=norm(input.value);let terms=['CS101 past papers','MTH301 final term','VU CS101 handouts','10th class math Gujranwala board','9th physics past papers','FSC chemistry Lahore board','Grade 8 PECTA model paper'];
- if(q){terms=allResources().filter(r=>norm(JSON.stringify(r)).includes(q)).slice(0,5).map(r=>r.title)}
- box.innerHTML=terms.slice(0,6).map(t=>'<button type="button" data-smart-query="'+esc(t)+'">'+esc(t)+'</button>').join('');
+ const q=norm(input.value);let terms=['CS101 past papers','MTH603 quizzes','VU CS101 handouts','10th class math Gujranwala board','9th physics past papers','FSC chemistry Lahore board','Grade 8 PECTA model paper'];
+ if(q){
+  const engine=window.EDUNIZAM_LEARNING_SEARCH;
+  const matches=engine?.search?.(allResources(),input.value)||allResources().filter(r=>norm(JSON.stringify(r)).includes(q));
+  terms=matches.slice(0,6).map(r=>r.title);
+ }
+ box.innerHTML=[...new Set(terms)].slice(0,6).map(t=>'<button type="button" data-smart-query="'+esc(t)+'">'+esc(t)+'</button>').join('');
 }
 function renderRecent(){
  const box=$('recentSearches');if(!box)return;const arr=recent();
  box.innerHTML=arr.length?arr.map(t=>'<button type="button" data-smart-query="'+esc(t)+'">'+esc(t)+'</button>').join(''):'<span style="color:var(--muted);font-size:.8rem">Your searches stay on this device.</span>';
 }
 function showGlobalResults(query){
- const q=norm(query);if(!q)return;const words=q.split(' ').filter(Boolean), code=words.find(w=>/^[a-z]{2,5}[0-9]{3,4}$/.test(w)); const results=allResources().filter(r=>{const h=norm(JSON.stringify(r)); if(words.every(w=>h.includes(w)))return true; if(code&&r.section==='vu'&&/paper|midterm|final/i.test(String(r.type)))return !(r.courseCodes||[]).length||(r.courseCodes||[]).map(norm).includes(code); return false}).slice(0,24);
+ const q=norm(query);if(!q)return;
+ const resources=allResources(),engine=window.EDUNIZAM_LEARNING_SEARCH;
+ const results=(engine?.search?.(resources,query)||resources.filter(r=>norm(JSON.stringify(r)).includes(q))).slice(0,24);
  const home=$('home');window.EDUNIZAM_GUEST_NAV?.show?.('home');document.querySelectorAll('.section').forEach(x=>{x.style.removeProperty('display');x.classList.toggle('active',x===home)});document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='home'));history.replaceState(null,'','#home');
  let box=$('globalResults');if(!box){box=document.createElement('div');box.id='globalResults';home.insertBefore(box,home.firstChild)}
  box.innerHTML='<div class="section-head"><div><h2>Search results</h2><p>'+results.length+' matching public resources for “'+esc(query)+'”.</p></div></div><div class="grid">'+(results.length?results.map(resourceCard).join(''):emptyState(query))+'</div>';
@@ -86,9 +105,10 @@ function emptyState(query){
  return '<div class="smart-empty"><h3>Exact resource not available yet.</h3><p>EduNizam did not find a genuine indexed match for “'+esc(query)+'”. Try a broader term or open a trusted resource center.</p><div class="related-row"><button data-tab="past">Past Papers</button><button data-tab="vu">Virtual University</button><button data-tab="grade">PECTA Grade 5/8</button><button data-tab="study">Study Library</button><button data-clear-smart>Reset search</button></div></div>';
 }
 function resourceCard(r){
- const fav=favorites().some(x=>x.id===r.id),url=String(r.url||'').trim(),studyId=String(r.id||'').startsWith('study:')?String(r.id).slice(6):'',builtIn=!!(studyId&&r.content&&!url);const meta=[r.board,r.classLevel&&('Class '+r.classLevel),r.subject,r.year,r.session,r.type].filter(Boolean);
+ const fav=favorites().some(x=>x.id===r.id),url=String(r.url||'').trim(),studyId=String(r.id||'').startsWith('study:')?String(r.id).slice(6):'',practiceId=String(r.id||'').startsWith('practice:'),builtIn=!!(studyId&&r.content&&!url);const meta=[r.board,r.classLevel&&((Number(r.classLevel)<=8?'Grade ':'Class ')+r.classLevel),r.subject,r.year,r.session,r.type].filter(Boolean);
  let actions='<div class="guest-actions">';
- if(builtIn)actions+='<button class="primary-action" data-study-id="'+esc(studyId)+'">Read Now</button>';
+ if(practiceId)actions+='<button class="primary-action" data-start-practice data-practice-class="'+esc(r.classLevel)+'" data-practice-subject="'+esc(r.subject||'')+'">Start Practice</button>';
+ else if(builtIn)actions+='<button class="primary-action" data-study-id="'+esc(studyId)+'">Read Now</button>';
  else if(url)actions+='<button class="primary-action" data-preview-id="'+esc(r.id)+'">Preview</button><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open</a><button data-share-id="'+esc(r.id)+'">Share</button>';
  else actions+='<button class="primary-action" type="button" disabled aria-disabled="true">Source unavailable</button>';
  actions+='<button class="'+(fav?'favorite-on':'')+'" data-fav-id="'+esc(r.id)+'">'+(fav?'★ Saved':'☆ Save')+'</button></div>';
