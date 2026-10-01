@@ -6,7 +6,7 @@ const TYPES=[
  'Lecture Videos','Reference Books','Assignments','GDB / Current Semester',
  'Quizzes / MCQs','Midterm Past Papers','Finalterm Past Papers',
  'Current Papers / Recalls','Solved Past Papers','Preparation Videos',
- 'PPT Slides','Practicals / Lab Manuals','Books / References','Final Project / Viva',
+ 'PPT Slides','Practicals / Lab Manuals','Books / References','Final Project / Viva','Internship / Field Experience',
  'Syllabus / Study Guide','Grading Scheme','Course Overview','Useful Links','Offline App Library'
 ];
 
@@ -145,6 +145,11 @@ const COMMUNITY=[
   id:'vustudyhub-project',type:'Final Project / Viva',title:'CS619 / CS519 Final Project Hub',
   url:'https://vustudyhub.com/projects.php',source:'VU Study Hub',trust:'verified',
   access:'download_index',note:'Project ideas, SRS, design documents, test cases, final report guidance, presentations, viva preparation, project guidelines and video tutorials for CS619/CS519.'
+ },
+ {
+  id:'vustudyhub-internship',type:'Internship / Field Experience',title:'VU Internship / Field Experience Resources',
+  url:'https://vustudyhub.com/projects.php',source:'VU Study Hub',trust:'verified',
+  access:'open',note:'Community project/internship hub with CS619 internship references and supporting project resources. Current internship requirements must be confirmed through official VU channels.'
  },
  {
   id:'vuctn-practicals',type:'Practicals / Lab Manuals',title:'VU Practical / Lab Resources',
@@ -329,7 +334,10 @@ function officialFor(course){
   ];
   if(/P$/.test(course.code))rows.push(official('practical','Practicals / Lab Manuals',course.code+' Practical Course / Lab Study Scheme',course.officialDetails||p.search,'official_open','Official VU program/study-scheme route for this practical course. Use VULMS for the current lab instructions/files.'));
   if(['CS519','CS619'].includes(course.code))rows.push(official('project','Final Project / Viva',course.code+' Official Final Project Route',course.officialDetails||'https://www.vu.edu.pk/contact','official_open','Official VU program route for the final project. Current project instructions, supervisor communication and deliverables should be confirmed through VULMS/official project channels.'));
-  if(course.code==='CSI619')rows.push(official('internship','Syllabus / Study Guide',course.code+' Official Internship / Field Experience Route',course.officialDetails||p.search,'official_open','Official VU study-scheme route for field experience/internship requirements; current instructions should be checked in VULMS.'));
+  if(course.code==='CSI619'){
+   rows.push(official('internship','Internship / Field Experience',course.code+' Official Internship / Field Experience Route',course.officialDetails||p.search,'official_open','Official VU study-scheme route for field experience/internship requirements; current instructions should be checked in VULMS.'));
+   rows.push(official('internship-guide','Syllabus / Study Guide',course.code+' Internship Study Scheme',course.officialDetails||p.search,'official_open','Official study-scheme context for the internship/field experience course.'));
+  }
   return rows;
  }
  return[
@@ -350,6 +358,8 @@ function communityFor(course){
  return COMMUNITY.flatMap(x=>{
   const base={...x,id:x.id+'-'+code,courseCode:code,title:code+' · '+x.title};
   if(x.id==='vustudyhub-project'&&!['CS519','CS619'].includes(code))return [];
+  if(x.id==='vustudyhub-internship'&&code!=='CSI619')return [];
+  if(x.id==='vuctn-practicals'&&!(/P$/.test(code)||/practical|lab/i.test(String(course?.title||''))))return [];
   if(x.id==='virtualuniversitypk-handouts')base.url='https://virtualuniversitypk.com/?s='+encodeURIComponent(code);
   if(x.id==='vustudy-final'||x.id==='vustudy-current')base.url='https://vustudy.com/?s='+encodeURIComponent(code);
   if(x.id==='vumalik-past')base.url='https://vumalik.blogspot.com/search?q='+encodeURIComponent(code);
