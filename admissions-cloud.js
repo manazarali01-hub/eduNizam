@@ -1,6 +1,9 @@
 (function(){
   const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
   const state={enabled:false,client:null,user:null};
+  const roleCache={key:'',value:null,at:0,inflight:null};
+  const institutionsCache={userId:'',value:null,at:0,inflight:null};
+  function clearIdentityCaches(){roleCache.key='';roleCache.value=null;roleCache.at=0;roleCache.inflight=null;institutionsCache.userId='';institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
 
   function ready(){
     return !!(cfg.enabled&&cfg.provider==='supabase'&&cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase?.createClient);
@@ -10,7 +13,7 @@
     state.client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     const {data}=await state.client.auth.getUser();
     state.user=data?.user||null;state.enabled=true;
-    state.client.auth.onAuthStateChange((_event,session)=>{state.user=session?.user||null;window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{user:state.user}}))});
+    state.client.auth.onAuthStateChange((_event,session)=>{state.user=session?.user||null;clearIdentityCaches();window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{user:state.user}}))});
     window.EDUNIZAM_CLOUD=api;return api;
   }
   async function signUp(email,password,accountRole='student',fullName=''){
@@ -115,42 +118,65 @@
     if(cfg.institutionId)q=q.eq('institution_id',cfg.institutionId);
     const {data,error}=await q;if(error)throw error;return data||[];
   }
-  async function getMyRole(){
+  async function getMyRole(force=false){
     if(!state.client||!state.user)return null;
-    if(cfg.institutionId){
-      const {data:inst}=await state.client.from('institutions').select('owner_user_id').eq('id',cfg.institutionId).maybeSingle();
-      if(inst?.owner_user_id===state.user.id)return 'head_of_institute';
-      const {data:member,error:memberError}=await state.client.from('institution_members').select('role').eq('institution_id',cfg.institutionId).eq('user_id',state.user.id).maybeSingle();
-      if(memberError)throw memberError;
-      if(member?.role)return member.role;
-    }
-    const {data:owned,error:ownedError}=await state.client.from('institutions').select('id').eq('owner_user_id',state.user.id).limit(1);
-    if(ownedError)throw ownedError;
-    if(owned?.length)return 'head_of_institute';
-    const {data:profile,error}=await state.client.from('user_profiles').select('account_role,institution_id').eq('user_id',state.user.id).maybeSingle();
-    if(error)throw error;
-    if(!profile?.institution_id||!['teacher','parent','student'].includes(profile.account_role))return null;
-    const {data:verified,error:verifyError}=await state.client.from('institution_members')
-      .select('role')
-      .eq('institution_id',profile.institution_id)
-      .eq('user_id',state.user.id)
-      .eq('role',profile.account_role)
-      .maybeSingle();
-    if(verifyError)throw verifyError;
-    return verified?.role||null;
+    const key=String(state.user.id||'')+'|'+String(cfg.institutionId||'');
+    if(roleCache.key!==key){roleCache.key=key;roleCache.value=null;roleCache.at=0;roleCache.inflight=null}
+    if(!force&&roleCache.at&&Date.now()-roleCache.at<30000)return roleCache.value;
+    if(roleCache.inflight)return roleCache.inflight;
+    roleCache.inflight=(async()=>{
+      if(cfg.institutionId){
+        const {data:inst}=await state.client.from('institutions').select('owner_user_id').eq('id',cfg.institutionId).maybeSingle();
+        if(inst?.owner_user_id===state.user.id)return 'head_of_institute';
+        const {data:member,error:memberError}=await state.client.from('institution_members').select('role').eq('institution_id',cfg.institutionId).eq('user_id',state.user.id).maybeSingle();
+        if(memberError)throw memberError;
+        if(member?.role)return member.role;
+      }
+      const {data:owned,error:ownedError}=await state.client.from('institutions').select('id').eq('owner_user_id',state.user.id).limit(1);
+      if(ownedError)throw ownedError;
+      if(owned?.length)return 'head_of_institute';
+      const {data:profile,error}=await state.client.from('user_profiles').select('account_role,institution_id').eq('user_id',state.user.id).maybeSingle();
+      if(error)throw error;
+      if(!profile?.institution_id||!['teacher','parent','student'].includes(profile.account_role))return null;
+      const {data:verified,error:verifyError}=await state.client.from('institution_members')
+        .select('role')
+        .eq('institution_id',profile.institution_id)
+        .eq('user_id',state.user.id)
+        .eq('role',profile.account_role)
+        .maybeSingle();
+      if(verifyError)throw verifyError;
+      return verified?.role||null;
+    })();
+    try{
+      const value=await roleCache.inflight;
+      roleCache.value=value;roleCache.at=Date.now();
+      return value;
+    }finally{roleCache.inflight=null}
   }
-  async function listMyInstitutions(){
+  async function listMyInstitutions(force=false){
     if(!state.client||!state.user)return[];
-    const [{data:owned,error:ownedError},{data:memberships,error:memberError}]=await Promise.all([
-      state.client.from('institutions').select('*').eq('owner_user_id',state.user.id).order('created_at',{ascending:true}),
-      state.client.from('institution_members').select('role,institutions(*)').eq('user_id',state.user.id)
-    ]);
-    if(ownedError)throw ownedError;
-    if(memberError)throw memberError;
-    // Membership/ownership are the only workspace sources. Legacy profile
-    // institution fields are intentionally ignored in multi-school mode.
-    const merged=[...(owned||[]),...((memberships||[]).map(x=>x.institutions).filter(Boolean))];
-    return [...new Map(merged.map(x=>[x.id,x])).values()];
+    const uid=String(state.user.id||'');
+    if(institutionsCache.userId!==uid){institutionsCache.userId=uid;institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
+    if(!force&&institutionsCache.value&&Date.now()-institutionsCache.at<60000)return institutionsCache.value;
+    if(institutionsCache.inflight)return institutionsCache.inflight;
+    institutionsCache.inflight=(async()=>{
+      const [{data:owned,error:ownedError},{data:memberships,error:memberError}]=await Promise.all([
+        state.client.from('institutions').select('*').eq('owner_user_id',state.user.id).order('created_at',{ascending:true}),
+        state.client.from('institution_members').select('role,institutions(*)').eq('user_id',state.user.id)
+      ]);
+      if(ownedError)throw ownedError;
+      if(memberError)throw memberError;
+      const merged=[
+        ...(owned||[]).map(x=>({...x,_membership_role:'head'})),
+        ...((memberships||[]).map(x=>x.institutions?({...x.institutions,_membership_role:x.role}):null).filter(Boolean))
+      ];
+      return [...new Map(merged.map(x=>[x.id,x])).values()];
+    })();
+    try{
+      const value=await institutionsCache.inflight;
+      institutionsCache.value=value;institutionsCache.at=Date.now();
+      return value;
+    }finally{institutionsCache.inflight=null}
   }
   async function createInstitution(){
     throw new Error('Create the school account from the Admin Sign Up screen.');
