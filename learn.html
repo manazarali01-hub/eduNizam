@@ -45,7 +45,7 @@
 <body>
 <header class="topbar"><div class="shell toprow">
   <a class="brand" href="./"><img src="assets/edunizam-premium-mark.svg" alt="EduNizam"><div><strong>Edu<span class="n">Nizam</span></strong><small>Free Student Learning Hub</small></div></a>
-  <div class="top-actions"><a class="btn secondary-link" href="admission.html">Online Admission</a><a class="btn primary" href="login.html">School Login</a></div>
+  <div class="top-actions"><a class="btn secondary-link" href="./">Home</a><a class="btn secondary-link" href="admission.html">Online Admission</a><a class="btn primary" href="login.html">Login / Sign Up</a></div>
 </div></header>
 
 <div class="shell hero">
@@ -96,7 +96,7 @@
 </main>
 <div id="paperPreview" class="preview-modal" aria-hidden="true"><div class="preview-box"><div class="preview-head"><strong id="previewTitle">Paper Preview</strong><div class="paper-actions"><button id="previewPrint" class="btn" type="button">Print</button><a id="previewSave" class="btn primary" href="#" target="_blank" rel="noopener">Save / Open</a><button id="previewClose" class="btn" type="button">Close</button></div></div><iframe id="previewFrame" class="preview-frame" title="Past paper preview"></iframe></div></div>
 
-<footer class="footer"><div class="shell row"><span>EduNizam Learning Hub — free public learning tools.</span><span><a href="privacy.html">Privacy</a> · <a href="about.html">About</a> · <a href="login.html">School Login</a></span></div></footer>
+<footer class="footer"><div class="shell row"><span>EduNizam Learning Hub — free public learning tools.</span><span><a href="./">Home</a> · <a href="privacy.html">Privacy</a> · <a href="about.html">About</a> · <a href="login.html">Login / Sign Up</a></span></div></footer>
 
 <script src="past-papers-data.js?v=20260930-1133"></script>
 <script src="study-data.js?v=20260930-1133"></script>
@@ -104,7 +104,7 @@
 <script src="university-data.js?v=20260930-1133"></script>
 <script src="vu-course-catalog.js?v=20260930-1133"></script>
 <script src="practice-data.js?v=20260930-1133"></script>
-<script src="learning-premium-data.js?v=20260930-premium1"></script>
+<script src="learning-premium-data.js?v=20261001-visitor187"></script>
 <script>
 (()=>{
   const $=id=>document.getElementById(id);
@@ -151,15 +151,18 @@
   }
   function renderPast(){
     const d=window.EDUNIZAM_PAST_PAPERS||{},boards=d.boards||[],papers=d.papers||[],rows=[];
-    const text=norm($('paperSearch')?.value||''),boardId=$('paperBoard')?.value||'',cl=$('paperClass')?.value||'',subject=$('paperSubject')?.value||'',year=$('paperYear')?.value||'',type=$('paperType')?.value||'';
+    const text=norm($('paperSearch')?.value||''),boardId=$('paperBoard')?.value||'',cl=$('paperClass')?.value||'',subject=$('paperSubject')?.value||'',year=$('paperYear')?.value||'',type=$('paperType')?.value||'',level=$('paperLevel')?.value||'',session=$('paperSession')?.value||'';
     const selectedBoard=boards.find(b=>b.id===boardId);
     const paperMatch=x=>{
       const b=boards.find(y=>y.id===x.boardId);
       if(boardId&&x.boardId!==boardId)return false;
+      if(level==='matric'&&!['9','10'].includes(String(x.classLevel)))return false;
+      if(level==='intermediate'&&!['11','12'].includes(String(x.classLevel)))return false;
       if(cl&&String(x.classLevel)!==cl)return false;
       if(subject&&x.subject!=='All Subjects'&&!norm(x.subject).includes(norm(subject)))return false;
       if(year&&String(x.year)!==year)return false;
       if(type&&x.type!==type)return false;
+      if(session&&norm(x.session)!==norm(session))return false;
       if(text&&!norm(JSON.stringify(x)+' '+(b?.name||'')).includes(text))return false;
       return match(x,b?.name||'');
     };
@@ -167,6 +170,8 @@
     const showPortals=!year&&!type&&(!subject||subject==='All Subjects');
     if(showPortals) boards.filter(b=>{
       if(boardId&&b.id!==boardId)return false;
+      if(level==='matric'&&!(b.classes||[]).some(x=>['9','10'].includes(String(x))))return false;
+      if(level==='intermediate'&&!(b.classes||[]).some(x=>['11','12'].includes(String(x))))return false;
       if(cl&&!(b.classes||[]).map(String).includes(cl))return false;
       if(text&&!norm(JSON.stringify(b)).includes(text))return false;
       return true;
@@ -210,9 +215,9 @@
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
-<script src="guest-learning-nav.js?v=20261001-mobile183"></script>
-<script src="guest-learning-premium.js?v=20261001-mobile183"></script>
-<script src="pwa-install.js?v=20261001-mobile183" defer></script>
-<script src="system-auto-update.js?v=20261001-mobile183" defer></script>
+<script src="guest-learning-nav.js?v=20261001-visitor187"></script>
+<script src="guest-learning-premium.js?v=20261001-visitor187"></script>
+<script src="pwa-install.js?v=20261001-visitor187" defer></script>
+<script src="system-auto-update.js?v=20261001-visitor187" defer></script>
 </body>
 </html>
