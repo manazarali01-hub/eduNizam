@@ -169,32 +169,7 @@ for(const [cl,subjects] of Object.entries(PD.subjects||{})){
       const key=cl+'|'+subject+'|'+chapter;
       const bp=B[key];
       if(!bp)continue;
-      const rows=byKey.get(key)||[];
       const prefix='pc-'+cl+'-'+slug(subject)+'-'+slug(chapter)+'-'+hash(subject+'|'+chapter);
-      if(!rows.some(x=>x.type==='mcq')){
-        const distractors=[...siblingFacts(cl,subject,chapter),...generic].filter(x=>x!==bp.fact).slice(0,3);
-        while(distractors.length<3)distractors.push(generic[distractors.length%generic.length]);
-        const options=[bp.fact,...distractors];
-        add({id:prefix+'-mcq',classLevel:Number(cl),subject,chapter,type:'mcq',difficulty:'Easy',question:'Which statement best matches the topic “'+chapter+'”?',options,answer:0,explanation:bp.fact});
-      }
-      if(!rows.some(x=>x.type==='short')){
-        add({id:prefix+'-short',classLevel:Number(cl),subject,chapter,type:'short',difficulty:'Medium',question:'State one key idea from “'+chapter+'” and give a simple supporting example.',answerText:bp.fact+' Example: '+bp.example});
-      }
-      if(!rows.some(x=>x.type==='long')){
-        add({id:prefix+'-long',classLevel:Number(cl),subject,chapter,type:'long',difficulty:'Hard',question:'Explain the central idea of “'+chapter+'” in your own words. Include one correct example, application or supporting detail.',answerText:'A strong answer should explain this idea: '+bp.fact+' A suitable example/application is: '+bp.example});
-      }
-      const now=byKey.get(key)||[];
-      if(!now.some(x=>x.difficulty==='Easy')){
-        const distractors=[...siblingFacts(cl,subject,chapter),...generic].filter(x=>x!==bp.fact).slice(0,3);
-        while(distractors.length<3)distractors.push(generic[distractors.length%generic.length]);
-        add({id:prefix+'-easy',classLevel:Number(cl),subject,chapter,type:'mcq',difficulty:'Easy',question:'Choose the best core idea for “'+chapter+'”.',options:[bp.fact,...distractors],answer:0,explanation:bp.fact});
-      }
-      if(!(byKey.get(key)||[]).some(x=>x.difficulty==='Medium')){
-        add({id:prefix+'-medium',classLevel:Number(cl),subject,chapter,type:'short',difficulty:'Medium',question:'Briefly explain “'+chapter+'” and include one correct example.',answerText:bp.fact+' Example: '+bp.example});
-      }
-      if(!(byKey.get(key)||[]).some(x=>x.difficulty==='Hard')){
-        add({id:prefix+'-hard',classLevel:Number(cl),subject,chapter,type:'long',difficulty:'Hard',question:'Explain “'+chapter+'” in detail and connect the concept to an example or application.',answerText:'A strong answer should include: '+bp.fact+' Example/application: '+bp.example});
-      }
       for(const typeName of ['mcq','short','long']){
         for(const difficultyName of ['Easy','Medium','Hard']){
           if(!(byKey.get(key)||[]).some(x=>x.type===typeName&&x.difficulty===difficultyName)){
