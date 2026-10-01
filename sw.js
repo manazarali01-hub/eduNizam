@@ -1,4 +1,4 @@
-const CACHE='edunizam-v184-visitor197'
+const CACHE='edunizam-v185-visitor198'
 const CORE=[
   './',
   './index.html',
