@@ -40,6 +40,7 @@ window.EDUNIZAM_PRACTICE_DATA={
     {id:"q17",classLevel:9,subject:"Mathematics",chapter:"Linear Equations",type:"short",difficulty:"Medium",question:"Solve: 3x + 5 = 20.",answerText:"x = 5"},
     {id:"q18",classLevel:10,subject:"Physics",chapter:"Current Electricity",type:"short",difficulty:"Medium",question:"State Ohm's law and write its mathematical form.",answerText:"At constant temperature, current is directly proportional to potential difference; V = IR."},
     {id:"q19",classLevel:11,subject:"Mathematics",chapter:"Quadratic Equations",type:"long",difficulty:"Hard",question:"Derive the quadratic formula for ax² + bx + c = 0 using completing the square.",answerText:"Derivation should lead to x = (-b ± √(b²-4ac))/(2a)."},
-    {id:"q20",classLevel:12,subject:"Physics",chapter:"Electromagnetic Induction",type:"long",difficulty:"Hard",question:"Explain Faraday's law of electromagnetic induction with its mathematical expression and applications.",answerText:"Induced emf is proportional to the rate of change of magnetic flux; ε = -N dΦ/dt."}
+    {id:"q20",classLevel:12,subject:"Physics",chapter:"Electromagnetic Induction",type:"long",difficulty:"Hard",question:"Explain Faraday's law of electromagnetic induction with its mathematical expression and applications.",answerText:"Induced emf is proportional to the rate of change of magnetic flux; ε = -N dΦ/dt."},
+    {id:"q21",classLevel:9,subject:"Chemistry",chapter:"Periodic Table",type:"mcq",difficulty:"Medium",question:"An element has the electron distribution 2, 8, 1. In which period of the periodic table is it located?",options:["Period 1","Period 2","Period 3","Period 4"],answer:2,explanation:"The atom has electrons in three occupied shells, so it belongs to Period 3."}
   ]
 };
