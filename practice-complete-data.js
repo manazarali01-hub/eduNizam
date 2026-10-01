@@ -94,6 +94,7 @@ const B={
 '12|Statistics|Probability':{fact:'Probability assigns values from 0 to 1 to events and follows rules for complements, unions and intersections.',example:'If P(A) = 0.3, then P(Aᶜ) = 0.7.'},
 '12|Urdu|قواعد':{fact:'اردو قواعد میں درست جملہ سازی، لفظی ربط اور زبان کے قواعد کے مطابق اظہار پر توجہ دی جاتی ہے۔',example:'درست ضمیر اور فعل کا استعمال جملے کے معنی کو واضح اور درست بناتا ہے۔'}
 };
+Object.assign(B,window.EDUNIZAM_PRACTICE_EXTRA_BLUEPRINTS||{});
 
 const slug=v=>String(v||'').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,32)||'topic';
 const hash=v=>{let h=2166136261;for(const ch of String(v||'')){h^=ch.codePointAt(0);h=Math.imul(h,16777619)}return (h>>>0).toString(36)};
