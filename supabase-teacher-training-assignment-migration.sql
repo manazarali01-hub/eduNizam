@@ -46,6 +46,14 @@ create index if not exists training_assignments_reviewer_idx
   on public.teacher_training_assignments(reviewed_by)
   where reviewed_by is not null;
 
+create index if not exists training_assignments_institution_idx
+  on public.teacher_training_assignments(institution_id);
+create index if not exists training_assignments_created_by_idx
+  on public.teacher_training_assignments(created_by);
+create index if not exists teacher_training_records_verified_by_idx
+  on public.teacher_training_records(verified_by)
+  where verified_by is not null;
+
 alter table public.teacher_training_assignments enable row level security;
 
 drop policy if exists "head and assigned teacher read training tasks" on public.teacher_training_assignments;
