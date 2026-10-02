@@ -12,7 +12,7 @@
   <link rel="icon" href="icon-192.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <script src="pwa-install.js?v=20261002-deep320" defer></script>
+  <script src="pwa-install.js?v=20261002-deep340" defer></script>
   <link rel="stylesheet" href="style.css?v=20260926-attendance126">
   <link rel="stylesheet" href="mobile-performance.css?v=20261001-mobile186">
   <link rel="stylesheet" href="premium-ui.css?v=20261001-mobile186">
@@ -953,29 +953,6 @@
           <div id="examPathGrid" class="paper-grid"></div>
         </article>
 
-        <article id="examPrepLab" class="card">
-          <div class="section-head"><div><h3>Exam Topic Practice Lab</h3><p class="muted">Exam → subject → topic practice with scoring and weak-topic history. Built-in items are EduNizam practice and are not official/leaked exam questions.</p></div></div>
-          <div class="form-grid">
-            <select id="examPrepExam"><option value="">Choose Exam</option></select>
-            <select id="examPrepSubject"><option value="">All Subjects</option></select>
-            <select id="examPrepTopic"><option value="">All Topics</option></select>
-            <select id="examPrepDifficulty"><option value="">All Difficulty</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
-            <select id="examPrepType"><option value="">MCQ + Written</option><option value="mcq">MCQ</option><option value="written">Written / Analytical</option></select>
-            <select id="examPrepCount"><option value="5">5 Items</option><option value="10" selected>10 Items</option><option value="15">15 Items</option><option value="20">20 Items</option><option value="all">All Matching</option></select>
-          </div>
-          <div class="search-suggestions" style="margin:10px 0"><button type="button" data-exam-prep-quick="mdcat">MDCAT</button><button type="button" data-exam-prep-quick="ecat">ECAT</button><button type="button" data-exam-prep-quick="nust-net">NET</button><button type="button" data-exam-prep-quick="usat">USAT</button><button type="button" data-exam-prep-quick="lat">LAT</button><button type="button" data-exam-prep-quick="css">CSS</button></div>
-          <p id="examPrepBasis" class="coverage-note"></p>
-          <p id="examPrepAvailable" class="muted"></p>
-          <div class="quick-actions"><button id="examPrepStart">Start Topic Practice</button><button type="button" class="secondary" data-jump="practice">Open General Practice Center</button></div>
-          <div id="examPrepSession" class="practice-box" hidden style="margin-top:16px">
-            <div id="examPrepMeta" class="meta"></div>
-            <div id="examPrepProgress" class="muted" style="margin:8px 0"></div>
-            <div id="examPrepQuestion" class="question"></div>
-            <div id="examPrepOptions" class="options"></div>
-            <div id="examPrepExplain" class="explain" hidden></div>
-          </div>
-          <div id="examPrepHistory" class="coverage-note" style="margin-top:16px"></div>
-        </article>
       </section>
 
       <section id="vu" class="view">
@@ -1604,9 +1581,10 @@ e">≠</button>
   <script src="university-data.js"></script>
   <script src="education-directory-expansion.js?v=20261002-edu230"></script>
   <script src="competitive-exams-data.js?v=20261002-edu230"></script>
-  <script src="education-ecosystem-data.js?v=20261002-deep320"></script>
-  <script src="exam-pathways-data.js?v=20261002-deep320"></script>
-  <script src="exam-topic-practice-data.js?v=20261002-deep320"></script>
+  <script src="education-ecosystem-data.js?v=20261002-deep340"></script>
+  <script src="exam-pathways-data.js?v=20261002-deep340"></script>
+  <script src="exam-topic-bank.js?v=20261002-deep340"></script>
+  <script src="exam-topic-blueprints-data.js?v=20261002-deep340"></script>
   <script src="vu-course-catalog.js"></script>
   <script src="admissions-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1625,7 +1603,7 @@ e">≠</button>
   <script src="cloud-config.js"></script>
   <script src="storage-scope.js?v=20260922-qa2"></script>
   <script src="reliability-guardian.js?v=20260926-autorepair100"></script>
-  <script src="feature-loader.js?v=20261002-deep320"></script>
+  <script src="feature-loader.js?v=20261002-deep340"></script>
   <script src="app.js?v=20261001-mobile186"></script>
   <script src="cloud-setup.js?v=20260926-schooldir130"></script>
   <script src="admissions-cloud.js?v=20260926-admissionsecure142"></script>
@@ -1646,6 +1624,6 @@ e">≠</button>
   <script src="ui-polish.js?v=20261001-mobile186"></script>
   <script src="premium-ui.js?v=20261001-mobile186"></script>
 
-<script src="system-auto-update.js?v=20261002-deep320" defer></script>
+<script src="system-auto-update.js?v=20261002-deep340" defer></script>
 </body>
 </html>
