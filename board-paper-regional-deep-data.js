@@ -1,0 +1,90 @@
+(function(){
+'use strict';
+const P=window.EDUNIZAM_PAST_PAPERS;if(!P||!Array.isArray(P.papers))return;
+const add=x=>{if(!P.papers.some(p=>p.id===x.id))P.papers.push(x)};
+const board=id=>(P.boards||[]).find(b=>b.id===id);
+
+// Refresh a few stale board home URLs with currently verified official sites.
+const currentHomes={
+ 'bise-larkana':'https://www.biselrk.com/',
+ 'bise-mirpurkhas':'https://www.bisempk.edu.pk/',
+ 'bbise-quetta':'https://bbise.edu.pk/'
+};
+Object.entries(currentHomes).forEach(([id,url])=>{const b=board(id);if(b)b.officialUrl=url});
+
+[
+  // Sindh — Karachi boards
+  {id:'bsek-model-9-current',boardId:'bsek-karachi',classLevel:9,subject:'All Subjects',year:2025,session:'Annual',type:'model',medium:'English / Urdu / Sindhi',source:'official',title:'BSEK Karachi Class IX Model Papers',url:'https://www.bsek.edu.pk/index.php/institutions/uploads/date_sheet',note:'Official BSEK model-paper section with Class IX Science/General Group model papers and current SSC paper-pattern resources.'},
+  {id:'bsek-model-10-current',boardId:'bsek-karachi',classLevel:10,subject:'All Subjects',year:2025,session:'Annual',type:'model',medium:'English / Urdu / Sindhi',source:'official',title:'BSEK Karachi Class X Model Papers',url:'https://www.bsek.edu.pk/index.php/institutions/uploads/date_sheet',note:'Official BSEK model-paper section with Class X Science/General Group model papers and SSC scheme resources.'},
+  {id:'biek-model-11-2026',boardId:'biek-karachi',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BIEK Karachi HSC Part-I Model Papers 2026',url:'https://biek.edu.pk/ModelPaper/2026/Model%20Paper%202026.pdf',note:'Official BIEK 2026 intermediate model-paper booklet covering multiple Part-I subjects/groups.'},
+  {id:'biek-model-12-2026',boardId:'biek-karachi',classLevel:12,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BIEK Karachi HSC Part-II Model Papers 2026',url:'https://biek.edu.pk/ModelPaper/2026/Model%20Paper%202026.pdf',note:'Official BIEK 2026 intermediate model-paper booklet covering multiple Part-II subjects/groups.'},
+
+  // Khyber Pakhtunkhwa — Peshawar
+  {id:'peshawar-model-11-current',boardId:'bise-peshawar',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Peshawar Class 11 SLO-Based Model Papers',url:'https://www.bisep.edu.pk/page-10098.html',note:'Official BISE Peshawar HSSC model-paper page for the current SLO-based pattern (2025 onward).'},
+  {id:'peshawar-model-12-current',boardId:'bise-peshawar',classLevel:12,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Peshawar Class 12 SLO-Based Model Papers',url:'https://www.bisep.edu.pk/page-10098.html',note:'Official BISE Peshawar HSSC model-paper page for the current SLO-based pattern (2025 onward).'},
+
+  // Khyber Pakhtunkhwa — Abbottabad
+  {id:'abbottabad-model-9-current',boardId:'bise-abbottabad',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Abbottabad Class 9 SLO-Based Model Papers',url:'https://www.biseatd.edu.pk/sample_papers_9th.php',note:'Official Class 9 model papers, marking schemes, curricula and tables of specification.'},
+  {id:'abbottabad-model-10-current',boardId:'bise-abbottabad',classLevel:10,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Abbottabad Class 10 SLO-Based Model Papers',url:'https://www.biseatd.edu.pk/sample_papers_10th.php',note:'Official Class 10 model papers, marking schemes, curricula and tables of specification.'},
+  {id:'abbottabad-model-11-current',boardId:'bise-abbottabad',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Abbottabad Class 11 SLO-Based Model Papers',url:'https://www.biseatd.edu.pk/sample_papers_11th.php',note:'Official Class 11 model papers, marking schemes and tables of specification.'},
+  {id:'abbottabad-model-12-current',boardId:'bise-abbottabad',classLevel:12,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Abbottabad Class 12 SLO-Based Model Papers',url:'https://www.biseatd.edu.pk/sample_papers_12th.php',note:'Official Class 12 model papers, marking schemes and tables of specification.'},
+
+  // Khyber Pakhtunkhwa — Bannu
+  {id:'bannu-model-9-onscreen',boardId:'bise-bannu',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Bannu Class 9 Model Papers for On-Screen Marking',url:'https://www.biseb.edu.pk/news-events-view.php?id=198',note:'Official BISE Bannu current Class 9/10 on-screen-marking model-paper notice and download route.'},
+  {id:'bannu-model-10-onscreen',boardId:'bise-bannu',classLevel:10,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Bannu Class 10 Model Papers for On-Screen Marking',url:'https://www.biseb.edu.pk/news-events-view.php?id=198',note:'Official BISE Bannu current Class 9/10 on-screen-marking model-paper notice and download route.'},
+
+  // Khyber Pakhtunkhwa — D.I. Khan
+  {id:'dikhan-model-9-current',boardId:'bise-dikhan',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE D.I. Khan Class 9 Sample / Model Papers',url:'https://bisedik.edu.pk/',note:'Official BISE D.I. Khan student site exposes SSC 9th sample/model-paper resources.'},
+  {id:'dikhan-model-10-current',boardId:'bise-dikhan',classLevel:10,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE D.I. Khan Class 10 Sample / Model Papers',url:'https://bisedik.edu.pk/',note:'Official BISE D.I. Khan student site exposes SSC 10th sample/model-paper resources.'},
+  {id:'dikhan-model-11-current',boardId:'bise-dikhan',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE D.I. Khan Class 11 SLO-Based Model Papers',url:'https://bisedik.edu.pk/',note:'Official BISE D.I. Khan site exposes SLO-based Class 11 model-paper resources.'},
+
+  // Khyber Pakhtunkhwa — Kohat
+  {id:'kohat-model-9-current',boardId:'bise-kohat',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Kohat Class 9 SLO Model Papers',url:'https://www.bisekt.edu.pk/',note:'Official BISE Kohat student information corner links SLO model papers for SSC/HSSC.'},
+  {id:'kohat-model-10-current',boardId:'bise-kohat',classLevel:10,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Kohat Class 10 SLO Model Papers',url:'https://www.bisekt.edu.pk/',note:'Official BISE Kohat student information corner links SLO model papers for SSC/HSSC.'},
+  {id:'kohat-model-11-current',boardId:'bise-kohat',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Kohat Class 11 SLO Model Papers',url:'https://www.bisekt.edu.pk/sample_papers/classes/11',note:'Official BISE Kohat HSSC Class 11 SLO model-paper section.'},
+  {id:'kohat-model-12-current',boardId:'bise-kohat',classLevel:12,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Kohat Class 12 SLO Model Papers',url:'https://www.bisekt.edu.pk/',note:'Official BISE Kohat student information corner links HSSC Class 12 SLO model papers.'},
+
+  // Khyber Pakhtunkhwa — Malakand
+  {id:'malakand-model-9-current',boardId:'bise-malakand',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Malakand Class 9 Model Papers, TOS & Rubrics',url:'https://www.bisemalakand.edu.pk/downloadforms',note:'Official downloads include Class 9 model papers, tables of specification and rubrics.'},
+  {id:'malakand-model-10-current',boardId:'bise-malakand',classLevel:10,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Malakand Class 10 Model Papers, TOS & Rubrics',url:'https://www.bisemalakand.edu.pk/downloadforms',note:'Official downloads include Class 10 model papers, tables of specification and rubrics.'},
+  {id:'malakand-model-11-current',boardId:'bise-malakand',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Malakand Class 11 Model Papers, TOS & Rubrics',url:'https://www.bisemalakand.edu.pk/downloadforms',note:'Official downloads include Class 11 model papers, marking schemes and tables of specification.'},
+  {id:'malakand-model-12-current',boardId:'bise-malakand',classLevel:12,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Malakand Class 12 Model Papers, TOS & Rubrics',url:'https://www.bisemalakand.edu.pk/downloadforms',note:'Official downloads include Class 12 model papers, marking schemes and tables of specification.'},
+  {id:'malakand-past-9-2026',boardId:'bise-malakand',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'past',medium:'English / Urdu',source:'official',title:'BISE Malakand Class 9 Previous Question Papers 2026',url:'https://www.bisemalakand.edu.pk/downloadforms?cat_id=12',note:'Official previous-question-paper archive includes 2026 SSC papers by subject.'},
+  {id:'malakand-past-10-2026',boardId:'bise-malakand',classLevel:10,subject:'All Subjects',year:2026,session:'Annual',type:'past',medium:'English / Urdu',source:'official',title:'BISE Malakand Class 10 Previous Question Papers 2026',url:'https://www.bisemalakand.edu.pk/downloadforms?cat_id=12',note:'Official previous-question-paper archive includes SSC papers by subject.'},
+  {id:'malakand-past-11-2026',boardId:'bise-malakand',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'past',medium:'English / Urdu',source:'official',title:'BISE Malakand Class 11 Previous Question Papers 2026',url:'https://www.bisemalakand.edu.pk/downloadforms?cat_id=12',note:'Official previous-question-paper archive includes 2026 HSSC Part-I papers by subject.'},
+  {id:'malakand-past-12-2026',boardId:'bise-malakand',classLevel:12,subject:'All Subjects',year:2026,session:'Annual',type:'past',medium:'English / Urdu',source:'official',title:'BISE Malakand Class 12 Previous Question Papers 2026',url:'https://www.bisemalakand.edu.pk/downloadforms?cat_id=12',note:'Official previous-question-paper archive includes 2026 HSSC Part-II papers by subject.'},
+
+  // Khyber Pakhtunkhwa — Mardan
+  {id:'mardan-model-9-current',boardId:'bise-mardan',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Mardan Class 9 SLO Model Papers',url:'https://web.bisemdn.edu.pk/student?cat=mp',note:'Official Student Corner provides SSC model papers and class-wise old-paper downloads.'},
+  {id:'mardan-model-10-current',boardId:'bise-mardan',classLevel:10,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Mardan Class 10 SLO Model Papers',url:'https://web.bisemdn.edu.pk/student?cat=mp',note:'Official Student Corner provides SSC model papers and class-wise old-paper downloads.'},
+  {id:'mardan-model-11-current',boardId:'bise-mardan',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Mardan Class 11 SLO Model Papers',url:'https://web.bisemdn.edu.pk/student?cat=mp',note:'Official Student Corner provides HSSC model papers and old-paper downloads.'},
+  {id:'mardan-model-12-current',boardId:'bise-mardan',classLevel:12,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Mardan Class 12 SLO Model Papers',url:'https://web.bisemdn.edu.pk/student?cat=mp',note:'Official Student Corner provides HSSC model papers and old-paper downloads.'},
+
+  // Khyber Pakhtunkhwa — Swat
+  {id:'swat-emarking-9',boardId:'bise-swat',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Swat Class 9 E-Marking Model Papers',url:'https://www.bisess.edu.pk/site/home/emarking-model-papers/',note:'Official e-marking model-paper page includes Class 9 English, Chemistry and Physics papers.'},
+  {id:'swat-emarking-10',boardId:'bise-swat',classLevel:10,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Swat Class 10 E-Marking Model Papers',url:'https://www.bisess.edu.pk/site/home/emarking-model-papers/',note:'Official e-marking model-paper page includes Class 10 English, Chemistry and Physics papers.'},
+  {id:'swat-emarking-11',boardId:'bise-swat',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Swat Class 11 E-Marking Model Papers',url:'https://www.bisess.edu.pk/site/home/emarking-model-papers/',note:'Official e-marking model-paper page includes Class 11 English, Chemistry and Physics papers.'},
+  {id:'swat-emarking-12',boardId:'bise-swat',classLevel:12,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BISE Swat Class 12 E-Marking Model Papers',url:'https://www.bisess.edu.pk/site/home/emarking-model-papers/',note:'Official e-marking model-paper page includes Class 12 English, Chemistry and Physics papers.'},
+
+  // Balochistan
+  {id:'bbise-ssc1-model-2026',boardId:'bbise-quetta',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'BBISE Quetta SSC-I New-Syllabus Model Papers',url:'https://bbise.edu.pk/DownloadCenter',note:'Official BBISE Download Center lists SSC-I new-syllabus model papers and current subject/model-paper notices.'},
+
+  // AJK
+  {id:'ajk-model-9-2026',boardId:'bise-ajk',classLevel:9,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'AJK BISE Class 9 Model Papers 2026',url:'https://ajkbise.net/9modelpapers.php',note:'Official 2026 SSC-I model-paper and assessment-framework page with subject-wise View/Download links.'},
+  {id:'ajk-model-10-2026',boardId:'bise-ajk',classLevel:10,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'AJK BISE Class 10 Model Papers 2026',url:'https://ajkbise.net/10modelpapers.php',note:'Official SSC-II model-paper page with current assessment-framework/model-paper downloads.'},
+  {id:'ajk-model-11-2026',boardId:'bise-ajk',classLevel:11,subject:'All Subjects',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'AJK BISE Class 11 Model Papers 2026',url:'https://ajkbise.net/11modelpapers.php',note:'Official 2026 HSSC-I assessment-framework/model-question-paper page with subject-wise downloads.'},
+  {id:'ajk-model-12-current',boardId:'bise-ajk',classLevel:12,subject:'All Subjects',year:2025,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'AJK BISE Class 12 Model Papers',url:'https://ajkbise.net/12modelpapers.php',note:'Official HSSC-II model-paper archive with 2025 assessment-framework/model-paper resources and practical/PBA material.'},
+
+  // ZUEB — subject-specific verified model-paper routes
+  {id:'zueb-english-9-model',boardId:'zueb',classLevel:9,subject:'English',year:2026,session:'Annual',type:'model',medium:'English',source:'official',title:'ZUEB Class IX English Model Question Paper',url:'https://zueb.edu.pk/assets/images/resource/modalpaper22/grade9/ENGLISH%20MODEL%20PAPER%20IX.pdf',note:'Official Ziauddin University Examination Board Class IX English model question paper.'},
+  {id:'zueb-education-10-model',boardId:'zueb',classLevel:10,subject:'Education',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'ZUEB Grade 10 Education Syllabus & Model Paper',url:'https://zueb.edu.pk/ssc/grade-10/general/elective/education/',note:'Official ZUEB Grade 10 Education syllabus and model-paper page.'},
+  {id:'zueb-education-11-model',boardId:'zueb',classLevel:11,subject:'Education',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'ZUEB Class XI Education Model Examination Paper 2026',url:'https://zueb.edu.pk/assets/images/resource/modalpaper25/grade_11/HSSC-I%20Education%20%20M1.pdf',note:'Official ZUEB Class XI Education model examination paper.'},
+  {id:'zueb-pakstudies-12-model',boardId:'zueb',classLevel:12,subject:'Pakistan Studies',year:2026,session:'Annual',type:'model',medium:'English / Urdu',source:'official',title:'ZUEB Class XII Pakistan Studies Model Test Paper',url:'https://zueb.edu.pk/assets/images/resource/exam/grade12/pak/Pakistan%20Studies%20Model%20PaperXII.pdf',note:'Official ZUEB Class XII Pakistan Studies model test paper.'}
+].forEach(add);
+
+P.updatedAt='2026-10-02';
+window.EDUNIZAM_REGIONAL_BOARD_PAPER_DEPTH={
+  updatedAt:'2026-10-02',
+  note:'Official regional board model/past-paper routes added where currently verifiable. Generic board-portal fallbacks remain for boards whose public sites do not expose stable paper archives.'
+};
+})();
