@@ -116,6 +116,18 @@ window.EDUNIZAM_EXAM_TOPIC_BLUEPRINTS={
         {subject:'Essay Writing',weight:'Part II in published USAT format',scope:'Argument + narrative writing',topics:['Argument-based essay: claim, reasons, evidence and organization','Narrative essay: coherence, sequence, detail and language','English or Urdu writing according to the official format']}
       ]
     },
+    hat:{
+      pathwayId:'hat',title:'HEC HAT Topic Blueprint',
+      sourceNote:'HEC publishes five HAT categories based on the candidate’s field after 16 years/equivalent education. The test has 100 MCQs in 120 minutes; category weightages differ across Verbal, Analytical and Quantitative Reasoning.',
+      sourceUrl:'https://www.hec.gov.pk/english/services/students/etc/Pages/Content-WeightagesSyllabus.aspx',
+      blocks:[
+        {subject:'Category Selection',weight:'Choose before registration',scope:'Official HEC discipline mapping',topics:['HAT-I: Engineering & Technology, Computer Science, Mathematics, Statistics, Physics','HAT-II: Management Sciences and Business Education','HAT-III: Arts & Humanities, Social Sciences, Psychology and Law','HAT-IV: Agriculture & Veterinary, Biological & Medical, Physical Sciences and related fields','HAT-General: Religious Studies']},
+        {subject:'English / Verbal Reasoning',weight:'30%–40% depending on category',scope:'Common HAT reasoning area',topics:['Vocabulary and contextual meaning','Analogies and verbal relationships','Sentence completion','Reading comprehension','Inference and argument interpretation']},
+        {subject:'Analytical Reasoning',weight:'30%–40% depending on category',scope:'Common HAT reasoning area',topics:['Conditional logic','Ordering and sequencing','Grouping and selection','Deductions from constraints','Rule/pattern analysis','Multi-condition reasoning sets']},
+        {subject:'Quantitative Reasoning',weight:'25%–40% depending on category',scope:'Common HAT reasoning area',topics:['Arithmetic','Ratios, proportions and percentages','Algebra and equations','Geometry / mensuration','Statistics and data interpretation','Quantitative word problems','Timed mental calculation']},
+        {subject:'Timed Strategy',weight:'100 MCQs / 120 minutes',scope:'Pacing and review',topics:['First-pass time budget','Skip-and-return discipline','Accuracy versus speed','OMR/candidate-instruction awareness','Full-length mixed mock','Weak-area revision after mock analysis']}
+      ]
+    },
     lat:{
       pathwayId:'lat',title:'HEC LAT Topic Blueprint',
       sourceNote:'This blueprint follows the HEC LAT content-weightage categories. Always confirm the latest test notice in ETC before relying on dates.',
