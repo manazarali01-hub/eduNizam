@@ -455,29 +455,87 @@
     let role;try{role=await cloud.getMyRole()}catch(_){return false}
     if(role!=='head_of_institute')return false;
     try{
-      const rows=await cloud.listInstitutionApplications();
+      const [rows,sections]=await Promise.all([
+        cloud.listInstitutionApplications(),
+        cloud.listAdmissionSections?.()||Promise.resolve([])
+      ]);
       const q=$('admissionAdminSearch')?.value?.trim().toLowerCase()||'',st=$('admissionStatusFilter')?.value||'',p=$('admissionProgramFilter')?.value||'';
-      const list=(rows||[]).filter(a=>(!q||[a.application_no,a.applicant_name,a.cnic,a.program,a.phone].join(' ').toLowerCase().includes(q))&&(!st||a.status===st)&&(!p||a.program===p));
+      const list=(rows||[]).filter(a=>(!q||[a.application_no,a.applicant_name,a.cnic,a.program,a.phone,a.admission_no,a.metadata?.roll_no,a.metadata?.section_name].join(' ').toLowerCase().includes(q))&&(!st||a.status===st)&&(!p||a.program===p));
       const statusOptions=['Submitted','Under Review','Needs Correction','Approved for Fee','Rejected'];
       el.innerHTML=list.length?list.map(a=>{
-        const f=feeForProgram(a.program),defaultAmount=(Number(f.admissionFee||0)+Number(f.monthlyFee||0)+Number(f.annualCharges||0)+Number(f.otherCharges||0))||Number(f.applicationFee||0);
+        const snap=a.metadata?.fee_snapshot||feeForProgram(a.program),defaultAmount=(Number(snap?.admissionFee||snap?.admission_fee||0)+Number(snap?.monthlyFee||snap?.monthly_fee||0)+Number(snap?.annualCharges||snap?.annual_charges||0)+Number(snap?.otherCharges||snap?.other_charges||0))||Number(snap?.applicationFee||snap?.application_fee||0);
         const canChallan=['Approved for Fee','Selected'].includes(a.status)&&!a.challan_no;
         const canConfirm=a.status==='Payment Verification'&&['Paid','Exempted'].includes(a.fee_status);
         const opts=[...new Set([a.status,...statusOptions])].map(s=>'<option '+(s===a.status?'selected':'')+'>'+esc(s)+'</option>').join('');
-        return '<article class="paper-card" data-cloud-app-card="'+esc(a.id)+'"><div class="paper-card-top"><div><span class="mini-badge">'+esc(a.application_no)+'</span><span class="trust-badge trust-official">'+esc(a.status)+'</span></div></div><h3>'+esc(a.applicant_name)+'</h3><p class="muted">'+esc(a.program||'')+' · '+esc(a.metadata?.school_name||'Cloud application')+'</p><div class="paper-meta"><span>'+esc(a.cnic||'No B-Form')+'</span><span>'+esc(a.phone||'No phone')+'</span><span>Fee: '+esc(a.fee_status||'Unpaid')+'</span>'+(a.challan_no?'<span>Challan: '+esc(a.challan_no)+'</span>':'')+'</div><div class="form-grid"><select data-cloud-status="'+esc(a.id)+'">'+opts+'</select></div><div class="paper-actions"><button class="secondary-action" data-cloud-docs="'+esc(a.id)+'">Documents</button>'+(canChallan?'<button data-cloud-challan="'+esc(a.id)+'" data-default-amount="'+defaultAmount+'">Issue Fee Challan</button>':'')+(a.challan_no?'<span class="mini-badge">PKR '+Number(a.challan_amount||0).toLocaleString()+'</span>':'')+(canConfirm?'<button data-cloud-confirm="'+esc(a.id)+'">Confirm Admission</button>':'')+'</div>'+(a.admin_note?'<p class="coverage-note">'+esc(a.admin_note)+'</p>':'')+'<div data-cloud-doc-list="'+esc(a.id)+'"></div></article>';
+        const appSections=(sections||[]).filter(s=>String(s.class_name||'').trim().toLowerCase()===String(a.program||'').trim().toLowerCase());
+        let enrollmentControls='';
+        if(canConfirm){
+          let sectionInput='';
+          if(appSections.length){
+            const options=appSections.map(s=>{
+              const full=Number(s.capacity||0)>0&&Number(s.enrolled||0)>=Number(s.capacity||0);
+              const cap=s.capacity?(' · '+Number(s.enrolled||0)+'/'+Number(s.capacity)):' · '+Number(s.enrolled||0)+' enrolled';
+              const teacher=s.class_teacher_name?(' · '+s.class_teacher_name):'';
+              return '<option value="'+esc(s.section_name)+'" '+(full?'disabled':'')+'>'+esc(s.section_name)+esc(cap)+esc(teacher)+(full?' · FULL':'')+'</option>';
+            }).join('');
+            sectionInput='<label>Section<select data-cloud-section="'+esc(a.id)+'">'+(appSections.length>1?'<option value="">Select section</option>':'')+options+'</select></label>';
+          }else{
+            sectionInput='<label>Section<input data-cloud-section="'+esc(a.id)+'" placeholder="Optional — no section configured"></label>';
+          }
+          enrollmentControls='<div class="card" style="margin-top:12px"><div class="section-head"><div><strong>Enrollment Setup</strong><p class="muted">Section capacity is checked again in the database. Leave roll blank for automatic next roll number.</p></div></div><div class="form-grid">'+sectionInput+'<label>Roll No<input data-cloud-roll="'+esc(a.id)+'" placeholder="Auto"></label></div></div>';
+        }
+        const enrolledInfo=a.status==='Admission Confirmed'
+          ?'<div class="coverage-note"><strong>Enrolled:</strong> '+esc(a.admission_no||'Admission confirmed')+(a.metadata?.section_name?' · Section '+esc(a.metadata.section_name):'')+(a.metadata?.roll_no?' · Roll '+esc(a.metadata.roll_no):'')+'</div>'
+          :'';
+        return '<article class="paper-card" data-cloud-app-card="'+esc(a.id)+'"><div class="paper-card-top"><div><span class="mini-badge">'+esc(a.application_no)+'</span><span class="trust-badge trust-official">'+esc(a.status)+'</span></div></div><h3>'+esc(a.applicant_name)+'</h3><p class="muted">'+esc(a.program||'')+' · '+esc(a.metadata?.school_name||'Cloud application')+'</p><div class="paper-meta"><span>'+esc(a.cnic||'No B-Form')+'</span><span>'+esc(a.phone||'No phone')+'</span><span>Fee: '+esc(a.fee_status||'Unpaid')+'</span>'+(a.challan_no?'<span>Challan: '+esc(a.challan_no)+'</span>':'')+'</div><div class="form-grid"><select data-cloud-status="'+esc(a.id)+'">'+opts+'</select></div><div class="paper-actions"><button class="secondary-action" data-cloud-docs="'+esc(a.id)+'">Documents</button>'+(canChallan?'<button data-cloud-challan="'+esc(a.id)+'" data-default-amount="'+defaultAmount+'">Issue Fee Challan</button>':'')+(a.challan_no?'<span class="mini-badge">PKR '+Number(a.challan_amount||0).toLocaleString()+'</span>':'')+(canConfirm?'<button data-cloud-confirm="'+esc(a.id)+'">Confirm & Enroll</button>':'')+'</div>'+enrollmentControls+enrolledInfo+(a.admin_note?'<p class="coverage-note">'+esc(a.admin_note)+'</p>':'')+'<div data-cloud-doc-list="'+esc(a.id)+'"></div></article>';
       }).join(''):'<div class="empty-state">No matching cloud applications.</div>';
+
       document.querySelectorAll('[data-cloud-status]').forEach(s=>s.onchange=async()=>{
         const note=['Needs Correction','Rejected'].includes(s.value)?prompt('Reason / note for applicant:','')||'':'';
         try{await cloud.updateCloudApplicationStatus(s.dataset.cloudStatus,s.value,note);await cloud.logAudit('application_status_'+s.value.toLowerCase().replace(/[^a-z0-9]+/g,'_'),'application',s.dataset.cloudStatus,{status:s.value,note});renderCloudAdminApplications()}catch(e){alert(e.message||'Status update failed.')}
       });
+
       document.querySelectorAll('[data-cloud-challan]').forEach(b=>b.onclick=async()=>{
         const amount=Number(prompt('Fee challan amount (PKR):',b.dataset.defaultAmount||'0'));if(!Number.isFinite(amount)||amount<0)return;
         try{await cloud.issueAdmissionChallan(b.dataset.cloudChallan,amount);await cloud.logAudit('admission_challan_issued','application',b.dataset.cloudChallan,{amount});renderCloudAdminApplications()}catch(e){alert(e.message||'Could not issue challan.')}
       });
+
       document.querySelectorAll('[data-cloud-confirm]').forEach(b=>b.onclick=async()=>{
-        if(!confirm('Confirm this admission? A school-linked student record will be created.'))return;
-        try{const row=await cloud.confirmAdmission(b.dataset.cloudConfirm);await cloud.logAudit('admission_confirmed','application',b.dataset.cloudConfirm,{admission_no:row?.admission_no||''});alert('Admission confirmed'+(row?.admission_no?' · '+row.admission_no:'')+'.');renderCloudAdminApplications()}catch(e){alert(e.message||'Admission confirmation failed.')}
+        const id=b.dataset.cloudConfirm;
+        const sectionName=document.querySelector('[data-cloud-section="'+id+'"]')?.value?.trim()||'';
+        const rollNo=document.querySelector('[data-cloud-roll="'+id+'"]')?.value?.trim()||'';
+        const app=rows.find(x=>String(x.id)===String(id));
+        const matching=(sections||[]).filter(s=>String(s.class_name||'').trim().toLowerCase()===String(app?.program||'').trim().toLowerCase());
+        if(matching.length>1&&!sectionName)return alert('Multiple sections available hain. Confirm karne se pehle section select karein.');
+        if(!confirm('Confirm admission and create the complete school student record?'))return;
+        b.disabled=true;
+        try{
+          const enrolled=await cloud.confirmAdmission(id,{sectionName,rollNo});
+          await cloud.logAudit('admission_confirmed','application',id,{
+            admission_no:enrolled?.admission_no||'',
+            student_code:enrolled?.student_code||'',
+            class_name:enrolled?.class_name||app?.program||'',
+            section_name:enrolled?.section_name||sectionName||'',
+            roll_no:enrolled?.roll_no||rollNo||'',
+            class_teacher_linked:!!enrolled?.class_teacher_user_id,
+            monthly_fee:Number(enrolled?.monthly_fee||0)
+          });
+          const bits=[
+            enrolled?.admission_no&&('Admission '+enrolled.admission_no),
+            enrolled?.student_code&&('Student '+enrolled.student_code),
+            enrolled?.section_name&&('Section '+enrolled.section_name),
+            enrolled?.roll_no&&('Roll '+enrolled.roll_no),
+            enrolled?.class_teacher_user_id&&'Class teacher linked'
+          ].filter(Boolean);
+          window.EDUNIZAM_PREMIUM?.toast?.('Admission confirmed · '+bits.join(' · '),'success');
+          alert('Admission confirmed. '+bits.join(' · '));
+          renderCloudAdminApplications();
+        }catch(e){
+          alert(e.message||'Admission confirmation failed.');
+          b.disabled=false;
+        }
       });
+
       document.querySelectorAll('[data-cloud-docs]').forEach(b=>b.onclick=async()=>{
         const box=document.querySelector('[data-cloud-doc-list="'+b.dataset.cloudDocs+'"]');if(!box)return;
         box.innerHTML='<p class="muted">Loading documents…</p>';
@@ -485,12 +543,18 @@
           const docs=await cloud.listApplicationDocuments(b.dataset.cloudDocs);
           if(!docs.length){box.innerHTML='<p class="muted">No uploaded documents.</p>';return}
           const links=[];
-          for(const d of docs){let url='';try{url=await cloud.createSignedDocumentUrl(d.storage_path,300)}catch(_){}links.push('<a class="secondary-action" target="_blank" rel="noopener" href="'+esc(url||'#')+'">'+esc(d.kind)+' · '+esc(d.original_name||'Open')+'</a>')}
+          for(const d of docs){
+            let url='';try{url=await cloud.createSignedDocumentUrl(d.storage_path,300)}catch(_){}
+            links.push('<a class="secondary-action" target="_blank" rel="noopener" href="'+esc(url||'#')+'">'+esc(d.kind)+' · '+esc(d.original_name||'Open')+'</a>');
+          }
           box.innerHTML='<div class="paper-actions" style="margin-top:10px">'+links.join('')+'</div>';
         }catch(e){box.innerHTML='<p class="coverage-note">'+esc(e.message||'Could not load documents.')+'</p>'}
       });
       return true;
-    }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load cloud applications.')+'</div>';return true}
+    }catch(e){
+      el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load cloud applications.')+'</div>';
+      return true;
+    }
   }
   renderAdmin=function(){
     originalRenderAdmin();
