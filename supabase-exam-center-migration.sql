@@ -18,6 +18,14 @@ create table if not exists public.exam_schedule_entries (
 );
 
 create index if not exists exam_schedule_institution_date_idx on public.exam_schedule_entries(institution_id,exam_date);
+alter table public.exam_schedule_entries add column if not exists section_name text;
+alter table public.exam_schedule_entries add column if not exists end_time time;
+alter table public.exam_schedule_entries add column if not exists room_label text;
+alter table public.exam_schedule_entries add column if not exists notes text;
+alter table public.exam_schedule_entries add column if not exists updated_at timestamptz not null default now();
+
+create index if not exists exam_schedule_institution_class_date_idx on public.exam_schedule_entries(institution_id,class_name,exam_date);
+
 alter table public.exam_schedule_entries enable row level security;
 
 create or replace function public.is_institution_user(target uuid)
