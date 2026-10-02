@@ -128,11 +128,14 @@
   }
 
   function studentAttendancePct(id){
+    const deep=window.EDUNIZAM_STUDENT_INSIGHTS?.attendanceSummary?.(id);
+    if(deep&&deep.percentage!=null)return deep.percentage;
     const days=Object.values(attendance()).filter(day=>Object.prototype.hasOwnProperty.call(day,id)||Object.prototype.hasOwnProperty.call(day,String(id)));
     if(!days.length)return null;
-    let present=0;
-    days.forEach(day=>{const v=day[id]??day[String(id)];if(v==='Present')present++});
-    return Math.round((present/days.length)*100);
+    let present=0,late=0,absent=0;
+    days.forEach(day=>{const v=String(day[id]??day[String(id)]||'');if(v==='Present')present++;else if(v==='Late')late++;else if(v==='Absent')absent++});
+    const denom=present+late+absent;
+    return denom?Math.round(((present+late)/denom)*100):null;
   }
 
   function studentResults(id){
@@ -156,11 +159,20 @@
     return Object.entries(map).map(([subject,v])=>({subject,avg:Math.round(v.sum/v.count)})).sort((a,b)=>a.avg-b.avg);
   }
   function feeStats(id){
+    const deep=window.EDUNIZAM_STUDENT_INSIGHTS?.feeSummary?.(id);
+    if(deep){
+      const list=(deep.rows||[]).map(x=>Object.assign({},x,{
+        amount:Number(x.totalAmount??x.amount??0),
+        date:x.status==='Paid'?(x.paidAt?String(x.paidAt).slice(0,10):(x.date||'')):(x.dueDate||x.date||'')
+      }));
+      return {list,paid:Number(deep.paid||0),pending:Number(deep.outstanding||0),overdue:Number(deep.overdueAmount||0),overdueCount:(deep.overdueRows||[]).length};
+    }
     const list=fees().filter(f=>Number(f.studentId)===Number(id));
     return {
       list,
       paid:list.filter(f=>f.status==='Paid').reduce((a,b)=>a+Number(b.amount||0),0),
-      pending:list.filter(f=>f.status!=='Paid').reduce((a,b)=>a+Number(b.amount||0),0)
+      pending:list.filter(f=>f.status!=='Paid').reduce((a,b)=>a+Number(b.amount||0),0),
+      overdue:0,overdueCount:0
     };
   }
   function practiceStats(id){
@@ -312,6 +324,10 @@
     if(p.avg!=null)t+='Practice average: '+p.avg+'% across '+p.list.length+' linked test'+(p.list.length===1?'':'s')+'. ';
     if(p.weak.length)t+='Practice focus: '+p.weak.slice(0,3).map(x=>x.subject+' '+x.chapter).join(', ')+'. ';
     if(f.pending>0)t+='Pending fees: Rs '+f.pending.toLocaleString()+'. ';
+    if(f.overdueCount)t+=f.overdueCount+' fee challan(s) are overdue. ';
+    const deep=window.EDUNIZAM_STUDENT_INSIGHTS?.profile?.(s);
+    if(deep?.assignments?.missing?.length)t+='Missing assignments: '+deep.assignments.missing.length+'. ';
+    if(deep?.exams?.next)t+='Next exam: '+(deep.exams.next.subject||'Exam')+' on '+(deep.exams.next.examDate||'scheduled date')+'. ';
     if(rm)t+='Teacher remark: '+rm;
     return t;
   }
