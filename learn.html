@@ -106,6 +106,15 @@
       <button type="button" data-university-guest-quick="gcuf">GCUF</button>
       <button type="button" data-university-guest-quick="hec">HEC</button>
     </div>
+    <div class="search-suggestions" style="margin:10px 0">
+      <button type="button" data-university-category="Results">Results</button>
+      <button type="button" data-university-category="LMS / Student Portal">LMS / Portal</button>
+      <button type="button" data-university-category="Past Papers">Past Papers</button>
+      <button type="button" data-university-category="Admissions">Admissions</button>
+      <button type="button" data-university-category="Date Sheet / Exams">Date Sheets / Exams</button>
+      <button type="button" data-university-clear="1">Clear University Filters</button>
+    </div>
+    <div id="universityGuestSummary" class="paper-summary"></div>
     <div id="universityGrid" class="grid"></div>
   </section>
   <section id="competitive" class="section"><div class="section-head"><div><h2>CSS, PPSC, FPSC & Competitive Exams</h2><p>Official jobs, online applications, syllabi, past papers, roll-number/admission certificates, schedules, results and merit lists from federal/provincial commissions and testing services.</p></div></div>
@@ -272,7 +281,7 @@
     e.preventDefault();
     openTab(id);
   });
-  function resourceCard({title,description,url,source,tags=[],paper=false}){const actions=url?(paper?'<div class="paper-actions"><button class="btn preview-paper" type="button" data-url="'+esc(url)+'" data-title="'+esc(title)+'">Preview</button><button class="btn print-paper" type="button" data-url="'+esc(url)+'">Print</button><a class="btn primary" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Save / Open</a></div>':'<a class="open" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open resource ↗</a>'):'';return '<article class="card">'+sourceBadge(source)+'<h3>'+esc(title)+'</h3><p>'+esc(description||'Useful learning resource.')+'</p><div class="meta">'+tags.filter(Boolean).map(t=>'<span class="badge">'+esc(t)+'</span>').join('')+'</div>'+actions+'</article>'}
+  function resourceCard({title,description,url,source,tags=[],paper=false,actionLabel=''}){const isPdf=/\.pdf(?:$|[?#])/i.test(String(url||''));let actions='';if(url){if(paper&&isPdf){actions='<div class="paper-actions"><button class="btn preview-paper" type="button" data-url="'+esc(url)+'" data-title="'+esc(title)+'">Preview PDF</button><button class="btn print-paper" type="button" data-url="'+esc(url)+'">Print</button><a class="btn primary" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Save / Open PDF</a></div>'}else if(paper){actions='<a class="open" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(actionLabel||'Open paper source')+' ↗</a>'}else{actions='<a class="open" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(actionLabel||'Open resource')+' ↗</a>'}}return '<article class="card">'+sourceBadge(source)+'<h3>'+esc(title)+'</h3><p>'+esc(description||'Useful learning resource.')+'</p><div class="meta">'+tags.filter(Boolean).map(t=>'<span class="badge">'+esc(t)+'</span>').join('')+'</div>'+actions+'</article>'}
   function renderHome(){
     const pp=window.EDUNIZAM_PAST_PAPERS||{},sd=window.EDUNIZAM_STUDY_DATA||{},ud=window.EDUNIZAM_UNIVERSITY_DATA||{},pd=window.EDUNIZAM_PRACTICE_DATA||{};
     $('boardCount').textContent=(pp.boards||[]).length;$('resourceCount').textContent=(pp.papers||[]).length+(sd.materials||[]).length+(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).length+(ud.resources||[]).length+(window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).length+(window.EDUNIZAM_COMPETITIVE_EXAMS?.resources||[]).length+(window.EDUNIZAM_EDUCATION_ECOSYSTEM?.resources||[]).length+(window.EDUNIZAM_EXAM_PATHWAYS?.pathways||[]).length+(window.EDUNIZAM_EXAM_PREP?.questions||[]).length+(window.EDUNIZAM_PUBLIC_LINKS||[]).length;$('uniCount').textContent=(ud.universities||[]).filter(x=>x.id!=='vu').length;$('questionCount').textContent=(pd.questions||[]).length;
@@ -353,7 +362,9 @@
     $('universityGuestSearch')?.addEventListener('input',renderUniversities);
     $('universityGuestSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderUniversities()}});
     $('universityGuestSearchBtn')?.addEventListener('click',renderUniversities);
-    document.querySelectorAll('[data-university-guest-quick]').forEach(b=>b.onclick=()=>{if(inst)inst.value=b.dataset.universityGuestQuick;renderUniversities()});
+    document.querySelectorAll('[data-university-guest-quick]').forEach(b=>b.onclick=()=>{if(inst)inst.value=b.dataset.universityGuestQuick;renderUniversities();$('universityGrid')?.scrollIntoView({behavior:'smooth',block:'start'})});
+    document.querySelectorAll('[data-university-category]').forEach(b=>b.onclick=()=>{if(cat)cat.value=b.dataset.universityCategory;renderUniversities();$('universityGrid')?.scrollIntoView({behavior:'smooth',block:'start'})});
+    document.querySelectorAll('[data-university-clear]').forEach(b=>b.onclick=()=>{if(inst)inst.value='';if(cat)cat.value='';if($('universityGuestSource'))$('universityGuestSource').value='';if($('universityGuestSearch'))$('universityGuestSearch').value='';renderUniversities()});
   }
   function renderUniversities(){
     const d=window.EDUNIZAM_UNIVERSITY_DATA||{},unis=d.universities||[],resources=(d.resources||[]).filter(x=>x.universityId!=='vu');
@@ -362,8 +373,9 @@
       const u=unis.find(y=>y.id===x.universityId),text=norm([x.title,x.category,x.note,x.keywords,u?.name,u?.type].join(' '));
       const localMatch=!local||text.includes(local),globalMatch=!global||match(x,u?.name);
       return localMatch&&globalMatch&&(!uid||x.universityId===uid)&&(!cat||x.category===cat)&&(!src||x.source===src);
-    }).forEach(x=>{const u=unis.find(y=>y.id===x.universityId);rows.push(resourceCard({title:x.title,description:x.note,url:x.url,source:x.source,tags:[u?.name,x.category]}))});
-    if(!cat&&!src)unis.filter(x=>x.id!=='vu'&&(!uid||x.id===uid)&&(!local||norm([x.name,x.type].join(' ')).includes(local))&&(!global||match(x))).forEach(x=>rows.push(resourceCard({title:x.name,description:x.type,url:x.officialUrl,source:'official',tags:[x.type]})));
+    }).forEach(x=>{const u=unis.find(y=>y.id===x.universityId);const label=/result/i.test(x.category)?'Open results':/lms|student portal/i.test(x.category)?'Open LMS / portal':/past paper/i.test(x.category)?'Open past papers':/admission/i.test(x.category)?'Open admissions':/date sheet|exam/i.test(x.category)?'Open exam service':/merit/i.test(x.category)?'Open merit lists':'Open official resource';rows.push(resourceCard({title:x.title,description:x.note,url:x.url,source:x.source,tags:[u?.name,x.category],actionLabel:label}))});
+    if(!cat&&!src)unis.filter(x=>x.id!=='vu'&&(!uid||x.id===uid)&&(!local||norm([x.name,x.type].join(' ')).includes(local))&&(!global||match(x))).forEach(x=>rows.push(resourceCard({title:x.name,description:x.type,url:x.officialUrl,source:'official',tags:[x.type],actionLabel:'Open official website'})));
+    if($('universityGuestSummary')){const uName=uid?unis.find(x=>x.id===uid)?.name:'';$('universityGuestSummary').textContent=rows.length+' resource'+(rows.length===1?'':'s')+(uName?' · '+uName:'')+(cat?' · '+cat:'')+'.'}
     $('universityGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No university resource matched these filters. Clear a filter or try AIOU, results, LMS, admissions, workshops, calendar or past papers.</div>';
   }
   function initCompetitiveFilters(){
@@ -520,7 +532,7 @@
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
-<script src="guest-learning-nav.js?v=20261002-deep501"></script>
+<script src="guest-learning-nav.js?v=20261002-deep503"></script>
 <script src="guest-learning-premium.js?v=20261002-deep501"></script>
 <script src="pwa-install.js?v=20261002-deep501" defer></script>
 <script src="system-auto-update.js?v=20261002-deep501" defer></script>
