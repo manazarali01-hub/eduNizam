@@ -17,6 +17,23 @@
     const n=Math.floor((b-a)/86400000)+1;
     return Number.isFinite(n)&&n>0?n:0;
   };
+  function syncLocalAttendanceForApprovedLeave(item){
+    if(!item||item.leaveFor!=='student'||item.status!=='Approved'||!item.studentLocalId||!item.fromDate||!item.toDate)return 0;
+    let map={};try{map=JSON.parse(localStorage.getItem('edunizam_attendance')||'{}')}catch(_){map={}}
+    const start=new Date(item.fromDate+'T12:00:00'),end=new Date(item.toDate+'T12:00:00');
+    let changed=0;
+    for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+      if(d.getDay()===0)continue;
+      const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const day=map[key]||{},sid=String(item.studentLocalId),existing=day[sid]??day[item.studentLocalId];
+      if(existing&&existing!=='Absent'&&existing!=='Leave')continue;
+      if(existing!=='Leave'){day[item.studentLocalId]='Leave';changed++}
+      map[key]=day;
+    }
+    try{localStorage.setItem('edunizam_attendance',JSON.stringify(map))}catch(_){}
+    window.renderAll?.();
+    return changed;
+  }
   function read(){
     try{
       const current=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -213,13 +230,14 @@
     const pendingNote=x.status==='Pending'?'<div class="coverage-note"><strong>Status:</strong> '+(x.teacherResponse?'Teacher reviewed · waiting for School Admin final decision.':'Waiting for review / School Admin decision.')+'</div>':'';
     const decision=x.decisionNote?'<div class="leave-decision-result '+(x.status==='Rejected'?'rejected':'approved')+'"><strong>'+decisionLabel(x)+':</strong> '+esc(x.decisionNote)+(x.decidedAt?'<small>Final decision: '+esc(new Date(x.decidedAt).toLocaleString())+'</small>':'')+'</div>':'';
     const controls=isAdmin()&&x.status==='Pending'?'<div class="leave-admin-decision"><label>Admin final decision reason / cause <span class="coverage-note">(Required)</span><textarea rows="3" data-leave-decision-note="'+esc(x.id)+'" placeholder="Approval reason ya rejection cause likhein"></textarea></label><div class="paper-actions"><button data-leave-approve="'+esc(x.id)+'">Final Approve</button><button class="secondary leave-reject-btn" data-leave-reject="'+esc(x.id)+'">Final Reject</button></div></div>':'';
+    const attendanceSync=x.leaveFor==='student'&&x.status==='Approved'?'<div class="coverage-note"><strong>Attendance linked:</strong> approved leave dates automatically become <strong>Leave</strong> when attendance is missing/Absent. Existing Present/Late records are preserved.</div>':'';
     return '<article class="paper-card leave-request-card">'+
       '<div class="paper-card-top"><span class="mini-badge">'+badge+'</span><span data-risk="'+statusClass(x.status)+'">'+esc(x.status)+'</span></div>'+
       '<h3>'+name+'</h3><p class="muted">'+esc(x.fromDate)+' → '+esc(x.toDate)+' · '+esc(x.numberOfDays||daysBetween(x.fromDate,x.toDate))+' day(s) · Submitted by '+esc((x.submittedRole||'user').replace(/^./,m=>m.toUpperCase()))+'</p>'+
       '<div class="leave-request-reason"><strong>Cause of leave:</strong><p>'+esc(x.reason||'')+'</p></div>'+
       (x.guardianNote?'<div class="coverage-note"><strong>Additional / guardian note:</strong> '+esc(x.guardianNote)+'</div>':'')+
       (x.attachmentPath?'<div class="paper-actions"><button class="secondary" data-leave-attachment="'+esc(x.id)+'">Open '+esc(x.attachmentName||'Attachment')+'</button></div>':'')+
-      pendingNote+teacherReviewBlock(x)+decision+
+      pendingNote+teacherReviewBlock(x)+decision+attendanceSync+
       (x.cloudSynced===false?'<div class="coverage-note"><strong>Local only:</strong> Cloud sync nahi hui; is device par record saved hai.</div>':'')+controls+'</article>';
   }
 
@@ -290,6 +308,10 @@
     try{
       let result=null;if(item.cloudSynced&&cloudReady())result=await decideCloud(id,status,note);
       item.status=status;item.decisionNote=note;item.decidedAt=new Date().toISOString();item.decidedBy=currentUserId()||identity();write(arr);
+      const attendanceChanged=status==='Approved'?syncLocalAttendanceForApprovedLeave(item):0;
+      if(status==='Approved'&&item.leaveFor==='student'){
+        window.EDUNIZAM_PREMIUM?.toast?.('Leave approved · attendance reconciled'+(attendanceChanged?' ('+attendanceChanged+' day'+(attendanceChanged===1?'':'s')+')':''),'success');
+      }
       const recipients=new Set([result?.student_user_id,item.studentUserId,result?.submitted_by,item.submittedBy].filter(Boolean));recipients.delete(currentUserId());
       for(const uid of recipients)await sendNotification(uid,'Leave request '+status.toLowerCase(),item.fromDate+' to '+item.toDate+' · '+note);
       if(item.cloudSynced&&cloudReady()){const root=$('leaveCenterApp');if(root)delete root.dataset.cloudLoaded}
