@@ -42,8 +42,9 @@
   }
   async function listTeachers(){
     if(!cloudReady())return[];
-    const {data,error}=await cloud().state.client.from('staff_profiles').select('user_id,full_name,designation').eq('institution_id',cfg().institutionId).not('user_id','is',null).order('full_name');
-    if(error)throw error;return (data||[]).filter(x=>x.user_id);
+    const {data,error}=await cloud().state.client.rpc('list_parent_teacher_directory_v1',{p_institution_id:cfg().institutionId});
+    if(error)throw error;
+    return (data||[]).filter(x=>x.user_id);
   }
   async function pullParentTeacherCloud(){
     if(!cloudReady()||(!isParent()&&!isHead()))return[];
