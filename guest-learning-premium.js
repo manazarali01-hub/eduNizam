@@ -216,7 +216,7 @@ function injectSectionExplorers(){
   study.insertBefore(p,$('studyGrid'));
   const data=()=>window.EDUNIZAM_STUDY_DATA?.materials||[];
   const parts=v=>String(v||'').split('/').map(x=>x.trim()).filter(Boolean).filter(x=>!/^all subjects$/i.test(x));
-  const refresh=()=>{
+  const refreshTypes=()=>{
    const clEl=$('guestStudyClass'),subEl=$('guestStudySubject'),typeEl=$('guestStudyType');
    const oldCl=clEl.value,oldSub=subEl.value,oldType=typeEl.value;
    const classes=[...new Set(data().flatMap(x=>(x.classLevels||[]).map(String)))].sort((a,b)=>Number(a)-Number(b));
@@ -232,7 +232,7 @@ function injectSectionExplorers(){
    if(types.includes(oldType))typeEl.value=oldType;
   };
   const run=()=>{
-   refresh();
+   refreshTypes();
    const q=norm($('guestStudyQuery').value),cl=$('guestStudyClass').value,sub=norm($('guestStudySubject').value),type=norm($('guestStudyType').value);
    const rows=data().filter(x=>(!q||norm(JSON.stringify(x)).includes(q))&&(!cl||(x.classLevels||[]).map(String).includes(cl))&&(!sub||norm(x.subject).includes(sub)||norm(x.subject)==='all subjects')&&(!type||norm(x.type)===type));
    $('guestStudySummary').textContent=rows.length+' study resource'+(rows.length===1?'':'s')+' available for the selected filters.';
@@ -240,10 +240,10 @@ function injectSectionExplorers(){
   };
   $('guestStudySearch').onclick=run;
   $('guestStudyQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});
-  $('guestStudyClass').onchange=()=>{refresh();run()};
-  $('guestStudySubject').onchange=()=>{refresh();run()};
+  $('guestStudyClass').onchange=()=>{refreshTypes();run()};
+  $('guestStudySubject').onchange=()=>{refreshTypes();run()};
   $('guestStudyType').onchange=run;
-  refresh();run();
+  refreshTypes();run();
  }
  const unis=$('universities');if(unis&&!$('universityExplorer')){
   const p=document.createElement('div');p.id='universityExplorer';p.className='card';p.style.marginBottom='16px';
