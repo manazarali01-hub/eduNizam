@@ -128,16 +128,20 @@
     return '<div class="cards"><article class="card stat"><span>Active Routes</span><strong>'+activeRoutes+'</strong></article><article class="card stat"><span>Active Vehicles</span><strong>'+activeVehicles.length+'</strong></article><article class="card stat"><span>Assigned Students</span><strong>'+activeAs.length+'</strong></article><article class="card stat"><span>Total Capacity</span><strong>'+cap+'</strong></article></div>';
   }
   function assignmentCards(rows){
-    if(!rows.length)return '<div class="empty-state">No transport assignment.</div>';
-    return rows.map(x=>'<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(x.routeName||'Route')+'</span><span class="badge">'+esc(x.status||'active')+'</span></div><h3>'+esc(x.studentName)+'</h3><p class="muted">'+esc((x.className||'-')+(x.sectionName?' - '+x.sectionName:''))+'</p><p><strong>Vehicle:</strong> '+esc(x.registrationNo||'-')+'</p><p><strong>Pickup:</strong> '+esc(x.pickupStop||'-')+' · <strong>Drop:</strong> '+esc(x.dropStop||'-')+'</p><p><strong>Driver:</strong> '+esc(x.driverName||'-')+(x.driverPhone?' · '+esc(x.driverPhone):'')+'</p><p><strong>Monthly Fee:</strong> '+money(x.monthlyFee)+'</p>'+(isHead()&&x.status==='active'?'<div class="paper-actions"><button class="secondary" data-tr-deactivate="'+esc(x.id)+'">Deactivate</button></div>':'')+'</article>').join('');
+    if(!rows.length)return '<div class="empty-state">No transport assignment matches this filter.</div>';
+    return rows.map(x=>'<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(x.routeName||'Route')+'</span><span class="badge">'+esc(x.status||'active')+'</span></div><h3>'+esc(x.studentName)+'</h3><p class="muted">'+esc((x.className||'-')+(x.sectionName?' - '+x.sectionName:''))+' · Effective '+esc(x.effectiveFrom||'-')+'</p><p><strong>Vehicle:</strong> '+esc(x.registrationNo||'-')+'</p><p><strong>Pickup:</strong> '+esc(x.pickupStop||'-')+' · <strong>Drop:</strong> '+esc(x.dropStop||'-')+'</p><p><strong>Driver:</strong> '+esc(x.driverName||'-')+(x.driverPhone?' · '+esc(x.driverPhone):'')+'</p><p><strong>Monthly Fee:</strong> '+money(x.monthlyFee)+'</p>'+(isHead()?'<div class="paper-actions"><button data-tr-edit-assignment="'+esc(x.id)+'">Edit Assignment</button>'+(x.status==='active'?'<button class="secondary" data-tr-deactivate="'+esc(x.id)+'">Deactivate</button>':'')+'</div>':'')+'</article>').join('');
+  }
+  function filterAssignments(rows,root){
+    const status=root.dataset.trStatus||'',route=root.dataset.trRoute||'',vehicle=root.dataset.trVehicle||'',q=(root.dataset.trSearch||'').trim().toLowerCase();
+    return rows.filter(x=>(!status||x.status===status)&&(!route||String(x.routeId)===route)&&(!vehicle||String(x.vehicleId)===vehicle)&&(!q||[x.studentName,x.className,x.sectionName,x.routeName,x.registrationNo,x.driverName,x.driverPhone,x.pickupStop,x.dropStop].join(' ').toLowerCase().includes(q)));
   }
   function routeCards(){
     const rs=routes().sort((a,b)=>String(a.routeName).localeCompare(String(b.routeName)));
-    return rs.length?rs.map(r=>'<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(r.routeCode)+'</span><span class="badge">'+(r.active===false?'Inactive':'Active')+'</span></div><h3>'+esc(r.routeName)+'</h3><p class="muted">'+esc(r.pickupTime||'-')+' pickup · '+esc(r.dropTime||'-')+' drop</p><p><strong>Fee:</strong> '+money(r.monthlyFee)+'</p><p>'+esc((r.stops||[]).join(' → ')||'No stops added')+'</p>'+(isHead()?'<div class="paper-actions"><button data-tr-edit-route="'+esc(r.id)+'">Edit</button></div>':'')+'</article>').join(''):'<div class="empty-state">No routes configured.</div>';
+    return rs.length?rs.map(r=>{const active=assignments().filter(a=>a.status==='active'&&String(a.routeId)===String(r.id)),revenue=active.reduce((s,a)=>s+Number(a.monthlyFee||r.monthlyFee||0),0);return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(r.routeCode)+'</span><span class="badge">'+(r.active===false?'Inactive':'Active')+'</span></div><h3>'+esc(r.routeName)+'</h3><p class="muted">'+esc(r.pickupTime||'-')+' pickup · '+esc(r.dropTime||'-')+' drop</p><p><strong>Fee:</strong> '+money(r.monthlyFee)+' · <strong>Students:</strong> '+active.length+'</p><p><strong>Expected monthly:</strong> '+money(revenue)+'</p><p>'+esc((r.stops||[]).join(' → ')||'No stops added')+'</p>'+(isHead()?'<div class="paper-actions"><button data-tr-edit-route="'+esc(r.id)+'">Edit</button></div>':'')+'</article>'}).join(''):'<div class="empty-state">No routes configured.</div>';
   }
   function vehicleCards(){
     const vs=vehicles().sort((a,b)=>String(a.registrationNo).localeCompare(String(b.registrationNo)));
-    return vs.length?vs.map(v=>'<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(v.registrationNo)+'</span><span class="badge">'+esc(v.status)+'</span></div><h3>'+esc(v.vehicleType)+'</h3><p><strong>Capacity:</strong> '+v.capacity+' · <strong>Free:</strong> '+availableSeats(v)+'</p><p><strong>Driver:</strong> '+esc(v.driverName||'-')+(v.driverPhone?' · '+esc(v.driverPhone):'')+'</p>'+(v.conductorName?'<p><strong>Conductor:</strong> '+esc(v.conductorName)+(v.conductorPhone?' · '+esc(v.conductorPhone):'')+'</p>':'')+(isHead()?'<div class="paper-actions"><button data-tr-edit-vehicle="'+esc(v.id)+'">Edit</button></div>':'')+'</article>').join(''):'<div class="empty-state">No vehicles configured.</div>';
+    return vs.length?vs.map(v=>{const used=activeAssignmentsForVehicle(v.id).length,free=availableSeats(v),pct=v.capacity?Math.round(used/Number(v.capacity)*100):0;return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(v.registrationNo)+'</span><span class="badge">'+esc(v.status)+'</span></div><h3>'+esc(v.vehicleType)+'</h3><p><strong>Capacity:</strong> '+v.capacity+' · <strong>Assigned:</strong> '+used+' · <strong>Free:</strong> '+free+'</p><div class="coverage-note">Occupancy '+pct+'%</div><p><strong>Driver:</strong> '+esc(v.driverName||'-')+(v.driverPhone?' · '+esc(v.driverPhone):'')+'</p>'+(v.conductorName?'<p><strong>Conductor:</strong> '+esc(v.conductorName)+(v.conductorPhone?' · '+esc(v.conductorPhone):'')+'</p>':'')+(isHead()?'<div class="paper-actions"><button data-tr-edit-vehicle="'+esc(v.id)+'">Edit</button></div>':'')+'</article>'}).join(''):'<div class="empty-state">No vehicles configured.</div>';
   }
   async function saveRoute(){
     const id=$('trRouteEditId')?.value||'',routeCode=$('trRouteCode')?.value.trim(),routeName=$('trRouteName')?.value.trim();
@@ -174,6 +178,13 @@
   }
   function editRoute(id){const x=routes().find(r=>String(r.id)===String(id));if(!x)return;const b=$('trRouteEditor');if(b)b.innerHTML=routeEditor(x);bindEditors()}
   function editVehicle(id){const x=vehicles().find(v=>String(v.id)===String(id));if(!x)return;const b=$('trVehicleEditor');if(b)b.innerHTML=vehicleEditor(x);bindEditors()}
+  function editAssignment(id){
+    const x=assignments().find(a=>String(a.id)===String(id));if(!x||!isHead())return;
+    const map={trStudent:x.studentId,trRoute:x.routeId,trVehicle:x.vehicleId,trPickupStop:x.pickupStop||'',trDropStop:x.dropStop||'',trEffective:x.effectiveFrom||today()};
+    Object.entries(map).forEach(([id,v])=>{const el=$(id);if(el)el.value=String(v??'')});
+    $('trAssign')&&($('trAssign').textContent='Update Assignment');
+    $('trStudent')?.scrollIntoView({behavior:'smooth',block:'center'});
+  }
   function printReport(rows){
     const st=settings(),w=window.open('','_blank','width=1000,height=760');if(!w)return alert('Popup blocked.');
     w.document.write('<!doctype html><html><head><title>Transport Register</title><style>body{font-family:Arial;padding:28px;color:#17324a}.head{text-align:center}table{width:100%;border-collapse:collapse;margin-top:22px}th,td{border:1px solid #ccd6dc;padding:7px;text-align:left}</style></head><body><div class="head"><h2>'+esc(st.schoolName||'EduNizam Institute')+'</h2><h3>Student Transport Register</h3></div><table><thead><tr><th>Student</th><th>Class</th><th>Route</th><th>Vehicle</th><th>Pickup</th><th>Drop</th><th>Driver</th><th>Fee</th></tr></thead><tbody>'+rows.filter(x=>x.status==='active').map(x=>'<tr><td>'+esc(x.studentName)+'</td><td>'+esc((x.className||'-')+(x.sectionName?' - '+x.sectionName:''))+'</td><td>'+esc(x.routeName||'-')+'</td><td>'+esc(x.registrationNo||'-')+'</td><td>'+esc(x.pickupStop||'-')+'</td><td>'+esc(x.dropStop||'-')+'</td><td>'+esc(x.driverName||'-')+'</td><td>'+money(x.monthlyFee)+'</td></tr>').join('')+'</tbody></table></body></html>');
@@ -183,23 +194,30 @@
     $('trSaveRoute')?.addEventListener('click',saveRoute);$('trCancelRoute')?.addEventListener('click',render);
     $('trSaveVehicle')?.addEventListener('click',saveVehicle);$('trCancelVehicle')?.addEventListener('click',render);
   }
-  function bind(rows){
+  function bind(rows,root){
     bindEditors();$('trAssign')?.addEventListener('click',assign);$('trPrint')?.addEventListener('click',()=>printReport(rows));
+    $('trFilterStatus')?.addEventListener('change',e=>{root.dataset.trStatus=e.target.value;render()});
+    $('trFilterRoute')?.addEventListener('change',e=>{root.dataset.trRoute=e.target.value;render()});
+    $('trFilterVehicle')?.addEventListener('change',e=>{root.dataset.trVehicle=e.target.value;render()});
+    $('trSearch')?.addEventListener('input',e=>{root.dataset.trSearch=e.target.value;clearTimeout(bind.timer);bind.timer=setTimeout(render,150)});
+    $('trClearFilters')?.addEventListener('click',()=>{root.dataset.trStatus='';root.dataset.trRoute='';root.dataset.trVehicle='';root.dataset.trSearch='';render()});
     document.querySelectorAll('[data-tr-edit-route]').forEach(b=>b.onclick=()=>editRoute(b.dataset.trEditRoute));
     document.querySelectorAll('[data-tr-edit-vehicle]').forEach(b=>b.onclick=()=>editVehicle(b.dataset.trEditVehicle));
+    document.querySelectorAll('[data-tr-edit-assignment]').forEach(b=>b.onclick=()=>editAssignment(b.dataset.trEditAssignment));
     document.querySelectorAll('[data-tr-deactivate]').forEach(b=>b.onclick=()=>deactivate(b.dataset.trDeactivate));
   }
   async function render(){
     const root=$('transportCenterApp');if(!root)return;
     if(cloudReady()&&!root.dataset.cloudLoaded){root.dataset.cloudLoaded='1';try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Transport cloud sync:',e.message)}}
-    const visible=visibleAssignments(assignments()).sort((a,b)=>String(a.studentName).localeCompare(String(b.studentName)));
+    const visibleAll=visibleAssignments(assignments()).sort((a,b)=>String(a.studentName).localeCompare(String(b.studentName))),visible=filterAssignments(visibleAll,root);
+    const routeOpts=routes().slice().sort((a,b)=>String(a.routeName).localeCompare(String(b.routeName))),vehicleOpts=vehicles().slice().sort((a,b)=>String(a.registrationNo).localeCompare(String(b.registrationNo)));
     root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div><button id="trPrint" class="secondary">Print Transport Register</button></div>'+
       (isHead()?metrics():'')+
       '<div id="trRouteEditor" style="margin-top:16px">'+routeEditor()+'</div>'+
       '<div id="trVehicleEditor">'+vehicleEditor()+'</div>'+assignmentEditor()+
-      '<div class="section-head" style="margin-top:18px"><div><h3>Student Transport</h3><p class="muted">Current route and vehicle assignments.</p></div></div><div class="paper-grid">'+assignmentCards(visible)+'</div>'+
-      (isHead()?'<div class="section-head" style="margin-top:18px"><div><h3>Routes</h3></div></div><div class="paper-grid">'+routeCards()+'</div><div class="section-head" style="margin-top:18px"><div><h3>Vehicles</h3></div></div><div class="paper-grid">'+vehicleCards()+'</div>':'');
-    bind(visible);
+      '<article class="card" style="margin-top:18px"><div class="section-head"><div><h3>Student Transport</h3><p class="muted">'+visible.length+' of '+visibleAll.length+' assignments shown.</p></div><button id="trClearFilters" class="secondary">Clear Filters</button></div><div class="form-grid"><select id="trFilterStatus"><option value="">All Status</option>'+['active','inactive'].map(v=>'<option value="'+v+'" '+((root.dataset.trStatus||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><select id="trFilterRoute"><option value="">All Routes</option>'+routeOpts.map(r=>'<option value="'+esc(r.id)+'" '+((root.dataset.trRoute||'')===String(r.id)?'selected':'')+'>'+esc(r.routeName)+'</option>').join('')+'</select><select id="trFilterVehicle"><option value="">All Vehicles</option>'+vehicleOpts.map(v=>'<option value="'+esc(v.id)+'" '+((root.dataset.trVehicle||'')===String(v.id)?'selected':'')+'>'+esc(v.registrationNo)+'</option>').join('')+'</select><input id="trSearch" type="search" value="'+esc(root.dataset.trSearch||'')+'" placeholder="Search student, class, route, vehicle, driver or stop"></div><div class="paper-grid" style="margin-top:12px">'+assignmentCards(visible)+'</div></article>'+
+      (isHead()?'<div class="section-head" style="margin-top:18px"><div><h3>Routes</h3><p class="muted">Student load and expected monthly transport income by route.</p></div></div><div class="paper-grid">'+routeCards()+'</div><div class="section-head" style="margin-top:18px"><div><h3>Vehicles</h3><p class="muted">Capacity and live occupancy.</p></div></div><div class="paper-grid">'+vehicleCards()+'</div>':'');
+    bind(visibleAll,root);
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('transportCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
