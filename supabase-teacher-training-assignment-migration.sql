@@ -88,8 +88,146 @@ revoke all on public.teacher_training_assignments from anon;
 revoke update,truncate,references,trigger on public.teacher_training_assignments from authenticated;
 grant select,insert,delete on public.teacher_training_assignments to authenticated;
 
--- Production also defines SECURITY INVOKER RPCs:
--- submit_training_assignment_v1(uuid,text,text)
--- review_training_assignment_v1(uuid,text,numeric,text)
+create or replace function public.submit_training_assignment_v1(
+  p_assignment_id uuid,
+  p_submission_text text default null,
+  p_submission_url text default null
+)
+returns public.teacher_training_assignments
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  uid uuid := (select auth.uid());
+  a public.teacher_training_assignments%rowtype;
+  clean_text text := nullif(btrim(coalesce(p_submission_text,'')),'');
+  clean_url text := nullif(btrim(coalesce(p_submission_url,'')),'');
+begin
+  if uid is null then raise exception 'Authentication required'; end if;
+  if clean_text is null and clean_url is null then raise exception 'Write a response or provide an evidence link'; end if;
+  if clean_url is not null and (char_length(clean_url)>2000 or clean_url !~* '^https?://') then raise exception 'Evidence link must be a valid http(s) URL'; end if;
+
+  select * into a from public.teacher_training_assignments x where x.id=p_assignment_id for update;
+  if a.id is null then raise exception 'Training assignment not found'; end if;
+  if not exists(
+    select 1 from public.staff_profiles s
+    where s.id=a.staff_profile_id and s.institution_id=a.institution_id and s.user_id=uid
+  ) then raise exception 'Assigned teacher account required'; end if;
+  if a.status='Approved' then raise exception 'Approved assignment cannot be resubmitted'; end if;
+
+  update public.teacher_training_assignments
+  set submission_text=clean_text,submission_url=clean_url,submitted_at=now(),status='Submitted',
+      score=null,review_note=null,reviewed_by=null,reviewed_at=null,updated_at=now()
+  where id=a.id
+  returning * into a;
+
+  insert into public.user_notifications(institution_id,recipient_user_id,created_by,category,title,body)
+  select a.institution_id,i.owner_user_id,uid,'training','Training assignment submitted',
+         left(coalesce(s.full_name,'Teacher')||' · '||a.task_title,180)
+  from public.institutions i
+  join public.staff_profiles s on s.id=a.staff_profile_id
+  where i.id=a.institution_id and i.owner_user_id<>uid;
+
+  return a;
+end;
+$$;
+
+revoke execute on function public.submit_training_assignment_v1(uuid,text,text) from public,anon;
+grant execute on function public.submit_training_assignment_v1(uuid,text,text) to authenticated;
+
+create or replace function public.review_training_assignment_v1(
+  p_assignment_id uuid,
+  p_decision text,
+  p_score numeric default null,
+  p_review_note text default null
+)
+returns public.teacher_training_assignments
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  uid uuid := (select auth.uid());
+  a public.teacher_training_assignments%rowtype;
+  tr public.teacher_training_records%rowtype;
+  teacher_uid uuid;
+  decision text := initcap(lower(btrim(coalesce(p_decision,''))));
+  pending_count integer := 0;
+  avg_pct numeric := 0;
+  cert text;
+begin
+  if uid is null then raise exception 'Authentication required'; end if;
+  if decision not in ('Approved','Returned') then raise exception 'Decision must be Approved or Returned'; end if;
+
+  select * into a from public.teacher_training_assignments x where x.id=p_assignment_id for update;
+  if a.id is null then raise exception 'Training assignment not found'; end if;
+  if not exists(
+    select 1 from public.institutions i
+    where i.id=a.institution_id and i.owner_user_id=uid
+  ) then raise exception 'Head/Admin access required'; end if;
+  if a.status<>'Submitted' then raise exception 'Only submitted assignments can be reviewed'; end if;
+
+  if decision='Approved' then
+    if p_score is null then raise exception 'Score is required for approval'; end if;
+    if p_score<0 or p_score>a.max_score then raise exception 'Score must be within assignment max score'; end if;
+  elsif nullif(btrim(coalesce(p_review_note,'')),'') is null then
+    raise exception 'Return-for-revision reason is required';
+  end if;
+
+  update public.teacher_training_assignments
+  set status=decision,
+      score=case when decision='Approved' then p_score else null end,
+      review_note=nullif(btrim(coalesce(p_review_note,'')),''),
+      reviewed_by=uid,reviewed_at=now(),updated_at=now()
+  where id=a.id
+  returning * into a;
+
+  select * into tr from public.teacher_training_records r where r.id=a.training_record_id for update;
+  select s.user_id into teacher_uid from public.staff_profiles s where s.id=a.staff_profile_id;
+
+  if decision='Approved' then
+    select count(*) into pending_count
+    from public.teacher_training_assignments x
+    where x.training_record_id=a.training_record_id and x.status<>'Approved';
+
+    if pending_count=0 then
+      select coalesce(round(avg((x.score/x.max_score)*100),2),0) into avg_pct
+      from public.teacher_training_assignments x
+      where x.training_record_id=a.training_record_id and x.status='Approved';
+
+      cert:=coalesce(tr.certificate_number,'EN-TR-'||to_char(current_date,'YYYY')||'-'||upper(substr(replace(tr.id::text,'-',''),1,10)));
+
+      update public.teacher_training_records
+      set status='Completed',progress_percent=100,evaluation_score=avg_pct,
+          certificate_number=cert,completed_at=coalesce(completed_at,now()),
+          verified_by=uid,updated_at=now()
+      where id=tr.id;
+    else
+      update public.teacher_training_records
+      set status='In Progress',progress_percent=greatest(progress_percent,75),updated_at=now()
+      where id=tr.id;
+    end if;
+  else
+    update public.teacher_training_records
+    set status='In Progress',progress_percent=least(progress_percent,90),updated_at=now()
+    where id=tr.id;
+  end if;
+
+  if teacher_uid is not null then
+    insert into public.user_notifications(institution_id,recipient_user_id,created_by,category,title,body)
+    values(
+      a.institution_id,teacher_uid,uid,'training',
+      case when decision='Approved' then 'Training assignment approved' else 'Training assignment returned' end,
+      left(a.task_title||case when a.review_note is not null then ' · '||a.review_note else '' end,180)
+    );
+  end if;
+
+  return a;
+end;
+$$;
+
+revoke execute on function public.review_training_assignment_v1(uuid,text,numeric,text) from public,anon;
+grant execute on function public.review_training_assignment_v1(uuid,text,numeric,text) to authenticated;
 
 commit;
