@@ -117,6 +117,9 @@
       <button type="button" data-ecosystem-guest-quick="Textbooks & Curriculum">Textbooks</button>
       <button type="button" data-ecosystem-guest-quick="Skills & TVET">Skills</button>
       <button type="button" data-ecosystem-guest-quick="Research & Digital Library">Research</button>
+      <button type="button" data-ecosystem-guest-quick="Technical Boards & Diplomas">Technical Boards</button>
+      <button type="button" data-ecosystem-guest-quick="Digital Skills & Careers">Digital Skills</button>
+      <button type="button" data-ecosystem-guest-quick="Accreditation & Recognition">Accreditation</button>
       <button type="button" data-ecosystem-guest-quick="Teacher Resources">Teachers</button>
     </div>
     <div class="notice"><strong>Official-source first:</strong> deadlines, eligibility and test/admission windows change. EduNizam indexes the responsible official authority and avoids inventing current notices.</div>
@@ -344,7 +347,7 @@
       history.replaceState(null,'','#competitive');openTab('competitive');
       requestAnimationFrame(()=>$('competitiveGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));return;
     }
-    if(/\b(mdcat|ecat|usat|hat|lat|law[ -]?gat|scholarships?|ibcc|equivalence|attestation|navttc|tevta|textbooks?|curriculum|digital library|research grants?|nrpu|peef)\b/i.test(raw)){
+    if(/\b(mdcat|ecat|net|nust|nums|usat|hat|lat|law[ -]?gat|scholarships?|ibcc|equivalence|attestation|navttc|tevta|digiskills|technical board|dae|textbooks?|curriculum|ncc|digital library|research grants?|nrpu|hjrs|peef|pmdc|pec|nceac|nbeac|nacte|pharmacy council|accreditation|recognition)\b/i.test(raw)){
       history.replaceState(null,'','#ecosystem');openTab('ecosystem');
       requestAnimationFrame(()=>$('ecosystemGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));return;
     }
