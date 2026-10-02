@@ -1,4 +1,4 @@
-const CACHE='edunizam-v193-deep250'
+const CACHE='edunizam-v194-deep300'
 const CORE=[
   './',
   './index.html',
@@ -39,6 +39,8 @@ const CORE=[
   './competitive-exams.js',
   './education-ecosystem-data.js',
   './education-ecosystem.js',
+  './exam-pathways-data.js',
+  './exam-pathways.js',
   './vu-course-catalog.js',
   './practice-data.js',
   './learning-premium-data.js',
@@ -61,6 +63,7 @@ const CORE=[
   './pakistan-degree-accreditation-recognition.html',
   './technical-vocational-digital-skills-pakistan.html',
   './pakistan-textbooks-curriculum-research.html',
+  './pakistan-exam-study-pathways.html',
   './online-school-admissions.html',
   './school-management-system-pakistan.html',
   './edunizam.html',
