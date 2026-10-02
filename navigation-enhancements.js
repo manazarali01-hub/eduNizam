@@ -5,7 +5,7 @@
     ['Students & Academics','🎓',['classcenter','studentprofile','results','schoolwork','lessoncenter','examcenter','behaviorcenter','studentdocs']],
     ['Staff & HR','👩‍🏫',['stafftime','staffpayroll','training','leavecenter']],
     ['School Operations','⚙',['admissions','financecenter','bulkimport','inventorycenter','librarycenter','transportcenter','gatecenter','parentcomplaints','helpdeskcenter','calendarcenter','functionscenter','ourstudents','attendanceanalytics']],
-    ['Learning Resources','▤',['pastpapers','practice','study','schoolassessments','universities','vu']],
+    ['Learning Resources','▤',['pastpapers','practice','study','schoolassessments','universities','competitive','vu']],
     ['Communication','✉',['communication','notifications']],
     ['AI & System','✦',['assistant','auditcenter','settings','troubleshoot','help']]
   ];
