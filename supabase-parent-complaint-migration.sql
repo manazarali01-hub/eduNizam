@@ -285,6 +285,41 @@ using (
   )
 );
 
+
+alter table public.student_parent_complaints add column if not exists resolution_note text;
+
+create or replace function public.resolve_student_parent_complaint_v2(p_complaint_id uuid,p_resolution_note text)
+returns public.student_parent_complaints
+language plpgsql
+security definer
+set search_path=public
+as $$
+declare c public.student_parent_complaints%rowtype; s public.core_students%rowtype; result_row public.student_parent_complaints%rowtype;
+begin
+  if auth.uid() is null then raise exception 'Authentication required'; end if;
+  if nullif(trim(p_resolution_note),'') is null then raise exception 'Resolution note is required'; end if;
+  select * into c from public.student_parent_complaints where id=p_complaint_id for update;
+  if c.id is null then raise exception 'Complaint not found'; end if;
+  if not exists(select 1 from public.institutions i where i.id=c.institution_id and i.owner_user_id=auth.uid()) then raise exception 'Head access required'; end if;
+  select * into s from public.core_students where id=c.student_id;
+  update public.student_parent_complaints set status='Resolved',resolved_at=now(),resolved_by=auth.uid(),resolution_note=trim(p_resolution_note),updated_at=now()
+  where id=c.id returning * into result_row;
+  insert into public.user_notifications(institution_id,recipient_user_id,created_by,category,title,body)
+  select c.institution_id,l.parent_user_id,auth.uid(),'parent_complaint','Student complaint resolved',
+         left(coalesce(s.name,'Student')||' · '||result_row.subject||' · '||result_row.resolution_note,180)
+  from public.parent_student_links l
+  where l.institution_id=c.institution_id and l.student_user_id=s.auth_user_id and l.status='approved' and l.parent_user_id<>auth.uid();
+  if c.created_by<>auth.uid() then
+    insert into public.user_notifications(institution_id,recipient_user_id,created_by,category,title,body)
+    values(c.institution_id,c.created_by,auth.uid(),'parent_complaint','Complaint resolved',left(result_row.subject||' · '||result_row.resolution_note,180));
+  end if;
+  return result_row;
+end;
+$$;
+revoke execute on function public.resolve_student_parent_complaint_v2(uuid,text) from public;
+revoke execute on function public.resolve_student_parent_complaint_v2(uuid,text) from anon;
+grant execute on function public.resolve_student_parent_complaint_v2(uuid,text) to authenticated;
+
 commit;
 
 
