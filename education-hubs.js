@@ -32,7 +32,12 @@
     if(!U)return;
     if($('universityFilter')){
       $('universityFilter').innerHTML='<option value="">All Universities</option>'+U.universities.map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join('');
-      ['universityFilter','universityCategory','universitySource'].forEach(id=>$(id).addEventListener('change',renderUniversities));
+      const cat=$('universityCategory');
+      if(cat){
+        const cats=[...new Set((U.resources||[]).filter(r=>r.universityId!=='vu').map(r=>r.category).filter(Boolean))].sort();
+        cat.innerHTML='<option value="">All Categories</option>'+cats.map(x=>'<option>'+esc(x)+'</option>').join('');
+      }
+      ['universityFilter','universityCategory','universitySource'].forEach(id=>$(id)?.addEventListener('change',renderUniversities));
       $('universitySearch').addEventListener('input',renderUniversities);
       $('universitySearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderUniversities()}});
       $('universitySearchBtn')?.addEventListener('click',renderUniversities);
