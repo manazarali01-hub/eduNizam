@@ -1,7 +1,7 @@
 (function(){
-  const VERSION='20261002-deep508';
+  const VERSION='20261002-deep509';
   const featureScripts={
-    attendanceanalytics:['attendance-analytics.js'],
+    attendanceanalytics:['attendance-analytics.js','academic-operations-deep.js'],
     pastpapers:['past-papers-premium.js'],
     practice:['practice-center.js'],
     study:['study-library.js'],
@@ -11,7 +11,7 @@
     pathways:['exam-pathways.js','exam-topic-practice.js','exam-topic-planner.js'],
     vu:['education-hubs.js','vu-workspace.js'],
     admissions:['admissions-portal.js','admissions-selection.js'],
-    studentprofile:['student-performance.js'],
+    studentprofile:['student-performance.js','academic-operations-deep.js'],
     behaviorcenter:['student-behavior.js'],
     parentcomplaints:['parent-complaint-center.js'],
     gatecenter:['gate-pass-center.js'],
@@ -26,7 +26,7 @@
     helpdeskcenter:['helpdesk-center.js'],
     help:['help-knowledge-center.js'],
     leavecenter:['leave-center.js'],
-    examcenter:['exam-center.js'],
+    examcenter:['exam-center.js','academic-operations-deep.js'],
     paperbuilder:['teacher-paper-builder.js','academic-workflow-deep.js'],
     dailydiary:['daily-class-diary.js','academic-workflow-deep.js'],
     staffcenter:['staff-center.js'],
@@ -40,7 +40,7 @@
     librarycenter:['library-center.js'],
     transportcenter:['transport-center.js'],
     classcenter:['class-section-center.js'],
-    fees:['fee-center.js'],
+    fees:['fee-center.js','academic-operations-deep.js'],
     results:['result-center-deep.js'],
     communication:['communication-center.js'],
     assistant:['https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js','math-editor.js']
