@@ -34,6 +34,9 @@
       $('universityFilter').innerHTML='<option value="">All Universities</option>'+U.universities.map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join('');
       ['universityFilter','universityCategory','universitySource'].forEach(id=>$(id).addEventListener('change',renderUniversities));
       $('universitySearch').addEventListener('input',renderUniversities);
+      $('universitySearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderUniversities()}});
+      $('universitySearchBtn')?.addEventListener('click',renderUniversities);
+      document.querySelectorAll('[data-uni-quick]').forEach(b=>b.onclick=()=>{if($('universityFilter'))$('universityFilter').value=b.dataset.uniQuick;renderUniversities()});
       renderUniversities();
     }
     if($('vuLibrary')){
@@ -60,11 +63,15 @@
   }
   function renderUniversities(){
     const q=$('universitySearch').value.trim().toLowerCase(),uid=$('universityFilter').value,cat=$('universityCategory').value,src=$('universitySource').value;
-    const arr=U.resources.filter(r=>r.universityId!=='vu'&&(!uid||r.universityId===uid)&&(!cat||r.category===cat)&&(!src||r.source===src)&&(!q||([r.title,r.category,r.note,U.universities.find(x=>x.id===r.universityId)?.name].join(' ').toLowerCase().includes(q))));
-    $('universityCountBadge').textContent=U.universities.length+' Universities';
+    const arr=U.resources.filter(r=>{
+      const u=U.universities.find(x=>x.id===r.universityId);
+      const text=[r.title,r.category,r.note,r.keywords,u?.name,u?.type].filter(Boolean).join(' ').toLowerCase();
+      return r.universityId!=='vu'&&(!uid||r.universityId===uid)&&(!cat||r.category===cat)&&(!src||r.source===src)&&(!q||text.includes(q));
+    });
+    $('universityCountBadge').textContent=U.universities.filter(u=>u.id!=='vu').length+' Universities / Authorities';
     if(arr.length){$('universityLibrary').innerHTML=arr.map(uniCard).join('');return}
-    const candidates=U.universities.filter(u=>u.id!=='vu'&&(!uid||u.id===uid));
-    $('universityLibrary').innerHTML=candidates.map(u=>universityFallbackCard(u,q)).join('');
+    const candidates=U.universities.filter(u=>u.id!=='vu'&&(!uid||u.id===uid)&&(!q||[u.name,u.type].join(' ').toLowerCase().includes(q)));
+    $('universityLibrary').innerHTML=candidates.length?candidates.map(u=>universityFallbackCard(u,q)).join(''):'<div class="empty-state">No matching university resource. Try AIOU, results, LMS, admissions, HEC, past papers or clear a filter.</div>';
   }
   function vuCard(r){
     const saved=vuSaved().includes(r.id);
