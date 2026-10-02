@@ -14,7 +14,17 @@ function openInternal(section){
     if(b)b.click();else location.href='learn.html#'+section;
   }
 }
+function injectStyles(){
+ if(document.getElementById('examPathwayStyles'))return;
+ const s=document.createElement('style');s.id='examPathwayStyles';s.textContent=`
+ .exam-path-card{display:grid;gap:12px;min-width:0}.exam-path-card details{border:1px solid var(--line,#d7e2df);border-radius:14px;padding:10px 12px;background:#fff}.exam-path-card summary{cursor:pointer;font-weight:850}.exam-path-card ul{padding-left:20px;line-height:1.55}
+ .path-subjects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.path-subjects>div{border:1px solid var(--line,#d7e2df);border-radius:12px;padding:10px;background:#f8fbfa}.path-subjects strong{display:block;margin-bottom:4px}.path-subjects span{font-size:.86rem;line-height:1.45;color:var(--muted,#52645f)}
+ .path-steps{counter-reset:pathstep;list-style:none;padding:0;margin:12px 0 0;display:grid;gap:10px}.path-steps li{position:relative;padding:12px 12px 12px 42px;border:1px solid var(--line,#d7e2df);border-radius:14px;background:#fff}.path-steps li:before{counter-increment:pathstep;content:counter(pathstep);position:absolute;left:10px;top:11px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--green,#075347);color:#fff;font-weight:900;font-size:.78rem}.path-steps p{margin:5px 0 8px;line-height:1.48;color:var(--muted,#52645f)}.path-steps a,.path-steps button{display:inline-flex;align-items:center;border:1px solid var(--line,#d7e2df);border-radius:9px;padding:7px 9px;background:#fff;color:var(--green,#075347);font-weight:800;text-decoration:none;cursor:pointer}
+ @media(max-width:640px){.path-subjects{grid-template-columns:1fr}.exam-path-card details{padding:9px}.path-steps li{padding:11px 10px 11px 40px}.exam-path-card .paper-actions{display:grid}.exam-path-card .paper-actions a{width:100%;text-align:center}}
+ `;document.head.appendChild(s)
+}
 function init(){
+ injectStyles();
  const pf=$('examPathwayFilter'),stage=$('examPathStage'),auth=$('examPathAuthority');
  if(pf)pf.innerHTML='<option value="">All Pathways</option>'+D.pathways.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');
  const stages=[...new Set(D.pathways.map(x=>x.stage).filter(Boolean))].sort(),auths=[...new Set(D.pathways.map(x=>x.authority).filter(Boolean))].sort();
