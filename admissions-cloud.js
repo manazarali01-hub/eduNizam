@@ -81,7 +81,7 @@
       interview_weight:row.interviewWeight??10,
       merit_score:row.meritScore||null,
       admin_note:row.adminNote||null,
-      metadata:{localCreatedAt:row.createdAt||null,quota:row.quota||null}
+      metadata:{localCreatedAt:row.createdAt||null,quota:row.quota||null,fee_snapshot:row.feeSnapshot||null}
     };
   }
   async function createApplication(row){
@@ -573,11 +573,42 @@
     const {data,error}=await state.client.rpc('verify_admission_payment_v2',{p_payment_id:id,p_decision:normalized,p_note:note||''});
     if(error)throw error;return data;
   }
-  async function confirmAdmission(applicationId){
+  async function listAdmissionSections(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    await requireHeadRole();
+    const [sectionsRes,studentsRes]=await Promise.all([
+      state.client.from('class_sections')
+        .select('id,class_name,section_name,class_teacher_user_id,class_teacher_name,room_label,capacity,active')
+        .eq('institution_id',cfg.institutionId)
+        .eq('active',true)
+        .order('class_name')
+        .order('section_name'),
+      state.client.from('core_students')
+        .select('class_name,section_name')
+        .eq('institution_id',cfg.institutionId)
+    ]);
+    if(sectionsRes.error)throw sectionsRes.error;
+    if(studentsRes.error)throw studentsRes.error;
+    const counts=new Map();
+    (studentsRes.data||[]).forEach(s=>{
+      const k=String(s.class_name||'').trim().toLowerCase()+'|'+String(s.section_name||'').trim().toLowerCase();
+      counts.set(k,(counts.get(k)||0)+1);
+    });
+    return (sectionsRes.data||[]).map(s=>{
+      const k=String(s.class_name||'').trim().toLowerCase()+'|'+String(s.section_name||'').trim().toLowerCase();
+      return {...s,enrolled:counts.get(k)||0};
+    });
+  }
+  async function confirmAdmission(applicationId,options={}){
     if(!state.client||!state.user)throw new Error('Sign in first.');
     await requireHeadRole();
-    const {data,error}=await state.client.rpc('confirm_admission_v2',{p_application_id:applicationId});
-    if(error)throw error;return data;
+    const {data,error}=await state.client.rpc('confirm_admission_v3',{
+      p_application_id:applicationId,
+      p_section_name:options.sectionName||null,
+      p_roll_no:options.rollNo||null
+    });
+    if(error)throw error;
+    return Array.isArray(data)?(data[0]||null):data;
   }
   async function updatePaymentStatus(id,status){
     return verifyAdmissionPayment(id,status,'');
@@ -607,7 +638,7 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,searchSchoolDirectory,submitSchoolAccessRequest,getMySchoolAccessRequest,listSchoolAccessRequests,decideSchoolAccessRequest,decideTeacherSchoolRequest,resolveSchoolAccessLink,listAccessLinkIssues,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,listApplicationDocuments,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,issueAdmissionChallan,submitAdmissionPayment,verifyAdmissionPayment,confirmAdmission,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,searchSchoolDirectory,submitSchoolAccessRequest,getMySchoolAccessRequest,listSchoolAccessRequests,decideSchoolAccessRequest,decideTeacherSchoolRequest,resolveSchoolAccessLink,listAccessLinkIssues,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,listApplicationDocuments,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,issueAdmissionChallan,submitAdmissionPayment,verifyAdmissionPayment,listAdmissionSections,confirmAdmission,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
   window.EDUNIZAM_CLOUD=api;
   init().catch(e=>console.warn('EduNizam cloud init:',e.message));
 })();
