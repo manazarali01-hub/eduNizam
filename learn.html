@@ -198,7 +198,17 @@
     </div>
     <div id="vuSummary" class="paper-summary"></div><div id="vuGrid" class="grid"></div>
   </section>
-  <section id="practice" class="section"><div class="section-head"><div><h2>Practice Center</h2><p>Free built-in practice with instant feedback.</p></div></div><article class="card practice-box"><div id="practiceMeta" class="meta"></div><div id="practiceQuestion" class="question"></div><div id="practiceOptions" class="options"></div><div id="practiceExplain" class="explain" hidden></div><div class="practice-actions"><button id="prevQuestion" class="btn">Previous</button><button id="nextQuestion" class="btn primary">Next Question</button></div></article></section>
+  <section id="practice" class="section"><div class="section-head"><div><h2>Practice Center</h2><p>2,800+ built-in questions with class, subject, chapter-aware search and instant feedback.</p></div></div>
+    <div class="paper-filters" aria-label="Practice filters">
+      <select id="practiceGuestClass" aria-label="Practice class"><option value="">All Classes</option><option value="5">Grade 5</option><option value="8">Grade 8</option><option value="9">Class 9</option><option value="10">Class 10</option><option value="11">Class 11</option><option value="12">Class 12</option></select>
+      <select id="practiceGuestSubject" aria-label="Practice subject"><option value="">All Subjects</option></select>
+      <select id="practiceGuestType" aria-label="Question type"><option value="">All Question Types</option><option value="mcq">MCQs</option><option value="short">Short Questions</option><option value="long">Long Questions</option></select>
+      <select id="practiceGuestDifficulty" aria-label="Difficulty"><option value="">All Difficulty</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
+      <button id="practiceGuestStart" class="btn primary" type="button">Start / Reset</button>
+    </div>
+    <div id="practiceGuestSummary" class="paper-summary"></div>
+    <article class="card practice-box"><div id="practiceMeta" class="meta"></div><div id="practiceQuestion" class="question"></div><div id="practiceOptions" class="options"></div><div id="practiceExplain" class="explain" hidden></div><div class="practice-actions"><button id="prevQuestion" class="btn">Previous</button><button id="randomQuestion" class="btn">Random</button><button id="nextQuestion" class="btn primary">Next Question</button></div></article>
+  </section>
 </main>
 <div id="paperPreview" class="preview-modal" aria-hidden="true"><div class="preview-box"><div class="preview-head"><strong id="previewTitle">Paper Preview</strong><div class="paper-actions"><button id="previewPrint" class="btn" type="button">Print</button><a id="previewSave" class="btn primary" href="#" target="_blank" rel="noopener">Save / Open</a><button id="previewClose" class="btn" type="button">Close</button></div></div><iframe id="previewFrame" class="preview-frame" title="Past paper preview"></iframe></div></div>
 
@@ -432,8 +442,25 @@
     $('vuGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No exact result matched. Try a course code such as MTH603 or clear the material-type filter; EduNizam will not invent an exact paper.</div>';
   }
   let qi=0,answered=false;
-  function practiceList(){const all=window.EDUNIZAM_PRACTICE_DATA?.questions||[],needle=q();return needle?all.filter(x=>match(x)):all}
-  function renderPractice(){const list=practiceList();if(!list.length){$('practiceMeta').innerHTML='';$('practiceQuestion').textContent='No practice question matched this search.';$('practiceOptions').innerHTML='';$('practiceExplain').hidden=true;return}if(qi>=list.length)qi=0;const x=list[qi];answered=false;$('practiceMeta').innerHTML='<span class="badge">Class '+esc(x.classLevel)+'</span><span class="badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.difficulty)+'</span>';$('practiceQuestion').textContent=x.question;$('practiceExplain').hidden=true;$('practiceExplain').textContent='';if(x.type==='mcq'){$('practiceOptions').innerHTML=(x.options||[]).map((o,i)=>'<button class="option" data-answer="'+i+'">'+esc(o)+'</button>').join('');document.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>{if(answered)return;answered=true;const n=Number(b.dataset.answer);document.querySelectorAll('[data-answer]').forEach((z,i)=>z.classList.add(i===x.answer?'correct':(i===n?'wrong':'')));$('practiceExplain').hidden=false;$('practiceExplain').textContent=(n===x.answer?'Correct. ':'Review: ')+(x.explanation||'')})}else{$('practiceOptions').innerHTML='<button class="option" id="showWrittenAnswer">Show suggested answer</button>';$('showWrittenAnswer').onclick=()=>{$('practiceExplain').hidden=false;$('practiceExplain').textContent=x.answerText||'Review this answer with your current textbook/teacher.'}}}
+  function initPracticeFilters(){
+    const D=window.EDUNIZAM_PRACTICE_DATA||{};
+    const fillSubjects=()=>{
+      const cls=$('practiceGuestClass')?.value||'';
+      const subjects=cls?(D.subjects?.[cls]||[]):[...new Set(Object.values(D.subjects||{}).flat())].sort();
+      const old=$('practiceGuestSubject')?.value||'';
+      if($('practiceGuestSubject')){$('practiceGuestSubject').innerHTML='<option value="">All Subjects</option>'+subjects.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');if(subjects.includes(old))$('practiceGuestSubject').value=old}
+    };
+    fillSubjects();
+    $('practiceGuestClass')?.addEventListener('change',()=>{fillSubjects();qi=0;renderPractice()});
+    ['practiceGuestSubject','practiceGuestType','practiceGuestDifficulty'].forEach(id=>$(id)?.addEventListener('change',()=>{qi=0;renderPractice()}));
+    $('practiceGuestStart')?.addEventListener('click',()=>{qi=0;renderPractice();$('practiceQuestion')?.scrollIntoView({behavior:'smooth',block:'center'})});
+  }
+  function practiceList(){
+    const all=window.EDUNIZAM_PRACTICE_DATA?.questions||[],needle=q();
+    const cls=Number($('practiceGuestClass')?.value||0),subject=$('practiceGuestSubject')?.value||'',type=$('practiceGuestType')?.value||'',difficulty=$('practiceGuestDifficulty')?.value||'';
+    return all.filter(x=>(!cls||Number(x.classLevel)===cls)&&(!subject||x.subject===subject)&&(!type||x.type===type)&&(!difficulty||x.difficulty===difficulty)&&(!needle||match(x)));
+  }
+  function renderPractice(){const list=practiceList();if($('practiceGuestSummary'))$('practiceGuestSummary').textContent=list.length+' matching question'+(list.length===1?'':'s')+' · use Previous, Random or Next to move through the filtered bank.';if(!list.length){$('practiceMeta').innerHTML='';$('practiceQuestion').textContent='No practice question matched these filters. Clear a filter or change the global search.';$('practiceOptions').innerHTML='';$('practiceExplain').hidden=true;return}if(qi>=list.length)qi=0;const x=list[qi];answered=false;$('practiceMeta').innerHTML='<span class="badge">'+(Number(x.classLevel)<=8?'Grade ':'Class ')+esc(x.classLevel)+'</span><span class="badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.chapter||'General')+'</span><span class="badge">'+esc(x.type.toUpperCase())+'</span><span class="badge">'+esc(x.difficulty)+'</span><span class="badge">'+(qi+1)+' / '+list.length+'</span>';$('practiceQuestion').textContent=x.question;$('practiceExplain').hidden=true;$('practiceExplain').textContent='';if(x.type==='mcq'){$('practiceOptions').innerHTML=(x.options||[]).map((o,i)=>'<button class="option" data-answer="'+i+'">'+esc(o)+'</button>').join('');document.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>{if(answered)return;answered=true;const n=Number(b.dataset.answer);document.querySelectorAll('[data-answer]').forEach((z,i)=>z.classList.add(i===x.answer?'correct':(i===n?'wrong':'')));$('practiceExplain').hidden=false;$('practiceExplain').textContent=(n===x.answer?'Correct. ':'Review: ')+(x.explanation||'')})}else{$('practiceOptions').innerHTML='<button class="option" id="showWrittenAnswer">Show suggested answer</button>';$('showWrittenAnswer').onclick=()=>{$('practiceExplain').hidden=false;$('practiceExplain').textContent=x.answerText||'Review this answer with your current textbook/teacher.'}}}
   document.addEventListener('click',e=>{
     const p=e.target.closest('.preview-paper'),pr=e.target.closest('.print-paper');
     if(p){const url=p.dataset.url;$('previewTitle').textContent=p.dataset.title||'Paper Preview';$('previewFrame').src=url;$('previewSave').href=url;$('paperPreview').classList.add('open');$('paperPreview').setAttribute('aria-hidden','false')}
@@ -442,7 +469,7 @@
   $('previewClose').onclick=()=>{$('paperPreview').classList.remove('open');$('paperPreview').setAttribute('aria-hidden','true');$('previewFrame').src='about:blank'};
   $('paperPreview').addEventListener('click',e=>{if(e.target===$('paperPreview'))$('previewClose').click()});
   $('previewPrint').onclick=()=>{try{$('previewFrame').contentWindow.print()}catch(_){window.open($('previewSave').href,'_blank')}};
-  $('prevQuestion').onclick=()=>{qi=Math.max(0,qi-1);renderPractice()};$('nextQuestion').onclick=()=>{const n=practiceList().length;qi=n?(qi+1)%n:0;renderPractice()};
+  $('prevQuestion').onclick=()=>{const n=practiceList().length;qi=n?(qi-1+n)%n:0;renderPractice()};$('randomQuestion').onclick=()=>{const n=practiceList().length;qi=n?Math.floor(Math.random()*n):0;renderPractice()};$('nextQuestion').onclick=()=>{const n=practiceList().length;qi=n?(qi+1)%n:0;renderPractice()};
   function renderAll(){renderHome();renderPast();renderGrade();renderStudy();renderUniversities();renderCompetitive();renderEcosystem();renderVU();renderPractice()}
   function runGlobalSearch(){
     qi=0;
@@ -488,7 +515,7 @@
   $('vuGuestType')?.addEventListener('change',renderVU);
   document.querySelectorAll('[data-vu-guest-query]').forEach(b=>b.addEventListener('click',()=>{openTab('vu');$('vuGuestSearch').value=b.dataset.vuGuestQuery;$('vuGuestType').value='';renderVU();$('vuGrid')?.scrollIntoView({behavior:'smooth',block:'start'})}));
   $('clearSearch').onclick=()=>{$('globalSearch').value='';if($('vuGuestSearch'))$('vuGuestSearch').value='';if($('vuGuestType'))$('vuGuestType').value='';qi=0;renderAll();$('globalSearch').focus()};
-  initPastFilters();initUniversityFilters();initCompetitiveFilters();initEcosystemFilters();renderAll();
+  initPastFilters();initUniversityFilters();initCompetitiveFilters();initEcosystemFilters();initPracticeFilters();renderAll();
   const initialTab=location.hash.slice(1);if(validTabs.has(initialTab))openTab(initialTab);
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
