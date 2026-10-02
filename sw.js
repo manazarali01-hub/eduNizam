@@ -1,4 +1,4 @@
-const CACHE='edunizam-v204-deep461'
+const CACHE='edunizam-v205-deep470'
 const CORE=[
   './',
   './index.html',
@@ -56,6 +56,7 @@ const CORE=[
   './vu-material-library.js',
   './practice-data.js',
   './practice-curriculum-expansion.js',
+  './practice-depth-data.js',
   './learning-premium-data.js',
   './learning-complete-data.js',
   './learning-required-data.js',
