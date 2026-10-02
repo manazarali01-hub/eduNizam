@@ -183,7 +183,21 @@
       <div id="examPrepHistory" class="notice" style="margin-top:14px"></div>
     </div>
   </section>
-  <section id="vu" class="section"><div class="section-head"><div><h2>Virtual University</h2><p>Official material first; community sources are marked as supplementary.</p></div></div><div class="notice">Search a course code such as <strong>MTH647</strong>, <strong>MTH501</strong>, <strong>CS201</strong> or <strong>STA301</strong>. When an exact indexed item is unavailable, EduNizam shows useful VU-wide alternatives rather than inventing an exact paper.</div><div id="vuGrid" class="grid"></div></section>
+  <section id="vu" class="section"><div class="section-head"><div><h2>Virtual University</h2><p>Official material first; community sources are marked as supplementary.</p></div></div>
+    <div class="notice">Search a course code such as <strong>MTH603</strong>, <strong>MTH647</strong>, <strong>CS201</strong> or <strong>STA301</strong>. You can combine the code with a material type, for example <strong>MTH603 quizzes</strong> or <strong>CS201 handouts</strong>.</div>
+    <div class="paper-filters" aria-label="Virtual University resource filters">
+      <input class="paper-search" id="vuGuestSearch" type="search" placeholder="Search e.g. MTH603 quizzes, CS201 handouts…" aria-label="Search Virtual University resources">
+      <select id="vuGuestType" aria-label="VU material type"><option value="">All Material Types</option><option value="Course Notes / Handouts">Handouts</option><option value="Highlighted Handouts">Highlighted Handouts</option><option value="Short Notes">Notes</option><option value="Quizzes / MCQs">Quizzes / MCQs</option><option value="Assignments">Assignments</option><option value="Midterm Past Papers">Midterm Past Papers</option><option value="Finalterm Past Papers">Final Term Past Papers</option><option value="__exam__">All Exam / Past Papers</option></select>
+      <button id="vuGuestSearchBtn" class="btn primary" type="button">Search VU</button>
+    </div>
+    <div class="search-suggestions" style="margin:10px 0">
+      <button type="button" data-vu-guest-query="MTH603 quizzes">MTH603 Quizzes</button>
+      <button type="button" data-vu-guest-query="MTH603 handouts">MTH603 Handouts</button>
+      <button type="button" data-vu-guest-query="CS201 final term">CS201 Final Term</button>
+      <button type="button" data-vu-guest-query="STA301 notes">STA301 Notes</button>
+    </div>
+    <div id="vuSummary" class="paper-summary"></div><div id="vuGrid" class="grid"></div>
+  </section>
   <section id="practice" class="section"><div class="section-head"><div><h2>Practice Center</h2><p>Free built-in practice with instant feedback.</p></div></div><article class="card practice-box"><div id="practiceMeta" class="meta"></div><div id="practiceQuestion" class="question"></div><div id="practiceOptions" class="options"></div><div id="practiceExplain" class="explain" hidden></div><div class="practice-actions"><button id="prevQuestion" class="btn">Previous</button><button id="nextQuestion" class="btn primary">Next Question</button></div></article></section>
 </main>
 <div id="paperPreview" class="preview-modal" aria-hidden="true"><div class="preview-box"><div class="preview-head"><strong id="previewTitle">Paper Preview</strong><div class="paper-actions"><button id="previewPrint" class="btn" type="button">Print</button><a id="previewSave" class="btn primary" href="#" target="_blank" rel="noopener">Save / Open</a><button id="previewClose" class="btn" type="button">Close</button></div></div><iframe id="previewFrame" class="preview-frame" title="Past paper preview"></iframe></div></div>
@@ -215,12 +229,12 @@
 <script src="vu-catalog-expansion.js?v=20261001-visitor215"></script>
 <script src="vu-project-courses-deep.js?v=20261002-deep501"></script>
 <script src="vu-course-pathways.js?v=20261001-visitor215"></script>
-<script src="vu-material-library.js?v=20261002-deep501"></script>
+<script src="vu-material-library.js?v=20261002-deep502"></script>
 <script src="practice-curriculum-expansion.js?v=20261001-visitor215"></script>
 <script src="practice-depth-data.js?v=20261002-deep501"></script>
 <script src="practice-complete-data.js?v=20261002-deep501"></script>
 <script src="practice-session-core.js?v=20261002-deep501"></script>
-<script src="learning-search-engine.js?v=20261001-visitor215"></script>
+<script src="learning-search-engine.js?v=20261002-deep502"></script>
 <script>
 (()=>{
   const $=id=>document.getElementById(id);
@@ -387,33 +401,35 @@
     $('ecosystemGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No matching official education route. Try scholarship, MDCAT, ECAT, IBCC, textbook, NAVTTC or research.</div>';
   }
   function renderVU(){
-    const d=window.EDUNIZAM_UNIVERSITY_DATA||{},catalog=window.EDUNIZAM_VU_COURSE_CATALOG||{},needle=q(),rows=[];
-    const raw=$('globalSearch').value.trim(),upper=raw.toUpperCase();
+    const d=window.EDUNIZAM_UNIVERSITY_DATA||{},catalog=window.EDUNIZAM_VU_COURSE_CATALOG||{},rows=[];
+    const localRaw=$('vuGuestSearch')?.value.trim()||'',raw=localRaw||$('globalSearch').value.trim(),needle=norm(raw),upper=raw.toUpperCase();
+    const vuMatch=obj=>{if(!needle)return true;const candidate={...obj,description:[obj?.note,obj?.description,obj?.freshness].filter(Boolean).join(' ')};return !!window.EDUNIZAM_LEARNING_SEARCH?.search?.([candidate],raw)?.length||norm(JSON.stringify(obj)).includes(needle)};
     const codeHit=upper.match(/\b[A-Z]{2,5}[\s-]*\d{3,4}[A-Z]?\b/);
     const courseCode=codeHit?codeHit[0].replace(/[^A-Z0-9]/g,''):'';
     const exact=(catalog.courses||[]).find(x=>String(x.code||'').toUpperCase()===courseCode);
     const lower=raw.toLowerCase();
-    let materialType='';
-    if(/\bquiz(?:zes)?\b|\bmcqs?\b/.test(lower))materialType='Quizzes / MCQs';
-    else if(/highlighted\s*handouts?/.test(lower))materialType='Highlighted Handouts';
-    else if(/\bhandouts?\b/.test(lower))materialType='Course Notes / Handouts';
-    else if(/\bshort\s*notes?\b|\bnotes?\b/.test(lower))materialType='Short Notes';
-    else if(/\bassignments?\b/.test(lower))materialType='Assignments';
-    else if(/\bmid\s*term\b|\bmidterm\b/.test(lower))materialType='Midterm Past Papers';
-    else if(/\bfinal\s*term\b|\bfinalterm\b/.test(lower))materialType='Finalterm Past Papers';
-    else if(/\bpast\s*papers?\b/.test(lower))materialType='__exam__';
+    let materialType=$('vuGuestType')?.value||'';
+    if(!materialType&&/\bquiz(?:zes)?\b|\bmcqs?\b/.test(lower))materialType='Quizzes / MCQs';
+    else if(!materialType&&/highlighted\s*handouts?/.test(lower))materialType='Highlighted Handouts';
+    else if(!materialType&&/\bhandouts?\b/.test(lower))materialType='Course Notes / Handouts';
+    else if(!materialType&&/\bshort\s*notes?\b|\bnotes?\b/.test(lower))materialType='Short Notes';
+    else if(!materialType&&/\bassignments?\b/.test(lower))materialType='Assignments';
+    else if(!materialType&&/\bmid\s*term\b|\bmidterm\b/.test(lower))materialType='Midterm Past Papers';
+    else if(!materialType&&/\bfinal\s*term\b|\bfinalterm\b/.test(lower))materialType='Finalterm Past Papers';
+    else if(!materialType&&/\bpast\s*papers?\b/.test(lower))materialType='__exam__';
 
     if(exact){
       rows.push(resourceCard({title:exact.code+' — '+exact.title,description:exact.freshness,url:exact.officialDetails,source:'official',tags:[exact.category,exact.creditHours?(exact.creditHours+' CH'):'Official VU']}));
       const materials=window.EDUNIZAM_VU_MATERIALS?.forCourse?.(exact,{type:materialType})||[];
       materials.forEach(m=>rows.push(resourceCard({title:m.title,description:m.note,url:m.url,source:m.trust==='official'?'official':m.source,tags:[m.type,m.accessLabel||m.access,m.source]})));
     }else{
-      (catalog.courses||[]).filter(x=>match(x)).forEach(x=>rows.push(resourceCard({title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails,source:'official',tags:[x.category,x.creditHours?(x.creditHours+' CH'):'Official OCW']})));
+      (catalog.courses||[]).filter(x=>vuMatch(x)).forEach(x=>rows.push(resourceCard({title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails,source:'official',tags:[x.category,x.creditHours?(x.creditHours+' CH'):'Official OCW']})));
     }
 
-    (d.resources||[]).filter(x=>x.universityId==='vu').filter(x=>match(x)).forEach(x=>rows.push(resourceCard({title:x.title,description:x.note,url:x.url,source:x.source,tags:[x.category,x.sourceName]})));
+    (d.resources||[]).filter(x=>x.universityId==='vu').filter(x=>vuMatch(x)).forEach(x=>rows.push(resourceCard({title:x.title,description:x.note,url:x.url,source:x.source,tags:[x.category,x.sourceName]})));
     if(needle && !rows.length){(d.resources||[]).filter(x=>x.universityId==='vu'&&x.courseAgnostic).slice(0,6).forEach(x=>rows.push(resourceCard({title:x.title,description:'No exact indexed match was found for this search. This is a useful VU-wide source; verify current material in VULMS/OCW. '+(x.note||''),url:x.url,source:x.source,tags:[x.category]})))}
-    $('vuGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">Search a VU course code, subject or resource type. EduNizam will not invent an exact result.</div>';
+    if($('vuSummary'))$('vuSummary').textContent=raw?(rows.length+' result route'+(rows.length===1?'':'s')+' for “'+raw+'”'+(materialType?' · '+(materialType==='__exam__'?'Exam / Past Papers':materialType):'')):'Search by VU course code, title or material type.';
+    $('vuGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No exact result matched. Try a course code such as MTH603 or clear the material-type filter; EduNizam will not invent an exact paper.</div>';
   }
   let qi=0,answered=false;
   function practiceList(){const all=window.EDUNIZAM_PRACTICE_DATA?.questions||[],needle=q();return needle?all.filter(x=>match(x)):all}
@@ -429,7 +445,10 @@
   $('prevQuestion').onclick=()=>{qi=Math.max(0,qi-1);renderPractice()};$('nextQuestion').onclick=()=>{const n=practiceList().length;qi=n?(qi+1)%n:0;renderPractice()};
   function renderAll(){renderHome();renderPast();renderGrade();renderStudy();renderUniversities();renderCompetitive();renderEcosystem();renderVU();renderPractice()}
   function runGlobalSearch(){
-    qi=0;renderAll();
+    qi=0;
+    if($('vuGuestSearch'))$('vuGuestSearch').value='';
+    if($('vuGuestType'))$('vuGuestType').value='';
+    renderAll();
     const raw=$('globalSearch').value.trim();
     const rawNorm=norm(raw),rawTokens=rawNorm.split(' ').filter(Boolean);
     const prepHit=(window.EDUNIZAM_EXAM_PREP?.exams||[]).some(ex=>{
@@ -452,8 +471,9 @@
       requestAnimationFrame(()=>$('ecosystemGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));return;
     }
     if(/\b[A-Za-z]{2,5}[\s-]*\d{3,4}[A-Za-z]?\b/.test(raw)){
+      if($('vuGuestSearch'))$('vuGuestSearch').value=raw;
       history.replaceState(null,'','#vu');openTab('vu');
-      requestAnimationFrame(()=>$('vuGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));return;
+      requestAnimationFrame(()=>{renderVU();$('vuGrid')?.scrollIntoView({behavior:'smooth',block:'start'})});return;
     }
     if(/\b(aiou|allama iqbal|punjab university|bzu|uog|uaf|gcuf|sargodha university|hec|university results?|university lms|student portal)\b/i.test(raw)){
       history.replaceState(null,'','#universities');openTab('universities');
@@ -463,7 +483,11 @@
   let timer;$('globalSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>{qi=0;renderAll()},120)});
   $('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
   $('runGlobalSearch').onclick=runGlobalSearch;
-  $('clearSearch').onclick=()=>{$('globalSearch').value='';qi=0;renderAll();$('globalSearch').focus()};
+  $('vuGuestSearchBtn')?.addEventListener('click',()=>{renderVU();$('vuGrid')?.scrollIntoView({behavior:'smooth',block:'start'})});
+  $('vuGuestSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderVU();$('vuGrid')?.scrollIntoView({behavior:'smooth',block:'start'})}});
+  $('vuGuestType')?.addEventListener('change',renderVU);
+  document.querySelectorAll('[data-vu-guest-query]').forEach(b=>b.addEventListener('click',()=>{openTab('vu');$('vuGuestSearch').value=b.dataset.vuGuestQuery;$('vuGuestType').value='';renderVU();$('vuGrid')?.scrollIntoView({behavior:'smooth',block:'start'})}));
+  $('clearSearch').onclick=()=>{$('globalSearch').value='';if($('vuGuestSearch'))$('vuGuestSearch').value='';if($('vuGuestType'))$('vuGuestType').value='';qi=0;renderAll();$('globalSearch').focus()};
   initPastFilters();initUniversityFilters();initCompetitiveFilters();initEcosystemFilters();renderAll();
   const initialTab=location.hash.slice(1);if(validTabs.has(initialTab))openTab(initialTab);
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
