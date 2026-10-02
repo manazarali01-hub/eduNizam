@@ -37,6 +37,8 @@ const CORE=[
   './education-directory-expansion.js',
   './competitive-exams-data.js',
   './competitive-exams.js',
+  './education-hubs.js',
+  './vu-workspace.js',
   './education-ecosystem-data.js',
   './education-ecosystem.js',
   './exam-pathways-data.js',
