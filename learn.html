@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#075347">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Free Learning Hub Pakistan | Past Papers, VU & Practice | EduNizam</title>
-  <meta name="description" content="Use EduNizam Learning Hub free without a school account. Search Pakistan board past papers, Grade 5 and 8 resources, university and Virtual University material, study notes and practice questions.">
+  <meta name="description" content="Use EduNizam Learning Hub free without a school account. Search Pakistan board papers, VU/AIOU and university resources, CSS/PPSC, entry tests, scholarships, IBCC services, textbooks, skills, research and practice.">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <link rel="canonical" href="https://edunizam.online/learn.html">
   <link rel="icon" href="icon-192.svg" type="image/svg+xml">
@@ -53,7 +53,7 @@
     <section class="hero-card">
       <span class="kicker">Free · No School Approval Required</span>
       <h1>Learn first. Join a school when you need to.</h1>
-      <p>Past papers, Grade 5 & 8 resources, Pakistan boards, universities, Virtual University material and practice tools are open to every student. Guest learning does not expose or require any private school data.</p>
+      <p>Past papers, Grade 5 & 8 resources, Pakistan boards, universities, Virtual University material, competitive exams, entry tests, scholarships, textbooks, skills, verification and practice tools are open to every student. Guest learning does not expose or require private school data.</p>
       <div class="hero-actions"><a class="btn primary" href="learn.html#past">Browse Past Papers</a><a class="btn" href="learn.html#vu">Open VU Resources</a><a class="btn" href="learn.html#practice">Start Practice</a></div>
     </section>
     <aside class="quick-card"><span class="kicker">What you can use</span><h2>Public learning only</h2><div class="quick-list">
@@ -68,7 +68,7 @@
 <main class="shell">
   <div class="search-wrap"><div class="searchbox"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="Search board, class, subject, VU course, resource…" aria-label="Search learning resources"><button id="runGlobalSearch" class="btn primary" type="button">Search</button><button id="clearSearch" class="btn" type="button">Clear</button></div></div>
   <nav class="tabs" aria-label="Learning sections">
-    <a class="tab active" data-tab="home" href="learn.html#home">Overview</a><a class="tab" data-tab="past" href="learn.html#past">Past Papers</a><a class="tab" data-tab="grade" href="learn.html#grade">Grade 5 & 8</a><a class="tab" data-tab="study" href="learn.html#study">Study Library</a><a class="tab" data-tab="universities" href="learn.html#universities">Universities</a><a class="tab" data-tab="competitive" href="learn.html#competitive">CSS / PPSC</a><a class="tab" data-tab="vu" href="learn.html#vu">VU</a><a class="tab" data-tab="practice" href="learn.html#practice">Practice</a>
+    <a class="tab active" data-tab="home" href="learn.html#home">Overview</a><a class="tab" data-tab="past" href="learn.html#past">Past Papers</a><a class="tab" data-tab="grade" href="learn.html#grade">Grade 5 & 8</a><a class="tab" data-tab="study" href="learn.html#study">Study Library</a><a class="tab" data-tab="universities" href="learn.html#universities">Universities</a><a class="tab" data-tab="competitive" href="learn.html#competitive">CSS / PPSC</a><a class="tab" data-tab="ecosystem" href="learn.html#ecosystem">Admissions & Opportunities</a><a class="tab" data-tab="vu" href="learn.html#vu">VU</a><a class="tab" data-tab="practice" href="learn.html#practice">Practice</a>
   </nav>
 
   <section id="home" class="section active">
@@ -102,6 +102,26 @@
     <div class="notice"><strong>Official-source rule:</strong> vacancies, eligibility, closing dates, syllabi and results can change. EduNizam routes users to the official commission/testing-service source instead of inventing current information.</div>
     <div id="competitiveGrid" class="grid"></div>
   </section>
+  <section id="ecosystem" class="section"><div class="section-head"><div><h2>Admissions, Scholarships, Entry Tests & Education Services</h2><p>Search official routes for MDCAT/ECAT/USAT/HAT, scholarships, IBCC equivalence, HEC attestation, textbooks, NAVTTC/TEVTA skills, digital libraries, research grants and teacher resources.</p></div></div>
+    <div class="paper-filters" aria-label="Education services filters">
+      <input class="paper-search" id="ecosystemGuestSearch" type="search" placeholder="Search scholarship, MDCAT, ECAT, IBCC, textbook, NAVTTC, research…" aria-label="Search education services">
+      <select id="ecosystemGuestCategory" aria-label="Area"><option value="">All Areas</option></select>
+      <select id="ecosystemGuestStage" aria-label="Stage"><option value="">All Stages</option></select>
+      <select id="ecosystemGuestRegion" aria-label="Region"><option value="">All Regions</option></select>
+      <button id="ecosystemGuestSearchBtn" class="btn primary" type="button">Search Official Routes</button>
+    </div>
+    <div class="search-suggestions" style="margin:10px 0">
+      <button type="button" data-ecosystem-guest-quick="Entry Tests">Entry Tests</button>
+      <button type="button" data-ecosystem-guest-quick="Scholarships">Scholarships</button>
+      <button type="button" data-ecosystem-guest-quick="Equivalence & Attestation">IBCC</button>
+      <button type="button" data-ecosystem-guest-quick="Textbooks & Curriculum">Textbooks</button>
+      <button type="button" data-ecosystem-guest-quick="Skills & TVET">Skills</button>
+      <button type="button" data-ecosystem-guest-quick="Research & Digital Library">Research</button>
+      <button type="button" data-ecosystem-guest-quick="Teacher Resources">Teachers</button>
+    </div>
+    <div class="notice"><strong>Official-source first:</strong> deadlines, eligibility and test/admission windows change. EduNizam indexes the responsible official authority and avoids inventing current notices.</div>
+    <div id="ecosystemGrid" class="grid"></div>
+  </section>
   <section id="vu" class="section"><div class="section-head"><div><h2>Virtual University</h2><p>Official material first; community sources are marked as supplementary.</p></div></div><div class="notice">Search a course code such as <strong>MTH647</strong>, <strong>MTH501</strong>, <strong>CS201</strong> or <strong>STA301</strong>. When an exact indexed item is unavailable, EduNizam shows useful VU-wide alternatives rather than inventing an exact paper.</div><div id="vuGrid" class="grid"></div></section>
   <section id="practice" class="section"><div class="section-head"><div><h2>Practice Center</h2><p>Free built-in practice with instant feedback.</p></div></div><article class="card practice-box"><div id="practiceMeta" class="meta"></div><div id="practiceQuestion" class="question"></div><div id="practiceOptions" class="options"></div><div id="practiceExplain" class="explain" hidden></div><div class="practice-actions"><button id="prevQuestion" class="btn">Previous</button><button id="nextQuestion" class="btn primary">Next Question</button></div></article></section>
 </main>
@@ -115,6 +135,7 @@
 <script src="university-data.js?v=20261001-visitor215"></script>
 <script src="education-directory-expansion.js?v=20261002-edu230"></script>
 <script src="competitive-exams-data.js?v=20261002-edu230"></script>
+<script src="education-ecosystem-data.js?v=20261002-deep240"></script>
 <script src="vu-course-catalog.js?v=20261001-visitor215"></script>
 <script src="practice-data.js?v=20261001-visitor215"></script>
 <script src="learning-premium-data.js?v=20261001-visitor215"></script>
@@ -135,7 +156,7 @@
   const q=()=>norm($('globalSearch').value);
   const sourceBadge=s=>{const x=String(s||'').toLowerCase();const cls=x==='official'?'official':x==='verified'?'verified':x==='built-in'?'builtin':'';return '<span class="badge '+cls+'">'+esc(s||'Resource')+'</span>'};
   const match=(obj,extra='')=>{const raw=$('globalSearch').value,needle=norm(raw);if(!needle)return true;const candidate={...obj,description:[obj?.note,obj?.description,extra].filter(Boolean).join(' ')};return !!window.EDUNIZAM_LEARNING_SEARCH?.search?.([candidate],raw)?.length||norm(JSON.stringify(obj)+' '+extra).includes(needle)};
-  const validTabs=new Set(['home','past','grade','study','universities','competitive','vu','practice']);
+  const validTabs=new Set(['home','past','grade','study','universities','competitive','ecosystem','vu','practice']);
   function openTab(id){
     id=validTabs.has(String(id||''))?String(id):'home';
     document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===id));
@@ -157,9 +178,9 @@
   function resourceCard({title,description,url,source,tags=[],paper=false}){const actions=url?(paper?'<div class="paper-actions"><button class="btn preview-paper" type="button" data-url="'+esc(url)+'" data-title="'+esc(title)+'">Preview</button><button class="btn print-paper" type="button" data-url="'+esc(url)+'">Print</button><a class="btn primary" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Save / Open</a></div>':'<a class="open" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open resource ↗</a>'):'';return '<article class="card">'+sourceBadge(source)+'<h3>'+esc(title)+'</h3><p>'+esc(description||'Useful learning resource.')+'</p><div class="meta">'+tags.filter(Boolean).map(t=>'<span class="badge">'+esc(t)+'</span>').join('')+'</div>'+actions+'</article>'}
   function renderHome(){
     const pp=window.EDUNIZAM_PAST_PAPERS||{},sd=window.EDUNIZAM_STUDY_DATA||{},ud=window.EDUNIZAM_UNIVERSITY_DATA||{},pd=window.EDUNIZAM_PRACTICE_DATA||{};
-    $('boardCount').textContent=(pp.boards||[]).length;$('resourceCount').textContent=(pp.papers||[]).length+(sd.materials||[]).length+(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).length+(ud.resources||[]).length+(window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).length+(window.EDUNIZAM_COMPETITIVE_EXAMS?.resources||[]).length+(window.EDUNIZAM_PUBLIC_LINKS||[]).length;$('uniCount').textContent=(ud.universities||[]).filter(x=>x.id!=='vu').length;$('questionCount').textContent=(pd.questions||[]).length;
+    $('boardCount').textContent=(pp.boards||[]).length;$('resourceCount').textContent=(pp.papers||[]).length+(sd.materials||[]).length+(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).length+(ud.resources||[]).length+(window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).length+(window.EDUNIZAM_COMPETITIVE_EXAMS?.resources||[]).length+(window.EDUNIZAM_EDUCATION_ECOSYSTEM?.resources||[]).length+(window.EDUNIZAM_PUBLIC_LINKS||[]).length;$('uniCount').textContent=(ud.universities||[]).filter(x=>x.id!=='vu').length;$('questionCount').textContent=(pd.questions||[]).length;
     const cards=[
-      ['Past Papers','Pakistan boards and available official/verified paper sources.','past'],['Grade 5 & 8','PECTAA model papers, assessment resources and historical archives.','grade'],['Study Library','Syllabi, model papers and quick revision material.','study'],['Universities','AIOU and Pakistan university results, LMS, admissions, examinations and past papers.','universities'],['CSS / PPSC / FPSC','Competitive exams, jobs, syllabi, applications, roll numbers and results from official sources.','competitive'],['Virtual University','VU course material, handouts, notes and supplementary past-paper sources.','vu'],['Practice Center','Free MCQs and questions with instant feedback.','practice']
+      ['Past Papers','Pakistan boards and available official/verified paper sources.','past'],['Grade 5 & 8','PECTAA model papers, assessment resources and historical archives.','grade'],['Study Library','Syllabi, model papers and quick revision material.','study'],['Universities','AIOU and Pakistan university results, LMS, admissions, examinations and past papers.','universities'],['CSS / PPSC / FPSC','Competitive exams, jobs, syllabi, applications, roll numbers and results from official sources.','competitive'],['Admissions & Opportunities','Entry tests, scholarships, IBCC, textbooks, skills, research and official student services.','ecosystem'],['Virtual University','VU course material, handouts, notes and supplementary past-paper sources.','vu'],['Practice Center','Free MCQs and questions with instant feedback.','practice']
     ];
     $('homeCards').innerHTML=cards.map(x=>'<a class="card" data-home-open="'+x[2]+'" href="learn.html#'+x[2]+'" style="text-align:left;cursor:pointer;text-decoration:none"><span class="kicker">Free</span><h3>'+x[0]+'</h3><p>'+x[1]+'</p><span class="open">Explore →</span></a>').join('');
   }
@@ -251,6 +272,29 @@
     }).map(r=>{const a=d.agencies.find(x=>x.id===r.agencyId);return resourceCard({title:r.title,description:r.note,url:r.url,source:'official',tags:[a?.name,a?.region,r.category]})});
     $('competitiveGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No matching official competitive-exam resource. Clear a filter or search another exam/post.</div>';
   }
+  function initEcosystemFilters(){
+    const d=window.EDUNIZAM_EDUCATION_ECOSYSTEM||{categories:[],resources:[]};
+    const cat=$('ecosystemGuestCategory'),stage=$('ecosystemGuestStage'),region=$('ecosystemGuestRegion');
+    if(cat)cat.innerHTML='<option value="">All Areas</option>'+(d.categories||[]).map(x=>'<option>'+esc(x)+'</option>').join('');
+    const stages=[...new Set((d.resources||[]).map(x=>x.stage).filter(Boolean))].sort();
+    const regions=[...new Set((d.resources||[]).map(x=>x.region).filter(Boolean))].sort();
+    if(stage)stage.innerHTML='<option value="">All Stages</option>'+stages.map(x=>'<option>'+esc(x)+'</option>').join('');
+    if(region)region.innerHTML='<option value="">All Regions</option>'+regions.map(x=>'<option>'+esc(x)+'</option>').join('');
+    ['ecosystemGuestCategory','ecosystemGuestStage','ecosystemGuestRegion'].forEach(id=>$(id)?.addEventListener('change',renderEcosystem));
+    $('ecosystemGuestSearch')?.addEventListener('input',renderEcosystem);
+    $('ecosystemGuestSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderEcosystem()}});
+    $('ecosystemGuestSearchBtn')?.addEventListener('click',renderEcosystem);
+    document.querySelectorAll('[data-ecosystem-guest-quick]').forEach(b=>b.onclick=()=>{if($('ecosystemGuestCategory'))$('ecosystemGuestCategory').value=b.dataset.ecosystemGuestQuick;renderEcosystem()});
+  }
+  function renderEcosystem(){
+    const d=window.EDUNIZAM_EDUCATION_ECOSYSTEM||{resources:[]},local=norm($('ecosystemGuestSearch')?.value||''),cat=$('ecosystemGuestCategory')?.value||'',stage=$('ecosystemGuestStage')?.value||'',region=$('ecosystemGuestRegion')?.value||'',global=q();
+    const rows=(d.resources||[]).filter(r=>{
+      const text=norm([r.title,r.category,r.stage,r.region,r.audience,r.note,r.keywords].join(' '));
+      const localMatch=!local||text.includes(local),globalMatch=!global||match(r);
+      return localMatch&&globalMatch&&(!cat||r.category===cat)&&(!stage||r.stage===stage)&&(!region||r.region===region);
+    }).map(r=>resourceCard({title:r.title,description:r.note,url:r.url,source:'official',tags:[r.category,r.stage,r.region]}));
+    $('ecosystemGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No matching official education route. Try scholarship, MDCAT, ECAT, IBCC, textbook, NAVTTC or research.</div>';
+  }
   function renderVU(){
     const d=window.EDUNIZAM_UNIVERSITY_DATA||{},catalog=window.EDUNIZAM_VU_COURSE_CATALOG||{},needle=q(),rows=[];
     const raw=$('globalSearch').value.trim(),upper=raw.toUpperCase();
@@ -292,13 +336,17 @@
   $('paperPreview').addEventListener('click',e=>{if(e.target===$('paperPreview'))$('previewClose').click()});
   $('previewPrint').onclick=()=>{try{$('previewFrame').contentWindow.print()}catch(_){window.open($('previewSave').href,'_blank')}};
   $('prevQuestion').onclick=()=>{qi=Math.max(0,qi-1);renderPractice()};$('nextQuestion').onclick=()=>{const n=practiceList().length;qi=n?(qi+1)%n:0;renderPractice()};
-  function renderAll(){renderHome();renderPast();renderGrade();renderStudy();renderUniversities();renderCompetitive();renderVU();renderPractice()}
+  function renderAll(){renderHome();renderPast();renderGrade();renderStudy();renderUniversities();renderCompetitive();renderEcosystem();renderVU();renderPractice()}
   function runGlobalSearch(){
     qi=0;renderAll();
     const raw=$('globalSearch').value.trim();
     if(/\b(css|ppsc|fpsc|kppsc|spsc|bpsc|ajkpsc|nts|etea|sts|pms)\b/i.test(raw)){
       history.replaceState(null,'','#competitive');openTab('competitive');
       requestAnimationFrame(()=>$('competitiveGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));return;
+    }
+    if(/\b(mdcat|ecat|usat|hat|lat|law[ -]?gat|scholarships?|ibcc|equivalence|attestation|navttc|tevta|textbooks?|curriculum|digital library|research grants?|nrpu|peef)\b/i.test(raw)){
+      history.replaceState(null,'','#ecosystem');openTab('ecosystem');
+      requestAnimationFrame(()=>$('ecosystemGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));return;
     }
     if(/\b[A-Za-z]{2,5}[\s-]*\d{3,4}[A-Za-z]?\b/.test(raw)){
       history.replaceState(null,'','#vu');openTab('vu');
@@ -313,14 +361,14 @@
   $('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
   $('runGlobalSearch').onclick=runGlobalSearch;
   $('clearSearch').onclick=()=>{$('globalSearch').value='';qi=0;renderAll();$('globalSearch').focus()};
-  initPastFilters();initCompetitiveFilters();renderAll();
+  initPastFilters();initCompetitiveFilters();initEcosystemFilters();renderAll();
   const initialTab=location.hash.slice(1);if(validTabs.has(initialTab))openTab(initialTab);
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
-<script src="guest-learning-nav.js?v=20261001-visitor215"></script>
-<script src="guest-learning-premium.js?v=20261001-visitor215"></script>
-<script src="pwa-install.js?v=20261001-visitor215" defer></script>
-<script src="system-auto-update.js?v=20261001-visitor215" defer></script>
+<script src="guest-learning-nav.js?v=20261002-deep240"></script>
+<script src="guest-learning-premium.js?v=20261002-deep240"></script>
+<script src="pwa-install.js?v=20261002-deep240" defer></script>
+<script src="system-auto-update.js?v=20261002-deep240" defer></script>
 </body>
 </html>
