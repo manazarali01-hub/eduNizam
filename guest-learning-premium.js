@@ -54,6 +54,27 @@ function allResources(){
   source:'official',type:'Exam / Study Pathway',board:x.authority,classLevel:x.stage,subject:(x.subjects||[]).map(s=>s.name).join(' / '),
   section:'pathways',keywords:[x.keywords,(x.pattern||[]).join(' '),(x.steps||[]).map(s=>s.title+' '+s.detail).join(' ')].join(' ')
  }));
+ (window.EDUNIZAM_EXAM_TOPIC_BANK?.maps||[]).forEach(map=>{
+   const path=(window.EDUNIZAM_EXAM_PATHWAYS?.pathways||[]).find(x=>x.id===map.pathwayId);
+   (map.subjects||[]).forEach(s=>out.push({
+     id:'exam-topic:'+map.pathwayId+':'+s.name,
+     title:(path?.name||map.pathwayId.toUpperCase())+' — '+s.name+' Topic Map',
+     description:(map.sourceLabel||'Exam topic map')+(s.weight?' · '+s.weight:''),
+     url:'learn.html#pathways',source:'official',type:'Exam Topic Map',board:path?.authority||'EduNizam',
+     classLevel:path?.stage||'',subject:s.name,section:'pathways',
+     keywords:[path?.name,map.sourceMode,s.name,s.weight,s.note,(s.topics||[]).join(' ')].filter(Boolean).join(' ')
+   }));
+ });
+ (window.EDUNIZAM_EXAM_TOPIC_BANK?.questions||[]).forEach(q=>{
+   const path=(window.EDUNIZAM_EXAM_PATHWAYS?.pathways||[]).find(x=>x.id===q.pathwayId);
+   out.push({
+     id:'exam-drill:'+q.id,title:(path?.name||q.pathwayId.toUpperCase())+' '+q.topic+' Practice',
+     description:'EduNizam supplementary topic drill with answer feedback. Not an official/leaked exam question.',
+     url:'learn.html#pathways',source:'built-in',type:'Exam Topic Drill',board:path?.authority||'EduNizam',
+     classLevel:path?.stage||'',subject:q.subject,section:'pathways',
+     keywords:[path?.name,q.subject,q.topic,q.difficulty,q.q].filter(Boolean).join(' ')
+   });
+ });
  (window.EDUNIZAM_PUBLIC_LINKS||[]).forEach(x=>out.push({...x}));
  const practiceGroups=new Map();
  (window.EDUNIZAM_PRACTICE_DATA?.questions||[]).forEach(x=>{
@@ -127,7 +148,7 @@ function injectSearchTools(){
 }
 function renderSuggestions(){
  const box=$('searchSuggestions'),input=$('globalSearch');if(!box||!input)return;
- const q=norm(input.value);let terms=['CS101 past papers','MTH603 quizzes','VU CS101 handouts','AIOU semester pathway','MDCAT syllabus','ECAT pattern','NUST NET weightings','CSS process','HEC scholarship','IBCC equivalence','Punjab digital textbooks','NAVTTC short courses','HEC Digital Library','NUST NET','NUMS MDCAT','DigiSkills courses','NCEAC accreditation','PMDC recognized colleges','DAE result','PPSC result','10th class math Gujranwala board','9th physics past papers','Grade 8 PECTA model paper'];
+ const q=norm(input.value);let terms=['CS101 past papers','MTH603 quizzes','VU CS101 handouts','AIOU semester pathway','MDCAT Biology inheritance drill','ECAT calculus topic map','NUST NET Physics practice','CSS Current Affairs topic planner','HEC scholarship','IBCC equivalence','Punjab digital textbooks','NAVTTC short courses','HEC Digital Library','NUST NET','NUMS MDCAT','DigiSkills courses','NCEAC accreditation','PMDC recognized colleges','DAE result','PPSC result','10th class math Gujranwala board','9th physics past papers','Grade 8 PECTA model paper'];
  if(q){
   const engine=window.EDUNIZAM_LEARNING_SEARCH;
   const matches=engine?.search?.(allResources(),input.value)||allResources().filter(r=>norm(JSON.stringify(r)).includes(q));
