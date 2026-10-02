@@ -18,6 +18,29 @@
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
   function money(v){const s=JSON.parse(localStorage.getItem('edunizam_settings')||'{}'),currency=s.currency||'PKR',locale=s.locale||'en-PK';try{return new Intl.NumberFormat(locale,{style:'currency',currency,maximumFractionDigits:2}).format(Number(v||0))}catch(e){return currency+' '+Number(v||0).toLocaleString()}}
   function statusRisk(s){return s==='Paid'?'good':s==='Pending'?'medium':'high'}
+  function isOverdue(x){return x.status!=='Paid'&&x.dueDate&&String(x.dueDate)<localDate()}
+  function feeMetrics(rows){
+    const billed=rows.reduce((a,x)=>a+Number(x.totalAmount||0),0);
+    const collected=rows.filter(x=>x.status==='Paid').reduce((a,x)=>a+Number(x.totalAmount||0),0);
+    const outstanding=rows.filter(x=>x.status!=='Paid').reduce((a,x)=>a+Number(x.totalAmount||0),0);
+    const overdue=rows.filter(isOverdue);
+    return {billed,collected,outstanding,overdueCount:overdue.length,overdueAmount:overdue.reduce((a,x)=>a+Number(x.totalAmount||0),0)};
+  }
+  function feeMetricCards(rows){
+    const m=feeMetrics(rows);
+    return '<div class="cards"><article class="card stat"><span>Total Billed</span><strong>'+money(m.billed)+'</strong></article><article class="card stat"><span>Collected</span><strong>'+money(m.collected)+'</strong></article><article class="card stat"><span>Outstanding</span><strong>'+money(m.outstanding)+'</strong></article><article class="card stat"><span>Overdue</span><strong>'+m.overdueCount+'</strong><small>'+money(m.overdueAmount)+'</small></article></div>';
+  }
+  function filteredRows(rows,root){
+    const status=root.dataset.fcStatus||'',month=root.dataset.fcMonth||'',cls=root.dataset.fcClass||'',search=(root.dataset.fcSearch||'').toLowerCase();
+    return rows.filter(x=>{
+      const effective=isOverdue(x)?'Overdue':x.status;
+      if(status&&effective!==status)return false;
+      if(month&&x.feeMonth!==month)return false;
+      if(cls&&x.className!==cls)return false;
+      if(search&&!([x.studentName,x.className,x.challanNo,x.receiptNo,x.paymentReference,x.feeMonth].join(' ').toLowerCase().includes(search)))return false;
+      return true;
+    });
+  }
   function visibleLocal(rows){
     if(isHead())return rows;
     const ids=new Set(visibleStudents().map(s=>String(s.id)));
@@ -165,13 +188,13 @@
       '</div></article>';
   }
   function card(x){
-    const canPay=isHead()&&x.status!=='Paid';
+    const canPay=isHead()&&x.status!=='Paid',overdue=isOverdue(x),label=overdue?'Overdue':x.status;
     return '<article class="paper-card">'+
-      '<div class="paper-card-top"><span class="mini-badge">'+esc(x.feeMonth||'Fee')+'</span><span id="profileRiskBadge" data-risk="'+statusRisk(x.status)+'">'+esc(x.status)+'</span></div>'+
-      '<h3>'+esc(x.studentName||'Student')+'</h3><p class="muted">Class '+esc(x.className||'-')+' · Due '+esc(x.dueDate||'-')+'</p>'+
+      '<div class="paper-card-top"><span class="mini-badge">'+esc(x.feeMonth||'Fee')+'</span><span id="profileRiskBadge" data-risk="'+(overdue?'high':statusRisk(x.status))+'">'+esc(label)+'</span></div>'+
+      '<h3>'+esc(x.studentName||'Student')+'</h3><p class="muted">Class '+esc(x.className||'-')+' · Due '+esc(x.dueDate||'-')+(overdue?' · <strong>Past due</strong>':'')+'</p>'+
       '<p>Base '+money(x.baseAmount)+' · Discount '+money(x.discount)+' · Arrears '+money(x.arrears)+'</p>'+
       '<p><strong>Total: '+money(x.totalAmount)+'</strong></p>'+
-      '<p class="muted">Challan: '+esc(x.challanNo||'-')+(x.receiptNo?' · Receipt: '+esc(x.receiptNo):'')+'</p>'+
+      '<p class="muted">Challan: '+esc(x.challanNo||'-')+(x.receiptNo?' · Receipt: '+esc(x.receiptNo):'')+(x.paymentReference?' · Ref: '+esc(x.paymentReference):'')+'</p>'+
       '<div class="paper-actions"><button class="secondary" data-fc-print="'+esc(x.id)+'">'+(x.status==='Paid'?'Print Receipt':'Print Challan')+'</button>'+
       (canPay?'<button data-fc-paid="'+esc(x.id)+'">Mark Paid</button>':'')+'</div></article>';
   }
@@ -215,10 +238,15 @@
     }catch(_){}
     render();
   }
-  function bind(){
+  function bind(root){
     $('fcGenerate')?.addEventListener('click',generate);
     $('fcSyncClassFees')?.addEventListener('click',async()=>{try{await syncClassFees();alert('Class fees synced to cloud.')}catch(e){alert(e.message||e)}});
     $('fcStudent')?.addEventListener('change',()=>{const s=students().find(x=>String(x.id)===String($('fcStudent').value));if(s){const f=classFees()[s.className];if(f!=null)$('fcBase').value=Number(f||0)}});
+    $('fcFilterStatus')?.addEventListener('change',e=>{root.dataset.fcStatus=e.target.value;mount()});
+    $('fcFilterMonth')?.addEventListener('change',e=>{root.dataset.fcMonth=e.target.value;mount()});
+    $('fcFilterClass')?.addEventListener('change',e=>{root.dataset.fcClass=e.target.value;mount()});
+    $('fcFilterSearch')?.addEventListener('input',e=>{root.dataset.fcSearch=e.target.value;clearTimeout(bind.searchTimer);bind.searchTimer=setTimeout(mount,160)});
+    $('fcClearFilters')?.addEventListener('click',()=>{root.dataset.fcStatus='';root.dataset.fcMonth='';root.dataset.fcClass='';root.dataset.fcSearch='';mount()});
     document.querySelectorAll('[data-fc-paid]').forEach(b=>b.onclick=()=>markPaid(b.dataset.fcPaid));
     document.querySelectorAll('[data-fc-print]').forEach(b=>b.onclick=()=>{const item=read().find(x=>String(x.id)===String(b.dataset.fcPrint));if(item)printDoc(item)});
   }
@@ -232,9 +260,13 @@
       try{await pullClassFees();rows=await pullCloud();rows.forEach(mirrorLegacy)}catch(e){root.dataset.cloudLoaded='';console.warn('Fee Center cloud sync:',e.message)}
     }
     rows=visibleLocal(rows);
-    root.innerHTML='<div class="section-head" style="margin-top:18px"><div><h2>Monthly Challans & Receipts</h2><p class="muted">Monthly billing, discount, arrears aur printable receipts.</p></div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div>'+
-      editor()+'<div class="paper-grid" style="margin-top:16px">'+(rows.length?rows.map(card).join(''):'<div class="empty-state">Abhi koi monthly challan/receipt nahi hai.</div>')+'</div>';
-    bind();
+    const classes=[...new Set(rows.map(x=>x.className).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+    const filtered=filteredRows(rows,root);
+    root.innerHTML='<div class="section-head" style="margin-top:18px"><div><h2>Monthly Challans & Receipts</h2><p class="muted">Billing, collections, outstanding/overdue tracking, discounts, arrears and printable receipts.</p></div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div>'+
+      feeMetricCards(rows)+editor()+
+      '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Fee Register</h3><p class="muted">'+filtered.length+' of '+rows.length+' challans shown.</p></div><button id="fcClearFilters" class="secondary">Clear Filters</button></div><div class="form-grid"><select id="fcFilterStatus"><option value="">All Status</option>'+['Pending','Overdue','Paid'].map(v=>'<option value="'+v+'" '+((root.dataset.fcStatus||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><input id="fcFilterMonth" type="month" value="'+esc(root.dataset.fcMonth||'')+'"><select id="fcFilterClass"><option value="">All Classes</option>'+classes.map(v=>'<option value="'+esc(v)+'" '+((root.dataset.fcClass||'')===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select><input id="fcFilterSearch" type="search" value="'+esc(root.dataset.fcSearch||'')+'" placeholder="Search student, challan, receipt or reference"></div></article>'+
+      '<div class="paper-grid" style="margin-top:16px">'+(filtered.length?filtered.map(card).join(''):'<div class="empty-state">Is filter ke liye koi challan/receipt nahi hai.</div>')+'</div>';
+    bind(root);
   }
   function render(){return mount()}
   window.addEventListener('edunizam:auth',()=>{const root=$('feeChallanCenter');if(root)delete root.dataset.cloudLoaded;mount()});
