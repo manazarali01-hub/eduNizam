@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261002-deep507';
+  const VERSION='20261002-deep508';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
@@ -15,20 +15,20 @@
     behaviorcenter:['student-behavior.js'],
     parentcomplaints:['parent-complaint-center.js'],
     gatecenter:['gate-pass-center.js'],
-    schoolwork:['school-work.js'],
+    schoolwork:['school-work.js','academic-workflow-deep.js'],
     noticeboard:['notice-board-center.js'],
     lessoncenter:['lesson-plan-center.js'],
     calendarcenter:['calendar-center.js'],
     schedulecenter:['timetable-date-sheet.js'],
     functionscenter:['school-community.js'],
     ourstudents:['school-community.js'],
-    inboxcenter:['messaging-center.js'],
+    inboxcenter:['messaging-center.js','academic-workflow-deep.js'],
     helpdeskcenter:['helpdesk-center.js'],
     help:['help-knowledge-center.js'],
     leavecenter:['leave-center.js'],
     examcenter:['exam-center.js'],
-    paperbuilder:['teacher-paper-builder.js'],
-    dailydiary:['daily-class-diary.js'],
+    paperbuilder:['teacher-paper-builder.js','academic-workflow-deep.js'],
+    dailydiary:['daily-class-diary.js','academic-workflow-deep.js'],
     staffcenter:['staff-center.js'],
     stafftime:['staff-time-attendance.js'],
     staffpayroll:['staff-payroll.js'],
