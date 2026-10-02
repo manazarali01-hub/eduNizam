@@ -72,6 +72,10 @@
     const {data,error}=await cloud().state.client.rpc('return_library_book',{p_loan_id:loanId});
     if(error)throw error;return data;
   }
+  async function renewCloud(loanId,newDueDate){
+    const {data,error}=await cloud().state.client.rpc('renew_library_loan',{p_loan_id:loanId,p_new_due_date:newDueDate});
+    if(error)throw error;return data;
+  }
   function catalogEditor(edit=null){
     if(!isHead())return '';
     return '<article class="card"><h3>'+(edit?'Edit Book':'Add Book to Catalog')+'</h3><div class="form-grid">'+
@@ -105,9 +109,14 @@
     const avail=availableCopies(b);
     return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(b.accessionNo)+'</span><span class="badge">'+(b.active===false?'Inactive':avail>0?avail+' available':'All issued')+'</span></div><h3>'+esc(b.title)+'</h3><p class="muted">'+esc(b.author||'Unknown author')+' · '+esc(b.category||'General')+'</p><p><strong>Copies:</strong> '+Number(b.totalCopies||0)+' · <strong>Shelf:</strong> '+esc(b.shelf||'-')+'</p>'+(b.isbn?'<p class="muted">ISBN '+esc(b.isbn)+'</p>':'')+(isHead()?'<div class="paper-actions"><button data-lib-edit="'+esc(b.id)+'">Edit</button><button class="secondary" data-lib-delete="'+esc(b.id)+'">Delete</button></div>':'')+'</article>';
   }
+  function loanStatus(x){return x.returnedAt?'Returned':isOverdue(x)?'Overdue':'Issued'}
+  function filterLoans(loans,root){
+    const status=root.dataset.libLoanStatus||'',q=(root.dataset.libLoanSearch||'').trim().toLowerCase();
+    return loans.filter(x=>(!status||loanStatus(x)===status)&&(!q||[x.studentName,x.bookTitle,x.accessionNo,x.className,x.sectionName].join(' ').toLowerCase().includes(q)));
+  }
   function loanRows(loans){
-    if(!loans.length)return '<div class="muted">No library loans.</div>';
-    return loans.map(x=>'<div class="row"><strong>'+esc(x.studentName)+'</strong><span>'+esc(x.bookTitle)+'</span><span>'+esc(x.dueDate)+'</span><span class="badge">'+(x.returnedAt?'Returned':isOverdue(x)?'Overdue':'Issued')+'</span>'+(isStaff()&&!x.returnedAt?'<button data-lib-return="'+esc(x.id)+'">Return</button>':'<span></span>')+'</div>').join('');
+    if(!loans.length)return '<div class="muted">No library loans match this filter.</div>';
+    return loans.map(x=>'<div class="row"><strong>'+esc(x.studentName)+'</strong><span>'+esc(x.bookTitle)+'<small class="muted"> · '+esc(x.accessionNo||'')+'</small></span><span>'+esc(x.dueDate)+'</span><span class="badge">'+loanStatus(x)+'</span>'+(isStaff()&&!x.returnedAt?'<span class="paper-actions"><button class="secondary" data-lib-renew="'+esc(x.id)+'">Renew</button><button data-lib-return="'+esc(x.id)+'">Return</button></span>':'<span></span>')+'</div>').join('');
   }
   async function saveBook(){
     const id=$('libEditId')?.value||'',accessionNo=$('libAccession')?.value.trim(),title=$('libTitle')?.value.trim(),totalCopies=Number($('libCopies')?.value||0);
@@ -150,6 +159,15 @@
     try{const c=await returnCloud(id);if(c){await pullCloud();render();return}}catch(e){if(cloudReady())return alert('Cloud return failed: '+(e.message||e))}
     loan.returnedAt=today();loan.status='Returned';write(LOAN_KEY,loans);render();
   }
+  async function renewBook(id){
+    const loans=read(LOAN_KEY),loan=loans.find(x=>String(x.id)===String(id));if(!loan||!isStaff()||loan.returnedAt)return;
+    const base=new Date((loan.dueDate||today())+'T00:00:00');base.setDate(base.getDate()+14);
+    const suggested=base.getFullYear()+'-'+String(base.getMonth()+1).padStart(2,'0')+'-'+String(base.getDate()).padStart(2,'0');
+    const next=prompt('New due date (YYYY-MM-DD):',suggested);if(!next)return;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(next)||next<=String(loan.dueDate||''))return alert('New due date current due date se later honi chahiye.');
+    try{const x=await renewCloud(id,next);if(x){await pullCloud();render();return}}catch(e){if(cloudReady())return alert('Cloud renewal failed: '+(e.message||e))}
+    loan.dueDate=next;write(LOAN_KEY,loans);render();
+  }
   function printRegister(books,loans){
     const st=settings(),w=window.open('','_blank','width=1000,height=760');if(!w)return alert('Popup blocked.');
     const active=loans.filter(x=>!x.returnedAt);
@@ -159,25 +177,29 @@
   function bindEditors(){
     $('libSaveBook')?.addEventListener('click',saveBook);$('libCancelBook')?.addEventListener('click',render);
   }
-  function bind(books,loans){
+  function bind(books,loans,root){
     bindEditors();$('libIssueBtn')?.addEventListener('click',issue);$('libPrint')?.addEventListener('click',()=>printRegister(books,loans));
-    $('libSearch')?.addEventListener('input',render);
+    $('libSearch')?.addEventListener('input',e=>{root.dataset.query=e.target.value;clearTimeout(bind.bookTimer);bind.bookTimer=setTimeout(render,150)});
+    $('libLoanStatus')?.addEventListener('change',e=>{root.dataset.libLoanStatus=e.target.value;render()});
+    $('libLoanSearch')?.addEventListener('input',e=>{root.dataset.libLoanSearch=e.target.value;clearTimeout(bind.loanTimer);bind.loanTimer=setTimeout(render,150)});
+    $('libLoanClear')?.addEventListener('click',()=>{root.dataset.libLoanStatus='';root.dataset.libLoanSearch='';render()});
     document.querySelectorAll('[data-lib-edit]').forEach(b=>b.onclick=()=>editBook(b.dataset.libEdit));
     document.querySelectorAll('[data-lib-delete]').forEach(b=>b.onclick=()=>deleteBook(b.dataset.libDelete));
     document.querySelectorAll('[data-lib-return]').forEach(b=>b.onclick=()=>returnBook(b.dataset.libReturn));
+    document.querySelectorAll('[data-lib-renew]').forEach(b=>b.onclick=()=>renewBook(b.dataset.libRenew));
   }
   async function render(){
     const root=$('libraryCenterApp');if(!root)return;
     if(cloudReady()&&!root.dataset.cloudLoaded){root.dataset.cloudLoaded='1';try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Library cloud sync:',e.message)}}
     const allBooks=read(BOOK_KEY).sort((a,b)=>String(a.title).localeCompare(String(b.title))),allLoans=read(LOAN_KEY);
-    const query=($('libSearch')?.value||root.dataset.query||'').trim().toLowerCase();root.dataset.query=query;
-    const books=allBooks.filter(b=>!query||[b.title,b.author,b.accessionNo,b.category,b.isbn].some(v=>String(v||'').toLowerCase().includes(query)));
-    const loans=visibleLoans(allLoans).sort((a,b)=>String(b.issuedAt).localeCompare(String(a.issuedAt)));
-    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div><div class="quick-actions"><input id="libSearch" placeholder="Search title, author, accession..." value="'+esc(query)+'"><button id="libPrint" class="secondary">Print Loan Register</button></div></div>'+
-      metrics(allBooks,allLoans)+'<div id="libCatalogEditor" style="margin-top:16px">'+catalogEditor()+'</div>'+circulationEditor(allBooks)+
-      '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Loans & Returns</h3><p class="muted">Issued, overdue and returned books.</p></div></div><div class="list">'+loanRows(loans)+'</div></article>'+
-      '<div class="section-head" style="margin-top:18px"><div><h3>Book Catalog</h3><p class="muted">Physical library catalog and copy availability.</p></div></div><div class="paper-grid">'+(books.length?books.map(bookCard).join(''):'<div class="empty-state">No matching books.</div>')+'</div>';
-    bind(allBooks,allLoans);
+    const query=(root.dataset.query||'').trim().toLowerCase();
+    const books=allBooks.filter(b=>!query||[b.title,b.author,b.accessionNo,b.category,b.isbn,b.shelf].some(v=>String(v||'').toLowerCase().includes(query)));
+    const visibleAllLoans=visibleLoans(allLoans).sort((a,b)=>String(b.issuedAt).localeCompare(String(a.issuedAt))),loans=filterLoans(visibleAllLoans,root);
+    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div><div class="quick-actions"><button id="libPrint" class="secondary">Print Loan Register</button></div></div>'+
+      metrics(allBooks,visibleAllLoans)+'<div id="libCatalogEditor" style="margin-top:16px">'+catalogEditor()+'</div>'+circulationEditor(allBooks)+
+      '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Loans & Returns</h3><p class="muted">'+loans.length+' of '+visibleAllLoans.length+' accessible loans shown. Staff can renew active loans.</p></div><button id="libLoanClear" class="secondary">Clear Loan Filters</button></div><div class="form-grid"><select id="libLoanStatus"><option value="">All Loan Status</option>'+['Issued','Overdue','Returned'].map(v=>'<option value="'+v+'" '+((root.dataset.libLoanStatus||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><input id="libLoanSearch" type="search" value="'+esc(root.dataset.libLoanSearch||'')+'" placeholder="Search student, book, accession or class"></div><div class="list" style="margin-top:12px">'+loanRows(loans)+'</div></article>'+
+      '<div class="section-head" style="margin-top:18px"><div><h3>Book Catalog</h3><p class="muted">'+books.length+' of '+allBooks.length+' titles shown.</p></div><input id="libSearch" type="search" placeholder="Search title, author, accession, shelf..." value="'+esc(query)+'"></div><div class="paper-grid">'+(books.length?books.map(bookCard).join(''):'<div class="empty-state">No matching books.</div>')+'</div>';
+    bind(allBooks,visibleAllLoans,root);
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('libraryCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
