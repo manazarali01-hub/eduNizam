@@ -34,7 +34,7 @@
   }
   function mapComplaint(x){
     const s=x.core_students||{};
-    return {id:x.id,studentId:String(s.local_id??x.student_id),studentName:s.name||'Student',className:s.class_name||'',sectionName:s.section_name||'',subject:x.subject,message:x.message,severity:x.severity,actionRequested:x.action_requested||'',status:x.status,acknowledgedAt:x.acknowledged_at||'',resolvedAt:x.resolved_at||'',createdBy:x.created_by||'',creatorKey:'',createdAt:x.created_at,attachments:[]};
+    return {id:x.id,studentId:String(s.local_id??x.student_id),studentName:s.name||'Student',className:s.class_name||'',sectionName:s.section_name||'',subject:x.subject,message:x.message,severity:x.severity,actionRequested:x.action_requested||'',status:x.status,acknowledgedAt:x.acknowledged_at||'',resolvedAt:x.resolved_at||'',resolutionNote:x.resolution_note||'',createdBy:x.created_by||'',creatorKey:'',createdAt:x.created_at,attachments:[]};
   }
   async function signAttachment(a){
     const {data,error}=await cloud().state.client.storage.from(bucket()).createSignedUrl(a.storage_path,3600);
@@ -123,8 +123,8 @@
     const {data,error}=await cloud().state.client.rpc('acknowledge_student_parent_complaint',{p_complaint_id:id});
     if(error)throw error;return data;
   }
-  async function resolveCloud(id){
-    const {data,error}=await cloud().state.client.rpc('resolve_student_parent_complaint',{p_complaint_id:id});
+  async function resolveCloud(id,note){
+    const {data,error}=await cloud().state.client.rpc('resolve_student_parent_complaint_v2',{p_complaint_id:id,p_resolution_note:note});
     if(error)throw error;return data;
   }
   function editor(){
@@ -156,8 +156,9 @@
       '<h3>'+esc(x.subject)+'</h3><p class="muted">'+esc(x.studentName)+' · '+esc((x.className||'-')+(x.sectionName?' - '+x.sectionName:''))+' · '+new Date(x.createdAt).toLocaleString()+'</p>'+
       '<p>'+esc(x.message)+'</p>'+(x.actionRequested?'<p><strong>Requested parent action:</strong> '+esc(x.actionRequested)+'</p>':'')+
       (x.attachments?.length?'<div style="margin-top:10px">'+x.attachments.map(mediaHtml).join('')+'</div>':'')+
-      '<p><strong>Parent acknowledgement:</strong> '+(x.acknowledgedAt?'Received':'Pending')+'</p>'+
-      ((canAck||canResolve)?'<div class="paper-actions">'+(canAck?'<button data-pc-ack="'+esc(x.id)+'">Acknowledge</button>':'')+(canResolve?'<button data-pc-resolve="'+esc(x.id)+'">Mark Resolved</button>':'')+'</div>':'')+
+      '<p><strong>Parent acknowledgement:</strong> '+(x.acknowledgedAt?'Received'+(x.acknowledgedAt?' · '+new Date(x.acknowledgedAt).toLocaleString():''):'Pending')+'</p>'+
+      (x.resolutionNote?'<div class="coverage-note"><strong>Resolution:</strong> '+esc(x.resolutionNote)+(x.resolvedAt?' · '+new Date(x.resolvedAt).toLocaleString():'')+'</div>':'')+
+      ((canAck||canResolve)?'<div class="paper-actions">'+(canAck?'<button data-pc-ack="'+esc(x.id)+'">Acknowledge</button>':'')+(canResolve?'<button data-pc-resolve="'+esc(x.id)+'">Resolve with Note</button>':'')+'</div>':'')+
       '</article>';
   }
   async function send(){
@@ -189,16 +190,28 @@
   }
   async function resolve(id){
     if(!isHead())return;
-    try{if(cloudReady()){await resolveCloud(id);await pullCloud();render();return}}catch(e){return alert('Resolve failed: '+(e.message||e))}
-    const rows=read(),x=rows.find(r=>String(r.id)===String(id));if(x){x.status='Resolved';x.resolvedAt=new Date().toISOString();write(rows)}render();
+    const rows=read(),x=rows.find(r=>String(r.id)===String(id));if(!x)return;
+    const note=String(prompt('Resolution note / action taken:',x.resolutionNote||'')||'').trim();
+    if(!note)return alert('Resolution note required hai.');
+    try{if(cloudReady()){await resolveCloud(id,note);await pullCloud();render();return}}catch(e){return alert('Resolve failed: '+(e.message||e))}
+    x.status='Resolved';x.resolvedAt=new Date().toISOString();x.resolutionNote=note;write(rows);render();
+  }
+  function filterComplaints(rows,root){
+    const status=root.dataset.pcStatus||'',severity=root.dataset.pcSeverity||'',ack=root.dataset.pcAck||'',q=(root.dataset.pcSearch||'').trim().toLowerCase();
+    return rows.filter(x=>(!status||x.status===status)&&(!severity||x.severity===severity)&&(!ack||(ack==='ack'&&x.acknowledgedAt)||(ack==='pending'&&!x.acknowledgedAt))&&(!q||[x.studentName,x.className,x.sectionName,x.subject,x.message,x.actionRequested,x.resolutionNote].join(' ').toLowerCase().includes(q)));
   }
   function printNotice(x){
     const st=settings(),w=window.open('','_blank','width=800,height=700');if(!w)return alert('Popup blocked.');
-    w.document.write('<!doctype html><html><head><title>Parent Complaint Notice</title><style>body{font-family:Arial;padding:30px;color:#17324a}.box{max-width:700px;margin:auto;border:1px solid #cbd8df;border-radius:14px;padding:24px}.head{text-align:center}.row{padding:10px 0;border-bottom:1px solid #edf1f3}</style></head><body><div class="box"><div class="head"><h2>'+esc(st.schoolName||'EduNizam Institute')+'</h2><h3>Parent Complaint Notice</h3></div><div class="row"><strong>Student:</strong> '+esc(x.studentName)+' · '+esc((x.className||'-')+(x.sectionName?' - '+x.sectionName:''))+'</div><div class="row"><strong>Severity:</strong> '+esc(x.severity)+'</div><div class="row"><strong>Subject:</strong> '+esc(x.subject)+'</div><div class="row"><strong>Complaint:</strong><br>'+esc(x.message)+'</div>'+(x.actionRequested?'<div class="row"><strong>Requested parent action:</strong><br>'+esc(x.actionRequested)+'</div>':'')+'<div class="row"><strong>Status:</strong> '+esc(x.status)+' · <strong>Acknowledged:</strong> '+(x.acknowledgedAt?'Yes':'No')+'</div></div></body></html>');
+    w.document.write('<!doctype html><html><head><title>Parent Complaint Notice</title><style>body{font-family:Arial;padding:30px;color:#17324a}.box{max-width:700px;margin:auto;border:1px solid #cbd8df;border-radius:14px;padding:24px}.head{text-align:center}.row{padding:10px 0;border-bottom:1px solid #edf1f3}</style></head><body><div class="box"><div class="head"><h2>'+esc(st.schoolName||'EduNizam Institute')+'</h2><h3>Parent Complaint Notice</h3></div><div class="row"><strong>Student:</strong> '+esc(x.studentName)+' · '+esc((x.className||'-')+(x.sectionName?' - '+x.sectionName:''))+'</div><div class="row"><strong>Severity:</strong> '+esc(x.severity)+'</div><div class="row"><strong>Subject:</strong> '+esc(x.subject)+'</div><div class="row"><strong>Complaint:</strong><br>'+esc(x.message)+'</div>'+(x.actionRequested?'<div class="row"><strong>Requested parent action:</strong><br>'+esc(x.actionRequested)+'</div>':'')+(x.resolutionNote?'<div class="row"><strong>Resolution:</strong><br>'+esc(x.resolutionNote)+'</div>':'')+'<div class="row"><strong>Status:</strong> '+esc(x.status)+' · <strong>Acknowledged:</strong> '+(x.acknowledgedAt?'Yes':'No')+'</div></div></body></html>');
     w.document.close();w.focus();setTimeout(()=>w.print(),250);
   }
-  function bind(rows){
+  function bind(rows,root){
     $('pcSend')?.addEventListener('click',send);
+    $('pcStatusFilter')?.addEventListener('change',e=>{root.dataset.pcStatus=e.target.value;render()});
+    $('pcSeverityFilter')?.addEventListener('change',e=>{root.dataset.pcSeverity=e.target.value;render()});
+    $('pcAckFilter')?.addEventListener('change',e=>{root.dataset.pcAck=e.target.value;render()});
+    $('pcSearch')?.addEventListener('input',e=>{root.dataset.pcSearch=e.target.value;clearTimeout(bind.timer);bind.timer=setTimeout(render,160)});
+    $('pcClearFilters')?.addEventListener('click',()=>{root.dataset.pcStatus='';root.dataset.pcSeverity='';root.dataset.pcAck='';root.dataset.pcSearch='';render()});
     document.querySelectorAll('[data-pc-ack]').forEach(b=>b.onclick=()=>acknowledge(b.dataset.pcAck));
     document.querySelectorAll('[data-pc-resolve]').forEach(b=>b.onclick=()=>resolve(b.dataset.pcResolve));
     document.querySelectorAll('[data-pc-print]').forEach(b=>b.onclick=()=>{const x=rows.find(r=>String(r.id)===String(b.dataset.pcPrint));if(x)printNotice(x)});
@@ -208,11 +221,11 @@
     let rows=read();
     if(cloudReady()){try{rows=await pullCloud()}catch(e){console.warn('Parent complaint cloud sync:',e.message);rows=[]}}
     else rows=localVisible(rows);
-    const privateTeacherHtml=await parentTeacherSection();
+    const privateTeacherHtml=await parentTeacherSection(),filtered=filterComplaints(rows,root);
     root.innerHTML=privateTeacherHtml+'<div class="section-head"><span class="academic-pill">'+(cloudReady()?'Private Cloud Media':'Local Text Mode')+'</span></div>'+
       metrics(rows)+editor()+
-      '<div class="section-head" style="margin-top:18px"><div><h3>'+ (isParent()?'Complaint Notices':'Sent Student Complaints') +'</h3><p class="muted">Parent acknowledgement aur media evidence history.</p></div></div><div class="paper-grid">'+(rows.length?rows.map(x=>card(x).replace('</div></article>','<button class="secondary" data-pc-print="'+esc(x.id)+'">Print Notice</button></div></article>')).join(''):'<div class="empty-state">No parent complaint notices.</div>')+'</div>';
-    bind(rows);$('ptSend')?.addEventListener('click',createParentTeacherComplaint);document.querySelectorAll('[data-pt-resolve]').forEach(b=>b.onclick=()=>resolveParentTeacherComplaint(b.dataset.ptResolve));
+      '<article class="card" style="margin-top:18px"><div class="section-head"><div><h3>'+ (isParent()?'Complaint Notices':'Sent Student Complaints') +'</h3><p class="muted">'+filtered.length+' of '+rows.length+' records shown · acknowledgement, evidence and resolution history.</p></div><button id="pcClearFilters" class="secondary">Clear Filters</button></div><div class="form-grid"><select id="pcStatusFilter"><option value="">All Status</option>'+['Open','Resolved'].map(v=>'<option value="'+v+'" '+((root.dataset.pcStatus||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><select id="pcSeverityFilter"><option value="">All Severity</option>'+['Information','Concern','Serious'].map(v=>'<option value="'+v+'" '+((root.dataset.pcSeverity||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><select id="pcAckFilter"><option value="">All Acknowledgement</option><option value="ack" '+((root.dataset.pcAck||'')==='ack'?'selected':'')+'>Acknowledged</option><option value="pending" '+((root.dataset.pcAck||'')==='pending'?'selected':'')+'>Awaiting Acknowledgement</option></select><input id="pcSearch" type="search" value="'+esc(root.dataset.pcSearch||'')+'" placeholder="Search student, class, subject, complaint or resolution"></div></article><div class="paper-grid" style="margin-top:12px">'+(filtered.length?filtered.map(x=>card(x).replace('</div></article>','<button class="secondary" data-pc-print="'+esc(x.id)+'">Print Notice</button></div></article>')).join(''):'<div class="empty-state">No complaint matches these filters.</div>')+'</div>';
+    bind(rows,root);$('ptSend')?.addEventListener('click',createParentTeacherComplaint);document.querySelectorAll('[data-pt-resolve]').forEach(b=>b.onclick=()=>resolveParentTeacherComplaint(b.dataset.ptResolve));
   }
   window.addEventListener('edunizam:auth',render);
   setTimeout(render,0);setTimeout(render,900);
