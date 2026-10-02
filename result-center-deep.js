@@ -15,6 +15,8 @@
   const pct=(m,t)=>t>0?Math.round((Number(m||0)/Number(t||1))*100):0;
   const fmtDate=v=>{try{return new Date(v+'T00:00:00').toLocaleDateString()}catch{return v||'-'}};
   const canSeeAll=()=>['head','teacher'].includes(role());
+  const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
+  const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   let state={student:'',type:'',subject:'',search:'',from:'',to:'',reportStudent:'',reportType:''};
 
   function scopedResults(){
@@ -90,6 +92,91 @@
       '</article>';
   }
 
+  async function cloudStudentId(localId){
+    if(!cloudReady()||!localId)return null;
+    const s=studentMap().get(String(localId));if(!s)return null;
+    let q=cloud().state.client.from('core_students').select('id').eq('institution_id',cfg().institutionId);
+    if(s.studentId)q=q.eq('student_code',s.studentId);
+    else q=q.eq('local_id',Number(s.id));
+    const {data,error}=await q.maybeSingle();if(error)throw error;return data?.id||null;
+  }
+
+  function publishedSnapshotHtml(row){
+    const snap=row?.snapshot||{},student=snap.student||{},subjects=Array.isArray(snap.subjects)?snap.subjects:[],att=snap.attendance||{};
+    const overall=Number(snap.overall||0);
+    return '<article class="card">'+
+      '<div class="section-head"><div><div class="academic-kicker">'+esc(settings().schoolName||'EduNizam Institute')+'</div><h2>'+esc(row.title||'Official Report Card')+'</h2><p class="muted">'+esc(row.report_type||snap.reportType||'Report')+' · Version '+esc(row.version_no||1)+' · '+esc(row.published_at?new Date(row.published_at).toLocaleString():'')+'</p></div><span class="academic-pill">Grade '+esc(snap.grade||grade(overall))+'</span></div>'+
+      '<div class="paper-meta"><span><strong>Student:</strong> '+esc(student.name||'Student')+'</span><span><strong>Class:</strong> '+esc(student.className||'-')+(student.sectionName?' · '+esc(student.sectionName):'')+'</span><span><strong>Roll:</strong> '+esc(student.rollNo||'-')+'</span><span><strong>Admission:</strong> '+esc(student.admissionNo||'-')+'</span></div>'+
+      '<div class="cards" style="margin-top:14px"><article class="card stat"><span>Overall</span><strong>'+overall+'%</strong></article><article class="card stat"><span>Status</span><strong>'+esc(snap.status||'')+'</strong></article><article class="card stat"><span>Attendance</span><strong>'+(att.percentage==null?'—':esc(att.percentage)+'%')+'</strong></article><article class="card stat"><span>Subjects</span><strong>'+subjects.length+'</strong></article></div>'+
+      '<div class="list" style="margin-top:14px">'+subjects.map(x=>'<div class="row"><strong>'+esc(x.subject||'Subject')+'</strong><span>'+esc(x.marks||0)+'/'+esc(x.total||0)+'</span><span>'+esc(x.percentage||0)+'%</span><span>'+esc(x.grade||'')+'</span><span>'+esc(x.status||'')+'</span></div>').join('')+'</div>'+
+      '<div class="paper-meta" style="margin-top:28px"><span>Class Teacher Signature: __________________</span><span>Head Signature: __________________</span><span>Parent Signature: __________________</span></div>'+
+      '</article>';
+  }
+
+  function printPublishedReport(row){
+    if(!row)return;
+    const w=window.open('','_blank','width=980,height=760');if(!w)return alert('Popup blocked. Browser mein popups allow karein.');
+    w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(row.title||'Official Report Card')+'</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#17324a}.section-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.paper-meta{display:flex;flex-wrap:wrap;gap:14px;margin:12px 0}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.card{border:1px solid #d9e2e7;border-radius:12px;padding:14px}.stat strong{display:block;font-size:20px;margin-top:5px}.row{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;padding:9px 0;border-bottom:1px solid #e6ecef}.muted{color:#667}.academic-kicker{font-weight:700;color:#0f766e}.academic-pill{border:1px solid #cbd5db;border-radius:999px;padding:7px 11px}@media print{body{padding:0}.card{break-inside:avoid}}</style></head><body>'+publishedSnapshotHtml(row)+'</body></html>');
+    w.document.close();w.focus();setTimeout(()=>w.print(),250);
+  }
+
+  async function publishOfficialReport(){
+    if(!cloudReady()||!canSeeAll())return alert('Cloud staff login required.');
+    const localId=$('rdReportStudent')?.value||state.reportStudent,type=$('rdReportType')?.value||state.reportType||'';
+    if(!localId)return alert('Student select karein.');
+    const cloudId=await cloudStudentId(localId);if(!cloudId)return alert('Student cloud record not linked.');
+    const label=type||'Combined Results';
+    const title=prompt('Official report card title:',label+' Report Card');
+    if(title===null)return;
+    const btn=$('rdPublishReport');if(btn)btn.disabled=true;
+    try{
+      const {error}=await cloud().state.client.rpc('publish_report_card_v1',{p_student_id:cloudId,p_report_type:type||null,p_title:title||null});
+      if(error)throw error;
+      window.EDUNIZAM_PREMIUM?.toast?.('Official report card published to Student/Parent.','success');
+      await loadPublishedReports();
+    }catch(e){alert('Report publish failed: '+(e.message||e))}
+    finally{if(btn)btn.disabled=false}
+  }
+
+  async function acknowledgePublishedReport(id){
+    if(!cloudReady()||!['student','parent'].includes(role()))return;
+    try{
+      const {error}=await cloud().state.client.rpc('acknowledge_report_card_v1',{p_publication_id:id});
+      if(error)throw error;
+      window.EDUNIZAM_PREMIUM?.toast?.('Report marked as seen.','success');
+      await loadPublishedReports();
+    }catch(e){alert('Could not acknowledge report: '+(e.message||e))}
+  }
+
+  async function loadPublishedReports(){
+    const el=$('rdPublishedReports');if(!el)return;
+    if(!cloudReady()){el.innerHTML='<div class="empty-state">Official published reports require Cloud Mode.</div>';return}
+    try{
+      const {data,error}=await cloud().state.client.from('report_card_publications')
+        .select('*,core_students(name,class_name,section_name,local_id,student_code)')
+        .eq('institution_id',cfg().institutionId)
+        .eq('status','Published')
+        .order('published_at',{ascending:false})
+        .limit(100);
+      if(error)throw error;
+      const rows=data||[],ids=rows.map(x=>x.id);
+      let acknowledgements=[];
+      if(ids.length){
+        const {data:ack,error:ackError}=await cloud().state.client.from('report_card_acknowledgements').select('*').in('publication_id',ids);
+        if(!ackError)acknowledgements=ack||[];
+      }
+      const uid=String(cloud().state.user?.id||'');
+      const byPub=new Map();acknowledgements.forEach(a=>{const k=String(a.publication_id);if(!byPub.has(k))byPub.set(k,[]);byPub.get(k).push(a)});
+      el.innerHTML=rows.length?'<div class="paper-grid">'+rows.map(x=>{
+        const snap=x.snapshot||{},acks=byPub.get(String(x.id))||[],mine=acks.find(a=>String(a.viewer_user_id)===uid),staff=canSeeAll();
+        const seenText=staff?('<div class="coverage-note"><strong>Family acknowledgement:</strong> '+acks.filter(a=>a.viewer_role==='parent').length+' parent · '+acks.filter(a=>a.viewer_role==='student').length+' student</div>'):(mine?'<div class="coverage-note"><strong>✓ Seen</strong> · '+esc(new Date(mine.acknowledged_at).toLocaleString())+'</div>':'');
+        return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">Official</span><span class="mini-badge">v'+esc(x.version_no||1)+'</span></div><span class="mini-badge">'+esc(x.report_type||'Report')+'</span></div><h3>'+esc(x.core_students?.name||snap.student?.name||'Student')+'</h3><p class="muted">'+esc(x.core_students?.class_name||snap.student?.className||'-')+(x.core_students?.section_name?' · '+esc(x.core_students.section_name):'')+' · '+esc(x.published_at?new Date(x.published_at).toLocaleDateString():'')+'</p><p><strong>'+esc(snap.overall??0)+'%</strong> · Grade '+esc(snap.grade||'')+' · '+esc(snap.status||'')+'</p>'+seenText+'<div class="paper-actions"><button class="secondary" data-rd-pub-print="'+esc(x.id)+'">Open / Print</button>'+((!staff&&!mine)?'<button data-rd-pub-ack="'+esc(x.id)+'">Mark as Seen</button>':'')+'</div></article>';
+      }).join('')+'</div>':'<div class="empty-state">No official report cards published yet.</div>';
+      document.querySelectorAll('[data-rd-pub-print]').forEach(b=>b.onclick=()=>printPublishedReport(rows.find(x=>String(x.id)===String(b.dataset.rdPubPrint))));
+      document.querySelectorAll('[data-rd-pub-ack]').forEach(b=>b.onclick=()=>acknowledgePublishedReport(b.dataset.rdPubAck));
+    }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load published reports.')+'</div>'}
+  }
+
   function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
   function exportCsv(){
     const sm=studentMap(),rows=filterRows();
@@ -124,6 +211,7 @@
     on('rdReportType','change',e=>{state.reportType=e.target.value;renderReportOnly()});
     on('rdBuildReport','click',renderReportOnly);
     on('rdPrintReport','click',printReport);
+    on('rdPublishReport','click',publishOfficialReport);
   }
 
   function renderReportOnly(){
@@ -146,8 +234,9 @@
       '<div class="pp-stats"><article><span>Records</span><strong>'+filtered.length+'</strong></article><article><span>Average</span><strong>'+summary.avg+'%</strong></article><article><span>Pass Rate</span><strong>'+summary.passRate+'%</strong></article><article><span>Students</span><strong>'+summary.students+'</strong></article></div>'+
       '<div class="form-grid"><select id="rdStudent"><option value="">All Students</option>'+vis.map(s=>'<option value="'+esc(s.id)+'" '+(state.student===String(s.id)?'selected':'')+'>'+esc(s.name)+' · '+esc(s.className||'-')+'</option>').join('')+'</select><select id="rdType"><option value="">All Exam Types</option>'+types.map(v=>'<option '+(state.type===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select><select id="rdSubject"><option value="">All Subjects</option>'+subjects.map(v=>'<option '+(state.subject===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select><input id="rdFrom" type="date" value="'+esc(state.from)+'" aria-label="From date"><input id="rdTo" type="date" value="'+esc(state.to)+'" aria-label="To date"><input id="rdSearch" type="search" value="'+esc(state.search)+'" placeholder="Search student, class, subject"><button id="rdClear" class="secondary">Clear Filters</button></div>'+
       '<div class="list" style="margin-top:14px">'+(filtered.length?filtered.slice(0,150).map(r=>{const s=sm.get(String(r.studentId))||{},p=pct(r.marks,r.total);return '<div class="row"><strong>'+esc(s.name||'Student')+'</strong><span>'+esc(s.className||'-')+(s.sectionName?' · '+esc(s.sectionName):'')+'</span><span>'+esc(r.subject||'-')+'</span><span>'+esc(r.type||'Result')+'</span><span>'+Number(r.marks||0)+'/'+Number(r.total||0)+' · '+p+'% · '+grade(p)+'</span></div>'}).join(''):'<div class="empty-state">Is filter ke liye result records nahi hain.</div>')+'</div></article>'+
-      '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Student Academic Progress Report</h3><p class="muted">Results + attendance context ke sath printable parent-ready report.</p></div><div class="paper-actions"><button id="rdPrintReport" class="secondary">Print / Save PDF</button></div></div><div class="form-grid"><select id="rdReportStudent"><option value="">Select student</option>'+vis.map(s=>'<option value="'+esc(s.id)+'" '+(state.reportStudent===String(s.id)?'selected':'')+'>'+esc(s.name)+' · '+esc(s.className||'-')+'</option>').join('')+'</select><select id="rdReportType"><option value="">Combined Results</option>'+types.map(v=>'<option '+(state.reportType===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select><button id="rdBuildReport">Build Report</button></div><div id="rdReportOutput" style="margin-top:14px"></div></article>';
-    bind(root);renderReportOnly();
+      '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Student Academic Progress Report</h3><p class="muted">Results + attendance context ke sath printable report. Staff can publish an official server-generated snapshot to Student/Parent.</p></div><div class="paper-actions"><button id="rdPrintReport" class="secondary">Print / Save PDF</button>'+(canSeeAll()?'<button id="rdPublishReport">Publish Official Report</button>':'')+'</div></div><div class="form-grid"><select id="rdReportStudent"><option value="">Select student</option>'+vis.map(s=>'<option value="'+esc(s.id)+'" '+(state.reportStudent===String(s.id)?'selected':'')+'>'+esc(s.name)+' · '+esc(s.className||'-')+'</option>').join('')+'</select><select id="rdReportType"><option value="">Combined Results</option>'+types.map(v=>'<option '+(state.reportType===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select><button id="rdBuildReport">Build Report</button></div><div id="rdReportOutput" style="margin-top:14px"></div></article>'+
+      '<article class="card" style="margin-top:16px"><div class="section-head"><div><div class="academic-kicker">Official Records</div><h3>Published Report Cards</h3><p class="muted">Versioned server-generated reports with Student/Parent acknowledgement.</p></div></div><div id="rdPublishedReports"><div class="empty-state">Loading published reports…</div></div></article>';
+    bind(root);renderReportOnly();loadPublishedReports();
   }
 
   function attachResultObserver(){
@@ -157,7 +246,7 @@
     const observer=new MutationObserver(()=>{clearTimeout(attachResultObserver.t);attachResultObserver.t=setTimeout(render,80)});
     observer.observe(list,{childList:true,subtree:true,characterData:true});
   }
-  window.addEventListener('edunizam:auth',()=>{render();attachResultObserver()});
+  window.addEventListener('edunizam:auth',()=>{render();attachResultObserver();loadPublishedReports()});
   window.addEventListener('storage',e=>{if(['edunizam_results','edunizam_students','edunizam_attendance'].includes(e.key))render()});
   setTimeout(()=>{render();attachResultObserver()},0);setTimeout(()=>{render();attachResultObserver()},700);
   window.EDUNIZAM_RESULT_CENTER={render,exportCsv,reportHtml};
