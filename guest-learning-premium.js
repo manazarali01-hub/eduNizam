@@ -49,6 +49,11 @@ function allResources(){
   type:x.category,board:x.region||'Pakistan',subject:x.stage||'',section:'ecosystem',
   keywords:[x.keywords,x.audience,x.category,x.stage,x.region].filter(Boolean).join(' ')
  }));
+ (window.EDUNIZAM_EXAM_PATHWAYS?.pathways||[]).forEach(x=>out.push({
+  id:'pathway:'+x.id,title:x.name+' — Guided Pathway',description:x.overview,url:'learn.html#pathways',
+  source:'official',type:'Exam / Study Pathway',board:x.authority,classLevel:x.stage,subject:(x.subjects||[]).map(s=>s.name).join(' / '),
+  section:'pathways',keywords:[x.keywords,(x.pattern||[]).join(' '),(x.steps||[]).map(s=>s.title+' '+s.detail).join(' ')].join(' ')
+ }));
  (window.EDUNIZAM_PUBLIC_LINKS||[]).forEach(x=>out.push({...x}));
  const practiceGroups=new Map();
  (window.EDUNIZAM_PRACTICE_DATA?.questions||[]).forEach(x=>{
@@ -92,7 +97,7 @@ function injectStyles(){
 function injectDirectory(){
  const home=$('home');if(!home)return;
  const wrap=document.createElement('div');wrap.className='hub-directory';wrap.innerHTML='<div class="section-head"><div><h2>Learning Hub</h2><p>Choose a resource center. All items below are public and need no school approval.</p></div></div><div class="grid">'+[
- ['Past Papers','past','past'],['Virtual University','vu','vu-all'],['Pakistani Universities','universities','universities'],['Admissions & Opportunities','ecosystem','ecosystem'],['Scholarships','ecosystem','scholarships'],['Entry Tests','ecosystem','entry-tests'],['IBCC / Attestation','ecosystem','ibcc'],['Textbooks & Curriculum','ecosystem','textbooks'],['Skills / TVET','ecosystem','skills'],['Technical Boards / DAE','ecosystem','technical'],['Digital Skills','ecosystem','digital-skills'],['Accreditation / Recognition','ecosystem','accreditation'],['Research & Digital Library','ecosystem','research'],['Matric Boards','past','matric'],['Intermediate Boards','past','intermediate'],['PECTA / School Education','grade','grade'],['Notes','study','notes'],['Handouts','vu','handouts'],['Highlighted Handouts','vu','highlighted'],['MCQs','practice','practice'],['Practice Quizzes','practice','practice'],['VU Quizzes','vu','vu-quizzes'],['Guess Papers','study','guess'],['Model Papers','grade','models'],['Pairing Schemes','study','pairing'],['Date Sheets','home','datesheet'],['Results / Result Links','home','results'],['Study Library','study','study'],['Educational Resources','study','study'],['Search All Resources','home','search'],['My Saved Resources','home','saved']
+ ['Past Papers','past','past'],['Virtual University','vu','vu-all'],['Pakistani Universities','universities','universities'],['Admissions & Opportunities','ecosystem','ecosystem'],['Exam & Study Pathways','pathways','pathways'],['Scholarships','ecosystem','scholarships'],['Entry Tests','ecosystem','entry-tests'],['IBCC / Attestation','ecosystem','ibcc'],['Textbooks & Curriculum','ecosystem','textbooks'],['Skills / TVET','ecosystem','skills'],['Technical Boards / DAE','ecosystem','technical'],['Digital Skills','ecosystem','digital-skills'],['Accreditation / Recognition','ecosystem','accreditation'],['Research & Digital Library','ecosystem','research'],['Matric Boards','past','matric'],['Intermediate Boards','past','intermediate'],['PECTA / School Education','grade','grade'],['Notes','study','notes'],['Handouts','vu','handouts'],['Highlighted Handouts','vu','highlighted'],['MCQs','practice','practice'],['Practice Quizzes','practice','practice'],['VU Quizzes','vu','vu-quizzes'],['Guess Papers','study','guess'],['Model Papers','grade','models'],['Pairing Schemes','study','pairing'],['Date Sheets','home','datesheet'],['Results / Result Links','home','results'],['Study Library','study','study'],['Educational Resources','study','study'],['Search All Resources','home','search'],['My Saved Resources','home','saved']
  ].map(([t,id,filter])=>'<a href="#'+id+'" data-tab="'+id+'" data-hub-filter="'+filter+'" class="card hub-link"><strong>'+t+'</strong><span>Open →</span></a>').join('')+'</div>';
  home.insertBefore(wrap,home.children[1]||null);
 }
@@ -122,7 +127,7 @@ function injectSearchTools(){
 }
 function renderSuggestions(){
  const box=$('searchSuggestions'),input=$('globalSearch');if(!box||!input)return;
- const q=norm(input.value);let terms=['CS101 past papers','MTH603 quizzes','VU CS101 handouts','AIOU result','MDCAT admission','ECAT UET','HEC scholarship','IBCC equivalence','Punjab digital textbooks','NAVTTC short courses','HEC Digital Library','NUST NET','NUMS MDCAT','DigiSkills courses','NCEAC accreditation','PMDC recognized colleges','DAE result','PPSC result','10th class math Gujranwala board','9th physics past papers','Grade 8 PECTA model paper'];
+ const q=norm(input.value);let terms=['CS101 past papers','MTH603 quizzes','VU CS101 handouts','AIOU semester pathway','MDCAT syllabus','ECAT pattern','NUST NET weightings','CSS process','HEC scholarship','IBCC equivalence','Punjab digital textbooks','NAVTTC short courses','HEC Digital Library','NUST NET','NUMS MDCAT','DigiSkills courses','NCEAC accreditation','PMDC recognized colleges','DAE result','PPSC result','10th class math Gujranwala board','9th physics past papers','Grade 8 PECTA model paper'];
  if(q){
   const engine=window.EDUNIZAM_LEARNING_SEARCH;
   const matches=engine?.search?.(allResources(),input.value)||allResources().filter(r=>norm(JSON.stringify(r)).includes(q));
@@ -144,7 +149,7 @@ function showGlobalResults(query){
  box.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function emptyState(query){
- return '<div class="smart-empty"><h3>Exact resource not available yet.</h3><p>EduNizam did not find a genuine indexed match for “'+esc(query)+'”. Try a broader term or open a trusted resource center.</p><div class="related-row"><button data-tab="past">Past Papers</button><button data-tab="vu">Virtual University</button><button data-tab="grade">PECTA Grade 5/8</button><button data-tab="study">Study Library</button><button data-tab="ecosystem">Admissions & Opportunities</button><button data-clear-smart>Reset search</button></div></div>';
+ return '<div class="smart-empty"><h3>Exact resource not available yet.</h3><p>EduNizam did not find a genuine indexed match for “'+esc(query)+'”. Try a broader term or open a trusted resource center.</p><div class="related-row"><button data-tab="past">Past Papers</button><button data-tab="vu">Virtual University</button><button data-tab="grade">PECTA Grade 5/8</button><button data-tab="study">Study Library</button><button data-tab="ecosystem">Admissions & Opportunities</button><button data-tab="pathways">Exam Pathways</button><button data-clear-smart>Reset search</button></div></div>';
 }
 function resourceCard(r){
  const fav=favorites().some(x=>x.id===r.id),url=String(r.url||'').trim(),studyId=String(r.id||'').startsWith('study:')?String(r.id).slice(6):'',practiceId=String(r.id||'').startsWith('practice:'),builtIn=!!(studyId&&r.content&&!url);const meta=[r.board,r.classLevel&&((Number(r.classLevel)<=8?'Grade ':'Class ')+r.classLevel),r.subject,r.year,r.session,r.type].filter(Boolean);
@@ -459,6 +464,7 @@ function applyHubShortcut(kind){
  if(kind==='vu-quizzes'){selectAndFire('vuGuestType','Quizzes');return}
  if(kind==='practice'){selectAndFire('guestPracticeType','mcq');return}
  if(kind==='ecosystem'){return}
+ if(kind==='pathways'){setTimeout(()=>document.getElementById('examPathSearch')?.focus(),0);return}
  if(kind==='scholarships'){selectAndFire('ecosystemGuestCategory','Scholarships');return}
  if(kind==='entry-tests'){selectAndFire('ecosystemGuestCategory','Entry Tests');return}
  if(kind==='ibcc'){selectAndFire('ecosystemGuestCategory','Equivalence & Attestation');return}
