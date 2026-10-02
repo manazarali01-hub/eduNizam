@@ -68,7 +68,7 @@
 <main class="shell">
   <div class="search-wrap"><div class="searchbox"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="Search board, class, subject, VU course, resource…" aria-label="Search learning resources"><button id="runGlobalSearch" class="btn primary" type="button">Search</button><button id="clearSearch" class="btn" type="button">Clear</button></div></div>
   <nav class="tabs" aria-label="Learning sections">
-    <a class="tab active" data-tab="home" href="learn.html#home">Overview</a><a class="tab" data-tab="past" href="learn.html#past">Past Papers</a><a class="tab" data-tab="grade" href="learn.html#grade">Grade 5 & 8</a><a class="tab" data-tab="study" href="learn.html#study">Study Library</a><a class="tab" data-tab="universities" href="learn.html#universities">Universities</a><a class="tab" data-tab="vu" href="learn.html#vu">VU</a><a class="tab" data-tab="practice" href="learn.html#practice">Practice</a>
+    <a class="tab active" data-tab="home" href="learn.html#home">Overview</a><a class="tab" data-tab="past" href="learn.html#past">Past Papers</a><a class="tab" data-tab="grade" href="learn.html#grade">Grade 5 & 8</a><a class="tab" data-tab="study" href="learn.html#study">Study Library</a><a class="tab" data-tab="universities" href="learn.html#universities">Universities</a><a class="tab" data-tab="competitive" href="learn.html#competitive">CSS / PPSC</a><a class="tab" data-tab="vu" href="learn.html#vu">VU</a><a class="tab" data-tab="practice" href="learn.html#practice">Practice</a>
   </nav>
 
   <section id="home" class="section active">
@@ -90,7 +90,18 @@
   </section>
   <section id="grade" class="section"><div class="section-head"><div><h2>Grade 5 & 8 Resources</h2><p>Current PECTAA material and clearly labelled historical PEC archives.</p></div></div><div id="gradeGrid" class="grid"></div></section>
   <section id="study" class="section"><div class="section-head"><div><h2>Study Library</h2><p>Syllabi, model papers, assessment frameworks and built-in revision sheets.</p></div></div><div id="studyGrid" class="grid"></div></section>
-  <section id="universities" class="section"><div class="section-head"><div><h2>University Resources</h2><p>Official university portals and useful examination resources.</p></div></div><div id="universityGrid" class="grid"></div></section>
+  <section id="universities" class="section"><div class="section-head"><div><h2>Pakistan University Results, LMS & Past Papers</h2><p>AIOU, Punjab University, BZU, UOG, UAF, GCUF, UOS and more — official results, LMS/CMS, admissions, merit lists, examinations, past papers and HEC verification routes.</p></div></div><div id="universityGrid" class="grid"></div></section>
+  <section id="competitive" class="section"><div class="section-head"><div><h2>CSS, PPSC, FPSC & Competitive Exams</h2><p>Official jobs, online applications, syllabi, past papers, roll-number/admission certificates, schedules, results and merit lists from federal/provincial commissions and testing services.</p></div></div>
+    <div class="paper-filters" aria-label="Competitive exam filters">
+      <input class="paper-search" id="competitiveGuestSearch" type="search" placeholder="Search CSS syllabus, PPSC result, FPSC jobs, NTS roll no…" aria-label="Search competitive exam resources">
+      <select id="competitiveGuestAgency" aria-label="Agency"><option value="">All Agencies / Exams</option></select>
+      <select id="competitiveGuestCategory" aria-label="Category"><option value="">All Categories</option></select>
+      <select id="competitiveGuestRegion" aria-label="Region"><option value="">All Regions</option><option>Federal</option><option>Punjab</option><option>Khyber Pakhtunkhwa</option><option>Sindh</option><option>Balochistan</option><option>AJK</option><option>Pakistan</option></select>
+      <button id="competitiveGuestSearchBtn" class="btn primary" type="button">Search Official Sources</button>
+    </div>
+    <div class="notice"><strong>Official-source rule:</strong> vacancies, eligibility, closing dates, syllabi and results can change. EduNizam routes users to the official commission/testing-service source instead of inventing current information.</div>
+    <div id="competitiveGrid" class="grid"></div>
+  </section>
   <section id="vu" class="section"><div class="section-head"><div><h2>Virtual University</h2><p>Official material first; community sources are marked as supplementary.</p></div></div><div class="notice">Search a course code such as <strong>MTH647</strong>, <strong>MTH501</strong>, <strong>CS201</strong> or <strong>STA301</strong>. When an exact indexed item is unavailable, EduNizam shows useful VU-wide alternatives rather than inventing an exact paper.</div><div id="vuGrid" class="grid"></div></section>
   <section id="practice" class="section"><div class="section-head"><div><h2>Practice Center</h2><p>Free built-in practice with instant feedback.</p></div></div><article class="card practice-box"><div id="practiceMeta" class="meta"></div><div id="practiceQuestion" class="question"></div><div id="practiceOptions" class="options"></div><div id="practiceExplain" class="explain" hidden></div><div class="practice-actions"><button id="prevQuestion" class="btn">Previous</button><button id="nextQuestion" class="btn primary">Next Question</button></div></article></section>
 </main>
@@ -102,6 +113,8 @@
 <script src="study-data.js?v=20261001-visitor215"></script>
 <script src="school-assessment-data.js?v=20261001-visitor215"></script>
 <script src="university-data.js?v=20261001-visitor215"></script>
+<script src="education-directory-expansion.js?v=20261002-edu230"></script>
+<script src="competitive-exams-data.js?v=20261002-edu230"></script>
 <script src="vu-course-catalog.js?v=20261001-visitor215"></script>
 <script src="practice-data.js?v=20261001-visitor215"></script>
 <script src="learning-premium-data.js?v=20261001-visitor215"></script>
@@ -122,7 +135,7 @@
   const q=()=>norm($('globalSearch').value);
   const sourceBadge=s=>{const x=String(s||'').toLowerCase();const cls=x==='official'?'official':x==='verified'?'verified':x==='built-in'?'builtin':'';return '<span class="badge '+cls+'">'+esc(s||'Resource')+'</span>'};
   const match=(obj,extra='')=>{const raw=$('globalSearch').value,needle=norm(raw);if(!needle)return true;const candidate={...obj,description:[obj?.note,obj?.description,extra].filter(Boolean).join(' ')};return !!window.EDUNIZAM_LEARNING_SEARCH?.search?.([candidate],raw)?.length||norm(JSON.stringify(obj)+' '+extra).includes(needle)};
-  const validTabs=new Set(['home','past','grade','study','universities','vu','practice']);
+  const validTabs=new Set(['home','past','grade','study','universities','competitive','vu','practice']);
   function openTab(id){
     id=validTabs.has(String(id||''))?String(id):'home';
     document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===id));
@@ -144,9 +157,9 @@
   function resourceCard({title,description,url,source,tags=[],paper=false}){const actions=url?(paper?'<div class="paper-actions"><button class="btn preview-paper" type="button" data-url="'+esc(url)+'" data-title="'+esc(title)+'">Preview</button><button class="btn print-paper" type="button" data-url="'+esc(url)+'">Print</button><a class="btn primary" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Save / Open</a></div>':'<a class="open" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open resource ↗</a>'):'';return '<article class="card">'+sourceBadge(source)+'<h3>'+esc(title)+'</h3><p>'+esc(description||'Useful learning resource.')+'</p><div class="meta">'+tags.filter(Boolean).map(t=>'<span class="badge">'+esc(t)+'</span>').join('')+'</div>'+actions+'</article>'}
   function renderHome(){
     const pp=window.EDUNIZAM_PAST_PAPERS||{},sd=window.EDUNIZAM_STUDY_DATA||{},ud=window.EDUNIZAM_UNIVERSITY_DATA||{},pd=window.EDUNIZAM_PRACTICE_DATA||{};
-    $('boardCount').textContent=(pp.boards||[]).length;$('resourceCount').textContent=(pp.papers||[]).length+(sd.materials||[]).length+(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).length+(ud.resources||[]).length+(window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).length+(window.EDUNIZAM_PUBLIC_LINKS||[]).length;$('uniCount').textContent=(ud.universities||[]).length;$('questionCount').textContent=(pd.questions||[]).length;
+    $('boardCount').textContent=(pp.boards||[]).length;$('resourceCount').textContent=(pp.papers||[]).length+(sd.materials||[]).length+(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).length+(ud.resources||[]).length+(window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).length+(window.EDUNIZAM_COMPETITIVE_EXAMS?.resources||[]).length+(window.EDUNIZAM_PUBLIC_LINKS||[]).length;$('uniCount').textContent=(ud.universities||[]).filter(x=>x.id!=='vu').length;$('questionCount').textContent=(pd.questions||[]).length;
     const cards=[
-      ['Past Papers','Pakistan boards and available official/verified paper sources.','past'],['Grade 5 & 8','PECTAA model papers, assessment resources and historical archives.','grade'],['Study Library','Syllabi, model papers and quick revision material.','study'],['Universities','Official university and examination resources.','universities'],['Virtual University','VU course material, handouts, notes and supplementary past-paper sources.','vu'],['Practice Center','Free MCQs and questions with instant feedback.','practice']
+      ['Past Papers','Pakistan boards and available official/verified paper sources.','past'],['Grade 5 & 8','PECTAA model papers, assessment resources and historical archives.','grade'],['Study Library','Syllabi, model papers and quick revision material.','study'],['Universities','AIOU and Pakistan university results, LMS, admissions, examinations and past papers.','universities'],['CSS / PPSC / FPSC','Competitive exams, jobs, syllabi, applications, roll numbers and results from official sources.','competitive'],['Virtual University','VU course material, handouts, notes and supplementary past-paper sources.','vu'],['Practice Center','Free MCQs and questions with instant feedback.','practice']
     ];
     $('homeCards').innerHTML=cards.map(x=>'<a class="card" data-home-open="'+x[2]+'" href="learn.html#'+x[2]+'" style="text-align:left;cursor:pointer;text-decoration:none"><span class="kicker">Free</span><h3>'+x[0]+'</h3><p>'+x[1]+'</p><span class="open">Explore →</span></a>').join('');
   }
@@ -217,6 +230,27 @@
     unis.filter(x=>x.id!=='vu'&&match(x)).forEach(x=>rows.push(resourceCard({title:x.name,description:x.type,url:x.officialUrl,source:'official',tags:[x.type]})));
     $('universityGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No university resource matched this search.</div>';
   }
+  function initCompetitiveFilters(){
+    const d=window.EDUNIZAM_COMPETITIVE_EXAMS||{agencies:[],resources:[]};
+    const a=$('competitiveGuestAgency'),cat=$('competitiveGuestCategory');
+    if(a)a.innerHTML='<option value="">All Agencies / Exams</option>'+d.agencies.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');
+    if(cat){const cats=[...new Set(d.resources.map(x=>x.category).filter(Boolean))].sort();cat.innerHTML='<option value="">All Categories</option>'+cats.map(x=>'<option>'+esc(x)+'</option>').join('')}
+    ['competitiveGuestAgency','competitiveGuestCategory','competitiveGuestRegion'].forEach(id=>$(id)?.addEventListener('change',renderCompetitive));
+    $('competitiveGuestSearch')?.addEventListener('input',renderCompetitive);
+    $('competitiveGuestSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderCompetitive()}});
+    $('competitiveGuestSearchBtn')?.addEventListener('click',renderCompetitive);
+  }
+  function renderCompetitive(){
+    const d=window.EDUNIZAM_COMPETITIVE_EXAMS||{agencies:[],resources:[]};
+    const local=norm($('competitiveGuestSearch')?.value||''),agency=$('competitiveGuestAgency')?.value||'',cat=$('competitiveGuestCategory')?.value||'',region=$('competitiveGuestRegion')?.value||'',global=q();
+    const rows=d.resources.filter(r=>{
+      const a=d.agencies.find(x=>x.id===r.agencyId);
+      const text=norm([r.title,r.category,r.note,a?.name,a?.region].join(' '));
+      const localMatch=!local||text.includes(local),globalMatch=!global||match(r,[a?.name,a?.region].join(' '));
+      return localMatch&&globalMatch&&(!agency||r.agencyId===agency)&&(!cat||r.category===cat)&&(!region||a?.region===region);
+    }).map(r=>{const a=d.agencies.find(x=>x.id===r.agencyId);return resourceCard({title:r.title,description:r.note,url:r.url,source:'official',tags:[a?.name,a?.region,r.category]})});
+    $('competitiveGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No matching official competitive-exam resource. Clear a filter or search another exam/post.</div>';
+  }
   function renderVU(){
     const d=window.EDUNIZAM_UNIVERSITY_DATA||{},catalog=window.EDUNIZAM_VU_COURSE_CATALOG||{},needle=q(),rows=[];
     const raw=$('globalSearch').value.trim(),upper=raw.toUpperCase();
@@ -259,21 +293,28 @@
   $('paperPreview').addEventListener('click',e=>{if(e.target===$('paperPreview'))$('previewClose').click()});
   $('previewPrint').onclick=()=>{try{$('previewFrame').contentWindow.print()}catch(_){window.open($('previewSave').href,'_blank')}};
   $('prevQuestion').onclick=()=>{qi=Math.max(0,qi-1);renderPractice()};$('nextQuestion').onclick=()=>{const n=practiceList().length;qi=n?(qi+1)%n:0;renderPractice()};
-  function renderAll(){renderHome();renderPast();renderGrade();renderStudy();renderUniversities();renderVU();renderPractice()}
+  function renderAll(){renderHome();renderPast();renderGrade();renderStudy();renderUniversities();renderCompetitive();renderVU();renderPractice()}
   function runGlobalSearch(){
     qi=0;renderAll();
     const raw=$('globalSearch').value.trim();
+    if(/\b(css|ppsc|fpsc|kppsc|spsc|bpsc|ajkpsc|nts|etea|sts|pms)\b/i.test(raw)){
+      history.replaceState(null,'','#competitive');openTab('competitive');
+      requestAnimationFrame(()=>$('competitiveGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));return;
+    }
     if(/\b[A-Za-z]{2,5}[\s-]*\d{3,4}[A-Za-z]?\b/.test(raw)){
-      history.replaceState(null,'','#vu');
-      openTab('vu');
-      requestAnimationFrame(()=>$('vuGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));
+      history.replaceState(null,'','#vu');openTab('vu');
+      requestAnimationFrame(()=>$('vuGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));return;
+    }
+    if(/\b(aiou|allama iqbal|punjab university|bzu|uog|uaf|gcuf|sargodha university|hec|university results?|university lms|student portal)\b/i.test(raw)){
+      history.replaceState(null,'','#universities');openTab('universities');
+      requestAnimationFrame(()=>$('universityGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));
     }
   }
   let timer;$('globalSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>{qi=0;renderAll()},120)});
   $('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
   $('runGlobalSearch').onclick=runGlobalSearch;
   $('clearSearch').onclick=()=>{$('globalSearch').value='';qi=0;renderAll();$('globalSearch').focus()};
-  initPastFilters();renderAll();
+  initPastFilters();initCompetitiveFilters();renderAll();
   const initialTab=location.hash.slice(1);if(validTabs.has(initialTab))openTab(initialTab);
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
