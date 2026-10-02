@@ -1,4 +1,4 @@
-const CACHE='edunizam-v195-deep380'
+const CACHE='edunizam-v196-deep390'
 const CORE=[
   './',
   './index.html',
@@ -42,6 +42,7 @@ const CORE=[
   './exam-pathways-data.js',
   './exam-pathways.js',
   './exam-topic-practice-data.js',
+  './exam-topic-practice.js',
   './exam-topic-blueprints-data.js',
   './exam-topic-planner.js',
   './vu-course-catalog.js',
