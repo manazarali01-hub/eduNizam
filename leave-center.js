@@ -243,7 +243,7 @@
       const row=await insertCloud(item);
       if(row){
         item.id=row.id;item.cloudSynced=true;item.studentUserId=row.student_user_id||null;item.submittedBy=row.submitted_by;item.personName=row.leave_for==='staff'?(row.requester_name||item.personName):(row.student_name||item.personName);item.createdAt=row.created_at;
-        try{await c.state.client.rpc('notify_leave_submission_v1',{p_request_id:row.id})}catch(e){console.warn('Leave submission notification:',e.message||e)}
+        try{await cloud().state.client.rpc('notify_leave_submission_v1',{p_request_id:row.id})}catch(e){console.warn('Leave submission notification:',e.message||e)}
         if(attachmentFile){
           try{
             const attached=await uploadLeaveAttachment(row.id,attachmentFile);
@@ -297,14 +297,30 @@
     }catch(e){alert('Leave decision failed: '+(e.message||e));buttons.forEach(b=>b.disabled=false)}
   }
 
-  function bind(){
+  function bind(root){
     if($('submitLeave'))$('submitLeave').onclick=submit;
     $('leaveFrom')?.addEventListener('change',renderDaysHelp);$('leaveTo')?.addEventListener('change',renderDaysHelp);
+    $('leaveFilterStatus')?.addEventListener('change',e=>{root.dataset.leaveStatus=e.target.value;render()});
+    $('leaveFilterType')?.addEventListener('change',e=>{root.dataset.leaveType=e.target.value;render()});
+    $('leaveFilterReview')?.addEventListener('change',e=>{root.dataset.leaveReview=e.target.value;render()});
+    $('leaveSearch')?.addEventListener('input',e=>{root.dataset.leaveSearch=e.target.value;clearTimeout(bind.timer);bind.timer=setTimeout(render,160)});
+    $('leaveClearFilters')?.addEventListener('click',()=>{root.dataset.leaveStatus='';root.dataset.leaveType='';root.dataset.leaveReview='';root.dataset.leaveSearch='';render()});
     document.querySelectorAll('[data-leave-teacher-approve]').forEach(b=>b.onclick=()=>reviewTeacher(b.dataset.leaveTeacherApprove,'Recommend Approval'));
     document.querySelectorAll('[data-leave-teacher-reject]').forEach(b=>b.onclick=()=>reviewTeacher(b.dataset.leaveTeacherReject,'Recommend Rejection'));
     document.querySelectorAll('[data-leave-approve]').forEach(b=>b.onclick=()=>decide(b.dataset.leaveApprove,'Approved'));
     document.querySelectorAll('[data-leave-reject]').forEach(b=>b.onclick=()=>decide(b.dataset.leaveReject,'Rejected'));
     document.querySelectorAll('[data-leave-attachment]').forEach(b=>b.onclick=()=>openAttachment(b.dataset.leaveAttachment));
+  }
+  function filterRequests(arr,root){
+    const status=root.dataset.leaveStatus||'',type=root.dataset.leaveType||'',review=root.dataset.leaveReview||'',q=(root.dataset.leaveSearch||'').trim().toLowerCase();
+    return arr.filter(x=>{
+      if(status&&x.status!==status)return false;
+      if(type&&x.leaveFor!==type)return false;
+      if(review==='reviewed'&&!x.teacherResponse)return false;
+      if(review==='unreviewed'&&(x.teacherResponse||x.leaveFor!=='student'))return false;
+      if(q&&!([x.personName,x.studentName,x.className,x.sectionName,x.reason,x.guardianNote,x.decisionNote,x.teacherNote,x.submittedRole].join(' ').toLowerCase().includes(q)))return false;
+      return true;
+    });
   }
   function summary(arr){
     const pending=arr.filter(x=>x.status==='Pending').length,reviewed=arr.filter(x=>x.status==='Pending'&&x.teacherResponse).length,approved=arr.filter(x=>x.status==='Approved').length,rejected=arr.filter(x=>x.status==='Rejected').length;
@@ -314,9 +330,12 @@
     const root=$('leaveCenterApp');if(!root)return;let arr=read();
     if(cloudReady()&&(forceCloud||!root.dataset.cloudLoaded)){root.dataset.cloudLoaded='1';try{arr=await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Leave cloud sync:',e.message)}}
     arr=arr.filter(localVisibleRequest).sort((a,b)=>{const rank={Pending:0,Approved:1,Rejected:2};return(rank[a.status]??9)-(rank[b.status]??9)||new Date(b.createdAt||0)-new Date(a.createdAt||0)});
+    const filtered=filterRequests(arr,root);
     const roleText=isAdmin()?'Teacher review is visible; Admin gives the final approve/reject decision with a reason.':isTeacher()?'Submit your own leave or review leave for assigned students. Admin gives the final institutional decision.':'Submit leave with dates, number of days and cause; track Teacher review and Admin final decision.';
-    root.innerHTML='<div class="section-head"><div><h2>Leave Requests</h2><p class="muted">'+roleText+'</p></div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div>'+summary(arr)+renderForm()+'<div class="paper-grid leave-request-grid" style="margin-top:16px">'+(arr.length?arr.map(card).join(''):'<div class="empty-state">Abhi koi relevant leave request nahi hai.</div>')+'</div>';
-    bind();renderDaysHelp();
+    root.innerHTML='<div class="section-head"><div><h2>Leave Requests</h2><p class="muted">'+roleText+'</p></div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div>'+summary(arr)+renderForm()+
+      '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Leave History & Queue</h3><p class="muted">'+filtered.length+' of '+arr.length+' relevant requests shown.</p></div><button id="leaveClearFilters" class="secondary">Clear Filters</button></div><div class="form-grid"><select id="leaveFilterStatus"><option value="">All Status</option>'+['Pending','Approved','Rejected'].map(v=>'<option value="'+v+'" '+((root.dataset.leaveStatus||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><select id="leaveFilterType"><option value="">All Request Types</option><option value="student" '+((root.dataset.leaveType||'')==='student'?'selected':'')+'>Student Leave</option><option value="staff" '+((root.dataset.leaveType||'')==='staff'?'selected':'')+'>Teacher Leave</option></select><select id="leaveFilterReview"><option value="">All Teacher Review States</option><option value="reviewed" '+((root.dataset.leaveReview||'')==='reviewed'?'selected':'')+'>Teacher Reviewed</option><option value="unreviewed" '+((root.dataset.leaveReview||'')==='unreviewed'?'selected':'')+'>Awaiting Teacher Review</option></select><input id="leaveSearch" type="search" value="'+esc(root.dataset.leaveSearch||'')+'" placeholder="Search name, class, reason or decision"></div></article>'+
+      '<div class="paper-grid leave-request-grid" style="margin-top:16px">'+(filtered.length?filtered.map(card).join(''):'<div class="empty-state">No leave request matches these filters.</div>')+'</div>';
+    bind(root);renderDaysHelp();
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('leaveCenterApp');if(root)delete root.dataset.cloudLoaded;render(true)});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)render(true)});
