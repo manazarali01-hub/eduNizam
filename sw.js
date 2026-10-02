@@ -1,4 +1,4 @@
-const CACHE='edunizam-v192-deep240'
+const CACHE='edunizam-v193-deep250'
 const CORE=[
   './',
   './index.html',
@@ -57,6 +57,10 @@ const CORE=[
   './university-results-lms-past-papers-pakistan.html',
   './css-ppsc-fpsc-pakistan.html',
   './pakistan-education-services.html',
+  './pakistan-entry-tests-scholarships.html',
+  './pakistan-degree-accreditation-recognition.html',
+  './technical-vocational-digital-skills-pakistan.html',
+  './pakistan-textbooks-curriculum-research.html',
   './online-school-admissions.html',
   './school-management-system-pakistan.html',
   './edunizam.html',
