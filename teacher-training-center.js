@@ -165,6 +165,7 @@
     if(decision==='Returned'&&!note)return alert('Revision reason required hai.');
     const {error}=await cloud().state.client.rpc('review_training_assignment_v1',{p_assignment_id:id,p_decision:decision,p_score:score===''?null:Number(score),p_review_note:note||null});
     if(error)return alert(error.message);
+    const root=$('teacherTrainingApp');if(root)delete root.dataset.cloudLoaded;
     window.EDUNIZAM_PREMIUM?.toast?.('Assignment '+decision.toLowerCase()+'.','success');await render();
   }
 
