@@ -7,7 +7,7 @@
   const students=()=>read('edunizam_students',[]);
   const session=()=>read('edunizam_session',{});
   const role=()=>{const r=session()?.role||'student';return r==='admin'?'head':r};
-  const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students();
+  const visibleStudents=()=>{const list=students(),fn=window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents;if(fn)return fn(list)||[];return role()==='head'?list:[]};
   const I=()=>window.EDUNIZAM_STUDENT_INSIGHTS;
   const csv=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
 
