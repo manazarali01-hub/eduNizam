@@ -147,6 +147,22 @@
     </div>
     <div class="notice"><strong>Freshness guard:</strong> this section stores the stable exam/study process and official source links. Dates, fees, eligibility cutoffs and current notices must be confirmed on the issuing authority's latest page.</div>
     <div id="examPathGrid" class="grid"></div>
+    <div id="examPrepLab" class="card" style="margin-top:18px">
+      <div class="section-head"><div><h3>Exam Topic Practice Lab</h3><p>Choose an exam, subject and topic. Your score and weak-topic signals stay on this device.</p></div></div>
+      <div class="paper-filters">
+        <select id="examPrepExam"><option value="">Choose Exam</option></select>
+        <select id="examPrepSubject"><option value="">All Subjects</option></select>
+        <select id="examPrepTopic"><option value="">All Topics</option></select>
+        <select id="examPrepDifficulty"><option value="">All Difficulty</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
+        <select id="examPrepType"><option value="">MCQ + Written</option><option value="mcq">MCQ</option><option value="written">Written / Analytical</option></select>
+        <select id="examPrepCount"><option value="5">5 Items</option><option value="10" selected>10 Items</option><option value="15">15 Items</option><option value="20">20 Items</option><option value="all">All Matching</option></select>
+        <button id="examPrepStart" class="btn primary" type="button">Start Topic Practice</button>
+      </div>
+      <div class="search-suggestions" style="margin:10px 0"><button type="button" data-exam-prep-quick="mdcat">MDCAT</button><button type="button" data-exam-prep-quick="ecat">ECAT</button><button type="button" data-exam-prep-quick="nust-net">NET</button><button type="button" data-exam-prep-quick="usat">USAT</button><button type="button" data-exam-prep-quick="lat">LAT</button><button type="button" data-exam-prep-quick="css">CSS</button></div>
+      <p id="examPrepBasis" class="notice"></p><p id="examPrepAvailable" class="muted"></p>
+      <div id="examPrepSession" class="practice-box" hidden><div id="examPrepMeta" class="meta"></div><div id="examPrepProgress" class="muted"></div><div id="examPrepQuestion" class="question"></div><div id="examPrepOptions" class="options"></div><div id="examPrepExplain" class="explain" hidden></div></div>
+      <div id="examPrepHistory" class="notice" style="margin-top:14px"></div>
+    </div>
   </section>
   <section id="vu" class="section"><div class="section-head"><div><h2>Virtual University</h2><p>Official material first; community sources are marked as supplementary.</p></div></div><div class="notice">Search a course code such as <strong>MTH647</strong>, <strong>MTH501</strong>, <strong>CS201</strong> or <strong>STA301</strong>. When an exact indexed item is unavailable, EduNizam shows useful VU-wide alternatives rather than inventing an exact paper.</div><div id="vuGrid" class="grid"></div></section>
   <section id="practice" class="section"><div class="section-head"><div><h2>Practice Center</h2><p>Free built-in practice with instant feedback.</p></div></div><article class="card practice-box"><div id="practiceMeta" class="meta"></div><div id="practiceQuestion" class="question"></div><div id="practiceOptions" class="options"></div><div id="practiceExplain" class="explain" hidden></div><div class="practice-actions"><button id="prevQuestion" class="btn">Previous</button><button id="nextQuestion" class="btn primary">Next Question</button></div></article></section>
@@ -161,9 +177,11 @@
 <script src="university-data.js?v=20261001-visitor215"></script>
 <script src="education-directory-expansion.js?v=20261002-edu230"></script>
 <script src="competitive-exams-data.js?v=20261002-edu230"></script>
-<script src="education-ecosystem-data.js?v=20261002-deep300"></script>
-<script src="exam-pathways-data.js?v=20261002-deep300"></script>
-<script src="exam-pathways.js?v=20261002-deep300"></script>
+<script src="education-ecosystem-data.js?v=20261002-deep320"></script>
+<script src="exam-pathways-data.js?v=20261002-deep320"></script>
+<script src="exam-topic-practice-data.js?v=20261002-deep320"></script>
+<script src="exam-pathways.js?v=20261002-deep320"></script>
+<script src="exam-topic-practice.js?v=20261002-deep320"></script>
 <script src="vu-course-catalog.js?v=20261001-visitor215"></script>
 <script src="practice-data.js?v=20261001-visitor215"></script>
 <script src="learning-premium-data.js?v=20261001-visitor215"></script>
@@ -399,9 +417,9 @@
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
-<script src="guest-learning-nav.js?v=20261002-deep300"></script>
-<script src="guest-learning-premium.js?v=20261002-deep300"></script>
-<script src="pwa-install.js?v=20261002-deep300" defer></script>
-<script src="system-auto-update.js?v=20261002-deep300" defer></script>
+<script src="guest-learning-nav.js?v=20261002-deep320"></script>
+<script src="guest-learning-premium.js?v=20261002-deep320"></script>
+<script src="pwa-install.js?v=20261002-deep320" defer></script>
+<script src="system-auto-update.js?v=20261002-deep320" defer></script>
 </body>
 </html>
