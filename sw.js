@@ -1,4 +1,4 @@
-const CACHE='edunizam-v210-deep500'
+const CACHE='edunizam-v211-deep501'
 const CORE=[
   './',
   './index.html',
@@ -31,6 +31,7 @@ const CORE=[
   './public.css',
   './learn.html',
   './past-papers-data.js',
+  './past-papers-premium.js',
   './board-paper-deep-data.js',
   './board-paper-regional-deep-data.js',
   './study-data.js',
