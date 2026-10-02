@@ -17,14 +17,14 @@
   function classFees(){try{return JSON.parse(localStorage.getItem(CLASS_KEY)||'{}')}catch{return{}}}
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
   function money(v){const s=JSON.parse(localStorage.getItem('edunizam_settings')||'{}'),currency=s.currency||'PKR',locale=s.locale||'en-PK';try{return new Intl.NumberFormat(locale,{style:'currency',currency,maximumFractionDigits:2}).format(Number(v||0))}catch(e){return currency+' '+Number(v||0).toLocaleString()}}
-  function statusRisk(s){return s==='Paid'?'good':s==='Pending'?'medium':'high'}
+  function statusRisk(s){return s==='Paid'?'good':(s==='Pending'||s==='Partially Paid')?'medium':'high'}
   function isOverdue(x){return x.status!=='Paid'&&x.dueDate&&String(x.dueDate)<localDate()}
   function feeMetrics(rows){
     const billed=rows.reduce((a,x)=>a+Number(x.totalAmount||0),0);
-    const collected=rows.filter(x=>x.status==='Paid').reduce((a,x)=>a+Number(x.totalAmount||0),0);
-    const outstanding=rows.filter(x=>x.status!=='Paid').reduce((a,x)=>a+Number(x.totalAmount||0),0);
+    const collected=rows.reduce((a,x)=>a+Number(x.paidAmount||0),0);
+    const outstanding=rows.reduce((a,x)=>a+Number(x.balanceAmount!=null?x.balanceAmount:Math.max(0,Number(x.totalAmount||0)-Number(x.paidAmount||0))),0);
     const overdue=rows.filter(isOverdue);
-    return {billed,collected,outstanding,overdueCount:overdue.length,overdueAmount:overdue.reduce((a,x)=>a+Number(x.totalAmount||0),0)};
+    return {billed,collected,outstanding,overdueCount:overdue.length,overdueAmount:overdue.reduce((a,x)=>a+Number(x.balanceAmount!=null?x.balanceAmount:(x.totalAmount||0)),0)};
   }
   function feeMetricCards(rows){
     const m=feeMetrics(rows);
@@ -72,24 +72,44 @@
       discount:Number(x.discount||0),
       arrears:Number(x.arrears||0),
       totalAmount:Number(x.amount||0),
+      paidAmount:Number(x.paid_amount||0),
+      balanceAmount:Math.max(0,Number(x.amount||0)-Number(x.paid_amount||0)),
       status:x.status||'Pending',
       dueDate:x.due_date||x.fee_date||'',
       challanNo:x.challan_no||'',
       receiptNo:x.receipt_no||'',
       paymentReference:x.payment_reference||'',
+      paymentHistory:Array.isArray(x.paymentHistory)?x.paymentHistory:[],
       createdAt:x.created_at,
       paidAt:x.paid_at||''
     };
   }
   async function pullCloud(){
     if(!cloudReady())return read();
-    const {data,error}=await cloud().state.client.from('fee_records')
-      .select('*,core_students(local_id,name,class_name,student_code,auth_user_id)')
-      .eq('institution_id',cfg().institutionId)
-      .not('fee_month','is',null)
-      .order('created_at',{ascending:false});
-    if(error)throw error;
-    const rows=(data||[]).map(toLocalRow);write(rows);
+    const [feesRes,paymentsRes]=await Promise.all([
+      cloud().state.client.from('fee_records')
+        .select('*,core_students(local_id,name,class_name,student_code,auth_user_id)')
+        .eq('institution_id',cfg().institutionId)
+        .not('fee_month','is',null)
+        .order('created_at',{ascending:false}),
+      cloud().state.client.from('fee_payments')
+        .select('*')
+        .eq('institution_id',cfg().institutionId)
+        .order('paid_at',{ascending:false})
+    ]);
+    if(feesRes.error)throw feesRes.error;
+    if(paymentsRes.error)throw paymentsRes.error;
+    const byFee=new Map();
+    (paymentsRes.data||[]).forEach(p=>{
+      const k=String(p.fee_record_id);
+      if(!byFee.has(k))byFee.set(k,[]);
+      byFee.get(k).push({
+        id:p.id,amount:Number(p.amount||0),reference:p.payment_reference||'',
+        receiptNo:p.receipt_no||'',paidAt:p.paid_at,recordedBy:p.recorded_by||''
+      });
+    });
+    const rows=(feesRes.data||[]).map(x=>toLocalRow(Object.assign({},x,{paymentHistory:byFee.get(String(x.id))||[]})));
+    write(rows);
     return rows;
   }
   async function syncClassFees(map=classFees()){
@@ -122,6 +142,7 @@
       local_id:Number(item.localFeeId)||Date.now(),
       student_id:cs.id,
       amount:item.totalAmount,
+      paid_amount:Number(item.paidAmount||0),
       status:item.status,
       fee_date:item.dueDate||localDate(),
       fee_month:item.feeMonth,
@@ -140,26 +161,22 @@
     const {data,error}=await cloud().state.client.from('fee_records').upsert(payload,{onConflict:'institution_id,student_id,fee_month'}).select('*,core_students(local_id,name,class_name,student_code,auth_user_id)').single();
     if(error)throw error;return toLocalRow(data);
   }
-  async function markPaidCloud(item){
+  async function recordPaymentCloud(item,amount,reference){
     if(!cloudReady())return null;
-    const payload={
-      status:'Paid',
-      payment_reference:item.paymentReference||null,
-      receipt_no:item.receiptNo,
-      paid_at:item.paidAt,
-      fee_date:item.paidAt?String(item.paidAt).slice(0,10):localDate(),
-      updated_at:new Date().toISOString()
-    };
-    const {data,error}=await cloud().state.client.from('fee_records').update(payload).eq('id',item.id)
-      .select('*,core_students(local_id,name,class_name,student_code,auth_user_id)').single();
-    if(error)throw error;return toLocalRow(data);
+    const {data,error}=await cloud().state.client.rpc('record_fee_payment_v1',{
+      p_fee_record_id:item.id,
+      p_amount:Number(amount),
+      p_payment_reference:reference||null
+    });
+    if(error)throw error;
+    return Array.isArray(data)?data[0]:data;
   }
   function mirrorLegacy(item){
     const rec={
       id:item.localFeeId||item.id,
       studentId:Number(item.studentId),
-      amount:Number(item.totalAmount||0),
-      status:item.status,
+      amount:Number(item.status==='Paid'?item.totalAmount:((item.balanceAmount!=null?item.balanceAmount:item.totalAmount)||0)),
+      status:item.status==='Paid'?'Paid':'Pending',
       date:item.status==='Paid'?(item.paidAt?String(item.paidAt).slice(0,10):localDate()):(item.dueDate||localDate()),
       feeMonth:item.feeMonth,
       challanNo:item.challanNo,
@@ -188,21 +205,30 @@
       '</div></article>';
   }
   function card(x){
-    const canPay=isHead()&&x.status!=='Paid',overdue=isOverdue(x),label=overdue?'Overdue':x.status;
+    const balance=Number(x.balanceAmount!=null?x.balanceAmount:Math.max(0,Number(x.totalAmount||0)-Number(x.paidAmount||0)));
+    const paid=Number(x.paidAmount||0),canPay=isHead()&&balance>0,overdue=isOverdue(x),label=overdue?'Overdue':x.status;
+    const history=Array.isArray(x.paymentHistory)?x.paymentHistory:[];
+    const paymentTrail=history.length?'<details class="coverage-note"><summary><strong>Payment history ('+history.length+')</strong></summary>'+
+      history.map(p=>'<div style="padding:8px 0;border-bottom:1px solid #e6edf1"><strong>'+money(p.amount)+'</strong> · '+esc(p.receiptNo||'-')+'<br><span class="muted">'+esc(p.paidAt?new Date(p.paidAt).toLocaleString():'')+(p.reference?' · Ref '+esc(p.reference):'')+'</span></div>').join('')+
+      '</details>':'';
     return '<article class="paper-card">'+
-      '<div class="paper-card-top"><span class="mini-badge">'+esc(x.feeMonth||'Fee')+'</span><span id="profileRiskBadge" data-risk="'+(overdue?'high':statusRisk(x.status))+'">'+esc(label)+'</span></div>'+
+      '<div class="paper-card-top"><span class="mini-badge">'+esc(x.feeMonth||'Fee')+'</span><span data-risk="'+(overdue?'high':statusRisk(x.status))+'">'+esc(label)+'</span></div>'+
       '<h3>'+esc(x.studentName||'Student')+'</h3><p class="muted">Class '+esc(x.className||'-')+' · Due '+esc(x.dueDate||'-')+(overdue?' · <strong>Past due</strong>':'')+'</p>'+
       '<p>Base '+money(x.baseAmount)+' · Discount '+money(x.discount)+' · Arrears '+money(x.arrears)+'</p>'+
-      '<p><strong>Total: '+money(x.totalAmount)+'</strong></p>'+
-      '<p class="muted">Challan: '+esc(x.challanNo||'-')+(x.receiptNo?' · Receipt: '+esc(x.receiptNo):'')+(x.paymentReference?' · Ref: '+esc(x.paymentReference):'')+'</p>'+
-      '<div class="paper-actions"><button class="secondary" data-fc-print="'+esc(x.id)+'">'+(x.status==='Paid'?'Print Receipt':'Print Challan')+'</button>'+
-      (canPay?'<button data-fc-paid="'+esc(x.id)+'">Mark Paid</button>':'')+'</div></article>';
+      '<p><strong>Total: '+money(x.totalAmount)+'</strong> · Paid: <strong>'+money(paid)+'</strong> · Balance: <strong>'+money(balance)+'</strong></p>'+
+      '<p class="muted">Challan: '+esc(x.challanNo||'-')+(x.receiptNo?' · Latest receipt: '+esc(x.receiptNo):'')+(x.paymentReference?' · Latest ref: '+esc(x.paymentReference):'')+'</p>'+
+      paymentTrail+
+      '<div class="paper-actions"><button class="secondary" data-fc-print="'+esc(x.id)+'">'+(x.status==='Paid'?'Print Receipt':x.status==='Partially Paid'?'Print Statement':'Print Challan')+'</button>'+
+      (canPay?'<button data-fc-payment="'+esc(x.id)+'">Record Payment</button>':'')+'</div></article>';
   }
   function printDoc(item){
     const settings=(()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}})();
-    const paid=item.status==='Paid',logo=settings.schoolLogo?'<img class="school-logo" src="'+esc(settings.schoolLogo)+'" alt="Institute logo">':'';
+    const paid=item.status==='Paid',partial=item.status==='Partially Paid',logo=settings.schoolLogo?'<img class="school-logo" src="'+esc(settings.schoolLogo)+'" alt="Institute logo">':'';
+    const balance=Number(item.balanceAmount!=null?item.balanceAmount:Math.max(0,Number(item.totalAmount||0)-Number(item.paidAmount||0)));
+    const history=Array.isArray(item.paymentHistory)?item.paymentHistory:[];
     const w=window.open('','_blank','width=850,height=700');if(!w)return alert('Popup blocked.');
-    const title=paid?'Fee Receipt':'Fee Challan';
+    const title=paid?'Fee Receipt':partial?'Fee Payment Statement':'Fee Challan';
+    const paymentRows=history.length?'<h4>Payment History</h4>'+history.map(p=>'<div class="row"><span>'+esc(p.receiptNo||'Receipt')+(p.reference?' · '+esc(p.reference):'')+'</span><strong>'+money(p.amount)+' · '+esc(p.paidAt?String(p.paidAt).slice(0,10):'')+'</strong></div>').join(''):'';
     w.document.write('<!doctype html><html><head><title>'+title+'</title><style>body{font-family:Arial,sans-serif;color:#17324a;padding:28px}.box{border:1px solid #bbb;border-radius:14px;padding:18px;max-width:720px;margin:auto}.row{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #eee;padding:9px 0}.total{font-size:22px;font-weight:700}.muted{color:#667}.head{text-align:center;margin-bottom:18px}.school-logo{width:72px;height:72px;object-fit:contain;border:1px solid #d8e2e7;border-radius:12px;padding:5px}.head h2{margin:8px 0 4px}@media print{body{padding:0}}</style></head><body><div class="box"><div class="head">'+logo+'<h2>'+esc(settings.schoolName||'EduNizam Institute')+'</h2><h3>'+title+'</h3><div class="muted">'+esc(settings.session||'')+'</div></div>'+
       '<div class="row"><span>Student</span><strong>'+esc(item.studentName)+'</strong></div>'+
       '<div class="row"><span>Class</span><strong>'+esc(item.className||'-')+'</strong></div>'+
@@ -211,9 +237,11 @@
       '<div class="row"><span>Discount</span><strong>'+money(item.discount)+'</strong></div>'+
       '<div class="row"><span>Arrears</span><strong>'+money(item.arrears)+'</strong></div>'+
       '<div class="row total"><span>Total</span><strong>'+money(item.totalAmount)+'</strong></div>'+
+      '<div class="row"><span>Paid</span><strong>'+money(item.paidAmount||0)+'</strong></div>'+
+      '<div class="row"><span>Balance</span><strong>'+money(balance)+'</strong></div>'+
       '<div class="row"><span>Due Date</span><strong>'+esc(item.dueDate||'-')+'</strong></div>'+
       '<div class="row"><span>Challan No</span><strong>'+esc(item.challanNo||'-')+'</strong></div>'+
-      (paid?'<div class="row"><span>Receipt No</span><strong>'+esc(item.receiptNo||'-')+'</strong></div><div class="row"><span>Payment Ref</span><strong>'+esc(item.paymentReference||'-')+'</strong></div><div class="row"><span>Paid On</span><strong>'+esc(item.paidAt?String(item.paidAt).slice(0,10):'-')+'</strong></div>':'')+
+      paymentRows+
       '</div></body></html>');
     w.document.close();w.focus();setTimeout(()=>w.print(),250);
   }
@@ -222,21 +250,46 @@
     if(!sid||!feeMonth||base<0||discount<0||arrears<0||!dueDate)return alert('Student, month, amounts aur due date complete karein.');
     const total=Math.max(0,base-discount+arrears),s=students().find(x=>String(x.id)===String(sid));if(!s)return;
     const rows=read();if(rows.some(x=>String(x.studentId)===String(sid)&&x.feeMonth===feeMonth))return alert('Is student ka is month ka challan already exists.');
-    let item={id:String(Date.now()),localFeeId:Date.now(),studentId:s.id,studentName:s.name,className:s.className||'',feeMonth,baseAmount:base,discount,arrears,totalAmount:total,status:'Pending',dueDate,challanNo:nextNo('CHL'),receiptNo:'',paymentReference:'',createdAt:new Date().toISOString(),paidAt:''};
+    let item={id:String(Date.now()),localFeeId:Date.now(),studentId:s.id,studentName:s.name,className:s.className||'',feeMonth,baseAmount:base,discount,arrears,totalAmount:total,paidAmount:0,balanceAmount:total,paymentHistory:[],status:'Pending',dueDate,challanNo:nextNo('CHL'),receiptNo:'',paymentReference:'',createdAt:new Date().toISOString(),paidAt:''};
     try{const cloudRow=await insertCloud(item);if(cloudRow)item=cloudRow}catch(e){alert('Cloud sync unavailable; challan local mode mein save hoga. '+(e.message||e))}
     rows.unshift(item);write(rows);mirrorLegacy(item);render();
   }
-  async function markPaid(id){
+  async function recordPayment(id){
     let rows=read(),item=rows.find(x=>String(x.id)===String(id));if(!item||!isHead())return;
-    const ref=prompt('Payment / transaction reference (optional):',item.paymentReference||'')||'';
-    item.status='Paid';item.paymentReference=ref;item.receiptNo=item.receiptNo||nextNo('RCPT');item.paidAt=new Date().toISOString();
-    try{const cloudRow=await markPaidCloud(item);if(cloudRow)item=cloudRow}catch(e){if(cloudReady())return alert('Cloud payment update failed: '+(e.message||e))}
-    rows=rows.map(x=>String(x.id)===String(id)?item:x);write(rows);mirrorLegacy(item);
+    const balance=Number(item.balanceAmount!=null?item.balanceAmount:Math.max(0,Number(item.totalAmount||0)-Number(item.paidAmount||0)));
+    if(balance<=0)return alert('This challan is already fully paid.');
+    const raw=prompt('Payment amount (maximum '+money(balance)+'):',String(balance));
+    if(raw===null)return;
+    const amount=Number(String(raw).replace(/,/g,''));
+    if(!Number.isFinite(amount)||amount<=0)return alert('Valid payment amount enter karein.');
+    if(amount>balance)return alert('Payment outstanding balance se zyada nahi ho sakti.');
+    const ref=prompt('Payment / transaction reference (optional):','')||'';
     try{
-      const s=students().find(x=>String(x.id)===String(item.studentId));
-      if(s?.authUserId&&cloud()?.sendNotification)await cloud().sendNotification(s.authUserId,'Fee payment received',item.feeMonth+' · '+money(item.totalAmount),'fee');
-    }catch(_){}
-    render();
+      if(cloudReady()){
+        await recordPaymentCloud(item,amount,ref);
+        rows=await pullCloud();
+        item=rows.find(x=>String(x.id)===String(id))||item;
+      }else{
+        const payment={id:String(Date.now()),amount,reference:ref,receiptNo:nextNo('RCPT'),paidAt:new Date().toISOString()};
+        item.paymentHistory=[payment,...(item.paymentHistory||[])];
+        item.paidAmount=Number(item.paidAmount||0)+amount;
+        item.balanceAmount=Math.max(0,Number(item.totalAmount||0)-item.paidAmount);
+        item.status=item.balanceAmount<=0?'Paid':'Partially Paid';
+        item.receiptNo=payment.receiptNo;item.paymentReference=ref;item.paidAt=item.status==='Paid'?payment.paidAt:'';
+        rows=rows.map(x=>String(x.id)===String(id)?item:x);write(rows);
+      }
+      mirrorLegacy(item);
+      try{
+        const s=students().find(x=>String(x.id)===String(item.studentId));
+        if(s?.authUserId&&cloud()?.sendNotification)await cloud().sendNotification(
+          s.authUserId,
+          'Fee payment received',
+          item.feeMonth+' · Received '+money(amount)+' · Balance '+money(item.balanceAmount||0),
+          'fee'
+        );
+      }catch(_){}
+      render();
+    }catch(e){alert('Payment record failed: '+(e.message||e))}
   }
   function bind(root){
     $('fcGenerate')?.addEventListener('click',generate);
@@ -247,7 +300,7 @@
     $('fcFilterClass')?.addEventListener('change',e=>{root.dataset.fcClass=e.target.value;mount()});
     $('fcFilterSearch')?.addEventListener('input',e=>{root.dataset.fcSearch=e.target.value;clearTimeout(bind.searchTimer);bind.searchTimer=setTimeout(mount,160)});
     $('fcClearFilters')?.addEventListener('click',()=>{root.dataset.fcStatus='';root.dataset.fcMonth='';root.dataset.fcClass='';root.dataset.fcSearch='';mount()});
-    document.querySelectorAll('[data-fc-paid]').forEach(b=>b.onclick=()=>markPaid(b.dataset.fcPaid));
+    document.querySelectorAll('[data-fc-payment]').forEach(b=>b.onclick=()=>recordPayment(b.dataset.fcPayment));
     document.querySelectorAll('[data-fc-print]').forEach(b=>b.onclick=()=>{const item=read().find(x=>String(x.id)===String(b.dataset.fcPrint));if(item)printDoc(item)});
   }
   async function mount(){
@@ -264,7 +317,7 @@
     const filtered=filteredRows(rows,root);
     root.innerHTML='<div class="section-head" style="margin-top:18px"><div><h2>Monthly Challans & Receipts</h2><p class="muted">Billing, collections, outstanding/overdue tracking, discounts, arrears and printable receipts.</p></div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div>'+
       feeMetricCards(rows)+editor()+
-      '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Fee Register</h3><p class="muted">'+filtered.length+' of '+rows.length+' challans shown.</p></div><button id="fcClearFilters" class="secondary">Clear Filters</button></div><div class="form-grid"><select id="fcFilterStatus"><option value="">All Status</option>'+['Pending','Overdue','Paid'].map(v=>'<option value="'+v+'" '+((root.dataset.fcStatus||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><input id="fcFilterMonth" type="month" value="'+esc(root.dataset.fcMonth||'')+'"><select id="fcFilterClass"><option value="">All Classes</option>'+classes.map(v=>'<option value="'+esc(v)+'" '+((root.dataset.fcClass||'')===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select><input id="fcFilterSearch" type="search" value="'+esc(root.dataset.fcSearch||'')+'" placeholder="Search student, challan, receipt or reference"></div></article>'+
+      '<article class="card" style="margin-top:16px"><div class="section-head"><div><h3>Fee Register</h3><p class="muted">'+filtered.length+' of '+rows.length+' challans shown.</p></div><button id="fcClearFilters" class="secondary">Clear Filters</button></div><div class="form-grid"><select id="fcFilterStatus"><option value="">All Status</option>'+['Pending','Partially Paid','Overdue','Paid'].map(v=>'<option value="'+v+'" '+((root.dataset.fcStatus||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><input id="fcFilterMonth" type="month" value="'+esc(root.dataset.fcMonth||'')+'"><select id="fcFilterClass"><option value="">All Classes</option>'+classes.map(v=>'<option value="'+esc(v)+'" '+((root.dataset.fcClass||'')===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select><input id="fcFilterSearch" type="search" value="'+esc(root.dataset.fcSearch||'')+'" placeholder="Search student, challan, receipt or reference"></div></article>'+
       '<div class="paper-grid" style="margin-top:16px">'+(filtered.length?filtered.map(card).join(''):'<div class="empty-state">Is filter ke liye koi challan/receipt nahi hai.</div>')+'</div>';
     bind(root);
   }
