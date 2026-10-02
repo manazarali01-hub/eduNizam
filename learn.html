@@ -68,7 +68,7 @@
 <main class="shell">
   <div class="search-wrap"><div class="searchbox"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="Search board, class, subject, VU course, resource…" aria-label="Search learning resources"><button id="runGlobalSearch" class="btn primary" type="button">Search</button><button id="clearSearch" class="btn" type="button">Clear</button></div></div>
   <nav class="tabs" aria-label="Learning sections">
-    <a class="tab active" data-tab="home" href="learn.html#home">Overview</a><a class="tab" data-tab="past" href="learn.html#past">Past Papers</a><a class="tab" data-tab="grade" href="learn.html#grade">Grade 5 & 8</a><a class="tab" data-tab="study" href="learn.html#study">Study Library</a><a class="tab" data-tab="universities" href="learn.html#universities">Universities</a><a class="tab" data-tab="competitive" href="learn.html#competitive">CSS / PPSC</a><a class="tab" data-tab="ecosystem" href="learn.html#ecosystem">Admissions & Opportunities</a><a class="tab" data-tab="vu" href="learn.html#vu">VU</a><a class="tab" data-tab="practice" href="learn.html#practice">Practice</a>
+    <a class="tab active" data-tab="home" href="learn.html#home">Overview</a><a class="tab" data-tab="past" href="learn.html#past">Past Papers</a><a class="tab" data-tab="grade" href="learn.html#grade">Grade 5 & 8</a><a class="tab" data-tab="study" href="learn.html#study">Study Library</a><a class="tab" data-tab="universities" href="learn.html#universities">Universities</a><a class="tab" data-tab="competitive" href="learn.html#competitive">CSS / PPSC</a><a class="tab" data-tab="ecosystem" href="learn.html#ecosystem">Admissions & Opportunities</a><a class="tab" data-tab="pathways" href="learn.html#pathways">Exam Pathways</a><a class="tab" data-tab="vu" href="learn.html#vu">VU</a><a class="tab" data-tab="practice" href="learn.html#practice">Practice</a>
   </nav>
 
   <section id="home" class="section active">
@@ -125,6 +125,29 @@
     <div class="notice"><strong>Official-source first:</strong> deadlines, eligibility and test/admission windows change. EduNizam indexes the responsible official authority and avoids inventing current notices.</div>
     <div id="ecosystemGrid" class="grid"></div>
   </section>
+  <section id="pathways" class="section"><div class="section-head"><div><h2>Exam & Study Pathways</h2><p>Follow a verified sequence from syllabus and registration through preparation, test/study activity, result and admission for high-demand Pakistan education routes.</p></div><span class="badge" id="examPathCountBadge">0 Guided Pathways</span></div>
+    <div class="paper-filters" aria-label="Exam pathway filters">
+      <input class="paper-search" id="examPathSearch" type="search" placeholder="Search MDCAT syllabus, NET weightings, CSS process, AIOU semester…" aria-label="Search exam pathways">
+      <select id="examPathwayFilter" aria-label="Pathway"><option value="">All Pathways</option></select>
+      <select id="examPathStage" aria-label="Stage"><option value="">All Stages</option></select>
+      <select id="examPathAuthority" aria-label="Authority"><option value="">All Authorities</option></select>
+      <button id="examPathSearchBtn" class="btn primary" type="button">Search Pathways</button>
+    </div>
+    <div class="search-suggestions" style="margin:10px 0">
+      <button type="button" data-pathway-quick="mdcat">MDCAT</button>
+      <button type="button" data-pathway-quick="ecat">ECAT</button>
+      <button type="button" data-pathway-quick="nust-net">NUST NET</button>
+      <button type="button" data-pathway-quick="usat">USAT</button>
+      <button type="button" data-pathway-quick="lat">LAT</button>
+      <button type="button" data-pathway-quick="css">CSS</button>
+      <button type="button" data-pathway-quick="fpsc-gr">FPSC</button>
+      <button type="button" data-pathway-quick="ppsc">PPSC</button>
+      <button type="button" data-pathway-quick="vu-semester">VU Semester</button>
+      <button type="button" data-pathway-quick="aiou-semester">AIOU Semester</button>
+    </div>
+    <div class="notice"><strong>Freshness guard:</strong> this section stores the stable exam/study process and official source links. Dates, fees, eligibility cutoffs and current notices must be confirmed on the issuing authority's latest page.</div>
+    <div id="examPathGrid" class="grid"></div>
+  </section>
   <section id="vu" class="section"><div class="section-head"><div><h2>Virtual University</h2><p>Official material first; community sources are marked as supplementary.</p></div></div><div class="notice">Search a course code such as <strong>MTH647</strong>, <strong>MTH501</strong>, <strong>CS201</strong> or <strong>STA301</strong>. When an exact indexed item is unavailable, EduNizam shows useful VU-wide alternatives rather than inventing an exact paper.</div><div id="vuGrid" class="grid"></div></section>
   <section id="practice" class="section"><div class="section-head"><div><h2>Practice Center</h2><p>Free built-in practice with instant feedback.</p></div></div><article class="card practice-box"><div id="practiceMeta" class="meta"></div><div id="practiceQuestion" class="question"></div><div id="practiceOptions" class="options"></div><div id="practiceExplain" class="explain" hidden></div><div class="practice-actions"><button id="prevQuestion" class="btn">Previous</button><button id="nextQuestion" class="btn primary">Next Question</button></div></article></section>
 </main>
@@ -138,7 +161,9 @@
 <script src="university-data.js?v=20261001-visitor215"></script>
 <script src="education-directory-expansion.js?v=20261002-edu230"></script>
 <script src="competitive-exams-data.js?v=20261002-edu230"></script>
-<script src="education-ecosystem-data.js?v=20261002-deep250"></script>
+<script src="education-ecosystem-data.js?v=20261002-deep300"></script>
+<script src="exam-pathways-data.js?v=20261002-deep300"></script>
+<script src="exam-pathways.js?v=20261002-deep300"></script>
 <script src="vu-course-catalog.js?v=20261001-visitor215"></script>
 <script src="practice-data.js?v=20261001-visitor215"></script>
 <script src="learning-premium-data.js?v=20261001-visitor215"></script>
@@ -159,7 +184,7 @@
   const q=()=>norm($('globalSearch').value);
   const sourceBadge=s=>{const x=String(s||'').toLowerCase();const cls=x==='official'?'official':x==='verified'?'verified':x==='built-in'?'builtin':'';return '<span class="badge '+cls+'">'+esc(s||'Resource')+'</span>'};
   const match=(obj,extra='')=>{const raw=$('globalSearch').value,needle=norm(raw);if(!needle)return true;const candidate={...obj,description:[obj?.note,obj?.description,extra].filter(Boolean).join(' ')};return !!window.EDUNIZAM_LEARNING_SEARCH?.search?.([candidate],raw)?.length||norm(JSON.stringify(obj)+' '+extra).includes(needle)};
-  const validTabs=new Set(['home','past','grade','study','universities','competitive','ecosystem','vu','practice']);
+  const validTabs=new Set(['home','past','grade','study','universities','competitive','ecosystem','pathways','vu','practice']);
   function openTab(id){
     id=validTabs.has(String(id||''))?String(id):'home';
     document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===id));
@@ -181,9 +206,9 @@
   function resourceCard({title,description,url,source,tags=[],paper=false}){const actions=url?(paper?'<div class="paper-actions"><button class="btn preview-paper" type="button" data-url="'+esc(url)+'" data-title="'+esc(title)+'">Preview</button><button class="btn print-paper" type="button" data-url="'+esc(url)+'">Print</button><a class="btn primary" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Save / Open</a></div>':'<a class="open" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open resource ↗</a>'):'';return '<article class="card">'+sourceBadge(source)+'<h3>'+esc(title)+'</h3><p>'+esc(description||'Useful learning resource.')+'</p><div class="meta">'+tags.filter(Boolean).map(t=>'<span class="badge">'+esc(t)+'</span>').join('')+'</div>'+actions+'</article>'}
   function renderHome(){
     const pp=window.EDUNIZAM_PAST_PAPERS||{},sd=window.EDUNIZAM_STUDY_DATA||{},ud=window.EDUNIZAM_UNIVERSITY_DATA||{},pd=window.EDUNIZAM_PRACTICE_DATA||{};
-    $('boardCount').textContent=(pp.boards||[]).length;$('resourceCount').textContent=(pp.papers||[]).length+(sd.materials||[]).length+(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).length+(ud.resources||[]).length+(window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).length+(window.EDUNIZAM_COMPETITIVE_EXAMS?.resources||[]).length+(window.EDUNIZAM_EDUCATION_ECOSYSTEM?.resources||[]).length+(window.EDUNIZAM_PUBLIC_LINKS||[]).length;$('uniCount').textContent=(ud.universities||[]).filter(x=>x.id!=='vu').length;$('questionCount').textContent=(pd.questions||[]).length;
+    $('boardCount').textContent=(pp.boards||[]).length;$('resourceCount').textContent=(pp.papers||[]).length+(sd.materials||[]).length+(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).length+(ud.resources||[]).length+(window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[]).length+(window.EDUNIZAM_COMPETITIVE_EXAMS?.resources||[]).length+(window.EDUNIZAM_EDUCATION_ECOSYSTEM?.resources||[]).length+(window.EDUNIZAM_EXAM_PATHWAYS?.pathways||[]).length+(window.EDUNIZAM_PUBLIC_LINKS||[]).length;$('uniCount').textContent=(ud.universities||[]).filter(x=>x.id!=='vu').length;$('questionCount').textContent=(pd.questions||[]).length;
     const cards=[
-      ['Past Papers','Pakistan boards and available official/verified paper sources.','past'],['Grade 5 & 8','PECTAA model papers, assessment resources and historical archives.','grade'],['Study Library','Syllabi, model papers and quick revision material.','study'],['Universities','AIOU and Pakistan university results, LMS, admissions, examinations and past papers.','universities'],['CSS / PPSC / FPSC','Competitive exams, jobs, syllabi, applications, roll numbers and results from official sources.','competitive'],['Admissions & Opportunities','Entry tests, scholarships, IBCC, textbooks, skills, research and official student services.','ecosystem'],['Virtual University','VU course material, handouts, notes and supplementary past-paper sources.','vu'],['Practice Center','Free MCQs and questions with instant feedback.','practice']
+      ['Past Papers','Pakistan boards and available official/verified paper sources.','past'],['Grade 5 & 8','PECTAA model papers, assessment resources and historical archives.','grade'],['Study Library','Syllabi, model papers and quick revision material.','study'],['Universities','AIOU and Pakistan university results, LMS, admissions, examinations and past papers.','universities'],['CSS / PPSC / FPSC','Competitive exams, jobs, syllabi, applications, roll numbers and results from official sources.','competitive'],['Admissions & Opportunities','Entry tests, scholarships, IBCC, textbooks, skills, research and official student services.','ecosystem'],['Exam & Study Pathways','Step-by-step MDCAT, ECAT, NET, USAT/LAT, CSS/FPSC/PPSC, VU and AIOU journeys.','pathways'],['Virtual University','VU course material, handouts, notes and supplementary past-paper sources.','vu'],['Practice Center','Free MCQs and questions with instant feedback.','practice']
     ];
     $('homeCards').innerHTML=cards.map(x=>'<a class="card" data-home-open="'+x[2]+'" href="learn.html#'+x[2]+'" style="text-align:left;cursor:pointer;text-decoration:none"><span class="kicker">Free</span><h3>'+x[0]+'</h3><p>'+x[1]+'</p><span class="open">Explore →</span></a>').join('');
   }
@@ -343,6 +368,11 @@
   function runGlobalSearch(){
     qi=0;renderAll();
     const raw=$('globalSearch').value.trim();
+    const pathQuery=/\b(mdcat|ecat|nust\s*net|net\s*weight|usat|lat|css|fpsc|ppsc|aiou|virtual\s*university|vulms)\b/i.test(raw)&&(/\b(syllabus|pattern|weight(?:ing)?s?|subjects?|eligibility|prepare|preparation|process|pathway|steps?|registration|admit|roll|merit|semester|workflow|how)\b/i.test(raw)||/^\s*(mdcat|ecat|nust\s*net|usat|lat|css)\s*$/i.test(raw));
+    if(pathQuery){
+      history.replaceState(null,'','#pathways');openTab('pathways');
+      requestAnimationFrame(()=>{$('examPathSearch').value=raw;window.renderExamPathways?.();$('examPathGrid')?.scrollIntoView({behavior:'smooth',block:'start'})});return;
+    }
     if(/\b(css|ppsc|fpsc|kppsc|spsc|bpsc|ajkpsc|nts|etea|sts|pms)\b/i.test(raw)){
       history.replaceState(null,'','#competitive');openTab('competitive');
       requestAnimationFrame(()=>$('competitiveGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));return;
@@ -369,9 +399,9 @@
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
 </script>
-<script src="guest-learning-nav.js?v=20261002-deep250"></script>
-<script src="guest-learning-premium.js?v=20261002-deep250"></script>
-<script src="pwa-install.js?v=20261002-deep250" defer></script>
-<script src="system-auto-update.js?v=20261002-deep250" defer></script>
+<script src="guest-learning-nav.js?v=20261002-deep300"></script>
+<script src="guest-learning-premium.js?v=20261002-deep300"></script>
+<script src="pwa-install.js?v=20261002-deep300" defer></script>
+<script src="system-auto-update.js?v=20261002-deep300" defer></script>
 </body>
 </html>
