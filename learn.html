@@ -90,7 +90,24 @@
   </section>
   <section id="grade" class="section"><div class="section-head"><div><h2>Grade 5 & 8 Resources</h2><p>Current PECTAA material and clearly labelled historical PEC archives.</p></div></div><div id="gradeGrid" class="grid"></div></section>
   <section id="study" class="section"><div class="section-head"><div><h2>Study Library</h2><p>Syllabi, model papers, assessment frameworks and built-in revision sheets.</p></div></div><div id="studyGrid" class="grid"></div></section>
-  <section id="universities" class="section"><div class="section-head"><div><h2>Pakistan University Results, LMS & Past Papers</h2><p>AIOU, Punjab University, BZU, UOG, UAF, GCUF, UOS and more — official results, LMS/CMS, admissions, merit lists, examinations, past papers and HEC verification routes.</p></div></div><div id="universityGrid" class="grid"></div></section>
+  <section id="universities" class="section"><div class="section-head"><div><h2>Pakistan University Results, LMS & Past Papers</h2><p>AIOU, Punjab University, BZU, UOG, UAF, GCUF, UOS and more — official results, LMS/CMS, admissions, calendars, workshops, examinations, past papers and HEC verification routes.</p></div></div>
+    <div class="paper-filters" aria-label="University resource filters">
+      <input class="paper-search" id="universityGuestSearch" type="search" placeholder="Search AIOU workshop, PU results, BZU exams, university LMS…" aria-label="Search university resources">
+      <select id="universityGuestInstitution" aria-label="University"><option value="">All Universities / Authorities</option></select>
+      <select id="universityGuestCategory" aria-label="Category"><option value="">All Categories</option></select>
+      <select id="universityGuestSource" aria-label="Source"><option value="">All Sources</option><option value="official">Official</option><option value="verified">Verified Community</option></select>
+      <button id="universityGuestSearchBtn" class="btn primary" type="button">Search Universities</button>
+    </div>
+    <div class="search-suggestions" style="margin:10px 0">
+      <button type="button" data-university-guest-quick="aiou">AIOU</button>
+      <button type="button" data-university-guest-quick="pu">Punjab University</button>
+      <button type="button" data-university-guest-quick="bzu">BZU</button>
+      <button type="button" data-university-guest-quick="uaf">UAF</button>
+      <button type="button" data-university-guest-quick="gcuf">GCUF</button>
+      <button type="button" data-university-guest-quick="hec">HEC</button>
+    </div>
+    <div id="universityGrid" class="grid"></div>
+  </section>
   <section id="competitive" class="section"><div class="section-head"><div><h2>CSS, PPSC, FPSC & Competitive Exams</h2><p>Official jobs, online applications, syllabi, past papers, roll-number/admission certificates, schedules, results and merit lists from federal/provincial commissions and testing services.</p></div></div>
     <div class="paper-filters" aria-label="Competitive exam filters">
       <input class="paper-search" id="competitiveGuestSearch" type="search" placeholder="Search CSS syllabus, PPSC result, FPSC jobs, NTS roll no…" aria-label="Search competitive exam resources">
@@ -295,12 +312,27 @@
   }
   function renderGrade(){const rows=(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).filter(x=>match(x)).map(x=>resourceCard({title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,tags:['Grade '+x.grade,x.subject,x.year,x.type]}));$('gradeGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No Grade 5/8 resource matched this search.</div>'}
   function renderStudy(){const rows=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>match(x)).map(x=>resourceCard({title:x.title,description:x.note||(x.content?'Built-in quick revision sheet.':''),url:x.fileUrl||x.url,source:x.source,tags:[x.board,x.subject,x.type,(x.classLevels||[]).length?'Class '+x.classLevels.join('/'):'']}));$('studyGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No study resource matched this search.</div>'}
+  function initUniversityFilters(){
+    const d=window.EDUNIZAM_UNIVERSITY_DATA||{universities:[],resources:[]},unis=(d.universities||[]).filter(x=>x.id!=='vu');
+    const inst=$('universityGuestInstitution'),cat=$('universityGuestCategory');
+    if(inst)inst.innerHTML='<option value="">All Universities / Authorities</option>'+unis.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');
+    if(cat){const cats=[...new Set((d.resources||[]).filter(x=>x.universityId!=='vu').map(x=>x.category).filter(Boolean))].sort();cat.innerHTML='<option value="">All Categories</option>'+cats.map(x=>'<option>'+esc(x)+'</option>').join('')}
+    ['universityGuestInstitution','universityGuestCategory','universityGuestSource'].forEach(id=>$(id)?.addEventListener('change',renderUniversities));
+    $('universityGuestSearch')?.addEventListener('input',renderUniversities);
+    $('universityGuestSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderUniversities()}});
+    $('universityGuestSearchBtn')?.addEventListener('click',renderUniversities);
+    document.querySelectorAll('[data-university-guest-quick]').forEach(b=>b.onclick=()=>{if(inst)inst.value=b.dataset.universityGuestQuick;renderUniversities()});
+  }
   function renderUniversities(){
     const d=window.EDUNIZAM_UNIVERSITY_DATA||{},unis=d.universities||[],resources=(d.resources||[]).filter(x=>x.universityId!=='vu');
-    const rows=[];
-    resources.filter(x=>match(x,unis.find(u=>u.id===x.universityId)?.name)).forEach(x=>{const u=unis.find(y=>y.id===x.universityId);rows.push(resourceCard({title:x.title,description:x.note,url:x.url,source:x.source,tags:[u?.name,x.category]}))});
-    unis.filter(x=>x.id!=='vu'&&match(x)).forEach(x=>rows.push(resourceCard({title:x.name,description:x.type,url:x.officialUrl,source:'official',tags:[x.type]})));
-    $('universityGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No university resource matched this search.</div>';
+    const local=norm($('universityGuestSearch')?.value||''),uid=$('universityGuestInstitution')?.value||'',cat=$('universityGuestCategory')?.value||'',src=$('universityGuestSource')?.value||'',global=q(),rows=[];
+    resources.filter(x=>{
+      const u=unis.find(y=>y.id===x.universityId),text=norm([x.title,x.category,x.note,x.keywords,u?.name,u?.type].join(' '));
+      const localMatch=!local||text.includes(local),globalMatch=!global||match(x,u?.name);
+      return localMatch&&globalMatch&&(!uid||x.universityId===uid)&&(!cat||x.category===cat)&&(!src||x.source===src);
+    }).forEach(x=>{const u=unis.find(y=>y.id===x.universityId);rows.push(resourceCard({title:x.title,description:x.note,url:x.url,source:x.source,tags:[u?.name,x.category]}))});
+    if(!cat&&!src)unis.filter(x=>x.id!=='vu'&&(!uid||x.id===uid)&&(!local||norm([x.name,x.type].join(' ')).includes(local))&&(!global||match(x))).forEach(x=>rows.push(resourceCard({title:x.name,description:x.type,url:x.officialUrl,source:'official',tags:[x.type]})));
+    $('universityGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No university resource matched these filters. Clear a filter or try AIOU, results, LMS, admissions, workshops, calendar or past papers.</div>';
   }
   function initCompetitiveFilters(){
     const d=window.EDUNIZAM_COMPETITIVE_EXAMS||{agencies:[],resources:[]};
@@ -424,7 +456,7 @@
   $('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
   $('runGlobalSearch').onclick=runGlobalSearch;
   $('clearSearch').onclick=()=>{$('globalSearch').value='';qi=0;renderAll();$('globalSearch').focus()};
-  initPastFilters();initCompetitiveFilters();initEcosystemFilters();renderAll();
+  initPastFilters();initUniversityFilters();initCompetitiveFilters();initEcosystemFilters();renderAll();
   const initialTab=location.hash.slice(1);if(validTabs.has(initialTab))openTab(initialTab);
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
 })();
