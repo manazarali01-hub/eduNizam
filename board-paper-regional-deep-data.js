@@ -11,6 +11,7 @@ const currentHomes={
  'bbise-quetta':'https://bbise.edu.pk/'
 };
 Object.entries(currentHomes).forEach(([id,url])=>{const b=board(id);if(b)b.officialUrl=url});
+const larkana=board('bise-larkana');if(larkana)larkana.archiveUrl='https://www.biselrk.com/syllabus?tab=previous-papers';
 
 [
   // Sindh — Hyderabad / Sukkur / Larkana / Mirpurkhas / Shaheed Benazirabad
