@@ -164,6 +164,36 @@
     if(error)throw error;
   }
 
+  async function saveResultRecord(record){
+    const c=await requireStaff(),client=c.state.client;
+    if(!record?.studentId||!String(record?.subject||'').trim())throw new Error('Student and subject are required.');
+    const map=await studentMap();
+    const student=map.get(Number(record.studentId));
+    if(!student)throw new Error('Student cloud record is not linked.');
+    const payload={
+      institution_id:cfg.institutionId,
+      local_id:Number(record.id),
+      student_id:student.id,
+      subject:String(record.subject).trim(),
+      marks:Number(record.marks||0),
+      total:Number(record.total||0),
+      assessment_date:record.date||null,
+      assessment_type:record.type||null,
+      metadata:record.metadata||{},
+      created_by:c.state.user?.id||null,
+      updated_at:new Date().toISOString()
+    };
+    if(!Number.isFinite(payload.marks)||!Number.isFinite(payload.total)||payload.total<=0||payload.marks<0||payload.marks>payload.total){
+      throw new Error('Valid marks and total are required.');
+    }
+    const {data,error}=await client.from('result_records')
+      .upsert(payload,{onConflict:'institution_id,local_id'})
+      .select()
+      .single();
+    if(error)throw error;
+    return data;
+  }
+
   async function syncResults(map){
     const c=cloud(),client=c.state.client;
     const rows=read('edunizam_results',[]).map(r=>{
@@ -394,5 +424,5 @@
     };
   }
 
-  window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,uploadStudentPhoto,createProfilePhotoUrl,saveAttendanceDay,listAttendanceAudit,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
+  window.EDUNIZAM_CORE_CLOUD={ready,upsertStudent,uploadStudentPhoto,createProfilePhotoUrl,saveAttendanceDay,saveResultRecord,listAttendanceAudit,pushAllLocalToCloud,pullAllCloudToLocal,createLocalBackup,deleteStudentByLocalId};
 })();
