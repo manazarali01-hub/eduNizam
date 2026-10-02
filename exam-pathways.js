@@ -61,7 +61,7 @@ function init(){
  document.querySelectorAll('[data-pathway-quick]').forEach(b=>b.onclick=()=>{if(pf)pf.value=b.dataset.pathwayQuick;render();$('examPathGrid')?.scrollIntoView({behavior:'smooth',block:'start'})});
  $('examPathGrid')?.addEventListener('click',e=>{
    const internal=e.target.closest('[data-internal-path]');if(internal){e.preventDefault();openInternal(internal.dataset.internalPath);return}
-   const topic=e.target.closest('[data-topic-pathway]');if(topic){e.preventDefault();openTopicPractice(topic.dataset.topicPathway,topic.dataset.topicSubject,topic.dataset.topicName)}
+   const topic=e.target.closest('[data-prep-pathway]');if(topic){e.preventDefault();openTopicPractice(topic.dataset.prepPathway,topic.dataset.prepSubject,topic.dataset.prepTopic);return}const plan=e.target.closest('[data-blueprint-pathway]');if(plan){e.preventDefault();window.EDUNIZAM_EXAM_TOPIC_PLANNER?.render?.(plan.dataset.blueprintPathway)}
  });
  render();
 }
@@ -74,14 +74,14 @@ function topicMap(x){
  return '<div class="path-source-note"><strong>Preparation basis:</strong> '+esc(prep.basisLabel||prep.basis||'Preparation map')+'. Built-in items are EduNizam practice, not official/leaked exam questions.</div><div class="topic-subjects">'+Object.entries(prep.subjects||{}).map(([subject,topics])=>{
    const chips=(topics||[]).map(topic=>{
      const has=questions.some(q=>q.examId===x.id&&q.subject===subject&&q.topic===topic);
-     return '<button type="button" class="topic-chip'+(has?' has-drill':'')+'" data-topic-pathway="'+esc(x.id)+'" data-topic-subject="'+esc(subject)+'" data-topic-name="'+esc(topic)+'">'+esc(topic)+'</button>';
+     return '<button type="button" class="topic-chip'+(has?' has-drill':'')+'" data-prep-pathway="'+esc(x.id)+'" data-prep-subject="'+esc(subject)+'" data-prep-topic="'+esc(topic)+'">'+esc(topic)+'</button>';
    }).join('');
    return '<div class="topic-subject"><strong>'+esc(subject)+'</strong><small>'+questions.filter(q=>q.examId===x.id&&q.subject===subject).length+' built-in practice item(s)</small><div class="topic-chips">'+chips+'</div></div>';
  }).join('')+'</div>'
 }
 function card(x){
  const h=historyFor(x.id),prep=prepFor(x.id),items=(PREP.questions||[]).filter(q=>q.examId===x.id).length;
- return '<article class="paper-card exam-path-card"><div class="paper-card-top"><div><span class="trust-badge trust-official">Official-source pathway</span><span class="mini-badge">'+esc(x.stage)+'</span></div></div><h3>'+esc(x.name)+'</h3><p class="muted">'+esc(x.authority)+' · '+esc(x.region)+'</p><div class="path-progress">'+(prep?'<span>'+Object.values(prep.subjects||{}).flat().length+' mapped topics</span><span>'+items+' practice items</span>':'<span>Case/course-specific</span>')+(h.sessions?'<span>'+h.sessions+' sessions · Best '+h.best+'%</span>':'')+'</div><p>'+esc(x.overview)+'</p><details><summary>Exam / study pattern</summary><ul>'+x.pattern.map(v=>'<li>'+esc(v)+'</li>').join('')+'</ul></details><details><summary>High-level subjects</summary>'+subjectList(x)+'</details><details open><summary>Subject → topic preparation map</summary>'+topicMap(x)+'</details><details><summary>Step-by-step pathway</summary>'+steps(x)+'</details><div class="paper-actions">'+x.official.map(o=>'<a target="_blank" rel="noopener" href="'+esc(o.url)+'">'+esc(o.label)+'</a>').join('')+'</div></article>'
+ const hasBlueprint=!!window.EDUNIZAM_EXAM_TOPIC_BLUEPRINTS?.blueprints?.[x.id];return '<article class="paper-card exam-path-card"><div class="paper-card-top"><div><span class="trust-badge trust-official">Official-source pathway</span><span class="mini-badge">'+esc(x.stage)+'</span></div></div><h3>'+esc(x.name)+'</h3><p class="muted">'+esc(x.authority)+' · '+esc(x.region)+'</p><div class="path-progress">'+(prep?'<span>'+Object.values(prep.subjects||{}).flat().length+' mapped topics</span><span>'+items+' practice items</span>':'<span>Case/course-specific</span>')+(h.sessions?'<span>'+h.sessions+' sessions · Best '+h.best+'%</span>':'')+'</div><p>'+esc(x.overview)+'</p><details><summary>Exam / study pattern</summary><ul>'+x.pattern.map(v=>'<li>'+esc(v)+'</li>').join('')+'</ul></details><details><summary>High-level subjects</summary>'+subjectList(x)+'</details><details open><summary>Subject → topic preparation map</summary>'+topicMap(x)+'</details><details><summary>Step-by-step pathway</summary>'+steps(x)+'</details><div class="paper-actions">'+(hasBlueprint?'<button type="button" class="secondary" data-blueprint-pathway="'+esc(x.id)+'">Open Full Topic Planner</button>':'')+x.official.map(o=>'<a target="_blank" rel="noopener" href="'+esc(o.url)+'">'+esc(o.label)+'</a>').join('')+'</div></article>'
 }
 function render(){
  const q=norm($('examPathSearch')?.value||''),id=$('examPathwayFilter')?.value||'',stage=$('examPathStage')?.value||'',auth=$('examPathAuthority')?.value||'';
