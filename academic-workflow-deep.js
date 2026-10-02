@@ -12,7 +12,7 @@
   const uid=()=>String(cloud()?.state?.user?.id||'');
   const read=(k,fallback)=>{try{const v=JSON.parse(localStorage.getItem(k)||'null');return v==null?fallback:v}catch{return fallback}};
   const allStudents=()=>read('edunizam_students',[]);
-  const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(allStudents())||allStudents();
+  const visibleStudents=()=>{const list=allStudents(),fn=window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents;if(fn)return fn(list)||[];return role()==='head'?list:[]};
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   const dateDiff=(a,b)=>Math.ceil((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000);
   const normalizeClass=v=>String(v||'').trim().replace(/\s*[·|-]\s*[^·|-]+$/,'').trim();
