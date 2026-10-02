@@ -48,8 +48,10 @@
       ['vuSource','vuCourseLevel'].forEach(id=>$(id).addEventListener('change',renderVU));
       $('vuMaterialType')?.addEventListener('change',()=>{vuTab='all';renderVU()});
       $('vuSearch').addEventListener('input',renderVU);
+      $('vuSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderVU();$('vuLibrary')?.scrollIntoView({behavior:'smooth',block:'start'})}});
+      $('vuSearchBtn')?.addEventListener('click',()=>{renderVU();$('vuLibrary')?.scrollIntoView({behavior:'smooth',block:'start'})});
       document.querySelectorAll('[data-vu-tab]').forEach(b=>b.onclick=()=>{vuTab=b.dataset.vuTab;if($('vuMaterialType'))$('vuMaterialType').value='';renderVU()});
-      $('vuCourseSearchBtn').onclick=()=>{const c=$('vuCourseCode').value.trim().toUpperCase();$('vuSearch').value=c;renderVU()};
+      $('vuCourseSearchBtn').onclick=()=>{const c=$('vuCourseCode').value.trim().toUpperCase();$('vuSearch').value=c;renderVU();$('vuLibrary')?.scrollIntoView({behavior:'smooth',block:'start'})};
       $('vuAiStudyBtn').onclick=()=>vuAi('study');
       $('vuAiQuizBtn').onclick=()=>vuAi('quiz');
       renderVU();
@@ -141,13 +143,29 @@
     refreshVUProviders();
     document.querySelectorAll('[data-vu-tab]').forEach(b=>b.classList.toggle('active',b.dataset.vuTab===vuTab));
     const deepTypeMap={Handouts:'Course Notes / Handouts',Notes:'Short Notes','Highlighted Handouts':'Highlighted Handouts',Quizzes:'Quizzes / MCQs',Assignments:'Assignments','Midterm Past Papers':'Midterm Past Papers','Final Term Past Papers':'Finalterm Past Papers','Past Papers':'__exam__'};
-    const selectedType=$('vuMaterialType')?.value||'',materialType=selectedType||(deepTypeMap[vuTab]||'');
-    const q=$('vuSearch').value.trim().toLowerCase(),src=$('vuSource').value,provider=$('vuProvider')?.value||'',access=$('vuAccess')?.value||'',level=$('vuCourseLevel').value;
-    const courseQuery=/^[a-z]{2,5}\d{3,4}[a-z]?$/i.test(q);
+    const rawSearch=$('vuSearch').value.trim();
+    const q=rawSearch.toLowerCase(),upper=rawSearch.toUpperCase();
+    const codeHit=upper.match(/\b[A-Z]{2,5}[\s-]*\d{3,4}[A-Z]?\b/);
+    const courseCode=codeHit?codeHit[0].replace(/[^A-Z0-9]/g,''):'';
+    const inferredType=/\bquiz(?:zes)?\b|\bmcqs?\b/i.test(rawSearch)?'Quizzes / MCQs'
+      :/highlighted\s*handouts?/i.test(rawSearch)?'Highlighted Handouts'
+      :/\bhandouts?\b/i.test(rawSearch)?'Course Notes / Handouts'
+      :/\bshort\s*notes?\b|\bnotes?\b/i.test(rawSearch)?'Short Notes'
+      :/\bassignments?\b/i.test(rawSearch)?'Assignments'
+      :/\bmid\s*term\b|\bmidterm\b/i.test(rawSearch)?'Midterm Past Papers'
+      :/\bfinal\s*term\b|\bfinalterm\b/i.test(rawSearch)?'Finalterm Past Papers'
+      :/\bpast\s*papers?\b/i.test(rawSearch)?'__exam__':'';
+    const selectedType=$('vuMaterialType')?.value||'',materialType=selectedType||(deepTypeMap[vuTab]||inferredType||'');
+    const src=$('vuSource').value,provider=$('vuProvider')?.value||'',access=$('vuAccess')?.value||'',level=$('vuCourseLevel').value;
+    const searchTokens=q.split(/\s+/).filter(Boolean).filter(t=>!['quiz','quizzes','mcq','mcqs','handout','handouts','notes','assignment','assignments','midterm','finalterm','final','term','past','paper','papers'].includes(t));
     const arr=U.resources.filter(r=>{
       const text=[r.title,r.category,r.note,(r.courseCodes||[]).join(' ')].join(' ').toLowerCase();
-      const courseMatch=!q||text.includes(q)||(courseQuery&&r.courseAgnostic&&r.category==='Past Papers');
-      return r.universityId==='vu'&&(vuTab==='all'||r.category===vuTab)&&(!src||r.source===src)&&courseMatch&&(!level||!q||new RegExp('[A-Z]{2,4}'+level[0]).test(q.toUpperCase()));
+      const tokenMatch=!searchTokens.length||searchTokens.every(t=>text.includes(t))||(courseCode&&r.courseAgnostic&&r.category==='Past Papers');
+      const tabMatch=vuTab==='all'||r.category===vuTab||(
+        ['Quizzes','Assignments','Handouts','Notes','Highlighted Handouts','Midterm Past Papers','Final Term Past Papers','Past Papers'].includes(vuTab)
+        && r.courseAgnostic
+      );
+      return r.universityId==='vu'&&tabMatch&&(!src||r.source===src)&&tokenMatch&&(!level||!courseCode||new RegExp('^[A-Z]{2,5}'+level[0]).test(courseCode));
     });
     let shown=arr;
     if(!shown.length){
@@ -156,14 +174,17 @@
     if(!shown.length){
       shown=U.resources.filter(r=>r.universityId==='vu'&&r.source==='official'&&['Handouts','Quizzes','Assignments'].includes(r.category)).slice(0,5);
     }
-    const coursePack=vuCoursePack(q,{source:src,provider,access,type:materialType});
-    $('vuLibrary').innerHTML=coursePack+shown.map(vuCard).join('')+'<div class="coverage-note"><strong>Search guidance:</strong> Course card ke official OCW links ko primary source rakhein. Community past papers/recalls supplementary hain; current syllabus, quizzes, assignments aur announcements VULMS/official course pages se verify karein.</div>';
+    const coursePack=vuCoursePack(courseCode||rawSearch,{source:src,provider,access,type:materialType});
+    const searchStatus=rawSearch?'<div class="coverage-note"><strong>Search:</strong> '+esc(rawSearch)+(courseCode?' · detected course <strong>'+esc(courseCode)+'</strong>':'')+(materialType?' · material <strong>'+esc(materialType==='__exam__'?'Past / Exam Papers':materialType)+'</strong>':'')+'</div>':'';
+    $('vuLibrary').innerHTML=searchStatus+coursePack+shown.map(vuCard).join('')+'<div class="coverage-note"><strong>Search guidance:</strong> Course card ke official OCW links ko primary source rakhein. Community past papers/recalls supplementary hain; current syllabus, quizzes, assignments aur announcements VULMS/official course pages se verify karein.</div>';
     const materials=window.EDUNIZAM_VU_MATERIALS||{},catalog=window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[];
     const providerCount=1+(materials.providers?.length||0);
     const directFiles=(materials.directHandoutCourses?.length||0)+(materials.directHighlightedCourses?.length||0)+(materials.directSolvedFileCount||0);
     $('vuStatResources').textContent=catalog.length;$('vuStatOfficial').textContent=providerCount;$('vuStatVerified').textContent=directFiles;$('vuStatSaved').textContent=vuSaved().length;
     document.querySelectorAll('[data-vu-save]').forEach(b=>b.onclick=()=>{let x=vuSaved();x=x.includes(b.dataset.vuSave)?x.filter(v=>v!==b.dataset.vuSave):[b.dataset.vuSave,...x];putVu(x);renderVU()});
     document.querySelectorAll('[data-vu-ai]').forEach(b=>b.onclick=()=>vuResourceAi(b.dataset.vuAi));
+    if(courseCode&&$('vuCourseCode')&&!$('vuCourseCode').value.trim())$('vuCourseCode').value=courseCode;
+    if(window.renderVUCourseInsight)window.renderVUCourseInsight(courseCode);
   }
   function vuResourceAi(id){
     const r=U.resources.find(x=>x.id===id);if(!r)return;if(window.setView)window.setView('assistant');
