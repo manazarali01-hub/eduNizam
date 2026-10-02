@@ -192,6 +192,13 @@ EduNizam includes a separate Parent Complaint Notices Center. Head of Institute 
 Each complaint supports text plus up to 3 private photo/video attachments (maximum 25 MB each). Media is stored in the private `parent-complaints` Supabase Storage bucket, never as a public URL. Authorized viewers receive one-hour signed URLs. The linked Parent receives a notification, can view the complaint/media and acknowledge receipt; Head can mark the complaint Resolved. Parent acknowledgement also notifies the staff creator.
 
 
+## Deep homework and assignment workflow
+School Work now supports Homework, Assignment, Project, Reading and Quiz Prep items with optional section targeting, due dates, total marks, online-submission controls and late-submission rules.
+
+Students can submit text or a secure external work link from their own linked class/section. Teachers grade submissions for assignments they created, add feedback, or return work for revision. Parents can read the linked child's submission/grade status. Cloud mode stores submissions in `homework_submissions` with RLS plus validated RPCs; Local Mode keeps a same-device fallback.
+
+For an existing Supabase project, apply `supabase-school-work-deep-assignment-migration.sql`. The production project already has this schema applied.
+
 ## Digital notice board
 EduNizam upgrades the existing School Work announcements into a dedicated Digital Notice Board without duplicating announcement data.
 
