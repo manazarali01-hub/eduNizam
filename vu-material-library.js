@@ -706,6 +706,8 @@ function officialFor(course){
 
 function communityFor(course){
  const code=String(course?.code||'').toUpperCase();
+ const isProject=course?.projectCourse===true||/\b(project|capstone)\b/i.test(String(course?.title||''));
+ if(isProject&&!['CS519','CS619'].includes(code))return[];
  const deptFinal=finaltermDepartmentUrl(code);
  const baseRows=[...directSolvedRows(code),...COMMUNITY.flatMap(x=>{
   const base={...x,id:x.id+'-'+code,courseCode:code,title:code+' · '+x.title};
