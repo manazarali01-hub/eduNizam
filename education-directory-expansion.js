@@ -47,9 +47,11 @@
 
     {id:'bzu-results-deep',universityId:'bzu',category:'Results',source:'official',title:'BZU Results Portal',url:'https://result.bzu.edu.pk/',note:'Official BZU result portal for annual programmes and examinations.'},
     {id:'bzu-online-exam',universityId:'bzu',category:'Date Sheet / Exams',source:'official',title:'BZU Online Examination System',url:'https://admission.bzu.edu.pk/main/',note:'Official BZU online examination system for supported programmes and college workflows.'},
+    {id:'bzu-admission-schedules',universityId:'bzu',category:'Admissions',source:'official',title:'BZU Admission Schedules & Merit Updates',url:'https://bzu.edu.pk/admission_schedule.php',note:'Official BZU admission schedules, application notices, test updates and merit-list announcements.'},
 
     {id:'uog-results-deep',universityId:'uog',category:'Results',source:'official',title:'University of Gujrat Result Search',url:'https://www.uog.edu.pk/results',note:'Official UOG examination result search by examination and roll number.'},
     {id:'uog-admission-schedule',universityId:'uog',category:'Admissions',source:'official',title:'University of Gujrat Admission Schedule',url:'https://www.uog.edu.pk/en/admission/admission-schedule',note:'Official admission calendar and merit-list timeline.'},
+    {id:'uog-cms',universityId:'uog',category:'LMS / Student Portal',source:'official',title:'University of Gujrat Campus Management System',url:'https://cms.uog.edu.pk/',note:'Official UOG campus-management portal for centralized academic and student services.'},
 
     {id:'uaf-sis',universityId:'uaf',category:'LMS / Student Portal',source:'official',title:'UAF Student Information System',url:'https://sis.uaf.edu.pk/',note:'Official UAF SIS; existing students can use LMS credentials and new students can use admission credentials.'},
     {id:'uaf-lms',universityId:'uaf',category:'LMS / Student Portal',source:'official',title:'UAF Learning Management System',url:'https://lms.uaf.edu.pk/',note:'Official UAF LMS route for academic learning services.'},
@@ -62,6 +64,10 @@
     {id:'gcuf-merit',universityId:'gcuf',category:'Merit Lists',source:'official',title:'GCUF Merit Lists',url:'https://admissions.gcuf.edu.pk/merit.php',note:'Official admission merit-list portal.'},
 
     {id:'su-portal-suite',universityId:'su',category:'LMS / Student Portal',source:'official',title:'University of Sargodha Portal Suite',url:'https://affiliations.su.edu.pk/',note:'Official UOS gateway exposing LMS, admissions, affiliations and QEC portal routes.'},
+    {id:'su-lms-current',universityId:'su',category:'LMS / Student Portal',source:'official',title:'University of Sargodha LMS Portal',url:'https://portal.uos.edu.pk/',note:'Official UOS portal suite with LMS access to courses, lectures, assignments, results and academic materials.'},
+    {id:'su-results-current',universityId:'su',category:'Results',source:'official',title:'University of Sargodha Latest Results',url:'https://www.su.edu.pk/latest-results',note:'Official University of Sargodha result listings from the Controller of Examinations.'},
+    {id:'su-admissions-current',universityId:'su',category:'Admissions',source:'official',title:'University of Sargodha Admissions',url:'https://admissions.su.edu.pk/',note:'Official UOS regular-admissions portal with process, fees, dates, prospectus and HAT information.'},
+    {id:'su-date-sheets-current',universityId:'su',category:'Date Sheet / Exams',source:'official',title:'University of Sargodha Examination Date Sheets',url:'https://su.edu.pk/Examination/datesheet',note:'Official UOS Controller of Examinations route for current date sheets.'},
 
     {id:'comsats-home',universityId:'comsats',category:'University Portal',source:'official',title:'COMSATS University Official Portal',url:'https://www.comsats.edu.pk/',note:'Official university portal for campus, admissions, academic and examination services.'},
     {id:'nust-home',universityId:'nust',category:'University Portal',source:'official',title:'NUST Official Portal',url:'https://nust.edu.pk/',note:'Official NUST portal for programmes, admissions, academics and student services.'},
