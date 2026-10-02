@@ -74,7 +74,51 @@
     {id:'gcu-home',universityId:'gcu',category:'University Portal',source:'official',title:'GCU Lahore Official Portal',url:'https://gcu.edu.pk/',note:'Official Government College University Lahore portal.'},
     {id:'lcwu-home',universityId:'lcwu',category:'University Portal',source:'official',title:'LCWU Official Portal',url:'https://www.lcwu.edu.pk/',note:'Official Lahore College for Women University portal.'},
     {id:'air-home',universityId:'air',category:'University Portal',source:'official',title:'Air University Official Portal',url:'https://www.au.edu.pk/',note:'Official Air University portal for admissions and academics.'},
-    {id:'numl-home',universityId:'numl',category:'University Portal',source:'official',title:'NUML Official Portal',url:'https://www.numl.edu.pk/',note:'Official NUML portal for campuses, admissions and academics.'}
+    {id:'numl-home',universityId:'numl',category:'University Portal',source:'official',title:'NUML Official Portal',url:'https://www.numl.edu.pk/',note:'Official NUML portal for campuses, admissions and academics.'},
+
+    {id:'comsats-cuonline',universityId:'comsats',category:'LMS / Student Portal',source:'official',title:'COMSATS CUOnline',url:'https://cuonline.comsats.edu.pk/',note:'Official COMSATS university-management environment for academic and administrative student services across campuses.'},
+    {id:'comsats-isb-student-services',universityId:'comsats',category:'Student Services',source:'official',title:'COMSATS Islamabad CU-Online Student Services',url:'https://islamabad.comsats.edu.pk/ums.aspx',note:'Official Islamabad-campus guide to CU-Online services including course material, attendance, registration, progress and fee information.'},
+    {id:'comsats-course-scheme',universityId:'comsats',category:'Prospectus / Syllabus',source:'official',title:'COMSATS Public Course & Scheme Search',url:'https://cuonline.comsats.edu.pk/PublicAccess/ManageSearchCourseSchemeDetails.aspx',note:'Official public CUOnline search for programme schemes of study and course details.'},
+
+    {id:'nust-ug-admissions',universityId:'nust',category:'Admissions',source:'official',title:'NUST Undergraduate Admissions / NET Portal',url:'https://ugadmissions.nust.edu.pk/',note:'Official NUST undergraduate admission portal including NET application, test-result notices and selection updates.'},
+    {id:'nust-ug-merit',universityId:'nust',category:'Merit Lists',source:'official',title:'NUST Undergraduate Merit / Selection Status',url:'https://ugadmissions.nust.edu.pk/result/meritsearch.aspx',note:'Official NUST undergraduate merit-position and selection-status search.'},
+    {id:'nust-pg-admissions',universityId:'nust',category:'Admissions',source:'official',title:'NUST Postgraduate Admissions Portal',url:'https://pgadmission.nust.edu.pk/',note:'Official NUST postgraduate admission, application and selection-result portal.'},
+
+    {id:'qau-student-cms',universityId:'qau',category:'LMS / Student Portal',source:'official',title:'QAU Student Portal / CMS',url:'https://ugadmissions.qau.edu.pk/studentcms/',note:'Official QAU student gateway for course registrations, academic records and university notifications.'},
+    {id:'qau-ug-admission',universityId:'qau',category:'Admissions',source:'official',title:'QAU Undergraduate Admission Portal',url:'https://ugadmissions.qau.edu.pk/oas/app/signin.aspx',note:'Official Quaid-i-Azam University online undergraduate admission portal.'},
+
+    {id:'uetl-lms',universityId:'uetl',category:'LMS / Student Portal',source:'official',title:'UET Lahore LMS / ERP Portal',url:'https://erp.uet.edu.pk/web/login',note:'Official UET Lahore ERP/LMS login and academic-service gateway.'},
+    {id:'uetl-admission',universityId:'uetl',category:'Admissions',source:'official',title:'UET Lahore Admissions Portal',url:'https://admission.uet.edu.pk/',note:'Official UET Lahore admission portal for undergraduate/postgraduate applications and related services.'},
+
+    {id:'fast-flex',universityId:'fast',category:'LMS / Student Portal',source:'official',title:'FAST-NUCES Flex Student Portal',url:'https://flexstudent.nu.edu.pk/',note:'Official FAST-NUCES Flex student system for academic records and student services.'},
+    {id:'fast-admissions',universityId:'fast',category:'Admissions',source:'official',title:'FAST-NUCES Online Admissions',url:'https://admissions.nu.edu.pk/',note:'Official FAST-NUCES online applicant and admission portal.'},
+    {id:'fast-library',universityId:'fast',category:'Digital Library',source:'official',title:'FAST-NUCES Library & E-Resources',url:'https://www.nu.edu.pk/Services/Library',note:'Official FAST-NUCES library network and digital/e-resource gateway.'},
+
+    {id:'iiui-webapps',universityId:'iiui',category:'Student Services',source:'official',title:'IIUI Web Applications Directory',url:'https://www.iiu.edu.pk/iiui-web-applications/',note:'Official IIUI directory for VLE, result intimation, email and other university web applications.'},
+    {id:'iiui-vle',universityId:'iiui',category:'LMS / Student Portal',source:'official',title:'IIUI Virtual Learning Environment',url:'https://vle.iiu.edu.pk/',note:'Official International Islamic University Islamabad virtual learning environment.'},
+    {id:'iiui-admission',universityId:'iiui',category:'Admissions',source:'official',title:'IIUI Admission Portal',url:'https://admission.iiu.edu.pk/',note:'Official IIUI online admission application portal.'},
+    {id:'iiui-admission-results',universityId:'iiui',category:'Merit Lists',source:'official',title:'IIUI Recent Admission Results / Merit Lists',url:'https://admission.iiu.edu.pk/public/recent-results',note:'Official IIUI recently published admission results and merit/selection lists.'},
+
+    {id:'iub-eportal',universityId:'iub',category:'LMS / Student Portal',source:'official',title:'IUB E-Portal',url:'https://eportal.iub.edu.pk/login',note:'Official IUB e-portal gateway providing applicant/student services, merit lists, payments, degree search and test-result access.'},
+    {id:'iub-ba-bsc-results',universityId:'iub',category:'Results',source:'official',title:'IUB BA/BSc Examination Result Search',url:'https://eportal.iub.edu.pk/exam_slip/ba_bsc_result',note:'Official IUB BA/BSc examination-result lookup for supported result types.'},
+
+    {id:'ue-results',universityId:'ue',category:'Results',source:'official',title:'University of Education Results',url:'https://www.ue.edu.pk/examination/results.php',note:'Official University of Education result listings for divisions, campuses and affiliated colleges.'},
+    {id:'ue-admissions-2026',universityId:'ue',category:'Admissions',source:'official',title:'University of Education Admissions 2026',url:'https://ue.edu.pk/admissions/2026-p1/',note:'Official Fall 2026 University of Education admission, entry-test and merit-list information. Confirm the latest cycle on the university site after 2026.'},
+
+    {id:'gcu-sfc',universityId:'gcu',category:'LMS / Student Portal',source:'official',title:'GCU Lahore Student Facilitation Center',url:'https://sfc.gcu.edu.pk/',note:'Official GCU Lahore student facilitation portal using university/LMS credentials.'},
+    {id:'gcu-admissions',universityId:'gcu',category:'Admissions',source:'official',title:'GCU Lahore Admissions',url:'https://gcu.edu.pk/admissions.php',note:'Official GCU Lahore admissions page with online-application, interview and merit-list routes.'},
+
+    {id:'lcwu-results',universityId:'lcwu',category:'Results',source:'official',title:'LCWU Examination Results',url:'https://www.lcwu.edu.pk/results.html',note:'Official Lahore College for Women University Controller of Examinations result route.'},
+    {id:'lcwu-merit',universityId:'lcwu',category:'Merit Lists',source:'official',title:'LCWU Undergraduate Merit Lists',url:'https://meritlists.lcwu.edu.pk/',note:'Official LCWU undergraduate merit-list portal.'},
+    {id:'lcwu-admissions',universityId:'lcwu',category:'Admissions',source:'official',title:'LCWU Admissions & Academic Notices',url:'https://www.lcwu.edu.pk/',note:'Official LCWU source for current undergraduate/graduate admission notices and portal links.'},
+
+    {id:'air-portals',universityId:'air',category:'LMS / Student Portal',source:'official',title:'Air University Online Portals',url:'https://online.au.edu.pk/',note:'Official Air University portal directory for student portal, email, QEC and online admission services.'},
+    {id:'air-admissions',universityId:'air',category:'Admissions',source:'official',title:'Air University Online Admissions',url:'https://portals.au.edu.pk/admissions/Accounts/SignIn',note:'Official Air University Islamabad online admission portal.'},
+
+    {id:'numl-lms',universityId:'numl',category:'LMS / Student Portal',source:'official',title:'NUML Learning Management System',url:'https://lms.numl.edu.pk/',note:'Official NUML LMS for enrolled-course learning and academic activities.'},
+    {id:'numl-cms',universityId:'numl',category:'Student Services',source:'official',title:'NUML Campus Management System Directory',url:'https://www.numl.edu.pk/main/cms',note:'Official NUML CMS gateway covering student portals, datesheets, results, digital library, clearance and e-registration.'},
+    {id:'numl-admissions',universityId:'numl',category:'Admissions',source:'official',title:'NUML Admission Portal',url:'https://portals.numl.edu.pk/AdmissionPortal/Login',note:'Official NUML online admission portal.'},
+    {id:'numl-merit',universityId:'numl',category:'Merit Lists',source:'official',title:'NUML Merit List Portal',url:'https://portals.numl.edu.pk/MeritList/',note:'Official NUML merit-list search by campus, session, faculty, department and programme.'}
   ].forEach(addRes);
 
   U.updatedAt='2026-10-02';
