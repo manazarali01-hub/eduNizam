@@ -4252,3 +4252,46 @@ create trigger enforce_teacher_profile_membership_trigger
 before insert or update on public.user_profiles
 for each row
 execute function public.enforce_teacher_profile_membership();
+
+
+-- =========================================================
+-- Library Loan Renewal
+-- =========================================================
+begin;
+
+create or replace function public.renew_library_loan(p_loan_id uuid,p_new_due_date date)
+returns public.library_loans
+language plpgsql
+security definer
+set search_path=public
+as $$
+declare
+  l public.library_loans%rowtype;
+  s public.core_students%rowtype;
+  r text;
+  result_row public.library_loans%rowtype;
+begin
+  if auth.uid() is null then raise exception 'Authentication required'; end if;
+  if p_new_due_date is null or p_new_due_date < current_date then raise exception 'New due date must be today or later'; end if;
+  select * into l from public.library_loans where id=p_loan_id for update;
+  if l.id is null then raise exception 'Loan not found'; end if;
+  if l.returned_at is not null then raise exception 'Returned loan cannot be renewed'; end if;
+  if p_new_due_date <= l.due_date then raise exception 'New due date must be later than current due date'; end if;
+  select * into s from public.core_students where id=l.student_id;
+  r:=public.current_account_role();
+  if r='head_of_institute' then
+    if not exists(select 1 from public.institutions i where i.id=l.institution_id and i.owner_user_id=auth.uid()) then raise exception 'Head access required'; end if;
+  elsif r='teacher' then
+    if not exists(select 1 from public.teacher_student_links tsl where tsl.institution_id=l.institution_id and tsl.teacher_user_id=auth.uid() and tsl.student_user_id=s.auth_user_id) then raise exception 'Teacher can renew books only for assigned students'; end if;
+  else
+    raise exception 'Staff access required';
+  end if;
+  update public.library_loans set due_date=p_new_due_date,updated_at=now() where id=l.id returning * into result_row;
+  return result_row;
+end;
+$$;
+revoke execute on function public.renew_library_loan(uuid,date) from public;
+revoke execute on function public.renew_library_loan(uuid,date) from anon;
+grant execute on function public.renew_library_loan(uuid,date) to authenticated;
+
+commit;
