@@ -219,7 +219,29 @@
   }
   function renderVU(){
     const d=window.EDUNIZAM_UNIVERSITY_DATA||{},catalog=window.EDUNIZAM_VU_COURSE_CATALOG||{},needle=q(),rows=[];
-    (catalog.courses||[]).filter(x=>match(x)).forEach(x=>rows.push(resourceCard({title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails,source:'official',tags:[x.category,x.creditHours?(x.creditHours+' CH'):'Official OCW']})));
+    const raw=$('globalSearch').value.trim(),upper=raw.toUpperCase();
+    const codeHit=upper.match(/\b[A-Z]{2,5}[\s-]*\d{3,4}[A-Z]?\b/);
+    const courseCode=codeHit?codeHit[0].replace(/[^A-Z0-9]/g,''):'';
+    const exact=(catalog.courses||[]).find(x=>String(x.code||'').toUpperCase()===courseCode);
+    const lower=raw.toLowerCase();
+    let materialType='';
+    if(/\bquiz(?:zes)?\b|\bmcqs?\b/.test(lower))materialType='Quizzes / MCQs';
+    else if(/highlighted\s*handouts?/.test(lower))materialType='Highlighted Handouts';
+    else if(/\bhandouts?\b/.test(lower))materialType='Course Notes / Handouts';
+    else if(/\bshort\s*notes?\b|\bnotes?\b/.test(lower))materialType='Short Notes';
+    else if(/\bassignments?\b/.test(lower))materialType='Assignments';
+    else if(/\bmid\s*term\b|\bmidterm\b/.test(lower))materialType='Midterm Past Papers';
+    else if(/\bfinal\s*term\b|\bfinalterm\b/.test(lower))materialType='Finalterm Past Papers';
+    else if(/\bpast\s*papers?\b/.test(lower))materialType='__exam__';
+
+    if(exact){
+      rows.push(resourceCard({title:exact.code+' — '+exact.title,description:exact.freshness,url:exact.officialDetails,source:'official',tags:[exact.category,exact.creditHours?(exact.creditHours+' CH'):'Official VU']}));
+      const materials=window.EDUNIZAM_VU_MATERIALS?.forCourse?.(exact,{type:materialType})||[];
+      materials.forEach(m=>rows.push(resourceCard({title:m.title,description:m.note,url:m.url,source:m.trust==='official'?'official':m.source,tags:[m.type,m.accessLabel||m.access,m.source]})));
+    }else{
+      (catalog.courses||[]).filter(x=>match(x)).forEach(x=>rows.push(resourceCard({title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails,source:'official',tags:[x.category,x.creditHours?(x.creditHours+' CH'):'Official OCW']})));
+    }
+
     (d.resources||[]).filter(x=>x.universityId==='vu').filter(x=>match(x)).forEach(x=>rows.push(resourceCard({title:x.title,description:x.note,url:x.url,source:x.source,tags:[x.category,x.sourceName]})));
     if(needle && !rows.length){(d.resources||[]).filter(x=>x.universityId==='vu'&&x.courseAgnostic).slice(0,6).forEach(x=>rows.push(resourceCard({title:x.title,description:'No exact indexed match was found for this search. This is a useful VU-wide source; verify current material in VULMS/OCW. '+(x.note||''),url:x.url,source:x.source,tags:[x.category]})))}
     $('vuGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">Search a VU course code, subject or resource type. EduNizam will not invent an exact result.</div>';
@@ -238,7 +260,19 @@
   $('previewPrint').onclick=()=>{try{$('previewFrame').contentWindow.print()}catch(_){window.open($('previewSave').href,'_blank')}};
   $('prevQuestion').onclick=()=>{qi=Math.max(0,qi-1);renderPractice()};$('nextQuestion').onclick=()=>{const n=practiceList().length;qi=n?(qi+1)%n:0;renderPractice()};
   function renderAll(){renderHome();renderPast();renderGrade();renderStudy();renderUniversities();renderVU();renderPractice()}
-  let timer;$('globalSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>{qi=0;renderAll()},120)});$('clearSearch').onclick=()=>{$('globalSearch').value='';qi=0;renderAll();$('globalSearch').focus()};
+  function runGlobalSearch(){
+    qi=0;renderAll();
+    const raw=$('globalSearch').value.trim();
+    if(/\b[A-Za-z]{2,5}[\s-]*\d{3,4}[A-Za-z]?\b/.test(raw)){
+      history.replaceState(null,'','#vu');
+      openTab('vu');
+      requestAnimationFrame(()=>$('vuGrid')?.scrollIntoView({behavior:'smooth',block:'start'}));
+    }
+  }
+  let timer;$('globalSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>{qi=0;renderAll()},120)});
+  $('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
+  $('runGlobalSearch').onclick=runGlobalSearch;
+  $('clearSearch').onclick=()=>{$('globalSearch').value='';qi=0;renderAll();$('globalSearch').focus()};
   initPastFilters();renderAll();
   const initialTab=location.hash.slice(1);if(validTabs.has(initialTab))openTab(initialTab);
   window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(validTabs.has(id))openTab(id)});
