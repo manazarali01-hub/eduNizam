@@ -133,7 +133,7 @@
     const days=Object.values(attendance()).filter(day=>Object.prototype.hasOwnProperty.call(day,id)||Object.prototype.hasOwnProperty.call(day,String(id)));
     if(!days.length)return null;
     let present=0,late=0,absent=0;
-    days.forEach(day=>{const v=String(day[id]??day[String(id)]||'');if(v==='Present')present++;else if(v==='Late')late++;else if(v==='Absent')absent++});
+    days.forEach(day=>{const v=String((day[id]??day[String(id)])||'');if(v==='Present')present++;else if(v==='Late')late++;else if(v==='Absent')absent++});
     const denom=present+late+absent;
     return denom?Math.round(((present+late)/denom)*100):null;
   }
