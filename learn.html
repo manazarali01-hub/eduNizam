@@ -138,6 +138,7 @@
       <button type="button" data-pathway-quick="ecat">ECAT</button>
       <button type="button" data-pathway-quick="nust-net">NUST NET</button>
       <button type="button" data-pathway-quick="usat">USAT</button>
+      <button type="button" data-pathway-quick="hat">HAT</button>
       <button type="button" data-pathway-quick="lat">LAT</button>
       <button type="button" data-pathway-quick="css">CSS</button>
       <button type="button" data-pathway-quick="fpsc-gr">FPSC</button>
@@ -157,7 +158,7 @@
         <select id="examPrepType"><option value="">MCQ + Written</option><option value="mcq">MCQ</option><option value="written">Written / Analytical</option></select>
         <select id="examPrepCount"><option value="5">5 Items</option><option value="10" selected>10 Items</option><option value="15">15 Items</option><option value="20">20 Items</option><option value="all">All Matching</option></select>
         <button id="examPrepStart" class="btn primary" type="button">Start Topic Practice</button>
-      <div class="search-suggestions" style="margin:10px 0"><button type="button" data-exam-prep-quick="mdcat">MDCAT</button><button type="button" data-exam-prep-quick="ecat">ECAT</button><button type="button" data-exam-prep-quick="nust-net">NET</button><button type="button" data-exam-prep-quick="usat">USAT</button><button type="button" data-exam-prep-quick="lat">LAT</button><button type="button" data-exam-prep-quick="css">CSS</button><button type="button" data-exam-prep-quick="fpsc-gr">FPSC</button><button type="button" data-exam-prep-quick="ppsc">PPSC</button><button type="button" data-exam-prep-quick="vu-semester">VU Semester</button><button type="button" data-exam-prep-quick="aiou-semester">AIOU Semester</button></div>
+      <div class="search-suggestions" style="margin:10px 0"><button type="button" data-exam-prep-quick="mdcat">MDCAT</button><button type="button" data-exam-prep-quick="ecat">ECAT</button><button type="button" data-exam-prep-quick="nust-net">NET</button><button type="button" data-exam-prep-quick="usat">USAT</button><button type="button" data-exam-prep-quick="hat">HAT</button><button type="button" data-exam-prep-quick="lat">LAT</button><button type="button" data-exam-prep-quick="css">CSS</button><button type="button" data-exam-prep-quick="fpsc-gr">FPSC</button><button type="button" data-exam-prep-quick="ppsc">PPSC</button><button type="button" data-exam-prep-quick="vu-semester">VU Semester</button><button type="button" data-exam-prep-quick="aiou-semester">AIOU Semester</button></div>
       </div>
       <p id="examPrepBasis" class="notice"></p><p id="examPrepAvailable" class="muted"></p>
       <div id="examPrepCoverage" class="notice" style="margin-top:12px"></div>
@@ -396,7 +397,7 @@
       const hay=norm(JSON.stringify(ex));
       return rawTokens.filter(t=>!aliases.includes(t)).every(t=>hay.includes(t));
     });
-    const pathQuery=prepHit||(/\b(mdcat|ecat|nust\s*net|net\s*weight|usat|lat|css|fpsc|ppsc|aiou|virtual\s*university|vulms)\b/i.test(raw)&&(/\b(syllabus|pattern|weight(?:ing)?s?|subjects?|eligibility|prepare|preparation|process|pathway|steps?|registration|admit|roll|merit|semester|workflow|how|biology|chemistry|physics|math(?:ematics)?|english|reasoning|essay|current affairs|pakistan affairs|topic|chapter|practice)\b/i.test(raw)||/^\s*(mdcat|ecat|nust\s*net|usat|lat|css)\s*$/i.test(raw)));
+    const pathQuery=prepHit||(/\b(mdcat|ecat|nust\s*net|net\s*weight|usat|hat|lat|css|fpsc|ppsc|aiou|virtual\s*university|vulms)\b/i.test(raw)&&(/\b(syllabus|pattern|weight(?:ing)?s?|subjects?|eligibility|prepare|preparation|process|pathway|steps?|registration|admit|roll|merit|semester|workflow|how|biology|chemistry|physics|math(?:ematics)?|english|reasoning|essay|current affairs|pakistan affairs|topic|chapter|practice)\b/i.test(raw)||/^\s*(mdcat|ecat|nust\s*net|usat|hat|lat|css)\s*$/i.test(raw)));
     if(pathQuery){
       history.replaceState(null,'','#pathways');openTab('pathways');
       requestAnimationFrame(()=>{$('examPathSearch').value=raw;window.renderExamPathways?.();$('examPathGrid')?.scrollIntoView({behavior:'smooth',block:'start'})});return;
