@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261002-deep380';
+  const VERSION='20261002-deep390';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
