@@ -18,6 +18,7 @@
     const b=document.querySelector('[data-view="'+view+'"]');if(b)b.click();
   }
   function profiles(){return visibleStudents().map(s=>I()?.profile(s)).filter(Boolean)}
+  function setBoxHtml(el,html){if(!el)return false;if(el.__eduDeepHtml===html)return false;el.__eduDeepHtml=html;el.innerHTML=html;return true}
 
   function renderAttendanceCross(){
     const root=$('#attendanceAnalyticsApp');if(!root||!I())return;
@@ -28,9 +29,10 @@
       .sort((a,b)=>(a.attendance.percentage??999)-(b.attendance.percentage??999));
     const avgResult=rows.filter(x=>x.results.overall!=null);
     const resultAvg=avgResult.length?Math.round(avgResult.reduce((a,x)=>a+x.results.overall,0)/avgResult.length):null;
-    box.innerHTML='<div class="section-head"><div><div class="academic-kicker">Cross-Module Insight</div><h3>Attendance × Academic Progress</h3><p class="muted">Low attendance ko result average, fee status aur missing work ke context ke sath dekhein.</p></div><div class="paper-actions"><button id="aaCrossCsv" class="secondary">Export Follow-up CSV</button></div></div>'+
+    const html='<div class="section-head"><div><div class="academic-kicker">Cross-Module Insight</div><h3>Attendance × Academic Progress</h3><p class="muted">Low attendance ko result average, fee status aur missing work ke context ke sath dekhein.</p></div><div class="paper-actions"><button id="aaCrossCsv" class="secondary">Export Follow-up CSV</button></div></div>'+
       '<div class="pp-stats"><article><span>Accessible Students</span><strong>'+rows.length+'</strong></article><article><span>Below 75%</span><strong>'+attention.length+'</strong></article><article><span>Academic Avg</span><strong>'+(resultAvg==null?'—':resultAvg+'%')+'</strong></article><article><span>Overdue Fee Cases</span><strong>'+rows.filter(x=>x.fees.overdueRows.length).length+'</strong></article></div>'+
       '<div class="list">'+(attention.length?attention.map(x=>'<div class="row"><strong>'+esc(x.student.name)+'</strong><span>'+esc(x.student.className||'-')+'</span><span>Attendance '+x.attendance.percentage+'%</span><span>Academic '+(x.results.overall==null?'—':x.results.overall+'%')+'</span><span>'+x.assignments.missing.length+' missing work · '+x.fees.overdueRows.length+' overdue fee</span></div>').join(''):'<div class="empty-state">Current accessible students mein koi attendance follow-up below 75% nahi hai.</div>')+'</div>';
+    if(!setBoxHtml(box,html))return;
     $('#aaCrossCsv').onclick=()=>{
       const lines=[['Student','Class','Attendance %','Academic %','Missing Assignments','Outstanding Fee','Overdue Challans'].map(csv).join(',')];
       rows.forEach(x=>lines.push([x.student.name,x.student.className,x.attendance.percentage??'',x.results.overall??'',x.assignments.missing.length,x.fees.outstanding,x.fees.overdueRows.length].map(csv).join(',')));
@@ -44,9 +46,10 @@
     if(!box){box=document.createElement('article');box.id='feeAcademicCross';box.className='card';root.querySelector('.section-head')?.after(box)}
     const rows=profiles(),pending=rows.filter(x=>x.fees.outstanding>0).sort((a,b)=>b.fees.overdueAmount-a.fees.overdueAmount||b.fees.outstanding-a.fees.outstanding);
     if(role()==='head'){
-      box.innerHTML='<div class="section-head"><div><div class="academic-kicker">Family Follow-up</div><h3>Fee Follow-up with Student Context</h3><p class="muted">Collection list ke sath attendance/result context — fee status academic grading ko change nahi karta.</p></div><button id="feeCrossCsv" class="secondary">Export Follow-up CSV</button></div>'+
+      const html='<div class="section-head"><div><div class="academic-kicker">Family Follow-up</div><h3>Fee Follow-up with Student Context</h3><p class="muted">Collection list ke sath attendance/result context — fee status academic grading ko change nahi karta.</p></div><button id="feeCrossCsv" class="secondary">Export Follow-up CSV</button></div>'+
         '<div class="pp-stats"><article><span>Pending Students</span><strong>'+pending.length+'</strong></article><article><span>Overdue Students</span><strong>'+pending.filter(x=>x.fees.overdueRows.length).length+'</strong></article><article><span>Low Attendance + Pending</span><strong>'+pending.filter(x=>x.attendance.percentage!=null&&x.attendance.percentage<75).length+'</strong></article><article><span>Missing Work + Pending</span><strong>'+pending.filter(x=>x.assignments.missing.length).length+'</strong></article></div>'+
         '<div class="list">'+(pending.length?pending.slice(0,80).map(x=>'<div class="row"><strong>'+esc(x.student.name)+'</strong><span>'+esc(x.student.className||'-')+'</span><span>'+esc(I().money(x.fees.outstanding))+' pending</span><span>Att '+(x.attendance.percentage==null?'—':x.attendance.percentage+'%')+' · Avg '+(x.results.overall==null?'—':x.results.overall+'%')+'</span><span>'+x.fees.overdueRows.length+' overdue</span></div>').join(''):'<div class="empty-state">No pending fee cases in the accessible records.</div>')+'</div>';
+      if(!setBoxHtml(box,html))return;
       $('#feeCrossCsv').onclick=()=>{
         const lines=[['Student','Class','Outstanding','Overdue Amount','Overdue Count','Attendance %','Academic %','Missing Work'].map(csv).join(',')];
         pending.forEach(x=>lines.push([x.student.name,x.student.className,x.fees.outstanding,x.fees.overdueAmount,x.fees.overdueRows.length,x.attendance.percentage??'',x.results.overall??'',x.assignments.missing.length].map(csv).join(',')));
@@ -54,8 +57,9 @@
       };
     }else{
       const mine=rows;
-      box.innerHTML='<div class="section-head"><div><div class="academic-kicker">Family Finance Snapshot</div><h3>My Fee Status</h3><p class="muted">Linked student challans, outstanding amount aur next due date.</p></div></div><div class="paper-grid">'+
+      const html='<div class="section-head"><div><div class="academic-kicker">Family Finance Snapshot</div><h3>My Fee Status</h3><p class="muted">Linked student challans, outstanding amount aur next due date.</p></div></div><div class="paper-grid">'+
         (mine.length?mine.map(x=>'<article class="paper-card"><h3>'+esc(x.student.name)+'</h3><p><strong>'+esc(I().money(x.fees.outstanding))+'</strong> outstanding · '+x.fees.pendingCount+' pending challan(s)</p><p class="muted">'+(x.fees.nextDue?'Next due: '+esc(x.fees.nextDue.dueDate||'-')+' · '+esc(x.fees.nextDue.feeMonth||''):'No pending due date')+'</p>'+(x.fees.overdueRows.length?'<div class="coverage-note"><strong>'+x.fees.overdueRows.length+' overdue challan(s)</strong></div>':'')+'</article>').join(''):'<div class="empty-state">No linked student record.</div>')+'</div>';
+      setBoxHtml(box,html);
     }
   }
 
@@ -73,11 +77,13 @@
     const ps=profiles();
     if(['head','teacher'].includes(role())){
       const next=allExams.slice(0,12);
-      box.innerHTML='<div class="section-head"><div><div class="academic-kicker">Exam Readiness</div><h3>Upcoming Exam Readiness</h3><p class="muted">Schedule ke sath class attendance, academic baseline aur missing-work signal.</p></div></div>'+
+      const html='<div class="section-head"><div><div class="academic-kicker">Exam Readiness</div><h3>Upcoming Exam Readiness</h3><p class="muted">Schedule ke sath class attendance, academic baseline aur missing-work signal.</p></div></div>'+
         '<div class="list">'+(next.length?next.map(x=>{const r=classReadiness(x,ps);return '<div class="row"><strong>'+esc(x.subject||'Exam')+'</strong><span>'+esc(x.examDate||'-')+' '+esc(x.startTime||'')+'</span><span>Class '+esc(x.className||'-')+(x.sectionName?' · '+esc(x.sectionName):'')+'</span><span>Att '+(r.attendance==null?'—':r.attendance+'%')+' · Avg '+(r.academic==null?'—':r.academic+'%')+'</span><span>'+r.missing+' missing work item(s)</span></div>'}).join(''):'<div class="empty-state">No upcoming exam schedule.</div>')+'</div>';
+      setBoxHtml(box,html);
     }else{
-      box.innerHTML='<div class="section-head"><div><div class="academic-kicker">Exam Readiness</div><h3>My Upcoming Exams</h3><p class="muted">Next papers with current academic and attendance snapshot.</p></div></div><div class="paper-grid">'+
+      const html='<div class="section-head"><div><div class="academic-kicker">Exam Readiness</div><h3>My Upcoming Exams</h3><p class="muted">Next papers with current academic and attendance snapshot.</p></div></div><div class="paper-grid">'+
         (ps.length?ps.map(x=>{const next=x.exams.upcoming.slice(0,4);return '<article class="paper-card"><h3>'+esc(x.student.name)+'</h3><p class="muted">Attendance '+(x.attendance.percentage==null?'—':x.attendance.percentage+'%')+' · Academic '+(x.results.overall==null?'—':x.results.overall+'%')+'</p>'+(next.length?next.map(e=>'<div class="coverage-note"><strong>'+esc(e.subject||'Exam')+'</strong><br>'+esc(e.examDate||'-')+' · '+esc(e.startTime||'Time TBA')+(e.roomLabel?' · '+esc(e.roomLabel):'')+'</div>').join(''):'<div class="empty-state">No upcoming exam for this linked class.</div>')+'</article>'}).join(''):'<div class="empty-state">No linked student record.</div>')+'</div>';
+      setBoxHtml(box,html);
     }
   }
 
@@ -86,7 +92,7 @@
     let box=$('#profileUnifiedActions');
     if(!box){box=document.createElement('article');box.id='profileUnifiedActions';box.className='card';const content=$('#studentProfileContent');content?.appendChild(box)}
     const s=students().find(x=>String(x.id)===String(sel.value));
-    if(!s){box.innerHTML='';return}
+    if(!s){setBoxHtml(box,'');return}
     const p=I().profile(s);if(!p)return;
     const actions=[];
     if(p.attendance.percentage!=null&&p.attendance.percentage<75)actions.push('Attendance follow-up: current attendance is '+p.attendance.percentage+'%.');
@@ -95,9 +101,10 @@
     if(p.exams.next)actions.push('Prepare for '+(p.exams.next.subject||'next exam')+' on '+(p.exams.next.examDate||'scheduled date')+'.');
     if(p.fees.overdueRows.length)actions.push('Review '+p.fees.overdueRows.length+' overdue fee challan(s) in Fee Management.');
     if(!actions.length)actions.push('No urgent cross-module action is currently flagged.');
-    box.innerHTML='<div class="section-head"><div><div class="academic-kicker">Unified Student View</div><h3>Family / Teacher Action Plan</h3><p class="muted">Attendance, results, assignments, exam schedule aur fee status ko ek plan mein combine kiya gaya hai.</p></div><span class="academic-pill">'+p.alerts.length+' alert(s)</span></div>'+
+    const html='<div class="section-head"><div><div class="academic-kicker">Unified Student View</div><h3>Family / Teacher Action Plan</h3><p class="muted">Attendance, results, assignments, exam schedule aur fee status ko ek plan mein combine kiya gaya hai.</p></div><span class="academic-pill">'+p.alerts.length+' alert(s)</span></div>'+
       '<div class="list">'+actions.map((a,i)=>'<div class="row"><strong>'+(i+1)+'</strong><span style="grid-column:span 4">'+esc(a)+'</span></div>').join('')+'</div>'+
       '<div class="paper-actions"><button id="profileGoAttendance" class="secondary">Attendance</button><button id="profileGoResults" class="secondary">Results</button><button id="profileGoFees" class="secondary">Fees</button><button id="profileGoExam" class="secondary">Exams</button><button id="profileGoWork" class="secondary">Assignments</button></div>';
+    if(!setBoxHtml(box,html))return;
     $('#profileGoAttendance').onclick=()=>jump('attendanceanalytics');
     $('#profileGoResults').onclick=()=>jump('results');
     $('#profileGoFees').onclick=()=>jump('fees');
