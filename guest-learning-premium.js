@@ -54,34 +54,25 @@ function allResources(){
   source:'official',type:'Exam / Study Pathway',board:x.authority,classLevel:x.stage,subject:(x.subjects||[]).map(s=>s.name).join(' / '),
   section:'pathways',keywords:[x.keywords,(x.pattern||[]).join(' '),(x.steps||[]).map(s=>s.title+' '+s.detail).join(' ')].join(' ')
  }));
- (window.EDUNIZAM_EXAM_TOPIC_BANK?.maps||[]).forEach(map=>{
-   const path=(window.EDUNIZAM_EXAM_PATHWAYS?.pathways||[]).find(x=>x.id===map.pathwayId);
-   (map.subjects||[]).forEach(s=>out.push({
-     id:'exam-topic:'+map.pathwayId+':'+s.name,
-     title:(path?.name||map.pathwayId.toUpperCase())+' — '+s.name+' Topic Map',
-     description:(map.sourceLabel||'Exam topic map')+(s.weight?' · '+s.weight:''),
-     url:'learn.html#pathways',source:'official',type:'Exam Topic Map',board:path?.authority||'EduNizam',
-     classLevel:path?.stage||'',subject:s.name,section:'pathways',
-     keywords:[path?.name,map.sourceMode,s.name,s.weight,s.note,(s.topics||[]).join(' ')].filter(Boolean).join(' ')
+ (window.EDUNIZAM_EXAM_PREP?.exams||[]).forEach(ex=>{
+   Object.entries(ex.subjects||{}).forEach(([subject,topics])=>out.push({
+     id:'exam-topic:'+ex.id+':'+subject,title:ex.name+' — '+subject+' Topic Map',
+     description:ex.basisLabel||'Exam preparation topic map',url:'learn.html#pathways',
+     source:ex.basis?.startsWith('official')?'official':'built-in',type:'Exam Topic Map',board:ex.authority||'EduNizam',
+     classLevel:ex.name,subject,section:'pathways',
+     keywords:[ex.name,ex.basis,subject,(topics||[]).join(' ')].filter(Boolean).join(' ')
    }));
  });
- (window.EDUNIZAM_EXAM_TOPIC_BANK?.questions||[]).forEach(q=>{
-   const path=(window.EDUNIZAM_EXAM_PATHWAYS?.pathways||[]).find(x=>x.id===q.pathwayId);
+ (window.EDUNIZAM_EXAM_PREP?.questions||[]).forEach(q=>{
+   const ex=(window.EDUNIZAM_EXAM_PREP?.exams||[]).find(x=>x.id===q.examId);
    out.push({
-     id:'exam-drill:'+q.id,title:(path?.name||q.pathwayId.toUpperCase())+' '+q.topic+' Practice',
-     description:'EduNizam supplementary topic drill with answer feedback. Not an official/leaked exam question.',
-     url:'learn.html#pathways',source:'built-in',type:'Exam Topic Drill',board:path?.authority||'EduNizam',
-     classLevel:path?.stage||'',subject:q.subject,section:'pathways',
-     keywords:[path?.name,q.subject,q.topic,q.difficulty,q.q].filter(Boolean).join(' ')
+     id:'exam-drill:'+q.id,title:(ex?.name||q.examId.toUpperCase())+' '+q.topic+' Practice',
+     description:'EduNizam supplementary topic practice with answer feedback. Not an official/leaked exam question.',
+     url:'learn.html#pathways',source:'built-in',type:'Exam Topic Drill',board:ex?.authority||'EduNizam',
+     classLevel:ex?.name||'',subject:q.subject,section:'pathways',
+     keywords:[ex?.name,q.subject,q.topic,q.difficulty,q.question].filter(Boolean).join(' ')
    });
  });
- (window.EDUNIZAM_EXAM_PREP?.exams||[]).forEach(ex=>Object.entries(ex.subjects||{}).forEach(([subject,topics])=>out.push({
-  id:'exam-prep:'+ex.id+':'+subject,title:ex.name+' — '+subject+' Topic Practice',
-  description:(ex.basisLabel||'Exam preparation map')+'. Topics: '+(topics||[]).join(', '),
-  url:'learn.html#pathways',source:ex.basis?.startsWith('official')?'official':'built-in',
-  type:'Exam Topic Practice',board:ex.authority||'',subject,section:'pathways',
-  keywords:[ex.name,ex.id,subject,(topics||[]).join(' ')].join(' ')
- })));
  (window.EDUNIZAM_PUBLIC_LINKS||[]).forEach(x=>out.push({...x}));
  const practiceGroups=new Map();
  (window.EDUNIZAM_PRACTICE_DATA?.questions||[]).forEach(x=>{
