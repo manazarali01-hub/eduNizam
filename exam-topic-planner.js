@@ -29,39 +29,36 @@ function injectStyles(){
  @media(max-width:700px){.topic-toolbar{grid-template-columns:1fr}.topic-row{grid-template-columns:1fr}.topic-checks{display:grid;grid-template-columns:repeat(3,1fr)}.topic-checks label{justify-content:center}.topic-progress{width:100%}.topic-progress progress{flex:1}}
  `;document.head.appendChild(s)
 }
+function optionMatch(el,value){
+ if(!el)return '';
+ const wanted=norm(value),short=norm(String(value||'').split('—')[0].split(' - ')[0].trim());
+ const opt=[...el.options].find(o=>norm(o.value)===wanted||norm(o.textContent)===wanted)
+   ||[...el.options].find(o=>wanted.includes(norm(o.textContent))||norm(o.textContent).includes(short));
+ return opt?.value||'';
+}
 function practiceAction(pathway,subject,topic){
- const prep=window.EDUNIZAM_EXAM_PREP||{questions:[]};
- const hasBuiltIn=(prep.questions||[]).some(q=>q.examId===pathway&&q.subject===subject&&q.topic===topic);
- if(hasBuiltIn&&window.EDUNIZAM_EXAM_PATHWAY_ENGINE?.startDrill){
-   window.EDUNIZAM_EXAM_PATHWAY_ENGINE.startDrill(pathway,subject,topic);return;
+ const lab=$('examPrepLab'),prep=window.EDUNIZAM_EXAM_PREP;
+ if(lab&&prep){
+   const examEl=$('examPrepExam'),subjectEl=$('examPrepSubject'),topicEl=$('examPrepTopic');
+   const examOpt=[...examEl.options].find(o=>o.value===pathway);
+   if(examOpt){
+     examEl.value=pathway;examEl.dispatchEvent(new Event('change',{bubbles:true}));
+     const sub=optionMatch(subjectEl,subject);if(sub){subjectEl.value=sub;subjectEl.dispatchEvent(new Event('change',{bubbles:true}))}
+     const t=optionMatch(topicEl,topic);if(t){topicEl.value=t;topicEl.dispatchEvent(new Event('change',{bubbles:true}))}
+     lab.scrollIntoView({behavior:'smooth',block:'start'});
+     const exact=(prep.questions||[]).filter(q=>q.examId===pathway&&(!sub||q.subject===sub)&&(!t||q.topic===t));
+     if(exact.length&&window.EDUNIZAM_EXAM_TOPIC_PRACTICE?.start){setTimeout(()=>window.EDUNIZAM_EXAM_TOPIC_PRACTICE.start(),120)}
+     else setTimeout(()=>$('examPrepStart')?.focus(),180);
+     return;
+   }
  }
  const query=[pathway.toUpperCase(),subject,topic,'practice'].join(' ');
  if(location.pathname.endsWith('/learn.html')||location.pathname.endsWith('learn.html')){
    const g=$('globalSearch');if(g)g.value=query;
    history.replaceState(null,'','#practice');document.querySelector('[data-tab="practice"]')?.click();
-   window.dispatchEvent(new CustomEvent('edunizam:topic-practice',{detail:{pathway,subject,topic,query}}));
-   setTimeout(()=>$('practice')?.scrollIntoView({behavior:'smooth',block:'start'}),0);
-   return;
+   setTimeout(()=>$('practice')?.scrollIntoView({behavior:'smooth',block:'start'}),0);return;
  }
- if(window.setView){
-   window.setView('practice').then?.(()=>{});
-   setTimeout(()=>{
-     const ai=$('aiGenerateTestBtn');
-     const cls=subject.match(/Biology|Chemistry|Physics|Mathematics|Computer Science/)?'12':'';
-     if(cls&&$('practiceClass')){$('practiceClass').value=cls;$('practiceClass').dispatchEvent(new Event('change',{bubbles:true}))}
-     setTimeout(()=>{
-       if($('practiceSubject')){
-         const wanted=subject.replace(/^NET-[^—]+ — /,'').replace(/^USAT-E Discipline Subjects$/,'').trim();
-         const opt=[...$('practiceSubject').options].find(o=>o.textContent===wanted);
-         if(opt){$('practiceSubject').value=opt.value;$('practiceSubject').dispatchEvent(new Event('change',{bubbles:true}))}
-       }
-       if(ai){
-         const prompt=$('aiPrompt');
-         if(prompt)prompt.value='Generate a concept-practice test for '+pathway.toUpperCase()+' topic: '+topic+' ('+subject+'). Use the current official exam scope as context, explain every answer, and do not claim questions are official unless sourced.';
-       }
-     },150);
-   },200);
- }
+ if(window.setView)window.setView('practice');
 }
 function render(pathwayId){
  injectStyles();
@@ -94,6 +91,6 @@ function render(pathwayId){
  $('topicPlanReset').onclick=()=>{const s=state();Object.keys(s).filter(k=>k.startsWith(pathwayId+'||')).forEach(k=>delete s[k]);save(s);rerender()};
  rerender();setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'start'}),0);
 }
-document.addEventListener('click',e=>{const b=e.target.closest('[data-topic-pathway]');if(b){e.preventDefault();render(b.dataset.topicPathway)}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-blueprint-pathway]');if(b){e.preventDefault();render(b.dataset.blueprintPathway)}});
 window.EDUNIZAM_EXAM_TOPIC_PLANNER={render,progress:pathwayId=>D.blueprints[pathwayId]?pct(D.blueprints[pathwayId]):0};
 })();
