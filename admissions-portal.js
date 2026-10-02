@@ -527,6 +527,11 @@
             enrolled?.roll_no&&('Roll '+enrolled.roll_no),
             enrolled?.class_teacher_user_id&&'Class teacher linked'
           ].filter(Boolean);
+          try{
+            await window.EDUNIZAM_CORE_CLOUD?.pullAllCloudToLocal?.(true);
+            window.renderAll?.();
+            window.EDUNIZAM_FEE_CENTER?.render?.();
+          }catch(syncError){console.warn('Post-admission local sync:',syncError?.message||syncError)}
           window.EDUNIZAM_PREMIUM?.toast?.('Admission confirmed · '+bits.join(' · '),'success');
           alert('Admission confirmed. '+bits.join(' · '));
           renderCloudAdminApplications();
