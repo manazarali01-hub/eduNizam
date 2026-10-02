@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  var ids={home:1,past:1,grade:1,study:1,universities:1,vu:1,practice:1};
+  var ids={home:1,past:1,grade:1,study:1,universities:1,competitive:1,ecosystem:1,pathways:1,vu:1,practice:1};
   function show(id){
     if(!ids[id]) id='home';
     var sections=document.querySelectorAll('.section'),i;
