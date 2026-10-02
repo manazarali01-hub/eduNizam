@@ -28,13 +28,11 @@ function selectValue(id,value){
   if(!opt)return false;el.value=opt.value;el.dispatchEvent(new Event('change',{bubbles:true}));return true;
 }
 function openTopicPractice(pathwayId,subject,topic){
-  const examSel=$('examPrepExam');
-  if(!examSel){openInternal('practice');return}
-  selectValue('examPrepExam',pathwayId);
-  selectValue('examPrepSubject',subject);
-  selectValue('examPrepTopic',topic);
-  $('examPrepLab')?.scrollIntoView({behavior:'smooth',block:'start'});
-  setTimeout(()=>{$('examPrepStart')?.focus()},250);
+  const has=(PREP.questions||[]).some(q=>q.examId===pathwayId&&q.subject===subject&&q.topic===topic);
+  const planner=window.EDUNIZAM_EXAM_TOPIC_PLANNER;
+  if(has&&planner?.startPractice){planner.startPractice(pathwayId,subject,topic);return}
+  if(planner?.render){planner.render(pathwayId,subject,topic);return}
+  openInternal('practice');
 }
 function injectStyles(){
  if(document.getElementById('examPathwayStyles'))return;
