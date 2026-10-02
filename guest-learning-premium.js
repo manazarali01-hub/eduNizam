@@ -75,6 +75,13 @@ function allResources(){
      keywords:[path?.name,q.subject,q.topic,q.difficulty,q.q].filter(Boolean).join(' ')
    });
  });
+ (window.EDUNIZAM_EXAM_PREP?.exams||[]).forEach(ex=>Object.entries(ex.subjects||{}).forEach(([subject,topics])=>out.push({
+  id:'exam-prep:'+ex.id+':'+subject,title:ex.name+' — '+subject+' Topic Practice',
+  description:(ex.basisLabel||'Exam preparation map')+'. Topics: '+(topics||[]).join(', '),
+  url:'learn.html#pathways',source:ex.basis?.startsWith('official')?'official':'built-in',
+  type:'Exam Topic Practice',board:ex.authority||'',subject,section:'pathways',
+  keywords:[ex.name,ex.id,subject,(topics||[]).join(' ')].join(' ')
+ })));
  (window.EDUNIZAM_PUBLIC_LINKS||[]).forEach(x=>out.push({...x}));
  const practiceGroups=new Map();
  (window.EDUNIZAM_PRACTICE_DATA?.questions||[]).forEach(x=>{
