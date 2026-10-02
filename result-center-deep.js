@@ -150,8 +150,15 @@
     bind(root);renderReportOnly();
   }
 
-  window.addEventListener('edunizam:auth',render);
+  function attachResultObserver(){
+    const list=$('resultList');
+    if(!list||list.dataset.deepResultObserved)return;
+    list.dataset.deepResultObserved='1';
+    const observer=new MutationObserver(()=>{clearTimeout(attachResultObserver.t);attachResultObserver.t=setTimeout(render,80)});
+    observer.observe(list,{childList:true,subtree:true,characterData:true});
+  }
+  window.addEventListener('edunizam:auth',()=>{render();attachResultObserver()});
   window.addEventListener('storage',e=>{if(['edunizam_results','edunizam_students','edunizam_attendance'].includes(e.key))render()});
-  setTimeout(render,0);setTimeout(render,700);
+  setTimeout(()=>{render();attachResultObserver()},0);setTimeout(()=>{render();attachResultObserver()},700);
   window.EDUNIZAM_RESULT_CENTER={render,exportCsv,reportHtml};
 })();
