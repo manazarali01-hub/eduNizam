@@ -88,6 +88,27 @@ window.EDUNIZAM_EXAM_PATHWAYS={
       keywords:'USAT HEC ETC undergraduate admission test verbal quantitative reasoning essay stream'
     },
     {
+      id:'hat',name:'HEC Higher Education Aptitude Test (HAT)',authority:'HEC Education Testing Council (ETC)',stage:'16 years education → MS/MPhil / PhD',region:'Pakistan',
+      status:'Official ETC postgraduate pathway',
+      overview:'HAT is designed for MS/MPhil and PhD admission pathways and is also used for HEC postgraduate scholarships. HEC conducts five categories based on the candidate’s field after 16 years of education.',
+      pattern:['100 MCQs','120 minutes','Five categories based on prior field of study','HAT-I: Verbal 30%, Analytical 30%, Quantitative 40%','HAT-II: Verbal 30%, Analytical 40%, Quantitative 30%','HAT-III: Verbal 40%, Analytical 35%, Quantitative 25%','HAT-IV: Verbal 40%, Analytical 30%, Quantitative 30%','HAT-General: Verbal 40%, Analytical 30%, Quantitative 30%'],
+      subjects:[
+        {name:'English / Verbal Reasoning',focus:'Vocabulary, analogy, sentence relationships and comprehension-style reasoning.'},
+        {name:'Analytical Reasoning',focus:'Conditions, deductions, grouping, ordering and logic-based problem solving.'},
+        {name:'Quantitative Reasoning',focus:'Arithmetic, algebra, equations, geometry, statistics/data interpretation and quantitative problem solving.'},
+        {name:'Category Selection',focus:'Choose HAT-I, II, III, IV or General according to the official discipline mapping after 16 years of education.'}
+      ],
+      steps:[
+        {title:'1. Select the correct HAT category',detail:'Match your 16-year/equivalent education field to HAT-I, II, III, IV or HAT-General before submitting the ETC application.',url:'https://www.hec.gov.pk/english/services/students/etc/Pages/Content-WeightagesSyllabus.aspx'},
+        {title:'2. Use the official weightage',detail:'Build preparation around the exact Verbal, Analytical and Quantitative percentage for your HAT category.',url:'https://www.hec.gov.pk/english/services/students/etc/Pages/Content-WeightagesSyllabus.aspx'},
+        {title:'3. Register through HEC ETC',detail:'Use the ETC dashboard for the active HAT MS/MPhil or PhD test announcement and candidate services.',url:'https://etc.hec.gov.pk/'},
+        {title:'4. Practice timed reasoning',detail:'Use 100-question / 120-minute pacing and track weak reasoning areas. EduNizam questions are supplementary practice, not official/leaked HAT questions.',internal:'practice'},
+        {title:'5. Check keys/result and use the valid score',detail:'Use official ETC result/answer-key services and confirm how the target university or HEC scholarship programme applies the score.',url:'https://www.hec.gov.pk/english/services/students/etc/Pages/Result.aspx'}
+      ],
+      official:[{label:'HAT Content Weightages',url:'https://www.hec.gov.pk/english/services/students/etc/Pages/Content-WeightagesSyllabus.aspx'},{label:'HEC ETC',url:'https://etc.hec.gov.pk/'},{label:'ETC Results & Keys',url:'https://www.hec.gov.pk/english/services/students/etc/Pages/Result.aspx'}],
+      keywords:'HAT HEC ETC MS MPhil PhD postgraduate scholarship aptitude test verbal analytical quantitative reasoning HAT I HAT II HAT III HAT IV HAT General'
+    },
+    {
       id:'lat',name:'HEC Law Admission Test (LAT)',authority:'HEC Education Testing Council (ETC)',stage:'12 years education → LLB',region:'Pakistan',
       status:'Official ETC pathway',
       overview:'HEC publishes a fixed LAT content-weightage sheet covering MCQs plus essay and personal statement.',
