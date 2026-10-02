@@ -16,6 +16,7 @@
   function staff(){try{return JSON.parse(localStorage.getItem('edunizam_staff_profiles_v1')||'[]')}catch{return[]}}
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
   let contacts=[],conversations=[],activeId='',messages=[],unreadByConversation={};
+  let conversationSearch='',unreadOnly=false,messageSearch='';
 
   function roleLabel(r){return ({head:'Head of Institute',teacher:'Teacher',parent:'Parent / Guardian',student:'Student'}[r]||r)}
   function localUserKey(){return role()+':'+(identity()||'local')}
@@ -117,24 +118,36 @@
     if(error)return alert(error.message||error);
     $('msgBody').value='';await openConversation(activeId);
   }
+  function filteredConversations(){
+    const q=conversationSearch.trim().toLowerCase();
+    return conversations.filter(c=>{
+      const unread=unreadByConversation[c.id]||0;
+      if(unreadOnly&&!unread)return false;
+      if(!q)return true;
+      const student=cloudReady()?c.student_name:c.studentName,subject=c.subject||'General',type=cloudReady()?c.conversation_type:c.conversationType;
+      return [conversationOtherName(c),student,subject,type].join(' ').toLowerCase().includes(q);
+    });
+  }
   function conversationList(){
-    return conversations.length?conversations.map(c=>{
+    const rows=filteredConversations();
+    return rows.length?rows.map(c=>{
       const unread=unreadByConversation[c.id]||0;
       const student=cloudReady()?c.student_name:c.studentName,subject=c.subject||'General',type=cloudReady()?c.conversation_type:c.conversationType;
-      return '<button class="msg-conv '+(String(c.id)===activeId?'active':'')+'" data-msg-open="'+esc(c.id)+'"><strong>'+esc(conversationOtherName(c))+'</strong><span>'+esc(subject)+'</span><small>'+esc(type.replace(/-/g,' ↔ '))+' · '+esc(student||'Student')+(unread?' · '+unread+' unread':'')+'</small></button>';
-    }).join(''):'<div class="muted">Abhi koi conversation nahi.</div>';
+      return '<button class="msg-conv '+(String(c.id)===activeId?'active':'')+'" data-msg-open="'+esc(c.id)+'"><strong>'+esc(conversationOtherName(c))+(unread?'<span class="badge" style="margin-left:6px">'+unread+'</span>':'')+'</strong><span>'+esc(subject)+'</span><small>'+esc(type.replace(/-/g,' ↔ '))+' · '+esc(student||'Student')+(unread?' · unread':'')+'</small></button>';
+    }).join(''):'<div class="muted">No conversation matches this filter.</div>';
   }
   function thread(){
     if(!activeId)return '<div class="msg-empty">Conversation select karein ya nayi conversation start karein.</div>';
     const c=conversations.find(x=>String(x.id)===activeId);
     if(!c)return '<div class="msg-empty">Conversation unavailable.</div>';
-    const me=cloudReady()?uid():localUserKey();
-    const rows=messages.map(m=>{
+    const me=cloudReady()?uid():localUserKey(),q=messageSearch.trim().toLowerCase();
+    const filtered=messages.filter(m=>!q||String(m.body||'').toLowerCase().includes(q));
+    const rows=filtered.map(m=>{
       const mine=cloudReady()?m.sender_user_id===me:m.senderKey===me;
-      const body=cloudReady()?m.body:m.body,created=cloudReady()?m.created_at:m.createdAt;
-      return '<div class="msg-line '+(mine?'mine':'theirs')+'"><div>'+esc(body)+'</div><small>'+new Date(created).toLocaleString()+'</small></div>';
+      const body=m.body,created=cloudReady()?m.created_at:m.createdAt,readAt=cloudReady()?m.read_at:m.readAt;
+      return '<div class="msg-line '+(mine?'mine':'theirs')+'"><div>'+esc(body)+'</div><small>'+new Date(created).toLocaleString()+(mine?(readAt?' · Read':' · Sent'):'')+'</small></div>';
     }).join('');
-    return '<div class="msg-thread-head"><strong>'+esc(conversationOtherName(c))+'</strong><span>'+esc(c.subject||'General')+'</span></div><div class="msg-thread">'+(rows||'<div class="msg-empty">No messages yet.</div>')+'</div><div class="msg-compose"><textarea id="msgBody" rows="3" maxlength="4000" placeholder="Write a message..."></textarea><button id="msgSend">Send</button></div>';
+    return '<div class="msg-thread-head"><div><strong>'+esc(conversationOtherName(c))+'</strong><div class="muted">'+esc(c.subject||'General')+'</div></div><input id="msgSearchThread" type="search" value="'+esc(messageSearch)+'" placeholder="Search messages"></div><div class="msg-thread">'+(rows||'<div class="msg-empty">'+(q?'No message matched this search.':'No messages yet.')+'</div>')+'</div><div class="msg-compose"><textarea id="msgBody" rows="3" maxlength="4000" placeholder="Write a message... (Ctrl+Enter to send)"></textarea><button id="msgSend">Send</button></div>';
   }
   function createPanel(){
     const note=cloudReady()?'Contacts are based on approved links and assignments.':'Local demo mode: secure cross-device messaging activates with Cloud Mode.';
@@ -143,11 +156,15 @@
   function renderUI(){
     const root=$('inboxCenterApp');if(!root)return;
     root.innerHTML='<style>.msg-layout{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(360px,1.5fr);gap:16px}.msg-list{display:grid;gap:8px}.msg-conv{display:grid;gap:4px;text-align:left;padding:12px;border:1px solid #dce6eb;border-radius:12px;background:#fff;color:inherit}.msg-conv.active{outline:2px solid #0f766e;background:#eef9f7}.msg-conv span,.msg-conv small{color:#667}.msg-thread-wrap{min-height:420px;display:flex;flex-direction:column}.msg-thread-head{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e6edef;padding-bottom:10px}.msg-thread{display:flex;flex-direction:column;gap:9px;min-height:280px;max-height:480px;overflow:auto;padding:14px 0}.msg-line{max-width:78%;padding:10px 12px;border-radius:14px;background:#edf2f5}.msg-line.mine{align-self:flex-end;background:#dff3ef}.msg-line.theirs{align-self:flex-start}.msg-line small{display:block;color:#697b86;font-size:11px;margin-top:5px}.msg-compose{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:auto}.msg-compose textarea{width:100%;box-sizing:border-box}.msg-empty{padding:40px 12px;text-align:center;color:#6a7b88}@media(max-width:800px){.msg-layout{grid-template-columns:1fr}.msg-compose{grid-template-columns:1fr}}</style>'+
-      '<div class="section-head"><span class="academic-pill">'+(cloudReady()?'Secure Cloud Inbox':'Local Demo Mode')+'</span></div>'+createPanel()+
-      '<div class="msg-layout" style="margin-top:16px"><article class="card"><div class="section-head"><h3>Conversations</h3><button id="msgRefresh" class="secondary">Refresh</button></div><div class="msg-list">'+conversationList()+'</div></article><article class="card msg-thread-wrap">'+thread()+'</article></div>';
+      '<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Secure Cloud Inbox':'Local Demo Mode')+'</span><p class="muted">'+conversations.length+' conversation'+(conversations.length===1?'':'s')+' · '+Object.values(unreadByConversation).reduce((a,n)=>a+Number(n||0),0)+' unread message'+(Object.values(unreadByConversation).reduce((a,n)=>a+Number(n||0),0)===1?'':'s')+'</p></div></div>'+createPanel()+
+      '<div class="msg-layout" style="margin-top:16px"><article class="card"><div class="section-head"><div><h3>Conversations</h3><p class="muted">'+filteredConversations().length+' shown</p></div><button id="msgRefresh" class="secondary">Refresh</button></div><div class="form-grid"><input id="msgConversationSearch" type="search" value="'+esc(conversationSearch)+'" placeholder="Search contact, subject or student"><label class="coverage-note"><input id="msgUnreadOnly" type="checkbox" '+(unreadOnly?'checked':'')+'> Unread only</label></div><div class="msg-list" style="margin-top:10px">'+conversationList()+'</div></article><article class="card msg-thread-wrap">'+thread()+'</article></div>';
     $('msgStart')?.addEventListener('click',startConversation);$('msgRefresh')?.addEventListener('click',render);
     $('msgSend')?.addEventListener('click',sendMessage);
-    document.querySelectorAll('[data-msg-open]').forEach(b=>b.onclick=()=>openConversation(b.dataset.msgOpen));
+    $('msgConversationSearch')?.addEventListener('input',e=>{conversationSearch=e.target.value;clearTimeout(renderUI.searchTimer);renderUI.searchTimer=setTimeout(renderUI,140)});
+    $('msgUnreadOnly')?.addEventListener('change',e=>{unreadOnly=e.target.checked;renderUI()});
+    $('msgSearchThread')?.addEventListener('input',e=>{messageSearch=e.target.value;clearTimeout(renderUI.threadTimer);renderUI.threadTimer=setTimeout(renderUI,140)});
+    $('msgBody')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();sendMessage()}});
+    document.querySelectorAll('[data-msg-open]').forEach(b=>b.onclick=()=>{messageSearch='';openConversation(b.dataset.msgOpen)});
   }
   async function render(){
     const root=$('inboxCenterApp');if(!root)return;
