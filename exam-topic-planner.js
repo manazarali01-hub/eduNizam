@@ -2,7 +2,7 @@
 'use strict';
 const $=id=>document.getElementById(id),D=window.EDUNIZAM_EXAM_TOPIC_BLUEPRINTS;
 if(!D)return;
-const KEY='edunizam_exam_topic_progress_v1';
+const KEY='edunizam_exam_topic_plan_v1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const norm=s=>String(s??'').normalize('NFKC').toLocaleLowerCase('en-PK').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 function state(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(_){return{}}}
@@ -30,6 +30,11 @@ function injectStyles(){
  `;document.head.appendChild(s)
 }
 function practiceAction(pathway,subject,topic){
+ const bank=window.EDUNIZAM_EXAM_TOPIC_BANK||{questions:[]};
+ const hasBuiltIn=(bank.questions||[]).some(q=>q.pathwayId===pathway&&q.subject===subject&&q.topic===topic);
+ if(hasBuiltIn&&window.EDUNIZAM_EXAM_PATHWAY_ENGINE?.startDrill){
+   window.EDUNIZAM_EXAM_PATHWAY_ENGINE.startDrill(pathway,subject,topic);return;
+ }
  const query=[pathway.toUpperCase(),subject,topic,'practice'].join(' ');
  if(location.pathname.endsWith('/learn.html')||location.pathname.endsWith('learn.html')){
    const g=$('globalSearch');if(g)g.value=query;
