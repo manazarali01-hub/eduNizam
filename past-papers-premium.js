@@ -11,7 +11,17 @@
   const paperById=id=>PP.papers.find(p=>p.id===id);
   const sourceBadge=s=>{const m={official:['Official','trust-official'],verified:['Verified','trust-verified'],community:['Community','trust-community']};const v=m[s]||['Source','trust-community'];return '<span class="trust-badge '+v[1]+'">'+v[0]+'</span>'};
   const typeLabel=t=>({past:'Past Paper',model:'Model Paper',rubric:'Rubric / Marking',syllabus:'Syllabus',portal:'Official Portal'})[t]||t;
-  function populateFilters(){const regions=[...new Set(PP.boards.map(b=>b.region))].sort();$('paperRegion').innerHTML='<option value="">All Regions</option>'+regions.map(x=>'<option>'+esc(x)+'</option>').join('');$('paperYear').innerHTML='<option value="">All Years</option>'+PP.years.map(y=>'<option value="'+y+'">'+y+'</option>').join('');fillBoardFilter();fillSubjectFilter()}
+  function populateFilters(){
+    const regions=[...new Set(PP.boards.map(b=>b.region))].sort();
+    const years=[...new Set([...(PP.years||[]),...(PP.papers||[]).map(p=>p.year).filter(v=>v!==undefined&&v!==null&&v!=='')])].sort((a,b)=>{const an=Number(a),bn=Number(b);if(Number.isFinite(an)&&Number.isFinite(bn))return bn-an;if(Number.isFinite(an))return-1;if(Number.isFinite(bn))return 1;return String(a).localeCompare(String(b))});
+    const sessions=[...new Set((PP.papers||[]).map(p=>p.session).filter(Boolean))].sort((a,b)=>{const rank={Annual:0,Supplementary:1,Archive:2};return (rank[a]??9)-(rank[b]??9)||String(a).localeCompare(String(b))});
+    const mediums=[...new Set((PP.papers||[]).map(p=>p.medium).filter(Boolean))].sort();
+    $('paperRegion').innerHTML='<option value="">All Regions</option>'+regions.map(x=>'<option>'+esc(x)+'</option>').join('');
+    $('paperYear').innerHTML='<option value="">All Years</option>'+years.map(y=>'<option value="'+esc(y)+'">'+esc(y)+'</option>').join('');
+    $('paperSession').innerHTML='<option value="">All Sessions</option>'+sessions.map(x=>'<option>'+esc(x)+'</option>').join('');
+    $('paperMedium').innerHTML='<option value="">All Mediums</option>'+mediums.map(x=>'<option>'+esc(x)+'</option>').join('');
+    fillBoardFilter();fillSubjectFilter()
+  }
   function fillBoardFilter(){const region=$('paperRegion').value,current=$('paperBoard').value,boards=PP.boards.filter(b=>!region||b.region===region);$('paperBoard').innerHTML='<option value="">All Boards</option>'+boards.map(b=>'<option value="'+b.id+'">'+esc(b.name)+'</option>').join('');if(boards.some(b=>b.id===current))$('paperBoard').value=current}
   function fillSubjectFilter(){const cls=$('paperClass').value,subjects=cls?(PP.subjects[cls]||[]):[...new Set(Object.values(PP.subjects).flat())].sort();$('paperSubject').innerHTML='<option value="">All Subjects</option>'+subjects.map(s=>'<option>'+esc(s)+'</option>').join('')}
   function filters(){return{q:$('paperSearch').value.trim().toLowerCase(),region:$('paperRegion').value,board:$('paperBoard').value,cls:$('paperClass').value,subject:$('paperSubject').value,year:$('paperYear').value,session:$('paperSession').value,type:$('paperType').value,medium:$('paperMedium').value,source:$('paperSource').value}}
