@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261002-deep250';
+  const VERSION='20261002-deep300';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
@@ -8,6 +8,7 @@
     universities:['education-hubs.js'],
     competitive:['competitive-exams.js'],
     ecosystem:['education-ecosystem.js'],
+    pathways:['exam-pathways.js'],
     vu:['education-hubs.js','vu-workspace.js'],
     admissions:['admissions-portal.js','admissions-selection.js'],
     studentprofile:['student-performance.js'],
