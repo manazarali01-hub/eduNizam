@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261002-deep350';
+  const VERSION='20261002-deep360';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js'],
     pastpapers:['past-papers-premium.js'],
@@ -8,7 +8,7 @@
     universities:['education-hubs.js'],
     competitive:['competitive-exams.js'],
     ecosystem:['education-ecosystem.js'],
-    pathways:['exam-pathways.js','exam-topic-planner.js'],
+    pathways:['exam-pathways.js','exam-topic-practice.js','exam-topic-planner.js'],
     vu:['education-hubs.js','vu-workspace.js'],
     admissions:['admissions-portal.js','admissions-selection.js'],
     studentprofile:['student-performance.js'],
