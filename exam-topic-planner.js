@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-const $=id=>document.getElementById(id),D=window.EDUNIZAM_EXAM_TOPIC_BLUEPRINTS;
+const $=id=>document.getElementById(id),D=window.EDUNIZAM_EXAM_TOPIC_BLUEPRINTS,PREP=window.EDUNIZAM_EXAM_PREP||{exams:[],questions:[]};
 if(!D)return;
 const KEY='edunizam_exam_topic_plan_v1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -29,29 +29,40 @@ function injectStyles(){
  @media(max-width:700px){.topic-toolbar{grid-template-columns:1fr}.topic-row{grid-template-columns:1fr}.topic-checks{display:grid;grid-template-columns:repeat(3,1fr)}.topic-checks label{justify-content:center}.topic-progress{width:100%}.topic-progress progress{flex:1}}
  `;document.head.appendChild(s)
 }
-function optionMatch(el,value){
- if(!el)return '';
- const wanted=norm(value),short=norm(String(value||'').split('—')[0].split(' - ')[0].trim());
- const opt=[...el.options].find(o=>norm(o.value)===wanted||norm(o.textContent)===wanted)
-   ||[...el.options].find(o=>wanted.includes(norm(o.textContent))||norm(o.textContent).includes(short));
- return opt?.value||'';
+function ensureDrillModal(){
+ let m=$('topicDrillModal');if(m)return m;
+ m=document.createElement('div');m.id='topicDrillModal';m.className='topic-drill-modal';m.setAttribute('aria-hidden','true');
+ m.innerHTML='<div class="topic-drill-dialog" role="dialog" aria-modal="true"><div class="topic-plan-head"><div><div class="eyebrow">Built-in topic practice</div><h3 id="topicDrillTitle">Topic Drill</h3><p id="topicDrillMeta" class="muted"></p></div><button id="topicDrillClose" class="secondary" type="button">Close</button></div><div id="topicDrillBody"></div></div>';
+ document.body.appendChild(m);$('topicDrillClose').onclick=closeDrill;m.addEventListener('click',e=>{if(e.target===m)closeDrill()});return m
+}
+function closeDrill(){const m=$('topicDrillModal');if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true')}document.body.classList.remove('guest-modal-open')}
+function startPractice(pathway,subject,topic){
+ const rows=(PREP.questions||[]).filter(q=>q.examId===pathway&&q.subject===subject&&q.topic===topic);
+ if(!rows.length){render(pathway,subject,topic);return}
+ const m=ensureDrillModal();let i=0,score=0,reviewed=0;
+ const exam=(PREP.exams||[]).find(x=>x.id===pathway);
+ $('topicDrillTitle').textContent=(exam?.name||pathway.toUpperCase())+' · '+topic;
+ $('topicDrillMeta').textContent=subject+' · '+rows.length+' item'+(rows.length===1?'':'s')+' · EduNizam practice, not official/leaked questions';
+ const body=$('topicDrillBody');
+ const paint=()=>{
+  const q=rows[i],last=i===rows.length-1;
+  body.innerHTML='<div class="topic-progress"><strong>'+(i+1)+' / '+rows.length+'</strong><progress max="'+rows.length+'" value="'+reviewed+'"></progress></div><div style="font-weight:850;font-size:1.05rem;line-height:1.5;margin:14px 0">'+esc(q.question)+'</div><div id="topicDrillOptions"></div><div id="topicDrillExplain" class="topic-drill-explain" hidden></div><div class="topic-drill-actions"><button id="topicDrillPrev" class="secondary" '+(i===0?'disabled':'')+'>Previous</button><button id="topicDrillNext">'+(last?'Finish':'Next')+'</button></div>';
+  const opts=$('topicDrillOptions'),ex=$('topicDrillExplain');let done=false;
+  if(q.type==='written'){
+   opts.innerHTML='<button id="topicDrillShow" class="topic-practice" type="button">Show suggested answer / framework</button>';
+   $('topicDrillShow').onclick=()=>{if(done)return;done=true;reviewed++;ex.hidden=false;ex.textContent=q.answerText||'Review this topic against the controlling official source.';$('topicDrillShow').disabled=true}
+  }else{
+   opts.innerHTML=(q.options||[]).map((o,n)=>'<button class="topic-drill-option" data-topic-answer="'+n+'" type="button">'+esc(o)+'</button>').join('');
+   opts.querySelectorAll('[data-topic-answer]').forEach(b=>b.onclick=()=>{if(done)return;done=true;reviewed++;const n=Number(b.dataset.topicAnswer),ok=n===q.answer;if(ok)score++;opts.querySelectorAll('[data-topic-answer]').forEach((z,k)=>{z.disabled=true;z.classList.add(k===q.answer?'correct':(k===n?'wrong':''))});ex.hidden=false;ex.textContent=(ok?'Correct. ':'Review: ')+(q.explanation||'')})
+  }
+  $('topicDrillPrev').onclick=()=>{if(i>0){i--;paint()}};
+  $('topicDrillNext').onclick=()=>{if(!last){i++;paint();return}body.innerHTML='<h3>Topic drill complete</h3><p>'+esc(topic)+' · '+reviewed+' item(s) reviewed'+(rows.some(x=>x.type==='mcq')?' · MCQ score '+score+'/'+rows.filter(x=>x.type==='mcq').length:'')+'.</p><div class="topic-drill-actions"><button id="topicDrillRestart" type="button">Restart Topic</button><button id="topicDrillDone" class="secondary" type="button">Close</button></div>';$('topicDrillRestart').onclick=()=>{i=0;score=0;reviewed=0;paint()};$('topicDrillDone').onclick=closeDrill};
+ };
+ paint();m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.classList.add('guest-modal-open')
 }
 function practiceAction(pathway,subject,topic){
- const lab=$('examPrepLab'),prep=window.EDUNIZAM_EXAM_PREP;
- if(lab&&prep){
-   const examEl=$('examPrepExam'),subjectEl=$('examPrepSubject'),topicEl=$('examPrepTopic');
-   const examOpt=[...examEl.options].find(o=>o.value===pathway);
-   if(examOpt){
-     examEl.value=pathway;examEl.dispatchEvent(new Event('change',{bubbles:true}));
-     const sub=optionMatch(subjectEl,subject);if(sub){subjectEl.value=sub;subjectEl.dispatchEvent(new Event('change',{bubbles:true}))}
-     const t=optionMatch(topicEl,topic);if(t){topicEl.value=t;topicEl.dispatchEvent(new Event('change',{bubbles:true}))}
-     lab.scrollIntoView({behavior:'smooth',block:'start'});
-     const exact=(prep.questions||[]).filter(q=>q.examId===pathway&&(!sub||q.subject===sub)&&(!t||q.topic===t));
-     if(exact.length&&window.EDUNIZAM_EXAM_TOPIC_PRACTICE?.start){setTimeout(()=>window.EDUNIZAM_EXAM_TOPIC_PRACTICE.start(),120)}
-     else setTimeout(()=>$('examPrepStart')?.focus(),180);
-     return;
-   }
- }
+ const has=(PREP.questions||[]).some(q=>q.examId===pathway&&q.subject===subject&&q.topic===topic);
+ if(has){startPractice(pathway,subject,topic);return}
  const query=[pathway.toUpperCase(),subject,topic,'practice'].join(' ');
  if(location.pathname.endsWith('/learn.html')||location.pathname.endsWith('learn.html')){
    const g=$('globalSearch');if(g)g.value=query;
@@ -60,7 +71,7 @@ function practiceAction(pathway,subject,topic){
  }
  if(window.setView)window.setView('practice');
 }
-function render(pathwayId){
+function render(pathwayId,initialSubject='',initialTopic=''){
  injectStyles();
  const bp=D.blueprints[pathwayId],box=ensurePanel();if(!bp||!box)return;
  box.hidden=false;box.dataset.pathway=pathwayId;
@@ -87,10 +98,11 @@ function render(pathwayId){
    });
    $('topicPlanBody').querySelectorAll('[data-topic-practice]').forEach(b=>b.onclick=()=>practiceAction(b.dataset.pathway,b.dataset.subject,b.dataset.topic));
  };
+ if(initialSubject&&[...$('topicPlanSubject').options].some(o=>o.value===initialSubject))$('topicPlanSubject').value=initialSubject;if(initialTopic)$('topicPlanSearch').value=initialTopic;
  $('topicPlanSearch').oninput=rerender;$('topicPlanSubject').onchange=rerender;
  $('topicPlanReset').onclick=()=>{const s=state();Object.keys(s).filter(k=>k.startsWith(pathwayId+'||')).forEach(k=>delete s[k]);save(s);rerender()};
  rerender();setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'start'}),0);
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-blueprint-pathway]');if(b){e.preventDefault();render(b.dataset.blueprintPathway)}});
-window.EDUNIZAM_EXAM_TOPIC_PLANNER={render,progress:pathwayId=>D.blueprints[pathwayId]?pct(D.blueprints[pathwayId]):0};
+window.EDUNIZAM_EXAM_TOPIC_PLANNER={render,startPractice,progress:pathwayId=>D.blueprints[pathwayId]?pct(D.blueprints[pathwayId]):0};
 })();
