@@ -146,7 +146,7 @@ function injectSearchTools(){
 }
 function renderSuggestions(){
  const box=$('searchSuggestions'),input=$('globalSearch');if(!box||!input)return;
- const q=norm(input.value);let terms=['CS101 past papers','MTH603 quizzes','VU CS101 handouts','AIOU semester pathway','MDCAT Biology inheritance drill','ECAT calculus topic map','NUST NET Physics practice','CSS Current Affairs topic planner','HEC scholarship','IBCC equivalence','Punjab digital textbooks','NAVTTC short courses','HEC Digital Library','NUST NET','NUMS MDCAT','DigiSkills courses','NCEAC accreditation','PMDC recognized colleges','DAE result','PPSC result','10th class math Gujranwala board','9th physics past papers','Grade 8 PECTA model paper'];
+ const q=norm(input.value);let terms=['CS101 past papers','MTH603 quizzes','VU CS101 handouts','AIOU semester pathway','MDCAT Biology inheritance drill','ECAT calculus topic map','NUST NET Physics practice','HEC HAT weightages','HAT analytical reasoning practice','CSS Current Affairs topic planner','HEC scholarship','IBCC equivalence','Punjab digital textbooks','NAVTTC short courses','HEC Digital Library','NUST NET','NUMS MDCAT','DigiSkills courses','NCEAC accreditation','PMDC recognized colleges','DAE result','PPSC result','10th class math Gujranwala board','9th physics past papers','Grade 8 PECTA model paper'];
  if(q){
   const engine=window.EDUNIZAM_LEARNING_SEARCH;
   const matches=engine?.search?.(allResources(),input.value)||allResources().filter(r=>norm(JSON.stringify(r)).includes(q));
