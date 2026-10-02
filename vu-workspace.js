@@ -176,5 +176,6 @@
   renderRecalls();
   renderPersonal();
 
+  window.renderVUCourseInsight=renderCourseInsight;
   window.renderVUWorkspace=()=>setWorkspace(workspace);
 })();
