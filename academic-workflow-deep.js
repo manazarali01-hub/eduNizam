@@ -18,6 +18,7 @@
   const normalizeClass=v=>String(v||'').trim().replace(/\s*[·|-]\s*[^·|-]+$/,'').trim();
   const classKey=(c,s)=>normalizeClass(c).toLowerCase()+'|'+String(s||'').trim().toLowerCase();
   const csvCell=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  function setBoxHtml(el,html){if(!el)return false;if(el.__eduDeepHtml===html)return false;el.__eduDeepHtml=html;el.innerHTML=html;return true}
 
   function downloadText(name,text,type='text/plain;charset=utf-8'){
     const blob=new Blob([text],{type}),a=document.createElement('a');
@@ -54,11 +55,12 @@
     const d=paperAuditData();if(!d)return;
     const keyCoverage=d.questions.length?Math.round((d.answers/d.questions.length)*100):0;
     const risk=d.duplicates||d.empty?'Needs review':'Ready for teacher verification';
-    box.innerHTML='<div class="section-head"><div><div class="academic-kicker">Paper Quality Control</div><h3>Blueprint & QA</h3><p class="muted">Print se pehle duplicate, empty question, section marks aur answer-key coverage check karein.</p></div><span class="academic-pill">'+esc(risk)+'</span></div>'+
+    const html='<div class="section-head"><div><div class="academic-kicker">Paper Quality Control</div><h3>Blueprint & QA</h3><p class="muted">Print se pehle duplicate, empty question, section marks aur answer-key coverage check karein.</p></div><span class="academic-pill">'+esc(risk)+'</span></div>'+
       '<div class="pp-stats"><article><span>Questions</span><strong>'+d.questions.length+'</strong></article><article><span>Section Marks</span><strong>'+d.marks+'</strong></article><article><span>Answer Key</span><strong>'+keyCoverage+'%</strong></article><article><span>Duplicates</span><strong>'+d.duplicates+'</strong></article></div>'+
       (d.empty?'<div class="coverage-note"><strong>Attention:</strong> '+d.empty+' empty question(s) detected.</div>':'')+
       (d.duplicates?'<div class="coverage-note"><strong>Attention:</strong> '+d.duplicates+' duplicate/repeated question(s) detected. Edit the repeated wording before printing.</div>':'')+
       '<div class="paper-actions"><button id="pbDeepRefresh" class="secondary">Recheck Paper</button><button id="pbDeepPrintKey" class="secondary">Print Answer Key Only</button><button id="pbDeepDownload" class="secondary">Download Paper Text</button></div>';
+    if(!setBoxHtml(box,html))return;
     $('#pbDeepRefresh').onclick=renderPaperAudit;
     $('#pbDeepPrintKey').onclick=()=>{
       const key=preview.querySelector('.pb-answer-key');
@@ -141,9 +143,10 @@
       history?.before(box);
     }
     if(!box)return;
-    box.innerHTML='<div class="section-head"><div><div class="academic-kicker">Diary Intelligence</div><h3>Coverage & Family Engagement</h3><p class="muted">'+esc(start)+' → '+esc(end)+' · current filters applied.</p></div><span class="academic-pill">'+esc(role())+'</span></div>'+
+    const html='<div class="section-head"><div><div class="academic-kicker">Diary Intelligence</div><h3>Coverage & Family Engagement</h3><p class="muted">'+esc(start)+' → '+esc(end)+' · current filters applied.</p></div><span class="academic-pill">'+esc(role())+'</span></div>'+
       '<div class="pp-stats"><article><span>Entries</span><strong>'+rows.length+'</strong></article><article><span>Classes</span><strong>'+classes.size+'</strong></article><article><span>Subjects</span><strong>'+subjects.size+'</strong></article><article><span>Homework</span><strong>'+homework+'</strong></article></div>'+extra+
       '<div class="paper-actions"><button id="diaryDeepRefresh" class="secondary">Refresh Metrics</button><button id="diaryDeepPrint" class="secondary">Print Filtered Diary</button><button id="diaryDeepCsv" class="secondary">Export CSV</button>'+action+'</div>';
+    if(!setBoxHtml(box,html))return;
     $('#diaryDeepRefresh').onclick=loadDiaryDeep;
     $('#diaryDeepPrint').onclick=()=>{
       const list=$('#diaryList');if(!list)return;
@@ -214,10 +217,11 @@
       const ap=a.h.dueDate&&a.h.dueDate<today()?0:a.missing?1:2,bp=b.h.dueDate&&b.h.dueDate<today()?0:b.missing?1:2;
       return ap-bp||String(a.h.dueDate||'9999').localeCompare(String(b.h.dueDate||'9999'));
     }).slice(0,8);
-    box.innerHTML='<div class="section-head"><div><div class="academic-kicker">Assignment Operations</div><h3>'+(family?'My Learning Status':'Submission & Missing-Work Dashboard')+'</h3><p class="muted">Homework, due dates, submission coverage aur grading queue ek jagah.</p></div><span class="academic-pill">'+(window.EDUNIZAM_SCHOOL_WORK.cloudReady?.()?'Cloud Sync':'Local Mode')+'</span></div>'+
+    const html='<div class="section-head"><div><div class="academic-kicker">Assignment Operations</div><h3>'+(family?'My Learning Status':'Submission & Missing-Work Dashboard')+'</h3><p class="muted">Homework, due dates, submission coverage aur grading queue ek jagah.</p></div><span class="academic-pill">'+(window.EDUNIZAM_SCHOOL_WORK.cloudReady?.()?'Cloud Sync':'Local Mode')+'</span></div>'+
       '<div class="pp-stats"><article><span>Assignments</span><strong>'+m.homework.length+'</strong></article><article><span>Due ≤ 3 Days</span><strong>'+m.dueSoon+'</strong></article><article><span>'+(family?'Missing Work':'Missing Submissions')+'</span><strong>'+m.missingTotal+'</strong></article><article><span>'+(family?'Graded':'To Grade')+'</span><strong>'+(family?m.graded:m.grading)+'</strong></article></div>'+
       '<div class="paper-actions"><button id="swDeepHomework" class="secondary">Open Homework</button><button id="swDeepSubs" class="secondary">Open Submissions</button><button id="swDeepCsv" class="secondary">Export Submission CSV</button><button id="swDeepPrint" class="secondary">Print Overview</button></div>'+
       '<div class="list" style="margin-top:12px">'+(attention.length?attention.map(x=>'<div class="row"><strong>'+esc(x.h.title||'Assignment')+'</strong><span>'+esc(x.h.className||'-')+(x.h.sectionName?' · '+esc(x.h.sectionName):'')+'</span><span>'+esc(x.h.subject||'-')+'</span><span>Due '+esc(x.h.dueDate||'Not set')+'</span><span>'+x.submitted+'/'+x.expected+' submitted · '+x.missing+' missing</span></div>').join(''):'<div class="empty-state">No assignment records yet.</div>')+'</div>';
+    if(!setBoxHtml(box,html))return;
     const switchTab=name=>{
       const b=root.querySelector('[data-sw-tab="'+name+'"]');if(b){b.click();setTimeout(()=>$('[id="swEditor"]')?.scrollIntoView({behavior:'smooth',block:'start'}),60)}
     };
