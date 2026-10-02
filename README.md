@@ -197,7 +197,7 @@ School Work now supports Homework, Assignment, Project, Reading and Quiz Prep it
 
 Students can submit text or a secure external work link from their own linked class/section. Teachers grade submissions for assignments they created, add feedback, or return work for revision. Parents can read the linked child's submission/grade status. Cloud mode stores submissions in `homework_submissions` with RLS plus validated RPCs; Local Mode keeps a same-device fallback.
 
-For an existing Supabase project, apply `supabase-school-work-deep-assignment-migration.sql`. The production project already has this schema applied.
+The production Supabase project has the `school_work_deep_assignments` and `school_work_assignment_index_hardening` migrations applied. Keep equivalent schema changes in the normal Supabase migration flow for any future project.
 
 ## Digital notice board
 EduNizam upgrades the existing School Work announcements into a dedicated Digital Notice Board without duplicating announcement data.
