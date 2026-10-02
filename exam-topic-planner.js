@@ -30,8 +30,8 @@ function injectStyles(){
  `;document.head.appendChild(s)
 }
 function practiceAction(pathway,subject,topic){
- const bank=window.EDUNIZAM_EXAM_TOPIC_BANK||{questions:[]};
- const hasBuiltIn=(bank.questions||[]).some(q=>q.pathwayId===pathway&&q.subject===subject&&q.topic===topic);
+ const prep=window.EDUNIZAM_EXAM_PREP||{questions:[]};
+ const hasBuiltIn=(prep.questions||[]).some(q=>q.examId===pathway&&q.subject===subject&&q.topic===topic);
  if(hasBuiltIn&&window.EDUNIZAM_EXAM_PATHWAY_ENGINE?.startDrill){
    window.EDUNIZAM_EXAM_PATHWAY_ENGINE.startDrill(pathway,subject,topic);return;
  }
