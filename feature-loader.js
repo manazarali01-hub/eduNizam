@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261002-deep514';
+  const VERSION='20261002-deep515';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js','academic-operations-deep.js'],
     pastpapers:['past-papers-premium.js'],
@@ -41,7 +41,7 @@
     transportcenter:['transport-center.js'],
     classcenter:['class-section-center.js'],
     fees:['fee-center.js','academic-operations-deep.js'],
-    results:['result-center-deep.js'],
+    results:['result-center-deep.js','promotion-center.js'],
     communication:['communication-center.js'],
     assistant:['https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js','math-editor.js']
   };
