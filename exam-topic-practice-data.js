@@ -190,6 +190,7 @@ questions:[
    ecat:'https://ecat.uet.edu.pk/General/Ecat',
    'nust-net':'https://nust.edu.pk/admissions/undergraduates/subjects-included-in-net-with-weightings',
    usat:'https://www.hec.gov.pk/english/services/students/etc/Pages/Content-WeightagesSyllabus.aspx',
+   hat:'https://www.hec.gov.pk/english/services/students/etc/Pages/Content-WeightagesSyllabus.aspx',
    lat:'https://www.hec.gov.pk/english/services/students/etc/Pages/Content-WeightagesSyllabus.aspx',
    css:'https://www.fpsc.gov.pk/Syllabuses?section=CSS+Syllabi',
    'fpsc-gr':'https://fpsc.gov.pk/Syllabuses?section=GR+Syllabus',
