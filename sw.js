@@ -1,4 +1,4 @@
-const CACHE='edunizam-v190-visitor202'
+const CACHE='edunizam-v191-edu230'
 const CORE=[
   './',
   './index.html',
@@ -34,6 +34,9 @@ const CORE=[
   './study-data.js',
   './school-assessment-data.js',
   './university-data.js',
+  './education-directory-expansion.js',
+  './competitive-exams-data.js',
+  './competitive-exams.js',
   './vu-course-catalog.js',
   './practice-data.js',
   './learning-premium-data.js',
@@ -47,6 +50,10 @@ const CORE=[
   './about.html',
   './features.html',
   './learning-resources-pakistan.html',
+  './aiou-student-resources-pakistan.html',
+  './virtual-university-resources-pakistan.html',
+  './university-results-lms-past-papers-pakistan.html',
+  './css-ppsc-fpsc-pakistan.html',
   './online-school-admissions.html',
   './school-management-system-pakistan.html',
   './edunizam.html',
