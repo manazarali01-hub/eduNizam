@@ -92,7 +92,7 @@ function injectStyles(){
 function injectDirectory(){
  const home=$('home');if(!home)return;
  const wrap=document.createElement('div');wrap.className='hub-directory';wrap.innerHTML='<div class="section-head"><div><h2>Learning Hub</h2><p>Choose a resource center. All items below are public and need no school approval.</p></div></div><div class="grid">'+[
- ['Past Papers','past','past'],['Virtual University','vu','vu-all'],['Pakistani Universities','universities','universities'],['Admissions & Opportunities','ecosystem','ecosystem'],['Scholarships','ecosystem','scholarships'],['Entry Tests','ecosystem','entry-tests'],['IBCC / Attestation','ecosystem','ibcc'],['Textbooks & Curriculum','ecosystem','textbooks'],['Skills / TVET','ecosystem','skills'],['Research & Digital Library','ecosystem','research'],['Matric Boards','past','matric'],['Intermediate Boards','past','intermediate'],['PECTA / School Education','grade','grade'],['Notes','study','notes'],['Handouts','vu','handouts'],['Highlighted Handouts','vu','highlighted'],['MCQs','practice','practice'],['Practice Quizzes','practice','practice'],['VU Quizzes','vu','vu-quizzes'],['Guess Papers','study','guess'],['Model Papers','grade','models'],['Pairing Schemes','study','pairing'],['Date Sheets','home','datesheet'],['Results / Result Links','home','results'],['Study Library','study','study'],['Educational Resources','study','study'],['Search All Resources','home','search'],['My Saved Resources','home','saved']
+ ['Past Papers','past','past'],['Virtual University','vu','vu-all'],['Pakistani Universities','universities','universities'],['Admissions & Opportunities','ecosystem','ecosystem'],['Scholarships','ecosystem','scholarships'],['Entry Tests','ecosystem','entry-tests'],['IBCC / Attestation','ecosystem','ibcc'],['Textbooks & Curriculum','ecosystem','textbooks'],['Skills / TVET','ecosystem','skills'],['Technical Boards / DAE','ecosystem','technical'],['Digital Skills','ecosystem','digital-skills'],['Accreditation / Recognition','ecosystem','accreditation'],['Research & Digital Library','ecosystem','research'],['Matric Boards','past','matric'],['Intermediate Boards','past','intermediate'],['PECTA / School Education','grade','grade'],['Notes','study','notes'],['Handouts','vu','handouts'],['Highlighted Handouts','vu','highlighted'],['MCQs','practice','practice'],['Practice Quizzes','practice','practice'],['VU Quizzes','vu','vu-quizzes'],['Guess Papers','study','guess'],['Model Papers','grade','models'],['Pairing Schemes','study','pairing'],['Date Sheets','home','datesheet'],['Results / Result Links','home','results'],['Study Library','study','study'],['Educational Resources','study','study'],['Search All Resources','home','search'],['My Saved Resources','home','saved']
  ].map(([t,id,filter])=>'<a href="#'+id+'" data-tab="'+id+'" data-hub-filter="'+filter+'" class="card hub-link"><strong>'+t+'</strong><span>Open →</span></a>').join('')+'</div>';
  home.insertBefore(wrap,home.children[1]||null);
 }
@@ -122,7 +122,7 @@ function injectSearchTools(){
 }
 function renderSuggestions(){
  const box=$('searchSuggestions'),input=$('globalSearch');if(!box||!input)return;
- const q=norm(input.value);let terms=['CS101 past papers','MTH603 quizzes','VU CS101 handouts','AIOU result','MDCAT admission','ECAT UET','HEC scholarship','IBCC equivalence','Punjab digital textbooks','NAVTTC short courses','HEC Digital Library','PPSC result','10th class math Gujranwala board','9th physics past papers','Grade 8 PECTA model paper'];
+ const q=norm(input.value);let terms=['CS101 past papers','MTH603 quizzes','VU CS101 handouts','AIOU result','MDCAT admission','ECAT UET','HEC scholarship','IBCC equivalence','Punjab digital textbooks','NAVTTC short courses','HEC Digital Library','NUST NET','NUMS MDCAT','DigiSkills courses','NCEAC accreditation','PMDC recognized colleges','DAE result','PPSC result','10th class math Gujranwala board','9th physics past papers','Grade 8 PECTA model paper'];
  if(q){
   const engine=window.EDUNIZAM_LEARNING_SEARCH;
   const matches=engine?.search?.(allResources(),input.value)||allResources().filter(r=>norm(JSON.stringify(r)).includes(q));
@@ -464,6 +464,9 @@ function applyHubShortcut(kind){
  if(kind==='ibcc'){selectAndFire('ecosystemGuestCategory','Equivalence & Attestation');return}
  if(kind==='textbooks'){selectAndFire('ecosystemGuestCategory','Textbooks & Curriculum');return}
  if(kind==='skills'){selectAndFire('ecosystemGuestCategory','Skills & TVET');return}
+ if(kind==='technical'){selectAndFire('ecosystemGuestCategory','Technical Boards & Diplomas');return}
+ if(kind==='digital-skills'){selectAndFire('ecosystemGuestCategory','Digital Skills & Careers');return}
+ if(kind==='accreditation'){selectAndFire('ecosystemGuestCategory','Accreditation & Recognition');return}
  if(kind==='research'){selectAndFire('ecosystemGuestCategory','Research & Digital Library');return}
  if(kind==='datesheet'){$('globalSearch').value='date sheet';showGlobalResults('date sheet');document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');return}
  if(kind==='results'){$('globalSearch').value='results';showGlobalResults('results');document.querySelector('.premium-tools')?.classList.add('search-tools-collapsed');return}
