@@ -1,4 +1,4 @@
-const CACHE='edunizam-v203-deep460'
+const CACHE='edunizam-v204-deep461'
 const CORE=[
   './',
   './index.html',
@@ -30,7 +30,8 @@ const CORE=[
   './icon-512.png',
   './public.css',
   './learn.html',
-  './past-papers-data.js',\n  './board-paper-deep-data.js',
+  './past-papers-data.js',
+  './board-paper-deep-data.js',
   './study-data.js',
   './school-assessment-data.js',
   './university-data.js',
@@ -49,7 +50,12 @@ const CORE=[
   './exam-topic-blueprints-data.js',
   './exam-topic-planner.js',
   './vu-course-catalog.js',
+  './vu-catalog-expansion.js',
+  './vu-project-courses-deep.js',
+  './vu-course-pathways.js',
+  './vu-material-library.js',
   './practice-data.js',
+  './practice-curriculum-expansion.js',
   './learning-premium-data.js',
   './learning-complete-data.js',
   './learning-required-data.js',
