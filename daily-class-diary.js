@@ -115,6 +115,19 @@ async function deleteRow(id){
   const {error}=await q;if(error)return alert(error.message);
   window.EDUNIZAM_PREMIUM?.toast?.('Diary entry deleted.','success');load();
 }
+async function acknowledgeDiary(id,updatedAt){
+  if(!ready()||!['student','parent'].includes(role()))return;
+  const uid=cloud().state.user.id;
+  const payload={institution_id:cfg().institutionId,diary_id:id,viewer_user_id:uid,viewer_role:role(),diary_updated_at:updatedAt,viewed_at:new Date().toISOString()};
+  const {error}=await cloud().state.client.from('daily_diary_acknowledgements').upsert(payload,{onConflict:'diary_id,viewer_user_id'});
+  if(error)return alert(error.message);
+  window.EDUNIZAM_PREMIUM?.toast?.('Diary marked as seen.','success');
+  await load();
+}
+function ackIsCurrent(a,row){
+  if(!a?.diary_updated_at||!row?.updated_at)return false;
+  return Math.abs(new Date(a.diary_updated_at).getTime()-new Date(row.updated_at).getTime())<1000;
+}
 function filterRows(rows){
   const cls=$('#diaryViewClass')?.value||'',subject=String($('#diaryViewSubject')?.value||'').trim().toLowerCase(),search=String($('#diarySearch')?.value||'').trim().toLowerCase();
   return rows.filter(x=>{
@@ -127,8 +140,13 @@ function filterRows(rows){
 }
 function card(x){
   const mine=String(x.teacher_user_id||'')===String(cloud()?.state?.user?.id||'');
+  const acks=Array.isArray(x._acks)?x._acks:[],currentAcks=acks.filter(a=>ackIsCurrent(a,x));
+  const studentSeen=currentAcks.filter(a=>a.viewer_role==='student').length,parentSeen=currentAcks.filter(a=>a.viewer_role==='parent').length;
+  const uid=String(cloud()?.state?.user?.id||''),myAck=currentAcks.find(a=>String(a.viewer_user_id||'')===uid);
+  const staffSeen=['teacher','head'].includes(role())?'<div class="coverage-note"><strong>Current version seen:</strong> '+studentSeen+' student account(s) · '+parentSeen+' parent account(s)'+(acks.length>currentAcks.length?'<br><span class="muted">'+(acks.length-currentAcks.length)+' acknowledgement(s) belong to an older edited version.</span>':'')+'</div>':'';
+  const familySeen=['student','parent'].includes(role())?(myAck?'<div class="coverage-note"><strong>✓ Seen</strong> · '+new Date(myAck.viewed_at).toLocaleString()+'</div>':'<div class="paper-actions"><button data-diary-ack="'+esc(x.id)+'" data-diary-version="'+esc(x.updated_at||x.created_at||'')+'">Mark as Seen</button></div>'):'';
   const actions=(role()==='teacher'&&mine)?'<div class="paper-actions"><button class="secondary" data-diary-edit="'+esc(x.id)+'">Edit</button><button class="secondary" data-diary-delete="'+esc(x.id)+'">Delete</button></div>':(role()==='head'?'<div class="paper-actions"><button class="secondary" data-diary-delete="'+esc(x.id)+'">Delete</button></div>':'');
-  return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(normalizeClass(x.class_name))+(x.section_name?' · '+esc(x.section_name):'')+'</span><span class="mini-badge">'+esc(x.subject)+'</span></div><span class="mini-badge">'+esc(x.diary_date||'')+'</span></div><h3>'+esc(x.topic)+'</h3>'+(x.homework?'<p><strong>Homework:</strong> '+esc(x.homework)+'</p>':'')+(x.instructions?'<p class="muted">'+esc(x.instructions)+'</p>':'')+actions+'</article>';
+  return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(normalizeClass(x.class_name))+(x.section_name?' · '+esc(x.section_name):'')+'</span><span class="mini-badge">'+esc(x.subject)+'</span></div><span class="mini-badge">'+esc(x.diary_date||'')+'</span></div><h3>'+esc(x.topic)+'</h3>'+(x.homework?'<p><strong>Homework:</strong> '+esc(x.homework)+'</p>':'')+(x.instructions?'<p class="muted">'+esc(x.instructions)+'</p>':'')+staffSeen+familySeen+actions+'</article>';
 }
 async function load(){
   if(!ready())return;
@@ -142,11 +160,21 @@ async function load(){
   q=q.order('diary_date',{ascending:false}).order('created_at',{ascending:false}).limit(300);
   const {data,error}=await q,el=$('#diaryList');if(!el)return;
   if(error){el.innerHTML='<div class="empty-state">'+esc(error.message)+'</div>';return}
-  const rows=filterRows(data||[]);
+  let acknowledgements=[];
+  const ids=(data||[]).map(x=>x.id).filter(Boolean);
+  if(ids.length){
+    const {data:ackData,error:ackError}=await cloud().state.client.from('daily_diary_acknowledgements').select('*').in('diary_id',ids);
+    if(!ackError)acknowledgements=ackData||[];
+  }
+  const byDiary=new Map();
+  acknowledgements.forEach(a=>{const k=String(a.diary_id);if(!byDiary.has(k))byDiary.set(k,[]);byDiary.get(k).push(a)});
+  const enriched=(data||[]).map(x=>({...x,_acks:byDiary.get(String(x.id))||[]}));
+  const rows=filterRows(enriched);
   $('#diaryCount')&&( $('#diaryCount').textContent=rows.length+' entr'+(rows.length===1?'y':'ies') );
   el.innerHTML=rows.length?rows.map(card).join(''):'<div class="empty-state">Is filter ke liye koi relevant diary entry nahi hai.</div>';
   all('[data-diary-edit]').forEach(b=>b.onclick=()=>editRow(b.dataset.diaryEdit));
   all('[data-diary-delete]').forEach(b=>b.onclick=()=>deleteRow(b.dataset.diaryDelete));
+  all('[data-diary-ack]').forEach(b=>b.onclick=()=>acknowledgeDiary(b.dataset.diaryAck,b.dataset.diaryVersion));
 }
 async function render(){
   const root=$('#dailyDiaryApp');if(!root)return;
@@ -157,7 +185,7 @@ async function render(){
     form='<article class="card"><div class="section-head"><div><h3>✍ Daily Class Diary</h3><p class="muted">Assigned class ke liye topic, homework aur instructions. Entries can be edited later.</p></div><span class="academic-pill">Teacher</span></div>'+
       '<div class="form-grid"><input id="diaryDate" type="date" value="'+dateStr()+'"><select id="diaryClass"><option value="">Select assigned class</option>'+teacherClasses.map(x=>'<option value="'+esc(x.class_name)+'" data-section="'+esc(x.section_name||'')+'">'+esc(x.class_name)+(x.section_name?' · '+esc(x.section_name):'')+'</option>').join('')+'</select><input id="diarySection" placeholder="Section" readonly><input id="diarySubject" placeholder="Subject"><input id="diaryTopic" placeholder="Today topic / class work"><textarea id="diaryHomework" placeholder="Homework"></textarea><textarea id="diaryInstructions" placeholder="Instructions / reminder"></textarea><button id="saveDiary">Save Today Diary</button><button id="reuseDiary" type="button" class="secondary">Reuse Previous Diary</button><button id="cancelDiaryEdit" type="button" class="secondary hidden">Cancel Edit</button></div></article>';
   }
-  const scopeNote=['student','parent'].includes(role())?'Only diary entries for your linked student class/section are shown.':'Institution diary with filters.';
+  const scopeNote=['student','parent'].includes(role())?'Only diary entries for your linked student class/section are shown. Mark each current diary version as Seen after reading.':'Institution diary with filters, plus student/parent Seen acknowledgement counts.';
   root.innerHTML=form+
     '<div class="section-head" style="margin-top:16px"><div><h3>Daily Diary History</h3><p class="muted">'+esc(scopeNote)+'</p></div><span class="badge" id="diaryCount">0 entries</span></div>'+
     '<div class="form-grid"><input id="diaryFilterDate" type="date" value="'+dateStr()+'"><select id="diaryRange"><option value="day">Selected Day</option><option value="week">Last 7 Days</option><option value="month">Last 30 Days</option></select><input id="diaryViewClass" placeholder="Filter class (optional)"><input id="diaryViewSubject" placeholder="Filter subject"><input id="diarySearch" type="search" placeholder="Search topic, homework or instruction"></div><div id="diaryList" class="paper-grid" style="margin-top:14px"></div>';
