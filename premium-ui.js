@@ -219,9 +219,63 @@
     all('[data-premium-view]').forEach(b=>b.classList.toggle('active',b.dataset.premiumView===active));
   }
 
+  function decorateDashboard(){
+    const dash=$('#dashboard');if(!dash)return;
+    dash.dataset.premiumRole=role();
+
+    const statMap=[
+      ['statStudents','people','Enrolled'],
+      ['statPresent','check','Today'],
+      ['statFees','money','Collected'],
+      ['statPending','money','Pending']
+    ];
+    statMap.forEach(([id,type,meta])=>{
+      const value=$('#'+id),card=value?.closest('.stat');if(!card)return;
+      card.dataset.statType=id;
+      if(!card.querySelector('.premium-stat-icon')){
+        card.insertAdjacentHTML('afterbegin','<span class="premium-stat-icon">'+iconSvg(type)+'</span>');
+      }
+      if(!card.querySelector('.premium-stat-meta')){
+        card.insertAdjacentHTML('beforeend','<small class="premium-stat-meta">'+esc(meta)+'</small>');
+      }
+    });
+
+    const quick=dash.querySelector('.grid-2 > .card:first-child');
+    const activity=dash.querySelector('.grid-2 > .card:nth-child(2)');
+    quick?.classList.add('dashboard-quick-card');
+    activity?.classList.add('dashboard-activity-card');
+
+    const activityList=$('#activityList');
+    if(activityList && activityList.textContent.trim()==='No activity yet.' && !activityList.querySelector('.premium-empty-activity')){
+      activityList.innerHTML='<div class="premium-empty-activity"><span>'+iconSvg('grid')+'</span><div><strong>Your workspace is ready.</strong><small>New attendance, fee, result and school actions will appear here.</small></div></div>';
+    }
+
+    all('#adminDailyDesk [data-admin-jump]').forEach(button=>{
+      if(button.dataset.premiumAction==='1')return;
+      const view=button.dataset.adminJump||'';
+      const icon=button.querySelector(':scope > span');
+      if(icon)icon.innerHTML=iconSvg(iconType(view));
+      button.dataset.premiumAction='1';
+    });
+
+    all('.role-quick-actions [data-role-quick]').forEach(button=>{
+      if(button.dataset.premiumAction==='1')return;
+      const view=button.dataset.roleQuick||'';
+      button.insertAdjacentHTML('afterbegin','<span class="role-quick-icon">'+iconSvg(iconType(view))+'</span>');
+      button.dataset.premiumAction='1';
+    });
+
+    all('#familyDashboard .paper-grid > .card').forEach(card=>card.classList.add('premium-family-card'));
+
+    const heroLabel=dash.querySelector('.campus-label');
+    const labels={head:'Admin Control Center',admin:'Admin Control Center',teacher:'Teacher Workspace',parent:'Parent Connection',student:'Student Workspace'};
+    if(heroLabel && labels[role()])heroLabel.textContent=labels[role()];
+  }
+
   function decorateViews(){
     all('.view').forEach(v=>v.classList.add('premium-section'));
     all('.card').forEach(c=>{if(!c.dataset.premiumCard)c.dataset.premiumCard='1'});
+    decorateDashboard();
   }
 
   function observe(){
