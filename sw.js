@@ -1,4 +1,4 @@
-const CACHE='edunizam-v214-visual-bridge'
+const CACHE='edunizam-v215-deep-visual'
 const CORE=[
   './',
   './index.html',
