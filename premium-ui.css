@@ -1345,3 +1345,177 @@ input:focus,select:focus,textarea:focus{
   .admin-daily-actions button{min-height:82px!important}
   .role-quick-actions{grid-template-columns:1fr!important}
 }
+
+
+/* ===== 2026-10-03 · Semantic sky-blue system ===== */
+:root{
+  --premium-sky:#69C9FF;
+  --premium-sky-2:#3AAFEA;
+  --premium-sky-deep:#287FAF;
+  --premium-sky-soft:#EAF7FF;
+  --premium-sky-line:#CDEAF8;
+}
+body{
+  background:
+    radial-gradient(circle at 96% 0,rgba(105,201,255,.14),transparent 26rem),
+    radial-gradient(circle at 72% 10%,rgba(201,154,66,.10),transparent 23rem),
+    radial-gradient(circle at 18% 22%,rgba(10,116,95,.035),transparent 28rem),
+    linear-gradient(180deg,#FBF9F3 0%,#F2F5F2 100%)!important;
+}
+.main{
+  background:
+    radial-gradient(circle at 94% 2%,rgba(105,201,255,.085),transparent 22rem),
+    radial-gradient(circle at 14% 18%,rgba(10,116,95,.025),transparent 24rem),
+    linear-gradient(180deg,#FBFAF6 0%,#F4F1E9 100%)!important;
+}
+.topbar{
+  border-color:rgba(204,223,228,.94)!important;
+}
+.premium-context-chip.date{
+  background:var(--premium-sky-soft)!important;
+  color:var(--premium-sky-deep)!important;
+  border-color:var(--premium-sky-line)!important;
+}
+.premium-search-trigger{
+  background:linear-gradient(135deg,#fffdf8,#f0f9fe)!important;
+}
+.premium-search-trigger span:first-child{color:var(--premium-sky-deep)}
+.academic-pill{
+  background:linear-gradient(135deg,#F6ECD7,#EBF8FF)!important;
+  border-color:#D9D6BF!important;
+  color:#71613F!important;
+}
+.campus-hero{
+  background-image:
+    linear-gradient(90deg,rgba(32,34,28,.97) 0%,rgba(19,61,51,.93) 47%,rgba(18,107,123,.65) 70%,rgba(50,155,202,.18) 100%),
+    url("assets/edunizam-girl-hero.webp")!important;
+}
+.campus-hero:after{
+  background:
+    radial-gradient(circle at 78% 10%,rgba(105,201,255,.23),transparent 17rem),
+    radial-gradient(circle at 22% 100%,rgba(235,202,126,.09),transparent 18rem),
+    linear-gradient(180deg,rgba(255,255,255,.01),rgba(22,24,19,.11))!important;
+}
+.campus-label{
+  background:linear-gradient(90deg,rgba(231,197,119,.15),rgba(105,201,255,.13))!important;
+  border-color:rgba(179,213,221,.30)!important;
+}
+.stat[data-stat-type="statPresent"] .premium-stat-icon{
+  color:var(--premium-sky-deep)!important;
+  background:var(--premium-sky-soft)!important;
+  border-color:var(--premium-sky-line)!important;
+}
+.stat[data-stat-type="statPresent"]:before{
+  background:linear-gradient(180deg,#65C8F4,#318FBD)!important;
+}
+.nav-item[data-view="study"] .premium-nav-icon,
+.nav-item[data-view="pastpapers"] .premium-nav-icon,
+.nav-item[data-view="practice"] .premium-nav-icon,
+.nav-item[data-view="schoolassessments"] .premium-nav-icon,
+.nav-item[data-view="universities"] .premium-nav-icon,
+.nav-item[data-view="vu"] .premium-nav-icon,
+.nav-item[data-view="competitive"] .premium-nav-icon,
+.nav-item[data-view="ecosystem"] .premium-nav-icon,
+.nav-item[data-view="pathways"] .premium-nav-icon{
+  color:#BFEAFF!important;
+  background:rgba(72,174,220,.10)!important;
+  border-color:rgba(105,201,255,.13)!important;
+}
+.nav-item[data-view="study"].active,
+.nav-item[data-view="pastpapers"].active,
+.nav-item[data-view="practice"].active,
+.nav-item[data-view="schoolassessments"].active,
+.nav-item[data-view="universities"].active,
+.nav-item[data-view="vu"].active,
+.nav-item[data-view="competitive"].active,
+.nav-item[data-view="ecosystem"].active,
+.nav-item[data-view="pathways"].active{
+  background:linear-gradient(120deg,#3AAFEA,#247BA6)!important;
+  color:#fff!important;
+}
+.nav-item[data-view="study"].active:before,
+.nav-item[data-view="pastpapers"].active:before,
+.nav-item[data-view="practice"].active:before,
+.nav-item[data-view="schoolassessments"].active:before,
+.nav-item[data-view="universities"].active:before,
+.nav-item[data-view="vu"].active:before,
+.nav-item[data-view="competitive"].active:before,
+.nav-item[data-view="ecosystem"].active:before,
+.nav-item[data-view="pathways"].active:before{
+  background:#DDF4FF!important;
+}
+.nav-item[data-view="fees"] .premium-nav-icon,
+.nav-item[data-view="financecenter"] .premium-nav-icon{
+  color:#F1D38E!important;
+  background:rgba(205,160,71,.10)!important;
+  border-color:rgba(231,196,119,.12)!important;
+}
+.nav-item[data-view="attendance"] .premium-nav-icon,
+.nav-item[data-view="staffcenter"] .premium-nav-icon{
+  color:#B8E5D2!important;
+  background:rgba(42,150,115,.10)!important;
+}
+.role-quick-actions [data-role-quick="study"] .role-quick-icon,
+.role-quick-actions [data-role-quick="practice"] .role-quick-icon,
+.role-quick-actions [data-role-quick="studentprofile"] .role-quick-icon{
+  color:var(--premium-sky-deep)!important;
+  background:var(--premium-sky-soft)!important;
+  border-color:var(--premium-sky-line)!important;
+}
+.role-quick-actions [data-role-quick="fees"] .role-quick-icon,
+.role-quick-actions [data-role-quick="results"] .role-quick-icon{
+  color:#8B6422!important;
+  background:#F8EED8!important;
+  border-color:#E7D4AA!important;
+}
+#dashboard[data-premium-role="student"] .campus-label,
+#dashboard[data-premium-role="parent"] .campus-label{
+  color:#DDF5FF!important;
+}
+#dashboard[data-premium-role="student"] .campus-hero{
+  background-image:
+    linear-gradient(90deg,rgba(27,33,31,.96),rgba(13,78,82,.88) 52%,rgba(37,139,183,.58) 76%,rgba(80,185,231,.16)),
+    url("assets/edunizam-girl-hero.webp")!important;
+}
+#dashboard[data-premium-role="parent"] .campus-hero{
+  background-image:
+    linear-gradient(90deg,rgba(36,34,28,.96),rgba(65,65,48,.88) 50%,rgba(31,126,143,.48) 82%,rgba(74,178,218,.14)),
+    url("assets/edunizam-girl-hero.webp")!important;
+}
+#dashboard[data-premium-role="teacher"] .campus-hero{
+  background-image:
+    linear-gradient(90deg,rgba(28,33,28,.96),rgba(7,83,71,.91) 58%,rgba(44,129,127,.44) 82%,rgba(105,201,255,.10)),
+    url("assets/edunizam-girl-hero.webp")!important;
+}
+.family-dashboard{
+  background:
+    radial-gradient(circle at 100% 0,rgba(105,201,255,.09),transparent 17rem),
+    linear-gradient(180deg,#FFFDF8,#F6FBFD)!important;
+}
+.premium-family-card:nth-child(even){
+  border-top-color:var(--premium-sky-2)!important;
+}
+.premium-family-card:nth-child(even) .mini-badge{
+  background:var(--premium-sky-soft)!important;
+  color:var(--premium-sky-deep)!important;
+  border-color:var(--premium-sky-line)!important;
+}
+.feature-loading-notice{
+  background:linear-gradient(90deg,#FBF7EE,#EEF9FE)!important;
+}
+.empty-state{
+  background:linear-gradient(135deg,#FFFDF9,#F1FAFE)!important;
+}
+.premium-mobile-dock button[data-premium-view="study"].active,
+.premium-mobile-dock button[data-premium-view="studentprofile"].active{
+  background:var(--premium-sky-soft)!important;
+  color:var(--premium-sky-deep)!important;
+  border-color:var(--premium-sky-line)!important;
+}
+@media(max-width:760px){
+  .campus-hero{
+    background-image:
+      linear-gradient(90deg,rgba(31,33,28,.96),rgba(16,74,65,.84) 58%,rgba(35,133,166,.42)),
+      url("assets/edunizam-girl-hero.webp")!important;
+  }
+}
