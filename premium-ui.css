@@ -1519,3 +1519,117 @@ body{
       url("assets/edunizam-girl-hero.webp")!important;
   }
 }
+
+
+/* ===== Logged-in Learning Hub color architecture ===== */
+#pastpapers .pp-hero,
+#schoolassessments .pp-hero{
+  background:
+    radial-gradient(circle at 90% 10%,rgba(105,201,255,.15),transparent 16rem),
+    linear-gradient(135deg,#075347,#0A745F 62%,#2D91B5)!important;
+  border-color:#2B7F77!important;
+}
+#practice .pp-hero{
+  background:
+    radial-gradient(circle at 88% 10%,rgba(105,201,255,.20),transparent 16rem),
+    linear-gradient(135deg,#5C4828,#9A7029 50%,#287FAF 125%)!important;
+  border-color:#9E804B!important;
+}
+#study .pp-hero{
+  background:
+    radial-gradient(circle at 88% 8%,rgba(217,174,87,.15),transparent 16rem),
+    linear-gradient(135deg,#1F5660,#267F9F 54%,#69C9FF 145%)!important;
+  border-color:#5596A7!important;
+}
+#universities .pp-hero,
+#vu .pp-hero{
+  background:
+    radial-gradient(circle at 91% 8%,rgba(233,202,129,.13),transparent 17rem),
+    linear-gradient(135deg,#185A78,#287FAF 58%,#69C9FF 145%)!important;
+  border-color:#4B9CBE!important;
+}
+#competitive .pp-hero{
+  background:
+    radial-gradient(circle at 90% 9%,rgba(105,201,255,.12),transparent 17rem),
+    linear-gradient(135deg,#2B3031,#48565B 58%,#A27A31 135%)!important;
+  border-color:#676963!important;
+}
+#ecosystem .pp-hero{
+  background:
+    radial-gradient(circle at 91% 8%,rgba(105,201,255,.17),transparent 17rem),
+    linear-gradient(135deg,#075347 0%,#147364 48%,#A37A31 105%,#3AAFEA 160%)!important;
+  border-color:#3C8176!important;
+}
+#pathways .pp-hero{
+  background:
+    radial-gradient(circle at 90% 8%,rgba(232,198,119,.16),transparent 17rem),
+    linear-gradient(135deg,#244E5D,#287FAF 60%,#C89A42 145%)!important;
+  border-color:#5F8994!important;
+}
+#pastpapers .pp-hero .eyebrow,
+#schoolassessments .pp-hero .eyebrow{color:#D3F2E8!important}
+#study .pp-hero .eyebrow,
+#universities .pp-hero .eyebrow,
+#vu .pp-hero .eyebrow,
+#pathways .pp-hero .eyebrow{color:#D9F4FF!important}
+#practice .pp-hero .eyebrow,
+#competitive .pp-hero .eyebrow,
+#ecosystem .pp-hero .eyebrow{color:#F4DFAE!important}
+#pastpapers .pp-stats article:nth-child(even),
+#practice .pp-stats article:nth-child(odd),
+#study .pp-stats article:nth-child(even),
+#vu .pp-stats article:nth-child(odd){
+  background:linear-gradient(180deg,#FFFEFB,#EFF9FE)!important;
+  border-color:#D7EAF2!important;
+}
+#pastpapers .pp-stats article:nth-child(even) strong,
+#practice .pp-stats article:nth-child(odd) strong,
+#study .pp-stats article:nth-child(even) strong,
+#vu .pp-stats article:nth-child(odd) strong{
+  color:#287FAF!important;
+}
+#pastpapers .paper-card:nth-child(3n+2),
+#universities .paper-card:nth-child(3n+2),
+#vu .paper-card:nth-child(3n+2),
+#study .paper-card:nth-child(3n+2){
+  border-top:3px solid #3AAFEA!important;
+  background:linear-gradient(180deg,#FFFEFB,#F1FAFE)!important;
+}
+#pastpapers .paper-card:nth-child(3n+1),
+#schoolassessments .paper-card:nth-child(3n+1),
+#ecosystem .paper-card:nth-child(3n+1){
+  border-top:3px solid #0A745F!important;
+}
+#practice .paper-card:nth-child(3n),
+#competitive .paper-card:nth-child(3n),
+#pathways .paper-card:nth-child(3n){
+  border-top:3px solid #C99A42!important;
+}
+#universities .search-suggestions button,
+#vu .search-suggestions button,
+#pathways .search-suggestions button{
+  background:#F1FAFE!important;
+  border-color:#D1EAF5!important;
+  color:#287FAF!important;
+}
+#universities .search-suggestions button:hover,
+#vu .search-suggestions button:hover,
+#pathways .search-suggestions button:hover{
+  background:#E5F6FE!important;
+  border-color:#7ACBED!important;
+}
+#pastpapers .paper-search-row input:focus,
+#universities .paper-search-row input:focus,
+#vu .paper-search-row input:focus,
+#study input:focus,
+#practice input:focus{
+  border-color:#71C6EB!important;
+  box-shadow:0 0 0 4px rgba(105,201,255,.10)!important;
+}
+#practice .option:hover{
+  border-color:#79C9EC!important;
+  background:#F1FAFE!important;
+}
+#practice .explain{
+  background:linear-gradient(90deg,#EEF7F2,#EEF9FE)!important;
+}
