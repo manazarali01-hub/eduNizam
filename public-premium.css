@@ -280,3 +280,71 @@
 @media(prefers-reduced-motion:reduce){
   .premium-public-page .public-cta,.premium-public-page .public-card,.premium-public-page .public-links a{transition:none!important}
 }
+
+/* ===== 2026-10-03 · Sky-blue public palette accents ===== */
+.premium-public-page{
+  --pp-sky:#69C9FF;
+  --pp-sky-2:#3AAFEA;
+  --pp-sky-deep:#287FAF;
+  --pp-sky-soft:#EAF7FF;
+  --pp-sky-line:#CDEAF8;
+  background:
+    radial-gradient(circle at 94% -2%,rgba(105,201,255,.20),transparent 27rem),
+    radial-gradient(circle at 73% 8%,rgba(210,169,82,.12),transparent 23rem),
+    radial-gradient(circle at 0 34%,rgba(7,83,71,.045),transparent 28rem),
+    var(--pp-ivory);
+}
+.premium-public-page .public-nav{
+  border-bottom:1px solid rgba(213,228,230,.62);
+}
+.premium-public-page .public-mark{
+  box-shadow:0 8px 20px rgba(7,83,71,.13),0 0 0 4px rgba(105,201,255,.05);
+}
+.premium-public-page .public-hero{
+  background-image:
+    linear-gradient(90deg,rgba(36,34,28,.98) 0%,rgba(27,49,41,.95) 47%,rgba(12,99,110,.66) 70%,rgba(44,159,206,.22) 100%),
+    url("assets/edunizam-login-children.webp");
+  border-color:#63756E;
+}
+.premium-public-page .public-hero:after{
+  background:
+    radial-gradient(circle at 83% 9%,rgba(105,201,255,.22),transparent 17rem),
+    radial-gradient(circle at 20% 100%,rgba(239,207,132,.08),transparent 18rem),
+    linear-gradient(180deg,rgba(255,255,255,.01),rgba(28,24,17,.11));
+}
+.premium-public-page .public-kicker{color:#CDEFFF}
+.premium-public-page .public-kicker:before{background:linear-gradient(90deg,#D1AB5D,#69C9FF)}
+.premium-public-page .public-cta-secondary{
+  border-color:rgba(105,201,255,.38)!important;
+  color:#E5F7FF!important;
+  background:rgba(69,169,207,.10)!important;
+}
+.premium-public-page .public-card:nth-child(3n+2):before{
+  background:linear-gradient(90deg,#49AFE0,#9FDEFB);
+}
+.premium-public-page .public-card:nth-child(3n+2){
+  background:linear-gradient(180deg,#FEFFFF,#F1FAFE);
+  border-color:#D8ECF5;
+}
+.premium-public-page .public-card:nth-child(3n+2) h3 a:hover{color:#267BA5}
+.premium-public-page .public-list li:nth-child(even):before{
+  background:var(--pp-sky-soft);color:var(--pp-sky-deep);
+}
+.premium-public-page .public-list li:nth-child(even){
+  background:linear-gradient(180deg,#FFFEFB,#F3FAFD);
+  border-color:#DCEAF0;
+}
+.premium-public-page .public-note{
+  background:linear-gradient(90deg,#F4ECDD,#EEF9FE);
+}
+.premium-public-page .public-related{
+  border-top-color:#D8E5E5;
+}
+@media(max-width:620px){
+  .premium-public-page{
+    background:
+      radial-gradient(circle at 90% 0,rgba(105,201,255,.18),transparent 20rem),
+      radial-gradient(circle at 18% 8%,rgba(210,169,82,.08),transparent 17rem),
+      var(--pp-ivory);
+  }
+}
