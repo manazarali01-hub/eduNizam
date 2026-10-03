@@ -5,11 +5,26 @@
   const insights=()=>window.EDUNIZAM_STUDENT_INSIGHTS;
   function ensure(){
     const dashboard=document.getElementById('dashboard');if(!dashboard)return;
-    if(!document.getElementById('adminDailyDesk')){
-      const desk=document.createElement('section');desk.id='adminDailyDesk';desk.className='card admin-daily-desk';desk.style.marginBottom='18px';dashboard.prepend(desk);
+    let desk=document.getElementById('adminDailyDesk');
+    let box=document.getElementById('familyDashboard');
+    if(!desk){
+      desk=document.createElement('section');
+      desk.id='adminDailyDesk';
+      desk.className='card admin-daily-desk';
+      desk.style.marginBottom='18px';
     }
-    if(!document.getElementById('familyDashboard')){
-      const box=document.createElement('section');box.id='familyDashboard';box.className='card';box.style.marginBottom='18px';dashboard.prepend(box);
+    if(!box){
+      box=document.createElement('section');
+      box.id='familyDashboard';
+      box.className='card family-dashboard';
+      box.style.marginBottom='18px';
+    }
+    const stats=dashboard.querySelector(':scope > .cards');
+    if(stats){
+      stats.insertAdjacentElement('afterend',desk);
+      desk.insertAdjacentElement('afterend',box);
+    }else{
+      dashboard.append(desk,box);
     }
   }
   function localDateKey(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day}
@@ -56,6 +71,46 @@
     if(genericQuick)genericQuick.style.display='none';
   }
 
+  function renderRoleQuickActions(){
+    const card=document.querySelector('#dashboard .grid-2 > .card:first-child');
+    if(!card)return;
+    const r=role();
+    if(r==='head'){card.style.display='none';return}
+    card.style.display='';
+    const sets={
+      teacher:[
+        ['attendance','Attendance','Mark your class'],
+        ['dailydiary','Daily Diary','Write today\'s diary'],
+        ['paperbuilder','Paper Builder','Create a paper'],
+        ['results','Results','Update marks'],
+        ['lessoncenter','Lesson Plans','Plan teaching']
+      ],
+      parent:[
+        ['studentprofile','Child Profile','See progress'],
+        ['dailydiary','Daily Diary','Today\'s class work'],
+        ['leavecenter','Leave','Request / status'],
+        ['parentcomplaints','Complaints','Private school contact'],
+        ['noticeboard','Notices','School updates']
+      ],
+      student:[
+        ['studentprofile','My Profile','Progress overview'],
+        ['dailydiary','Daily Diary','Today\'s work'],
+        ['study','Study Library','Learning resources'],
+        ['practice','Practice','Questions & tests'],
+        ['leavecenter','Leave','Request / status']
+      ]
+    };
+    const source=sets[r]||sets.student;
+    const visible=source.filter(x=>{
+      const nav=document.querySelector('.nav-item[data-view="'+x[0]+'"]');
+      return nav&&!nav.hidden&&!nav.classList.contains('role-hidden');
+    });
+    const title=r==='teacher'?'Teacher Shortcuts':r==='parent'?'Parent Shortcuts':'Student Shortcuts';
+    card.innerHTML='<div class="section-head dashboard-quick-head"><div><div class="academic-kicker">Quick Access</div><h2>'+title+'</h2><p class="muted">Aap ke role ke sab se useful tools.</p></div></div>'+
+      '<div class="quick-actions role-quick-actions">'+visible.map(x=>'<button type="button" data-role-quick="'+x[0]+'"><strong>'+esc(x[1])+'</strong><small>'+esc(x[2])+'</small></button>').join('')+'</div>';
+    card.querySelectorAll('[data-role-quick]').forEach(b=>b.onclick=()=>jump(b.dataset.roleQuick));
+  }
+
   function familyCard(s){
     const x=profileFor(s),att=x.attendance?.percentage,avg=x.results?.overall,pending=x.fees?.outstanding||0,overdue=x.fees?.overdueRows?.length||0,missing=x.assignments?.missing?.length||0,next=x.exams?.next;
     const risk=(x.alerts||[]).some(a=>a.level==='high')?'Needs attention':(x.alerts||[]).length?'Follow-up':'On track';
@@ -71,8 +126,8 @@
 
   function render(){
     ensure();renderAdminDesk();const box=document.getElementById('familyDashboard');if(!box)return;
-    const r=role(),genericQuick=document.querySelector('#dashboard .grid-2 > .card:first-child');
-    if(r!=='head'&&genericQuick)genericQuick.style.display='';
+    const r=role();
+    renderRoleQuickActions();
     if(!['parent','student','teacher'].includes(r)){box.style.display='none';return}
     box.style.display='block';
     const all=read('edunizam_students',[]),list=window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(all)||[];
