@@ -1,4 +1,4 @@
-const CACHE='edunizam-v216-public-premium'
+const CACHE='edunizam-v217-sky-harmony'
 const CORE=[
   './',
   './index.html',
@@ -30,6 +30,7 @@ const CORE=[
   './icon-512.png',
   './public.css',
   './public-premium.css',
+  './learning-sky.css',
   './home-gold.css',
   './home-premium.js',
   './learn.html',
