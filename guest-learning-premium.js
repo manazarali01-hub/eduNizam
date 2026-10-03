@@ -478,9 +478,9 @@ function applyHubShortcut(kind){
  if(kind==='guess'){selectAndFire('guestStudyType','Guess / Practice Sheet');return}
  if(kind==='pairing'){selectAndFire('guestStudyType','Pairing Schemes / Model Papers');return}
  if(kind==='models'){selectAndFire('guestGradeType','Model Papers')||selectAndFire('guestGradeType','Model Paper');return}
- if(kind==='handouts'){selectAndFire('vuGuestType','Handouts');return}
- if(kind==='highlighted'){selectAndFire('vuGuestType','Highlighted Handouts');return}
- if(kind==='vu-quizzes'){selectAndFire('vuGuestType','Quizzes');return}
+ if(kind==='handouts'){selectAndFire('vuExplorerType','Handouts')||selectAndFire('vuGuestType','Handouts');return}
+ if(kind==='highlighted'){selectAndFire('vuExplorerType','Highlighted Handouts')||selectAndFire('vuGuestType','Highlighted Handouts');return}
+ if(kind==='vu-quizzes'){selectAndFire('vuExplorerType','Quizzes / MCQs')||selectAndFire('vuGuestType','Quizzes');return}
  if(kind==='practice'){selectAndFire('guestPracticeType','mcq');return}
  if(kind==='ecosystem'){return}
  if(kind==='pathways'){setTimeout(()=>document.getElementById('examPathSearch')?.focus(),0);return}
@@ -581,12 +581,12 @@ function enhancePastResults(){
 function injectVUExplorer(){
  const sec=$('vu');if(!sec||$('vuExplorer'))return;
  const panel=document.createElement('div');panel.id='vuExplorer';panel.className='card';panel.style.marginBottom='16px';
- panel.innerHTML='<div class="section-head"><div><h3 style="margin:0">VU Course Material & Download Center</h3><p style="margin:4px 0 0">Search a VU course to open its complete material pack: official handouts/notes, lectures, assignments and references plus verified community handouts, highlighted handouts, notes and exam-preparation downloads.</p></div></div><div class="paper-filters past-advanced"><label class="filter-label search-wide">Course code or title<input id="vuGuestQuery" list="vuGuestCourseList" type="search" placeholder="e.g. CS101, MTH301, STA301"><datalist id="vuGuestCourseList"></datalist></label><label class="filter-label">Course category<select id="vuGuestCategory"><option value="">All Categories</option></select></label><label class="filter-label">Resource type<select id="vuGuestType"><option value="">All VU Resources</option></select></label><label class="filter-label">Source<select id="vuGuestSource"><option value="">All Trust Levels</option><option value="official">Official VU</option><option value="verified">Verified Community</option><option value="legacy">Legacy Backup</option></select></label><label class="filter-label">Provider<select id="vuGuestProvider"><option value="">All Providers</option></select></label><label class="filter-label">Access<select id="vuGuestAccess"><option value="">All Access</option><option value="downloadable">Downloads only</option><option value="direct_download">Direct downloads only</option><option value="download_index">Download indexes</option><option value="official_open">Official open pages</option><option value="login_required">VU login required</option></select></label><button id="vuGuestSearch" class="btn primary" type="button">Search VU</button></div><div class="search-suggestions" style="margin:10px 0"><button type="button" data-vu-quick="Course Notes / Handouts">Handouts</button><button type="button" data-vu-quick="Highlighted Handouts">Highlighted</button><button type="button" data-vu-quick="Short Notes">Short Notes</button><button type="button" data-vu-quick="Lecture Videos">Videos</button><button type="button" data-vu-quick="Assignments">Assignments</button><button type="button" data-vu-quick="Quizzes / MCQs">Quizzes / MCQs</button><button type="button" data-vu-quick="Midterm Past Papers">Midterm Papers</button><button type="button" data-vu-quick="Finalterm Past Papers">Finalterm Papers</button><button type="button" data-vu-quick="Solved Past Papers">Moaaz / Waqar</button><button type="button" data-vu-quick="PPT Slides">PPT Slides</button><button type="button" data-vu-quick="Syllabus / Study Guide">Syllabus</button><button type="button" data-vu-quick="Final Project / Viva">Project / Viva</button></div><div id="vuGuestSummary" class="paper-summary"></div><div id="vuGuestQuick" class="grid" style="margin-bottom:12px"></div><div id="vuGuestProviderChips" class="search-suggestions" style="margin:8px 0 12px"></div><div id="vuGuestMaterials" class="grid" style="margin-bottom:12px"></div><div id="vuGuestResults" class="grid"></div>';
+ panel.innerHTML='<div class="section-head"><div><h3 style="margin:0">VU Course Material & Download Center</h3><p style="margin:4px 0 0">Search a VU course to open its complete material pack: official handouts/notes, lectures, assignments and references plus verified community handouts, highlighted handouts, notes and exam-preparation downloads.</p></div></div><div class="paper-filters past-advanced"><label class="filter-label search-wide">Course code or title<input id="vuExplorerQuery" list="vuExplorerCourseList" type="search" placeholder="e.g. CS101, MTH301, STA301"><datalist id="vuExplorerCourseList"></datalist></label><label class="filter-label">Course category<select id="vuExplorerCategory"><option value="">All Categories</option></select></label><label class="filter-label">Resource type<select id="vuExplorerType"><option value="">All VU Resources</option></select></label><label class="filter-label">Source<select id="vuExplorerSource"><option value="">All Trust Levels</option><option value="official">Official VU</option><option value="verified">Verified Community</option><option value="legacy">Legacy Backup</option></select></label><label class="filter-label">Provider<select id="vuExplorerProvider"><option value="">All Providers</option></select></label><label class="filter-label">Access<select id="vuExplorerAccess"><option value="">All Access</option><option value="downloadable">Downloads only</option><option value="direct_download">Direct downloads only</option><option value="download_index">Download indexes</option><option value="official_open">Official open pages</option><option value="login_required">VU login required</option></select></label><button id="vuExplorerSearchBtn" class="btn primary" type="button">Search VU</button></div><div class="search-suggestions" style="margin:10px 0"><button type="button" data-vu-quick="Course Notes / Handouts">Handouts</button><button type="button" data-vu-quick="Highlighted Handouts">Highlighted</button><button type="button" data-vu-quick="Short Notes">Short Notes</button><button type="button" data-vu-quick="Lecture Videos">Videos</button><button type="button" data-vu-quick="Assignments">Assignments</button><button type="button" data-vu-quick="Quizzes / MCQs">Quizzes / MCQs</button><button type="button" data-vu-quick="Midterm Past Papers">Midterm Papers</button><button type="button" data-vu-quick="Finalterm Past Papers">Finalterm Papers</button><button type="button" data-vu-quick="Solved Past Papers">Moaaz / Waqar</button><button type="button" data-vu-quick="PPT Slides">PPT Slides</button><button type="button" data-vu-quick="Syllabus / Study Guide">Syllabus</button><button type="button" data-vu-quick="Final Project / Viva">Project / Viva</button></div><div id="vuExplorerSummary" class="paper-summary"></div><div id="vuExplorerQuick" class="grid" style="margin-bottom:12px"></div><div id="vuExplorerProviderChips" class="search-suggestions" style="margin:8px 0 12px"></div><div id="vuExplorerMaterials" class="grid" style="margin-bottom:12px"></div><div id="vuExplorerResults" class="grid"></div>';
  sec.insertBefore(panel,$('vuGrid'));
  const catalog=()=>window.EDUNIZAM_VU_COURSE_CATALOG?.courses||[];
  const resources=()=> (uni().resources||[]).filter(x=>x.universityId==='vu');
  const refreshFilters=()=>{
-  const typeEl=$('vuGuestType'),catEl=$('vuGuestCategory'),providerEl=$('vuGuestProvider'),list=$('vuGuestCourseList'),oldType=typeEl.value,oldCat=catEl.value,oldProvider=providerEl.value;
+  const typeEl=$('vuExplorerType'),catEl=$('vuExplorerCategory'),providerEl=$('vuExplorerProvider'),list=$('vuExplorerCourseList'),oldType=typeEl.value,oldCat=catEl.value,oldProvider=providerEl.value;
   const types=[...new Set(resources().map(x=>x.category).filter(Boolean).concat(window.EDUNIZAM_VU_MATERIALS?.types||[]))].sort();
   typeEl.innerHTML='<option value="">All VU Resources</option>'+types.map(x=>'<option>'+esc(x)+'</option>').join('');if(types.includes(oldType))typeEl.value=oldType;
   const cats=[...new Set(catalog().map(x=>x.category).filter(Boolean))].sort();
@@ -602,8 +602,8 @@ function injectVUExplorer(){
   return '<article class="card resource-card"><span class="badge '+cls+'">'+esc(m.accessLabel||m.source||'VU Resource')+'</span><span class="badge">'+esc(m.type||'Material')+'</span><span class="badge">'+esc(m.source||'VU')+'</span><h3>'+esc(m.title)+'</h3><p>'+esc(m.note||'')+'</p><div class="guest-actions"><a class="primary-action" href="'+esc(m.url)+'" target="_blank" rel="noopener noreferrer">'+esc(m.actionLabel||'Open Resource')+'</a></div></article>';
  };
  const run=()=>{
-  const query=norm($('vuGuestQuery').value),typeValue=$('vuGuestType').value,type=norm(typeValue),category=$('vuGuestCategory').value,source=$('vuGuestSource').value,provider=$('vuGuestProvider').value,access=$('vuGuestAccess').value;
-  const rawInput=String($('vuGuestQuery').value||'').trim();
+  const query=norm($('vuExplorerQuery').value),typeValue=$('vuExplorerType').value,type=norm(typeValue),category=$('vuExplorerCategory').value,source=$('vuExplorerSource').value,provider=$('vuExplorerProvider').value,access=$('vuExplorerAccess').value;
+  const rawInput=String($('vuExplorerQuery').value||'').trim();
   const rawCode=rawInput.toUpperCase().replace(/[\\s-]+/g,'');
   const validCourseCode=/^[A-Z]{2,5}\\d{3,4}[A-Z]?$/.test(rawCode);
   const lookupQuery=validCourseCode?norm(rawCode):query;
@@ -621,7 +621,7 @@ function injectVUExplorer(){
   });
   if(category)rows=rows.filter(x=>x.courseAgnostic||norm(JSON.stringify(x)).includes(norm(category)));
   let courseRow='';
-  const quick=$('vuGuestQuick');quick.innerHTML='';
+  const quick=$('vuExplorerQuick');quick.innerHTML='';
   if(course){
    const p=window.EDUNIZAM_VU_PATHWAYS?.forCourse?.(course)||{};
    const officialSearch=p.search||('https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(course.code));
@@ -648,13 +648,13 @@ function injectVUExplorer(){
   }
   const allProviderRows=course?(window.EDUNIZAM_VU_MATERIALS?.forCourse?.(course,{type:typeValue,source,access})||[]):[];
   const materialRows=provider?allProviderRows.filter(x=>x.source===provider):allProviderRows;
-  const chipBox=$('vuGuestProviderChips');
+  const chipBox=$('vuExplorerProviderChips');
   if(chipBox){
    const counts={};allProviderRows.forEach(x=>counts[x.source]=(counts[x.source]||0)+1);
    chipBox.innerHTML=course?'<button type="button" data-vu-provider-chip="">All ('+allProviderRows.length+')</button>'+Object.entries(counts).sort((a,b)=>a[0].localeCompare(b[0])).map(([name,count])=>'<button type="button" data-vu-provider-chip="'+esc(name)+'">'+esc(name)+' ('+count+')</button>').join(''):'';
-   chipBox.querySelectorAll('[data-vu-provider-chip]').forEach(b=>b.onclick=()=>{$('vuGuestProvider').value=b.dataset.vuProviderChip||'';run()});
+   chipBox.querySelectorAll('[data-vu-provider-chip]').forEach(b=>b.onclick=()=>{$('vuExplorerProvider').value=b.dataset.vuProviderChip||'';run()});
   }
-  const materialBox=$('vuGuestMaterials');if(materialBox)materialBox.innerHTML=materialRows.map(materialCard).join('');
+  const materialBox=$('vuExplorerMaterials');if(materialBox)materialBox.innerHTML=materialRows.map(materialCard).join('');
   const unique=[];const seen=new Set();rows.forEach(x=>{const id=x.id||x.title;if(!seen.has(id)){seen.add(id);unique.push(x)}});
   const categoryCourses=category&&!query&&source!=='verified'?catalog().filter(x=>x.category===category).slice(0,30):[];
   const queryCourses=query&&!exactCourse&&source!=='verified'?courseMatches:[];
@@ -662,13 +662,13 @@ function injectVUExplorer(){
   const categoryHtml=visibleCourses.map(x=>resourceCard({id:'course:'+x.code,title:x.code+' — '+x.title,description:x.freshness,url:x.officialDetails||('https://ocw.vu.edu.pk/Courses.aspx?q='+encodeURIComponent(x.code)),source:'official',type:'VU Course',board:'Virtual University',subject:x.category,courseCodes:[x.code],section:'vu'})).join('');
   const courseState=course?' · Course matched: '+course.code+' — '+course.title:(validCourseCode?' · Course code will be verified through official VU lookup':'');
   const providerCount=course?[...new Set(materialRows.map(x=>x.source).filter(Boolean))].length:0;
-  $('vuGuestSummary').textContent=(visibleCourses.length?visibleCourses.length+' matching course'+(visibleCourses.length===1?'':'s')+' · ':'')+(course?materialRows.length+' material option'+(materialRows.length===1?'':'s')+' from '+providerCount+' provider'+(providerCount===1?'':'s')+' · ':'')+unique.length+' general VU resource'+(unique.length===1?'':'s')+(query?' for “'+rawInput+'”':'')+courseState+'. Local catalogue: '+catalog().length+' courses. “Login to Download” means VU controls the actual file download behind authentication; community downloads are supplementary.';
-  $('vuGuestResults').innerHTML=courseRow+categoryHtml+(unique.length?unique.slice(0,30).map(x=>resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',courseCodes:x.courseCodes||[],section:'vu'})).join(''):(!course&&!validCourseCode&&!visibleCourses.length?emptyState(rawInput||$('vuGuestType').value||'VU resource'):''));
+  $('vuExplorerSummary').textContent=(visibleCourses.length?visibleCourses.length+' matching course'+(visibleCourses.length===1?'':'s')+' · ':'')+(course?materialRows.length+' material option'+(materialRows.length===1?'':'s')+' from '+providerCount+' provider'+(providerCount===1?'':'s')+' · ':'')+unique.length+' general VU resource'+(unique.length===1?'':'s')+(query?' for “'+rawInput+'”':'')+courseState+'. Local catalogue: '+catalog().length+' courses. “Login to Download” means VU controls the actual file download behind authentication; community downloads are supplementary.';
+  $('vuExplorerResults').innerHTML=courseRow+categoryHtml+(unique.length?unique.slice(0,30).map(x=>resourceCard({id:'uni:'+x.id,title:x.title,description:x.note,url:x.url,source:x.source,type:x.category,board:'Virtual University',courseCodes:x.courseCodes||[],section:'vu'})).join(''):(!course&&!validCourseCode&&!visibleCourses.length?emptyState(rawInput||$('vuExplorerType').value||'VU resource'):''));
  };
- $('vuGuestSearch').onclick=run;
- $('vuGuestQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});
- ['vuGuestType','vuGuestCategory','vuGuestSource','vuGuestProvider','vuGuestAccess'].forEach(id=>$(id).onchange=run);
- panel.querySelectorAll('[data-vu-quick]').forEach(b=>b.onclick=()=>{$('vuGuestType').value=b.dataset.vuQuick;run()});
+ $('vuExplorerSearchBtn').onclick=run;
+ $('vuExplorerQuery').addEventListener('keydown',e=>{if(e.key==='Enter')run()});
+ ['vuExplorerType','vuExplorerCategory','vuExplorerSource','vuExplorerProvider','vuExplorerAccess'].forEach(id=>$(id).onchange=run);
+ panel.querySelectorAll('[data-vu-quick]').forEach(b=>b.onclick=()=>{$('vuExplorerType').value=b.dataset.vuQuick;run()});
  run();
 }
 function boot(){injectStyles();injectDirectory();injectSearchTools();injectPastFilters();injectVUExplorer();injectSectionExplorers();injectSaved();bind()}
