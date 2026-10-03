@@ -1,4 +1,4 @@
-const CACHE='edunizam-v217-sky-harmony'
+const CACHE='edunizam-v218-photo-first'
 const CORE=[
   './',
   './index.html',
