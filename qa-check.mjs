@@ -358,7 +358,14 @@ if(!leaveMigration.includes('decide_leave_request_v1')) fail.push('Leave decisio
 const workflowAlerts=read('workflow-alerts.js');
 if(!coreCloud.includes('async function saveAttendanceDay')) fail.push('Immediate student attendance cloud save missing.');
 if(!app.includes('EDUNIZAM_CORE_CLOUD.saveAttendanceDay')) fail.push('Attendance save does not sync current day to cloud.');
-if(!workflowAlerts.includes('Student Absence Report')) fail.push('Admin student absence notification missing.');
+// Attendance alerts moved from browser notifications to server triggers.
+const attendanceAlertsMigration=read('supabase-attendance-server-alerts-migration.sql');
+if(!attendanceAlertsMigration.includes('create trigger attendance_notification_trigger') ||
+   !attendanceAlertsMigration.includes('for each row execute function private.notify_student_attendance_change_v1()') ||
+   !attendanceAlertsMigration.includes("new.institution_id,owner_id,new.marked_by,'attendance-admin'") ||
+   !attendanceAlertsMigration.includes("case when is_absence then 'Student Absence") ||
+   !workflowAlerts.includes('renderAdminAttendanceAlerts(true)'))
+  fail.push('Admin server-side student absence notification or dashboard refresh missing.');
 if(!workflowAlerts.includes('adminAttendanceAlerts')) fail.push('Admin attendance alert dashboard card missing.');
 if(!workflowAlerts.includes('No contact number')) fail.push('Attendance alert contact-number fallback missing.');
 if(!workflowAlerts.includes('staffAttendanceSaved')) fail.push('Staff attendance changes do not refresh Admin alerts.');
