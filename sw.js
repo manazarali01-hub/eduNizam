@@ -1,4 +1,4 @@
-const CACHE='edunizam-v215-deep-visual'
+const CACHE='edunizam-v216-public-premium'
 const CORE=[
   './',
   './index.html',
@@ -29,6 +29,7 @@ const CORE=[
   './icon-192.png',
   './icon-512.png',
   './public.css',
+  './public-premium.css',
   './home-gold.css',
   './home-premium.js',
   './learn.html',
