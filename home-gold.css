@@ -586,3 +586,127 @@
   .gold-home.js [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
   .gold-home .public-cta,.gold-home .public-card,.gold-home .quick-actions a,.gold-home .quick-actions button,.gold-home .role-tab{transition:none!important}
 }
+
+/* ===== 2026-10-03 · Sky + Gold + Green visual harmony ===== */
+.gold-home{
+  --sky:#69C9FF;
+  --sky-2:#3AAFEA;
+  --sky-deep:#287FAF;
+  --sky-soft:#EAF7FF;
+  --sky-line:#CFEAFF;
+  background:
+    radial-gradient(circle at 90% -5%,rgba(105,201,255,.22),transparent 26rem),
+    radial-gradient(circle at 74% 13%,rgba(218,177,91,.18),transparent 24rem),
+    radial-gradient(circle at 0 30%,rgba(7,83,71,.055),transparent 24rem),
+    var(--ivory);
+}
+.gold-home .public-nav.is-scrolled{
+  border-color:rgba(190,218,229,.84);
+  box-shadow:0 12px 36px rgba(51,92,112,.09);
+}
+.gold-home .public-mark{
+  box-shadow:0 8px 22px rgba(7,83,71,.15),0 0 0 4px rgba(105,201,255,.055);
+}
+.gold-home .public-hero.premium-public-hero{
+  background:
+    radial-gradient(circle at var(--hero-x) var(--hero-y),rgba(105,201,255,.16),transparent 16rem),
+    radial-gradient(circle at 18% 86%,rgba(231,190,99,.08),transparent 19rem),
+    linear-gradient(135deg,#25241f 0%,#20352f 60%,#0b5260 108%);
+  border-color:#5f6d61;
+}
+.gold-home .hero-gold{
+  background:linear-gradient(115deg,#fff0bf 0%,#e4b95f 58%,#9bdcff 122%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.gold-home .public-proof span:nth-child(2):before{
+  background:var(--sky);box-shadow:0 0 0 4px rgba(105,201,255,.11);
+}
+.gold-home .hero-role-badge span:nth-child(3){
+  color:#eaf8ff;border-color:rgba(105,201,255,.36);background:rgba(24,95,121,.50);
+}
+.gold-home .quick-actions a[href="learn.html"]{
+  border-color:#bfe6f7;
+  background:linear-gradient(135deg,#eef9ff,#e6f6fb);
+  color:#246f96;
+}
+.gold-home .quick-actions a[href="learn.html"]:hover{
+  border-color:#76c8ee;background:#e2f6ff;
+}
+.gold-home .hero-actions a[href="learn.html"]{
+  color:#eaf8ff!important;
+  border-color:rgba(105,201,255,.42)!important;
+  background:rgba(63,159,199,.12)!important;
+}
+.gold-home .hero-actions a[href="learn.html"]:hover{
+  background:rgba(75,177,219,.18)!important;
+}
+.gold-home .experience-strip article:nth-child(6) .feature-icon,
+.gold-home .experience-strip article:nth-child(3) .feature-icon{
+  background:var(--sky-soft);color:var(--sky-deep);border:1px solid var(--sky-line);
+}
+.gold-home .experience-strip article:nth-child(6){
+  background:linear-gradient(180deg,rgba(234,247,255,.62),rgba(255,253,248,.88));
+}
+.gold-home .role-tab[data-role="student"]{
+  color:#2e7598;
+}
+.gold-home .role-tab[data-role="student"].is-active{
+  background:linear-gradient(135deg,#2f88b6,#176b91);
+  color:#fff;border-color:#2c7fa9;box-shadow:0 10px 24px rgba(39,126,170,.16);
+}
+.gold-home .role-tab[data-role="teacher"].is-active{
+  background:linear-gradient(135deg,#0a745f,#07594d);
+  color:#fff;border-color:#0a745f;
+}
+.gold-home .role-tab[data-role="parent"].is-active{
+  background:linear-gradient(135deg,#c69a43,#a67627);
+  color:#2b2418;border-color:#bd8e35;
+}
+.gold-home .preview-role{
+  background:linear-gradient(135deg,#eef9ff,#f3e8cf);
+  color:#53645f;
+  border-color:#d5ddc7;
+}
+.gold-home .preview-cards span:nth-child(even){
+  background:linear-gradient(180deg,#f7fcff,#eef9ff);
+  border-color:#d6ecf8;
+}
+.gold-home .preview-cards span:nth-child(odd){
+  background:linear-gradient(180deg,#fffefb,#fbf4e5);
+}
+.gold-home .public-card:nth-child(3):before{
+  content:"";position:absolute;left:0;top:0;right:0;height:3px;
+  background:linear-gradient(90deg,#58bce8,#9edfff);
+}
+.gold-home .public-card:nth-child(3) .card-index,
+.gold-home .public-card:nth-child(3) a{color:#2b7fa8}
+.gold-home .learning-band{
+  background:
+    radial-gradient(circle at 88% 0,rgba(164,224,255,.20),transparent 23rem),
+    radial-gradient(circle at 18% 100%,rgba(235,198,113,.11),transparent 20rem),
+    linear-gradient(135deg,#075347 0%,#087469 53%,#167da3 122%);
+  border-color:#2a8390;
+  box-shadow:0 24px 62px rgba(28,105,118,.16);
+}
+.gold-home .learning-band .eyebrow{color:#c9edff}
+.gold-home .learning-band p{color:#e3f3f2}
+.gold-home .learning-links>a:not(.public-cta){color:#cfefff}
+.gold-home .learning-band .public-cta{
+  background:linear-gradient(120deg,#e9d08f,#d5a94d 62%,#9fdcff 145%);
+}
+.gold-home .resource-card.r1{border-color:#cce9f7;background:linear-gradient(180deg,#fbfeff,#eef9ff)}
+.gold-home .resource-card.r2{border-color:#e5d3a8;background:linear-gradient(180deg,#fffefb,#fff7e7)}
+.gold-home .resource-card.r3{border-color:#cfe7dd;background:linear-gradient(180deg,#fbfffd,#eef7f2)}
+.gold-home .resource-card.r1 small{color:#2a80a9}
+.gold-home .public-note{
+  background:linear-gradient(90deg,#f3ecdd,#eef8fd);
+  border-left-color:#ba8a33;
+}
+@media(max-width:580px){
+  .gold-home{
+    background:
+      radial-gradient(circle at 88% 0,rgba(105,201,255,.20),transparent 20rem),
+      radial-gradient(circle at 15% 8%,rgba(218,177,91,.10),transparent 17rem),
+      var(--ivory);
+  }
+}
