@@ -507,3 +507,71 @@ body:not(.admission-premium) .pwa-install-login{
   body:not(.admission-premium) .mobile-brand .brand-edu{color:#2d2a24!important}
   body:not(.admission-premium) .mobile-brand .brand-nizam{color:#986f25!important}
 }
+
+
+/* ===== 2026-10-03 · Sky-blue role accents ===== */
+body:not(.admission-premium){
+  --auth-sky:#69C9FF;
+  --auth-sky-deep:#287FAF;
+  --auth-sky-soft:#EAF7FF;
+  --auth-sky-line:#CBE9F8;
+}
+body:not(.admission-premium) .main{
+  background:
+    radial-gradient(circle at 88% 4%,rgba(105,201,255,.13),transparent 18rem),
+    radial-gradient(circle at 20% 96%,rgba(204,163,76,.08),transparent 19rem),
+    #fbf8f1!important;
+}
+body:not(.admission-premium) .card{
+  box-shadow:0 28px 76px rgba(58,73,74,.12)!important;
+}
+body:not(.admission-premium) .role[data-role="student"],
+body:not(.admission-premium) .guest-role{
+  border-color:#D3EAF5!important;
+  background:linear-gradient(180deg,#FCFEFF,#EDF8FE)!important;
+}
+body:not(.admission-premium) .role[data-role="student"] .icon,
+body:not(.admission-premium) .guest-role .icon{
+  color:#287FAF!important;
+  background:linear-gradient(145deg,#EAF7FF,#F5FBFF)!important;
+  border-color:#CFE9F7!important;
+}
+body:not(.admission-premium) .role[data-role="teacher"] .icon{
+  color:#0A745F!important;
+  background:linear-gradient(145deg,#EDF7F2,#F8FCFA)!important;
+  border-color:#D6E8DE!important;
+}
+body:not(.admission-premium) .role[data-role="parent"] .icon{
+  color:#8F6721!important;
+  background:linear-gradient(145deg,#F8EED9,#FFF9EC)!important;
+  border-color:#E6D4AC!important;
+}
+body:not(.admission-premium) .role[data-role="admin"] .icon{
+  color:#464139!important;
+  background:linear-gradient(145deg,#F2EFE9,#FFFDF8)!important;
+  border-color:#E1DACC!important;
+}
+body:not(.admission-premium) .role[data-role="student"]:hover,
+body:not(.admission-premium) .guest-role:hover{
+  border-color:#7FCBEF!important;
+  box-shadow:0 16px 32px rgba(59,151,194,.12)!important;
+}
+body:not(.admission-premium) .guest-role strong{color:#286F92!important}
+body:not(.admission-premium) .guest-role small{color:#64869A!important}
+body:not(.admission-premium) .tabs{
+  background:linear-gradient(90deg,#f1eadc,#eef8fd)!important;
+}
+body:not(.admission-premium) .role-guidance{
+  background:linear-gradient(120deg,#FBF8EF,#EFF8FC)!important;
+}
+body:not(.admission-premium) .school-selected,
+body:not(.admission-premium) .status.good{
+  background:linear-gradient(90deg,#EFF8F3,#EDF8FE)!important;
+}
+@media(max-width:820px){
+  body:not(.admission-premium) .main{
+    background:
+      linear-gradient(180deg,rgba(248,247,240,.88),rgba(239,248,251,.95)),
+      url("assets/edunizam-login-children.webp") center/cover fixed no-repeat!important;
+  }
+}
