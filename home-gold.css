@@ -710,3 +710,276 @@
       var(--ivory);
   }
 }
+/* ===== 2026-10-03 · PHOTO-FIRST MAIN PAGE · students image is the hero ===== */
+.gold-home .public-main{
+  width:min(1320px,calc(100% - 28px));
+  padding-top:8px;
+}
+.gold-home .public-hero.premium-public-hero{
+  display:block;
+  min-height:680px;
+  padding:56px 52px 180px;
+  border-radius:34px;
+  overflow:hidden;
+  position:relative;
+  isolation:isolate;
+  background-image:
+    linear-gradient(90deg,rgba(10,28,39,.90) 0%,rgba(10,38,48,.73) 34%,rgba(10,38,48,.26) 57%,rgba(10,38,48,.05) 76%,rgba(10,38,48,.18) 100%),
+    linear-gradient(0deg,rgba(4,31,36,.70) 0%,rgba(4,31,36,0) 44%),
+    url("assets/edunizam-login-children.webp");
+  background-size:cover;
+  background-position:center,center,64% 38%;
+  border:1px solid rgba(190,222,236,.7);
+  box-shadow:0 30px 85px rgba(17,60,78,.18);
+}
+.gold-home .public-hero.premium-public-hero:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 18% 18%,rgba(105,201,255,.20),transparent 17rem),
+    radial-gradient(circle at 82% 12%,rgba(226,183,90,.18),transparent 18rem);
+  pointer-events:none;
+  z-index:-1;
+}
+.gold-home .hero-copy{
+  position:relative;
+  z-index:3;
+  width:min(610px,52%);
+  min-width:440px;
+  padding:30px 0 0;
+}
+.gold-home .public-kicker{
+  color:#cbeeff;
+  text-shadow:0 2px 14px rgba(0,0,0,.30);
+}
+.gold-home .public-hero.premium-public-hero h1{
+  font-size:clamp(44px,5.2vw,72px);
+  max-width:610px;
+  color:#fff;
+  text-shadow:0 3px 24px rgba(0,0,0,.34);
+}
+.gold-home .hero-gold{
+  background:linear-gradient(110deg,#fff2bd 0%,#e7b95d 56%,#a9e4ff 118%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.gold-home .public-hero p{
+  max-width:560px;
+  color:#eef7f8;
+  text-shadow:0 2px 12px rgba(0,0,0,.35);
+}
+.gold-home .hero-actions{
+  margin-top:26px;
+}
+.gold-home .hero-text-link{
+  color:#eef9ff;
+  text-shadow:0 1px 10px rgba(0,0,0,.3);
+}
+.gold-home .public-proof span{
+  color:#f5fafb;
+  text-shadow:0 1px 8px rgba(0,0,0,.3);
+}
+.gold-home .hero-visual{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  display:block;
+  pointer-events:none;
+}
+.gold-home .hero-image-wrap{
+  display:none!important;
+}
+.gold-home .quick-access-card{
+  pointer-events:auto;
+  position:absolute;
+  right:32px;
+  bottom:32px;
+  width:300px;
+  max-width:calc(100% - 64px);
+  padding:18px;
+  border-radius:20px;
+  background:rgba(255,255,255,.94);
+  border:1px solid rgba(205,231,243,.96);
+  box-shadow:0 24px 62px rgba(5,37,53,.28);
+  -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(18px);
+}
+.gold-home .quick-card-top strong{font-size:14px}
+.gold-home .quick-card-top small{font-size:10px}
+.gold-home .quick-actions a,.gold-home .quick-actions button{
+  min-height:44px;
+  font-size:11px;
+}
+.gold-home .quick-actions .quick-main{
+  background:linear-gradient(135deg,#123f56,#0b6d73);
+  border-color:#164c61;
+  color:#fff;
+}
+.gold-home .hero-role-badge{
+  top:28px;
+  right:28px;
+  left:auto;
+  max-width:270px;
+  justify-content:flex-end;
+}
+.gold-home .hero-role-badge span{
+  background:rgba(10,45,58,.52);
+  border-color:rgba(188,230,247,.30);
+  color:#fff;
+}
+.gold-home .experience-strip{
+  position:relative;
+  z-index:6;
+  width:calc(100% - 48px);
+  margin:-82px auto 0;
+  border-radius:20px;
+  background:rgba(255,255,255,.95);
+  border:1px solid rgba(205,228,238,.96);
+  box-shadow:0 20px 55px rgba(22,72,91,.15);
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+}
+.gold-home .experience-strip article{
+  padding:15px 13px;
+}
+.gold-home .experience-strip strong{font-size:10.5px}
+.gold-home .experience-strip small{font-size:8px}
+.gold-home .public-section:first-of-type{
+  margin-top:68px;
+}
+
+@media(max-width:900px){
+  .gold-home .public-hero.premium-public-hero{
+    min-height:760px;
+    padding:38px 30px 210px;
+    background-image:
+      linear-gradient(180deg,rgba(8,35,47,.84) 0%,rgba(8,35,47,.55) 33%,rgba(8,35,47,.08) 60%,rgba(8,35,47,.35) 100%),
+      url("assets/edunizam-login-children.webp");
+    background-position:center,60% 43%;
+  }
+  .gold-home .hero-copy{
+    width:100%;
+    min-width:0;
+    max-width:620px;
+  }
+  .gold-home .hero-role-badge{
+    top:auto;
+    bottom:177px;
+    left:20px;
+    right:20px;
+    justify-content:flex-start;
+  }
+  .gold-home .quick-access-card{
+    left:20px;
+    right:20px;
+    bottom:20px;
+    width:auto;
+    max-width:none;
+  }
+  .gold-home .experience-strip{
+    width:calc(100% - 28px);
+    margin:-44px auto 0;
+  }
+}
+
+@media(max-width:580px){
+  .gold-home .public-main{
+    width:calc(100% - 16px);
+    padding-top:4px;
+  }
+  .gold-home .public-hero.premium-public-hero{
+    min-height:720px;
+    padding:28px 20px 205px;
+    border-radius:25px;
+    background-image:
+      linear-gradient(180deg,rgba(6,33,45,.88) 0%,rgba(6,33,45,.58) 34%,rgba(6,33,45,.08) 62%,rgba(6,33,45,.42) 100%),
+      url("assets/edunizam-login-children.webp");
+    background-position:center,58% 44%;
+  }
+  .gold-home .public-hero.premium-public-hero h1{
+    font-size:clamp(36px,11.8vw,52px);
+    line-height:1.02;
+  }
+  .gold-home .public-hero p{
+    font-size:13px;
+    line-height:1.6;
+    max-width:94%;
+  }
+  .gold-home .public-kicker{
+    font-size:8.5px;
+    margin-bottom:16px;
+  }
+  .gold-home .hero-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .gold-home .hero-actions .public-cta{
+    min-width:0;
+    padding:11px 10px;
+    text-align:center;
+    font-size:11px;
+  }
+  .gold-home .hero-actions .hero-text-link{
+    grid-column:1/-1;
+    padding-top:5px;
+  }
+  .gold-home .public-proof{
+    gap:8px 12px;
+    margin-top:17px;
+  }
+  .gold-home .public-proof span{
+    font-size:8.5px;
+  }
+  .gold-home .hero-role-badge{
+    bottom:174px;
+    left:14px;
+    right:14px;
+  }
+  .gold-home .hero-role-badge span{
+    font-size:6.2px;
+    padding:4px 6px;
+  }
+  .gold-home .quick-access-card{
+    left:12px;
+    right:12px;
+    bottom:12px;
+    padding:12px;
+  }
+  .gold-home .quick-actions{
+    grid-template-columns:1fr 1fr;
+  }
+  .gold-home .quick-actions .quick-main{
+    grid-column:1/-1;
+  }
+  .gold-home .quick-access-card>p{
+    font-size:7.8px;
+  }
+  .gold-home .experience-strip{
+    width:calc(100% - 20px);
+    margin:-26px auto 0;
+    grid-template-columns:repeat(3,1fr);
+  }
+  .gold-home .experience-strip article{
+    padding:11px 8px;
+    gap:7px;
+  }
+  .gold-home .experience-strip article:nth-child(3n){
+    border-right:0;
+  }
+  .gold-home .experience-strip article:nth-child(-n+3){
+    border-bottom:1px solid var(--line);
+  }
+  .gold-home .experience-strip article:nth-child(4),
+  .gold-home .experience-strip article:nth-child(5),
+  .gold-home .experience-strip article:nth-child(6){
+    border-bottom:0;
+  }
+  .gold-home .feature-icon{
+    width:28px;height:28px;
+  }
+  .gold-home .experience-strip strong{font-size:8.8px}
+  .gold-home .experience-strip small{font-size:7px}
+}
