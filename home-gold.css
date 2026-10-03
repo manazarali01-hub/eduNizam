@@ -1,6 +1,8 @@
 /* EduNizam homepage showcase · scoped to .gold-home */
 .gold-home{
   --ink:#25231e;
+  --navy:#25231e;
+  --teal:#075347;
   --ink-2:#3c382f;
   --muted:#746c5d;
   --gold:#b98a31;
@@ -249,7 +251,10 @@
   color:#4b4335;
   border-radius:10px;
   text-decoration:none;
-  font:700 10.5px/1.25 inherit;
+  font-family:inherit;
+  font-size:10.5px;
+  font-weight:700;
+  line-height:1.25;
   cursor:pointer;
   transition:transform .16s ease,border-color .16s ease,background .16s ease;
 }
@@ -332,7 +337,10 @@
   border-radius:12px;
   text-align:left;
   padding:0 14px;
-  font:750 12px/1 inherit;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:750;
+  line-height:1;
   cursor:pointer;
   transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;
 }
