@@ -1,4 +1,4 @@
-const CACHE='edunizam-v212-gold-home'
+const CACHE='edunizam-v213-home-showcase'
 const CORE=[
   './',
   './index.html',
@@ -30,6 +30,7 @@ const CORE=[
   './icon-512.png',
   './public.css',
   './home-gold.css',
+  './home-premium.js',
   './learn.html',
   './past-papers-data.js',
   './past-papers-premium.js',
