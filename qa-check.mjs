@@ -132,7 +132,7 @@ else{
   ]){
     if(!design.includes(marker)) fail.push('Canonical design token missing: '+marker);
   }
-  const designRootCount=(design.match(/:root\\s*\\{/g)||[]).length;
+  const designRootCount=(design.match(/:root\s*\{/g)||[]).length;
   if(designRootCount<1||designRootCount>2) fail.push('Canonical design-token stylesheet has unexpected root token blocks: '+designRootCount);
 }
 
