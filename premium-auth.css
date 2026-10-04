@@ -384,3 +384,107 @@ body.admission-premium{
     transition:none;
   }
 }
+
+
+/* 2026-10-04 · Deep auth interaction pass */
+
+.auth-page .role,
+.auth-page .primary,
+.auth-page .secondary,
+.auth-page .tab,
+.auth-page .back,
+.auth-page .password-toggle,
+.auth-page input,
+.auth-page select,
+.auth-page textarea{
+  touch-action:manipulation;
+}
+.auth-page .role:focus-visible,
+.auth-page .primary:focus-visible,
+.auth-page .secondary:focus-visible,
+.auth-page .tab:focus-visible,
+.auth-page .back:focus-visible,
+.auth-page .password-toggle:focus-visible{
+  outline:3px solid var(--en-sky-500);
+  outline-offset:3px;
+  box-shadow:var(--en-focus);
+}
+.auth-page input[aria-invalid="true"],
+.auth-page select[aria-invalid="true"],
+.auth-page textarea[aria-invalid="true"]{
+  border-color:#db8f89;
+  background:var(--en-danger-bg);
+  box-shadow:0 0 0 4px rgba(178,58,53,.10);
+}
+.auth-page button:disabled,
+.auth-page .primary:disabled,
+.auth-page .secondary:disabled{
+  opacity:.58;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+.auth-page [aria-busy="true"]{
+  cursor:progress;
+}
+.auth-page input:-webkit-autofill{
+  -webkit-text-fill-color:var(--en-text);
+  box-shadow:0 0 0 1000px #fbfdff inset;
+  transition:background-color 9999s ease-out 0s;
+}
+.auth-page .field label{
+  color:#2b485f;
+  font-weight:760;
+  letter-spacing:.005em;
+}
+.auth-page .field small,
+.auth-page .help{
+  line-height:1.5;
+}
+.auth-page .status{
+  border:1px solid var(--en-border);
+  background:#f7fbfe;
+  color:#526b80;
+}
+.auth-page .status.show{
+  animation:authStatusIn var(--en-normal) var(--en-ease) both;
+}
+@keyframes authStatusIn{
+  from{opacity:0;transform:translateY(-3px)}
+  to{opacity:1;transform:none}
+}
+.admission-premium button,
+.admission-premium input,
+.admission-premium select,
+.admission-premium textarea{
+  touch-action:manipulation;
+}
+.admission-premium button:focus-visible,
+.admission-premium input:focus-visible,
+.admission-premium select:focus-visible,
+.admission-premium textarea:focus-visible,
+.admission-premium a:focus-visible{
+  outline:3px solid var(--en-sky-500);
+  outline-offset:3px;
+}
+.admission-premium button:disabled{
+  opacity:.58;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+.admission-premium .card{
+  content-visibility:auto;
+  contain-intrinsic-size:1px 520px;
+}
+@media(max-width:520px){
+  .auth-page .main{
+    padding-bottom:max(22px,env(safe-area-inset-bottom));
+  }
+  .auth-page .role strong{font-size:.9rem}
+  .auth-page .role small{font-size:.72rem}
+}
+@media(prefers-reduced-motion:reduce){
+  .auth-page .status.show{animation:none}
+}
+
