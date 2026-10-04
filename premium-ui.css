@@ -681,3 +681,103 @@ body.app-page{
   .app-page .nav-item,
   .app-page button{transition:none}
 }
+
+
+/* 2026-10-04 · Deep workspace component pass */
+
+.app-page .field{display:grid;gap:6px}
+.app-page .field>label,
+.app-page label{
+  color:#2d4a61;
+  font-weight:740;
+}
+.app-page .field small,
+.app-page .help,
+.app-page .muted{
+  color:var(--en-text-muted);
+}
+.app-page input::placeholder,
+.app-page textarea::placeholder{
+  color:#8b9dab;
+}
+.app-page input[aria-invalid="true"],
+.app-page select[aria-invalid="true"],
+.app-page textarea[aria-invalid="true"]{
+  border-color:#d98e88;
+  background:var(--en-danger-bg);
+  box-shadow:0 0 0 4px rgba(178,58,53,.10);
+}
+.app-page button[aria-busy="true"],
+.app-page [aria-busy="true"]{
+  cursor:progress;
+}
+.app-page .card[aria-busy="true"]{
+  position:relative;
+  overflow:hidden;
+}
+.app-page .card[aria-busy="true"]:after{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 15%,rgba(234,246,255,.76) 45%,transparent 75%);
+  transform:translateX(-100%);
+  animation:eduSkeletonSweep 1.35s var(--en-ease) infinite;
+  pointer-events:none;
+}
+@keyframes eduSkeletonSweep{to{transform:translateX(100%)}}
+.app-page .empty-state{
+  min-height:150px;
+  display:grid;
+  align-content:center;
+  justify-items:start;
+  gap:7px;
+  padding:22px;
+}
+.app-page .empty-state strong,
+.app-page .empty-state h3{
+  color:var(--en-navy-900);
+}
+.app-page .empty-state p{
+  margin:0;
+  max-width:560px;
+  color:var(--en-text-muted);
+  line-height:1.58;
+}
+.app-page .section-head{
+  scroll-margin-top:96px;
+}
+.app-page .view{
+  min-width:0;
+}
+.app-page .card,
+.app-page .paper-card{
+  overflow-wrap:anywhere;
+}
+.app-page .card img,
+.app-page .paper-card img{
+  max-width:100%;
+  height:auto;
+}
+.app-page .premium-mobile-dock button:focus-visible{
+  outline:3px solid var(--en-sky-500);
+  outline-offset:2px;
+}
+@media(max-width:760px){
+  .app-page input,
+  .app-page select,
+  .app-page textarea,
+  .app-page button{
+    font-size:16px;
+  }
+  .app-page .section-head{
+    gap:10px;
+  }
+  .app-page .section-head>button,
+  .app-page .section-head>.secondary,
+  .app-page .section-head>.primary{
+    min-height:44px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .app-page .card[aria-busy="true"]:after{animation:none}
+}
+
