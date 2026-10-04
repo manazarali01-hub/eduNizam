@@ -9,9 +9,9 @@
     "window-controls-overlay",
     "standalone"
   ],
-  "background_color": "#F4F7F2",
-  "theme_color": "#075347",
-  "description": "Premium role-based school management, attendance, admissions, communication and academic operations.",
+  "background_color": "#F4F9FD",
+  "theme_color": "#1769AA",
+  "description": "Premium role-based education management, admissions, communication, learning and academic operations.",
   "categories": [
     "education",
     "productivity"
