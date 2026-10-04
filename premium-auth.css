@@ -488,3 +488,27 @@ body.admission-premium{
   .auth-page .status.show{animation:none}
 }
 
+
+
+/* 2026-10-04 · 320px auth refinement */
+
+@media(max-width:360px){
+  .auth-page .main{padding:8px}
+  .auth-page .card{padding:14px;border-radius:18px}
+  .auth-page .roles{grid-template-columns:1fr}
+  .auth-page .role{
+    min-height:88px;
+    display:grid;
+    grid-template-columns:42px minmax(0,1fr);
+    column-gap:11px;
+    align-items:center;
+  }
+  .auth-page .role .icon{grid-row:1 / span 2;margin:0}
+  .auth-page .role strong,
+  .auth-page .role small{grid-column:2}
+  .auth-page .tabs{grid-template-columns:1fr 1fr}
+  .auth-page .row{gap:8px}
+  .admission-premium .shell{width:calc(100% - 12px)}
+  .admission-premium .card{padding:14px}
+}
+
