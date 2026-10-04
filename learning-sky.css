@@ -397,3 +397,21 @@ body.learning-sky{
   }
 }
 
+
+
+/* 2026-10-04 · 320px Learning Hub refinement */
+
+@media(max-width:360px){
+  .learning-sky .shell{width:calc(100% - 14px)}
+  .learning-sky .top-actions .btn.primary{padding-inline:10px;font-size:.75rem}
+  .learning-sky .hero-card{padding:19px 15px}
+  .learning-sky .hero h1{font-size:2.02rem}
+  .learning-sky .quick-card{padding:18px 15px}
+  .learning-sky .stats{grid-template-columns:1fr}
+  .learning-sky .searchbox{
+    padding:9px;
+    grid-template-columns:auto minmax(0,1fr);
+  }
+  .learning-sky .tab{padding:9px 11px}
+}
+
