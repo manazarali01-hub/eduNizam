@@ -308,3 +308,92 @@ body.learning-sky{
   .learning-sky .btn,
   .learning-sky .tab{transition:none}
 }
+
+
+/* 2026-10-04 · Deep Learning Hub interaction pass */
+
+.learning-sky a:focus-visible,
+.learning-sky button:focus-visible,
+.learning-sky input:focus-visible,
+.learning-sky select:focus-visible,
+.learning-sky textarea:focus-visible{
+  outline:3px solid var(--en-sky-500);
+  outline-offset:3px;
+  box-shadow:var(--en-focus);
+}
+.learning-sky button,
+.learning-sky .btn,
+.learning-sky .tab,
+.learning-sky input,
+.learning-sky select{
+  touch-action:manipulation;
+}
+.learning-sky .btn:disabled,
+.learning-sky button:disabled{
+  opacity:.56;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+.learning-sky [aria-busy="true"]{cursor:progress}
+.learning-sky .section{
+  scroll-margin-top:150px;
+}
+.learning-sky .card,
+.learning-sky .stat,
+.learning-sky .practice-box{
+  content-visibility:auto;
+  contain-intrinsic-size:1px 260px;
+}
+.learning-sky .preview-modal,
+.learning-sky .premium-modal{
+  overscroll-behavior:contain;
+}
+.learning-sky .preview-box,
+.learning-sky .premium-dialog{
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.learning-sky .searchbox input::placeholder,
+.learning-sky .paper-filters input::placeholder{
+  color:#8a9caa;
+}
+.learning-sky .paper-filters select{
+  text-overflow:ellipsis;
+}
+.learning-sky .empty,
+.learning-sky .smart-empty{
+  min-height:140px;
+  display:grid;
+  align-content:center;
+}
+.learning-sky .empty strong,
+.learning-sky .smart-empty h3{
+  color:var(--en-navy-900);
+}
+@media(max-width:620px){
+  .learning-sky .top-actions .btn.primary{
+    min-height:44px;
+    padding-inline:12px;
+  }
+  .learning-sky .hero-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .learning-sky .hero-actions .btn{
+    width:100%;
+    min-height:46px;
+    justify-content:center;
+  }
+  .learning-sky .paper-filters input,
+  .learning-sky .paper-filters select,
+  .learning-sky .paper-filters button{
+    font-size:16px;
+    min-height:46px;
+  }
+  .learning-sky .preview-box,
+  .learning-sky .premium-dialog{
+    max-height:92dvh;
+  }
+}
+
