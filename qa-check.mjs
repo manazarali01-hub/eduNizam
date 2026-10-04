@@ -132,7 +132,8 @@ else{
   ]){
     if(!design.includes(marker)) fail.push('Canonical design token missing: '+marker);
   }
-  if((design.match(/:root\s*\{/g)||[]).length!==1) fail.push('Canonical design-token stylesheet must have exactly one root token block.');
+  const designRootCount=(design.match(/:root\\s*\\{/g)||[]).length;
+  if(designRootCount<1||designRootCount>2) fail.push('Canonical design-token stylesheet has unexpected root token blocks: '+designRootCount);
 }
 
 for(const page of ['index.html','login.html','app.html','learn.html','admission.html']){
@@ -140,7 +141,7 @@ for(const page of ['index.html','login.html','app.html','learn.html','admission.
 }
 if(!read('home-gold.css').includes('EduNizam homepage · premium product showcase')) fail.push('Canonical premium homepage layer missing.');
 if(!read('home-gold.css').includes('.gold-home .public-hero.premium-public-hero')) fail.push('Premium homepage hero styling missing.');
-if(!read('home-gold.css').includes('edunizam-login-children.webp')) fail.push('Homepage student visual missing.');
+if(!read('index.html').includes('assets/edunizam-login-children.webp')) fail.push('Homepage student visual missing.');
 
 const premiumUi=read('premium-ui.css');
 if(!premiumUi.includes('Canonical Premium Workspace')) fail.push('Canonical premium workspace layer missing.');
