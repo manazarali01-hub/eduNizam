@@ -111,29 +111,69 @@ if(!exists('assets/edunizam-premium-mark.svg')) fail.push('Premium EduNizam bran
 else{
   const premiumMark=read('assets/edunizam-premium-mark.svg');
   if(!premiumMark.includes('#D7AA4A')&&!premiumMark.includes('#D9AE55')) fail.push('Premium brand mark has no restrained gold accent.');
-  if(!premiumMark.includes('#075347')&&!premiumMark.includes('#043B35')) fail.push('Premium brand mark has no deep emerald identity.');
 }
 if(!index.includes('assets/edunizam-premium-mark.svg')) fail.push('Main app does not use premium brand mark.');
 if(!read('login.html').includes('assets/edunizam-premium-mark.svg')) fail.push('Login does not use premium brand mark.');
 if(!read('admission.html').includes('assets/edunizam-premium-mark.svg')) fail.push('Admission portal does not use premium brand mark.');
-if(!read('premium-ui.css').includes('2026 Premium Emerald Appearance System')) fail.push('Premium emerald appearance layer missing.');
-if(!read('premium-ui.css').includes('edunizam-girl-hero.webp')) fail.push('Dashboard premium natural hero image missing.');
-if(!read('premium-auth.css').includes('2026 Premium Natural Auth Appearance')) fail.push('Premium natural auth appearance layer missing.');
-if(!read('premium-auth.css').includes('edunizam-login-children.webp')) fail.push('Login natural school background missing.');
-if(!read('premium-auth.css').includes('.brand-i:after')) fail.push('Golden EduNizam i-dot treatment missing.');
+
+if(!exists('edunizam-brand-refresh.css')) fail.push('Canonical EduNizam design-token stylesheet missing.');
+else{
+  const design=read('edunizam-brand-refresh.css');
+  for(const marker of [
+    '--en-navy-900:#102a43',
+    '--en-blue-600:#1769aa',
+    '--en-blue-500:#2f80ed',
+    '--en-sky-500:#5bb8f6',
+    '--en-gold-500:#d6a94d',
+    '--en-font-sans:',
+    '--en-radius-lg:',
+    '--en-shadow-md:',
+    '--en-normal:'
+  ]){
+    if(!design.includes(marker)) fail.push('Canonical design token missing: '+marker);
+  }
+  if((design.match(/:root\s*\{/g)||[]).length!==1) fail.push('Canonical design-token stylesheet must have exactly one root token block.');
+}
+
+for(const page of ['index.html','login.html','app.html','learn.html','admission.html']){
+  if(!read(page).includes('edunizam-brand-refresh.css')) fail.push('Canonical design tokens are not loaded on '+page+'.');
+}
+if(!read('home-gold.css').includes('EduNizam homepage · premium product showcase')) fail.push('Canonical premium homepage layer missing.');
+if(!read('home-gold.css').includes('.gold-home .public-hero.premium-public-hero')) fail.push('Premium homepage hero styling missing.');
+if(!read('home-gold.css').includes('edunizam-login-children.webp')) fail.push('Homepage student visual missing.');
+
+const premiumUi=read('premium-ui.css');
+if(!premiumUi.includes('Canonical Premium Workspace')) fail.push('Canonical premium workspace layer missing.');
+if(!premiumUi.includes('body.app-page')) fail.push('Premium workspace styling is not scoped to app page.');
+if(!premiumUi.includes('.premium-nav-icon')) fail.push('Premium sidebar icon styling missing.');
+if(!premiumUi.includes('.premium-mobile-dock')) fail.push('Premium mobile dock styling missing.');
+if(!premiumUi.includes('Mobile drawer reliability')) fail.push('Premium mobile drawer reliability layer missing.');
+if(!premiumUi.includes('.workspace-switch-modal')) fail.push('Premium workspace switcher styling missing.');
+if(!premiumUi.includes('.pb-print-sheet')) fail.push('Smart Paper Builder print styling missing.');
+const premiumImportantCount=(premiumUi.match(/!important/g)||[]).length;
+if(premiumImportantCount>20) fail.push('Premium workspace override debt is too high: '+premiumImportantCount+' !important rules.');
+
+const premiumAuth=read('premium-auth.css');
+if(!premiumAuth.includes('EduNizam authentication + admission visual layer')) fail.push('Canonical premium auth layer missing.');
+if(!premiumAuth.includes('.auth-page .story')) fail.push('Premium login split-story treatment missing.');
+if(!premiumAuth.includes('edunizam-login-children.webp')) fail.push('Login education background image missing.');
+if(!premiumAuth.includes('.auth-page .brand-i:after')) fail.push('Golden EduNizam i-dot treatment missing.');
+if(!premiumAuth.includes('body.admission-premium')) fail.push('Admission portal is not covered by the premium auth design system.');
+
+const learningUi=read('learning-sky.css');
+if(!learningUi.includes('premium student-first layer')) fail.push('Canonical Learning Hub premium layer missing.');
+if(!learningUi.includes('body.learning-sky')) fail.push('Learning Hub styling is not scoped.');
+if(!learningUi.includes('.learning-sky .searchbox:focus-within')) fail.push('Learning Hub search-first focus treatment missing.');
+
 if(!read('premium-ui.js').includes('premiumizeNavIcons')) fail.push('Premium sidebar line-icon normalization missing.');
 if(!read('premium-ui.js').includes('iconSvg')) fail.push('Premium navigation SVG icon system missing.');
-if(!read('premium-ui.css').includes('.premium-nav-icon')) fail.push('Premium sidebar icon styling missing.');
-if(!read('premium-ui.css').includes('.topbar-title:before')) fail.push('Mobile topbar brand mark missing.');
-if(!read('premium-auth.css').includes('Pixel-level auth refinement')) fail.push('Pixel-level auth refinement layer missing.');
-if(!read('premium-auth.css').includes('url("assets/edunizam-login-children.webp") center/cover fixed no-repeat')) fail.push('Mobile login does not retain natural background image.');
 if(!read('login.html').includes('<svg viewBox="0 0 24 24"')) fail.push('Login role cards still lack premium line icons.');
 
 if(!read('sw.js').includes("'./assets/edunizam-premium-mark.svg'")) fail.push('PWA cache does not include premium brand mark.');
-if(!read('sw.js').includes("'./assets/edunizam-girl-hero.webp'")) fail.push('PWA cache does not include premium dashboard hero.');
+if(!read('sw.js').includes("'./edunizam-brand-refresh.css'")) fail.push('PWA cache does not include canonical design tokens.');
 const manifest=JSON.parse(read('manifest.webmanifest'));
-if(manifest.theme_color!=='#075347') fail.push('PWA theme color is not premium emerald.');
-if(manifest.background_color!=='#F4F7F2') fail.push('PWA background color is not premium warm off-white.');
+if(manifest.theme_color!=='#1769AA') fail.push('PWA theme color is not canonical EduNizam blue.');
+if(manifest.background_color!=='#F4F9FD') fail.push('PWA background color is not canonical cool off-white.');
 
 
 const reliability=read('reliability-guardian.js');
