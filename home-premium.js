@@ -10,7 +10,10 @@
   window.addEventListener('scroll',updateNav,{passive:true});
 
   const revealNodes=[...document.querySelectorAll('[data-reveal]')];
-  if('IntersectionObserver' in window){
+  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduceMotion){
+    revealNodes.forEach(node=>node.classList.add('is-visible'));
+  }else if('IntersectionObserver' in window){
     const observer=new IntersectionObserver(entries=>{
       entries.forEach(entry=>{
         if(entry.isIntersecting){
@@ -74,6 +77,7 @@
       const active=tab.dataset.role===role;
       tab.classList.toggle('is-active',active);
       tab.setAttribute('aria-selected',String(active));
+      tab.tabIndex=active?0:-1;
     });
     if(label)label.textContent=data.label;
     if(kicker)kicker.textContent=data.kicker;
@@ -83,7 +87,21 @@
     if(items)items.innerHTML=data.items.map(item=>'<span>'+item+'</span>').join('');
   };
 
-  tabs.forEach(tab=>tab.addEventListener('click',()=>renderRole(tab.dataset.role)));
+  tabs.forEach((tab,index)=>{
+    tab.addEventListener('click',()=>renderRole(tab.dataset.role));
+    tab.addEventListener('keydown',event=>{
+      if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+      event.preventDefault();
+      let next=index;
+      if(event.key==='ArrowRight')next=(index+1)%tabs.length;
+      if(event.key==='ArrowLeft')next=(index-1+tabs.length)%tabs.length;
+      if(event.key==='Home')next=0;
+      if(event.key==='End')next=tabs.length-1;
+      const target=tabs[next];
+      renderRole(target.dataset.role);
+      target.focus();
+    });
+  });
 
   const hero=document.querySelector('[data-hero]');
   if(hero && matchMedia('(hover:hover) and (pointer:fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches){
