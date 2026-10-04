@@ -530,3 +530,63 @@
 @media(prefers-reduced-motion:reduce){
   .gold-home .hero-image-wrap img{transition:none;transform:none}
 }
+
+
+/* Premium reveal, keyboard and touch polish */
+.gold-home [data-reveal]{
+  opacity:1;
+  transform:none;
+}
+.gold-home.js [data-reveal]{
+  opacity:0;
+  transform:translateY(18px);
+  transition:
+    opacity var(--en-slow) var(--en-ease),
+    transform var(--en-slow) var(--en-ease);
+}
+.gold-home.js [data-reveal].is-visible{
+  opacity:1;
+  transform:none;
+}
+.gold-home .experience-strip article:nth-child(2){transition-delay:45ms}
+.gold-home .experience-strip article:nth-child(3){transition-delay:90ms}
+.gold-home .experience-strip article:nth-child(4){transition-delay:135ms}
+.gold-home .experience-strip article:nth-child(5){transition-delay:180ms}
+.gold-home .experience-strip article:nth-child(6){transition-delay:225ms}
+.gold-home a:focus-visible,
+.gold-home button:focus-visible{
+  outline:3px solid var(--en-sky-500);
+  outline-offset:3px;
+  box-shadow:var(--en-focus);
+}
+.gold-home .role-tab:focus-visible{
+  outline-offset:2px;
+}
+.gold-home .public-cta,
+.gold-home .role-tab,
+.gold-home .quick-actions a,
+.gold-home .quick-actions button{
+  touch-action:manipulation;
+}
+.gold-home .public-card,
+.gold-home .role-demo,
+.gold-home .learning-band,
+.gold-home .experience-strip{
+  content-visibility:auto;
+  contain-intrinsic-size:1px 420px;
+}
+@media(max-width:680px){
+  .gold-home .public-cta,
+  .gold-home .role-tab,
+  .gold-home .quick-actions a,
+  .gold-home .quick-actions button{
+    min-height:46px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .gold-home.js [data-reveal]{
+    opacity:1;
+    transform:none;
+    transition:none;
+  }
+}
