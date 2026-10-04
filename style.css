@@ -31,16 +31,17 @@
 
 /* ===== EduNizam Academic Frontend Refresh ===== */
 :root{
-  --edu-navy:#12324a;
-  --edu-navy-2:#0d2639;
-  --edu-teal:#0f766e;
-  --edu-teal-soft:#e8f5f2;
-  --edu-gold:#d7a438;
-  --edu-ink:#18313f;
-  --edu-muted:#6e7f88;
-  --edu-line:#dce6e8;
-  --edu-bg:#f5f8fa;
-  --edu-card:#ffffff;
+  /* Compatibility aliases intentionally point to the canonical EduNizam design system. */
+  --edu-navy:var(--en-navy-900,#102a43);
+  --edu-navy-2:var(--en-navy-950,#081f33);
+  --edu-teal:var(--en-blue-600,#1769aa);
+  --edu-teal-soft:var(--en-sky-100,#eaf6ff);
+  --edu-gold:var(--en-gold-500,#d6a94d);
+  --edu-ink:var(--en-text,#17324d);
+  --edu-muted:var(--en-text-muted,#667d91);
+  --edu-line:var(--en-border,#d9e7f1);
+  --edu-bg:var(--en-bg,#f4f9fd);
+  --edu-card:var(--en-surface,#ffffff);
 }
 body{
   background:
