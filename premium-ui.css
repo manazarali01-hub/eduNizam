@@ -781,3 +781,28 @@ body.app-page{
   .app-page .card[aria-busy="true"]:after{animation:none}
 }
 
+
+
+/* 2026-10-04 · 320px workspace refinement */
+
+@media(max-width:360px){
+  .app-page .main{padding-left:7px;padding-right:7px}
+  .app-page .topbar{padding:8px 7px}
+  .app-page .topbar h1{font-size:1.35rem}
+  .app-page .cards{grid-template-columns:1fr}
+  .app-page .stat{min-height:94px}
+  .app-page .premium-context{gap:4px}
+  .app-page .premium-context-chip{padding:6px 8px}
+  .app-page .campus-hero{padding:17px;border-radius:18px}
+  .app-page .campus-hero h2{font-size:1.72rem}
+  .app-page .premium-mobile-dock{
+    width:calc(100% - 8px);
+    padding:5px;
+    border-radius:17px;
+  }
+  .app-page .premium-mobile-dock button{
+    min-height:49px;
+    padding:4px 2px;
+  }
+}
+
