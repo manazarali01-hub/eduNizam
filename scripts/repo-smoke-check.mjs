@@ -138,7 +138,7 @@ for(const marker of ["function closePremium()","if(level==='university')","data-
   guestPremium.includes(marker)?ok("visitor:premium:"+marker):bad("visitor:premium:"+marker,"missing");
 }
 if(!read("index.html").includes('href="login.html">Login / Sign Up</a>'))bad("visitor:landing-login","Public landing must expose Login / Sign Up");else ok("visitor:landing-login");
-learn.includes('.search-wrap{position:relative;top:auto;z-index:2}')?ok("visitor:mobile-search-flow"):bad("visitor:mobile-search-flow","mobile search must not remain sticky over content");
+read('learning-sky.css').includes('.search-wrap{position:relative;top:auto;z-index:2}')?ok("visitor:mobile-search-flow"):bad("visitor:mobile-search-flow","mobile search must not remain sticky over content");
 guestPremium.includes('flex-wrap:nowrap!important')?ok("visitor:mobile-chip-scroll"):bad("visitor:mobile-chip-scroll","mobile search chips must scroll horizontally");
 guestPremium.includes('search-tools-collapsed')?ok("visitor:search-collapse"):bad("visitor:search-collapse","search suggestions must collapse after submit");
 read("school-assessment-data.js").includes("pectaa-g5-math-curriculum")?ok("visitor:g5-math-resource"):bad("visitor:g5-math-resource","official Grade 5 Mathematics resource missing");
@@ -149,7 +149,7 @@ practiceData.includes('id:"q21"')&&practiceData.includes('chapter:"Periodic Tabl
 guestPremium.includes("refreshPracticeOptions")?ok("visitor:practice-data-filters"):bad("visitor:practice-data-filters","practice filters must come from available questions");
 guestPremium.includes("baseActions.hidden=true")?ok("visitor:practice-nav"):bad("visitor:practice-nav","legacy duplicate practice navigation must be hidden");
 guestPremium.includes("baseActions.style.display='none'")?ok("visitor:practice-nav-force-hide"):bad("visitor:practice-nav-force-hide","legacy practice navigation must be force-hidden");
-learn.includes('.practice-actions[hidden],.practice-actions[aria-hidden="true"]{display:none!important}')?ok("visitor:practice-hidden-css"):bad("visitor:practice-hidden-css","hidden Practice navigation CSS guard missing");
+read('learning-sky.css').includes('.practice-actions[hidden],.practice-actions[aria-hidden="true"]{display:none!important}')?ok("visitor:practice-hidden-css"):bad("visitor:practice-hidden-css","hidden Practice navigation CSS guard missing");
 !guestPremium.includes("No practice question matches these filters. Try another class, subject, chapter or difficulty.")?ok("visitor:practice-no-dead-end"):bad("visitor:practice-no-dead-end","dead-end practice message remains");
 for(const marker of ["guestStudySubject","guestStudyType","guestUniversitySummary","refreshTypes=()=>","data-hub-filter","function applyHubShortcut"]){
   guestPremium.includes(marker)?ok("learning:control:"+marker):bad("learning:control:"+marker,"missing");
