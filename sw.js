@@ -1,4 +1,4 @@
-const CACHE='edunizam-v218-photo-first'
+const CACHE='edunizam-v219-premium-blue'
 const CORE=[
   './',
   './index.html',
@@ -6,6 +6,7 @@ const CORE=[
   './login.html',
   './admission.html',
   './style.css',
+  './edunizam-brand-refresh.css',
   './cloud-config.js',
   './storage-scope.js',
   './reliability-guardian.js',
