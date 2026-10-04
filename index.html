@@ -128,13 +128,13 @@
 
       <div class="role-demo">
         <div class="role-selector" role="tablist" aria-label="EduNizam role preview">
-          <button class="role-tab is-active" type="button" role="tab" aria-selected="true" data-role="admin">Admin</button>
-          <button class="role-tab" type="button" role="tab" aria-selected="false" data-role="teacher">Teacher</button>
-          <button class="role-tab" type="button" role="tab" aria-selected="false" data-role="student">Student</button>
-          <button class="role-tab" type="button" role="tab" aria-selected="false" data-role="parent">Parent</button>
+          <button class="role-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="role-preview-panel" tabindex="0" data-role="admin">Admin</button>
+          <button class="role-tab" type="button" role="tab" aria-selected="false" aria-controls="role-preview-panel" tabindex="-1" data-role="teacher">Teacher</button>
+          <button class="role-tab" type="button" role="tab" aria-selected="false" aria-controls="role-preview-panel" tabindex="-1" data-role="student">Student</button>
+          <button class="role-tab" type="button" role="tab" aria-selected="false" aria-controls="role-preview-panel" tabindex="-1" data-role="parent">Parent</button>
         </div>
 
-        <div class="role-preview" aria-live="polite">
+        <div class="role-preview" id="role-preview-panel" role="tabpanel" tabindex="0" aria-live="polite">
           <div class="preview-window">
             <div class="preview-topbar">
               <div class="preview-brand"><span class="preview-mark"><img src="assets/edunizam-premium-mark.svg" alt=""></span><strong>EduNizam</strong></div>
