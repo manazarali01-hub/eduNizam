@@ -515,7 +515,7 @@ for(const marker of ['portal-','pectaa-g5-english','pectaa-g8-english-model','pe
   if(!learningComplete.includes(marker)) fail.push('Learning Hub complete-data marker missing: '+marker);
 }
 if(/style\.display\s*=/.test(read('guest-learning-nav.js'))) fail.push('Guest navigation can leave stale inline display state.');
-if(!guestLearn.includes('.search-wrap{position:relative;top:auto;z-index:2}')) fail.push('Mobile Guest search must not stay sticky over learning results.');
+if(!read('learning-sky.css').includes('.search-wrap{position:relative;top:auto;z-index:2}')) fail.push('Mobile Guest search must not stay sticky over learning results.');
 if(!read('guest-learning-premium.js').includes('flex-wrap:nowrap!important')) fail.push('Mobile Guest search chips must remain in a horizontal scroller.');
 if(!read('guest-learning-premium.js').includes('search-tools-collapsed')) fail.push('Guest search suggestions do not collapse after a search is submitted.');
 if(!read('school-assessment-data.js').includes('pectaa-g5-math-curriculum')) fail.push('Official Grade 5 Mathematics visitor resource missing.');
@@ -527,7 +527,7 @@ if(!practiceData.includes('id:"q21"')||!practiceData.includes('chapter:"Periodic
 if(!guestPractice.includes('refreshPracticeOptions')) fail.push('Practice Center filters are not question-backed.');
 if(!guestPractice.includes("baseActions.hidden=true")) fail.push('Duplicate legacy Practice navigation remains visible.');
 if(!guestPractice.includes("baseActions.style.display='none'")) fail.push('Legacy Practice navigation is not force-hidden against author CSS.');
-if(!guestLearn.includes('.practice-actions[hidden],.practice-actions[aria-hidden="true"]{display:none!important}')) fail.push('Practice hidden-state CSS guard missing.');
+if(!read('learning-sky.css').includes('.practice-actions[hidden],.practice-actions[aria-hidden="true"]{display:none!important}')) fail.push('Practice hidden-state CSS guard missing.');
 if(guestPractice.includes('No practice question matches these filters. Try another class, subject, chapter or difficulty.')) fail.push('Practice Center still contains the dead-end filter message.');
 const guestPremium=read('guest-learning-premium.js');
 for(const marker of ["function closePremium()","if(level==='university')","data-study-id","paperSession","paperLevel"]){if(!guestPremium.includes(marker)) fail.push('Guest Learning regression marker missing: '+marker)}
