@@ -590,3 +590,32 @@
     transition:none;
   }
 }
+
+
+/* 2026-10-04 · 320px mobile refinement */
+
+@media(max-width:360px){
+  .gold-home .public-brand small{display:none}
+  .gold-home .public-main{width:min(100% - 16px,var(--en-content))}
+  .gold-home .public-hero.premium-public-hero{
+    padding:24px 14px 18px;
+    border-radius:21px;
+  }
+  .gold-home .public-hero.premium-public-hero h1{
+    font-size:2.08rem;
+    line-height:1.04;
+  }
+  .gold-home .public-hero p{font-size:.92rem}
+  .gold-home .hero-image-wrap{min-height:320px}
+  .gold-home .hero-role-badge{max-width:92%}
+  .gold-home .experience-strip{grid-template-columns:1fr}
+  .gold-home .experience-strip article{
+    border-right:0;
+    border-bottom:1px solid #e5eff6;
+  }
+  .gold-home .experience-strip article:last-child{border-bottom:0}
+  .gold-home .role-selector{grid-template-columns:1fr 1fr}
+  .gold-home .preview-body{grid-template-columns:38px minmax(0,1fr)}
+  .gold-home .preview-content{padding:17px 12px}
+}
+
