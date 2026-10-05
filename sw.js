@@ -1,4 +1,4 @@
-const CACHE='edunizam-v227-mobile-auth-fix'
+const CACHE='edunizam-v228-retry-recovery'
 const CORE=[
   './',
   './index.html',
