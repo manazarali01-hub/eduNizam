@@ -647,6 +647,96 @@ body.admission-premium{
 .admission-premium .badge,.admission-premium .meta{font-size:13.5px!important}
 .admission-premium .callout,.admission-premium .status{font-size:15px!important;line-height:1.6}
 
+/* ---------- Tiny-text elimination / readable metadata ---------- */
+.gold-home .public-brand small{font-size:12.5px!important}
+.gold-home .public-links a{font-size:15px!important}
+.gold-home .public-kicker{font-size:13.5px!important}
+.gold-home .public-cta{font-size:16.5px!important}
+.gold-home .hero-text-link{font-size:15px!important}
+.gold-home .public-proof span{font-size:14.5px!important}
+.gold-home .portrait-caption span{font-size:13px!important}
+.gold-home .quick-card-top strong{font-size:17px!important}
+.gold-home .quick-card-top small{font-size:14px!important}
+.gold-home .quick-actions a,.gold-home .quick-actions button{font-size:15.5px!important}
+.gold-home .quick-access-card>p{font-size:14px!important;line-height:1.5}
+.gold-home .hero-role-badge span{font-size:12.5px!important}
+.gold-home .experience-strip strong{font-size:16.5px!important}
+.gold-home .experience-strip small{font-size:14px!important}
+.gold-home .eyebrow{font-size:13px!important}
+.gold-home .section-heading p,.gold-home .learning-copy p{font-size:17px!important}
+.gold-home .role-tab{font-size:15px!important}
+.gold-home .preview-role,.gold-home .preview-welcome small{font-size:13px!important}
+.gold-home .preview-welcome p{font-size:15px!important;line-height:1.55}
+.gold-home .preview-cards span,.gold-home .preview-note{font-size:14px!important}
+.gold-home .card-index{font-size:13px!important}
+.gold-home .public-card p{font-size:16.5px!important}
+.gold-home .public-card a{font-size:15px!important}
+.gold-home .learning-links>a:not(.public-cta){font-size:15px!important}
+.gold-home .resource-card small{font-size:13px!important}
+.gold-home .resource-card span{font-size:14px!important}
+.gold-home .public-note,.gold-home .public-footer span{font-size:14.5px!important;line-height:1.6}
+
+.premium-public-page .public-links{font-size:15px!important}
+.premium-public-page .public-kicker{font-size:13px!important}
+.premium-public-page .public-cta{font-size:16px!important}
+.premium-public-page .public-card p{font-size:16.5px!important}
+
+.auth-page .benefits span{font-size:14px!important}
+.auth-page .eyebrow{font-size:13px!important}
+.auth-page .role small{font-size:15px!important}
+
+.learning-sky .brand small{font-size:13px!important}
+.learning-sky .kicker{font-size:13px!important}
+.learning-sky .badge{font-size:13px!important}
+.learning-sky .stat span{font-size:14px!important}
+.learning-sky .search-suggestions button{font-size:14.5px!important}
+.learning-sky .footer{font-size:14.5px!important}
+
+.app-page .badge,.app-page .trust-badge,.app-page .mini-badge,.app-page .region-pill{font-size:13px!important}
+.app-page .paper-actions a{font-size:15px!important}
+.app-page .coverage-note{font-size:14px!important}
+.app-page .eyebrow{font-size:13px!important}
+.app-page .pp-stats span{font-size:14px!important}
+.app-page .paper-meta span{font-size:13.5px!important}
+.app-page .math-preview-label{font-size:13px!important}
+.app-page .merit-table th{font-size:14px!important}
+.app-page .auth-help{font-size:14px!important}
+.app-page .role-action-card span{font-size:13.5px!important}
+.app-page .brand small{font-size:12.5px!important}
+.app-page .academic-kicker{font-size:12.5px!important}
+.app-page .academic-pill{font-size:13px!important}
+.app-page .campus-label{font-size:13px!important}
+.app-page .campus-visual span{font-size:14px!important}
+.app-page .trend-col span,.app-page .trend-col small{font-size:13px!important}
+.app-page .attendance-day{font-size:13px!important;min-width:36px}
+.app-page .attendance-day strong{font-size:14px!important}
+.app-page .highlight-card span{font-size:13px!important}
+.app-page .seo-footer{font-size:14px!important}
+.app-page .nav-group summary,.app-page .nav-group .nav-item{font-size:14px!important}
+.app-page .time-punch-grid span,.app-page .import-summary>*,.app-page .schedule-table th{font-size:14px!important}
+.app-page .schedule-table,.app-page .merit-table,.app-page .fee-row{font-size:14.5px!important}
+.app-page .topbar p,.app-page .topbar-title p{font-size:15px!important}
+.app-page #roleSession{font-size:14px!important}
+.app-page .sidebar-institute-copy small{font-size:12.5px!important}
+.app-page .sidebar-institute-copy span,.app-page .institute-hero-identity span{font-size:13.5px!important}
+.app-page .admin-daily-stats span,.app-page .admin-daily-actions button>small{font-size:13.5px!important}
+.app-page .admin-action-count{font-size:13px!important}
+.app-page .leave-summary span{font-size:13.5px!important}
+.app-page .leave-request-form label,.app-page .leave-admin-decision label{font-size:15px!important}
+.app-page .leave-request-reason strong{font-size:14px!important}
+.app-page .attendance-alert-counts span,.app-page .attendance-alert-status{font-size:13.5px!important}
+
+.app-page .premium-workspace-badge{font-size:13px!important}
+.app-page .premium-mobile-dock button,.app-page .premium-mobile-dock button strong{font-size:13px!important}
+.app-page .audit-stat-grid span,.app-page .audit-event-top time,.app-page .audit-event-meta span{font-size:13.5px!important}
+.app-page .premium-workspace-switch{font-size:13.5px!important}
+.app-page .workspace-choice strong{font-size:15px!important}
+.app-page .workspace-choice small,.app-page .workspace-choice em{font-size:13.5px!important}
+.app-page .feature-loading-notice{font-size:14px!important}
+.app-page .pb-meta,.app-page .pb-student-line,.app-page .pb-section h3 span{font-size:14px!important}
+.app-page .sidebar-wordmark small{font-size:12.5px!important}
+.app-page .premium-stat-meta{font-size:13.5px!important}
+
 /* ---------- Responsive ---------- */
 @media(max-width:1100px){
   :root{--en-sidebar:264px}
