@@ -1,304 +1,369 @@
 (function(){
+  'use strict';
+
   const LOCAL_KEY='edunizam_session';
   const RUNTIME_KEY='edunizam_cloud_runtime_config';
+  const HANDOFF_KEY='edunizam_secure_login_handoff';
+  const STATES=Object.freeze({
+    BOOTING:'BOOTING',
+    UNAUTHENTICATED:'UNAUTHENTICATED',
+    AUTHENTICATING:'AUTHENTICATING',
+    AUTHENTICATED:'AUTHENTICATED',
+    AUTHORIZING:'AUTHORIZING',
+    WORKSPACE_READY:'WORKSPACE_READY',
+    BACKGROUND_SYNC:'BACKGROUND_SYNC',
+    OFFLINE_READY:'OFFLINE_READY',
+    AUTH_ERROR:'AUTH_ERROR'
+  });
+
+  const runtimeState={state:STATES.BOOTING,detail:{},verification:null,syncScheduled:false};
   const cloud=()=>window.EDUNIZAM_CLOUD;
-  const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
-  const mapRole=r=>r==='head_of_institute'?'head':(['student','parent','teacher','head'].includes(r)?r:'');
-  const normalizeIdentity=v=>String(v||'').trim().toLowerCase();
-  let verifiedWorkspaceKey='';
-  let acceptedHandoffUntil=0;
-  let acceptedHandoffKey='';
-  let handoffReadyEventSent=false;
+  const dataRuntime=()=>window.EDUNIZAM_DATA_RUNTIME;
+  const mapRole=r=>r==='head_of_institute'?'head':(['head','teacher','parent','student'].includes(r)?r:'');
+  const cloudRole=r=>r==='head'?'head_of_institute':r;
 
-  function workspaceKey(user){
-    if(!user?.id)return '';
-    let session=null;try{session=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null')}catch(_){}
-    const institutionId=String(session?.institutionId||readRuntime().institutionId||'').trim();
-    return String(user.id)+'|'+institutionId;
+  const readJson=(storage,key,fallback=null)=>{
+    try{return JSON.parse(storage.getItem(key)||'null')??fallback}catch(_){return fallback}
+  };
+  const readLocal=()=>readJson(localStorage,LOCAL_KEY,null);
+  const readRuntime=()=>readJson(localStorage,RUNTIME_KEY,{})||{};
+
+  function transition(next,detail={}){
+    runtimeState.state=next;
+    runtimeState.detail={...detail,at:Date.now()};
+    document.documentElement.dataset.authState=next;
+    document.documentElement.classList.toggle('edu-sync-pending',next===STATES.BACKGROUND_SYNC||next===STATES.OFFLINE_READY);
+    window.dispatchEvent(new CustomEvent('edunizam:auth-state',{detail:{state:next,...runtimeState.detail}}));
   }
 
-  function configured(){
-    const c=cloud();
-    return !!(cfg().enabled&&c?.ready?.()&&c?.state?.client);
+  function validLocal(session=readLocal()){
+    return !!(
+      session&&
+      session.source==='supabase'&&
+      ['head','teacher','parent','student'].includes(session.role)&&
+      String(session.institutionId||'').trim()
+    );
   }
-  function removeDemoLogin(){document.getElementById('edunizamLogin')?.remove()}
-  function readRuntime(){
-    try{return JSON.parse(localStorage.getItem(RUNTIME_KEY)||'{}')}catch(_){return{}}
-  }
-  function readSecureLoginHandoff(){
-    try{
-      const raw=sessionStorage.getItem('edunizam_secure_login_handoff');
-      if(!raw)return null;
-      const handoff=JSON.parse(raw);
-      const localSession=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null');
-      const runtime=readRuntime();
-      const institutionId=String(localSession?.institutionId||runtime.institutionId||'').trim();
-      const fresh=Number(handoff?.at||0)>0&&Date.now()-Number(handoff.at)<120000;
-      const matches=!!(
-        fresh&&
-        handoff?.userId&&
-        handoff?.institutionId&&
-        String(handoff.institutionId)===institutionId&&
-        handoff?.role===localSession?.role&&
-        localSession?.source==='supabase'
-      );
-      return matches?handoff:null;
-    }catch(_){return null}
-  }
-  function acceptSecureLoginHandoff(){
-    const handoff=readSecureLoginHandoff();
-    if(!handoff)return null;
-    acceptedHandoffUntil=Math.max(acceptedHandoffUntil,Date.now()+120000);
-    acceptedHandoffKey=String(handoff.userId)+'|'+String(handoff.institutionId||'');
-    verifiedWorkspaceKey=acceptedHandoffKey;
-    localStorage.setItem('edunizam_cloud_user_id',String(handoff.userId));
-    hideAuthScreen();
-    removeDemoLogin();
-    if(!handoffReadyEventSent){
-      handoffReadyEventSent=true;
-      queueMicrotask(()=>window.dispatchEvent(new CustomEvent('edunizam:workspace-ready',{
-        detail:{userId:String(handoff.userId),institutionId:String(handoff.institutionId||''),source:'login-handoff'}
-      })));
-    }
+
+  function readHandoff(){
+    const handoff=readJson(sessionStorage,HANDOFF_KEY,null);
+    const session=readLocal();
+    if(!handoff||!validLocal(session))return null;
+    const expires=Number(handoff.expiresAt||0)||Number(handoff.at||0)+120000;
+    if(!Number(handoff.at||0)||Date.now()>expires)return null;
+    if(String(handoff.institutionId||'')!==String(session.institutionId||''))return null;
+    if(String(handoff.role||'')!==String(session.role||''))return null;
     return handoff;
   }
-  function consumeSecureLoginHandoff(user,role){
-    const handoff=readSecureLoginHandoff();
-    if(!handoff)return false;
-    return !!(
-      user?.id&&
-      String(handoff.userId)===String(user.id)&&
-      handoff.role===mapRole(role)
-    );
-  }
+
   function clearLocalAuthState(){
-    verifiedWorkspaceKey='';
-    localStorage.removeItem(LOCAL_KEY);
-    localStorage.removeItem('edunizam_cloud_user_id');
-    const runtime=readRuntime();
-    if(runtime.institutionId){
-      runtime.institutionId='';
-      localStorage.setItem(RUNTIME_KEY,JSON.stringify(runtime));
+    try{localStorage.removeItem(LOCAL_KEY)}catch(_){}
+    try{localStorage.removeItem('edunizam_cloud_user_id')}catch(_){}
+    try{sessionStorage.removeItem(HANDOFF_KEY)}catch(_){}
+    const r=readRuntime();
+    if(r.institutionId){
+      r.institutionId='';
+      try{localStorage.setItem(RUNTIME_KEY,JSON.stringify(r))}catch(_){}
     }
+    runtimeState.verification=null;
+    runtimeState.syncScheduled=false;
   }
-  function setLocalSession(role,identity){
-    let existing=null;
-    try{existing=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null')}catch(_){}
-    const runtime=readRuntime();
-    const nextIdentity=identity||existing?.identity||'';
-    const sameUser=!!(
-      existing?.identity&&nextIdentity&&
-      normalizeIdentity(existing.identity)===normalizeIdentity(nextIdentity)
-    );
-    const institutionId=sameUser?(existing?.institutionId||runtime.institutionId||''):'';
-    const schoolName=sameUser?(existing?.schoolName||''):'';
-    localStorage.setItem(LOCAL_KEY,JSON.stringify({
-      role:mapRole(role),
-      identity:nextIdentity,
-      loginAt:sameUser?(existing?.loginAt||Date.now()):Date.now(),
+
+  function unlockUI(){
+    document.getElementById('cloudAuthScreen')?.remove();
+    document.body?.classList.remove('mobile-nav-lock');
+    const backdrop=document.getElementById('eduMobileNavBackdrop');
+    if(backdrop&&!backdrop.classList.contains('show')){
+      backdrop.style.display='none';
+      backdrop.style.pointerEvents='none';
+      backdrop.style.visibility='hidden';
+      backdrop.setAttribute('aria-hidden','true');
+    }
+    document.documentElement.classList.remove('edu-feature-loading');
+  }
+
+  function style(){
+    if(document.getElementById('cloudAuthBridgeStyle'))return;
+    const s=document.createElement('style');
+    s.id='cloudAuthBridgeStyle';
+    s.textContent='.cloud-auth-screen{position:fixed;inset:0;z-index:10050;isolation:isolate;pointer-events:auto!important;touch-action:auto;background:linear-gradient(135deg,#071b33,#0f766e);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}.cloud-auth-card{position:relative;z-index:2;width:min(560px,100%);background:#fff;border-radius:24px;padding:28px;box-shadow:0 28px 80px #001a}.cloud-auth-card h1{margin:0 0 10px;color:#0b2748;line-height:1.08;font-size:clamp(30px,7vw,48px)}.cloud-auth-card p{color:#536579;font-size:17px;line-height:1.55}.cloud-auth-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.cloud-auth-actions a,.cloud-auth-actions button{min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;padding:11px 14px;border-radius:12px;font:inherit;font-weight:800;text-decoration:none;box-sizing:border-box;pointer-events:auto!important;touch-action:manipulation;cursor:pointer}.cloud-auth-actions .cloud-auth-nav{background:#f7fafc;color:#24465f;border:1px solid #d9e7f1}.cloud-auth-actions #cloudAuthRetry{grid-column:1/-1;border:0;background:linear-gradient(135deg,#1769aa,#2f80ed);color:#fff}.cloud-auth-actions [hidden]{display:none!important}@media(max-width:560px){.cloud-auth-screen{place-items:start center;padding-top:clamp(34px,10vh,92px)}.cloud-auth-card{padding:24px 20px;border-radius:22px}.cloud-auth-actions{grid-template-columns:1fr}}';
+    document.head.appendChild(s);
+  }
+
+  function showAccess(message,state=STATES.UNAUTHENTICATED,retry=false){
+    style();
+    transition(state,{message});
+    let screen=document.getElementById('cloudAuthScreen');
+    if(!screen){
+      screen=document.createElement('div');
+      screen.id='cloudAuthScreen';
+      screen.className='cloud-auth-screen';
+      screen.innerHTML='<section class="cloud-auth-card"><div class="academic-kicker">EduNizam Secure Access</div><h1>School access required</h1><p id="cloudAuthGuardMessage"></p><div class="cloud-auth-actions"><a id="cloudAuthLogin" class="cloud-auth-nav" href="login.html?from=secure-guard">Go to Login</a><a id="cloudAuthGuest" class="cloud-auth-nav" href="learn.html?from=secure-guard">Continue as Guest</a><button id="cloudAuthRetry" type="button" hidden>Retry session check</button></div></section>';
+      document.body.appendChild(screen);
+      const retryBtn=screen.querySelector('#cloudAuthRetry');
+      retryBtn.onclick=async()=>{
+        if(retryBtn.disabled)return;
+        retryBtn.disabled=true;
+        retryBtn.textContent='Checking…';
+        try{await restoreOrVerify(true)}
+        finally{
+          const live=document.getElementById('cloudAuthRetry');
+          if(live){live.disabled=false;live.textContent='Retry session check'}
+        }
+      };
+    }
+    screen.querySelector('#cloudAuthGuardMessage').textContent=message;
+    screen.querySelector('#cloudAuthRetry').hidden=!retry;
+    return screen;
+  }
+
+  function updateLocalFromAccess(access,user){
+    const current=readLocal()||{};
+    const role=mapRole(access.workspace_role||access._membership_role||current.role);
+    const next={
+      ...current,
+      role,
+      identity:user?.email||current.identity||'',
+      loginAt:current.loginAt||Date.now(),
       source:'supabase',
-      institutionId,
-      schoolName
-    }));
+      schoolName:access.name||current.schoolName||'',
+      institutionId:access.id||current.institutionId||''
+    };
+    localStorage.setItem(LOCAL_KEY,JSON.stringify(next));
+    const r=readRuntime();
+    r.enabled=true;
+    r.institutionId=next.institutionId;
+    localStorage.setItem(RUNTIME_KEY,JSON.stringify(r));
+    if(window.EDUNIZAM_CLOUD_CONFIG){
+      window.EDUNIZAM_CLOUD_CONFIG.enabled=true;
+      window.EDUNIZAM_CLOUD_CONFIG.institutionId=next.institutionId;
+    }
+    if(user?.id)localStorage.setItem('edunizam_cloud_user_id',user.id);
+    return next;
   }
-  async function refreshScopedRoleCache(roleValue,force=false){
-    const localRole=mapRole(roleValue);
-    if(!['teacher','parent','student'].includes(localRole))return false;
-    const c=cloud(),core=window.EDUNIZAM_CORE_CLOUD;
-    if(!c?.state?.user||!core?.pullAllCloudToLocal)return false;
-    const runtime=readRuntime();
-    let existing=null;try{existing=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null')}catch(_){}
-    const institutionId=String(existing?.institutionId||runtime.institutionId||'').trim();
-    if(!institutionId)return false;
-    const key='edunizam_role_cache_sync:'+c.state.user.id+':'+institutionId;
-    const last=Number(sessionStorage.getItem(key)||0);
-    if(!force&&last&&Date.now()-last<120000)return false;
-    try{
-      await core.pullAllCloudToLocal();
-      sessionStorage.setItem(key,String(Date.now()));
-      window.dispatchEvent(new CustomEvent('edunizam:role-cache-refreshed',{detail:{role:localRole,institutionId}}));
-      const reloadKey=key+':reloaded';
-      if(!sessionStorage.getItem(reloadKey)){
-        sessionStorage.setItem(reloadKey,'1');
-        location.reload();
+
+  function workspaceReady(source='local',detail={}){
+    unlockUI();
+    transition(navigator.onLine?STATES.WORKSPACE_READY:STATES.OFFLINE_READY,{source,...detail});
+    window.dispatchEvent(new CustomEvent('edunizam:workspace-ready',{detail:{source,...detail}}));
+    scheduleBackgroundSync();
+  }
+
+  async function waitCloud(timeout=3500){
+    const c=cloud();
+    if(!c)return null;
+    const p=c.whenReady?c.whenReady():Promise.resolve(c);
+    const rt=dataRuntime();
+    if(rt){
+      return rt.run('cloud-runtime-ready',()=>p,{timeout,retries:0,fallback:null,label:'Cloud session restore'});
+    }
+    return Promise.race([p,new Promise(resolve=>setTimeout(()=>resolve(null),timeout))]);
+  }
+
+  async function verifyCurrentWorkspace(force=false){
+    const local=readLocal();
+    if(!validLocal(local))return false;
+    if(runtimeState.verification&&!force)return runtimeState.verification;
+
+    runtimeState.verification=(async()=>{
+      const c=cloud();
+      transition(STATES.AUTHORIZING,{source:'background'});
+      const ready=await waitCloud(4000);
+      if(!ready||!c?.state?.client){
+        workspaceReady('offline-cache',{reason:'cloud-init-timeout'});
         return true;
       }
+
+      let user=c.state.user||null;
+      if(!user){
+        const rt=dataRuntime();
+        let response;
+        try{
+          response=rt
+            ?await rt.run('auth-session-restore',()=>c.state.client.auth.getSession(),{timeout:4000,retries:0,label:'Session restore'})
+            :await c.state.client.auth.getSession();
+        }catch(_){
+          workspaceReady('offline-cache',{reason:'session-timeout'});
+          return true;
+        }
+        user=response?.data?.session?.user||null;
+      }
+
+      if(!user){
+        if(!navigator.onLine){
+          workspaceReady('offline-cache',{reason:'offline-no-session-check'});
+          return true;
+        }
+        clearLocalAuthState();
+        showAccess('Your secure session has ended. Sign in again to open private school data.',STATES.UNAUTHENTICATED,false);
+        return false;
+      }
+
+      const expected=cloudRole(local.role);
+      let access=null;
+      try{
+        access=await c.verifyWorkspaceAccess?.(local.institutionId,expected);
+      }catch(error){
+        const type=dataRuntime()?.classify?.(error)||'DATA_FETCH_FAILED';
+        if(['NETWORK_TIMEOUT','NETWORK_OFFLINE','SERVER_TEMPORARY_FAILURE'].includes(type)){
+          workspaceReady('offline-cache',{reason:type});
+          return true;
+        }
+        console.warn('Workspace authorization:',error?.message||error);
+        workspaceReady('local-cache',{reason:'authorization-check-error'});
+        return true;
+      }
+
+      if(!access){
+        clearLocalAuthState();
+        showAccess('This account is no longer approved for the selected school workspace. Sign in and select an approved school.',STATES.AUTH_ERROR,false);
+        return false;
+      }
+
+      const next=updateLocalFromAccess(access,user);
+      try{sessionStorage.removeItem(HANDOFF_KEY)}catch(_){}
+      workspaceReady('verified',{userId:user.id,institutionId:next.institutionId,role:next.role});
+      return true;
+    })();
+
+    try{return await runtimeState.verification}
+    finally{runtimeState.verification=null}
+  }
+
+  async function refreshScopedRoleCache(){
+    const local=readLocal();
+    if(!validLocal(local))return false;
+    try{
       await window.EDUNIZAM_ROLE_SCOPE?.refresh?.();
       return true;
     }catch(e){
-      console.warn('Role-scoped cloud refresh:',e.message||e);
-      window.EDUNIZAM_RELIABILITY?.report?.('Role Data Refresh',e.message||String(e),'auth-bridge','warning');
+      console.warn('Role scope refresh:',e?.message||e);
       return false;
     }
   }
 
-  async function syncCloudRole(){
-    const c=cloud();
-    if(!configured()||!c.state.user)return false;
-    const role=await c.getMyRole();
-    if(!role){
-      clearLocalAuthState();
-      window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
-      return false;
-    }
-    localStorage.setItem('edunizam_cloud_user_id',c.state.user.id);
-    setLocalSession(role,c.state.user.email||c.state.user.id);
-    if(window.EDUNIZAM_CLOUD_SETUP?.ensureInstitution){
-      // Login already resolved the selected institution before redirecting here.
-      // Repeating that same fetch during the first app boot caused an intermittent
-      // PostgREST timeout and trapped valid users on the Retry screen.
-      const handedOff=consumeSecureLoginHandoff(c.state.user,role);
-      const institutionReady=handedOff?true:await window.EDUNIZAM_CLOUD_SETUP.ensureInstitution();
-      if(!institutionReady){
-        // Keep the authenticated Supabase session and the institute selected on Login.
-        // Clearing it here made the visible Retry action unable to recover after a
-        // transient institution lookup / multi-school resolution failure.
-        window.dispatchEvent(new CustomEvent(role==='head_of_institute'?'edunizam:school-selection-required':'edunizam:auth-invalid'));
-        return false;
+  function scheduleBackgroundSync(){
+    if(runtimeState.syncScheduled)return;
+    runtimeState.syncScheduled=true;
+    const task=async()=>{
+      const local=readLocal();
+      if(!validLocal(local))return;
+      transition(STATES.BACKGROUND_SYNC,{institutionId:local.institutionId});
+      await refreshScopedRoleCache();
+      if(['teacher','parent','student'].includes(local.role)&&window.EDUNIZAM_CORE_CLOUD?.pullAllCloudToLocal){
+        try{await window.EDUNIZAM_CORE_CLOUD.pullAllCloudToLocal(false)}
+        catch(e){console.warn('Background school sync:',e?.message||e)}
       }
-    }
-    setLocalSession(role,c.state.user.email||c.state.user.id);
-    // Do not keep the auth gate on screen while a large role-scoped dataset syncs.
-    // Backend RLS still protects every cloud read; this refresh only hydrates UI data.
-    refreshScopedRoleCache(role).catch(()=>{});
-    removeDemoLogin();
-    return true;
+      const latest=readLocal();
+      if(validLocal(latest))transition(navigator.onLine?STATES.WORKSPACE_READY:STATES.OFFLINE_READY,{source:'background-complete'});
+    };
+    const rt=dataRuntime();
+    if(rt)rt.idle(task,3000);
+    else setTimeout(()=>task().catch(()=>{}),1800);
   }
-  function style(){
-    if(document.getElementById('cloudAuthBridgeStyle'))return;
-    const s=document.createElement('style');s.id='cloudAuthBridgeStyle';
-    s.textContent='.cloud-auth-screen{position:fixed;inset:0;z-index:10050;isolation:isolate;pointer-events:auto!important;touch-action:auto;background:linear-gradient(135deg,#071b33,#0f766e);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}.cloud-auth-card{position:relative;z-index:2;pointer-events:auto!important;width:min(560px,100%);background:#fff;border-radius:24px;padding:28px;box-shadow:0 28px 80px #001a}.cloud-auth-card h1{margin:0 0 10px;color:#0b2748;line-height:1.08;font-size:clamp(32px,7vw,50px)}.cloud-auth-card p{color:#536579;font-size:17px;line-height:1.55}.cloud-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.cloud-auth-tabs button{background:#f1f5f9;color:#334155;border:1px solid #dbe4ea}.cloud-auth-tabs button.active{background:#0f766e;color:#fff;border-color:#0f766e}.cloud-auth-grid{display:grid;gap:11px}.cloud-auth-grid input,.cloud-auth-grid select{width:100%;box-sizing:border-box}.cloud-auth-actions{position:relative;z-index:3;pointer-events:auto!important;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.cloud-auth-actions a,.cloud-auth-actions button{min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;padding:11px 14px;border-radius:12px;font:inherit;font-weight:800;text-decoration:none;box-sizing:border-box;pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:rgba(23,105,170,.16);cursor:pointer}.cloud-auth-actions .cloud-auth-nav{background:#f7fafc;color:#24465f;border:1px solid #d9e7f1}.cloud-auth-actions #cloudAuthRetry{grid-column:1/-1;border:0;background:linear-gradient(135deg,#1769aa,#2f80ed);color:#fff}.cloud-auth-actions button:disabled{opacity:.68;cursor:wait}.cloud-auth-actions [hidden]{display:none!important}.cloud-auth-note{margin-top:12px;padding:10px 12px;border-radius:12px;background:#f3f8fb;color:#466071;font-size:13px}.cloud-auth-error{color:#9b1c1c;min-height:20px;font-size:13px}.cloud-auth-success{color:#166534}.cloud-admin-badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#ecfdf5;color:#166534;font-size:12px;font-weight:700}@media(max-width:560px){.cloud-auth-screen{place-items:start center;padding-top:clamp(34px,10vh,92px)}.cloud-auth-card{padding:24px 20px;border-radius:22px}.cloud-auth-tabs{grid-template-columns:1fr}.cloud-auth-actions{grid-template-columns:1fr}.cloud-auth-actions a,.cloud-auth-actions button{grid-column:auto}}';
-    document.head.appendChild(s);
-  }
-  function authScreen(message='Checking your secure school session…',showRetry=false){
-    removeDemoLogin();style();
-    let screen=document.getElementById('cloudAuthScreen');
-    if(!screen){
-      screen=document.createElement('div');screen.id='cloudAuthScreen';screen.className='cloud-auth-screen';
-      screen.innerHTML='<section class="cloud-auth-card"><div class="academic-kicker">EduNizam Secure Access</div><h1>Opening your school workspace</h1><p id="cloudAuthGuardMessage"></p><div class="cloud-auth-actions"><a id="cloudAuthLogin" class="cloud-auth-nav" href="login.html?from=secure-guard">Go to Login</a><a id="cloudAuthGuest" class="cloud-auth-nav" href="learn.html?from=secure-guard">Continue as Guest</a><button id="cloudAuthRetry" type="button" hidden>Retry secure check</button></div></section>';
-      document.body.appendChild(screen);
-      screen.querySelector('#cloudAuthRetry').onclick=async()=>{
-        const btn=screen.querySelector('#cloudAuthRetry');
-        if(!btn||btn.disabled)return;
-        btn.disabled=true;btn.textContent='Checking…';
-        try{
-          await boot(true);
-          if(document.getElementById('cloudAuthScreen')){
-            // A user-initiated retry must never look dead. If the in-place check
-            // still cannot resolve the workspace, force a no-cache page retry.
-            const url=new URL(location.href);
-            url.searchParams.set('_secureRetry',String(Date.now()));
-            setTimeout(()=>location.replace(url.toString()),250);
-          }
-        }finally{
-          const live=document.getElementById('cloudAuthRetry');
-          if(live){live.disabled=false;live.textContent='Retry secure check'}
-        }
-      };
-    }
-    const msg=screen.querySelector('#cloudAuthGuardMessage');if(msg)msg.textContent=message;
-    const retry=screen.querySelector('#cloudAuthRetry');
-    if(retry)retry.hidden=!showRetry;
-    return screen;
-  }
-  function hideAuthScreen(){document.getElementById('cloudAuthScreen')?.remove()}
 
-  let booting=false;
-  function withTimeout(promise,ms,message){
-    let timer;
-    return Promise.race([
-      Promise.resolve(promise).finally(()=>clearTimeout(timer)),
-      new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms)})
-    ]);
-  }
-  async function boot(force=false){
-    if(!configured()){hideAuthScreen();return}
+  async function restoreWithoutLocal(force=false){
     const c=cloud();
-
-    // A successful login page has already authenticated the user and resolved the
-    // selected institution. Never block that redirect on a second network round-trip.
-    // Database RLS remains the authorization boundary for every cloud request.
-    if(!force){
-      const handoff=acceptSecureLoginHandoff();
-      if(handoff)return;
-      if(acceptedHandoffUntil>Date.now()&&acceptedHandoffKey){
-        hideAuthScreen();
-        return;
-      }
-    }
-
-    const knownUser=c?.state?.user||null;
-    const knownKey=workspaceKey(knownUser);
-    if(!force&&knownUser&&verifiedWorkspaceKey&&knownKey===verifiedWorkspaceKey){
-      hideAuthScreen();
-      return;
-    }
-    if(booting)return;
-    booting=true;
-    authScreen(force?'Re-checking your secure school session…':'Checking your secure school session…',false);
-
+    const ready=await waitCloud(force?5000:2500);
+    if(!ready||!c?.state?.client)return false;
+    const user=c.state.user;
+    if(!user)return false;
     try{
-      let authUser=c.state.user||null;
-      if(!authUser){
-        const {data,error}=await withTimeout(
-          c.state.client.auth.getSession(),
-          9000,
-          'Secure session check timed out.'
-        );
-        if(error)throw error;
-        authUser=data?.session?.user||null;
-      }
-      if(!authUser){
-        clearLocalAuthState();
-        window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
-        authScreen('No active school session was found. Choose Login to sign in, or Continue as Guest for public learning resources.',false);
-        return;
-      }
-      c.state.user=authUser;
-      const ok=await withTimeout(
-        syncCloudRole(),
-        12000,
-        'School access verification timed out.'
-      );
-      if(!ok){
-        authScreen('Your school access could not be verified yet. Retry the secure check once, or choose Login if you need to change the school/account.',true);
-        return;
-      }
-      verifiedWorkspaceKey=workspaceKey(c.state.user);
-      hideAuthScreen();
-      window.dispatchEvent(new CustomEvent('edunizam:workspace-ready',{detail:{userId:c.state.user.id,institutionId:readRuntime().institutionId||''}}));
+      const rows=await c.listAuthorizedWorkspaces?.(force);
+      if(!rows?.length)return false;
+      if(rows.length!==1)return false;
+      const access=rows[0];
+      const localRole=mapRole(access.workspace_role||access._membership_role);
+      const seed={role:localRole,identity:user.email||user.id,loginAt:Date.now(),source:'supabase',schoolName:access.name||'',institutionId:access.id||''};
+      localStorage.setItem(LOCAL_KEY,JSON.stringify(seed));
+      updateLocalFromAccess(access,user);
+      workspaceReady('restored',{userId:user.id,institutionId:access.id,role:localRole});
+      verifyCurrentWorkspace(true).catch(()=>{});
+      return true;
     }catch(e){
-      console.warn('Cloud session guard:',e.message||e);
-      authScreen('Secure session check could not finish. Check your connection and Retry, or return to Login.',true);
-      return;
-    }finally{
-      booting=false;
+      console.warn('Session workspace restore:',e?.message||e);
+      return false;
     }
-
-    setTimeout(()=>{
-      const btn=document.querySelector('#roleSession button');
-      if(btn)btn.onclick=async()=>{
-        try{await cloud().signOut()}
-        finally{
-          clearLocalAuthState();
-          window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
-        }
-      };
-    },50);
   }
-  window.addEventListener('edunizam:auth',()=>{
-    if(readSecureLoginHandoff()||acceptedHandoffUntil>Date.now()){
-      acceptSecureLoginHandoff();
-      hideAuthScreen();
+
+  async function restoreOrVerify(force=false){
+    const local=readLocal();
+    if(validLocal(local)){
+      workspaceReady(readHandoff()?'login-handoff':'local-session',{institutionId:local.institutionId,role:local.role});
+      verifyCurrentWorkspace(force).catch(()=>{});
+      return true;
+    }
+    const restored=await restoreWithoutLocal(force);
+    if(restored)return true;
+    showAccess('Sign in to open your private school workspace, or continue as Guest for public learning resources.',STATES.UNAUTHENTICATED,force);
+    return false;
+  }
+
+  async function boot(){
+    transition(STATES.BOOTING);
+    unlockUI();
+    const local=readLocal();
+    if(validLocal(local)){
+      // UI responsiveness is independent of network fetching. A fresh login
+      // handoff or valid local workspace opens immediately; cloud authorization
+      // is rechecked in the background and RLS remains authoritative.
+      workspaceReady(readHandoff()?'login-handoff':'local-session',{institutionId:local.institutionId,role:local.role});
+      verifyCurrentWorkspace(false).catch(()=>{});
       return;
     }
-    setTimeout(()=>boot(false),0);
+    showAccess('Sign in to open your private school workspace, or continue as Guest for public learning resources.',STATES.UNAUTHENTICATED,false);
+    restoreWithoutLocal(false).catch(()=>{});
+  }
+
+  window.addEventListener('edunizam:auth',event=>{
+    const type=event.detail?.event||'';
+    if(type==='SIGNED_OUT'){
+      clearLocalAuthState();
+      showAccess('You have signed out. Sign in again, or continue as Guest.',STATES.UNAUTHENTICATED,false);
+      return;
+    }
+    if(['INITIAL_SESSION','SIGNED_IN','USER_UPDATED'].includes(type)){
+      const local=readLocal();
+      if(validLocal(local)){
+        unlockUI();
+        verifyCurrentWorkspace(false).catch(()=>{});
+      }else{
+        restoreWithoutLocal(false).catch(()=>{});
+      }
+    }
   });
+
+  window.addEventListener('online',()=>{
+    if(validLocal())verifyCurrentWorkspace(true).catch(()=>{});
+  });
+
   document.addEventListener('visibilitychange',()=>{
-    if(document.hidden)return;
-    let s=null;try{s=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null')}catch(_){}
-    if(s?.role&&['teacher','parent','student'].includes(s.role))refreshScopedRoleCache(s.role).catch(()=>{});
+    if(!document.hidden)unlockUI();
   });
-  setTimeout(()=>boot(false),0);
-  window.EDUNIZAM_AUTH_BRIDGE={configured,syncCloudRole,clearLocalAuthState,refreshScopedRoleCache};
+
+  // Logout is handled centrally even if roleSession is mounted after startup.
+  document.addEventListener('click',event=>{
+    const btn=event.target.closest?.('#roleSession button');
+    if(!btn)return;
+    event.preventDefault();
+    const c=cloud();
+    Promise.resolve(c?.signOut?.()).catch(()=>{}).finally(()=>{
+      clearLocalAuthState();
+      showAccess('You have signed out. Sign in again, or continue as Guest.',STATES.UNAUTHENTICATED,false);
+    });
+  },true);
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+
+  window.EDUNIZAM_AUTH_BRIDGE={
+    STATES,
+    runtimeState,
+    boot,
+    configured:()=>!!cloud()?.state?.client,
+    syncCloudRole:()=>verifyCurrentWorkspace(true),
+    clearLocalAuthState,
+    refreshScopedRoleCache,
+    verifyCurrentWorkspace
+  };
 })();
