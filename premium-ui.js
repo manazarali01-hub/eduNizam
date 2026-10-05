@@ -150,12 +150,32 @@
   async function mountWorkspaceSwitcher(){
     const actions=$('.topbar-actions');if(!actions||$('#premiumWorkspaceSwitch'))return;
     const cloud=window.EDUNIZAM_CLOUD;if(!cloud?.state?.user)return;
-    try{
-      const items=await workspaceChoices();
-      if(items.length<2)return;
-      const button=document.createElement('button');button.id='premiumWorkspaceSwitch';button.className='premium-workspace-switch';button.type='button';button.innerHTML='<span>↔</span><span class="label">Switch School</span>';
-      button.onclick=()=>showWorkspaceModal(items);actions.appendChild(button);
-    }catch(e){console.warn('Workspace switch:',e.message||e)}
+    const button=document.createElement('button');
+    button.id='premiumWorkspaceSwitch';
+    button.className='premium-workspace-switch';
+    button.type='button';
+    button.innerHTML='<span>↔</span><span class="label">Switch School</span>';
+    button.onclick=async()=>{
+      if(button.disabled)return;
+      button.disabled=true;
+      const old=button.innerHTML;
+      button.innerHTML='<span>↔</span><span class="label">Loading…</span>';
+      try{
+        const items=await workspaceChoices(true);
+        if(items.length<2){
+          premiumToast('No other approved school workspace is available.','info');
+          return;
+        }
+        showWorkspaceModal(items);
+      }catch(e){
+        console.warn('Workspace switch:',e.message||e);
+        premiumToast('School list could not load. Try again.','error');
+      }finally{
+        button.disabled=false;
+        button.innerHTML=old;
+      }
+    };
+    actions.appendChild(button);
   }
 
   function mountTopbarContext(){
