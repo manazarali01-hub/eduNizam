@@ -373,18 +373,35 @@
   }
   async function listAttendanceAudit(date){
     const c=await requireHead(),client=c.state.client;
-    const [attendanceRes,staffRes]=await Promise.all([
-      client.from('attendance_records')
-        .select('attendance_date,status,updated_at,marked_by,core_students(name,class_name,section_name)')
-        .eq('institution_id',cfg.institutionId)
-        .eq('attendance_date',date)
-        .order('updated_at',{ascending:false}),
-      client.from('staff_profiles')
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    const runQuery=(key,builder,cacheMs=15000)=>{
+      const execute=async({signal}={})=>{
+        let q=builder();
+        if(signal&&typeof q?.abortSignal==='function')q=q.abortSignal(signal);
+        const result=await q;
+        if(result?.error)throw result.error;
+        return result;
+      };
+      return runtime
+        ?runtime.run('attendance-audit:'+cfg.institutionId+':'+date+':'+key,execute,{timeout:7000,retries:1,cacheMs,label:'Attendance audit '+key})
+        :execute({});
+    };
+
+    // These queries are visible-view data, not authentication. Keep them out of
+    // startup and avoid launching the two PostgREST requests simultaneously.
+    const attendanceRes=await runQuery('records',()=>client.from('attendance_records')
+      .select('attendance_date,status,updated_at,marked_by,core_students(name,class_name,section_name)')
+      .eq('institution_id',cfg.institutionId)
+      .eq('attendance_date',date)
+      .order('updated_at',{ascending:false}));
+    let staffRes={data:[]};
+    try{
+      staffRes=await runQuery('staff',()=>client.from('staff_profiles')
         .select('user_id,full_name,designation')
-        .eq('institution_id',cfg.institutionId)
-    ]);
-    if(attendanceRes.error)throw attendanceRes.error;
-    if(staffRes.error)throw staffRes.error;
+        .eq('institution_id',cfg.institutionId),60000);
+    }catch(e){
+      console.warn('Attendance audit staff enrichment:',e?.message||e);
+    }
     const staffByUser=new Map((staffRes.data||[]).filter(x=>x.user_id).map(x=>[String(x.user_id),x]));
     const headUserId=String(c.state.user?.id||'');
     return (attendanceRes.data||[]).map(row=>{

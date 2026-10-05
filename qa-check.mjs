@@ -403,6 +403,8 @@ const repairCloudStateSource=repairCloudStateFile.slice(repairCloudStateFile.ind
 if(/auth\.getSession\s*\(/.test(repairCloudStateSource)) fail.push('Reliability Guardian still owns a second Supabase session restore path.');
 if(!login.includes('global:{fetch:supabaseFetch}')||!login.includes('setTimeout(()=>controller.abort(),12000)')) fail.push('Login Supabase network requests have no finite deadline.');
 if(!authBridgeE2E.includes('refreshScopedRoleCache')) fail.push('Role-scoped cache refresh missing after member login.');
+if(!app.includes("if($('attendance')?.classList.contains('active'))renderAttendanceAudit()")) fail.push('Hidden Attendance view can still trigger its cloud audit fetch.');
+if(!read('core-cloud.js').includes("attendance-audit:'+cfg.institutionId+':'+date+':'+key")||!read('core-cloud.js').includes('timeout:7000,retries:1')) fail.push('Attendance audit queries are not bounded and deduplicated.');
 if(!authBridgeE2E.includes('pullAllCloudToLocal')) fail.push('Member login does not reload RLS-filtered cloud data.');
 if(authBridgeE2E.includes("location.reload()")) fail.push('Auth bridge must not reload the whole app to refresh member data.');
 const admissionsSecurityMigration='supabase/migrations/20260926052611_harden_admissions_applicant_admin_boundaries.sql';

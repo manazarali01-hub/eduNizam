@@ -389,6 +389,13 @@ else ok("auth:verification-dedupe");
 if(!authBridge.includes("runtimeState.syncScheduled=false"))bad("sync:reconnect-reschedule","background sync cannot be scheduled again after reconnect");
 else ok("sync:reconnect-reschedule");
 
+const startupAppSource=read("app.js");
+const coreCloudRuntimeSource=read("core-cloud.js");
+if(!startupAppSource.includes("if($('attendance')?.classList.contains('active'))renderAttendanceAudit()"))bad("startup:no-hidden-attendance-audit","Attendance audit can still fetch while its view is closed");
+else ok("startup:no-hidden-attendance-audit");
+if(!coreCloudRuntimeSource.includes("attendance-audit:'+cfg.institutionId+':'+date+':'+key")||!coreCloudRuntimeSource.includes("abortSignal(signal)")||!coreCloudRuntimeSource.includes("timeout:7000,retries:1"))bad("fetch:attendance-audit-runtime","Attendance audit queries are not bounded/abortable/deduped");
+else ok("fetch:attendance-audit-runtime");
+
 if(!dataRuntime.includes("const inflight=new Map()")||!dataRuntime.includes("AbortController")||!dataRuntime.includes("transient(error)"))bad("fetch:runtime","bounded dedupe/timeout/retry runtime incomplete");
 else ok("fetch:runtime");
 
