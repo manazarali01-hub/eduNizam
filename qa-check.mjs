@@ -13,7 +13,7 @@ const feature=read('feature-loader.js');
 const visual=read('edunizam-visual-system.css');
 const htmlFiles=fs.readdirSync(root).filter(f=>f.endsWith('.html'));
 for(const file of htmlFiles){
-  if(!read(file).includes('edunizam-visual-system.css?v=20261005-visual1')) fail.push('Premium visual system missing from '+file);
+  if(!read(file).includes('edunizam-visual-system.css?v=20261005-visual2')) fail.push('Premium visual system missing from '+file);
 }
 for(const marker of [
   '--en-body-size:17px',
@@ -27,6 +27,23 @@ for(const marker of [
   if(!visual.includes(marker)) fail.push('Premium visual marker missing: '+marker);
 }
 if(/transform\s*:\s*scale\(/i.test(visual)) fail.push('Premium visual system must not fake zoom with transform: scale().');
+for(const file of htmlFiles){
+  if(!/<body[^>]*class=["'][^"']*\bpage-[^"']*["']/i.test(read(file))) fail.push('Individual page identity missing from '+file);
+}
+for(const marker of [
+  'Individual page polish / background imagery',
+  'url("assets/edunizam-login-children.webp")',
+  'url("assets/edunizam-girl-hero.webp")',
+  '.page-app #dashboard .campus-hero',
+  '.page-learning .hero-card',
+  '.page-admission .shell>section.card:first-of-type'
+]){
+  if(!visual.includes(marker)) fail.push('Individual page/background polish marker missing: '+marker);
+}
+const appViewIds=[...index.matchAll(/<section\s+id=["']([^"']+)["']\s+class=["'][^"']*\bview\b[^"']*["']/g)].map(m=>m[1]);
+for(const id of appViewIds){
+  if(!visual.includes('#'+id)) fail.push('Protected app view lacks individual visual treatment: '+id);
+}
 
 const scriptRefs=[...index.matchAll(/<script[^>]+src=["']([^"']+)["']/g)]
   .map(m=>m[1].split('?')[0])
