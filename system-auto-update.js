@@ -20,11 +20,8 @@ function repairCommonUI(){
   }
   const menu=document.getElementById('eduMobileMenuBtn');
   if(menu)menu.setAttribute('aria-expanded','false');
-  document.querySelectorAll('[aria-busy="true"]').forEach(x=>x.removeAttribute('aria-busy'));
-  document.querySelectorAll('button[disabled]').forEach(btn=>{
-    const t=(btn.textContent||'').toLowerCase();
-    if(/loading|saving|sending|checking|processing|signing/.test(t))btn.disabled=false;
-  });
+  // Never mutate operation-owned disabled/busy state here. A global recovery pass
+  // cannot know whether a write is still in flight and could enable a duplicate submit.
   emit('edunizam:auto-corrected',{scope:'common-ui'});
 }
 async function clearOldCaches(){

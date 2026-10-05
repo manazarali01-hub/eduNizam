@@ -261,7 +261,7 @@ body.auth-page{
     linear-gradient(145deg,#eef7ff,#fbfdff 55%,#fffaf1);
   font-size:17px;
 }
-.auth-page .page{grid-template-columns:minmax(600px,54%) minmax(460px,46%);min-height:100dvh}
+.auth-page .page{grid-template-columns:minmax(0,54%) minmax(0,46%);min-height:100dvh}
 .auth-page .story{
   position:relative;
   min-height:100dvh;
