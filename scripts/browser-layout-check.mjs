@@ -79,6 +79,22 @@ async function inspectPage(page,url,width){
       return false;
     };
     const clipped=[];
+    const wideElements=[];
+    document.querySelectorAll('body *').forEach(el=>{
+      if(!visible(el)||scrollAncestor(el))return;
+      const r=el.getBoundingClientRect();
+      if(r.left<-2||r.right>viewport+2){
+        const cs=getComputedStyle(el);
+        wideElements.push({
+          tag:el.tagName,
+          id:el.id||'',
+          cls:String(el.className||'').slice(0,120),
+          text:String(el.textContent||'').trim().replace(/\\s+/g,' ').slice(0,80),
+          left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),
+          position:cs.position,overflowX:cs.overflowX
+        });
+      }
+    });
     document.querySelectorAll('a,button,input,select,textarea,[role="button"]').forEach(el=>{
       if(!visible(el)||scrollAncestor(el))return;
       const r=el.getBoundingClientRect();
@@ -100,6 +116,7 @@ async function inspectPage(page,url,width){
     return {
       overflow,
       clipped:clipped.slice(0,12),
+      wideElements:wideElements.sort((a,b)=>(b.right-viewport)-(a.right-viewport)).slice(0,12),
       home:{
         nav:box('.page-home .public-nav'),
         main:box('.page-home .public-main'),
@@ -122,7 +139,7 @@ try{
       try{
         const {result,errors}=await inspectPage(page,'http://127.0.0.1:'+port+route,width);
         const scope=route+' @ '+width+'px';
-        if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px');
+        if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px '+JSON.stringify(result.wideElements));
         if(result.clipped.length)pushFailure(scope,'Interactive controls escape the viewport',JSON.stringify(result.clipped));
         if(route==='/'&&width<=430){
           if(result.home.imageQuickOverlap)pushFailure(scope,'Homepage hero image and Quick Access overlap');
