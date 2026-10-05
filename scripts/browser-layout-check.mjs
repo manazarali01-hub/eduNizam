@@ -258,6 +258,37 @@ try{
     await authPage.locator('#cloudAuthRetry').tap();
     await authPage.waitForURL(url=>url.pathname.endsWith('/auth-harness')&&url.searchParams.has('_secureRetry'),{timeout:3000})
       .catch(e=>pushFailure('auth guard touch','Retry secure check tap did not trigger a recovery navigation',e.message));
+
+    // Successful post-login handoff: once the workspace is verified, a redundant
+    // auth event must not re-open the blocking guard or re-enter getSession().
+    await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
+    await authPage.evaluate(()=>{
+      localStorage.setItem('edunizam_session',JSON.stringify({
+        role:'head',identity:'admin@example.test',institutionId:'school-1',schoolName:'Test School'
+      }));
+      localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify({enabled:true,institutionId:'school-1'}));
+      window.__getSessionCalls=0;
+      const user={id:'user-1',email:'admin@example.test'};
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true};
+      window.EDUNIZAM_CLOUD_SETUP={ensureInstitution:()=>Promise.resolve(true)};
+      window.EDUNIZAM_CLOUD={
+        ready:()=>true,
+        state:{user,client:{auth:{getSession:()=>{window.__getSessionCalls++;return Promise.resolve({data:{session:{user}},error:null})}}}},
+        getMyRole:()=>Promise.resolve('head_of_institute')
+      };
+    });
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
+    await authPage.waitForFunction(()=>!document.getElementById('cloudAuthScreen'),{timeout:3000})
+      .catch(e=>pushFailure('auth guard handoff','Successful Admin workspace did not clear secure guard',e.message));
+    const beforeRedundant=await authPage.evaluate(()=>window.__getSessionCalls);
+    await authPage.evaluate(()=>window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{user:window.EDUNIZAM_CLOUD.state.user}})));
+    await authPage.waitForTimeout(150);
+    const handoffState=await authPage.evaluate(()=>({
+      getSessionCalls:window.__getSessionCalls,
+      guardPresent:!!document.getElementById('cloudAuthScreen')
+    }));
+    if(handoffState.guardPresent)pushFailure('auth guard handoff','Redundant auth event re-opened the secure guard',JSON.stringify(handoffState));
+    if(handoffState.getSessionCalls!==beforeRedundant)pushFailure('auth guard handoff','Verified workspace redundantly called getSession again',JSON.stringify({beforeRedundant,...handoffState}));
   }catch(e){
     pushFailure('auth guard touch','Secure access interaction regression failed',e.message||String(e));
   }finally{

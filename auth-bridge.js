@@ -5,6 +5,14 @@
   const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
   const mapRole=r=>r==='head_of_institute'?'head':(['student','parent','teacher','head'].includes(r)?r:'');
   const normalizeIdentity=v=>String(v||'').trim().toLowerCase();
+  let verifiedWorkspaceKey='';
+
+  function workspaceKey(user){
+    if(!user?.id)return '';
+    let session=null;try{session=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null')}catch(_){}
+    const institutionId=String(session?.institutionId||readRuntime().institutionId||'').trim();
+    return String(user.id)+'|'+institutionId;
+  }
 
   function configured(){
     const c=cloud();
@@ -15,6 +23,7 @@
     try{return JSON.parse(localStorage.getItem(RUNTIME_KEY)||'{}')}catch(_){return{}}
   }
   function clearLocalAuthState(){
+    verifiedWorkspaceKey='';
     localStorage.removeItem(LOCAL_KEY);
     localStorage.removeItem('edunizam_cloud_user_id');
     const runtime=readRuntime();
@@ -149,19 +158,28 @@
   }
   async function boot(force=false){
     if(!configured()){hideAuthScreen();return}
+    const c=cloud();
+    const knownUser=c?.state?.user||null;
+    const knownKey=workspaceKey(knownUser);
+    if(!force&&knownUser&&verifiedWorkspaceKey&&knownKey===verifiedWorkspaceKey){
+      hideAuthScreen();
+      return;
+    }
     if(booting)return;
     booting=true;
-    const c=cloud();
     authScreen(force?'Re-checking your secure school session…':'Checking your secure school session…',false);
 
     try{
-      const {data,error}=await withTimeout(
-        c.state.client.auth.getSession(),
-        9000,
-        'Secure session check timed out.'
-      );
-      if(error)throw error;
-      const authUser=data?.session?.user||null;
+      let authUser=c.state.user||null;
+      if(!authUser){
+        const {data,error}=await withTimeout(
+          c.state.client.auth.getSession(),
+          9000,
+          'Secure session check timed out.'
+        );
+        if(error)throw error;
+        authUser=data?.session?.user||null;
+      }
       if(!authUser){
         clearLocalAuthState();
         window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
@@ -178,7 +196,9 @@
         authScreen('Your school access could not be verified yet. Retry the secure check once, or choose Login if you need to change the school/account.',true);
         return;
       }
+      verifiedWorkspaceKey=workspaceKey(c.state.user);
       hideAuthScreen();
+      window.dispatchEvent(new CustomEvent('edunizam:workspace-ready',{detail:{userId:c.state.user.id,institutionId:readRuntime().institutionId||''}}));
     }catch(e){
       console.warn('Cloud session guard:',e.message||e);
       authScreen('Secure session check could not finish. Check your connection and Retry, or return to Login.',true);
