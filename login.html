@@ -718,19 +718,13 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
       message('Profile sent successfully. Status: Waiting for School Admin Approval. After approval, login with email and password only.',true);
       return true;
     }
-    let data,error;
-    if(pending.role==='admin'){
-      ({data,error}=await client.rpc('register_admin_school_v2',{
-        p_school_name:pending.school||'',
-        p_registration_number:pending.code||'',
-        p_full_name:pending.name,
-        p_phone:pending.phone
-      }));
-    }else{
-      ({data,error}=await client.rpc('register_simple_account_v1',{
-        p_role:pending.role,p_school_name:pending.school||'',p_school_code:pending.code,p_full_name:pending.name,p_phone:pending.phone
-      }));
-    }
+    if(pending.role!=='admin')throw new Error('Unsupported signup role. Return to role selection and try again.');
+    const {error}=await client.rpc('register_admin_school_v2',{
+      p_school_name:pending.school||'',
+      p_registration_number:pending.code||'',
+      p_full_name:pending.name,
+      p_phone:pending.phone
+    });
     if(error)throw error;
     if(pending.role==='admin'){
       let settings={};try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
