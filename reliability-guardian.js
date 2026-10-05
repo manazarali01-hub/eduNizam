@@ -166,16 +166,20 @@
     try{
       snapshotCriticalState(reason);
       document.documentElement.classList.remove('edu-feature-loading');
-      document.body?.classList.remove('mobile-nav-lock');
       const sidebar=document.querySelector('.sidebar');
       const backdrop=document.getElementById('eduMobileNavBackdrop');
-      if(sidebar)sidebar.classList.remove('mobile-nav-open');
-      if(backdrop){
-        backdrop.classList.remove('show');
-        backdrop.style.display='none';
-        backdrop.style.pointerEvents='none';
-        backdrop.style.visibility='hidden';
-        backdrop.setAttribute('aria-hidden','true');
+      const drawerOpen=!!sidebar?.classList.contains('mobile-nav-open');
+      if(!drawerOpen){
+        document.body?.classList.remove('mobile-nav-lock');
+        if(backdrop){
+          backdrop.classList.remove('show');
+          backdrop.style.display='none';
+          backdrop.style.pointerEvents='none';
+          backdrop.style.visibility='hidden';
+          backdrop.setAttribute('aria-hidden','true');
+        }
+      }else{
+        document.body?.classList.add('mobile-nav-lock');
       }
 
       const views=[...document.querySelectorAll('.view')];
