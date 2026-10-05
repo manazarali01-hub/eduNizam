@@ -13,7 +13,7 @@ const feature=read('feature-loader.js');
 const visual=read('edunizam-visual-system.css');
 const htmlFiles=fs.readdirSync(root).filter(f=>f.endsWith('.html'));
 for(const file of htmlFiles){
-  if(!read(file).includes('edunizam-visual-system.css?v=20261005-visual3')) fail.push('Premium visual system missing from '+file);
+  if(!read(file).includes('edunizam-visual-system.css?v=20261005-visual4')) fail.push('Premium visual system missing from '+file);
 }
 for(const marker of [
   '--en-body-size:17px',
@@ -49,10 +49,21 @@ for(const marker of [
   '.page-login .mobile-brand',
   '.page-home .hero-image-wrap img',
   '.page-app .view.active>.section-head:first-child',
-  '.page-learning .paper-actions .btn'
+  '.page-learning .paper-actions .btn',
+  'MOBILE CONTAINER / OVERLAY STABILITY 2026-10-05',
+  '.page-app .topbar-title h1',
+  '.page-app .row>*'
 ]){
   if(!visual.includes(marker)) fail.push('Final visual polish marker missing: '+marker);
 }
+const authBridge=read('auth-bridge.js');
+const cloudSetup=read('cloud-setup.js');
+const loginHtml=read('login.html');
+if(!authBridge.includes('Retry secure check')) fail.push('Secure-session Retry action is not explicit.');
+if(authBridge.includes('clearLocalAuthState();\n        window.dispatchEvent(new CustomEvent(role===\'head_of_institute\'')) fail.push('Admin Retry still clears the selected local session before retrying.');
+if(!cloudSetup.includes('if(owner.error)throw owner.error')) fail.push('Institution lookup errors are still swallowed before Admin Retry.');
+if(loginHtml.includes("mode==='recovery'?'Retry'")) fail.push('Login recovery cooldown still presents a dead Retry label.');
+if(loginHtml.includes("sw.js?v=20261001-visitor202")) fail.push('Login still registers the obsolete service-worker build.');
 
 const scriptRefs=[...index.matchAll(/<script[^>]+src=["']([^"']+)["']/g)]
   .map(m=>m[1].split('?')[0])
