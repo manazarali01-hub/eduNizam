@@ -86,14 +86,18 @@ for(const marker of [
 const authBridgeMobileFix=read('auth-bridge.js');
 const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
-if(!authBridgeMobileFix.includes('Retry secure check')) fail.push('Secure-session Retry action is not explicit.');
+if(!authBridgeMobileFix.includes('Retry session check')) fail.push('Signed-out session Retry action is not explicit.');
 if(!authBridgeMobileFix.includes('<a id="cloudAuthLogin"')||!authBridgeMobileFix.includes('href="login.html?from=secure-guard"')) fail.push('Secure-session Login action is not a native link.');
 if(!authBridgeMobileFix.includes('<a id="cloudAuthGuest"')||!authBridgeMobileFix.includes('href="learn.html?from=secure-guard"')) fail.push('Secure-session Guest action is not a native link.');
 if(authBridgeMobileFix.includes('navigateAuthTarget(')) fail.push('Secure-session navigation still depends on a JavaScript-only redirect helper.');
 if(!authBridgeMobileFix.includes('pointer-events:auto!important')) fail.push('Secure-session mobile tap target hardening is missing.');
-if(!authBridgeMobileFix.includes("let authUser=c.state.user||null")) fail.push('Post-login guard still re-enters getSession even when Auth already supplied a verified user.');
-if(!authBridgeMobileFix.includes('verifiedWorkspaceKey=workspaceKey(c.state.user)')) fail.push('Verified workspace idempotency guard is missing.');
+for(const state of ['BOOTING','UNAUTHENTICATED','AUTHENTICATING','AUTHENTICATED','AUTHORIZING','WORKSPACE_READY','BACKGROUND_SYNC','OFFLINE_READY','AUTH_ERROR']){
+  if(!authBridgeMobileFix.includes(state)) fail.push('Auth state machine state missing: '+state);
+}
+if(!authBridgeMobileFix.includes("workspaceReady(readHandoff()?'login-handoff':'local-session'")) fail.push('Valid login handoff/local workspace does not open before background verification.');
+if(!authBridgeMobileFix.includes('verifyCurrentWorkspace(false).catch')) fail.push('Background workspace authorization verification is missing.');
 if(!authBridgeMobileFix.includes("window.dispatchEvent(new CustomEvent('edunizam:workspace-ready'")) fail.push('Successful workspace handoff event is missing.');
+if(authBridgeMobileFix.includes('location.reload()')) fail.push('Auth runtime still relies on a page reload to complete login/sync.');
 if(loginHtml.includes("register_simple_account_v1")) fail.push('Legacy direct-role registration RPC is still reachable from login.');
 if(authBridgeMobileFix.includes('clearLocalAuthState();\n        window.dispatchEvent(new CustomEvent(role===\'head_of_institute\'')) fail.push('Admin Retry still clears the selected local session before retrying.');
 if(!cloudSetupMobileFix.includes('if(owner.error)throw owner.error')) fail.push('Institution lookup errors are still swallowed before Admin Retry.');
@@ -101,7 +105,7 @@ if(loginHtml.includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.pu
 if(read('admissions-cloud.js').includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.push('Admission auth redirects still leave the production custom domain.');
 const admissionHtml=read('admission.html');
 if(admissionHtml.includes("body+'<script src=\"system-auto-update.js")) fail.push('Admission printable markup still embeds a literal script closing tag inside inline JavaScript.');
-if(!admissionHtml.includes('system-auto-update.js?v=20261005-auth-tap629')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
+if(!admissionHtml.includes('system-auto-update.js?v=20261005-authstate700')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
 const aiEdge=read('supabase/functions/ai-assistant/index.ts');
 if(!aiEdge.includes('https://edunizam.online')) fail.push('AI Edge Function does not allow the production custom domain.');
 if(!aiEdge.includes('supabaseUser.auth.getUser()')) fail.push('AI Edge Function does not verify the authenticated user.');
@@ -123,7 +127,7 @@ if(/querySelectorAll\(['"]button\[disabled\]['"]\)/.test(reliabilitySafety)) fai
 for(const page of ['index.html','login.html','app.html','learn.html','admission.html','about.html','features.html','learning-resources-pakistan.html','online-school-admissions.html','privacy.html','school-management-system-pakistan.html']){
   const html=read(page);
   for(const ref of [...html.matchAll(/(?:pwa-install|system-auto-update)\.js\?v=([A-Za-z0-9._-]+)/g)].map(m=>m[1])){
-    if(ref!=='20261005-auth-tap629') fail.push('Stale runtime cache-busting token on '+page+': '+ref);
+    if(ref!=='20261005-authstate700') fail.push('Stale runtime cache-busting token on '+page+': '+ref);
   }
 }
 const appExternalScriptTags=[...index.matchAll(/<script[^>]+src=["'][^"']+["'][^>]*>/g)].map(m=>m[0]);
@@ -225,10 +229,13 @@ for(const view of new Set(roleViewTargets)){
 const cloudPos=scriptRefs.indexOf('cloud-config.js');
 const scopePos=scriptRefs.indexOf('storage-scope.js');
 const guardianPos=scriptRefs.indexOf('reliability-guardian.js');
+const dataRuntimePos=scriptRefs.indexOf('data-runtime.js');
 const featurePos=scriptRefs.indexOf('feature-loader.js');
 const appPos=scriptRefs.indexOf('app.js');
-if(cloudPos<0||scopePos<0||guardianPos<0||featurePos<0||appPos<0) fail.push('Critical startup scripts missing.');
-else if(!(cloudPos<scopePos&&scopePos<guardianPos&&guardianPos<featurePos&&featurePos<appPos)) fail.push('Critical script order must be cloud-config -> storage-scope -> reliability guardian -> feature loader -> app.js');
+const admissionsPos=scriptRefs.indexOf('admissions-cloud.js');
+const authBridgePos=scriptRefs.indexOf('auth-bridge.js');
+if([cloudPos,scopePos,guardianPos,dataRuntimePos,featurePos,appPos,admissionsPos,authBridgePos].some(x=>x<0)) fail.push('Critical startup scripts missing.');
+else if(!(cloudPos<scopePos&&scopePos<guardianPos&&guardianPos<dataRuntimePos&&dataRuntimePos<featurePos&&featurePos<appPos&&appPos<admissionsPos&&admissionsPos<authBridgePos)) fail.push('Critical startup order must keep UI/data runtime ahead of cloud auth state machine.');
 
 for(const required of [
   'login.html','cloud-config.js','storage-scope.js','cloud-setup.js','core-cloud.js',
@@ -367,7 +374,7 @@ if(!/student:\[[^\n]*'dailydiary'/.test(app)||!/parent:\[[^\n]*'dailydiary'/.tes
 if(!login.includes("institutionId:inst?.id||''")) fail.push('Login does not persist selected institution ID.');
 if(!login.includes("edunizam_school:'+inst.id+':edunizam_settings")) fail.push('Login does not seed selected school workspace identity.');
 const authBridge=read('auth-bridge.js');
-if(!authBridge.includes("existing?.institutionId||runtime.institutionId")) fail.push('Cloud role sync can overwrite selected institute session.');
+if(!authBridge.includes('verifyWorkspaceAccess')||!authBridge.includes('institutionId:access.id||current.institutionId')) fail.push('Background authorization does not preserve/verify the selected institution workspace.');
 const cloudSetup=read('cloud-setup.js');
 if(!cloudSetup.includes("const selectedId=session?.institutionId||current.institutionId||''")) fail.push('Startup does not prioritize login-selected institute.');
 if(!cloudSetup.includes("session.institutionId=inst.id")) fail.push('Manual institute switching does not update session lock.');
@@ -386,11 +393,11 @@ if(!login.includes('id="memberSchoolDropdown"')) fail.push('School dropdown miss
 if(!login.includes("list_school_directory_v1")) fail.push('School dropdown directory RPC missing from login.');
 if(!login.includes("selectedSchoolId")) fail.push('Member login does not verify a selected school.');
 if(!login.includes("requestedInstitutionId")) fail.push('Login cannot lock member access to selected school ID.');
-if(!login.includes("selectedInstitutionId=localPending?.institutionId||meta.selected_school_id||''")) fail.push('Signup completion is not locked to the selected school request.');
+if(!login.includes("localPending&&")||!login.includes("String(localPending.email||'').toLowerCase()")) fail.push('Signup completion is not limited to the browser-owned pending signup.');
 const authBridgeE2E=read('auth-bridge.js');
 if(!authBridgeE2E.includes('refreshScopedRoleCache')) fail.push('Role-scoped cache refresh missing after member login.');
 if(!authBridgeE2E.includes('pullAllCloudToLocal')) fail.push('Member login does not reload RLS-filtered cloud data.');
-if(!authBridgeE2E.includes("location.reload()")) fail.push('Shared-device stale in-memory data reload guard missing.');
+if(authBridgeE2E.includes("location.reload()")) fail.push('Auth bridge must not reload the whole app to refresh member data.');
 const admissionsSecurityMigration='supabase/migrations/20260926052611_harden_admissions_applicant_admin_boundaries.sql';
 if(!exists(admissionsSecurityMigration)) fail.push('Admissions applicant/Admin boundary migration missing.');
 else{
