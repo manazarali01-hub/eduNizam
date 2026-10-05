@@ -258,7 +258,14 @@
     mountHeadPlanCard();
   }
 
-  window.addEventListener('edunizam:auth',()=>setTimeout(probe,150));
-  setTimeout(probe,1000);
-  window.EDUNIZAM_OWNER_CENTER={probe,show,render,isOwner};
+  let ownerProbeScheduled=false;
+  function scheduleProbe(){
+    if(ownerProbeScheduled)return;
+    ownerProbeScheduled=true;
+    const run=async()=>{ownerProbeScheduled=false;await probe()};
+    if(window.EDUNIZAM_DATA_RUNTIME?.idle)window.EDUNIZAM_DATA_RUNTIME.idle(run,4500);
+    else setTimeout(()=>run().catch(()=>{}),3000);
+  }
+  window.addEventListener('edunizam:workspace-ready',scheduleProbe);
+  window.EDUNIZAM_OWNER_CENTER={probe: scheduleProbe,show,render,isOwner};
 })();
