@@ -384,6 +384,21 @@ else ok("auth:script-order");
 if(/controllerchange[^\n]*controlledReload|EDUNIZAM_UPDATE_READY/.test(systemAuto))bad("sw:no-forced-auth-reload","service-worker updates must not force-reload an active auth flow");
 else ok("sw:no-forced-auth-reload");
 
+const roleAccessSource=read("role-access-center.js");
+const academicAccessSource=read("academic-access.js");
+if(/setTimeout\(refreshPendingBadge/.test(roleAccessSource)||/edunizam:auth[^\n]*refreshPendingBadge/.test(roleAccessSource)){
+  bad("startup:no-access-fetch","Access approvals must not fetch during dashboard startup");
+}else ok("startup:no-access-fetch");
+if(/if\(r===['"]head['"]\)\{?\s*loadInstitutionAccounts\(\)/.test(roleAccessSource)){
+  bad("startup:no-access-bulk-load","Access Center data must load only when the Access view is opened");
+}else ok("startup:no-access-bulk-load");
+if(/setTimeout\(boot,500\)/.test(academicAccessSource)||/function render\([\s\S]*loadNotifications\(\)/.test(academicAccessSource)){
+  bad("startup:no-notification-fetch","Notifications/assignment data must not fetch during app boot");
+}else ok("startup:no-notification-fetch");
+if(!roleAccessSource.includes("edunizam:view-open")||!academicAccessSource.includes("edunizam:view-open")){
+  bad("startup:view-lifecycle","On-demand access/academic loading must use the view lifecycle");
+}else ok("startup:view-lifecycle");
+
 const storyRule=loginHtml.match(/\.story\{[^}]*\}/)?.[0]||"";
 if(/linear-gradient\(/.test(storyRule) && /edunizam-login-children\.webp/.test(storyRule)){
   bad("ui:children-image-overlay","children login image must not have a gradient overlay");
