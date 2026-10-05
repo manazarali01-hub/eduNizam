@@ -117,8 +117,16 @@
         const btn=screen.querySelector('#cloudAuthRetry');
         if(!btn||btn.disabled)return;
         btn.disabled=true;btn.textContent='Checking…';
-        try{await boot(true)}
-        finally{
+        try{
+          await boot(true);
+          if(document.getElementById('cloudAuthScreen')){
+            // A user-initiated retry must never look dead. If the in-place check
+            // still cannot resolve the workspace, force a no-cache page retry.
+            const url=new URL(location.href);
+            url.searchParams.set('_secureRetry',String(Date.now()));
+            setTimeout(()=>location.replace(url.toString()),250);
+          }
+        }finally{
           const live=document.getElementById('cloudAuthRetry');
           if(live){live.disabled=false;live.textContent='Retry secure check'}
         }
