@@ -166,6 +166,21 @@ for(const file of jsFiles){
   catch(e){ fail.push('JavaScript syntax error in '+file+': '+e.message); }
 }
 
+// Inline executable scripts need the same syntax protection; JSON-LD and external src tags are excluded.
+for(const file of htmlFiles){
+  const html=read(file);
+  const blocks=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)];
+  blocks.forEach((m,index)=>{
+    const attrs=m[1]||'';
+    if(/\bsrc\s*=/.test(attrs))return;
+    const type=(attrs.match(/\btype=["']([^"']+)["']/i)||[])[1]||'';
+    if(type&&type!=='text/javascript'&&type!=='application/javascript'&&type!=='module')return;
+    if(type==='module'&&/\b(?:import|export)\b/.test(m[2]))return;
+    try{ new Function(m[2]); ok.push('Inline syntax '+file+' #'+(index+1)); }
+    catch(e){ fail.push('Inline JavaScript syntax error in '+file+' #'+(index+1)+': '+e.message); }
+  });
+}
+
 const ids=[...index.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
 const seen=new Set();
 for(const id of ids){
