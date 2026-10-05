@@ -274,16 +274,35 @@
     const c=cloud(); if(!ready()) throw new Error('Cloud backend is not configured.');
     createLocalBackup();
     const client=c.state.client;
-    const [settingsRes,studentsRes,attRes,feesRes,resultsRes,practiceRes,remarksRes]=await Promise.all([
-      client.from('institution_settings').select('*').eq('institution_id',cfg.institutionId).maybeSingle(),
-      client.from('core_students').select('*').eq('institution_id',cfg.institutionId).order('created_at'),
-      client.from('attendance_records').select('*').eq('institution_id',cfg.institutionId),
-      client.from('fee_records').select('*').eq('institution_id',cfg.institutionId),
-      client.from('result_records').select('*').eq('institution_id',cfg.institutionId),
-      client.from('practice_attempts').select('*').eq('institution_id',cfg.institutionId),
-      client.from('student_remarks').select('*').eq('institution_id',cfg.institutionId)
+    const fetchOne=async(key,builder)=>{
+      const execute=async({signal}={})=>{
+        let q=builder();
+        if(signal&&typeof q?.abortSignal==='function')q=q.abortSignal(signal);
+        const result=await q;
+        if(result?.error)throw result.error;
+        return result;
+      };
+      const rt=window.EDUNIZAM_DATA_RUNTIME;
+      return rt
+        ?rt.run('core-pull:'+cfg.institutionId+':'+key,execute,{timeout:10000,retries:1,label:'School data '+key})
+        :execute({});
+    };
+
+    // Background hydration is intentionally capped at two concurrent requests.
+    // It never owns the login/dashboard loading state.
+    const [settingsRes,studentsRes]=await Promise.all([
+      fetchOne('settings',()=>client.from('institution_settings').select('*').eq('institution_id',cfg.institutionId).maybeSingle()),
+      fetchOne('students',()=>client.from('core_students').select('*').eq('institution_id',cfg.institutionId).order('created_at'))
     ]);
-    for(const r of [settingsRes,studentsRes,attRes,feesRes,resultsRes,practiceRes,remarksRes]) if(r.error) throw r.error;
+    const [attRes,feesRes]=await Promise.all([
+      fetchOne('attendance',()=>client.from('attendance_records').select('*').eq('institution_id',cfg.institutionId)),
+      fetchOne('fees',()=>client.from('fee_records').select('*').eq('institution_id',cfg.institutionId))
+    ]);
+    const [resultsRes,practiceRes]=await Promise.all([
+      fetchOne('results',()=>client.from('result_records').select('*').eq('institution_id',cfg.institutionId)),
+      fetchOne('practice',()=>client.from('practice_attempts').select('*').eq('institution_id',cfg.institutionId))
+    ]);
+    const remarksRes=await fetchOne('remarks',()=>client.from('student_remarks').select('*').eq('institution_id',cfg.institutionId));
 
     const cloudStudents=studentsRes.data||[];
     const localStudents=cloudStudents.map(s=>({
