@@ -23,7 +23,7 @@
       for(const [studentId,status] of Object.entries(day||{})){
         if(!ids.has(String(studentId)))continue;
         const s=students().find(x=>String(x.id)===String(studentId));if(!s)continue;
-        rows.push({date,status,studentId:String(studentId),studentName:s.name,className:s.className||'',sectionName:s.sectionName||''});
+        rows.push({date,status,studentId:String(studentId),studentName:s.name,className:s.className||'',sectionName:s.sectionName||'',studentPhone:s.phone||''});
       }
     }
     return rows;
@@ -33,7 +33,7 @@
     if(!cloudReady())return localRecords(month);
     const {start,end}=monthBounds(month);
     const {data,error}=await cloud().state.client.from('attendance_records')
-      .select('attendance_date,status,student_id,marked_by,updated_at,core_students(local_id,name,class_name,section_name,auth_user_id)')
+      .select('attendance_date,status,student_id,marked_by,updated_at,core_students(local_id,name,class_name,section_name,phone,auth_user_id)')
       .eq('institution_id',cfg().institutionId)
       .gte('attendance_date',start).lt('attendance_date',end)
       .order('attendance_date',{ascending:true});
@@ -44,6 +44,7 @@
       studentName:x.core_students?.name||'Student',
       className:x.core_students?.class_name||'',
       sectionName:x.core_students?.section_name||'',
+      studentPhone:x.core_students?.phone||'',
       markedBy:x.marked_by||'',
       updatedAt:x.updated_at||''
     }));
@@ -130,8 +131,8 @@
     if(filter!=='all')list=list.filter(x=>classKey(x)===filter);
     list.sort((a,b)=>classKey(a).localeCompare(classKey(b),undefined,{numeric:true})||a.studentName.localeCompare(b.studentName));
     if(!list.length)return '<div class="muted">Aaj is view mein koi student Absent mark nahi hai.</div>';
-    return '<div class="aa-table-wrap"><table class="aa-table"><thead><tr><th>Student</th><th>Class</th><th>Marked By</th><th>Time</th></tr></thead><tbody>'+
-      list.map(x=>'<tr><td><strong>'+esc(x.studentName)+'</strong></td><td>'+esc(classKey(x))+'</td><td>'+esc(markerLabel(x.markedBy))+'</td><td>'+esc(x.updatedAt?new Date(x.updatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—')+'</td></tr>').join('')+
+    return '<div class="aa-table-wrap"><table class="aa-table"><thead><tr><th>Student</th><th>Class</th><th>Contact</th><th>Marked By</th><th>Time</th></tr></thead><tbody>'+
+      list.map(x=>'<tr><td><strong>'+esc(x.studentName)+'</strong></td><td>'+esc(classKey(x))+'</td><td>'+esc(x.studentPhone||students().find(s=>String(s.id)===String(x.studentId))?.phone||'No contact number')+'</td><td>'+esc(markerLabel(x.markedBy))+'</td><td>'+esc(x.updatedAt?new Date(x.updatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—')+'</td></tr>').join('')+
       '</tbody></table></div>';
   }
   function adminMarkerLog(rows,filter){
