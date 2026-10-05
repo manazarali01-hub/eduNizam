@@ -72,6 +72,13 @@ if(read('admissions-cloud.js').includes('manazarali01-hub.github.io/eduNizam/log
 const admissionHtml=read('admission.html');
 if(admissionHtml.includes("body+'<script src=\"system-auto-update.js")) fail.push('Admission printable markup still embeds a literal script closing tag inside inline JavaScript.');
 if(!admissionHtml.includes('system-auto-update.js?v=20261005-auth-tap629')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
+const aiEdge=read('supabase/functions/ai-assistant/index.ts');
+if(!aiEdge.includes('https://edunizam.online')) fail.push('AI Edge Function does not allow the production custom domain.');
+if(!aiEdge.includes('supabaseUser.auth.getUser()')) fail.push('AI Edge Function does not verify the authenticated user.');
+const cloudConfig=read('cloud-config.js');
+if(!cloudConfig.includes('paymentApiBaseUrl:""')) fail.push('Live payment API must stay disabled until a verified provider adapter is configured.');
+const paymentEdge=read('supabase/functions/admissions-payments/index.ts');
+if(!paymentEdge.includes('verify provider signature BEFORE parsing/updating')) fail.push('Payment Edge Function lost the provider-signature safety guard.');
 if(loginHtml.includes("mode==='recovery'?'Retry'")) fail.push('Login recovery cooldown still presents a dead Retry label.');
 if(loginHtml.includes("sw.js?v=20261001-visitor202")) fail.push('Login still registers the obsolete service-worker build.');
 if(!app.includes("classList?.contains('feature-loading-notice')")) fail.push('Feature Retry does not clear stale loader/error notices before retrying.');
