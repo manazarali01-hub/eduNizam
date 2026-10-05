@@ -702,17 +702,17 @@ body.admission-premium{
 .app-page .merit-table th{font-size:14px!important}
 .app-page .auth-help{font-size:14px!important}
 .app-page .role-action-card span{font-size:13.5px!important}
-.app-page .brand small{font-size:12.5px!important}
-.app-page .academic-kicker{font-size:12.5px!important}
+.app-page .brand small{font-size:13.5px!important}
+.app-page .academic-kicker{font-size:13.5px!important}
 .app-page .academic-pill{font-size:13px!important}
-.app-page .campus-label{font-size:13px!important}
+.app-page .campus-label{font-size:13.5px!important}
 .app-page .campus-visual span{font-size:14px!important}
 .app-page .trend-col span,.app-page .trend-col small{font-size:13px!important}
 .app-page .attendance-day{font-size:13px!important;min-width:36px}
 .app-page .attendance-day strong{font-size:14px!important}
 .app-page .highlight-card span{font-size:13px!important}
 .app-page .seo-footer{font-size:14px!important}
-.app-page .nav-group summary,.app-page .nav-group .nav-item{font-size:14px!important}
+.app-page .nav-group summary{font-size:14.5px!important}.app-page .nav-group .nav-item{font-size:16px!important}
 .app-page .time-punch-grid span,.app-page .import-summary>*,.app-page .schedule-table th{font-size:14px!important}
 .app-page .schedule-table,.app-page .merit-table,.app-page .fee-row{font-size:14.5px!important}
 .app-page .topbar p,.app-page .topbar-title p{font-size:15px!important}
@@ -720,21 +720,21 @@ body.admission-premium{
 .app-page .sidebar-institute-copy small{font-size:12.5px!important}
 .app-page .sidebar-institute-copy span,.app-page .institute-hero-identity span{font-size:13.5px!important}
 .app-page .admin-daily-stats span,.app-page .admin-daily-actions button>small{font-size:13.5px!important}
-.app-page .admin-action-count{font-size:13px!important}
+.app-page .admin-action-count{font-size:13.5px!important}
 .app-page .leave-summary span{font-size:13.5px!important}
 .app-page .leave-request-form label,.app-page .leave-admin-decision label{font-size:15px!important}
 .app-page .leave-request-reason strong{font-size:14px!important}
 .app-page .attendance-alert-counts span,.app-page .attendance-alert-status{font-size:13.5px!important}
 
 .app-page .premium-workspace-badge{font-size:13px!important}
-.app-page .premium-mobile-dock button,.app-page .premium-mobile-dock button strong{font-size:13px!important}
+.app-page .premium-mobile-dock button,.app-page .premium-mobile-dock button strong{font-size:13.5px!important}
 .app-page .audit-stat-grid span,.app-page .audit-event-top time,.app-page .audit-event-meta span{font-size:13.5px!important}
 .app-page .premium-workspace-switch{font-size:13.5px!important}
 .app-page .workspace-choice strong{font-size:15px!important}
 .app-page .workspace-choice small,.app-page .workspace-choice em{font-size:13.5px!important}
 .app-page .feature-loading-notice{font-size:14px!important}
 .app-page .pb-meta,.app-page .pb-student-line,.app-page .pb-section h3 span{font-size:14px!important}
-.app-page .sidebar-wordmark small{font-size:12.5px!important}
+.app-page .sidebar-wordmark small{font-size:13px!important}
 .app-page .premium-stat-meta{font-size:13.5px!important}
 
 /* ---------- Responsive ---------- */
