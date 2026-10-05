@@ -1,4 +1,4 @@
-const CACHE='edunizam-v222-learning-live'
+const CACHE='edunizam-v223-premium-visual'
 const CORE=[
   './',
   './index.html',
@@ -7,6 +7,7 @@ const CORE=[
   './admission.html',
   './style.css',
   './edunizam-brand-refresh.css',
+  './edunizam-visual-system.css',
   './cloud-config.js',
   './storage-scope.js',
   './reliability-guardian.js',
