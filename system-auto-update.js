@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
-const BUILD='20261005-auth-tap629', KEY='edunizam_system_build', RELOAD='edunizam_update_reload';
-const ACTIVE_CACHE='edunizam-v230-auth-native-nav';
+const BUILD='20261005-authstate700', KEY='edunizam_system_build';
+const ACTIVE_CACHE='edunizam-v231-auth-state-runtime';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}
@@ -42,12 +42,6 @@ async function checkUpdate(){
     if(reg.waiting)await activateUpdate(reg);
   }catch(e){emit('edunizam:update-check-failed',{message:e.message||String(e)})}
 }
-function controlledReload(){
-  const last=Number(sessionStorage.getItem(RELOAD)||0);
-  if(Date.now()-last<60000)return;
-  sessionStorage.setItem(RELOAD,String(Date.now()));
-  location.reload();
-}
 function boot(){
   const previous=safeGet(KEY);safeSet(KEY,BUILD);
   repairCommonUI();
@@ -56,13 +50,7 @@ function boot(){
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
   window.addEventListener('error',()=>setTimeout(repairCommonUI,0));
   window.addEventListener('unhandledrejection',()=>setTimeout(repairCommonUI,0));
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.addEventListener('controllerchange',controlledReload);
-    navigator.serviceWorker.addEventListener('message',e=>{
-      if(e.data?.type==='EDUNIZAM_UPDATE_READY')controlledReload();
-    });
-  }
-  if(previous&&previous!==BUILD){clearOldCaches().then(controlledReload)}
+  if(previous&&previous!==BUILD)clearOldCaches().catch(()=>{});
   checkUpdate();
   setInterval(checkUpdate,30*60*1000);
 }
