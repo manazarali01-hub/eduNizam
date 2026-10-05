@@ -252,10 +252,11 @@
   }
 
   async function probe(){
-    if(!ready()){setTimeout(probe,1200);return}
+    if(!ready())return false;
     owner=await isOwner();
-    if(owner){inject()}
-    mountHeadPlanCard();
+    if(owner)inject();
+    await mountHeadPlanCard();
+    return true;
   }
 
   let ownerProbeScheduled=false;
