@@ -59,7 +59,7 @@
     setVisible(!installed());
     if('serviceWorker' in navigator){
       window.addEventListener('load',()=>{
-        navigator.serviceWorker.register('./sw.js?v=20261005-final-visual3',{updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=20261005-mobile-auth-fix4',{updateViaCache:'none'})
           .then(reg=>reg.update())
           .catch(()=>{});
       },{once:true});
