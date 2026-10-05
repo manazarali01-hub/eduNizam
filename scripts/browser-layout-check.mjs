@@ -236,6 +236,24 @@ try{
     await loadGuard();
     await authPage.locator('#cloudAuthGuest').tap();
     await authPage.waitForURL(/\/learn\.html\?from=secure-guard$/,{timeout:3000}).catch(e=>pushFailure('auth guard touch','Continue as Guest tap did not navigate',e.message));
+
+    const loadRetryGuard=async()=>{
+      await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
+      await authPage.evaluate(()=>{
+        window.EDUNIZAM_CLOUD_CONFIG={enabled:true};
+        window.EDUNIZAM_CLOUD={
+          ready:()=>true,
+          state:{client:{auth:{getSession:()=>Promise.reject(new Error('Simulated secure-session network failure'))}}}
+        };
+      });
+      await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
+      await authPage.waitForSelector('#cloudAuthRetry',{state:'visible',timeout:3000});
+    };
+
+    await loadRetryGuard();
+    await authPage.locator('#cloudAuthRetry').tap();
+    await authPage.waitForURL(url=>url.pathname.endsWith('/auth-harness')&&url.searchParams.has('_secureRetry'),{timeout:3000})
+      .catch(e=>pushFailure('auth guard touch','Retry secure check tap did not trigger a recovery navigation',e.message));
   }catch(e){
     pushFailure('auth guard touch','Secure access interaction regression failed',e.message||String(e));
   }finally{
