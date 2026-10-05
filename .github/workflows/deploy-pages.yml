@@ -115,7 +115,9 @@ jobs:
             echo "Exact live file verified: ${rel}"
           }
 
-          verify_exact_file "app.html"
+          for rel in *.html; do
+            verify_exact_file "$rel"
+          done
           verify_exact_file "app.js"
           verify_exact_file "feature-loader.js"
           verify_exact_file "role-scope.js"
@@ -130,7 +132,6 @@ jobs:
           verify_exact_file "sw.js"
           verify_exact_file "pwa-install.js"
           verify_exact_file "system-auto-update.js"
-          verify_exact_file "learn.html"
           verify_exact_file "guest-learning-premium.js"
           verify_exact_file "guest-learning-nav.js"
           verify_exact_file "admissions-cloud.js"
