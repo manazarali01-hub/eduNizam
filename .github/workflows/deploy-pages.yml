@@ -119,7 +119,14 @@ jobs:
             verify_exact_file "$rel"
           done
           verify_exact_file "app.js"
+          verify_exact_file "mobile-nav-core.js"
+          verify_exact_file "data-runtime.js"
           verify_exact_file "auth-bridge.js"
+          verify_exact_file "admissions-cloud.js"
+          verify_exact_file "core-cloud.js"
+          verify_exact_file "reliability-guardian.js"
+          verify_exact_file "role-access-center.js"
+          verify_exact_file "academic-access.js"
           verify_exact_file "cloud-setup.js"
           verify_exact_file "feature-loader.js"
           verify_exact_file "role-scope.js"
@@ -136,7 +143,6 @@ jobs:
           verify_exact_file "system-auto-update.js"
           verify_exact_file "guest-learning-premium.js"
           verify_exact_file "guest-learning-nav.js"
-          verify_exact_file "admissions-cloud.js"
 
           curl --fail --silent --show-error --location "${BASE}icon-192.png?verify=${GITHUB_SHA}" -o /tmp/icon-192.png
           curl --fail --silent --show-error --location "${BASE}icon-512.png?verify=${GITHUB_SHA}" -o /tmp/icon-512.png
