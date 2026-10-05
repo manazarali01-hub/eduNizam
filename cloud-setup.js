@@ -47,6 +47,7 @@
         .select('id,name,institution_type,school_registration_code,registration_number')
         .eq('owner_user_id',cloud.state.user.id)
         .order('created_at',{ascending:true});
+      if(owner.error)throw owner.error;
 
       if(owner.data?.length){
         let session=null;
@@ -92,8 +93,9 @@
       }
 
       return false;
-    }catch(_){
-      return false;
+    }catch(error){
+      console.warn('Institution resolution:',error?.message||error);
+      throw error;
     }
   }
 
