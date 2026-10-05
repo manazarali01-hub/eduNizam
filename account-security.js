@@ -30,8 +30,9 @@
   }
   function mount(){
     const actions=document.querySelector('.topbar-actions');if(!actions||$('accountSecurityButton'))return;
-    const b=document.createElement('button');b.id='accountSecurityButton';b.className='account-security-btn';b.textContent='🔒 My Account';b.onclick=open;actions.appendChild(b);school().catch(()=>{});
+    const b=document.createElement('button');b.id='accountSecurityButton';b.className='account-security-btn';b.textContent='🔒 My Account';b.onclick=open;actions.appendChild(b);
   }
-  window.addEventListener('edunizam:auth',()=>setTimeout(mount,0));setTimeout(mount,250);setTimeout(mount,1000);
+  window.addEventListener('edunizam:workspace-ready',()=>setTimeout(mount,0));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
   window.EDUNIZAM_ACCOUNT_SECURITY={open,mount,school};
 })();
