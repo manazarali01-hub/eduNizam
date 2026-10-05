@@ -88,7 +88,9 @@
     if(window.EDUNIZAM_CLOUD_SETUP?.ensureInstitution){
       const institutionReady=await window.EDUNIZAM_CLOUD_SETUP.ensureInstitution();
       if(!institutionReady){
-        clearLocalAuthState();
+        // Keep the authenticated Supabase session and the institute selected on Login.
+        // Clearing it here made the visible Retry action unable to recover after a
+        // transient institution lookup / multi-school resolution failure.
         window.dispatchEvent(new CustomEvent(role==='head_of_institute'?'edunizam:school-selection-required':'edunizam:auth-invalid'));
         return false;
       }
@@ -104,16 +106,27 @@
     s.textContent='.cloud-auth-screen{position:fixed;inset:0;z-index:10050;background:linear-gradient(135deg,#071b33,#0f766e);display:grid;place-items:center;padding:20px}.cloud-auth-card{width:min(560px,100%);background:#fff;border-radius:24px;padding:28px;box-shadow:0 28px 80px #001a}.cloud-auth-card h1{margin:0 0 6px;color:#0b2748}.cloud-auth-card p{color:#536579}.cloud-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.cloud-auth-tabs button{background:#f1f5f9;color:#334155;border:1px solid #dbe4ea}.cloud-auth-tabs button.active{background:#0f766e;color:#fff;border-color:#0f766e}.cloud-auth-grid{display:grid;gap:11px}.cloud-auth-grid input,.cloud-auth-grid select{width:100%;box-sizing:border-box}.cloud-auth-actions{display:flex;gap:10px;flex-wrap:wrap}.cloud-auth-note{margin-top:12px;padding:10px 12px;border-radius:12px;background:#f3f8fb;color:#466071;font-size:13px}.cloud-auth-error{color:#9b1c1c;min-height:20px;font-size:13px}.cloud-auth-success{color:#166534}.cloud-admin-badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#ecfdf5;color:#166534;font-size:12px;font-weight:700}@media(max-width:560px){.cloud-auth-card{padding:20px}.cloud-auth-tabs{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
-  function authScreen(message='Checking your secure school session…'){
+  function authScreen(message='Checking your secure school session…',showRetry=true){
     removeDemoLogin();style();
     let screen=document.getElementById('cloudAuthScreen');
     if(!screen){
       screen=document.createElement('div');screen.id='cloudAuthScreen';screen.className='cloud-auth-screen';
-      screen.innerHTML='<section class="cloud-auth-card"><div class="academic-kicker">EduNizam Secure Access</div><h1>Opening your school workspace</h1><p id="cloudAuthGuardMessage"></p><div class="cloud-auth-actions"><a class="secondary-link" href="login.html">Go to Login</a><a class="secondary-link" href="learn.html">Continue as Guest</a><button id="cloudAuthRetry" type="button">Retry</button></div></section>';
+      screen.innerHTML='<section class="cloud-auth-card"><div class="academic-kicker">EduNizam Secure Access</div><h1>Opening your school workspace</h1><p id="cloudAuthGuardMessage"></p><div class="cloud-auth-actions"><a class="secondary-link" href="login.html">Go to Login</a><a class="secondary-link" href="learn.html">Continue as Guest</a><button id="cloudAuthRetry" type="button">Retry secure check</button></div></section>';
       document.body.appendChild(screen);
-      screen.querySelector('#cloudAuthRetry').onclick=()=>boot();
+      screen.querySelector('#cloudAuthRetry').onclick=async()=>{
+        const btn=screen.querySelector('#cloudAuthRetry');
+        if(!btn||btn.disabled)return;
+        btn.disabled=true;btn.textContent='Checking…';
+        try{await boot(true)}
+        finally{
+          const live=document.getElementById('cloudAuthRetry');
+          if(live){live.disabled=false;live.textContent='Retry secure check'}
+        }
+      };
     }
     const msg=screen.querySelector('#cloudAuthGuardMessage');if(msg)msg.textContent=message;
+    const retry=screen.querySelector('#cloudAuthRetry');
+    if(retry)retry.hidden=!showRetry;
     return screen;
   }
   function hideAuthScreen(){document.getElementById('cloudAuthScreen')?.remove()}
@@ -130,12 +143,12 @@
       if(!authUser){
         clearLocalAuthState();
         window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
-        authScreen('No active school session was found. Choose Login to sign in, or Continue as Guest for public learning resources.');
+        authScreen('No active school session was found. Choose Login to sign in, or Continue as Guest for public learning resources.',false);
         return;
       }
       c.state.user=authUser;
       const ok=await syncCloudRole();
-      if(!ok){authScreen('Your school access could not be verified. Choose Login to continue securely, or Continue as Guest for public learning resources.');return}
+      if(!ok){authScreen('Your school access could not be verified yet. Retry the secure check once, or choose Login if you need to change the school/account.');return}
       hideAuthScreen();
     }catch(e){
       console.warn('Cloud session guard:',e.message||e);
