@@ -91,6 +91,9 @@ if(!authBridgeMobileFix.includes('<a id="cloudAuthLogin"')||!authBridgeMobileFix
 if(!authBridgeMobileFix.includes('<a id="cloudAuthGuest"')||!authBridgeMobileFix.includes('href="learn.html?from=secure-guard"')) fail.push('Secure-session Guest action is not a native link.');
 if(authBridgeMobileFix.includes('navigateAuthTarget(')) fail.push('Secure-session navigation still depends on a JavaScript-only redirect helper.');
 if(!authBridgeMobileFix.includes('pointer-events:auto!important')) fail.push('Secure-session mobile tap target hardening is missing.');
+if(!authBridgeMobileFix.includes("let authUser=c.state.user||null")) fail.push('Post-login guard still re-enters getSession even when Auth already supplied a verified user.');
+if(!authBridgeMobileFix.includes('verifiedWorkspaceKey=workspaceKey(c.state.user)')) fail.push('Verified workspace idempotency guard is missing.');
+if(!authBridgeMobileFix.includes("window.dispatchEvent(new CustomEvent('edunizam:workspace-ready'")) fail.push('Successful workspace handoff event is missing.');
 if(loginHtml.includes("register_simple_account_v1")) fail.push('Legacy direct-role registration RPC is still reachable from login.');
 if(authBridgeMobileFix.includes('clearLocalAuthState();\n        window.dispatchEvent(new CustomEvent(role===\'head_of_institute\'')) fail.push('Admin Retry still clears the selected local session before retrying.');
 if(!cloudSetupMobileFix.includes('if(owner.error)throw owner.error')) fail.push('Institution lookup errors are still swallowed before Admin Retry.');
