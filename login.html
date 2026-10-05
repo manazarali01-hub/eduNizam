@@ -213,7 +213,9 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
       const left=emailCooldownSeconds(mode);
       if(button.dataset.old)return;
       button.disabled=left>0;
-      button.textContent=left?(mode==='recovery'?'Retry':'Resend')+' in '+left+'s':label;
+      button.setAttribute('aria-disabled',String(left>0));
+      button.textContent=left?(mode==='recovery'?'Wait '+left+'s':'Resend in '+left+'s'):label;
+      button.title=left?(mode==='recovery'?'Password reset email was recently requested. Please wait before requesting another one.':'Please wait before resending.'):'';
       active=active||left>0;
     });
     if(active)emailCooldownTimer=setTimeout(refreshEmailCooldown,1000);
@@ -897,11 +899,6 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
     });
   }
 })();
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261001-visitor202').catch(()=>{}));
-}
 </script>
 <script src="system-auto-update.js?v=20261005-final-visual3" defer></script>
 </body>
