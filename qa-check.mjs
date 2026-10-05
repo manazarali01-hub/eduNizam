@@ -400,6 +400,14 @@ if(!leaveMigration.includes('heads decide institute leave')) fail.push('Admin-on
 if(leaveMigration.includes('create policy "teachers decide assigned leave"')) fail.push('Legacy Teacher leave-decision policy still present.');
 if(!leaveMigration.includes('leave_requests_decision_complete_check')) fail.push('Leave decision cause integrity constraint missing.');
 if(!leaveMigration.includes('decide_leave_request_v1')) fail.push('Leave decision RPC migration missing.');
+const classTeacherLeaveMigration='supabase/migrations/20261005060000_allow_class_teacher_leave_review.sql';
+if(!exists(classTeacherLeaveMigration)) fail.push('Class-teacher leave review migration missing.');
+else{
+  const classTeacherLeave=read(classTeacherLeaveMigration);
+  if(!classTeacherLeave.includes('class_teacher_user_id=(select auth.uid())')) fail.push('Class-teacher leave review is not bound to authenticated Teacher.');
+  if(!classTeacherLeave.includes('teacher_student_links')||!classTeacherLeave.includes('class_sections')) fail.push('Teacher leave review must support explicit student links and assigned class sections.');
+  if(!classTeacherLeave.includes('notify_new_leave_request_v1')) fail.push('Class-teacher leave routing notification update missing.');
+}
 const workflowAlerts=read('workflow-alerts.js');
 if(!coreCloud.includes('async function saveAttendanceDay')) fail.push('Immediate student attendance cloud save missing.');
 if(!app.includes('EDUNIZAM_CORE_CLOUD.saveAttendanceDay')) fail.push('Attendance save does not sync current day to cloud.');
