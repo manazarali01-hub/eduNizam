@@ -67,6 +67,11 @@ if(!authBridgeMobileFix.includes("navigateAuthTarget('login.html?from=secure-gua
 if(!authBridgeMobileFix.includes('pointer-events:auto!important')) fail.push('Secure-session mobile tap target hardening is missing.');
 if(authBridgeMobileFix.includes('clearLocalAuthState();\n        window.dispatchEvent(new CustomEvent(role===\'head_of_institute\'')) fail.push('Admin Retry still clears the selected local session before retrying.');
 if(!cloudSetupMobileFix.includes('if(owner.error)throw owner.error')) fail.push('Institution lookup errors are still swallowed before Admin Retry.');
+if(loginHtml.includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.push('Login auth redirects still leave the production custom domain.');
+if(read('admissions-cloud.js').includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.push('Admission auth redirects still leave the production custom domain.');
+const admissionHtml=read('admission.html');
+if(admissionHtml.includes("body+'<script src=\"system-auto-update.js")) fail.push('Admission printable markup still embeds a literal script closing tag inside inline JavaScript.');
+if(!admissionHtml.includes('system-auto-update.js?v=20261005-auth-tap629')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
 if(loginHtml.includes("mode==='recovery'?'Retry'")) fail.push('Login recovery cooldown still presents a dead Retry label.');
 if(loginHtml.includes("sw.js?v=20261001-visitor202")) fail.push('Login still registers the obsolete service-worker build.');
 if(!app.includes("classList?.contains('feature-loading-notice')")) fail.push('Feature Retry does not clear stale loader/error notices before retrying.');
@@ -78,6 +83,12 @@ if(systemAutoUpdateSafety.includes("querySelectorAll('button[disabled]')")) fail
 if(!reliabilitySafety.includes('[data-recovery-safe="true"][disabled]')) fail.push('Reliability control recovery is not explicitly scoped.');
 if(/querySelectorAll\(['"]button\[disabled\]['"]\)/.test(reliabilitySafety)) fail.push('Reliability Guardian still scans every disabled button.');
 
+for(const page of ['index.html','login.html','app.html','learn.html','admission.html','about.html','features.html','learning-resources-pakistan.html','online-school-admissions.html','privacy.html','school-management-system-pakistan.html']){
+  const html=read(page);
+  for(const ref of [...html.matchAll(/(?:pwa-install|system-auto-update)\.js\?v=([A-Za-z0-9._-]+)/g)].map(m=>m[1])){
+    if(ref!=='20261005-auth-tap629') fail.push('Stale runtime cache-busting token on '+page+': '+ref);
+  }
+}
 const appExternalScriptTags=[...index.matchAll(/<script[^>]+src=["'][^"']+["'][^>]*>/g)].map(m=>m[0]);
 for(const tag of appExternalScriptTags){
   if(!/\bdefer\b/i.test(tag)) fail.push('App startup script is parser-blocking instead of deferred: '+tag);
