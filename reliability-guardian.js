@@ -320,15 +320,11 @@
   }
 
   async function cloudSessionCheck(){
-    const client=window.EDUNIZAM_CLOUD?.state?.client;
-    if(!client)return {ok:true,label:'Cloud client not active'};
-    try{
-      const {error}=await withRetry(()=>client.auth.getSession(),{retries:1,delay:350,timeout:7000,label:'Cloud session check'});
-      if(error)throw error;
-      return {ok:true,label:'Cloud session responsive'};
-    }catch(e){
-      return {ok:false,label:'Cloud session needs attention'};
-    }
+    const cloud=window.EDUNIZAM_CLOUD;
+    if(!cloud?.state?.client)return {ok:true,label:'Cloud client initializing'};
+    if(cloud.state.user)return {ok:true,label:'Cloud session restored'};
+    if(cloud.state.initialized)return {ok:true,label:'No active cloud session'};
+    return {ok:true,label:'Cloud session initializing'};
   }
 
   async function selfCheck(){
@@ -415,7 +411,11 @@
     trackError(event.message||'JavaScript error',event.filename||'Runtime');
   },true);
   window.addEventListener('unhandledrejection',event=>trackError(event.reason?.message||event.reason||'Unhandled promise rejection','Promise'));
-  window.addEventListener('online',()=>{setConnectionStatus();autoRepair().catch(()=>{})});
+  window.addEventListener('online',()=>{
+    setConnectionStatus();
+    window.EDUNIZAM_AUTH_BRIDGE?.verifyCurrentWorkspace?.(true)?.catch?.(()=>{});
+    render();
+  });
   window.addEventListener('offline',()=>{setConnectionStatus();render()});
   window.addEventListener('resize',applyPerformanceProfile,{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)criticalCheck()});
