@@ -182,10 +182,17 @@ function resourceCard(r){
 }
 function injectPastFilters(){
  const f=document.querySelector('#past .paper-filters');if(!f)return;f.classList.add('past-advanced');
- const level=document.createElement('label');level.className='filter-label';level.innerHTML='Education Level<select id="paperLevel"><option value="">All Levels</option><option value="matric">Matric</option><option value="intermediate">Intermediate</option><option value="university">University</option><option value="vu">Virtual University</option><option value="school">PECTA / School Level</option></select>';
- const session=document.createElement('label');session.className='filter-label';session.innerHTML='Session<select id="paperSession"><option value="">All Sessions</option><option value="Annual">Annual</option><option value="Second Annual">Supplementary / Second Annual</option></select>';
- f.insertBefore(level,f.firstChild);f.insertBefore(session,$('searchPapers'));
- $('paperLevel').addEventListener('change',cascadePast);$('paperClass').addEventListener('change',cascadePast);$('paperBoard').addEventListener('change',cascadePast);
+ let level=$('paperLevel');
+ if(!level){
+  const wrap=document.createElement('label');wrap.className='filter-label';wrap.innerHTML='Education Level<select id="paperLevel"><option value="">All Levels</option><option value="matric">Matric</option><option value="intermediate">Intermediate</option><option value="university">University</option><option value="vu">Virtual University</option><option value="school">PECTA / School Level</option></select>';
+  f.insertBefore(wrap,f.firstChild);level=$('paperLevel');
+ }
+ let session=$('paperSession');
+ if(!session){
+  const wrap=document.createElement('label');wrap.className='filter-label';wrap.innerHTML='Session<select id="paperSession"><option value="">All Sessions</option><option value="Annual">Annual</option><option value="Supplementary">Supplementary</option><option value="Archive">Archive</option></select>';
+  f.insertBefore(wrap,$('searchPapers'));session=$('paperSession');
+ }
+ level?.addEventListener('change',cascadePast);$('paperClass')?.addEventListener('change',cascadePast);$('paperBoard')?.addEventListener('change',cascadePast);
  cascadePast();
 }
 function cascadePast(){
