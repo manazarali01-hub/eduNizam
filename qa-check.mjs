@@ -385,7 +385,7 @@ if(!app.includes("if(targetView==='students')openStudentForm()")) fail.push('Stu
 if(!login.includes('id="roleGuidance"')) fail.push('Role-specific same-school login guidance missing.');
 if(!login.includes("if(role!=='admin'&&!inst)")) fail.push('Non-Admin roles can open without a linked school.');
 if(!login.includes('chooseOwnedInstitution')) fail.push('Duplicate-name Admin schools do not have an explicit login picker.');
-if(!login.includes('registration_number,school_registration_code')) fail.push('Duplicate-school picker lacks disambiguating school data.');
+if(!login.includes('registration_number:row.registration_number')||!login.includes('school_registration_code:row.school_registration_code')) fail.push('Authorized-workspace login mapping lacks duplicate-school disambiguating data.');
 if(!login.includes("Waiting for School Admin approval.")) fail.push('Pending-approval login guidance missing.');
 if(!login.includes('id="memberSchoolField"')) fail.push('School search field missing.');
 if(!login.includes("search_school_directory_v1")) fail.push('School search RPC missing from login.');
