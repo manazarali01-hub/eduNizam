@@ -1,4 +1,4 @@
-const CACHE='edunizam-v223-premium-visual'
+const CACHE='edunizam-v224-page-polish'
 const CORE=[
   './',
   './index.html',
