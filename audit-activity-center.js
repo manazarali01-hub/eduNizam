@@ -159,8 +159,8 @@
   }
   function boot(){
     ensureUi();
-    if(role()==='head')render(true);
-    window.addEventListener('edunizam:auth',()=>setTimeout(()=>{ensureUi();render(true)},120));
+    if(role()==='head'&&$('auditcenter')?.classList.contains('active'))render(true);
+    window.addEventListener('edunizam:auth',()=>setTimeout(()=>{ensureUi();if($('auditcenter')?.classList.contains('active'))render(true)},120));
     document.addEventListener('visibilitychange',()=>{if(!document.hidden&&role()==='head'&&$('auditcenter')?.classList.contains('active'))render(true)});
     clearInterval(timer);timer=setInterval(()=>{if(role()==='head'&&$('auditcenter')?.classList.contains('active'))render(true)},60000);
   }
