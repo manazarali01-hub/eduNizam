@@ -85,7 +85,16 @@
 
   function addMobileNavigation(){
     const sidebar=$('.sidebar'),topbar=$('.topbar');
-    if(!sidebar||!topbar||$('#eduMobileMenuBtn'))return;
+    if(!sidebar||!topbar)return;
+    if($('#eduMobileMenuBtn')&&window.EDUNIZAM_MOBILE_NAV_CORE){
+      mobileNavController={
+        open:()=>window.EDUNIZAM_MOBILE_NAV_CORE.open(),
+        close:()=>window.EDUNIZAM_MOBILE_NAV_CORE.close(),
+        reconcile:()=>window.EDUNIZAM_MOBILE_NAV_CORE.reconcile()
+      };
+      return;
+    }
+    if($('#eduMobileMenuBtn'))return;
     const menu=document.createElement('button');
     menu.id='eduMobileMenuBtn';
     menu.className='mobile-menu-btn';
