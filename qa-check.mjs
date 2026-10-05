@@ -199,6 +199,14 @@ if(!/rpc\('delete_core_student_v1'[\s\S]*?p_institution_id:cfg\.institutionId/.t
 if(!roleScope.includes("r==='admin'?'head':r")) fail.push('Role scope does not normalize legacy Admin sessions.');
 if(!roleScope.includes('teacherClassSections')) fail.push('Teacher role scope does not include class-teacher sections.');
 if(!roleScope.includes(".from('class_sections')")) fail.push('Teacher role scope does not refresh class-teacher assignments from cloud.');
+const classTeacherCoreScope='supabase/migrations/20261005061500_class_teacher_core_student_scope.sql';
+if(!exists(classTeacherCoreScope)) fail.push('Class-teacher core student scope migration missing.');
+else{
+  const classTeacherCore=read(classTeacherCoreScope);
+  if(!classTeacherCore.includes('can_access_core_student_v2')||!classTeacherCore.includes('can_manage_core_student_v1')) fail.push('Class-teacher core access helpers are not both hardened.');
+  if(!classTeacherCore.includes("m.role='teacher'")) fail.push('Class-teacher core access does not require active Teacher membership.');
+  if(!classTeacherCore.includes('class_teacher_user_id=p_user_id')) fail.push('Class-teacher core access is not bound to the assigned class teacher.');
+}
 if(!/teacher:\[[^\n]*'paperbuilder'[^\n]*'dailydiary'/.test(app)) fail.push('Teacher early role gate is missing Paper Builder or Daily Diary.');
 if(!/student:\[[^\n]*'dailydiary'/.test(app)||!/parent:\[[^\n]*'dailydiary'/.test(app)) fail.push('Student/Parent early role gate is missing Daily Diary.');
 if(!login.includes("institutionId:inst?.id||''")) fail.push('Login does not persist selected institution ID.');
