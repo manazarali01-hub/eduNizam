@@ -11,7 +11,7 @@
   <link rel="icon" href="icon-192.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <script src="pwa-install.js?v=20261005-mobile-auth-fix6" defer></script>
+  <script src="pwa-install.js?v=20261005-auth-tap629" defer></script>
   <style>
     :root{--teal:var(--en-blue-600,#1769aa);--teal2:var(--en-blue-700,#145f9c);--ink:var(--en-text,#17324d);--muted:var(--en-text-muted,#667d91);--line:var(--en-border,#d9e7f1);--bg:var(--en-bg,#f4f9fd);--white:#fff;--danger:var(--en-danger,#b23a35);--ok:var(--en-success,#157a5a)}
     *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#eaf7f4,#f8fcff)}
@@ -196,7 +196,7 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
   let selectedRole='admin';
   const roleCloud={admin:'head_of_institute',teacher:'teacher',parent:'parent',student:'student'};
   const labels={admin:'Admin',teacher:'Teacher',parent:'Parent',student:'Student'};
-  const PROD_LOGIN_URL='https://manazarali01-hub.github.io/eduNizam/login.html';
+  const PROD_LOGIN_URL='https://edunizam.online/login.html';
   let otpMode='';
   let otpEmail='';
   let emailCooldownTimer;
@@ -774,7 +774,7 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
     const clean=String(email||'').trim();
     if(!clean)throw new Error('Enter your registered email address first.');
     checkEmailCooldown('recovery');
-    const {error}=await client.auth.resetPasswordForEmail(clean,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});
+    const {error}=await client.auth.resetPasswordForEmail(clean,{redirectTo:'https://edunizam.online/login.html?reset=1'});
     if(error)throw error;
     markEmailSent('recovery');
     otpMode='recovery';otpEmail=clean;
@@ -900,6 +900,6 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
   }
 })();
 </script>
-<script src="system-auto-update.js?v=20261005-mobile-auth-fix6" defer></script>
+<script src="system-auto-update.js?v=20261005-auth-tap629" defer></script>
 </body>
 </html>
