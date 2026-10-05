@@ -230,10 +230,14 @@ try{
     };
 
     await loadGuard();
+    const loginLink=await authPage.locator('#cloudAuthLogin').evaluate(el=>({tag:el.tagName,href:el.getAttribute('href')}));
+    if(loginLink.tag!=='A'||loginLink.href!=='login.html?from=secure-guard')pushFailure('auth guard touch','Go to Login is not a native anchor',JSON.stringify(loginLink));
     await authPage.locator('#cloudAuthLogin').tap();
     await authPage.waitForURL(/\/login\.html\?from=secure-guard$/,{timeout:3000}).catch(e=>pushFailure('auth guard touch','Go to Login tap did not navigate',e.message));
 
     await loadGuard();
+    const guestLink=await authPage.locator('#cloudAuthGuest').evaluate(el=>({tag:el.tagName,href:el.getAttribute('href')}));
+    if(guestLink.tag!=='A'||guestLink.href!=='learn.html?from=secure-guard')pushFailure('auth guard touch','Continue as Guest is not a native anchor',JSON.stringify(guestLink));
     await authPage.locator('#cloudAuthGuest').tap();
     await authPage.waitForURL(/\/learn\.html\?from=secure-guard$/,{timeout:3000}).catch(e=>pushFailure('auth guard touch','Continue as Guest tap did not navigate',e.message));
 
