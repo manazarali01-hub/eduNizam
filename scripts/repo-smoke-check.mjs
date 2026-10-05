@@ -383,8 +383,21 @@ else ok("auth:local-first-workspace");
 if(!authBridge.includes("authoritativeAbsent=restoreStatus==='absent'||c.state.authEvent==='SIGNED_OUT'"))bad("auth:transient-restore-safe","temporary session-restore failures can still evict a valid local workspace");
 else ok("auth:transient-restore-safe");
 
-if(!authBridge.includes("if(runtimeState.verification)return runtimeState.verification"))bad("auth:verification-dedupe","concurrent workspace verification can create duplicate authorization requests");
+if(!authBridge.includes("if(runtimeState.verification||runtimeState.verificationTimer)return true")||!authBridge.includes("function scheduleWorkspaceVerification"))bad("auth:verification-dedupe","workspace verification scheduling/dedupe is incomplete");
 else ok("auth:verification-dedupe");
+
+if(authBridge.includes("window.EDUNIZAM_CORE_CLOUD.pullAllCloudToLocal(false)"))bad("startup:no-bulk-core-pull","auth startup must not hydrate all school tables");
+else ok("startup:no-bulk-core-pull");
+
+if(!read("app.js").includes("edunizam:view-open"))bad("startup:view-open-event","main navigation does not emit the on-demand view lifecycle");
+else ok("startup:view-open-event");
+
+const uiPolishSource=read("ui-polish.js");
+const navEnhSource=read("navigation-enhancements.js");
+if(/menu\.onclick|backdrop\.onclick|classList\.toggle\(['\"]mobile-nav-open/.test(uiPolishSource))bad("ui:single-mobile-nav-owner","ui-polish still owns mobile drawer state");
+else ok("ui:single-mobile-nav-owner");
+if(navEnhSource.includes("mobile-nav-lock")||navEnhSource.includes("eduMobileNavBackdrop"))bad("ui:nav-enhancement-owner","navigation enhancements still mutate mobile drawer state directly");
+else ok("ui:nav-enhancement-owner");
 
 if(!authBridge.includes("runtimeState.syncScheduled=false"))bad("sync:reconnect-reschedule","background sync cannot be scheduled again after reconnect");
 else ok("sync:reconnect-reschedule");
@@ -399,7 +412,7 @@ else ok("fetch:attendance-audit-runtime");
 if(!dataRuntime.includes("const inflight=new Map()")||!dataRuntime.includes("AbortController")||!dataRuntime.includes("transient(error)"))bad("fetch:runtime","bounded dedupe/timeout/retry runtime incomplete");
 else ok("fetch:runtime");
 
-if(!mobileNavCore.includes("menu.addEventListener('click'")||!mobileNavCore.includes("mobile-nav-lock"))bad("ui:mobile-menu-core","independent hamburger controller incomplete");
+if(!mobileNavCore.includes("menu.addEventListener('click'")||!mobileNavCore.includes("mobile-nav-lock")||!mobileNavCore.includes("backdrop.style.pointerEvents=shouldOpen?'auto':'none'"))bad("ui:mobile-menu-core","independent hamburger controller incomplete");
 else ok("ui:mobile-menu-core");
 
 const dataPos=html.indexOf('data-runtime.js');

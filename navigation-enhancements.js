@@ -44,7 +44,7 @@
     const input=document.getElementById('navFeatureSearch');
     function filter(){const q=input.value.trim().toLowerCase();nav.querySelectorAll('.nav-group').forEach(g=>{let shown=0;g.querySelectorAll('.nav-item').forEach(b=>{const match=!q||b.textContent.toLowerCase().includes(q);b.classList.toggle('nav-search-hidden',!match);if(match&&!b.classList.contains('role-hidden'))shown++});g.hidden=shown===0;if(q&&shown)g.open=true})}
     input.addEventListener('input',filter);document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus();input.select()}if(e.key==='Escape'&&document.activeElement===input){input.value='';filter();input.blur()}});
-    nav.addEventListener('click',e=>{const b=e.target.closest('.nav-item');if(!b)return;const g=b.closest('.nav-group');if(g)g.open=true;if(window.innerWidth<951){if(window.EDUNIZAM_UI_POLISH?.closeMobileNavigation)window.EDUNIZAM_UI_POLISH.closeMobileNavigation();else{document.querySelector('.sidebar')?.classList.remove('mobile-nav-open');document.body.classList.remove('mobile-nav-lock');const backdrop=document.getElementById('eduMobileNavBackdrop');if(backdrop){backdrop.classList.remove('show');backdrop.style.display='none';backdrop.style.pointerEvents='none';backdrop.style.visibility='hidden';}}}});
+    nav.addEventListener('click',e=>{const b=e.target.closest('.nav-item');if(!b)return;const g=b.closest('.nav-group');if(g)g.open=true;if(window.innerWidth<951)window.EDUNIZAM_MOBILE_NAV_CORE?.close?.()});
     const observer=new MutationObserver(mutations=>{
       let changed=false;
       for(const m of mutations){

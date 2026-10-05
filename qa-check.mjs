@@ -95,7 +95,9 @@ for(const state of ['BOOTING','UNAUTHENTICATED','AUTHENTICATING','AUTHENTICATED'
   if(!authBridgeMobileFix.includes(state)) fail.push('Auth state machine state missing: '+state);
 }
 if(!authBridgeMobileFix.includes("workspaceReady(readHandoff()?'login-handoff':'local-session'")) fail.push('Valid login handoff/local workspace does not open before background verification.');
-if(!authBridgeMobileFix.includes('verifyCurrentWorkspace(false).catch')) fail.push('Background workspace authorization verification is missing.');
+if(!authBridgeMobileFix.includes('function scheduleWorkspaceVerification')||!authBridgeMobileFix.includes("freshHandoff?12000:1800")) fail.push('Background workspace authorization is not delayed/coalesced after a verified login handoff.');
+if(authBridgeMobileFix.includes('window.EDUNIZAM_CORE_CLOUD.pullAllCloudToLocal(false)')) fail.push('Auth startup still performs a bulk core-school data pull.');
+if(!read('app.js').includes('edunizam:view-open')) fail.push('Main navigation is missing the on-demand view lifecycle event.');
 if(!authBridgeMobileFix.includes("window.dispatchEvent(new CustomEvent('edunizam:workspace-ready'")) fail.push('Successful workspace handoff event is missing.');
 if(authBridgeMobileFix.includes('location.reload()')) fail.push('Auth runtime still relies on a page reload to complete login/sync.');
 if(loginHtml.includes("register_simple_account_v1")) fail.push('Legacy direct-role registration RPC is still reachable from login.');
@@ -405,7 +407,7 @@ if(!login.includes('global:{fetch:supabaseFetch}')||!login.includes('setTimeout(
 if(!authBridgeE2E.includes('refreshScopedRoleCache')) fail.push('Role-scoped cache refresh missing after member login.');
 if(!app.includes("if($('attendance')?.classList.contains('active'))renderAttendanceAudit()")) fail.push('Hidden Attendance view can still trigger its cloud audit fetch.');
 if(!read('core-cloud.js').includes("attendance-audit:'+cfg.institutionId+':'+date+':'+key")||!read('core-cloud.js').includes('timeout:7000,retries:1')) fail.push('Attendance audit queries are not bounded and deduplicated.');
-if(!authBridgeE2E.includes('pullAllCloudToLocal')) fail.push('Member login does not reload RLS-filtered cloud data.');
+if(authBridgeE2E.includes('pullAllCloudToLocal')) fail.push('Auth bridge must not bulk-load core school tables during startup.');
 if(authBridgeE2E.includes("location.reload()")) fail.push('Auth bridge must not reload the whole app to refresh member data.');
 const admissionsSecurityMigration='supabase/migrations/20260926052611_harden_admissions_applicant_admin_boundaries.sql';
 if(!exists(admissionsSecurityMigration)) fail.push('Admissions applicant/Admin boundary migration missing.');

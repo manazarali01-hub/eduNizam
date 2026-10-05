@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const BUILD='20261005-authstate700', KEY='edunizam_system_build';
-const ACTIVE_CACHE='edunizam-v231-auth-state-runtime';
+const ACTIVE_CACHE='edunizam-v232-production-auth-runtime';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}

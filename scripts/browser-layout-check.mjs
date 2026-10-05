@@ -281,7 +281,8 @@ try{
       verifyCalls:window.__verifyCalls
     }));
     if(immediate.guardPresent)pushFailure('auth handoff','Fresh verified-login handoff left a blocking overlay mounted',JSON.stringify(immediate));
-    if(!['WORKSPACE_READY','BACKGROUND_SYNC','AUTHORIZING'].includes(immediate.authState))pushFailure('auth handoff','Workspace did not enter a usable state immediately',JSON.stringify(immediate));
+    if(!['WORKSPACE_READY','BACKGROUND_SYNC'].includes(immediate.authState))pushFailure('auth handoff','Workspace did not enter a usable state immediately',JSON.stringify(immediate));
+    if(immediate.verifyCalls!==0)pushFailure('auth handoff','Fresh verified-login handoff repeated authorization during startup',JSON.stringify(immediate));
 
     await authPage.locator('#eduMobileMenuBtn').tap();
     await authPage.waitForTimeout(80);
@@ -315,15 +316,18 @@ try{
       verifyCalls:window.__verifyCalls
     }));
     if(redundant.guardPresent)pushFailure('auth handoff','Redundant SIGNED_IN event re-opened the auth overlay',JSON.stringify(redundant));
+    if(redundant.verifyCalls!==0)pushFailure('auth handoff','Redundant SIGNED_IN event bypassed verification coalescing',JSON.stringify(redundant));
 
-    await authPage.waitForTimeout(1250);
+    await authPage.evaluate(()=>window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(false));
     const settled=await authPage.evaluate(()=>({
       guardPresent:!!document.getElementById('cloudAuthScreen'),
       authState:document.documentElement.dataset.authState||'',
+      verifyCalls:window.__verifyCalls,
       session:JSON.parse(localStorage.getItem('edunizam_session')||'null')
     }));
     if(settled.guardPresent)pushFailure('auth handoff','Background authorization re-opened a blocking overlay',JSON.stringify(settled));
     if(!['WORKSPACE_READY','BACKGROUND_SYNC'].includes(settled.authState))pushFailure('auth handoff','Background authorization did not settle to a usable workspace state',JSON.stringify(settled));
+    if(settled.verifyCalls!==1)pushFailure('auth handoff','Explicit background verification did not execute exactly once',JSON.stringify(settled));
 
     // Temporary session restoration failures must preserve a valid local shell.
     await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
@@ -426,7 +430,11 @@ try{
           }
         },
         rpc:(name)=>{
-          if(name==='my_authorized_workspaces')return Promise.resolve({data:[workspace],error:null});
+          if(name==='my_authorized_workspaces'){
+            const count=Number(sessionStorage.getItem('qa_workspace_rpc_calls')||0)+1;
+            sessionStorage.setItem('qa_workspace_rpc_calls',String(count));
+            return Promise.resolve({data:[workspace],error:null});
+          }
           if(name==='is_platform_admin')return Promise.resolve({data:false,error:null});
           return Promise.resolve({data:null,error:null});
         },
@@ -455,6 +463,7 @@ try{
       guardPresent:!!document.getElementById('cloudAuthScreen'),
       dashboardActive:document.getElementById('dashboard')?.classList.contains('active')||false,
       handoff:JSON.parse(sessionStorage.getItem('edunizam_secure_login_handoff')||'null'),
+      workspaceRpcCalls:Number(sessionStorage.getItem('qa_workspace_rpc_calls')||0),
       local:JSON.parse(localStorage.getItem('edunizam_session')||'null')
     }));
     if(openedApp.guardPresent)pushFailure('login contract','Secure overlay blocked a successful Login handoff',JSON.stringify(openedApp));
@@ -462,6 +471,7 @@ try{
     if(openedApp.local?.institutionId!=='11111111-1111-4111-8111-111111111111'||openedApp.local?.role!=='head'){
       pushFailure('login contract','Login did not persist the authorized school workspace',JSON.stringify(openedApp.local));
     }
+    if(openedApp.workspaceRpcCalls!==1)pushFailure('login contract','Login -> app startup repeated my_authorized_workspaces instead of trusting the fresh handoff',JSON.stringify(openedApp));
 
     await loginFlowPage.locator('#eduMobileMenuBtn').tap();
     await loginFlowPage.waitForTimeout(80);

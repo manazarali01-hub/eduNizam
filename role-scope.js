@@ -108,9 +108,10 @@
   };
   function canView(view){return !!roleViews[role()]?.has(String(view||''))}
   let workspaceRefreshTimer=0;
-  const scheduleRefresh=()=>{
+  const scheduleRefresh=event=>{
     clearTimeout(workspaceRefreshTimer);
-    workspaceRefreshTimer=setTimeout(()=>refresh().catch(e=>console.warn('Role scope:',e.message||e)),250);
+    const delay=event?.type==='edunizam:workspace-ready'?2500:250;
+    workspaceRefreshTimer=setTimeout(()=>refresh().catch(e=>console.warn('Role scope:',e.message||e)),delay);
   };
   window.EDUNIZAM_ROLE_SCOPE={role,currentUser,getVisibleStudents,refresh,canView,teacherClassKeys};
   window.addEventListener('edunizam:role-cache-refreshed',scheduleRefresh);

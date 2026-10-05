@@ -16,7 +16,7 @@
     AUTH_ERROR:'AUTH_ERROR'
   });
 
-  const runtimeState={state:STATES.BOOTING,detail:{},verification:null,syncScheduled:false};
+  const runtimeState={state:STATES.BOOTING,detail:{},verification:null,verificationTimer:0,lastVerifiedAt:0,syncScheduled:false};
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const dataRuntime=()=>window.EDUNIZAM_DATA_RUNTIME;
   const mapRole=r=>r==='head_of_institute'?'head':(['head','teacher','parent','student'].includes(r)?r:'');
@@ -65,7 +65,9 @@
       r.institutionId='';
       try{localStorage.setItem(RUNTIME_KEY,JSON.stringify(r))}catch(_){}
     }
+    if(runtimeState.verificationTimer){clearTimeout(runtimeState.verificationTimer);runtimeState.verificationTimer=0}
     runtimeState.verification=null;
+    runtimeState.lastVerifiedAt=0;
     runtimeState.syncScheduled=false;
   }
 
@@ -170,7 +172,9 @@
   async function verifyCurrentWorkspace(force=false){
     const local=readLocal();
     if(!validLocal(local))return false;
+    if(runtimeState.verificationTimer){clearTimeout(runtimeState.verificationTimer);runtimeState.verificationTimer=0}
     if(runtimeState.verification)return runtimeState.verification;
+    if(!force&&runtimeState.lastVerifiedAt&&Date.now()-runtimeState.lastVerifiedAt<60000)return true;
 
     runtimeState.verification=(async()=>{
       const c=cloud();
@@ -227,6 +231,7 @@
       }
 
       const next=updateLocalFromAccess(access,user);
+      runtimeState.lastVerifiedAt=Date.now();
       try{sessionStorage.removeItem(HANDOFF_KEY)}catch(_){}
       workspaceReady('verified',{userId:user.id,institutionId:next.institutionId,role:next.role});
       return true;
@@ -234,6 +239,18 @@
 
     try{return await runtimeState.verification}
     finally{runtimeState.verification=null}
+  }
+
+  function scheduleWorkspaceVerification({force=false,reason='background',delay=null}={}){
+    if(!validLocal())return false;
+    if(runtimeState.verification||runtimeState.verificationTimer)return true;
+    const freshHandoff=!!readHandoff();
+    const wait=delay==null?(force?450:(freshHandoff?12000:1800)):Math.max(0,Number(delay)||0);
+    runtimeState.verificationTimer=setTimeout(()=>{
+      runtimeState.verificationTimer=0;
+      verifyCurrentWorkspace(force).catch(error=>console.warn('Workspace verification '+reason+':',error?.message||error));
+    },wait);
+    return true;
   }
 
   async function refreshScopedRoleCache(){
@@ -251,25 +268,20 @@
   function scheduleBackgroundSync(){
     if(runtimeState.syncScheduled)return;
     runtimeState.syncScheduled=true;
-    const task=async()=>{
+    const run=()=>{
       try{
         const local=readLocal();
         if(!validLocal(local))return;
+        // Authentication owns identity/session only. Feature modules own cloud data.
         transition(STATES.BACKGROUND_SYNC,{institutionId:local.institutionId});
-        await refreshScopedRoleCache();
-        if(['teacher','parent','student'].includes(local.role)&&window.EDUNIZAM_CORE_CLOUD?.pullAllCloudToLocal){
-          try{await window.EDUNIZAM_CORE_CLOUD.pullAllCloudToLocal(false)}
-          catch(e){console.warn('Background school sync:',e?.message||e)}
-        }
+        window.dispatchEvent(new CustomEvent('edunizam:background-sync',{detail:{institutionId:local.institutionId,role:local.role}}));
         const latest=readLocal();
-        if(validLocal(latest))transition(navigator.onLine?STATES.WORKSPACE_READY:STATES.OFFLINE_READY,{source:'background-complete'});
+        if(validLocal(latest))transition(navigator.onLine?STATES.WORKSPACE_READY:STATES.OFFLINE_READY,{source:'background-ready'});
       }finally{
         runtimeState.syncScheduled=false;
       }
     };
-    const rt=dataRuntime();
-    if(rt)rt.idle(task,3000);
-    else setTimeout(()=>task().catch(()=>{}),1800);
+    setTimeout(run,1200);
   }
 
   async function restoreWithoutLocal(force=false){
@@ -287,8 +299,8 @@
       const seed={role:localRole,identity:user.email||user.id,loginAt:Date.now(),source:'supabase',schoolName:access.name||'',institutionId:access.id||''};
       localStorage.setItem(LOCAL_KEY,JSON.stringify(seed));
       updateLocalFromAccess(access,user);
+      runtimeState.lastVerifiedAt=Date.now();
       workspaceReady('restored',{userId:user.id,institutionId:access.id,role:localRole});
-      verifyCurrentWorkspace(true).catch(()=>{});
       return true;
     }catch(e){
       console.warn('Session workspace restore:',e?.message||e);
@@ -299,8 +311,10 @@
   async function restoreOrVerify(force=false){
     const local=readLocal();
     if(validLocal(local)){
-      workspaceReady(readHandoff()?'login-handoff':'local-session',{institutionId:local.institutionId,role:local.role});
-      verifyCurrentWorkspace(force).catch(()=>{});
+      const handoff=readHandoff();
+      workspaceReady(handoff?'login-handoff':'local-session',{institutionId:local.institutionId,role:local.role});
+      if(force)await verifyCurrentWorkspace(true);
+      else scheduleWorkspaceVerification({reason:handoff?'login-handoff':'local-session'});
       return true;
     }
     const restored=await restoreWithoutLocal(force);
@@ -317,8 +331,9 @@
       // UI responsiveness is independent of network fetching. A fresh login
       // handoff or valid local workspace opens immediately; cloud authorization
       // is rechecked in the background and RLS remains authoritative.
-      workspaceReady(readHandoff()?'login-handoff':'local-session',{institutionId:local.institutionId,role:local.role});
-      verifyCurrentWorkspace(false).catch(()=>{});
+      const handoff=readHandoff();
+      workspaceReady(handoff?'login-handoff':'local-session',{institutionId:local.institutionId,role:local.role});
+      scheduleWorkspaceVerification({reason:handoff?'login-handoff':'startup-local-session'});
       return;
     }
     showAccess('Sign in to open your private school workspace, or continue as Guest for public learning resources.',STATES.UNAUTHENTICATED,false);
@@ -335,8 +350,15 @@
     if(['INITIAL_SESSION','SIGNED_IN','USER_UPDATED'].includes(type)){
       const local=readLocal();
       if(validLocal(local)){
+        const handoff=readHandoff();
+        const eventUser=event.detail?.user||null;
+        if(handoff?.userId&&eventUser?.id&&String(handoff.userId)!==String(eventUser.id)){
+          clearLocalAuthState();
+          showAccess('The signed-in account changed before this school workspace opened. Sign in again and select the correct school.',STATES.AUTH_ERROR,false);
+          return;
+        }
         unlockUI();
-        verifyCurrentWorkspace(false).catch(()=>{});
+        scheduleWorkspaceVerification({reason:'auth-event'});
       }else{
         restoreWithoutLocal(false).catch(()=>{});
       }
@@ -344,7 +366,7 @@
   });
 
   window.addEventListener('online',()=>{
-    if(validLocal())verifyCurrentWorkspace(true).catch(()=>{});
+    if(validLocal())scheduleWorkspaceVerification({force:true,reason:'network-restored',delay:450});
   });
 
   document.addEventListener('visibilitychange',()=>{
@@ -374,6 +396,7 @@
     syncCloudRole:()=>verifyCurrentWorkspace(true),
     clearLocalAuthState,
     refreshScopedRoleCache,
+    scheduleWorkspaceVerification,
     verifyCurrentWorkspace
   };
 })();
