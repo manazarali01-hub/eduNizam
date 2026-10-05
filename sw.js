@@ -1,4 +1,4 @@
-const CACHE='edunizam-v229-auth-tap'
+const CACHE='edunizam-v230-auth-native-nav'
 const CORE=[
   './',
   './index.html',
