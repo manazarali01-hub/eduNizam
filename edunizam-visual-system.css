@@ -1154,3 +1154,160 @@ body.admission-premium{
       url("assets/edunizam-login-children.webp") center/cover no-repeat!important;
   }
 }
+
+
+/* ---------- FINAL VISUAL POLISH 2026-10-05 ---------- */
+/* Final consistency pass: prevent cramped text, preserve the preferred student
+   photography on mobile, and make common interactive patterns feel intentional. */
+body{overflow-wrap:normal}
+h1,h2,h3,h4{hyphens:none;word-break:normal;overflow-wrap:break-word}
+p{max-width:78ch;text-wrap:pretty}
+.card,.paper-card,.row,.section-head,.quick-actions,.paper-actions,.form-grid,.grid-2,.cards,
+.card>*,.paper-card>*,.row>*,.section-head>*,.quick-actions>*,.paper-actions>*,.form-grid>*,
+.grid-2>*,.cards>*{min-width:0}
+button,.btn,.public-cta,.nav-item,.tab{
+  overflow-wrap:break-word;
+  word-break:normal;
+}
+input,select,textarea{max-width:100%}
+img{image-rendering:auto}
+
+/* Never let reading text become a very long single line on wide monitors. */
+.page-app .card>p,
+.page-app .paper-card>p,
+.page-app .coverage-note,
+.learning-sky .card>p,
+.premium-public-page .public-card>p{max-width:72ch}
+
+/* More generous visual rhythm for dynamically loaded feature panels. */
+.page-app .view>.card + .card,
+.page-app .view>.paper-grid + .card,
+.page-app .view>.card + .paper-grid{margin-top:20px}
+.page-app .view .section-head + .form-grid{margin-top:16px!important}
+.page-app .paper-actions,.page-app .quick-actions{row-gap:10px!important}
+.page-app .paper-actions>*{min-height:46px}
+.page-app .card h2{font-size:clamp(22px,1.7vw,27px)!important;line-height:1.18}
+.page-app .card h3{font-size:20px!important;line-height:1.28}
+.page-app .card p,.page-app .row,.page-app .list{font-size:16px;line-height:1.62}
+.page-app .badge,.page-app .mini-badge,.page-app .paper-meta span,
+.page-app .academic-pill,.page-app .trust-badge,.page-app .region-pill{
+  font-size:14px!important;
+}
+.page-app .academic-kicker,.page-app .campus-label{font-size:14px!important}
+.page-app .sidebar-wordmark small,.page-app .sidebar-institute-copy small{font-size:13.5px!important}
+.page-app .sidebar-institute-copy span{font-size:14px!important}
+
+/* Give every active screen a stronger sense of place without adding visual noise. */
+.page-app .view.active>.section-head:first-child{
+  margin-bottom:22px!important;
+  min-height:104px;
+}
+.page-app .view.active>.section-head:first-child h2{
+  max-width:28ch;
+  letter-spacing:-.03em;
+}
+.page-app .view.active>.section-head:first-child .muted{max-width:68ch!important}
+.page-app .view.active>.section-head:first-child .badge,
+.page-app .view.active>.section-head:first-child .academic-pill{flex:0 0 auto}
+
+/* Dashboard photo: preserve the preferred students image and improve crop. */
+.page-home .hero-image-wrap img{
+  object-position:center 38%!important;
+  transform:none!important;
+}
+.page-home .public-hero:hover .hero-image-wrap img{transform:none!important}
+.page-app #dashboard .campus-hero{background-position:right 36%!important}
+
+/* Login desktop keeps the same students photo; mobile now shows it too. */
+.page-login .story{background-position:center 38%!important}
+@media(max-width:950px){
+  .page-login .mobile-brand{
+    position:relative!important;
+    isolation:isolate;
+    min-height:154px;
+    padding:18px!important;
+    margin-bottom:18px!important;
+    border-radius:20px;
+    overflow:hidden;
+    align-items:flex-end!important;
+    background:
+      linear-gradient(180deg,rgba(6,26,43,.15),rgba(6,26,43,.78)),
+      url("assets/edunizam-login-children.webp") center 36%/cover no-repeat!important;
+    box-shadow:var(--en-shadow-md);
+  }
+  .page-login .mobile-brand:after{
+    content:"";position:absolute;inset:0;z-index:-1;
+    background:linear-gradient(90deg,rgba(8,35,58,.20),transparent 60%);
+  }
+  .page-login .mobile-brand img{
+    width:58px!important;height:58px!important;
+    background:#fff;padding:4px;border-radius:15px;
+  }
+  .page-login .mobile-brand strong{
+    color:#fff!important;
+    font-size:24px!important;
+    text-shadow:0 3px 15px rgba(0,0,0,.38);
+  }
+  .page-login .mobile-brand .brand-edu{color:#fff!important}
+  .page-login .mobile-brand .brand-nizam{color:var(--en-gold-300)!important}
+}
+
+/* Guest learning: larger metadata and less cramped tabs/results. */
+.page-learning .tab{font-size:15.5px!important;padding-inline:15px!important}
+.page-learning .badge,.page-learning .kicker{font-size:14px!important}
+.page-learning .paper-summary,.page-learning .search-suggestions button{font-size:15px!important}
+.page-learning .card p{font-size:16px!important}
+.page-learning .paper-actions .btn{min-height:46px!important;font-size:15px!important}
+
+/* Public pages: keep background photography visible on phones under a strong overlay. */
+@media(max-width:900px){
+  .premium-public-page .public-hero{
+    background:
+      linear-gradient(100deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.94) 66%,rgba(255,255,255,.78) 100%),
+      url("assets/edunizam-login-children.webp") center 36%/cover no-repeat!important;
+  }
+  .premium-public-page .public-hero>p{max-width:62ch}
+}
+
+/* Mobile final pass: large text/control feel without horizontal overflow. */
+@media(max-width:720px){
+  body{font-size:16.5px!important;line-height:1.62}
+  h1,h2,h3{max-width:100%}
+  .page-app .topbar{
+    border-radius:16px!important;
+    background:rgba(255,255,255,.97)!important;
+    box-shadow:0 8px 24px rgba(10,49,80,.08);
+  }
+  .page-app .topbar-title{min-width:0}
+  .page-app .topbar h1{overflow-wrap:normal!important;word-break:normal!important}
+  .page-app .view.active>.section-head:first-child{
+    min-height:0;
+    padding:19px 17px!important;
+  }
+  .page-app .card,.page-app .paper-card{overflow:hidden}
+  .page-app .paper-actions,.page-app .quick-actions{display:flex!important;flex-wrap:wrap!important}
+  .page-app .paper-actions>*,
+  .page-app .quick-actions>*{flex:1 1 150px;max-width:100%}
+  .page-app .row{font-size:16px!important}
+  .page-app input,.page-app select,.page-app textarea,
+  .page-app button,.page-app .secondary{font-size:16px!important}
+  .page-learning .hero h1{font-size:clamp(36px,10.5vw,48px)!important}
+  .page-learning .hero-actions>*{flex:1 1 180px}
+  .page-admission .actions>*{flex:1 1 180px}
+}
+@media(max-width:430px){
+  .page-login .mobile-brand{min-height:138px}
+  .page-login .mobile-brand strong{font-size:22px!important}
+  .page-app .main{padding-inline:12px!important}
+  .page-app .card,.page-app .paper-card{padding:18px!important}
+  .page-app .paper-actions>*,.page-app .quick-actions>*{flex-basis:100%}
+  .page-learning .hero-actions>*{flex-basis:100%}
+  .premium-public-page .public-hero{background-position:58% 36%!important}
+}
+@media(max-width:360px){
+  .page-login .mobile-brand{min-height:126px;padding:14px!important}
+  .page-login .mobile-brand img{width:50px!important;height:50px!important}
+  .page-login .mobile-brand strong{font-size:20px!important}
+  .page-app .main{padding-inline:9px!important}
+  .page-app .card,.page-app .paper-card{padding:16px!important}
+}
