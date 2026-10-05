@@ -22,6 +22,8 @@ jobs:
       SMTP_PASS: ${{ secrets.EDUNIZAM_SMTP_PASS }}
       SMTP_FROM_EMAIL: ${{ secrets.EDUNIZAM_SMTP_FROM_EMAIL }}
       SMTP_SENDER_NAME: EduNizam
+      SITE_URL: https://edunizam.online
+      URI_ALLOW_LIST: https://edunizam.online/**,https://manazarali01-hub.github.io/eduNizam/**,http://localhost:5500/**,http://127.0.0.1:5500/**
 
     steps:
       - name: Validate required secrets
@@ -44,7 +46,9 @@ jobs:
       - name: Configure SMTP and OTP email templates
         shell: bash
         run: |
-          jq -n             --arg host "$SMTP_HOST"             --arg port "$SMTP_PORT"             --arg user "$SMTP_USER"             --arg pass "$SMTP_PASS"             --arg from "$SMTP_FROM_EMAIL"             --arg sender "$SMTP_SENDER_NAME"             '{
+          jq -n             --arg host "$SMTP_HOST"             --arg port "$SMTP_PORT"             --arg user "$SMTP_USER"             --arg pass "$SMTP_PASS"             --arg from "$SMTP_FROM_EMAIL"             --arg sender "$SMTP_SENDER_NAME"             --arg site "$SITE_URL"             --arg redirects "$URI_ALLOW_LIST"             '{
+              site_url: $site,
+              uri_allow_list: $redirects,
               external_email_enabled: true,
               mailer_autoconfirm: false,
               mailer_secure_email_change_enabled: true,
@@ -63,12 +67,14 @@ jobs:
 
           curl --fail-with-body --silent --show-error             -X PATCH "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth"             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN"             -H "Content-Type: application/json"             --data-binary @auth-config.json >/tmp/auth-update.json
 
-          echo "Supabase Auth SMTP and OTP templates updated."
+          echo "Supabase Auth URL, SMTP and OTP settings updated."
 
       - name: Verify non-secret Auth settings
         shell: bash
         run: |
           curl --fail --silent --show-error             "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth"             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN"             | jq '{
+                site_url,
+                uri_allow_list,
                 external_email_enabled,
                 mailer_autoconfirm,
                 mailer_secure_email_change_enabled,
