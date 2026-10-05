@@ -133,6 +133,7 @@ async function setView(view){
  if(view==='classcenter'&&window.EDUNIZAM_CLASS_SECTION_CENTER?.render)window.EDUNIZAM_CLASS_SECTION_CENTER.render();
  if(view==='auditcenter'&&window.EDUNIZAM_AUDIT_CENTER?.render)window.EDUNIZAM_AUDIT_CENTER.render();
  if(view==='troubleshoot'&&window.EDUNIZAM_RELIABILITY?.render)window.EDUNIZAM_RELIABILITY.render();
+ window.dispatchEvent(new CustomEvent('edunizam:view-open',{detail:{view}}));
 }
 window.EDUNIZAM_APP_NAV={setView};
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));

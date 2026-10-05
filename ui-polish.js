@@ -84,82 +84,14 @@
   }
 
   function addMobileNavigation(){
-    const sidebar=$('.sidebar'),topbar=$('.topbar');
-    if(!sidebar||!topbar)return;
-    if($('#eduMobileMenuBtn')&&window.EDUNIZAM_MOBILE_NAV_CORE){
-      mobileNavController={
-        open:()=>window.EDUNIZAM_MOBILE_NAV_CORE.open(),
-        close:()=>window.EDUNIZAM_MOBILE_NAV_CORE.close(),
-        reconcile:()=>window.EDUNIZAM_MOBILE_NAV_CORE.reconcile()
-      };
-      return;
-    }
-    if($('#eduMobileMenuBtn'))return;
-    const menu=document.createElement('button');
-    menu.id='eduMobileMenuBtn';
-    menu.className='mobile-menu-btn';
-    menu.type='button';
-    menu.setAttribute('aria-label','Open navigation');
-    menu.setAttribute('aria-expanded','false');
-    menu.innerHTML='<span aria-hidden="true">☰</span>';
-
-    const close=document.createElement('button');
-    close.id='eduMobileNavClose';
-    close.className='mobile-nav-close';
-    close.type='button';
-    close.setAttribute('aria-label','Close navigation');
-    close.innerHTML='<span aria-hidden="true">×</span>';
-    sidebar.appendChild(close);
-
-    const backdrop=document.createElement('div');
-    backdrop.id='eduMobileNavBackdrop';
-    backdrop.className='mobile-nav-backdrop';
-    backdrop.setAttribute('aria-hidden','true');
-    backdrop.style.display='none';
-    backdrop.style.pointerEvents='none';
-    backdrop.style.visibility='hidden';
-    document.body.appendChild(backdrop);
-
-    topbar.insertBefore(menu,topbar.firstChild);
-
-    const setOpen=open=>{
-      const shouldOpen=!!open&&innerWidth<=950;
-      sidebar.classList.toggle('mobile-nav-open',shouldOpen);
-      backdrop.classList.toggle('show',shouldOpen);
-      backdrop.style.display=shouldOpen?'block':'none';
-      backdrop.style.pointerEvents=shouldOpen?'auto':'none';
-      backdrop.style.visibility=shouldOpen?'visible':'hidden';
-      backdrop.setAttribute('aria-hidden',String(!shouldOpen));
-      document.body.classList.toggle('mobile-nav-lock',shouldOpen);
-      menu.setAttribute('aria-expanded',String(shouldOpen));
-      // Keep the mobile keyboard closed when navigation closes. Search remains available on explicit tap.
-      if(!shouldOpen && document.activeElement?.matches?.('.nav-search-wrap input'))document.activeElement.blur();
+    if(!window.EDUNIZAM_MOBILE_NAV_CORE)return;
+    window.EDUNIZAM_MOBILE_NAV_CORE.mount?.();
+    mobileNavController={
+      open:()=>window.EDUNIZAM_MOBILE_NAV_CORE.open(),
+      close:()=>window.EDUNIZAM_MOBILE_NAV_CORE.close(),
+      reconcile:()=>window.EDUNIZAM_MOBILE_NAV_CORE.reconcile()
     };
-    const reconcileMobileNav=()=>{
-      const open=innerWidth<=950&&sidebar.classList.contains('mobile-nav-open');
-      setOpen(open);
-    };
-    mobileNavController={open:()=>setOpen(true),close:()=>setOpen(false),reconcile:reconcileMobileNav};
-    menu.onclick=()=>setOpen(!sidebar.classList.contains('mobile-nav-open'));
-    close.onclick=()=>setOpen(false);
-    backdrop.onclick=()=>setOpen(false);
-    sidebar.addEventListener('click',event=>{
-      if(event.target.closest('.nav-item')&&innerWidth<=950)setOpen(false);
-    });
-    document.addEventListener('keydown',event=>{
-      if(event.key==='Escape'&&sidebar.classList.contains('mobile-nav-open'))setOpen(false);
-    });
-    const classObserver=new MutationObserver(()=>{
-      if(!sidebar.classList.contains('mobile-nav-open')&&document.body.classList.contains('mobile-nav-lock'))setOpen(false);
-    });
-    classObserver.observe(sidebar,{attributes:true,attributeFilter:['class']});
-    addEventListener('resize',()=>{
-      if(innerWidth>950)setOpen(false);else reconcileMobileNav();
-    });
-    addEventListener('pageshow',()=>setOpen(false));
-    document.addEventListener('visibilitychange',()=>{
-      if(!document.hidden&&!sidebar.classList.contains('mobile-nav-open'))setOpen(false);
-    });
+    mobileNavController.reconcile();
   }
 
   function mount(){

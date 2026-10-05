@@ -414,7 +414,6 @@
   window.addEventListener('unhandledrejection',event=>trackError(event.reason?.message||event.reason||'Unhandled promise rejection','Promise'));
   window.addEventListener('online',()=>{
     setConnectionStatus();
-    window.EDUNIZAM_AUTH_BRIDGE?.verifyCurrentWorkspace?.(true)?.catch?.(()=>{});
     render();
   });
   window.addEventListener('offline',()=>{setConnectionStatus();render()});

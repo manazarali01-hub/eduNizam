@@ -1,4 +1,4 @@
-const CACHE='edunizam-v231-auth-state-runtime'
+const CACHE='edunizam-v232-production-auth-runtime'
 const CORE=[
   './',
   './index.html',
