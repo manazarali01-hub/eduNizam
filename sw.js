@@ -1,4 +1,4 @@
-const CACHE='edunizam-v226-mobile-auth-fix'
+const CACHE='edunizam-v227-mobile-auth-fix'
 const CORE=[
   './',
   './index.html',
@@ -140,21 +140,16 @@ self.addEventListener('fetch',event=>{
   if(isCode){
     event.respondWith((async()=>{
       const cache=await caches.open(CACHE);
-      // Respect ?v= build tokens: a newly versioned script/style must not be satisfied
-      // by an older cached URL with the query string ignored.
-      const cached=await cache.match(event.request);
-      const refresh=fetch(event.request,{cache:'no-store'}).then(response=>{
-        if(response?.ok)cache.put(event.request,response.clone());
+      // Network-first for code: fixes to CSS/JS must be visible immediately online.
+      try{
+        const response=await fetch(event.request,{cache:'no-store'});
+        if(response?.ok)await cache.put(event.request,response.clone());
         return response;
-      }).catch(()=>null);
-      if(cached){
-        event.waitUntil(refresh);
-        return cached;
+      }catch(_){
+        return (await cache.match(event.request)) ||
+          (await cache.match(event.request,{ignoreSearch:true})) ||
+          Response.error();
       }
-      const fresh=await refresh;
-      if(fresh)return fresh;
-      // Offline fallback may use the pre-cached unversioned asset.
-      return (await cache.match(event.request,{ignoreSearch:true})) || Response.error();
     })());
     return;
   }
