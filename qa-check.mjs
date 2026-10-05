@@ -10,6 +10,23 @@ const exists=p=>fs.existsSync(path.join(root,p));
 const index=read('app.html');
 const app=read('app.js');
 const feature=read('feature-loader.js');
+const visual=read('edunizam-visual-system.css');
+const htmlFiles=fs.readdirSync(root).filter(f=>f.endsWith('.html'));
+for(const file of htmlFiles){
+  if(!read(file).includes('edunizam-visual-system.css?v=20261005-visual1')) fail.push('Premium visual system missing from '+file);
+}
+for(const marker of [
+  '--en-body-size:17px',
+  '--en-content:1420px',
+  '--en-sidebar:288px',
+  '.app-page .nav-item',
+  '.auth-page .role',
+  '.learning-sky .hero h1',
+  '@media(max-width:720px)'
+]){
+  if(!visual.includes(marker)) fail.push('Premium visual marker missing: '+marker);
+}
+if(/transform\s*:\s*scale\(/i.test(visual)) fail.push('Premium visual system must not fake zoom with transform: scale().');
 
 const scriptRefs=[...index.matchAll(/<script[^>]+src=["']([^"']+)["']/g)]
   .map(m=>m[1].split('?')[0])
