@@ -59,6 +59,10 @@ async function setView(view){
  target.classList.add('active');
  const navGroup=nav?.closest?.('details.nav-group');if(navGroup)navGroup.open=true;
  $('page-title').textContent=nav?.textContent?.trim()||view;
+ // Remove a stale loader/error notice before every navigation or Retry attempt.
+ Array.from(target.children).forEach(el=>{
+   if(el.classList?.contains('feature-loading-notice'))el.remove();
+ });
  const loader=window.EDUNIZAM_FEATURE_LOADER;
  let loadingNotice=null;
  if(loader&&!loader.isReady(view)){
@@ -78,7 +82,13 @@ async function setView(view){
      console.error('Feature load failed:',view,e);
      loadingNotice.className='feature-loading-notice error';
      loadingNotice.innerHTML='<span>This section could not load. Check the connection and try again.</span><button type="button" class="secondary">Retry</button>';
-     loadingNotice.querySelector('button').onclick=()=>setView(view);
+     const retryBtn=loadingNotice.querySelector('button');
+     retryBtn.onclick=async()=>{
+       retryBtn.disabled=true;
+       retryBtn.textContent='Retrying…';
+       loadingNotice.remove();
+       await setView(view);
+     };
      window.EDUNIZAM_PREMIUM?.toast?.('Section load failed. Tap Retry.','error');
      return;
    }
