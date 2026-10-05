@@ -378,6 +378,14 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
     }
     const localRole=role==='admin'?'head':role;
     localStorage.setItem('edunizam_session',JSON.stringify({role:localRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||'',institutionId:inst?.id||''}));
+    try{
+      sessionStorage.setItem('edunizam_secure_login_handoff',JSON.stringify({
+        userId:user.id,
+        institutionId:inst?.id||'',
+        role:localRole,
+        at:Date.now()
+      }));
+    }catch(_){}
     location.replace('app.html?secureLogin=1');
   }
   async function shouldCompleteSignup(user,localPending){
