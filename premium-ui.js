@@ -87,33 +87,15 @@
   const localRole=r=>r==='head_of_institute'?'head':(['head','teacher','parent','student'].includes(r)?r:'student');
   const workspaceCache={userId:'',items:null,at:0,inflight:null};
   async function workspaceChoices(force=false){
-    const cloud=window.EDUNIZAM_CLOUD,client=cloud?.state?.client,user=cloud?.state?.user;
-    if(!client||!user)return[];
+    const cloud=window.EDUNIZAM_CLOUD,user=cloud?.state?.user;
+    if(!cloud?.listAuthorizedWorkspaces||!user)return[];
     const uid=String(user.id||'');
     if(workspaceCache.userId!==uid){workspaceCache.userId=uid;workspaceCache.items=null;workspaceCache.at=0;workspaceCache.inflight=null}
     if(!force&&workspaceCache.items&&Date.now()-workspaceCache.at<60000)return workspaceCache.items;
     if(workspaceCache.inflight)return workspaceCache.inflight;
-    workspaceCache.inflight=(async()=>{
-    const [ownedRes,memberRes,profileRes]=await Promise.all([
-      client.from('institutions').select('id,name,institution_type').eq('owner_user_id',user.id).order('created_at',{ascending:true}),
-      client.from('institution_members').select('institution_id,role,institutions(id,name,institution_type)').eq('user_id',user.id),
-      client.from('user_profiles').select('institution_id,account_role').eq('user_id',user.id).maybeSingle()
-    ]);
-    if(ownedRes.error)throw ownedRes.error;
-    if(memberRes.error)throw memberRes.error;
-    const map=new Map();
-    (ownedRes.data||[]).forEach(x=>map.set(x.id,{...x,role:'head'}));
-    (memberRes.data||[]).forEach(m=>{
-      const x=m.institutions;if(!x?.id)return;
-      if(!map.has(x.id))map.set(x.id,{...x,role:localRole(m.role)});
-    });
-    const p=profileRes.data;
-    if(p?.institution_id&&!map.has(p.institution_id)){
-      const {data}=await client.from('institutions').select('id,name,institution_type').eq('id',p.institution_id).maybeSingle();
-      if(data?.id)map.set(data.id,{...data,role:localRole(p.account_role)});
-    }
-    return [...map.values()];
-    })();
+    workspaceCache.inflight=Promise.resolve(cloud.listAuthorizedWorkspaces(force)).then(rows=>
+      (rows||[]).map(x=>({...x,role:localRole(x.workspace_role||x._membership_role)}))
+    );
     try{
       const items=await workspaceCache.inflight;
       workspaceCache.items=items;workspaceCache.at=Date.now();
@@ -319,7 +301,7 @@
     addEventListener('online',()=>{mountTopbarContext();premiumToast('Internet connection restored.','success')});
     addEventListener('offline',()=>{mountTopbarContext();premiumToast('You are offline. EduNizam will keep local work available.','info')});
     addEventListener('storage',e=>{if(['edunizam_session','edunizam_settings','edunizam_cloud_runtime_config'].includes(e.key))refresh()});
-    addEventListener('edunizam:auth',()=>setTimeout(refresh,80));
+    addEventListener('edunizam:workspace-ready',()=>setTimeout(refresh,80));
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)mountTopbarContext()});
     setTimeout(refresh,900);
   }
