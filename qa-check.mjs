@@ -12,6 +12,32 @@ const app=read('app.js');
 const feature=read('feature-loader.js');
 const visual=read('edunizam-visual-system.css');
 const htmlFiles=fs.readdirSync(root).filter(f=>f.endsWith('.html'));
+
+// SEO / indexing / AdSense invariants from the production contract.
+const sitemap=read('sitemap.xml');
+const robotsTxt=read('robots.txt');
+const adsTxt=read('ads.txt').trim();
+const sitemapUrls=[...sitemap.matchAll(/<loc>(https:\/\/edunizam\.online\/[^<]*)<\/loc>/g)].map(m=>m[1]);
+for(const url of sitemapUrls){
+  const pathName=new URL(url).pathname;
+  const localFile=pathName==='/'?'index.html':pathName.replace(/^\//,'');
+  if(!exists(localFile)) fail.push('Sitemap URL has no matching repository file: '+url);
+  if(['login.html','app.html','admission.html','404.html'].includes(localFile)) fail.push('Private/noindex page leaked into sitemap: '+localFile);
+  const html=exists(localFile)?read(localFile):'';
+  if(html&&!/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*index,follow/i.test(html)) fail.push('Sitemap page is not explicitly indexable: '+localFile);
+  if(html&&!html.includes('rel="canonical"')) fail.push('Sitemap page has no canonical URL: '+localFile);
+}
+for(const privatePage of ['login.html','app.html','admission.html','404.html']){
+  const html=read(privatePage);
+  if(!/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(html)) fail.push('Private page lost noindex: '+privatePage);
+}
+if(!robotsTxt.includes('User-agent: *')||!robotsTxt.includes('Allow: /')||!robotsTxt.includes('Sitemap: https://edunizam.online/sitemap.xml')) fail.push('robots.txt production crawl contract changed.');
+if(adsTxt!=='google.com, pub-4531216214099892, DIRECT, f08c47fec0942fa0') fail.push('ads.txt publisher declaration changed.');
+for(const page of ['index.html','features.html','online-school-admissions.html','school-management-system-pakistan.html','learning-resources-pakistan.html','about.html','privacy.html','learn.html']){
+  const html=read(page);
+  if(!html.includes('ca-pub-4531216214099892')) fail.push('AdSense publisher script missing from '+page);
+}
+
 const premiumVisualHref=/edunizam-visual-system\.css\?v=[A-Za-z0-9._-]+/;
 for(const file of htmlFiles){
   if(!premiumVisualHref.test(read(file))) fail.push('Premium visual system missing from '+file);
