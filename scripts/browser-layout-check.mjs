@@ -161,8 +161,9 @@ try{
     }
   }
 }finally{
-  await browser.close();
-  await new Promise(r=>server.close(r));
+  await browser.close().catch(()=>{});
+  server.closeAllConnections?.();
+  await new Promise(r=>server.close(()=>r()));
 }
 
 if(failures.length){
