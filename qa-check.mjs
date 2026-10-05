@@ -94,7 +94,7 @@ if(!authBridgeMobileFix.includes('pointer-events:auto!important')) fail.push('Se
 for(const state of ['BOOTING','UNAUTHENTICATED','AUTHENTICATING','AUTHENTICATED','AUTHORIZING','WORKSPACE_READY','BACKGROUND_SYNC','OFFLINE_READY','AUTH_ERROR']){
   if(!authBridgeMobileFix.includes(state)) fail.push('Auth state machine state missing: '+state);
 }
-if(!authBridgeMobileFix.includes("workspaceReady(readHandoff()?'login-handoff':'local-session'")) fail.push('Valid login handoff/local workspace does not open before background verification.');
+if(!authBridgeMobileFix.includes("const handoff=readHandoff()")||!authBridgeMobileFix.includes("workspaceReady(handoff?'login-handoff':'local-session'")) fail.push('Valid login handoff/local workspace does not open before background verification.');
 if(!authBridgeMobileFix.includes('function scheduleWorkspaceVerification')||!authBridgeMobileFix.includes("freshHandoff?12000:1800")) fail.push('Background workspace authorization is not delayed/coalesced after a verified login handoff.');
 if(authBridgeMobileFix.includes('window.EDUNIZAM_CORE_CLOUD.pullAllCloudToLocal(false)')) fail.push('Auth startup still performs a bulk core-school data pull.');
 if(!read('app.js').includes('edunizam:view-open')) fail.push('Main navigation is missing the on-demand view lifecycle event.');
