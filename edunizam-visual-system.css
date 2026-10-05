@@ -887,3 +887,270 @@ body.admission-premium{
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;transition-duration:0.01ms!important;animation-duration:0.01ms!important;animation-iteration-count:1!important}
 }
+
+
+/* ---------- Individual page polish / background imagery ---------- */
+/* Public informational pages: each page now has its own visual identity while
+   sharing one controlled premium system. Background photography is limited to
+   hero areas so reading/form-heavy screens remain calm and practical. */
+.premium-public-page .public-hero{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  padding:clamp(38px,5vw,68px)!important;
+  min-height:360px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  border:1px solid var(--en-border);
+  box-shadow:var(--en-shadow-sm);
+}
+.premium-public-page .public-hero>*{position:relative;z-index:1}
+.premium-public-page .public-hero:after{
+  content:"";
+  position:absolute;
+  inset:auto 26px 20px auto;
+  width:92px;height:4px;border-radius:999px;
+  background:linear-gradient(90deg,var(--en-gold-500),var(--en-sky-500));
+  opacity:.9;
+}
+.page-about .public-hero,
+.page-features .public-hero,
+.page-product .public-hero,
+.page-school-management .public-hero,
+.page-admissions-info .public-hero{
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.96) 48%,rgba(246,251,255,.72) 66%,rgba(8,35,58,.18) 100%),
+    url("assets/edunizam-login-children.webp") 82% 42%/cover no-repeat!important;
+}
+.page-learning-resources .public-hero,
+.page-aiou .public-hero,
+.page-vu .public-hero,
+.page-university .public-hero,
+.page-textbooks-research .public-hero,
+.page-skills .public-hero{
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.96) 50%,rgba(246,251,255,.73) 68%,rgba(15,49,80,.15) 100%),
+    url("assets/edunizam-girl-hero.webp") 88% center/cover no-repeat!important;
+}
+.page-competitive .public-hero,
+.page-entry-scholarships .public-hero,
+.page-exam-pathways .public-hero,
+.page-recognition .public-hero,
+.page-education-services .public-hero{
+  background:
+    linear-gradient(100deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.95) 51%,rgba(255,248,231,.72) 69%,rgba(6,26,43,.15) 100%),
+    url("assets/edunizam-login-children.webp") 78% 38%/cover no-repeat!important;
+}
+.page-privacy .public-hero{
+  background:
+    radial-gradient(circle at 92% 15%,rgba(103,194,246,.16),transparent 18rem),
+    linear-gradient(135deg,#ffffff,#f4f9fd)!important;
+  min-height:300px;
+}
+.premium-public-page .public-hero>p{max-width:720px}
+.premium-public-page .public-section:not(.prose){
+  scroll-margin-top:110px;
+}
+.page-about .public-card{border-top:4px solid var(--en-blue-600)!important}
+.page-features .public-card{border-top:4px solid var(--en-sky-500)!important}
+.page-school-management .public-card{border-top:4px solid #23836f!important}
+.page-admissions-info .public-card{border-top:4px solid var(--en-gold-500)!important}
+.page-aiou .public-card,.page-vu .public-card{border-top:4px solid #4a74cf!important}
+.page-competitive .public-card,.page-exam-pathways .public-card{border-top:4px solid #8a64c8!important}
+.page-recognition .public-card{border-top:4px solid #347d8a!important}
+.page-skills .public-card{border-top:4px solid #16806f!important}
+.page-university .public-card,.page-textbooks-research .public-card{border-top:4px solid #367bc4!important}
+
+/* Home: retain the real student photo, but make the hero atmosphere richer. */
+.page-home .premium-public-hero{
+  background:
+    radial-gradient(circle at 90% 12%,rgba(103,194,246,.14),transparent 18rem),
+    radial-gradient(circle at 8% 85%,rgba(216,173,85,.10),transparent 22rem),
+    linear-gradient(145deg,#ffffff,#f5faff 58%,#fffaf0)!important;
+}
+.page-home .hero-image-wrap:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 55%,rgba(6,26,43,.45));
+}
+
+/* Guest Learning gets a real education-photo hero without sacrificing legibility. */
+.page-learning .hero-card{
+  background:
+    linear-gradient(92deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.96) 58%,rgba(246,251,255,.62) 76%,rgba(8,35,58,.18) 100%),
+    url("assets/edunizam-girl-hero.webp") 96% center/auto 118% no-repeat!important;
+}
+.page-learning .quick-card{
+  background:linear-gradient(180deg,#ffffff,#f7fbff)!important;
+  border-top:4px solid var(--en-gold-500)!important;
+}
+.page-learning #past{--learning-accent:#1769aa}
+.page-learning #grade{--learning-accent:#16806f}
+.page-learning #study{--learning-accent:#4c73c9}
+.page-learning #universities{--learning-accent:#7b5fbd}
+.page-learning #competitive{--learning-accent:#a66d27}
+.page-learning #ecosystem{--learning-accent:#217c82}
+.page-learning #pathways{--learning-accent:#2e75b8}
+.page-learning #vu{--learning-accent:#4c63c7}
+.page-learning #practice{--learning-accent:#16806f}
+.page-learning .section:not(#home)>.section-head{
+  padding:20px 22px!important;
+  border:1px solid var(--en-border);
+  border-left:5px solid var(--learning-accent,var(--en-blue-600));
+  border-radius:18px;
+  background:linear-gradient(100deg,#fff,color-mix(in srgb,var(--learning-accent,var(--en-blue-600)) 7%,#fff));
+}
+
+/* Login photo treatment is intentionally strongest here. */
+.page-login .story{
+  background-image:
+    linear-gradient(105deg,rgba(6,26,43,.18),rgba(6,26,43,.08)),
+    url("assets/edunizam-login-children.webp")!important;
+  background-size:cover!important;
+  background-position:center 38%!important;
+}
+.page-login .story:before{
+  background:
+    linear-gradient(105deg,rgba(6,26,43,.88) 0%,rgba(8,35,58,.73) 48%,rgba(15,49,80,.44) 100%),
+    linear-gradient(0deg,rgba(6,26,43,.68),transparent 60%)!important;
+}
+
+/* Admission portal: photo only in the opening card, forms stay clean. */
+.page-admission .shell>section.card:first-of-type{
+  position:relative;
+  overflow:hidden;
+  min-height:300px;
+  padding-right:min(42%,430px)!important;
+  background:
+    linear-gradient(90deg,#fff 0%,#fff 61%,rgba(255,255,255,.70) 74%,rgba(255,255,255,.12) 100%),
+    url("assets/edunizam-girl-hero.webp") right center/46% 100% no-repeat!important;
+}
+.page-admission .shell>section.card:first-of-type:after{
+  content:"Admissions";
+  position:absolute;right:26px;bottom:22px;
+  padding:7px 11px;border-radius:999px;
+  background:rgba(6,26,43,.72);color:#fff;
+  font-size:13px;font-weight:800;letter-spacing:.06em;
+}
+.page-admission #authCard{border-top:4px solid var(--en-blue-600)!important}
+.page-admission #applicationCard{border-top:4px solid #16806f!important}
+.page-admission #myApplicationsCard{border-top:4px solid var(--en-gold-500)!important}
+
+/* 404 is deliberately simple but branded. */
+.page-404{
+  min-height:100dvh;
+  background:
+    linear-gradient(100deg,rgba(255,255,255,.97),rgba(246,251,255,.88)),
+    url("assets/edunizam-girl-hero.webp") right center/cover no-repeat!important;
+}
+
+/* ---------- Protected app: individual view polish ---------- */
+.page-app .view{
+  --view-accent:var(--role-accent,var(--en-blue-600));
+  --view-soft:color-mix(in srgb,var(--view-accent) 7%,#fff);
+  scroll-margin-top:96px;
+}
+.page-app .view>.section-head:first-child{
+  position:relative;
+  padding:22px 24px!important;
+  border:1px solid var(--en-border)!important;
+  border-left:5px solid var(--view-accent)!important;
+  border-radius:20px!important;
+  background:linear-gradient(105deg,#fff 0%,var(--view-soft) 100%)!important;
+  box-shadow:var(--en-shadow-xs);
+  overflow:hidden;
+}
+.page-app .view>.section-head:first-child:after{
+  content:"";
+  position:absolute;right:-28px;top:-38px;
+  width:150px;height:150px;border-radius:50%;
+  background:color-mix(in srgb,var(--view-accent) 8%,transparent);
+  pointer-events:none;
+}
+
+/* Core / people */
+.page-app #students,.page-app #studentprofile,.page-app #classcenter,.page-app #bulkimport{--view-accent:#1d73bd}
+.page-app #staffcenter,.page-app #stafftime,.page-app #staffpayroll,.page-app #training,.page-app #ourstudents,.page-app #behaviorcenter,.page-app #gatecenter,.page-app #studentdocs,.page-app #leavecenter{--view-accent:#16806f}
+
+/* Academics */
+.page-app #attendance,.page-app #attendanceanalytics,.page-app #results,.page-app #schoolwork,.page-app #lessoncenter,.page-app #examcenter,.page-app #paperbuilder,.page-app #dailydiary,.page-app #schedulecenter,.page-app #calendarcenter{--view-accent:#2f77c5}
+
+/* Finance / operations */
+.page-app #fees,.page-app #financecenter,.page-app #inventorycenter,.page-app #librarycenter,.page-app #transportcenter{--view-accent:#a06c1c}
+
+/* Communication */
+.page-app #noticeboard,.page-app #functionscenter,.page-app #inboxcenter,.page-app #parentcomplaints,.page-app #helpdeskcenter{--view-accent:#7b5fbd}
+
+/* Learning */
+.page-app #pastpapers,.page-app #practice,.page-app #study,.page-app #schoolassessments,.page-app #universities,.page-app #competitive,.page-app #ecosystem,.page-app #pathways,.page-app #vu,.page-app #admissions{--view-accent:#267c97}
+
+/* System */
+.page-app #assistant,.page-app #settings,.page-app #troubleshoot,.page-app #help{--view-accent:#51697d}
+
+/* Data-heavy views stay wide; reading/forms are intentionally narrower. */
+.page-app #attendanceanalytics,
+.page-app #fees,
+.page-app #financecenter,
+.page-app #results,
+.page-app #staffpayroll,
+.page-app #inventorycenter,
+.page-app #admissions{max-width:100%}
+.page-app #settings,
+.page-app #help,
+.page-app #troubleshoot,
+.page-app #assistant,
+.page-app #dailydiary,
+.page-app #paperbuilder,
+.page-app #leavecenter,
+.page-app #parentcomplaints{max-width:1180px;margin-inline:auto}
+.page-app #noticeboard,
+.page-app #lessoncenter,
+.page-app #schoolwork,
+.page-app #study{max-width:1260px;margin-inline:auto}
+
+/* Per-view card personality without sacrificing consistency. */
+.page-app #attendance .card,.page-app #attendanceanalytics .card{border-top:3px solid color-mix(in srgb,#2f77c5 72%,#fff)!important}
+.page-app #fees .card,.page-app #financecenter .card{border-top:3px solid color-mix(in srgb,#a06c1c 72%,#fff)!important}
+.page-app #training .card,.page-app #ourstudents .card{border-top:3px solid color-mix(in srgb,#16806f 72%,#fff)!important}
+.page-app #parentcomplaints .card,.page-app #helpdeskcenter .card,.page-app #inboxcenter .card{border-top:3px solid color-mix(in srgb,#7b5fbd 68%,#fff)!important}
+.page-app #paperbuilder .card,.page-app #dailydiary .card,.page-app #examcenter .card{border-top:3px solid color-mix(in srgb,#2f77c5 70%,#fff)!important}
+.page-app #vu .card,.page-app #practice .card,.page-app #study .card{border-top:3px solid color-mix(in srgb,#267c97 70%,#fff)!important}
+
+/* Dashboard gets a real school-photo hero only; operational pages remain image-free. */
+.page-app #dashboard .campus-hero{
+  background:
+    linear-gradient(105deg,rgba(6,26,43,.96) 0%,rgba(8,35,58,.91) 52%,rgba(15,49,80,.68) 75%,rgba(15,49,80,.38) 100%),
+    url("assets/edunizam-login-children.webp") right 40%/cover no-repeat!important;
+}
+
+/* Screen-specific responsive corrections for photo-backed surfaces. */
+@media(max-width:900px){
+  .premium-public-page .public-hero{
+    min-height:330px;
+    background-position:center!important;
+  }
+  .premium-public-page .public-hero{
+    background-image:linear-gradient(90deg,rgba(255,255,255,.98),rgba(255,255,255,.90))!important;
+  }
+  .page-learning .hero-card{
+    background:
+      linear-gradient(90deg,rgba(255,255,255,.98),rgba(255,255,255,.91)),
+      url("assets/edunizam-girl-hero.webp") right center/cover no-repeat!important;
+  }
+  .page-admission .shell>section.card:first-of-type{
+    padding-right:24px!important;
+    background:
+      linear-gradient(90deg,rgba(255,255,255,.98),rgba(255,255,255,.92)),
+      url("assets/edunizam-girl-hero.webp") right center/cover no-repeat!important;
+  }
+  .page-admission .shell>section.card:first-of-type:after{display:none}
+}
+@media(max-width:600px){
+  .premium-public-page .public-hero{padding:28px 20px!important;min-height:280px}
+  .page-learning .hero-card{background:#fff!important}
+  .page-app #dashboard .campus-hero{
+    background:
+      linear-gradient(120deg,rgba(6,26,43,.97),rgba(15,49,80,.90)),
+      url("assets/edunizam-login-children.webp") center/cover no-repeat!important;
+  }
+}
