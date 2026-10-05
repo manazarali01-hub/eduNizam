@@ -197,6 +197,10 @@ const coreCloud=read('core-cloud.js');
 if(!/function studentMap\(\)[\s\S]*?from\('core_students'\)[\s\S]*?eq\('institution_id',cfg\.institutionId\)/.test(coreCloud)) fail.push('Student cloud map is not scoped to the active institution.');
 if(!/rpc\('delete_core_student_v1'[\s\S]*?p_institution_id:cfg\.institutionId/.test(coreCloud)) fail.push('Atomic student delete is not scoped to the active institution.');
 if(!roleScope.includes("r==='admin'?'head':r")) fail.push('Role scope does not normalize legacy Admin sessions.');
+if(!roleScope.includes('teacherClassSections')) fail.push('Teacher role scope does not include class-teacher sections.');
+if(!roleScope.includes(".from('class_sections')")) fail.push('Teacher role scope does not refresh class-teacher assignments from cloud.');
+if(!/teacher:\[[^\n]*'paperbuilder'[^\n]*'dailydiary'/.test(app)) fail.push('Teacher early role gate is missing Paper Builder or Daily Diary.');
+if(!/student:\[[^\n]*'dailydiary'/.test(app)||!/parent:\[[^\n]*'dailydiary'/.test(app)) fail.push('Student/Parent early role gate is missing Daily Diary.');
 if(!login.includes("institutionId:inst?.id||''")) fail.push('Login does not persist selected institution ID.');
 if(!login.includes("edunizam_school:'+inst.id+':edunizam_settings")) fail.push('Login does not seed selected school workspace identity.');
 const authBridge=read('auth-bridge.js');
@@ -418,6 +422,14 @@ const attendanceAnalytics=read('attendance-analytics.js');
 if(!attendanceAnalytics.includes('Who Marked Attendance')) fail.push('Admin student attendance marker log missing.');
 if(!attendanceAnalytics.includes('marked_by')) fail.push('Student attendance analytics does not load marker identity.');
 if(!attendanceAnalytics.includes('markerProfiles')) fail.push('Attendance marker names are not resolved for Admin.');
+if(!attendanceAnalytics.includes('studentPhone')||!attendanceAnalytics.includes('<th>Contact</th>')) fail.push('Admin absence audit does not include student contact numbers.');
+const classTeacherAttendanceMigration='supabase/migrations/20261005055000_allow_class_teacher_student_attendance.sql';
+if(!exists(classTeacherAttendanceMigration)) fail.push('Class-teacher attendance policy migration missing.');
+else{
+  const classTeacherAttendance=read(classTeacherAttendanceMigration);
+  if(!classTeacherAttendance.includes('class_teacher_user_id=(select auth.uid())')) fail.push('Class-teacher attendance policy is not bound to authenticated Teacher.');
+  if(!classTeacherAttendance.includes('teacher_student_links')||!classTeacherAttendance.includes('class_sections')) fail.push('Teacher attendance policy must allow explicit student links or assigned class sections.');
+}
 if(!staffTime.includes("role()==='teacher'&&mine()")) fail.push('Staff self-attendance action is not explicitly Teacher-only.');
 if(!staffTime.includes('data-admin-staff-status')) fail.push('Admin Teacher attendance Present/Absent/Leave controls missing.');
 if(!staffTime.includes('Teacher self')) fail.push('Admin staff attendance log does not identify Teacher self marking.');
