@@ -111,10 +111,15 @@
     const student=document.getElementById('studentRecordLinkCard'),assign=document.getElementById('teacherAssignmentCard');
     if(student)student.style.display=role()==='student'?'block':'none';
     if(assign)assign.style.display=role()==='head'?'block':'none';
-    if(role()==='head')loadAssignments();
-    loadNotifications();
   }
-  function boot(){injectStyle();mountStudentLink();mountAssignments();injectNotifications();render()}
-  setTimeout(boot,0);setTimeout(boot,500);
+  function boot(){
+    injectStyle();mountStudentLink();mountAssignments();injectNotifications();render();
+    window.addEventListener('edunizam:workspace-ready',render);
+    window.addEventListener('edunizam:view-open',event=>{
+      if(event.detail?.view==='access'&&role()==='head')loadAssignments();
+      if(event.detail?.view==='notifications')loadNotifications();
+    });
+  }
+  setTimeout(boot,0);
   window.EDUNIZAM_ACADEMIC_ACCESS={render,loadNotifications,loadAssignments};
 })();
