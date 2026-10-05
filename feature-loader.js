@@ -1,49 +1,63 @@
 (function(){
-  const VERSION='20261005-perf629';
+  const VERSION='20261005-perf630';
   const sharedBundles={
-    learning:[
+    // Small shared bases first. The cross-section enrichment files execute once
+    // only after every dataset they can enhance already exists.
+    learningCore:[
       'past-papers-data.js',
-      'past-papers-inventory.js',
       'practice-data.js',
       'school-assessment-data.js',
       'university-data.js',
-      'education-directory-expansion.js',
-      'university-directory-normalizer.js',
-      'competitive-exams-data.js',
-      'education-ecosystem-data.js',
-      'exam-pathways-data.js',
-      'exam-topic-practice-data.js',
-      'exam-topic-checkpoints.js',
-      'exam-topic-blueprints-data.js',
       'vu-course-catalog.js',
-      'curriculum-registry.js',
       'study-data.js',
-      'study-inventory.js',
       'learning-premium-data.js',
       'learning-complete-data.js',
-      'learning-required-data.js',
+      'learning-required-data.js'
+    ],
+    pastpapersDeep:[
+      'past-papers-inventory.js',
       'board-paper-deep-data.js',
-      'board-paper-regional-deep-data.js',
-      'vu-catalog-expansion.js',
-      'vu-project-courses-deep.js',
-      'vu-course-pathways.js',
-      'vu-material-library.js',
+      'board-paper-regional-deep-data.js'
+    ],
+    practiceDeep:[
       'practice-curriculum-expansion.js',
       'practice-depth-data.js',
       'practice-complete-data.js',
       'practice-session-core.js'
+    ],
+    studyDeep:[
+      'curriculum-registry.js',
+      'study-inventory.js'
+    ],
+    universityDeep:[
+      'education-directory-expansion.js',
+      'university-directory-normalizer.js'
+    ],
+    competitiveDeep:['competitive-exams-data.js'],
+    ecosystemDeep:['education-ecosystem-data.js'],
+    pathwayDeep:[
+      'exam-pathways-data.js',
+      'exam-topic-practice-data.js',
+      'exam-topic-checkpoints.js',
+      'exam-topic-blueprints-data.js'
+    ],
+    vuDeep:[
+      'vu-catalog-expansion.js',
+      'vu-project-courses-deep.js',
+      'vu-course-pathways.js',
+      'vu-material-library.js'
     ]
   };
   const featureBundles={
-    pastpapers:['learning'],
-    practice:['learning'],
-    study:['learning'],
-    schoolassessments:['learning'],
-    universities:['learning'],
-    competitive:['learning'],
-    ecosystem:['learning'],
-    pathways:['learning'],
-    vu:['learning']
+    pastpapers:['learningCore','pastpapersDeep'],
+    practice:['learningCore','practiceDeep'],
+    study:['learningCore','studyDeep'],
+    schoolassessments:['learningCore'],
+    universities:['learningCore','universityDeep'],
+    competitive:['competitiveDeep'],
+    ecosystem:['ecosystemDeep'],
+    pathways:['pathwayDeep'],
+    vu:['learningCore','vuDeep']
   };
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js','academic-operations-deep.js'],
