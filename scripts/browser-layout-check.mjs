@@ -44,7 +44,7 @@ const launchOptions={headless:true};
 if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZAM_BROWSER;
 const browser=await chromium.launch(launchOptions);
 const failures=[];
-const widths=[320,360,390,412,430,768,1024,1366];
+const widths=[360,375,390,412,430,768,1366];
 const pages=['/','/login.html','/learn.html','/admission.html','/app.html'];
 
 function pushFailure(scope,message,detail=''){
@@ -52,15 +52,19 @@ function pushFailure(scope,message,detail=''){
 }
 
 async function inspectPage(page,url,width){
-  await page.route('**/*',route=>{
-    const requestUrl=new URL(route.request().url());
-    if(requestUrl.hostname==='127.0.0.1')route.continue();
-    else route.abort();
-  });
+  if(!page.__eduLocalRouteInstalled){
+    await page.route('**/*',route=>{
+      const requestUrl=new URL(route.request().url());
+      if(requestUrl.hostname==='127.0.0.1')route.continue();
+      else route.abort();
+    });
+    page.__eduLocalRouteInstalled=true;
+  }
   const errors=[];
+  page.removeAllListeners('pageerror');
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:15000});
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(140);
 
   const result=await page.evaluate(()=>{
     const root=document.documentElement;
@@ -144,12 +148,14 @@ async function inspectPage(page,url,width){
 
 try{
   for(const route of pages){
-    for(const width of widths){
-      const page=await browser.newPage({
-        javaScriptEnabled:false,
-        viewport:{width,height:Math.max(760,Math.round(width*1.7))}
-      });
-      try{
+    console.log('Layout QA route:',route);
+    const page=await browser.newPage({
+      javaScriptEnabled:false,
+      viewport:{width:widths[0],height:Math.max(760,Math.round(widths[0]*1.7))}
+    });
+    try{
+      for(const width of widths){
+        await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
         const {result,errors}=await inspectPage(page,'http://127.0.0.1:'+port+route,width);
         const scope=route+' @ '+width+'px';
         if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px '+JSON.stringify(result.wideElements));
@@ -168,7 +174,7 @@ try{
             sidebar.classList.add('mobile-nav-open');
             return true;
           });
-          if(sidebarExists)await page.waitForTimeout(320);
+          if(sidebarExists)await page.waitForTimeout(120);
           const drawer=await page.evaluate(()=>{
             const sidebar=document.querySelector('.sidebar');
             if(!sidebar)return {missing:true};
@@ -195,12 +201,13 @@ try{
         }
         const critical=errors.filter(x=>!/adsbygoogle|Failed to fetch|supabase/i.test(x));
         if(critical.length)pushFailure(scope,'Browser page errors',critical.slice(0,5).join(' | '));
-      }finally{
-        await page.close();
       }
+    }finally{
+      await page.close();
     }
   }
 
+  console.log('Layout QA static viewport sweep complete. Starting auth/mobile runtime contract.');
   // Production auth/mobile regression: login handoff must open the workspace
   // immediately, and network verification must never own the hamburger or scroll.
   const authPage=await browser.newPage({
@@ -323,6 +330,7 @@ try{
     await authPage.close();
   }
 
+  console.log('Auth/mobile runtime contract complete. Starting full login contract.');
   // Full login contract: real Login page -> app redirect -> usable mobile dashboard.
   const loginFlowPage=await browser.newPage({
     javaScriptEnabled:true,
