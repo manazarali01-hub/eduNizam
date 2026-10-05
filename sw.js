@@ -1,4 +1,4 @@
-const CACHE='edunizam-v228-retry-recovery'
+const CACHE='edunizam-v229-auth-tap'
 const CORE=[
   './',
   './index.html',
