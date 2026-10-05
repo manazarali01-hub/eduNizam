@@ -81,6 +81,14 @@ const dynamicRefs=[...feature.matchAll(/['"]([^'"]+\.js)['"]/g)]
   .map(m=>m[1])
   .filter(x=>!/^https?:/i.test(x));
 
+const appBootstrap=read('app.html');
+for(const heavy of ['past-papers-data.js','practice-data.js','university-data.js','vu-material-library.js','practice-depth-data.js']){
+  if(appBootstrap.includes('<script src="'+heavy)) fail.push('Heavy learning catalog still blocks authenticated bootstrap: '+heavy);
+}
+for(const marker of ["const sharedBundles={","schoolassessments:['education-hubs.js']","admissions:['admissions-data.js','admissions-selection.js','admissions-portal.js']","for(const src of list)await loadScript(src)"]){
+  if(!feature.includes(marker)) fail.push('Lazy feature-loader marker missing: '+marker);
+}
+
 for(const file of [...new Set([...scriptRefs,...cssRefs,...dynamicRefs])]){
   if(!exists(file)) fail.push('Missing referenced file: '+file);
 }
