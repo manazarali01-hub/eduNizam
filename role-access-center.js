@@ -39,7 +39,9 @@
   function show(){
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('access')?.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(v=>v.classList.toggle('active',v.dataset.view==='access'));
-    const title=document.getElementById('page-title');if(title)title.textContent='Access & Roles';render();
+    const title=document.getElementById('page-title');if(title)title.textContent='Access & Roles';
+    render(true);
+    window.dispatchEvent(new CustomEvent('edunizam:view-open',{detail:{view:'access'}}));
   }
   async function loadInstitutionAccounts(){
     const box=document.getElementById('schoolLoginAccounts');
@@ -170,21 +172,22 @@
     finally{decisionsInFlight.delete(id);buttons.forEach(b=>b.disabled=false)}
   }
 
-  function render(){
+  function render(loadData=false){
     const r=role(),badge=document.getElementById('accessRoleBadge');if(badge)badge.textContent=({head:'Head of Institute',teacher:'Teacher',parent:'Parent',student:'Student'}[r]||r);
     const info=document.getElementById('claimInviteCard'),accounts=document.getElementById('schoolAccountsCard'),approval=document.getElementById('parentApprovalCard'),resolver=document.getElementById('resolveAccessLinksCard');
     if(info)info.style.display=r==='head'?'none':'block';
     if(accounts)accounts.style.display=r==='head'?'block':'none';
     if(approval)approval.style.display=r==='head'?'block':'none';
     if(resolver)resolver.style.display=r==='head'?'block':'none';
-    if(r==='head'){
+    clearInterval(pendingRefreshTimer);
+    pendingRefreshTimer=null;
+    if(r==='head'&&loadData){
       loadInstitutionAccounts();loadSchoolAccessRequests();loadResolveLinks();
-      clearInterval(pendingRefreshTimer);
-      pendingRefreshTimer=setInterval(refreshPendingBadge,60000);
-    }else{
+      pendingRefreshTimer=setInterval(()=>{
+        if(document.getElementById('access')?.classList.contains('active'))refreshPendingBadge();
+      },60000);
+    }else if(r!=='head'){
       updatePendingBadge(0);
-      clearInterval(pendingRefreshTimer);
-      pendingRefreshTimer=null;
     }
   }
   function boot(){
@@ -193,10 +196,11 @@
     document.getElementById('refreshSchoolAccessRequests')?.addEventListener('click',loadSchoolAccessRequests);
     document.getElementById('toggleReviewedRequests')?.addEventListener('click',()=>{showReviewed=!showReviewed;loadSchoolAccessRequests()});
     document.getElementById('refreshResolveLinks')?.addEventListener('click',loadResolveLinks);
-    window.addEventListener('edunizam:auth',()=>setTimeout(()=>{render();refreshPendingBadge()},50));
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPendingBadge()});
-    render();
-    setTimeout(refreshPendingBadge,1200);
+    window.addEventListener('edunizam:workspace-ready',()=>render(false));
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden&&document.getElementById('access')?.classList.contains('active'))refreshPendingBadge();
+    });
+    render(false);
   }
   setTimeout(boot,0);
   window.EDUNIZAM_ROLE_ACCESS={show,render};
