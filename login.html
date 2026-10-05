@@ -262,9 +262,8 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
     if(signedIn.error){
       throw new Error('This email already has an EduNizam account. Enter the existing account password to add another school.');
     }
-    const role=await client.rpc('current_account_role');
-    if(role.error)throw role.error;
-    if(role.data!=='head_of_institute'){
+    const workspaces=await authorizedWorkspaces(signedIn.data.user,true);
+    if(!workspaces.some(x=>x.workspace_role==='head_of_institute')){
       await client.auth.signOut();
       throw new Error('This email is already linked to a non-Admin EduNizam account.');
     }
