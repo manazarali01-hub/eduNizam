@@ -91,6 +91,7 @@ if(!authBridgeMobileFix.includes('id="cloudAuthLogin"')) fail.push('Secure-sessi
 if(!authBridgeMobileFix.includes('id="cloudAuthGuest"')) fail.push('Secure-session Guest action is not an explicit button.');
 if(!authBridgeMobileFix.includes("navigateAuthTarget('login.html?from=secure-guard')")) fail.push('Secure-session Login action has no hard same-origin navigation.');
 if(!authBridgeMobileFix.includes('pointer-events:auto!important')) fail.push('Secure-session mobile tap target hardening is missing.');
+if(loginHtml.includes("register_simple_account_v1")) fail.push('Legacy direct-role registration RPC is still reachable from login.');
 if(authBridgeMobileFix.includes('clearLocalAuthState();\n        window.dispatchEvent(new CustomEvent(role===\'head_of_institute\'')) fail.push('Admin Retry still clears the selected local session before retrying.');
 if(!cloudSetupMobileFix.includes('if(owner.error)throw owner.error')) fail.push('Institution lookup errors are still swallowed before Admin Retry.');
 if(loginHtml.includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.push('Login auth redirects still leave the production custom domain.');
