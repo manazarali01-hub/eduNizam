@@ -100,7 +100,7 @@ if(!authBridgeMobileFix.includes("window.dispatchEvent(new CustomEvent('edunizam
 if(authBridgeMobileFix.includes('location.reload()')) fail.push('Auth runtime still relies on a page reload to complete login/sync.');
 if(loginHtml.includes("register_simple_account_v1")) fail.push('Legacy direct-role registration RPC is still reachable from login.');
 if(authBridgeMobileFix.includes('clearLocalAuthState();\n        window.dispatchEvent(new CustomEvent(role===\'head_of_institute\'')) fail.push('Admin Retry still clears the selected local session before retrying.');
-if(!cloudSetupMobileFix.includes('if(owner.error)throw owner.error')) fail.push('Institution lookup errors are still swallowed before Admin Retry.');
+if(!cloudSetupMobileFix.includes('cloud.listAuthorizedWorkspaces(false)')||!cloudSetupMobileFix.includes("throw error")) fail.push('Institution resolution is not using the centralized authorized-workspace source with explicit error propagation.');
 if(loginHtml.includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.push('Login auth redirects still leave the production custom domain.');
 if(read('admissions-cloud.js').includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.push('Admission auth redirects still leave the production custom domain.');
 const admissionHtml=read('admission.html');
@@ -376,7 +376,7 @@ if(!login.includes("edunizam_school:'+inst.id+':edunizam_settings")) fail.push('
 const authBridge=read('auth-bridge.js');
 if(!authBridge.includes('verifyWorkspaceAccess')||!authBridge.includes('institutionId:access.id||current.institutionId')) fail.push('Background authorization does not preserve/verify the selected institution workspace.');
 const cloudSetup=read('cloud-setup.js');
-if(!cloudSetup.includes("const selectedId=session?.institutionId||current.institutionId||''")) fail.push('Startup does not prioritize login-selected institute.');
+if(!cloudSetup.includes("localSession?.institutionId||current.institutionId")) fail.push('Workspace resolution does not prioritize the login-selected institute.');
 if(!cloudSetup.includes("session.institutionId=inst.id")) fail.push('Manual institute switching does not update session lock.');
 if(!login.includes("addSchoolToExistingAdmin")) fail.push('Existing Admin email cannot add a second school during signup.');
 if(!login.includes("create_owned_institution_v2")) fail.push('Multi-school signup RPC is missing.');
