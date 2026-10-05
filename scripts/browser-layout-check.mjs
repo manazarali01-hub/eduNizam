@@ -322,6 +322,116 @@ try{
   }finally{
     await authPage.close();
   }
+
+  // Full login contract: real Login page -> app redirect -> usable mobile dashboard.
+  const loginFlowPage=await browser.newPage({
+    javaScriptEnabled:true,
+    viewport:{width:390,height:844},
+    isMobile:true,
+    hasTouch:true,
+    serviceWorkers:'block'
+  });
+  try{
+    await loginFlowPage.addInitScript(()=>{
+      const user={id:'user-1',email:'admin@example.test',user_metadata:{}};
+      const workspace={
+        institution_id:'11111111-1111-4111-8111-111111111111',
+        institution_name:'Test School',
+        institution_type:'School',
+        registration_number:'REG-1',
+        school_registration_code:'LOGIN-1',
+        workspace_role:'head_of_institute'
+      };
+      const query=()=> {
+        const result={data:[],error:null};
+        const q={
+          select(){return q},eq(){return q},neq(){return q},in(){return q},order(){return q},limit(){return q},
+          insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
+          maybeSingle(){return Promise.resolve({data:null,error:null})},
+          single(){return Promise.resolve({data:null,error:null})},
+          then(resolve,reject){return Promise.resolve(result).then(resolve,reject)}
+        };
+        return q;
+      };
+      const client={
+        auth:{
+          signInWithPassword:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+          signOut:()=>Promise.resolve({error:null}),
+          getSession:()=>Promise.resolve({data:{session:{user}},error:null}),
+          getUser:()=>Promise.resolve({data:{user},error:null}),
+          signUp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+          resend:()=>Promise.resolve({error:null}),
+          resetPasswordForEmail:()=>Promise.resolve({error:null}),
+          verifyOtp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+          updateUser:()=>Promise.resolve({data:{user},error:null}),
+          onAuthStateChange:(cb)=>{
+            setTimeout(()=>cb('INITIAL_SESSION',{user}),0);
+            return {data:{subscription:{unsubscribe(){}}}};
+          }
+        },
+        rpc:(name)=>{
+          if(name==='my_authorized_workspaces')return Promise.resolve({data:[workspace],error:null});
+          if(name==='is_platform_admin')return Promise.resolve({data:false,error:null});
+          return Promise.resolve({data:null,error:null});
+        },
+        from:()=>query(),
+        storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),remove:()=>Promise.resolve({error:null})})}
+      };
+      window.supabase={createClient:()=>client};
+    });
+    await loginFlowPage.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
+      status:200,contentType:'text/javascript',body:'/* Supabase stubbed by login regression test */'
+    }));
+
+    await loginFlowPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:15000});
+    await loginFlowPage.locator('[data-role="admin"]').tap();
+    await loginFlowPage.locator('#loginSchoolName').fill('Test School');
+    await loginFlowPage.locator('#loginEmail').fill('admin@example.test');
+    await loginFlowPage.locator('#loginPassword').fill('correct-password');
+    await loginFlowPage.locator('#loginBtn').tap();
+
+    await loginFlowPage.waitForURL(/\/app\.html\?secureLogin=1$/,{timeout:5000})
+      .catch(e=>pushFailure('login contract','Successful Login did not redirect to app workspace',e.message));
+    await loginFlowPage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:5000})
+      .catch(e=>pushFailure('login contract','App mobile hamburger did not become visible after login',e.message));
+
+    const openedApp=await loginFlowPage.evaluate(()=>({
+      guardPresent:!!document.getElementById('cloudAuthScreen'),
+      dashboardActive:document.getElementById('dashboard')?.classList.contains('active')||false,
+      handoff:JSON.parse(sessionStorage.getItem('edunizam_secure_login_handoff')||'null'),
+      local:JSON.parse(localStorage.getItem('edunizam_session')||'null')
+    }));
+    if(openedApp.guardPresent)pushFailure('login contract','Secure overlay blocked a successful Login handoff',JSON.stringify(openedApp));
+    if(!openedApp.dashboardActive)pushFailure('login contract','Dashboard is not active after successful Login',JSON.stringify(openedApp));
+    if(openedApp.local?.institutionId!=='11111111-1111-4111-8111-111111111111'||openedApp.local?.role!=='head'){
+      pushFailure('login contract','Login did not persist the authorized school workspace',JSON.stringify(openedApp.local));
+    }
+
+    await loginFlowPage.locator('#eduMobileMenuBtn').tap();
+    await loginFlowPage.waitForTimeout(80);
+    const menuOpen=await loginFlowPage.evaluate(()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false);
+    if(!menuOpen)pushFailure('login contract','Hamburger is not clickable after successful Login');
+
+    await loginFlowPage.locator('#eduMobileNavClose').tap();
+    await loginFlowPage.waitForTimeout(80);
+    await loginFlowPage.evaluate(()=>{
+      const spacer=document.createElement('div');
+      spacer.id='qaScrollSpacer';spacer.style.height='1800px';document.querySelector('.main')?.appendChild(spacer);
+      window.scrollTo(0,700);
+    });
+    await loginFlowPage.waitForTimeout(80);
+    const afterLoginInteraction=await loginFlowPage.evaluate(()=>({
+      scrollY:window.scrollY,
+      locked:document.body.classList.contains('mobile-nav-lock'),
+      backdropPointer:getComputedStyle(document.getElementById('eduMobileNavBackdrop')).pointerEvents
+    }));
+    if(afterLoginInteraction.scrollY<100)pushFailure('login contract','Page scrolling remains frozen after successful Login',JSON.stringify(afterLoginInteraction));
+    if(afterLoginInteraction.locked||afterLoginInteraction.backdropPointer!=='none')pushFailure('login contract','Closed mobile navigation still blocks the page after Login',JSON.stringify(afterLoginInteraction));
+  }catch(e){
+    pushFailure('login contract','Full Login -> dashboard interaction regression failed',e.message||String(e));
+  }finally{
+    await loginFlowPage.close();
+  }
 }finally{
   await browser.close().catch(()=>{});
   server.closeAllConnections?.();
