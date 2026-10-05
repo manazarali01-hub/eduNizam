@@ -1542,3 +1542,59 @@ img{image-rendering:auto}
   .page-home .quick-access-card{padding:14px!important}
   .page-home .hero-role-badge span{flex-basis:44%;font-size:11.5px!important}
 }
+
+
+/* ---------- HOMEPAGE MOBILE HARD RESET 2026-10-05 ---------- */
+/* Screenshot-driven hard reset for the homepage phone layout. */
+@media(max-width:720px){
+  .page-home .public-nav{overflow:visible!important}
+  .page-home .public-links{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    overflow:visible!important;
+    gap:8px!important;
+    padding:0!important;
+  }
+  .page-home .public-links a{
+    width:100%!important;
+    justify-content:center!important;
+    white-space:normal!important;
+    text-align:center!important;
+  }
+  .page-home .public-links a:nth-child(n+3){display:none!important}
+  .page-home .public-main,
+  .page-home .premium-public-hero,
+  .page-home .hero-copy,
+  .page-home .hero-visual,
+  .page-home .hero-image-wrap,
+  .page-home .quick-access-card{
+    max-width:100%!important;
+    min-width:0!important;
+  }
+  .page-home .hero-visual{
+    position:relative!important;
+    overflow:visible!important;
+  }
+  .page-home .quick-access-card{
+    position:relative!important;
+    inset:auto!important;
+    transform:none!important;
+    margin:0!important;
+    float:none!important;
+  }
+  .page-home .hero-role-badge{
+    display:none!important;
+    position:static!important;
+    transform:none!important;
+  }
+  .page-home .portrait-caption{
+    max-width:calc(100% - 36px)!important;
+    pointer-events:none!important;
+  }
+  .page-home .hero-image-wrap,
+  .page-home .quick-access-card,
+  .page-home .public-proof,
+  .page-home .hero-actions{
+    isolation:isolate;
+  }
+}
