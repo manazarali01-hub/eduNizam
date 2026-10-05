@@ -78,6 +78,23 @@ if(systemAutoUpdateSafety.includes("querySelectorAll('button[disabled]')")) fail
 if(!reliabilitySafety.includes('[data-recovery-safe="true"][disabled]')) fail.push('Reliability control recovery is not explicitly scoped.');
 if(/querySelectorAll\(['"]button\[disabled\]['"]\)/.test(reliabilitySafety)) fail.push('Reliability Guardian still scans every disabled button.');
 
+const appExternalScriptTags=[...index.matchAll(/<script[^>]+src=["'][^"']+["'][^>]*>/g)].map(m=>m[0]);
+for(const tag of appExternalScriptTags){
+  if(!/\bdefer\b/i.test(tag)) fail.push('App startup script is parser-blocking instead of deferred: '+tag);
+}
+for(const marker of [
+  "pastpapers:['learningCore','pastpapersDeep']",
+  "practice:['learningCore','practiceDeep']",
+  "universities:['learningCore','universityDeep']",
+  "vu:['learningCore','vuDeep']",
+  "competitive:['competitiveDeep']",
+  "ecosystem:['ecosystemDeep']",
+  "pathways:['pathwayDeep']"
+]){
+  if(!feature.includes(marker)) fail.push('Section-specific lazy-loading marker missing: '+marker);
+}
+if(/const sharedBundles=\{\s*learning:\[/m.test(feature)) fail.push('Learning Hub reverted to one catch-all sequential bundle.');
+
 const scriptRefs=[...index.matchAll(/<script[^>]+src=["']([^"']+)["']/g)]
   .map(m=>m[1].split('?')[0])
   .filter(x=>!/^https?:/i.test(x));
