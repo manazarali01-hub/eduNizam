@@ -190,7 +190,7 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
   const $=id=>document.getElementById(id);
   const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
   const client=(cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase)
-    ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey)
+    ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
     : null;
 
   let selectedRole='admin';
@@ -298,65 +298,49 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
       });
     });
   }
+  const workspaceCache={userId:'',rows:null,at:0,inflight:null};
+  async function authorizedWorkspaces(user,force=false){
+    const uid=String(user?.id||'');
+    if(!uid)return[];
+    if(workspaceCache.userId!==uid){workspaceCache.userId=uid;workspaceCache.rows=null;workspaceCache.at=0;workspaceCache.inflight=null}
+    if(!force&&workspaceCache.rows&&Date.now()-workspaceCache.at<15000)return workspaceCache.rows;
+    if(workspaceCache.inflight)return workspaceCache.inflight;
+    workspaceCache.inflight=(async()=>{
+      const {data,error}=await client.rpc('my_authorized_workspaces');
+      if(error)throw error;
+      return (data||[]).map(row=>({
+        id:row.institution_id,
+        name:row.institution_name,
+        institution_type:row.institution_type,
+        registration_number:row.registration_number,
+        school_registration_code:row.school_registration_code,
+        workspace_role:row.workspace_role
+      }));
+    })();
+    try{
+      const rows=await workspaceCache.inflight;
+      workspaceCache.rows=rows;workspaceCache.at=Date.now();
+      return rows;
+    }finally{workspaceCache.inflight=null}
+  }
   async function resolveInstitution(user,requestedName='',role='',requestedInstitutionId=''){
     const wanted=normalizeInstituteName(requestedName);
     const wantedId=String(requestedInstitutionId||'').trim();
-
-    if(role==='admin'){
-      const owner=await client.from('institutions').select('id,name,institution_type,registration_number,school_registration_code').eq('owner_user_id',user.id).order('created_at',{ascending:true});
-      if(owner.error)throw owner.error;
-      if(wanted){
-        const matches=(owner.data||[]).filter(x=>normalizeInstituteName(x.name)===wanted);
-        if(matches.length>1)return await chooseOwnedInstitution(matches);
-        return matches[0]||null;
-      }
-      if(owner.data?.length===1)return owner.data[0];
-      if((owner.data||[]).length>1)return await chooseOwnedInstitution(owner.data||[]);
-      return null;
-    }
-
     const expectedRole=roleCloud[role]||role;
-    const memberships=await client
-      .from('institution_members')
-      .select('institution_id,role,institutions(id,name,institution_type)')
-      .eq('user_id',user.id);
-    if(memberships.error)throw memberships.error;
+    const rows=(await authorizedWorkspaces(user)).filter(x=>x.workspace_role===expectedRole);
 
-    const memberSchools=(memberships.data||[])
-      .filter(x=>!expectedRole||x.role===expectedRole)
-      .map(x=>x.institutions)
-      .filter(Boolean);
-
-    if(wantedId){
-      const exactById=memberSchools.find(x=>String(x.id)===wantedId);
-      if(exactById)return exactById;
-      return null;
-    }
+    if(wantedId)return rows.find(x=>String(x.id)===wantedId)||null;
     if(wanted){
-      const exact=memberSchools.find(x=>normalizeInstituteName(x.name)===wanted);
-      if(exact)return exact;
+      const matches=rows.filter(x=>normalizeInstituteName(x.name)===wanted);
+      if(matches.length>1&&role==='admin')return await chooseOwnedInstitution(matches);
+      return matches[0]||null;
     }
-
-    const profile=await client.from('user_profiles').select('institution_id,account_role').eq('user_id',user.id).maybeSingle();
-    if(profile.error)throw profile.error;
-
-    if(profile.data?.institution_id){
-      const preferred=memberSchools.find(x=>x.id===profile.data.institution_id);
-      if(preferred)return preferred;
-    }
-    if(memberSchools.length===1)return memberSchools[0];
-
-    // Legacy/recovery fallback. New accounts are always written to institution_members.
-    if(profile.data?.institution_id&&(!expectedRole||profile.data.account_role===expectedRole)){
-      const inst=await client.from('institutions').select('id,name,institution_type').eq('id',profile.data.institution_id).maybeSingle();
-      if(inst.error)throw inst.error;
-      if(wanted&&inst.data&&normalizeInstituteName(inst.data.name)!==wanted)return null;
-      return inst.data||null;
-    }
+    if(rows.length===1)return rows[0];
+    if(rows.length>1&&role==='admin')return await chooseOwnedInstitution(rows);
     return null;
   }
-  async function openApp(user,role,requestedName='',requestedInstitutionId=''){
-    const inst=await resolveInstitution(user,requestedName,role,requestedInstitutionId);
+  async function openApp(user,role,requestedName='',requestedInstitutionId='',resolvedInstitution=null){
+    const inst=resolvedInstitution||await resolveInstitution(user,requestedName,role,requestedInstitutionId);
     if(role==='admin'&&!inst)throw new Error('No institute with this name is linked to this Admin account. Check the institute name and try again.');
     if(role!=='admin'&&!inst){
       const roleName=labels[role]||'User';
@@ -379,29 +363,27 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
     const localRole=role==='admin'?'head':role;
     localStorage.setItem('edunizam_session',JSON.stringify({role:localRole,identity:user.email,loginAt:Date.now(),source:'supabase',schoolName:inst?.name||'',institutionId:inst?.id||''}));
     try{
+      const now=Date.now();
       sessionStorage.setItem('edunizam_secure_login_handoff',JSON.stringify({
+        version:2,
+        nonce:window.crypto?.randomUUID?.()||String(now)+'-'+Math.random().toString(36).slice(2),
         userId:user.id,
         institutionId:inst?.id||'',
         role:localRole,
-        at:Date.now()
+        at:now,
+        expiresAt:now+120000
       }));
     }catch(_){}
     location.replace('app.html?secureLogin=1');
   }
   async function shouldCompleteSignup(user,localPending){
-    if(localPending&&String(localPending.email||'').toLowerCase()===String(user.email||'').toLowerCase())return true;
-    const meta=user?.user_metadata||{};
-    if(!meta.signup_role)return false;
-    const role=await client.rpc('current_account_role');
-    if(role.error)throw role.error;
-    if(meta.signup_role==='teacher'||meta.signup_role==='parent'||meta.signup_role==='student'){
-      if(role.data===meta.signup_role)return false;
-      const selectedInstitutionId=localPending?.institutionId||meta.selected_school_id||'';
-      const request=await schoolAccessStatus(user.id,meta.signup_role,selectedInstitutionId);
-      if(request?.status==='pending'||request?.status==='rejected')return false;
-      return true;
-    }
-    return role.data!==roleCloud[meta.signup_role];
+    // Signup completion is a one-time continuation owned by the browser that
+    // created the pending signup. Persistent user_metadata must not trigger
+    // another role RPC on every normal login.
+    return !!(
+      localPending&&
+      String(localPending.email||'').toLowerCase()===String(user?.email||'').toLowerCase()
+    );
   }
   async function schoolAccessStatus(userId,role,institutionId=''){
     let q=client
@@ -561,25 +543,24 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
         if(completed!==false)return;
       }
 
-      const role=await client.rpc('current_account_role');
-      if(role.error)throw role.error;
-      if(role.data!==roleCloud[selectedRole]){
-        if(selectedRole==='teacher'){
-          const status=await schoolAccessStatus(data.user.id,'teacher',selectedSchoolId);
-          await client.auth.signOut();
-          if(status?.status==='pending')throw new Error('Waiting for School Admin approval.');
-          if(status?.status==='rejected')throw new Error('Teacher request was rejected by School Admin'+(status.review_note?': '+status.review_note:'')+'.');
-        }
-        if(selectedRole==='parent'||selectedRole==='student'){
+      const inst=await resolveInstitution(data.user,requestedInstitute,selectedRole,selectedSchoolId);
+      if(!inst){
+        if(selectedRole==='teacher'||selectedRole==='parent'||selectedRole==='student'){
           const status=await schoolAccessStatus(data.user.id,selectedRole,selectedSchoolId);
           await client.auth.signOut();
           if(status?.status==='pending')throw new Error('Waiting for School Admin approval.');
-          if(status?.status==='rejected')throw new Error('Your approval request was rejected by School Admin'+(status.review_note?': '+status.review_note:'')+'.');
+          if(status?.status==='rejected'){
+            const label=selectedRole==='teacher'?'Teacher request':'Your approval request';
+            throw new Error(label+' was rejected by School Admin'+(status.review_note?': '+status.review_note:'')+'.');
+          }
+        }else{
+          await client.auth.signOut();
         }
-        await client.auth.signOut();
-        throw new Error('This account is not approved for the selected role yet.');
+        throw new Error(selectedRole==='admin'
+          ?'No institute with this name is linked to this Admin account. Check the institute name and try again.'
+          :'This account is not approved for the selected school and role yet.');
       }
-      await openApp(data.user,selectedRole,requestedInstitute,selectedSchoolId);
+      await openApp(data.user,selectedRole,requestedInstitute,selectedSchoolId,inst);
     }catch(err){message(friendly(err.message||err))}finally{busy($('loginBtn'),false)}
   };
 
