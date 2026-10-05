@@ -180,7 +180,7 @@
     const date=localDateKey();
     card.innerHTML='<div class="section-head"><div><div class="academic-kicker">Attendance Alerts</div><h2>Today\'s Absence Details</h2><p class="muted">Absent students aur staff contacts Admin ke liye.</p></div><span class="academic-pill">Loading…</span></div>';
     let summary=localSummary(date),source='Local';
-    if(forceCloud||ready()){
+    if(forceCloud&&ready()){
       try{const remote=await cloudSummary(date);if(remote){summary=remote;source='Cloud'}}catch(e){console.warn('Attendance alert cloud summary:',e.message||e)}
     }
     const a=summary.absentStudents||[],s=summary.absentStaff||[],n=summary.notMarkedStaff||[];
@@ -191,9 +191,9 @@
   }
 
   window.addEventListener('edunizam:attendance-updated',()=>renderAdminAttendanceAlerts(true).catch(()=>{}));
-  window.addEventListener('edunizam:auth',()=>setTimeout(()=>renderAdminAttendanceAlerts(true).catch(()=>{}),500));
-  window.addEventListener('online',()=>renderAdminAttendanceAlerts(true).catch(()=>{}));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderAdminAttendanceAlerts(true).catch(()=>{})});
+  window.addEventListener('edunizam:auth',()=>setTimeout(()=>renderAdminAttendanceAlerts(false).catch(()=>{}),500));
+  window.addEventListener('online',()=>renderAdminAttendanceAlerts(false).catch(()=>{}));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&document.getElementById('dashboard')?.classList.contains('active'))renderAdminAttendanceAlerts(false).catch(()=>{})});
   setTimeout(()=>renderAdminAttendanceAlerts(false).catch(()=>{}),1200);
 
   window.EDUNIZAM_WORKFLOW_ALERTS={attendanceSaved,staffAttendanceSaved,resultSaved,feeSaved,meetingSaved,renderAdminAttendanceAlerts};
