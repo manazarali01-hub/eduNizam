@@ -395,6 +395,13 @@ if(!login.includes("selectedSchoolId")) fail.push('Member login does not verify 
 if(!login.includes("requestedInstitutionId")) fail.push('Login cannot lock member access to selected school ID.');
 if(!login.includes("localPending&&")||!login.includes("String(localPending.email||'').toLowerCase()")) fail.push('Signup completion is not limited to the browser-owned pending signup.');
 const authBridgeE2E=read('auth-bridge.js');
+if(!authBridgeE2E.includes("authoritativeAbsent=restoreStatus==='absent'||c.state.authEvent==='SIGNED_OUT'")) fail.push('Transient session restore failures can still evict a valid local workspace.');
+if(!authBridgeE2E.includes('if(runtimeState.verification)return runtimeState.verification')) fail.push('Workspace authorization does not reuse an in-flight verification.');
+if(!read('admissions-cloud.js').includes("state.sessionRestoreStatus='error'")) fail.push('Supabase session restore certainty is not tracked.');
+const repairCloudStateFile=read('reliability-guardian.js');
+const repairCloudStateSource=repairCloudStateFile.slice(repairCloudStateFile.indexOf('async function repairCloudState'),repairCloudStateFile.indexOf('function report'));
+if(/auth\.getSession\s*\(/.test(repairCloudStateSource)) fail.push('Reliability Guardian still owns a second Supabase session restore path.');
+if(!login.includes('global:{fetch:supabaseFetch}')||!login.includes('setTimeout(()=>controller.abort(),12000)')) fail.push('Login Supabase network requests have no finite deadline.');
 if(!authBridgeE2E.includes('refreshScopedRoleCache')) fail.push('Role-scoped cache refresh missing after member login.');
 if(!authBridgeE2E.includes('pullAllCloudToLocal')) fail.push('Member login does not reload RLS-filtered cloud data.');
 if(authBridgeE2E.includes("location.reload()")) fail.push('Auth bridge must not reload the whole app to refresh member data.');

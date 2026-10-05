@@ -324,6 +324,54 @@ try{
     }));
     if(settled.guardPresent)pushFailure('auth handoff','Background authorization re-opened a blocking overlay',JSON.stringify(settled));
     if(!['WORKSPACE_READY','BACKGROUND_SYNC'].includes(settled.authState))pushFailure('auth handoff','Background authorization did not settle to a usable workspace state',JSON.stringify(settled));
+
+    // Temporary session restoration failures must preserve a valid local shell.
+    await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
+    await authPage.evaluate(()=>{
+      const now=Date.now();
+      localStorage.setItem('edunizam_session',JSON.stringify({
+        role:'head',identity:'admin@example.test',loginAt:now,source:'supabase',institutionId:'school-1',schoolName:'Test School'
+      }));
+      localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify({enabled:true,institutionId:'school-1'}));
+      window.EDUNIZAM_CLOUD={
+        state:{client:{auth:{}},user:null,initialized:true,authEvent:'INITIAL_SESSION',sessionRestoreStatus:'error',sessionRestoreError:{message:'temporary refresh failure'}},
+        whenReady:()=>Promise.resolve(window.EDUNIZAM_CLOUD),
+        verifyWorkspaceAccess:()=>Promise.reject(new Error('should not verify without a restored user'))
+      };
+    });
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/data-runtime.js'});
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/mobile-nav-core.js'});
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
+    await authPage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:3000});
+    await authPage.waitForTimeout(180);
+    const transientRestore=await authPage.evaluate(()=>({
+      guardPresent:!!document.getElementById('cloudAuthScreen'),
+      authState:document.documentElement.dataset.authState||'',
+      session:JSON.parse(localStorage.getItem('edunizam_session')||'null')
+    }));
+    if(transientRestore.guardPresent||!transientRestore.session)pushFailure('auth transient restore','Temporary session restore failure evicted a valid local workspace',JSON.stringify(transientRestore));
+    if(!['WORKSPACE_READY','OFFLINE_READY','BACKGROUND_SYNC'].includes(transientRestore.authState))pushFailure('auth transient restore','Temporary session restore failure left the app in a blocking auth state',JSON.stringify(transientRestore));
+
+    // A known missing browser session is authoritative and must clear stale private state.
+    await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
+    await authPage.evaluate(()=>{
+      const now=Date.now();
+      localStorage.setItem('edunizam_session',JSON.stringify({
+        role:'head',identity:'admin@example.test',loginAt:now,source:'supabase',institutionId:'school-1',schoolName:'Test School'
+      }));
+      window.EDUNIZAM_CLOUD={
+        state:{client:{auth:{}},user:null,initialized:true,authEvent:'INITIAL_SESSION',sessionRestoreStatus:'absent',sessionRestoreError:null},
+        whenReady:()=>Promise.resolve(window.EDUNIZAM_CLOUD)
+      };
+    });
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/data-runtime.js'});
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
+    await authPage.waitForSelector('#cloudAuthLogin',{state:'visible',timeout:3000});
+    const authoritativeAbsent=await authPage.evaluate(()=>({
+      guardPresent:!!document.getElementById('cloudAuthScreen'),
+      session:JSON.parse(localStorage.getItem('edunizam_session')||'null')
+    }));
+    if(!authoritativeAbsent.guardPresent||authoritativeAbsent.session)pushFailure('auth authoritative sign-out','Known missing cloud session did not clear stale private workspace state',JSON.stringify(authoritativeAbsent));
   }catch(e){
     pushFailure('auth/mobile runtime','Auth and mobile interaction regression failed',e.message||String(e));
   }finally{

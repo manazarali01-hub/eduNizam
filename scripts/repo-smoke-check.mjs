@@ -342,6 +342,7 @@ if(/localStorage\.removeItem\(['"]edunizam_session['"]\)/.test(loginHtml)){
 }else ok("auth:login-preserves-session");
 
 const admissionsCloud=read("admissions-cloud.js");
+const reliabilityGuardian=read("reliability-guardian.js");
 const dataRuntime=read("data-runtime.js");
 const mobileNavCore=read("mobile-nav-core.js");
 const systemAuto=read("system-auto-update.js");
@@ -349,6 +350,16 @@ const loginSubmit=loginHtml.slice(loginHtml.indexOf("$('loginForm').onsubmit"),l
 
 if(/auth\.getUser\s*\(/.test(admissionsCloud))bad("auth:no-startup-getuser","app runtime must not make a blocking getUser request during startup");
 else ok("auth:no-startup-getuser");
+
+if(!admissionsCloud.includes("sessionRestoreStatus:'pending'")||!admissionsCloud.includes("state.sessionRestoreStatus='error'"))bad("auth:restore-certainty","cloud client must distinguish missing session from transient restore failure");
+else ok("auth:restore-certainty");
+
+const repairCloudSnippet=reliabilityGuardian.slice(reliabilityGuardian.indexOf("async function repairCloudState"),reliabilityGuardian.indexOf("function report"));
+if(/auth\.getSession\s*\(/.test(repairCloudSnippet))bad("auth:single-session-owner","Reliability Guardian must not independently restore/clear the Supabase session");
+else ok("auth:single-session-owner");
+
+if(!loginHtml.includes("global:{fetch:supabaseFetch}")||!loginHtml.includes("setTimeout(()=>controller.abort(),12000)"))bad("auth:bounded-login-network","Login Supabase requests are not bounded by a network deadline");
+else ok("auth:bounded-login-network");
 
 if(!admissionsCloud.includes("my_authorized_workspaces"))bad("auth:workspace-rpc","single authorized-workspaces RPC is missing from app auth");
 else ok("auth:workspace-rpc");
@@ -368,6 +379,15 @@ else ok("auth:no-auth-reload");
 
 if(!authBridge.includes("workspaceReady(readHandoff()?'login-handoff':'local-session'"))bad("auth:local-first-workspace","valid login handoff/local workspace must open before background verification");
 else ok("auth:local-first-workspace");
+
+if(!authBridge.includes("authoritativeAbsent=restoreStatus==='absent'||c.state.authEvent==='SIGNED_OUT'"))bad("auth:transient-restore-safe","temporary session-restore failures can still evict a valid local workspace");
+else ok("auth:transient-restore-safe");
+
+if(!authBridge.includes("if(runtimeState.verification)return runtimeState.verification"))bad("auth:verification-dedupe","concurrent workspace verification can create duplicate authorization requests");
+else ok("auth:verification-dedupe");
+
+if(!authBridge.includes("runtimeState.syncScheduled=false"))bad("sync:reconnect-reschedule","background sync cannot be scheduled again after reconnect");
+else ok("sync:reconnect-reschedule");
 
 if(!dataRuntime.includes("const inflight=new Map()")||!dataRuntime.includes("AbortController")||!dataRuntime.includes("transient(error)"))bad("fetch:runtime","bounded dedupe/timeout/retry runtime incomplete");
 else ok("fetch:runtime");

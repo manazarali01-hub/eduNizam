@@ -189,8 +189,21 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
   // Keep valid auth/session state. The legacy reset has already been completed.
   const $=id=>document.getElementById(id);
   const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
+  const nativeFetch=window.fetch.bind(window);
+  const supabaseFetch=(input,init={})=>{
+    const controller=new AbortController();
+    const external=init.signal;
+    const onAbort=()=>controller.abort();
+    if(external?.aborted)controller.abort();
+    else external?.addEventListener?.('abort',onAbort,{once:true});
+    const timer=setTimeout(()=>controller.abort(),12000);
+    return nativeFetch(input,{...init,signal:controller.signal}).finally(()=>{
+      clearTimeout(timer);
+      external?.removeEventListener?.('abort',onAbort);
+    });
+  };
   const client=(cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase)
-    ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
+    ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},global:{fetch:supabaseFetch}})
     : null;
 
   let selectedRole='admin';
@@ -248,6 +261,8 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
     if(/otp_expired|token has expired|expired token/i.test(s))return 'This code has expired. Use Resend Code to request a new email.';
     if(/over_email_send_rate_limit|email rate limit exceeded|too many email requests/i.test(s))return 'Email limit reached. Please wait before requesting another email; repeated clicks will not send it sooner.';
     if(/already registered|already exists/i.test(s))return 'An account already exists with this email.';
+    if(!navigator.onLine)return 'You are offline. Reconnect to the internet and try again.';
+    if(/abort|timed out|timeout|failed to fetch|network/i.test(s))return 'The secure login service is taking too long to respond. Your page is still usable; check your connection and try again.';
     return s;
   }
   function saveLogo(file){

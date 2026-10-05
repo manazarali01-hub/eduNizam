@@ -94,22 +94,19 @@
     return fixed;
   }
   async function repairCloudState(){
-    const client=window.EDUNIZAM_CLOUD?.state?.client;
-    if(!client||!navigator.onLine)return {ok:true,label:'Cloud repair not required'};
+    const cloud=window.EDUNIZAM_CLOUD;
+    if(!cloud?.state?.client||!navigator.onLine)return {ok:true,label:'Cloud repair not required'};
     try{
-      const {data,error}=await client.auth.getSession();
-      if(error)throw error;
-      const session=data?.session;
-      if(!session){
-        const local=readJson('edunizam_session',null);
-        if(local){
-          try{localStorage.removeItem('edunizam_session')}catch(_){}
-          window.dispatchEvent(new CustomEvent('edunizam:auth-invalid'));
-          report('Session Recovery','Removed stale local login because the secure cloud session had expired.','Authentication','warning');
-        }
-        return {ok:true,label:'Expired session cleaned'};
+      const local=readJson('edunizam_session',null);
+      const bridge=window.EDUNIZAM_AUTH_BRIDGE;
+      if(local?.source==='supabase'&&local?.institutionId&&bridge?.verifyCurrentWorkspace){
+        const ok=await bridge.verifyCurrentWorkspace(true);
+        return {ok:ok!==false,label:ok===false?'Secure school access needs sign-in':'Cloud workspace validated'};
       }
-      return {ok:true,label:'Cloud session valid'};
+      if(cloud.state.user)return {ok:true,label:'Cloud session valid'};
+      if(cloud.state.sessionRestoreStatus==='error')return {ok:false,label:'Cloud session restore is temporarily unavailable'};
+      if(cloud.state.sessionRestoreStatus==='absent')return {ok:true,label:'No active cloud session'};
+      return {ok:true,label:'Cloud session initializing'};
     }catch(e){
       report('Cloud Recovery',e.message||e,'Authentication','warning');
       return {ok:false,label:'Cloud session repair needs attention'};

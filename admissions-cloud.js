@@ -1,6 +1,6 @@
 (function(){
   const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
-  const state={enabled:false,client:null,user:null,session:null,initialized:false,authEvent:'BOOTING'};
+  const state={enabled:false,client:null,user:null,session:null,initialized:false,authEvent:'BOOTING',sessionRestoreStatus:'pending',sessionRestoreError:null};
   const roleCache={key:'',value:null,at:0,inflight:null};
   const institutionsCache={userId:'',value:null,at:0,inflight:null};
   function clearIdentityCaches(){roleCache.key='';roleCache.value=null;roleCache.at=0;roleCache.inflight=null;institutionsCache.userId='';institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
@@ -12,7 +12,7 @@
   async function init(){
     if(initPromise)return initPromise;
     initPromise=(async()=>{
-      if(!ready()){state.initialized=true;window.dispatchEvent(new CustomEvent('edunizam:cloud-ready'));return api}
+      if(!ready()){state.sessionRestoreStatus='unavailable';state.initialized=true;window.dispatchEvent(new CustomEvent('edunizam:cloud-ready'));return api}
       state.client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
       state.enabled=true;
 
@@ -22,6 +22,8 @@
         state.session=session||null;
         state.user=nextUser;
         state.authEvent=event;
+        if(session){state.sessionRestoreStatus='active';state.sessionRestoreError=null}
+        else if(event==='INITIAL_SESSION'||event==='SIGNED_OUT'){state.sessionRestoreStatus='absent';state.sessionRestoreError=null}
         state.initialized=true;
         const nextUserId=nextUser?.id||'';
         if(previousUserId!==nextUserId||event==='SIGNED_OUT')clearIdentityCaches();
@@ -35,12 +37,19 @@
 
       // getSession restores the browser-persisted session and usually reads local
       // storage. It may refresh an expired token, so it is never used as a UI gate.
+      // Keep restore certainty explicit: a transient refresh failure is not the same
+      // thing as an authoritative signed-out browser session.
+      state.sessionRestoreStatus='pending';
+      state.sessionRestoreError=null;
       try{
         const {data,error}=await state.client.auth.getSession();
         if(error)throw error;
         state.session=data?.session||state.session||null;
         state.user=state.session?.user||state.user||null;
+        state.sessionRestoreStatus=state.session?'active':'absent';
       }catch(e){
+        state.sessionRestoreStatus='error';
+        state.sessionRestoreError=e;
         console.warn('EduNizam session restore:',e.message||e);
       }finally{
         state.initialized=true;
@@ -159,8 +168,10 @@
     if(institutionsCache.userId!==uid){institutionsCache.userId=uid;institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
     if(!force&&institutionsCache.value&&Date.now()-institutionsCache.at<60000)return institutionsCache.value;
     if(institutionsCache.inflight)return institutionsCache.inflight;
-    const runner=async()=>{
-      const {data,error}=await state.client.rpc('my_authorized_workspaces');
+    const runner=async({signal}={})=>{
+      let request=state.client.rpc('my_authorized_workspaces');
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const {data,error}=await request;
       if(error)throw error;
       return (data||[]).map(row=>({
         id:row.institution_id,
@@ -174,7 +185,7 @@
     };
     const runtime=window.EDUNIZAM_DATA_RUNTIME;
     institutionsCache.inflight=runtime
-      ?runtime.run('authorized-workspaces:'+uid,()=>runner(),{timeout:6500,retries:1,cacheMs:60000,label:'School access'})
+      ?runtime.run('authorized-workspaces:'+uid,context=>runner(context),{timeout:6500,retries:1,cacheMs:60000,label:'School access'})
       :runner();
     try{
       const value=await institutionsCache.inflight;
@@ -182,10 +193,10 @@
       return value;
     }finally{institutionsCache.inflight=null}
   }
-  async function verifyWorkspaceAccess(institutionId,expectedRole=''){
+  async function verifyWorkspaceAccess(institutionId,expectedRole='',force=false){
     const id=String(institutionId||'').trim();
     if(!id||!state.user)return null;
-    const rows=await listAuthorizedWorkspaces(false);
+    const rows=await listAuthorizedWorkspaces(force);
     const row=rows.find(x=>String(x.id)===id)||null;
     if(!row)return null;
     const role=row.workspace_role||row._membership_role||'';
