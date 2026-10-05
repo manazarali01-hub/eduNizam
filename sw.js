@@ -1,4 +1,4 @@
-const CACHE='edunizam-v230-auth-native-nav'
+const CACHE='edunizam-v231-auth-state-runtime'
 const CORE=[
   './',
   './index.html',
@@ -12,6 +12,7 @@ const CORE=[
   './storage-scope.js',
   './reliability-guardian.js',
   './mobile-performance.css',
+  './data-runtime.js',
   './premium-auth.css',
   './premium-ui.js',
   './pwa-install.js',
@@ -111,7 +112,7 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
   event.waitUntil(Promise.all([
     caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('edunizam-')&&key!==CACHE).map(key=>caches.delete(key)))),
-    self.clients.claim().then(()=>self.clients.matchAll({type:'window'}).then(clients=>clients.forEach(client=>client.postMessage({type:'EDUNIZAM_UPDATE_READY'}))))
+    self.clients.claim()
   ]));
 });
 
