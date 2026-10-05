@@ -63,18 +63,34 @@
     if(broken)restoreCriticalState();
     return broken;
   }
+  function markRecoverableControl(control,options={}){
+    if(!control)return;
+    control.dataset.recoverySafe='true';
+    control.dataset.recoveryStarted=String(Date.now());
+    control.dataset.recoveryTimeout=String(Math.max(5000,Number(options.timeout||30000)));
+    if(options.restoreText!=null)control.dataset.recoveryText=String(options.restoreText);
+  }
+  function clearRecoverableControl(control){
+    if(!control)return;
+    delete control.dataset.recoverySafe;
+    delete control.dataset.recoveryStarted;
+    delete control.dataset.recoveryTimeout;
+    delete control.dataset.recoveryText;
+  }
   function repairInteractiveState(){
     let fixed=0;
-    document.querySelectorAll('button[disabled]').forEach(btn=>{
-      const text=String(btn.textContent||'').toLowerCase();
-      if(/loading|saving|signing|sending|checking|processing|approving|rejecting/.test(text)){
-        btn.disabled=false;
-        if(btn.dataset.old){btn.textContent=btn.dataset.old;delete btn.dataset.old}
-        fixed++;
-      }
+    const current=Date.now();
+    document.querySelectorAll('[data-recovery-safe="true"][disabled]').forEach(control=>{
+      const started=Number(control.dataset.recoveryStarted||0);
+      const timeout=Math.max(5000,Number(control.dataset.recoveryTimeout||30000));
+      if(!started||current-started<timeout)return;
+      control.disabled=false;
+      control.removeAttribute('aria-busy');
+      if(control.dataset.recoveryText!=null)control.textContent=control.dataset.recoveryText;
+      clearRecoverableControl(control);
+      fixed++;
     });
-    document.querySelectorAll('[aria-busy="true"]').forEach(el=>{el.removeAttribute('aria-busy');fixed++});
-    if(fixed)report('Control Recovery','Recovered '+fixed+' stuck control(s).','Interactive UI','warning');
+    if(fixed)report('Control Recovery','Recovered '+fixed+' explicitly safe, timed-out control(s).','Interactive UI','warning');
     return fixed;
   }
   async function repairCloudState(){
@@ -424,6 +440,7 @@
 
   window.EDUNIZAM_RELIABILITY={
     state,report,withRetry,beginFeature,endFeature,repairUI,autoRepair,selfCheck,render,
-    enterSafeMode,exitSafeMode,refreshServiceWorker,snapshotCriticalState,restoreCriticalState,validateStoredJson,repairInteractiveState,repairCloudState
+    enterSafeMode,exitSafeMode,refreshServiceWorker,snapshotCriticalState,restoreCriticalState,validateStoredJson,repairInteractiveState,repairCloudState,
+    markRecoverableControl,clearRecoverableControl
   };
 })();
