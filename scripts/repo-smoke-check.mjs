@@ -18,7 +18,7 @@ const required=[
   "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","practice-complete-data.js","practice-session-core.js","learning-search-engine.js","guest-learning-nav.js","guest-learning-premium.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
-  "school-community.js","navigation-enhancements.js","ui-polish.js",
+  "school-community.js","navigation-enhancements.js","ui-polish.js","mobile-nav-core.js","data-runtime.js","auth-bridge.js",
   "supabase-staff-time-training-community-migration.sql"
 ];
 for(const p of required){exists(p)?ok("file:"+p):bad("file:"+p,"missing")}
@@ -340,6 +340,49 @@ if(/location\.replace\(['"]login\.html/i.test(authBridge)||/location\.href\s*=\s
 if(/localStorage\.removeItem\(['"]edunizam_session['"]\)/.test(loginHtml)){
   bad("auth:login-preserves-session","login page must not delete valid app session");
 }else ok("auth:login-preserves-session");
+
+const admissionsCloud=read("admissions-cloud.js");
+const dataRuntime=read("data-runtime.js");
+const mobileNavCore=read("mobile-nav-core.js");
+const systemAuto=read("system-auto-update.js");
+const loginSubmit=loginHtml.slice(loginHtml.indexOf("$('loginForm').onsubmit"),loginHtml.indexOf("$('signupForm').onsubmit"));
+
+if(/auth\.getUser\s*\(/.test(admissionsCloud))bad("auth:no-startup-getuser","app runtime must not make a blocking getUser request during startup");
+else ok("auth:no-startup-getuser");
+
+if(!admissionsCloud.includes("my_authorized_workspaces"))bad("auth:workspace-rpc","single authorized-workspaces RPC is missing from app auth");
+else ok("auth:workspace-rpc");
+
+if(/current_account_role/.test(loginSubmit))bad("auth:login-single-pass","normal login still performs duplicate current_account_role verification");
+else ok("auth:login-single-pass");
+
+if(!loginSubmit.includes("resolveInstitution")||!loginHtml.includes("my_authorized_workspaces"))bad("auth:login-workspace-resolution","login must resolve role + institution through authorized workspaces");
+else ok("auth:login-workspace-resolution");
+
+for(const state of ["BOOTING","UNAUTHENTICATED","AUTHENTICATING","AUTHENTICATED","AUTHORIZING","WORKSPACE_READY","BACKGROUND_SYNC","OFFLINE_READY","AUTH_ERROR"]){
+  authBridge.includes(state)?ok("auth:state:"+state):bad("auth:state:"+state,"state missing");
+}
+
+if(/location\.reload\s*\(/.test(authBridge))bad("auth:no-auth-reload","auth runtime must not reload the page to complete login or sync");
+else ok("auth:no-auth-reload");
+
+if(!authBridge.includes("workspaceReady(readHandoff()?'login-handoff':'local-session'"))bad("auth:local-first-workspace","valid login handoff/local workspace must open before background verification");
+else ok("auth:local-first-workspace");
+
+if(!dataRuntime.includes("const inflight=new Map()")||!dataRuntime.includes("AbortController")||!dataRuntime.includes("transient(error)"))bad("fetch:runtime","bounded dedupe/timeout/retry runtime incomplete");
+else ok("fetch:runtime");
+
+if(!mobileNavCore.includes("menu.addEventListener('click'")||!mobileNavCore.includes("mobile-nav-lock"))bad("ui:mobile-menu-core","independent hamburger controller incomplete");
+else ok("ui:mobile-menu-core");
+
+const dataPos=html.indexOf('data-runtime.js');
+const admissionsPos=html.indexOf('admissions-cloud.js');
+const authPos=html.indexOf('auth-bridge.js');
+if(dataPos<0||admissionsPos<0||authPos<0||!(dataPos<admissionsPos&&admissionsPos<authPos))bad("auth:script-order","data runtime -> cloud client -> auth state order is required");
+else ok("auth:script-order");
+
+if(/controllerchange[^\n]*controlledReload|EDUNIZAM_UPDATE_READY/.test(systemAuto))bad("sw:no-forced-auth-reload","service-worker updates must not force-reload an active auth flow");
+else ok("sw:no-forced-auth-reload");
 
 const storyRule=loginHtml.match(/\.story\{[^}]*\}/)?.[0]||"";
 if(/linear-gradient\(/.test(storyRule) && /edunizam-login-children\.webp/.test(storyRule)){
