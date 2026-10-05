@@ -121,6 +121,7 @@ jobs:
           verify_exact_file "role-scope.js"
           verify_exact_file "attendance-analytics.js"
           verify_exact_file "leave-center.js"
+          verify_exact_file "parent-complaint-center.js"
           verify_exact_file "daily-class-diary.js"
           verify_exact_file "teacher-paper-builder.js"
           verify_exact_file "premium-ui.css"
