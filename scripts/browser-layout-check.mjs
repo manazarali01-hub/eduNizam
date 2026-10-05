@@ -53,6 +53,11 @@ function pushFailure(scope,message,detail=''){
 
 async function inspectPage(page,url,width){
   await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
+  await page.route('**/*',route=>{
+    const requestUrl=new URL(route.request().url());
+    if(requestUrl.hostname==='127.0.0.1')route.continue();
+    else route.abort();
+  });
   const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:15000});
