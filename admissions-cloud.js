@@ -19,14 +19,14 @@
   async function signUp(email,password,accountRole='student',fullName=''){
     if(!state.client)throw new Error('Cloud backend is not configured.');
     const safeRole=['student','parent'].includes(accountRole)?accountRole:'student';
-    return state.client.auth.signUp({email,password,options:{emailRedirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?verified=1',data:{account_role:safeRole,full_name:fullName}}});
+    return state.client.auth.signUp({email,password,options:{emailRedirectTo:'https://edunizam.online/login.html?verified=1',data:{account_role:safeRole,full_name:fullName}}});
   }
   async function resendSignupConfirmation(email){
     if(!state.client)throw new Error('Cloud backend is not configured.');
     return state.client.auth.resend({
       type:'signup',
       email,
-      options:{emailRedirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?verified=1'}
+      options:{emailRedirectTo:'https://edunizam.online/login.html?verified=1'}
     });
   }
   async function signIn(email,password){
@@ -45,7 +45,7 @@
   }
   async function sendPasswordReset(email){
     if(!state.client)throw new Error('Cloud backend is not configured.');
-    return state.client.auth.resetPasswordForEmail(email,{redirectTo:'https://manazarali01-hub.github.io/eduNizam/login.html?reset=1'});
+    return state.client.auth.resetPasswordForEmail(email,{redirectTo:'https://edunizam.online/login.html?reset=1'});
   }
   function mapApplication(row){
     return {
