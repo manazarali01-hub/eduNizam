@@ -1,6 +1,6 @@
 (function(){
   const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
-  const state={enabled:false,client:null,user:null};
+  const state={enabled:false,client:null,user:null,session:null,initialized:false,authEvent:'BOOTING'};
   const roleCache={key:'',value:null,at:0,inflight:null};
   const institutionsCache={userId:'',value:null,at:0,inflight:null};
   function clearIdentityCaches(){roleCache.key='';roleCache.value=null;roleCache.at=0;roleCache.inflight=null;institutionsCache.userId='';institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
@@ -8,14 +8,49 @@
   function ready(){
     return !!(cfg.enabled&&cfg.provider==='supabase'&&cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase?.createClient);
   }
+  let initPromise=null;
   async function init(){
-    if(!ready()){window.EDUNIZAM_CLOUD=api;return api}
-    state.client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-    const {data}=await state.client.auth.getUser();
-    state.user=data?.user||null;state.enabled=true;
-    state.client.auth.onAuthStateChange((_event,session)=>{state.user=session?.user||null;clearIdentityCaches();window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{user:state.user}}))});
-    window.EDUNIZAM_CLOUD=api;return api;
+    if(initPromise)return initPromise;
+    initPromise=(async()=>{
+      if(!ready()){state.initialized=true;window.dispatchEvent(new CustomEvent('edunizam:cloud-ready'));return api}
+      state.client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+      state.enabled=true;
+
+      state.client.auth.onAuthStateChange((event,session)=>{
+        const previousUserId=state.user?.id||'';
+        const nextUser=session?.user||null;
+        state.session=session||null;
+        state.user=nextUser;
+        state.authEvent=event;
+        state.initialized=true;
+        const nextUserId=nextUser?.id||'';
+        if(previousUserId!==nextUserId||event==='SIGNED_OUT')clearIdentityCaches();
+        // INITIAL_SESSION / SIGNED_IN / SIGNED_OUT are meaningful lifecycle
+        // events. TOKEN_REFRESHED must not remount the whole application.
+        if(['INITIAL_SESSION','SIGNED_IN','SIGNED_OUT','USER_UPDATED'].includes(event)){
+          window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{event,user:state.user,session:state.session}}));
+        }
+        window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event,user:state.user}}));
+      });
+
+      // getSession restores the browser-persisted session and usually reads local
+      // storage. It may refresh an expired token, so it is never used as a UI gate.
+      try{
+        const {data,error}=await state.client.auth.getSession();
+        if(error)throw error;
+        state.session=data?.session||state.session||null;
+        state.user=state.session?.user||state.user||null;
+      }catch(e){
+        console.warn('EduNizam session restore:',e.message||e);
+      }finally{
+        state.initialized=true;
+        window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event:'INIT_COMPLETE',user:state.user}}));
+      }
+      return api;
+    })();
+    return initPromise;
   }
+  function whenReady(){return initPromise||init()}
   async function signUp(email,password,accountRole='student',fullName=''){
     if(!state.client)throw new Error('Cloud backend is not configured.');
     const safeRole=['student','parent'].includes(accountRole)?accountRole:'student';
@@ -118,34 +153,59 @@
     if(cfg.institutionId)q=q.eq('institution_id',cfg.institutionId);
     const {data,error}=await q;if(error)throw error;return data||[];
   }
+  async function listAuthorizedWorkspaces(force=false){
+    if(!state.client||!state.user)return[];
+    const uid=String(state.user.id||'');
+    if(institutionsCache.userId!==uid){institutionsCache.userId=uid;institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
+    if(!force&&institutionsCache.value&&Date.now()-institutionsCache.at<60000)return institutionsCache.value;
+    if(institutionsCache.inflight)return institutionsCache.inflight;
+    const runner=async()=>{
+      const {data,error}=await state.client.rpc('my_authorized_workspaces');
+      if(error)throw error;
+      return (data||[]).map(row=>({
+        id:row.institution_id,
+        name:row.institution_name,
+        institution_type:row.institution_type,
+        registration_number:row.registration_number,
+        school_registration_code:row.school_registration_code,
+        _membership_role:row.workspace_role==='head_of_institute'?'head':row.workspace_role,
+        workspace_role:row.workspace_role
+      }));
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    institutionsCache.inflight=runtime
+      ?runtime.run('authorized-workspaces:'+uid,()=>runner(),{timeout:6500,retries:1,cacheMs:60000,label:'School access'})
+      :runner();
+    try{
+      const value=await institutionsCache.inflight;
+      institutionsCache.value=value;institutionsCache.at=Date.now();
+      return value;
+    }finally{institutionsCache.inflight=null}
+  }
+  async function verifyWorkspaceAccess(institutionId,expectedRole=''){
+    const id=String(institutionId||'').trim();
+    if(!id||!state.user)return null;
+    const rows=await listAuthorizedWorkspaces(false);
+    const row=rows.find(x=>String(x.id)===id)||null;
+    if(!row)return null;
+    const role=row.workspace_role||row._membership_role||'';
+    const normalizedExpected=expectedRole==='head'?'head_of_institute':expectedRole;
+    if(normalizedExpected&&role!==normalizedExpected)return null;
+    return {...row,workspace_role:role};
+  }
   async function getMyRole(force=false){
     if(!state.client||!state.user)return null;
     const key=String(state.user.id||'')+'|'+String(cfg.institutionId||'');
     if(roleCache.key!==key){roleCache.key=key;roleCache.value=null;roleCache.at=0;roleCache.inflight=null}
-    if(!force&&roleCache.at&&Date.now()-roleCache.at<30000)return roleCache.value;
+    if(!force&&roleCache.at&&Date.now()-roleCache.at<60000)return roleCache.value;
     if(roleCache.inflight)return roleCache.inflight;
     roleCache.inflight=(async()=>{
+      const rows=await listAuthorizedWorkspaces(force);
       if(cfg.institutionId){
-        const {data:inst}=await state.client.from('institutions').select('owner_user_id').eq('id',cfg.institutionId).maybeSingle();
-        if(inst?.owner_user_id===state.user.id)return 'head_of_institute';
-        const {data:member,error:memberError}=await state.client.from('institution_members').select('role').eq('institution_id',cfg.institutionId).eq('user_id',state.user.id).maybeSingle();
-        if(memberError)throw memberError;
-        if(member?.role)return member.role;
+        const match=rows.find(x=>String(x.id)===String(cfg.institutionId));
+        return match?.workspace_role||null;
       }
-      const {data:owned,error:ownedError}=await state.client.from('institutions').select('id').eq('owner_user_id',state.user.id).limit(1);
-      if(ownedError)throw ownedError;
-      if(owned?.length)return 'head_of_institute';
-      const {data:profile,error}=await state.client.from('user_profiles').select('account_role,institution_id').eq('user_id',state.user.id).maybeSingle();
-      if(error)throw error;
-      if(!profile?.institution_id||!['teacher','parent','student'].includes(profile.account_role))return null;
-      const {data:verified,error:verifyError}=await state.client.from('institution_members')
-        .select('role')
-        .eq('institution_id',profile.institution_id)
-        .eq('user_id',state.user.id)
-        .eq('role',profile.account_role)
-        .maybeSingle();
-      if(verifyError)throw verifyError;
-      return verified?.role||null;
+      return rows.length===1?(rows[0].workspace_role||null):null;
     })();
     try{
       const value=await roleCache.inflight;
@@ -154,29 +214,7 @@
     }finally{roleCache.inflight=null}
   }
   async function listMyInstitutions(force=false){
-    if(!state.client||!state.user)return[];
-    const uid=String(state.user.id||'');
-    if(institutionsCache.userId!==uid){institutionsCache.userId=uid;institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
-    if(!force&&institutionsCache.value&&Date.now()-institutionsCache.at<60000)return institutionsCache.value;
-    if(institutionsCache.inflight)return institutionsCache.inflight;
-    institutionsCache.inflight=(async()=>{
-      const [{data:owned,error:ownedError},{data:memberships,error:memberError}]=await Promise.all([
-        state.client.from('institutions').select('*').eq('owner_user_id',state.user.id).order('created_at',{ascending:true}),
-        state.client.from('institution_members').select('role,institutions(*)').eq('user_id',state.user.id)
-      ]);
-      if(ownedError)throw ownedError;
-      if(memberError)throw memberError;
-      const merged=[
-        ...(owned||[]).map(x=>({...x,_membership_role:'head'})),
-        ...((memberships||[]).map(x=>x.institutions?({...x.institutions,_membership_role:x.role}):null).filter(Boolean))
-      ];
-      return [...new Map(merged.map(x=>[x.id,x])).values()];
-    })();
-    try{
-      const value=await institutionsCache.inflight;
-      institutionsCache.value=value;institutionsCache.at=Date.now();
-      return value;
-    }finally{institutionsCache.inflight=null}
+    return listAuthorizedWorkspaces(force);
   }
   async function createInstitution(){
     throw new Error('Create the school account from the Admin Sign Up screen.');
@@ -638,7 +676,9 @@
     if(!r.ok)throw new Error('Payment request failed.');return r.json();
   }
 
-  const api={state,config:cfg,ready,init,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,searchSchoolDirectory,submitSchoolAccessRequest,getMySchoolAccessRequest,listSchoolAccessRequests,decideSchoolAccessRequest,decideTeacherSchoolRequest,resolveSchoolAccessLink,listAccessLinkIssues,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,listApplicationDocuments,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,issueAdmissionChallan,submitAdmissionPayment,verifyAdmissionPayment,listAdmissionSections,confirmAdmission,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  const api={state,config:cfg,ready,init,whenReady,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,listAuthorizedWorkspaces,verifyWorkspaceAccess,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,searchSchoolDirectory,submitSchoolAccessRequest,getMySchoolAccessRequest,listSchoolAccessRequests,decideSchoolAccessRequest,decideTeacherSchoolRequest,resolveSchoolAccessLink,listAccessLinkIssues,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,listApplicationDocuments,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,issueAdmissionChallan,submitAdmissionPayment,verifyAdmissionPayment,listAdmissionSections,confirmAdmission,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  // Expose the single shared app client immediately. Session restoration continues
+  // asynchronously and never owns the UI loading state.
   window.EDUNIZAM_CLOUD=api;
-  init().catch(e=>console.warn('EduNizam cloud init:',e.message));
+  init().catch(e=>console.warn('EduNizam cloud init:',e.message||e));
 })();
