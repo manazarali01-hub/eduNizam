@@ -6,6 +6,9 @@
   const mapRole=r=>r==='head_of_institute'?'head':(['student','parent','teacher','head'].includes(r)?r:'');
   const normalizeIdentity=v=>String(v||'').trim().toLowerCase();
   let verifiedWorkspaceKey='';
+  let acceptedHandoffUntil=0;
+  let acceptedHandoffKey='';
+  let handoffReadyEventSent=false;
 
   function workspaceKey(user){
     if(!user?.id)return '';
@@ -22,25 +25,51 @@
   function readRuntime(){
     try{return JSON.parse(localStorage.getItem(RUNTIME_KEY)||'{}')}catch(_){return{}}
   }
-  function consumeSecureLoginHandoff(user,role){
+  function readSecureLoginHandoff(){
     try{
       const raw=sessionStorage.getItem('edunizam_secure_login_handoff');
-      if(!raw)return false;
+      if(!raw)return null;
       const handoff=JSON.parse(raw);
-      const localRole=mapRole(role);
       const localSession=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null');
       const runtime=readRuntime();
       const institutionId=String(localSession?.institutionId||runtime.institutionId||'').trim();
-      const fresh=Number(handoff?.at||0)>0&&Date.now()-Number(handoff.at)<45000;
+      const fresh=Number(handoff?.at||0)>0&&Date.now()-Number(handoff.at)<120000;
       const matches=!!(
         fresh&&
-        user?.id&&handoff?.userId===user.id&&
-        String(handoff?.institutionId||'')===institutionId&&
-        handoff?.role===localRole
+        handoff?.userId&&
+        handoff?.institutionId&&
+        String(handoff.institutionId)===institutionId&&
+        handoff?.role===localSession?.role&&
+        localSession?.source==='supabase'
       );
-      if(matches)sessionStorage.removeItem('edunizam_secure_login_handoff');
-      return matches;
-    }catch(_){return false}
+      return matches?handoff:null;
+    }catch(_){return null}
+  }
+  function acceptSecureLoginHandoff(){
+    const handoff=readSecureLoginHandoff();
+    if(!handoff)return null;
+    acceptedHandoffUntil=Math.max(acceptedHandoffUntil,Date.now()+120000);
+    acceptedHandoffKey=String(handoff.userId)+'|'+String(handoff.institutionId||'');
+    verifiedWorkspaceKey=acceptedHandoffKey;
+    localStorage.setItem('edunizam_cloud_user_id',String(handoff.userId));
+    hideAuthScreen();
+    removeDemoLogin();
+    if(!handoffReadyEventSent){
+      handoffReadyEventSent=true;
+      queueMicrotask(()=>window.dispatchEvent(new CustomEvent('edunizam:workspace-ready',{
+        detail:{userId:String(handoff.userId),institutionId:String(handoff.institutionId||''),source:'login-handoff'}
+      })));
+    }
+    return handoff;
+  }
+  function consumeSecureLoginHandoff(user,role){
+    const handoff=readSecureLoginHandoff();
+    if(!handoff)return false;
+    return !!(
+      user?.id&&
+      String(handoff.userId)===String(user.id)&&
+      handoff.role===mapRole(role)
+    );
   }
   function clearLocalAuthState(){
     verifiedWorkspaceKey='';
@@ -185,6 +214,19 @@
   async function boot(force=false){
     if(!configured()){hideAuthScreen();return}
     const c=cloud();
+
+    // A successful login page has already authenticated the user and resolved the
+    // selected institution. Never block that redirect on a second network round-trip.
+    // Database RLS remains the authorization boundary for every cloud request.
+    if(!force){
+      const handoff=acceptSecureLoginHandoff();
+      if(handoff)return;
+      if(acceptedHandoffUntil>Date.now()&&acceptedHandoffKey){
+        hideAuthScreen();
+        return;
+      }
+    }
+
     const knownUser=c?.state?.user||null;
     const knownKey=workspaceKey(knownUser);
     if(!force&&knownUser&&verifiedWorkspaceKey&&knownKey===verifiedWorkspaceKey){
@@ -244,13 +286,19 @@
       };
     },50);
   }
-  window.addEventListener('edunizam:auth',()=>setTimeout(boot,0));
+  window.addEventListener('edunizam:auth',()=>{
+    if(readSecureLoginHandoff()||acceptedHandoffUntil>Date.now()){
+      acceptSecureLoginHandoff();
+      hideAuthScreen();
+      return;
+    }
+    setTimeout(()=>boot(false),0);
+  });
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden)return;
     let s=null;try{s=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null')}catch(_){}
     if(s?.role&&['teacher','parent','student'].includes(s.role))refreshScopedRoleCache(s.role).catch(()=>{});
   });
-  setTimeout(boot,0);
-  setTimeout(boot,500);
+  setTimeout(()=>boot(false),0);
   window.EDUNIZAM_AUTH_BRIDGE={configured,syncCloudRole,clearLocalAuthState,refreshScopedRoleCache};
 })();
