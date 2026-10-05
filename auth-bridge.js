@@ -22,6 +22,26 @@
   function readRuntime(){
     try{return JSON.parse(localStorage.getItem(RUNTIME_KEY)||'{}')}catch(_){return{}}
   }
+  function consumeSecureLoginHandoff(user,role){
+    try{
+      const raw=sessionStorage.getItem('edunizam_secure_login_handoff');
+      if(!raw)return false;
+      const handoff=JSON.parse(raw);
+      const localRole=mapRole(role);
+      const localSession=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null');
+      const runtime=readRuntime();
+      const institutionId=String(localSession?.institutionId||runtime.institutionId||'').trim();
+      const fresh=Number(handoff?.at||0)>0&&Date.now()-Number(handoff.at)<45000;
+      const matches=!!(
+        fresh&&
+        user?.id&&handoff?.userId===user.id&&
+        String(handoff?.institutionId||'')===institutionId&&
+        handoff?.role===localRole
+      );
+      if(matches)sessionStorage.removeItem('edunizam_secure_login_handoff');
+      return matches;
+    }catch(_){return false}
+  }
   function clearLocalAuthState(){
     verifiedWorkspaceKey='';
     localStorage.removeItem(LOCAL_KEY);
@@ -95,7 +115,11 @@
     localStorage.setItem('edunizam_cloud_user_id',c.state.user.id);
     setLocalSession(role,c.state.user.email||c.state.user.id);
     if(window.EDUNIZAM_CLOUD_SETUP?.ensureInstitution){
-      const institutionReady=await window.EDUNIZAM_CLOUD_SETUP.ensureInstitution();
+      // Login already resolved the selected institution before redirecting here.
+      // Repeating that same fetch during the first app boot caused an intermittent
+      // PostgREST timeout and trapped valid users on the Retry screen.
+      const handedOff=consumeSecureLoginHandoff(c.state.user,role);
+      const institutionReady=handedOff?true:await window.EDUNIZAM_CLOUD_SETUP.ensureInstitution();
       if(!institutionReady){
         // Keep the authenticated Supabase session and the institute selected on Login.
         // Clearing it here made the visible Retry action unable to recover after a
@@ -105,7 +129,9 @@
       }
     }
     setLocalSession(role,c.state.user.email||c.state.user.id);
-    await refreshScopedRoleCache(role);
+    // Do not keep the auth gate on screen while a large role-scoped dataset syncs.
+    // Backend RLS still protects every cloud read; this refresh only hydrates UI data.
+    refreshScopedRoleCache(role).catch(()=>{});
     removeDemoLogin();
     return true;
   }
