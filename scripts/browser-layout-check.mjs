@@ -52,7 +52,6 @@ function pushFailure(scope,message,detail=''){
 }
 
 async function inspectPage(page,url,width){
-  await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
   await page.route('**/*',route=>{
     const requestUrl=new URL(route.request().url());
     if(requestUrl.hostname==='127.0.0.1')route.continue();
@@ -140,7 +139,10 @@ async function inspectPage(page,url,width){
 try{
   for(const route of pages){
     for(const width of widths){
-      const page=await browser.newPage();
+      const page=await browser.newPage({
+        javaScriptEnabled:false,
+        viewport:{width,height:Math.max(760,Math.round(width*1.7))}
+      });
       try{
         const {result,errors}=await inspectPage(page,'http://127.0.0.1:'+port+route,width);
         const scope=route+' @ '+width+'px';
