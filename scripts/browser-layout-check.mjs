@@ -162,10 +162,16 @@ try{
           }
         }
         if(route==='/app.html'&&width<=768){
+          const sidebarExists=await page.evaluate(()=>{
+            const sidebar=document.querySelector('.sidebar');
+            if(!sidebar)return false;
+            sidebar.classList.add('mobile-nav-open');
+            return true;
+          });
+          if(sidebarExists)await page.waitForTimeout(320);
           const drawer=await page.evaluate(()=>{
             const sidebar=document.querySelector('.sidebar');
             if(!sidebar)return {missing:true};
-            sidebar.classList.add('mobile-nav-open');
             const viewport=document.documentElement.clientWidth;
             const box=sidebar.getBoundingClientRect();
             const escaped=[...sidebar.querySelectorAll('.nav-item')].filter(el=>{
