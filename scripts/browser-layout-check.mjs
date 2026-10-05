@@ -162,6 +162,47 @@ try{
       }
     }
   }
+
+  // Interaction regression: the secure-session guard must remain tappable on a phone
+  // even while the cloud session request is still unresolved.
+  const authPage=await browser.newPage({
+    javaScriptEnabled:true,
+    viewport:{width:360,height:760},
+    isMobile:true,
+    hasTouch:true
+  });
+  try{
+    await authPage.route('**/auth-harness',route=>route.fulfill({
+      status:200,contentType:'text/html',body:'<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body></body></html>'
+    }));
+    await authPage.route('**/login.html?from=secure-guard',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Login target</title>'}));
+    await authPage.route('**/learn.html?from=secure-guard',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Guest target</title>'}));
+
+    const loadGuard=async()=>{
+      await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
+      await authPage.evaluate(()=>{
+        window.EDUNIZAM_CLOUD_CONFIG={enabled:true};
+        window.EDUNIZAM_CLOUD={
+          ready:()=>true,
+          state:{client:{auth:{getSession:()=>new Promise(()=>{})}}}
+        };
+      });
+      await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
+      await authPage.waitForSelector('#cloudAuthLogin',{state:'visible',timeout:3000});
+    };
+
+    await loadGuard();
+    await authPage.locator('#cloudAuthLogin').tap();
+    await authPage.waitForURL(/\/login\.html\?from=secure-guard$/,{timeout:3000}).catch(e=>pushFailure('auth guard touch','Go to Login tap did not navigate',e.message));
+
+    await loadGuard();
+    await authPage.locator('#cloudAuthGuest').tap();
+    await authPage.waitForURL(/\/learn\.html\?from=secure-guard$/,{timeout:3000}).catch(e=>pushFailure('auth guard touch','Continue as Guest tap did not navigate',e.message));
+  }catch(e){
+    pushFailure('auth guard touch','Secure access interaction regression failed',e.message||String(e));
+  }finally{
+    await authPage.close();
+  }
 }finally{
   await browser.close().catch(()=>{});
   server.closeAllConnections?.();
