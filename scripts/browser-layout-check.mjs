@@ -45,7 +45,7 @@ if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZA
 const browser=await chromium.launch(launchOptions);
 const failures=[];
 const widths=[320,360,390,412,430,768,1024,1366];
-const pages=['/','/login.html','/learn.html'];
+const pages=['/','/login.html','/learn.html','/admission.html','/app.html'];
 
 function pushFailure(scope,message,detail=''){
   failures.push({scope,message,detail});
