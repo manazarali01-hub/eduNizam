@@ -107,7 +107,12 @@
     head:new Set(['dashboard','students','classcenter','bulkimport','staffcenter','stafftime','staffpayroll','training','studentprofile','ourstudents','functionscenter','behaviorcenter','parentcomplaints','gatecenter','studentdocs','attendance','attendanceanalytics','fees','financecenter','inventorycenter','librarycenter','transportcenter','results','schoolwork','noticeboard','lessoncenter','calendarcenter','schedulecenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','paperbuilder','dailydiary','pastpapers','practice','study','schoolassessments','universities','competitive','ecosystem','pathways','vu','admissions','communication','access','notifications','assistant','auditcenter','settings','troubleshoot','help'])
   };
   function canView(view){return !!roleViews[role()]?.has(String(view||''))}
+  let workspaceRefreshTimer=0;
+  const scheduleRefresh=()=>{
+    clearTimeout(workspaceRefreshTimer);
+    workspaceRefreshTimer=setTimeout(()=>refresh().catch(e=>console.warn('Role scope:',e.message||e)),250);
+  };
   window.EDUNIZAM_ROLE_SCOPE={role,currentUser,getVisibleStudents,refresh,canView,teacherClassKeys};
-  window.addEventListener('edunizam:role-cache-refreshed',()=>refresh().catch(()=>{}));
-  setTimeout(()=>refresh().catch(e=>console.warn('Role scope:',e.message||e)),700);
+  window.addEventListener('edunizam:role-cache-refreshed',scheduleRefresh);
+  window.addEventListener('edunizam:workspace-ready',scheduleRefresh);
 })();
