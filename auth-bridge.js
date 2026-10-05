@@ -71,13 +71,20 @@
 
   function unlockUI(){
     document.getElementById('cloudAuthScreen')?.remove();
-    document.body?.classList.remove('mobile-nav-lock');
+    const sidebar=document.querySelector('.sidebar');
+    const drawerOpen=!!sidebar?.classList.contains('mobile-nav-open');
     const backdrop=document.getElementById('eduMobileNavBackdrop');
-    if(backdrop&&!backdrop.classList.contains('show')){
-      backdrop.style.display='none';
-      backdrop.style.pointerEvents='none';
-      backdrop.style.visibility='hidden';
-      backdrop.setAttribute('aria-hidden','true');
+    if(!drawerOpen){
+      document.body?.classList.remove('mobile-nav-lock');
+      if(backdrop){
+        backdrop.classList.remove('show');
+        backdrop.style.display='none';
+        backdrop.style.pointerEvents='none';
+        backdrop.style.visibility='hidden';
+        backdrop.setAttribute('aria-hidden','true');
+      }
+    }else{
+      document.body?.classList.add('mobile-nav-lock');
     }
     document.documentElement.classList.remove('edu-feature-loading');
   }
@@ -174,20 +181,10 @@
         return true;
       }
 
-      let user=c.state.user||null;
-      if(!user){
-        const rt=dataRuntime();
-        let response;
-        try{
-          response=rt
-            ?await rt.run('auth-session-restore',()=>c.state.client.auth.getSession(),{timeout:4000,retries:0,label:'Session restore'})
-            :await c.state.client.auth.getSession();
-        }catch(_){
-          workspaceReady('offline-cache',{reason:'session-timeout'});
-          return true;
-        }
-        user=response?.data?.session?.user||null;
-      }
+      // admissions-cloud owns the one browser session restoration call.
+      // Once whenReady() settles, a missing user is authoritative for this runtime;
+      // auth-bridge must not issue a duplicate getSession request.
+      const user=c.state.user||null;
 
       if(!user){
         if(!navigator.onLine){
