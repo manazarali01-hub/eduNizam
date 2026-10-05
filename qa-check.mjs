@@ -13,7 +13,7 @@ const feature=read('feature-loader.js');
 const visual=read('edunizam-visual-system.css');
 const htmlFiles=fs.readdirSync(root).filter(f=>f.endsWith('.html'));
 for(const file of htmlFiles){
-  if(!read(file).includes('edunizam-visual-system.css?v=20261005-visual2')) fail.push('Premium visual system missing from '+file);
+  if(!read(file).includes('edunizam-visual-system.css?v=20261005-visual3')) fail.push('Premium visual system missing from '+file);
 }
 for(const marker of [
   '--en-body-size:17px',
@@ -43,6 +43,15 @@ for(const marker of [
 const appViewIds=[...index.matchAll(/<section\s+id=["']([^"']+)["']\s+class=["'][^"']*\bview\b[^"']*["']/g)].map(m=>m[1]);
 for(const id of appViewIds){
   if(!visual.includes('#'+id)) fail.push('Protected app view lacks individual visual treatment: '+id);
+}
+for(const marker of [
+  'FINAL VISUAL POLISH 2026-10-05',
+  '.page-login .mobile-brand',
+  '.page-home .hero-image-wrap img',
+  '.page-app .view.active>.section-head:first-child',
+  '.page-learning .paper-actions .btn'
+]){
+  if(!visual.includes(marker)) fail.push('Final visual polish marker missing: '+marker);
 }
 
 const scriptRefs=[...index.matchAll(/<script[^>]+src=["']([^"']+)["']/g)]
