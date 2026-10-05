@@ -38,61 +38,32 @@
 
   async function ensureInstitution(){
     const cloud=window.EDUNIZAM_CLOUD;
-    if(!cloud?.state?.user)return false;
+    if(!cloud?.state?.user||!cloud?.listAuthorizedWorkspaces)return false;
 
     try{
       const current=get();
-      const owner=await cloud.state.client
-        .from('institutions')
-        .select('id,name,institution_type,school_registration_code,registration_number')
-        .eq('owner_user_id',cloud.state.user.id)
-        .order('created_at',{ascending:true});
-      if(owner.error)throw owner.error;
-
-      if(owner.data?.length){
-        let session=null;
-        try{session=JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch(_){}
-        const selectedId=session?.institutionId||current.institutionId||'';
-        const selectedName=String(session?.schoolName||'').trim().toLowerCase();
-        const preferred=
-          owner.data.find(x=>x.id===selectedId) ||
-          (selectedName?owner.data.find(x=>String(x.name||'').trim().toLowerCase()===selectedName):null) ||
-          owner.data.find(x=>x.id===current.institutionId) ||
-          (owner.data.length===1?owner.data[0]:null);
-        if(!preferred)return false;
-        useInstitution(preferred,false);
-        return true;
+      const localSession=session();
+      const selectedId=String(localSession?.institutionId||current.institutionId||'').trim();
+      const selectedName=String(localSession?.schoolName||'').trim().toLowerCase();
+      const rows=await cloud.listAuthorizedWorkspaces(false);
+      const schools=(rows||[]).map(x=>({
+        id:x.id,
+        name:x.name,
+        institution_type:x.institution_type,
+        school_registration_code:x.school_registration_code,
+        registration_number:x.registration_number,
+        role:x.workspace_role||x._membership_role
+      }));
+      const preferred=
+        schools.find(x=>String(x.id)===selectedId) ||
+        (selectedName?schools.find(x=>String(x.name||'').trim().toLowerCase()===selectedName):null) ||
+        (schools.length===1?schools[0]:null);
+      if(!preferred){
+        if(schools.length>1)window.dispatchEvent(new CustomEvent('edunizam:school-selection-required',{detail:{schools}}));
+        return false;
       }
-
-      // Non-admin accounts may have the same role in more than one school.
-      // Resolve the active school from approved memberships instead of relying on
-      // user_profiles.institution_id, which can represent only one institution.
-      const memberships=await cloud.state.client
-        .from('institution_members')
-        .select('institution_id,role,institutions(id,name,institution_type)')
-        .eq('user_id',cloud.state.user.id);
-
-      if(memberships.error)throw memberships.error;
-      const schools=(memberships.data||[])
-        .map(row=>row.institutions)
-        .filter(Boolean);
-
-      if(schools.length){
-        let localSession=null;
-        try{localSession=JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch(_){}
-        const selectedId=String(localSession?.institutionId||current.institutionId||'').trim();
-        const preferred=schools.find(x=>String(x.id)===selectedId)||(schools.length===1?schools[0]:null);
-        if(!preferred){
-          // More than one approved school exists and no safe active workspace can
-          // be inferred. Never silently open an arbitrary school.
-          window.dispatchEvent(new CustomEvent('edunizam:school-selection-required',{detail:{schools}}));
-          return false;
-        }
-        useInstitution(preferred,false);
-        return true;
-      }
-
-      return false;
+      useInstitution(preferred,false);
+      return true;
     }catch(error){
       console.warn('Institution resolution:',error?.message||error);
       throw error;
@@ -189,20 +160,25 @@
       '<div id="multiSchoolMsg" class="coverage-note"></div>';
     card.after(schoolCard);
 
-    async function loadOwnedSchools(){
+    async function loadOwnedSchools(force=false){
       const cloud=window.EDUNIZAM_CLOUD,box=document.getElementById('ownedSchoolsList');
-      if(!cloud?.state?.client||!cloud?.state?.user){box.innerHTML='<div class="muted">Please sign in first.</div>';return}
-      const {data,error}=await cloud.state.client.from('institutions').select('id,name,institution_type,school_registration_code,registration_number').eq('owner_user_id',cloud.state.user.id).order('created_at',{ascending:true});
-      if(error){box.innerHTML='<div class="muted">'+esc(error.message)+'</div>';return}
-      const current=get().institutionId||'';
-      box.innerHTML=(data||[]).length?(data||[]).map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span><small>Registration No.</small><br><strong>'+esc(s.registration_number||'Not provided')+'</strong></span><span>'+(s.id===current?'<span class="badge">Current</span>':'<button class="secondary" data-school-id="'+esc(s.id)+'">Switch</button>')+'</span></div>').join(''):'<div class="muted">No owned school found.</div>';
-      box.querySelectorAll('[data-school-id]').forEach(btn=>btn.onclick=()=>{
-        const school=(data||[]).find(x=>x.id===btn.dataset.schoolId);
-        if(school)useInstitution(school,true);
-      });
+      if(!cloud?.state?.user||!cloud?.listAuthorizedWorkspaces){box.innerHTML='<div class="muted">Please sign in first.</div>';return}
+      box.innerHTML='<div class="muted">Loading schools…</div>';
+      try{
+        const rows=await cloud.listAuthorizedWorkspaces(force);
+        const data=(rows||[]).filter(x=>(x.workspace_role||x._membership_role)==='head_of_institute');
+        const current=get().institutionId||'';
+        box.innerHTML=data.length?data.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span><small>Registration No.</small><br><strong>'+esc(s.registration_number||'Not provided')+'</strong></span><span>'+(s.id===current?'<span class="badge">Current</span>':'<button class="secondary" data-school-id="'+esc(s.id)+'">Switch</button>')+'</span></div>').join(''):'<div class="muted">No owned school found.</div>';
+        box.querySelectorAll('[data-school-id]').forEach(btn=>btn.onclick=()=>{
+          const school=data.find(x=>x.id===btn.dataset.schoolId);
+          if(school)useInstitution(school,true);
+        });
+      }catch(error){
+        box.innerHTML='<div class="muted">'+esc(error?.message||'School list could not load.')+'</div>';
+      }
     }
 
-    document.getElementById('refreshSchoolsBtn').onclick=loadOwnedSchools;
+    document.getElementById('refreshSchoolsBtn').onclick=()=>loadOwnedSchools(true);
     document.getElementById('addOwnedSchoolBtn').onclick=async()=>{
       if(!isHead())return;
       const cloud=window.EDUNIZAM_CLOUD,msgBox=document.getElementById('multiSchoolMsg');
@@ -221,7 +197,8 @@
       document.getElementById('newOwnedSchoolPhone').value='';
       if(school?.id)useInstitution(school,true); else await loadOwnedSchools();
     };
-    loadOwnedSchools();
+    // School lists are loaded only when the Admin explicitly requests them.
+    // This keeps Settings data off the login/dashboard startup request budget.
 
     document.getElementById('cloudSetupTest').onclick=async()=>{
       const url=document.getElementById('cloudSetupUrl').value.trim().replace(/\/$/,'');
