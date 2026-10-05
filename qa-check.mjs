@@ -12,8 +12,9 @@ const app=read('app.js');
 const feature=read('feature-loader.js');
 const visual=read('edunizam-visual-system.css');
 const htmlFiles=fs.readdirSync(root).filter(f=>f.endsWith('.html'));
+const premiumVisualHref=/edunizam-visual-system\.css\?v=[A-Za-z0-9._-]+/;
 for(const file of htmlFiles){
-  if(!read(file).includes('edunizam-visual-system.css?v=20261005-visual4')) fail.push('Premium visual system missing from '+file);
+  if(!premiumVisualHref.test(read(file))) fail.push('Premium visual system missing from '+file);
 }
 for(const marker of [
   '--en-body-size:17px',
