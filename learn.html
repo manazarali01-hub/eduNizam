@@ -470,6 +470,7 @@
   $('prevQuestion').onclick=()=>{const n=practiceList().length;qi=n?(qi-1+n)%n:0;renderPractice()};$('randomQuestion').onclick=()=>{const n=practiceList().length;qi=n?Math.floor(Math.random()*n):0;renderPractice()};$('nextQuestion').onclick=()=>{const n=practiceList().length;qi=n?(qi+1)%n:0;renderPractice()};
   function renderAll(){renderHome();renderPast();renderGrade();renderStudy();renderUniversities();renderCompetitive();renderEcosystem();renderVU();renderPractice()}
   function runGlobalSearch(){
+    if(document.querySelector('.premium-tools'))return;
     qi=0;
     if($('vuGuestSearch'))$('vuGuestSearch').value='';
     if($('vuGuestType'))$('vuGuestType').value='';
@@ -519,7 +520,7 @@
 })();
 </script>
 <script src="guest-learning-nav.js?v=20261002-deep503"></script>
-<script src="guest-learning-premium.js?v=20261005-guest622"></script>
+<script src="guest-learning-premium.js?v=20261005-guest623"></script>
 <script src="pwa-install.js?v=20261002-deep501" defer></script>
 <script src="system-auto-update.js?v=20261003-sky607" defer></script>
 </body>
