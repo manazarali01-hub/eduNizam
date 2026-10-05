@@ -1311,3 +1311,89 @@ img{image-rendering:auto}
   .page-app .main{padding-inline:9px!important}
   .page-app .card,.page-app .paper-card{padding:16px!important}
 }
+
+
+/* ---------- MOBILE CONTAINER / OVERLAY STABILITY 2026-10-05 ---------- */
+/* Remove remaining overlap/clipping conflicts from older responsive layers. */
+.page-app .view>.section-head:first-child>*{position:relative;z-index:1}
+.page-app .view>.section-head:first-child:after{z-index:0!important}
+.page-app .view.active{isolation:isolate}
+.page-app .card,.page-app .paper-card{max-width:100%}
+.page-app .card:has(table),.page-app .paper-card:has(table){
+  overflow-x:auto!important;
+  overflow-y:visible!important;
+  -webkit-overflow-scrolling:touch;
+}
+@media(max-width:720px){
+  .page-app .topbar-title h1,
+  .page-app .topbar-title p{
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    max-width:100%!important;
+  }
+  .page-app .topbar-actions{
+    flex-wrap:wrap!important;
+    overflow:visible!important;
+    min-width:0!important;
+  }
+  .page-app #roleSession{
+    max-width:100%!important;
+    white-space:normal!important;
+  }
+  .page-app #roleSession strong{
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+  }
+  .page-app .row>*,
+  .page-app .coverage-note,
+  .page-app .muted,
+  .page-app .paper-card h3,
+  .page-app .card h2,
+  .page-app .card h3{
+    overflow-wrap:break-word!important;
+    word-break:normal!important;
+    hyphens:none!important;
+  }
+  .page-app .card,.page-app .paper-card{
+    overflow:visible!important;
+  }
+  .page-app .card:has(table),.page-app .paper-card:has(table){
+    overflow-x:auto!important;
+  }
+  .page-app .section-head{
+    width:100%!important;
+    max-width:100%!important;
+  }
+  .page-app .section-head>div{
+    flex:1 1 100%!important;
+    max-width:100%!important;
+  }
+  .page-app .section-head>button,
+  .page-app .section-head>.secondary{
+    width:auto!important;
+    max-width:100%!important;
+  }
+  .page-app .premium-mobile-dock{
+    z-index:95!important;
+  }
+  .page-app .main{
+    padding-bottom:max(112px,calc(92px + env(safe-area-inset-bottom)))!important;
+  }
+}
+@media(max-width:430px){
+  .page-app .topbar{
+    grid-template-columns:auto minmax(0,1fr)!important;
+  }
+  .page-app .topbar-actions{
+    grid-column:2!important;
+  }
+  .page-app .section-head>button,
+  .page-app .section-head>.secondary{
+    width:100%!important;
+  }
+  .page-app table{
+    min-width:640px!important;
+  }
+}
