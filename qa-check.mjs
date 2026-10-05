@@ -422,6 +422,23 @@ else{
   if(!classTeacherLeave.includes('teacher_student_links')||!classTeacherLeave.includes('class_sections')) fail.push('Teacher leave review must support explicit student links and assigned class sections.');
   if(!classTeacherLeave.includes('notify_new_leave_request_v1')) fail.push('Class-teacher leave routing notification update missing.');
 }
+const parentComplaintCenter=read('parent-complaint-center.js');
+if(!parentComplaintCenter.includes('Private Complaint to School Admin')||!parentComplaintCenter.includes('paFiles')) fail.push('Private Parent → Admin text/photo/video complaint UI missing.');
+if(!parentComplaintCenter.includes('parent_admin_complaint_attachments')||!parentComplaintCenter.includes("ADMIN_BUCKET='parent-admin-complaints'")) fail.push('Private Parent → Admin media storage wiring missing.');
+if(!parentComplaintCenter.includes('pcFiles')||!parentComplaintCenter.includes('student_parent_complaint_attachments')) fail.push('Teacher/Admin → Parent student complaint media workflow missing.');
+const parentAdminComplaintMigration='supabase/migrations/20261005064000_private_parent_admin_complaints_media.sql';
+if(!exists(parentAdminComplaintMigration)) fail.push('Private Parent → Admin complaint backend migration missing.');
+else{
+  const parentAdminComplaint=read(parentAdminComplaintMigration);
+  if(!parentAdminComplaint.includes('parent creator and admin read private complaints')) fail.push('Private Parent complaint read policy missing.');
+  if(!parentAdminComplaint.includes("'parent-admin-complaints'")) fail.push('Private Parent complaint media bucket missing.');
+}
+const parentAdminComplaintHardening='supabase/migrations/20261005064800_harden_private_parent_admin_complaints.sql';
+if(!exists(parentAdminComplaintHardening)) fail.push('Private Parent complaint integrity hardening missing.');
+else{
+  const parentAdminHardening=read(parentAdminComplaintHardening);
+  if(!parentAdminHardening.includes("status='Open'")||!parentAdminHardening.includes('revoke update on public.parent_admin_complaints')) fail.push('Private Parent complaint immutable submission guard missing.');
+}
 const workflowAlerts=read('workflow-alerts.js');
 if(!coreCloud.includes('async function saveAttendanceDay')) fail.push('Immediate student attendance cloud save missing.');
 if(!app.includes('EDUNIZAM_CORE_CLOUD.saveAttendanceDay')) fail.push('Attendance save does not sync current day to cloud.');
