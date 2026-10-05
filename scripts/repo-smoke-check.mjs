@@ -377,7 +377,7 @@ for(const state of ["BOOTING","UNAUTHENTICATED","AUTHENTICATING","AUTHENTICATED"
 if(/location\.reload\s*\(/.test(authBridge))bad("auth:no-auth-reload","auth runtime must not reload the page to complete login or sync");
 else ok("auth:no-auth-reload");
 
-if(!authBridge.includes("workspaceReady(readHandoff()?'login-handoff':'local-session'"))bad("auth:local-first-workspace","valid login handoff/local workspace must open before background verification");
+if(!authBridge.includes("const handoff=readHandoff()")||!authBridge.includes("workspaceReady(handoff?'login-handoff':'local-session'"))bad("auth:local-first-workspace","valid login handoff/local workspace must open before background verification");
 else ok("auth:local-first-workspace");
 
 if(!authBridge.includes("authoritativeAbsent=restoreStatus==='absent'||c.state.authEvent==='SIGNED_OUT'"))bad("auth:transient-restore-safe","temporary session-restore failures can still evict a valid local workspace");
