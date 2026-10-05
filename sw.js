@@ -1,4 +1,4 @@
-const CACHE='edunizam-v221-deep-premium'
+const CACHE='edunizam-v222-learning-live'
 const CORE=[
   './',
   './index.html',
@@ -139,7 +139,9 @@ self.addEventListener('fetch',event=>{
   if(isCode){
     event.respondWith((async()=>{
       const cache=await caches.open(CACHE);
-      const cached=await cache.match(event.request,{ignoreSearch:true});
+      // Respect ?v= build tokens: a newly versioned script/style must not be satisfied
+      // by an older cached URL with the query string ignored.
+      const cached=await cache.match(event.request);
       const refresh=fetch(event.request,{cache:'no-store'}).then(response=>{
         if(response?.ok)cache.put(event.request,response.clone());
         return response;
@@ -148,7 +150,10 @@ self.addEventListener('fetch',event=>{
         event.waitUntil(refresh);
         return cached;
       }
-      return (await refresh) || Response.error();
+      const fresh=await refresh;
+      if(fresh)return fresh;
+      // Offline fallback may use the pre-cached unversioned asset.
+      return (await cache.match(event.request,{ignoreSearch:true})) || Response.error();
     })());
     return;
   }
