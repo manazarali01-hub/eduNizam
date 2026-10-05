@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261005-role626';
+  const VERSION='20261005-role627';
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js','academic-operations-deep.js'],
     pastpapers:['past-papers-premium.js'],
