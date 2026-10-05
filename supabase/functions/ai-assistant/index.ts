@@ -10,7 +10,7 @@ const jsonHeaders = (origin: string) => ({
 
 function allowedOrigin(req: Request) {
   const configured = Deno.env.get("EDUNIZAM_ALLOWED_ORIGINS") ||
-    "https://manazarali01-hub.github.io,http://localhost:5500,http://127.0.0.1:5500";
+    "https://edunizam.online,https://manazarali01-hub.github.io,http://localhost:5500,http://127.0.0.1:5500";
   const allowed = configured.split(",").map(x => x.trim()).filter(Boolean);
   const origin = req.headers.get("Origin") || "";
   if (!origin) return allowed[0] || "*";
