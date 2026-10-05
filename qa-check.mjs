@@ -65,6 +65,8 @@ if(authBridgeMobileFix.includes('clearLocalAuthState();\n        window.dispatch
 if(!cloudSetupMobileFix.includes('if(owner.error)throw owner.error')) fail.push('Institution lookup errors are still swallowed before Admin Retry.');
 if(loginHtml.includes("mode==='recovery'?'Retry'")) fail.push('Login recovery cooldown still presents a dead Retry label.');
 if(loginHtml.includes("sw.js?v=20261001-visitor202")) fail.push('Login still registers the obsolete service-worker build.');
+if(!app.includes("classList?.contains('feature-loading-notice')")) fail.push('Feature Retry does not clear stale loader/error notices before retrying.');
+if(!app.includes("retryBtn.textContent='Retrying…'")) fail.push('Feature Retry button does not expose an active retry state.');
 
 const systemAutoUpdateSafety=read('system-auto-update.js');
 const reliabilitySafety=read('reliability-guardian.js');
