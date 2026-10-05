@@ -1,16 +1,62 @@
 (function(){
-  const VERSION='20261005-role627';
+  const VERSION='20261005-perf629';
+  const sharedBundles={
+    learning:[
+      'past-papers-data.js',
+      'past-papers-inventory.js',
+      'practice-data.js',
+      'school-assessment-data.js',
+      'university-data.js',
+      'education-directory-expansion.js',
+      'university-directory-normalizer.js',
+      'competitive-exams-data.js',
+      'education-ecosystem-data.js',
+      'exam-pathways-data.js',
+      'exam-topic-practice-data.js',
+      'exam-topic-checkpoints.js',
+      'exam-topic-blueprints-data.js',
+      'vu-course-catalog.js',
+      'curriculum-registry.js',
+      'study-data.js',
+      'study-inventory.js',
+      'learning-premium-data.js',
+      'learning-complete-data.js',
+      'learning-required-data.js',
+      'board-paper-deep-data.js',
+      'board-paper-regional-deep-data.js',
+      'vu-catalog-expansion.js',
+      'vu-project-courses-deep.js',
+      'vu-course-pathways.js',
+      'vu-material-library.js',
+      'practice-curriculum-expansion.js',
+      'practice-depth-data.js',
+      'practice-complete-data.js',
+      'practice-session-core.js'
+    ]
+  };
+  const featureBundles={
+    pastpapers:['learning'],
+    practice:['learning'],
+    study:['learning'],
+    schoolassessments:['learning'],
+    universities:['learning'],
+    competitive:['learning'],
+    ecosystem:['learning'],
+    pathways:['learning'],
+    vu:['learning']
+  };
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js','academic-operations-deep.js'],
     pastpapers:['past-papers-premium.js'],
     practice:['practice-center.js'],
     study:['study-library.js'],
+    schoolassessments:['education-hubs.js'],
     universities:['education-hubs.js'],
     competitive:['competitive-exams.js'],
     ecosystem:['education-ecosystem.js'],
     pathways:['exam-pathways.js','exam-topic-practice.js','exam-topic-planner.js'],
     vu:['education-hubs.js','vu-workspace.js'],
-    admissions:['admissions-portal.js','admissions-selection.js'],
+    admissions:['admissions-data.js','admissions-selection.js','admissions-portal.js'],
     studentprofile:['student-performance.js','academic-operations-deep.js'],
     behaviorcenter:['student-behavior.js'],
     parentcomplaints:['parent-complaint-center.js'],
@@ -47,7 +93,8 @@
   };
   const loaded=new Set();
   const inflight=new Map();
-  const scriptsFor=view=>featureScripts[view]||[];
+  const bundleScriptsFor=view=>(featureBundles[view]||[]).flatMap(name=>sharedBundles[name]||[]);
+  const scriptsFor=view=>[...bundleScriptsFor(view),...(featureScripts[view]||[])];
   const reliability=()=>window.EDUNIZAM_RELIABILITY;
 
   function loadAttempt(src,attempt){
@@ -109,7 +156,9 @@
     rel?.beginFeature?.(view);
     document.documentElement.classList.add('edu-feature-loading');
     try{
-      await Promise.all(list.map(src=>loadScript(src)));
+      // Preserve deterministic side-effect order for legacy browser scripts.
+      // This avoids expansion files racing their base catalogs.
+      for(const src of list)await loadScript(src);
     }catch(e){
       rel?.repairUI?.('Feature recovery: '+view);
       throw e;
