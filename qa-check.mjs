@@ -66,6 +66,12 @@ if(!cloudSetupMobileFix.includes('if(owner.error)throw owner.error')) fail.push(
 if(loginHtml.includes("mode==='recovery'?'Retry'")) fail.push('Login recovery cooldown still presents a dead Retry label.');
 if(loginHtml.includes("sw.js?v=20261001-visitor202")) fail.push('Login still registers the obsolete service-worker build.');
 
+const systemAutoUpdateSafety=read('system-auto-update.js');
+const reliabilitySafety=read('reliability-guardian.js');
+if(systemAutoUpdateSafety.includes("querySelectorAll('button[disabled]')")) fail.push('System auto-update still globally re-enables disabled controls.');
+if(!reliabilitySafety.includes('[data-recovery-safe="true"][disabled]')) fail.push('Reliability control recovery is not explicitly scoped.');
+if(/querySelectorAll\(['"]button\[disabled\]['"]\)/.test(reliabilitySafety)) fail.push('Reliability Guardian still scans every disabled button.');
+
 const scriptRefs=[...index.matchAll(/<script[^>]+src=["']([^"']+)["']/g)]
   .map(m=>m[1].split('?')[0])
   .filter(x=>!/^https?:/i.test(x));
