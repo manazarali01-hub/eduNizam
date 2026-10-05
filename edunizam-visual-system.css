@@ -1397,3 +1397,148 @@ img{image-rendering:auto}
     min-width:640px!important;
   }
 }
+
+
+/* ---------- HOMEPAGE MOBILE COMPOSITION FIX 2026-10-05 ---------- */
+/* Keep navigation, hero photography, role labels and Quick Access in normal flow
+   on phones so no card, text or control can sit on top of another. */
+@media(max-width:720px){
+  .page-home{overflow-x:hidden!important}
+  .page-home .public-nav,
+  .page-home .public-nav.is-scrolled{
+    position:relative!important;
+    top:auto!important;
+    width:calc(100% - 16px)!important;
+    margin:8px auto 0!important;
+    padding:12px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:10px!important;
+    border-radius:18px!important;
+  }
+  .page-home .public-brand{
+    width:100%!important;
+    min-width:0!important;
+    padding:0 2px!important;
+  }
+  .page-home .public-links{
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    max-width:100%!important;
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    gap:8px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:2px 0 5px!important;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;
+  }
+  .page-home .public-links::-webkit-scrollbar{display:none}
+  .page-home .public-links a{
+    flex:0 0 auto!important;
+    white-space:nowrap!important;
+    min-height:44px!important;
+    padding:10px 13px!important;
+    scroll-snap-align:start;
+  }
+  .page-home .public-main{
+    width:calc(100% - 16px)!important;
+    padding-top:10px!important;
+  }
+  .page-home .premium-public-hero{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:20px!important;
+    min-height:0!important;
+    padding:22px 16px 18px!important;
+    border-radius:22px!important;
+  }
+  .page-home .hero-copy{
+    min-width:0!important;
+    padding:0!important;
+  }
+  .page-home .public-hero h1{
+    font-size:clamp(35px,10vw,46px)!important;
+    line-height:1.04!important;
+    letter-spacing:-.045em!important;
+  }
+  .page-home .public-proof{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+  .page-home .hero-visual{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:12px!important;
+    align-items:start!important;
+    min-width:0!important;
+  }
+  .page-home .hero-image-wrap{
+    grid-row:1!important;
+    width:100%!important;
+    min-height:330px!important;
+    border-width:4px!important;
+    border-radius:20px!important;
+  }
+  .page-home .portrait-caption{
+    left:18px!important;
+    right:18px!important;
+    bottom:18px!important;
+  }
+  .page-home .portrait-caption strong{
+    font-size:1.2rem!important;
+    max-width:17ch;
+  }
+  .page-home .quick-access-card{
+    position:static!important;
+    inset:auto!important;
+    grid-row:2!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:16px!important;
+    border-radius:17px!important;
+    box-shadow:0 14px 32px rgba(12,54,85,.12)!important;
+  }
+  .page-home .quick-actions a,
+  .page-home .quick-actions button{
+    min-height:48px!important;
+    font-size:15.5px!important;
+  }
+  .page-home .hero-role-badge{
+    position:static!important;
+    inset:auto!important;
+    grid-row:3!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:7px!important;
+    justify-content:center!important;
+    border-radius:16px!important;
+  }
+  .page-home .hero-role-badge span{
+    flex:1 1 92px;
+    text-align:center;
+    font-size:12px!important;
+    padding:6px 7px!important;
+  }
+}
+@media(max-width:430px){
+  .page-home .public-nav,
+  .page-home .public-nav.is-scrolled,
+  .page-home .public-main{width:calc(100% - 12px)!important}
+  .page-home .public-mark{width:44px!important;height:44px!important;flex-basis:44px!important}
+  .page-home .brand-name{font-size:20px!important}
+  .page-home .premium-public-hero{padding:18px 13px 15px!important}
+  .page-home .public-hero h1{font-size:clamp(32px,9.8vw,41px)!important}
+  .page-home .hero-image-wrap{min-height:285px!important}
+  .page-home .portrait-caption span{font-size:12px!important}
+  .page-home .portrait-caption strong{font-size:1.08rem!important}
+  .page-home .quick-access-card{padding:14px!important}
+  .page-home .hero-role-badge span{flex-basis:44%;font-size:11.5px!important}
+}
