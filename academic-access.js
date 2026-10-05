@@ -95,7 +95,9 @@
   function showNotifications(){
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('notifications')?.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(v=>v.classList.toggle('active',v.dataset.view==='notifications'));
-    const title=document.getElementById('page-title');if(title)title.textContent='Notifications';loadNotifications();
+    const title=document.getElementById('page-title');if(title)title.textContent='Notifications';
+    loadNotifications();
+    window.dispatchEvent(new CustomEvent('edunizam:view-open',{detail:{view:'notifications'}}));
   }
   async function loadNotifications(){
     const box=document.getElementById('notificationList'),count=document.getElementById('notificationCount');if(!box)return;
@@ -117,7 +119,6 @@
     window.addEventListener('edunizam:workspace-ready',render);
     window.addEventListener('edunizam:view-open',event=>{
       if(event.detail?.view==='access'&&role()==='head')loadAssignments();
-      if(event.detail?.view==='notifications')loadNotifications();
     });
   }
   setTimeout(boot,0);
