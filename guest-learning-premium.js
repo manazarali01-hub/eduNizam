@@ -184,7 +184,7 @@ function injectPastFilters(){
  const f=document.querySelector('#past .paper-filters');if(!f)return;f.classList.add('past-advanced');
  let level=$('paperLevel');
  if(!level){
-  const wrap=document.createElement('label');wrap.className='filter-label';wrap.innerHTML='Education Level<select id="paperLevel"><option value="">All Levels</option><option value="matric">Matric</option><option value="intermediate">Intermediate</option><option value="university">University</option><option value="vu">Virtual University</option><option value="school">PECTA / School Level</option></select>';
+  const wrap=document.createElement('label');wrap.className='filter-label';wrap.innerHTML='Education Level<select id="paperLevel"><option value="">All Levels</option><option value="matric">Matric</option><option value="intermediate">Intermediate</option><option value="university">University</option><option value="vu">Virtual University</option><option value="school">PECTAA / School Level</option></select>';
   f.insertBefore(wrap,f.firstChild);level=$('paperLevel');
  }
  let session=$('paperSession');
@@ -203,7 +203,9 @@ function cascadePast(){
  $('paperClass').innerHTML='<option value="">All Classes</option>'+classes.map(x=>'<option value="'+x+'">'+(x==='11'?'11th / 1st Year':x==='12'?'12th / 2nd Year':x==='5'?'Grade 5':x==='8'?'Grade 8':x+'th Class')+'</option>').join('');
  $('paperClass').disabled=level==='university'||level==='vu';
  if(classes.includes(current))$('paperClass').value=current;
- const cl=$('paperClass').value;const subs=(level==='university'||level==='vu')?[]:(cl?(d.subjects?.[cl]||[]):[...new Set(Object.values(d.subjects||{}).flat())].sort());
+ const cl=$('paperClass').value;
+ const schoolSubjects=level==='school'?[...new Set((window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).filter(x=>!cl||String(x.grade)===cl).flatMap(x=>String(x.subject||'').split('/').map(s=>s.trim())).filter(s=>s&&!/^all subjects$/i.test(s)))].sort():[];
+ const subs=(level==='university'||level==='vu')?[]:(level==='school'?schoolSubjects:(cl?(d.subjects?.[cl]||[]):[...new Set(Object.values(d.subjects||{}).flat())].sort()));
  $('paperSubject').innerHTML='<option value="">All Subjects</option>'+subs.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');
  $('paperSubject').disabled=level==='university'||level==='vu';
 }
@@ -546,8 +548,8 @@ function enhancePastResults(){
    if(query&&!norm(JSON.stringify(x)).includes(query))return false;
    return true;
   });
-  grid.innerHTML=rows.length?rows.map(x=>resourceCard({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTA',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'})).join(''):emptyState([cl&&('Grade '+cl),$('paperSubject')?.value,year,$('paperSearch')?.value].filter(Boolean).join(' ')||'school resources');
-  $('paperSummary').textContent=rows.length+' school-level PECTA / assessment result'+(rows.length===1?'':'s')+'.';
+  grid.innerHTML=rows.length?rows.map(x=>resourceCard({id:'school:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:'PECTAA',classLevel:x.grade,subject:x.subject,year:x.year,section:'grade'})).join(''):emptyState([cl&&('Grade '+cl),$('paperSubject')?.value,year,$('paperSearch')?.value].filter(Boolean).join(' ')||'school resources');
+  $('paperSummary').textContent=rows.length+' school-level PECTAA / assessment result'+(rows.length===1?'':'s')+'.';
   return;
  }
  if(level==='university'){
