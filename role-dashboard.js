@@ -127,6 +127,7 @@
   function render(){
     ensure();renderAdminDesk();const box=document.getElementById('familyDashboard');if(!box)return;
     const r=role();
+    document.body.dataset.eduRole=r;
     renderRoleQuickActions();
     if(!['parent','student','teacher'].includes(r)){box.style.display='none';return}
     box.style.display='block';
