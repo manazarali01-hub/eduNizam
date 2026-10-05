@@ -119,6 +119,8 @@ jobs:
             verify_exact_file "$rel"
           done
           verify_exact_file "app.js"
+          verify_exact_file "auth-bridge.js"
+          verify_exact_file "cloud-setup.js"
           verify_exact_file "feature-loader.js"
           verify_exact_file "role-scope.js"
           verify_exact_file "attendance-analytics.js"
