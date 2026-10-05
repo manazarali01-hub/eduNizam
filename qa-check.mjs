@@ -56,12 +56,12 @@ for(const marker of [
 ]){
   if(!visual.includes(marker)) fail.push('Final visual polish marker missing: '+marker);
 }
-const authBridge=read('auth-bridge.js');
-const cloudSetup=read('cloud-setup.js');
+const authBridgeMobileFix=read('auth-bridge.js');
+const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
-if(!authBridge.includes('Retry secure check')) fail.push('Secure-session Retry action is not explicit.');
-if(authBridge.includes('clearLocalAuthState();\n        window.dispatchEvent(new CustomEvent(role===\'head_of_institute\'')) fail.push('Admin Retry still clears the selected local session before retrying.');
-if(!cloudSetup.includes('if(owner.error)throw owner.error')) fail.push('Institution lookup errors are still swallowed before Admin Retry.');
+if(!authBridgeMobileFix.includes('Retry secure check')) fail.push('Secure-session Retry action is not explicit.');
+if(authBridgeMobileFix.includes('clearLocalAuthState();\n        window.dispatchEvent(new CustomEvent(role===\'head_of_institute\'')) fail.push('Admin Retry still clears the selected local session before retrying.');
+if(!cloudSetupMobileFix.includes('if(owner.error)throw owner.error')) fail.push('Institution lookup errors are still swallowed before Admin Retry.');
 if(loginHtml.includes("mode==='recovery'?'Retry'")) fail.push('Login recovery cooldown still presents a dead Retry label.');
 if(loginHtml.includes("sw.js?v=20261001-visitor202")) fail.push('Login still registers the obsolete service-worker build.');
 
