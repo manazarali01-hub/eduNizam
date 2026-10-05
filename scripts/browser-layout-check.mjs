@@ -73,6 +73,12 @@ async function inspectPage(page,url,width){
       const r=el.getBoundingClientRect();
       return r.width>1&&r.height>1;
     };
+    const intentionallyOffCanvas=el=>{
+      const drawer=el.closest?.('.sidebar');
+      if(!drawer||drawer.classList.contains('mobile-nav-open'))return false;
+      const r=drawer.getBoundingClientRect();
+      return r.right<=2||r.left>=viewport-2;
+    };
     const scrollAncestor=el=>{
       let p=el.parentElement;
       while(p&&p!==document.body){
@@ -85,7 +91,7 @@ async function inspectPage(page,url,width){
     const clipped=[];
     const wideElements=[];
     document.querySelectorAll('body *').forEach(el=>{
-      if(!visible(el)||scrollAncestor(el))return;
+      if(!visible(el)||intentionallyOffCanvas(el)||scrollAncestor(el))return;
       const r=el.getBoundingClientRect();
       if(r.left<-2||r.right>viewport+2){
         const cs=getComputedStyle(el);
@@ -100,7 +106,7 @@ async function inspectPage(page,url,width){
       }
     });
     document.querySelectorAll('a,button,input,select,textarea,[role="button"]').forEach(el=>{
-      if(!visible(el)||scrollAncestor(el))return;
+      if(!visible(el)||intentionallyOffCanvas(el)||scrollAncestor(el))return;
       const r=el.getBoundingClientRect();
       if(r.left<-2||r.right>viewport+2)clipped.push({
         tag:el.tagName,
@@ -153,6 +159,32 @@ try{
           if(result.home.quickRoleOverlap)pushFailure(scope,'Homepage Quick Access and role badge overlap');
           if(result.home.nav&&result.home.main&&result.home.main.top<result.home.nav.bottom-2){
             pushFailure(scope,'Homepage navigation covers main content',JSON.stringify({nav:result.home.nav,main:result.home.main}));
+          }
+        }
+        if(route==='/app.html'&&width<=768){
+          const drawer=await page.evaluate(()=>{
+            const sidebar=document.querySelector('.sidebar');
+            if(!sidebar)return {missing:true};
+            sidebar.classList.add('mobile-nav-open');
+            const viewport=document.documentElement.clientWidth;
+            const box=sidebar.getBoundingClientRect();
+            const escaped=[...sidebar.querySelectorAll('.nav-item')].filter(el=>{
+              const cs=getComputedStyle(el);
+              if(cs.display==='none'||cs.visibility==='hidden')return false;
+              const r=el.getBoundingClientRect();
+              return r.left<-2||r.right>viewport+2;
+            }).slice(0,8).map(el=>{
+              const r=el.getBoundingClientRect();
+              return {text:String(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,60),left:Math.round(r.left),right:Math.round(r.right),viewport};
+            });
+            const result={missing:false,left:box.left,right:box.right,viewport,escaped};
+            sidebar.classList.remove('mobile-nav-open');
+            return result;
+          });
+          if(drawer.missing)pushFailure(scope,'Mobile sidebar is missing');
+          else{
+            if(drawer.left<-2||drawer.right>drawer.viewport+2)pushFailure(scope,'Open mobile sidebar escapes viewport',JSON.stringify(drawer));
+            if(drawer.escaped.length)pushFailure(scope,'Open mobile sidebar controls escape viewport',JSON.stringify(drawer.escaped));
           }
         }
         const critical=errors.filter(x=>!/adsbygoogle|Failed to fetch|supabase/i.test(x));
