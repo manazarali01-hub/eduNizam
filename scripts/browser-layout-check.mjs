@@ -201,8 +201,8 @@ try{
     }
   }
 
-  // Interaction regression: the secure-session guard must remain tappable on a phone
-  // even while the cloud session request is still unresolved.
+  // Production auth/mobile regression: login handoff must open the workspace
+  // immediately, and network verification must never own the hamburger or scroll.
   const authPage=await browser.newPage({
     javaScriptEnabled:true,
     viewport:{width:360,height:760},
@@ -210,87 +210,115 @@ try{
     hasTouch:true
   });
   try{
-    await authPage.route('**/auth-harness',route=>route.fulfill({
-      status:200,contentType:'text/html',body:'<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body></body></html>'
-    }));
+    const harnessHtml='<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/mobile-performance.css"></head><body class="app-page page-app"><div class="app-shell"><aside class="sidebar"><nav id="nav"><button class="nav-item active" data-view="dashboard">Dashboard</button><button class="nav-item" data-view="students">Students</button></nav></aside><main class="main" id="appMain"><header class="topbar"><div class="topbar-title"><h1>Dashboard</h1></div><div class="topbar-actions"></div></header><section id="dashboard" class="view active"><div style="height:1900px">Tall dashboard</div></section></main></div></body></html>';
+    await authPage.route('**/auth-harness',route=>route.fulfill({status:200,contentType:'text/html',body:harnessHtml}));
     await authPage.route('**/login.html?from=secure-guard',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Login target</title>'}));
     await authPage.route('**/learn.html?from=secure-guard',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Guest target</title>'}));
 
-    const loadGuard=async()=>{
+    // No local school session: Login and Guest must be native, immediately tappable exits.
+    const loadSignedOut=async()=>{
       await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
       await authPage.evaluate(()=>{
-        window.EDUNIZAM_CLOUD_CONFIG={enabled:true};
+        localStorage.clear();sessionStorage.clear();
         window.EDUNIZAM_CLOUD={
-          ready:()=>true,
-          state:{client:{auth:{getSession:()=>new Promise(()=>{})}}}
+          state:{client:{},user:null,initialized:true},
+          whenReady:()=>Promise.resolve(window.EDUNIZAM_CLOUD),
+          listAuthorizedWorkspaces:()=>Promise.resolve([])
         };
       });
+      await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/data-runtime.js'});
       await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
       await authPage.waitForSelector('#cloudAuthLogin',{state:'visible',timeout:3000});
     };
 
-    await loadGuard();
+    await loadSignedOut();
     const loginLink=await authPage.locator('#cloudAuthLogin').evaluate(el=>({tag:el.tagName,href:el.getAttribute('href')}));
-    if(loginLink.tag!=='A'||loginLink.href!=='login.html?from=secure-guard')pushFailure('auth guard touch','Go to Login is not a native anchor',JSON.stringify(loginLink));
+    if(loginLink.tag!=='A'||loginLink.href!=='login.html?from=secure-guard')pushFailure('auth signed-out','Go to Login is not a native anchor',JSON.stringify(loginLink));
     await authPage.locator('#cloudAuthLogin').tap();
-    await authPage.waitForURL(/\/login\.html\?from=secure-guard$/,{timeout:3000}).catch(e=>pushFailure('auth guard touch','Go to Login tap did not navigate',e.message));
+    await authPage.waitForURL(/\/login\.html\?from=secure-guard$/,{timeout:3000}).catch(e=>pushFailure('auth signed-out','Go to Login tap did not navigate',e.message));
 
-    await loadGuard();
-    const guestLink=await authPage.locator('#cloudAuthGuest').evaluate(el=>({tag:el.tagName,href:el.getAttribute('href')}));
-    if(guestLink.tag!=='A'||guestLink.href!=='learn.html?from=secure-guard')pushFailure('auth guard touch','Continue as Guest is not a native anchor',JSON.stringify(guestLink));
+    await loadSignedOut();
     await authPage.locator('#cloudAuthGuest').tap();
-    await authPage.waitForURL(/\/learn\.html\?from=secure-guard$/,{timeout:3000}).catch(e=>pushFailure('auth guard touch','Continue as Guest tap did not navigate',e.message));
+    await authPage.waitForURL(/\/learn\.html\?from=secure-guard$/,{timeout:3000}).catch(e=>pushFailure('auth signed-out','Continue as Guest tap did not navigate',e.message));
 
-    const loadRetryGuard=async()=>{
-      await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
-      await authPage.evaluate(()=>{
-        window.EDUNIZAM_CLOUD_CONFIG={enabled:true};
-        window.EDUNIZAM_CLOUD={
-          ready:()=>true,
-          state:{client:{auth:{getSession:()=>Promise.reject(new Error('Simulated secure-session network failure'))}}}
-        };
-      });
-      await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
-      await authPage.waitForSelector('#cloudAuthRetry',{state:'visible',timeout:3000});
-    };
-
-    await loadRetryGuard();
-    await authPage.locator('#cloudAuthRetry').tap();
-    await authPage.waitForURL(url=>url.pathname.endsWith('/auth-harness')&&url.searchParams.has('_secureRetry'),{timeout:3000})
-      .catch(e=>pushFailure('auth guard touch','Retry secure check tap did not trigger a recovery navigation',e.message));
-
-    // Successful post-login handoff: once the workspace is verified, a redundant
-    // auth event must not re-open the blocking guard or re-enter getSession().
+    // Successful login handoff with deliberately slow authorization.
     await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
     await authPage.evaluate(()=>{
+      const now=Date.now();
+      const user={id:'user-1',email:'admin@example.test'};
+      const access={id:'school-1',name:'Test School',institution_type:'School',workspace_role:'head_of_institute'};
       localStorage.setItem('edunizam_session',JSON.stringify({
-        role:'head',identity:'admin@example.test',institutionId:'school-1',schoolName:'Test School'
+        role:'head',identity:user.email,loginAt:now,source:'supabase',institutionId:'school-1',schoolName:'Test School'
       }));
       localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify({enabled:true,institutionId:'school-1'}));
-      window.__getSessionCalls=0;
-      const user={id:'user-1',email:'admin@example.test'};
-      window.EDUNIZAM_CLOUD_CONFIG={enabled:true};
-      window.EDUNIZAM_CLOUD_SETUP={ensureInstitution:()=>Promise.resolve(true)};
+      sessionStorage.setItem('edunizam_secure_login_handoff',JSON.stringify({
+        version:2,nonce:'test-nonce',userId:user.id,institutionId:'school-1',role:'head',at:now,expiresAt:now+120000
+      }));
+      window.__verifyCalls=0;
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
       window.EDUNIZAM_CLOUD={
-        ready:()=>true,
-        state:{user,client:{auth:{getSession:()=>{window.__getSessionCalls++;return Promise.resolve({data:{session:{user}},error:null})}}}},
-        getMyRole:()=>Promise.resolve('head_of_institute')
+        state:{client:{auth:{}},user,initialized:true},
+        whenReady:()=>Promise.resolve(window.EDUNIZAM_CLOUD),
+        verifyWorkspaceAccess:()=>{window.__verifyCalls++;return new Promise(resolve=>setTimeout(()=>resolve(access),1200))},
+        listAuthorizedWorkspaces:()=>Promise.resolve([access])
       };
     });
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/data-runtime.js'});
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/mobile-nav-core.js'});
     await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
-    await authPage.waitForFunction(()=>!document.getElementById('cloudAuthScreen'),{timeout:3000})
-      .catch(e=>pushFailure('auth guard handoff','Successful Admin workspace did not clear secure guard',e.message));
-    const beforeRedundant=await authPage.evaluate(()=>window.__getSessionCalls);
-    await authPage.evaluate(()=>window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{user:window.EDUNIZAM_CLOUD.state.user}})));
-    await authPage.waitForTimeout(150);
-    const handoffState=await authPage.evaluate(()=>({
-      getSessionCalls:window.__getSessionCalls,
-      guardPresent:!!document.getElementById('cloudAuthScreen')
+
+    await authPage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:3000});
+    const immediate=await authPage.evaluate(()=>({
+      guardPresent:!!document.getElementById('cloudAuthScreen'),
+      authState:document.documentElement.dataset.authState||'',
+      verifyCalls:window.__verifyCalls
     }));
-    if(handoffState.guardPresent)pushFailure('auth guard handoff','Redundant auth event re-opened the secure guard',JSON.stringify(handoffState));
-    if(handoffState.getSessionCalls!==beforeRedundant)pushFailure('auth guard handoff','Verified workspace redundantly called getSession again',JSON.stringify({beforeRedundant,...handoffState}));
+    if(immediate.guardPresent)pushFailure('auth handoff','Fresh verified-login handoff left a blocking overlay mounted',JSON.stringify(immediate));
+    if(!['WORKSPACE_READY','BACKGROUND_SYNC','AUTHORIZING'].includes(immediate.authState))pushFailure('auth handoff','Workspace did not enter a usable state immediately',JSON.stringify(immediate));
+
+    await authPage.locator('#eduMobileMenuBtn').tap();
+    await authPage.waitForTimeout(80);
+    const opened=await authPage.evaluate(()=>({
+      sidebar:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),
+      locked:document.body.classList.contains('mobile-nav-lock'),
+      expanded:document.getElementById('eduMobileMenuBtn')?.getAttribute('aria-expanded')
+    }));
+    if(!opened.sidebar||!opened.locked||opened.expanded!=='true')pushFailure('mobile menu interaction','Hamburger did not open the drawer during background authorization',JSON.stringify(opened));
+
+    await authPage.locator('#eduMobileNavClose').tap();
+    await authPage.waitForTimeout(80);
+    const closed=await authPage.evaluate(()=>({
+      sidebar:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),
+      locked:document.body.classList.contains('mobile-nav-lock'),
+      backdropDisplay:getComputedStyle(document.getElementById('eduMobileNavBackdrop')).display,
+      backdropPointer:getComputedStyle(document.getElementById('eduMobileNavBackdrop')).pointerEvents
+    }));
+    if(closed.sidebar||closed.locked||closed.backdropPointer!=='none')pushFailure('mobile menu interaction','Closing drawer left a blocking mobile state',JSON.stringify(closed));
+
+    await authPage.evaluate(()=>window.scrollTo(0,900));
+    await authPage.waitForTimeout(80);
+    const scrollY=await authPage.evaluate(()=>window.scrollY);
+    if(scrollY<100)pushFailure('mobile scroll interaction','Dashboard could not scroll after closing the drawer',String(scrollY));
+
+    // Redundant auth events while verification is in flight must not re-open a guard.
+    await authPage.evaluate(()=>window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{event:'SIGNED_IN',user:window.EDUNIZAM_CLOUD.state.user}})));
+    await authPage.waitForTimeout(150);
+    const redundant=await authPage.evaluate(()=>({
+      guardPresent:!!document.getElementById('cloudAuthScreen'),
+      verifyCalls:window.__verifyCalls
+    }));
+    if(redundant.guardPresent)pushFailure('auth handoff','Redundant SIGNED_IN event re-opened the auth overlay',JSON.stringify(redundant));
+
+    await authPage.waitForTimeout(1250);
+    const settled=await authPage.evaluate(()=>({
+      guardPresent:!!document.getElementById('cloudAuthScreen'),
+      authState:document.documentElement.dataset.authState||'',
+      session:JSON.parse(localStorage.getItem('edunizam_session')||'null')
+    }));
+    if(settled.guardPresent)pushFailure('auth handoff','Background authorization re-opened a blocking overlay',JSON.stringify(settled));
+    if(!['WORKSPACE_READY','BACKGROUND_SYNC'].includes(settled.authState))pushFailure('auth handoff','Background authorization did not settle to a usable workspace state',JSON.stringify(settled));
   }catch(e){
-    pushFailure('auth guard touch','Secure access interaction regression failed',e.message||String(e));
+    pushFailure('auth/mobile runtime','Auth and mobile interaction regression failed',e.message||String(e));
   }finally{
     await authPage.close();
   }
