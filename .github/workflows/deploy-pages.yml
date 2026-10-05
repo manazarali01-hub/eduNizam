@@ -116,6 +116,13 @@ jobs:
           }
 
           verify_exact_file "app.html"
+          verify_exact_file "app.js"
+          verify_exact_file "feature-loader.js"
+          verify_exact_file "role-scope.js"
+          verify_exact_file "attendance-analytics.js"
+          verify_exact_file "leave-center.js"
+          verify_exact_file "daily-class-diary.js"
+          verify_exact_file "teacher-paper-builder.js"
           verify_exact_file "premium-ui.css"
           verify_exact_file "premium-ui.js"
           verify_exact_file "sw.js"
@@ -132,5 +139,4 @@ jobs:
           file /tmp/icon-512.png | grep -q "PNG image data, 512 x 512"
           echo "Sitemap headers:"
           curl --fail --silent --show-error --location --head -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}sitemap.xml?verify=${GITHUB_SHA}" | sed -n '1,20p'
-          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}app.js?verify=${GITHUB_SHA}" >/dev/null
           echo "Live deployment verification passed."
