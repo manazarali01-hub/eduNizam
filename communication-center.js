@@ -4,6 +4,7 @@
   const write=v=>localStorage.setItem(KEY,JSON.stringify(v));
   const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
   const role=()=>session()?.role||'student';
+  const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
   const roleLabel={head:'Head of Institute',teacher:'Teacher',parent:'Parent / Guardian',student:'Student'};
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
   const students=()=>{try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}};
