@@ -235,6 +235,14 @@ exists(resultMigration)&&read(resultMigration).includes("publish_report_card_v2_
 exists(resultMigration)&&read(resultMigration).includes("acknowledge_report_card_v2_impl")&&read(resultMigration).includes("report_card_acknowledgements from authenticated")?ok("reports:rpc-only-ack"):bad("reports:rpc-only-ack","Report acknowledgements must use server-owned RPC timestamps.");
 exists(resultMigration)&&read(resultMigration).includes("from anon")?ok("results:no-anon-table-grants"):bad("results:no-anon-table-grants","Result/exam/remark tables must revoke legacy anon privileges.");
 
+// 3h) Guest Learning Hub action reliability guards
+const guestPremiumActions=read("guest-learning-premium.js");
+guestPremiumActions.includes("function ensurePremiumModal()")&&guestPremiumActions.includes("function showPremiumModal(m)")?ok("guest:single-modal-lifecycle"):bad("guest:single-modal-lifecycle","Guest resource modal lifecycle helper missing.");
+!guestPremiumActions.includes("if(!m){openPreview('study:'+id)")?ok("guest:no-study-preview-recursion"):bad("guest:no-study-preview-recursion","Built-in Study Library Read Now can recurse through openPreview/openStudy.");
+guestPremiumActions.includes("data-print-study-id")&&guestPremiumActions.includes("function printBuiltInStudy(id)")?ok("guest:study-print-resource-only"):bad("guest:study-print-resource-only","Built-in study printing must print the resource, not the entire Learning Hub.");
+guestPremiumActions.includes("Download / Open PDF")&&guestPremiumActions.includes("data-print-url")?ok("guest:pdf-open-download-print-actions"):bad("guest:pdf-open-download-print-actions","PDF resources must expose explicit download/open and print routes.");
+guestPremiumActions.includes("frame.src='about:blank'")&&guestPremiumActions.includes("m.setAttribute('aria-hidden','true')")?ok("guest:modal-clean-close"):bad("guest:modal-clean-close","Guest modal close must stop embedded previews and restore hidden state.");
+
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
 for(const p of jsFiles){
