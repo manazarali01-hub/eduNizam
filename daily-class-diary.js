@@ -10,7 +10,7 @@ const students=()=>{try{return JSON.parse(localStorage.getItem('edunizam_student
 const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students();
 let editingId='',teacherClasses=[];
 
-function dateStr(d=new Date()){return d.toISOString().slice(0,10)}
+function dateStr(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function normalizeClass(v){return String(v||'').trim().replace(/\s*[·|-]\s*[^·|-]+$/,'').trim()}
 function classKey(c,s){return normalizeClass(c).toLowerCase()+'|'+String(s||'').trim().toLowerCase()}
 function allowedClassKeys(){
@@ -197,6 +197,6 @@ async function render(){
   let timer;$('#diarySearch')?.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(load,180)});
   await load();
 }
-window.EDUNIZAM_DAILY_DIARY={render,load};
+window.EDUNIZAM_DAILY_DIARY={render,load,dateStr};
 if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
