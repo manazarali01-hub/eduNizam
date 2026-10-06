@@ -236,12 +236,12 @@ exists(resultMigration)&&read(resultMigration).includes("acknowledge_report_card
 exists(resultMigration)&&read(resultMigration).includes("from anon")?ok("results:no-anon-table-grants"):bad("results:no-anon-table-grants","Result/exam/remark tables must revoke legacy anon privileges.");
 
 // 3h) Guest Learning Hub action reliability guards
-const guestPremium=read("guest-learning-premium.js");
-guestPremium.includes("function ensurePremiumModal()")&&guestPremium.includes("function showPremiumModal(m)")?ok("guest:single-modal-lifecycle"):bad("guest:single-modal-lifecycle","Guest resource modal lifecycle helper missing.");
-!guestPremium.includes("if(!m){openPreview('study:'+id)")?ok("guest:no-study-preview-recursion"):bad("guest:no-study-preview-recursion","Built-in Study Library Read Now can recurse through openPreview/openStudy.");
-guestPremium.includes("data-print-study-id")&&guestPremium.includes("function printBuiltInStudy(id)")?ok("guest:study-print-resource-only"):bad("guest:study-print-resource-only","Built-in study printing must print the resource, not the entire Learning Hub.");
-guestPremium.includes("Download / Open PDF")&&guestPremium.includes("data-print-url")?ok("guest:pdf-open-download-print-actions"):bad("guest:pdf-open-download-print-actions","PDF resources must expose explicit download/open and print routes.");
-guestPremium.includes("frame.src='about:blank'")&&guestPremium.includes("m.setAttribute('aria-hidden','true')")?ok("guest:modal-clean-close"):bad("guest:modal-clean-close","Guest modal close must stop embedded previews and restore hidden state.");
+const guestPremiumActions=read("guest-learning-premium.js");
+guestPremiumActions.includes("function ensurePremiumModal()")&&guestPremiumActions.includes("function showPremiumModal(m)")?ok("guest:single-modal-lifecycle"):bad("guest:single-modal-lifecycle","Guest resource modal lifecycle helper missing.");
+!guestPremiumActions.includes("if(!m){openPreview('study:'+id)")?ok("guest:no-study-preview-recursion"):bad("guest:no-study-preview-recursion","Built-in Study Library Read Now can recurse through openPreview/openStudy.");
+guestPremiumActions.includes("data-print-study-id")&&guestPremiumActions.includes("function printBuiltInStudy(id)")?ok("guest:study-print-resource-only"):bad("guest:study-print-resource-only","Built-in study printing must print the resource, not the entire Learning Hub.");
+guestPremiumActions.includes("Download / Open PDF")&&guestPremiumActions.includes("data-print-url")?ok("guest:pdf-open-download-print-actions"):bad("guest:pdf-open-download-print-actions","PDF resources must expose explicit download/open and print routes.");
+guestPremiumActions.includes("frame.src='about:blank'")&&guestPremiumActions.includes("m.setAttribute('aria-hidden','true')")?ok("guest:modal-clean-close"):bad("guest:modal-clean-close","Guest modal close must stop embedded previews and restore hidden state.");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
