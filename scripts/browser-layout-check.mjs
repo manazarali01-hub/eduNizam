@@ -470,6 +470,18 @@ try{
     await loginFlowPage.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
       status:200,contentType:'text/javascript',body:'/* Supabase stubbed by login regression test */'
     }));
+    // Diagnostic isolation: if the real reliability guardian owns a startup freeze,
+    // replacing only that script keeps the rest of the production app intact.
+    await loginFlowPage.route('**/reliability-guardian.js*',route=>route.fulfill({
+      status:200,
+      contentType:'text/javascript',
+      body:`window.EDUNIZAM_RELIABILITY={
+        state:{safeMode:false},
+        report(){},withRetry:fn=>Promise.resolve().then(fn),
+        beginFeature(){},endFeature(){},repairUI(){},render(){},
+        markRecoverableControl(){},clearRecoverableControl(){}
+      };`
+    }));
 
     await loginStep('open login page',()=>loginFlowPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:8000}));
     await loginStep('select Admin role',()=>loginFlowPage.locator('[data-role="admin"]').tap({timeout:5000}));
