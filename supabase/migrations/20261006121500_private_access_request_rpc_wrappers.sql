@@ -1,6 +1,8 @@
 -- Harden invite and teacher-access RPCs without changing their public signatures.
 -- Public API functions become SECURITY INVOKER wrappers over private SECURITY DEFINER
 -- implementations with an empty search_path. Auth/ownership checks remain unchanged.
+-- Applied to production on 2026-10-06 after rollback validation; Supabase security-definer
+-- advisor findings reduced from 12 to 9.
 
 create or replace function private.claim_institution_invite_v2(p_code text)
 returns table(institution_id uuid, institution_name text, granted_role text)
