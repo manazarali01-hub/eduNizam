@@ -288,13 +288,14 @@ try{
     await guestPage.locator('.tabs .tab[data-tab="practice"]').tap({timeout:5000});
     await guestPage.waitForSelector('#practice.section.active',{state:'visible',timeout:5000});
     await guestPage.waitForFunction(()=>String(document.getElementById('practiceQuestion')?.textContent||'').trim().length>5,null,{timeout:5000});
+    await guestPage.waitForSelector('#guestPracticeNext',{state:'visible',timeout:5000});
     const q1=await guestPage.locator('#practiceQuestion').textContent();
-    await guestPage.locator('#nextQuestion').tap({timeout:5000});
+    await guestPage.locator('#guestPracticeNext').tap({timeout:5000});
     await guestPage.waitForTimeout(80);
     const practiceState=await guestPage.evaluate(()=>({
       active:document.querySelector('.section.active')?.id||'',
       question:(document.getElementById('practiceQuestion')?.textContent||'').trim(),
-      summary:(document.getElementById('practiceGuestSummary')?.textContent||'').trim()
+      summary:(document.getElementById('guestPracticeSummary')?.textContent||document.getElementById('practiceGuestSummary')?.textContent||'').trim()
     }));
     if(practiceState.active!=='practice'||practiceState.question.length<5||practiceState.summary.length<5)pushFailure('guest learning','Practice Center did not remain usable after Next Question',JSON.stringify({q1,practiceState}));
     console.log('Guest step PASS: Practice Center');
