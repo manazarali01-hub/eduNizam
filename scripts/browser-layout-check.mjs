@@ -388,7 +388,7 @@ try{
   // drawer locks must clear, and normal page scrolling must recover after the drawer closes.
   console.log('App shell step START: authenticated role navigation / mobile interaction');
   for(const roleCase of [
-    {role:'head',label:'School Admin',visible:'settings',hidden:null},
+    {role:'head',label:'Head of Institute',visible:'settings',hidden:null},
     {role:'teacher',label:'Teacher',visible:'attendance',hidden:'settings'},
     {role:'parent',label:'Parent',visible:'parentcomplaints',hidden:'students'},
     {role:'student',label:'Student',visible:'help',hidden:'attendance'}
@@ -472,6 +472,12 @@ try{
       }
 
       const helpButton=page.locator('.sidebar .nav-item[data-view="help"]');
+      await page.evaluate(()=>{
+        const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
+        const group=help?.closest('details.nav-group');
+        if(group)group.open=true;
+      });
+      await helpButton.waitFor({state:'visible',timeout:5000});
       await helpButton.scrollIntoViewIfNeeded();
       await helpButton.tap({timeout:5000});
       await page.waitForSelector('#help.view.active',{state:'visible',timeout:7000});
