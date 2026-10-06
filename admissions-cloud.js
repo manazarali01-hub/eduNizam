@@ -3,7 +3,21 @@
   const state={enabled:false,client:null,user:null,session:null,initialized:false,authEvent:'BOOTING',sessionRestoreStatus:'pending',sessionRestoreError:null};
   const roleCache={key:'',value:null,at:0,inflight:null};
   const institutionsCache={userId:'',value:null,at:0,inflight:null};
+  const SESSION_RESTORE_TIMEOUT_MS=3500;
   function clearIdentityCaches(){roleCache.key='';roleCache.value=null;roleCache.at=0;roleCache.inflight=null;institutionsCache.userId='';institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
+  async function boundedRead(key,builder,{timeout=6500,retries=1,cacheMs=15000,label='School data'}={}){
+    const execute=async({signal}={})=>{
+      let request=builder();
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;
+      if(result?.error)throw result.error;
+      return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime
+      ?runtime.run('cloud-read:'+key,execute,{timeout,retries,cacheMs,label})
+      :execute({});
+  }
 
   function ready(){
     return !!(cfg.enabled&&cfg.provider==='supabase'&&cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase?.createClient);
@@ -41,15 +55,53 @@
       // thing as an authoritative signed-out browser session.
       state.sessionRestoreStatus='pending';
       state.sessionRestoreError=null;
+      const restorePromise=Promise.resolve().then(()=>state.client.auth.getSession());
+      let restoreTimer=0;
       try{
-        const {data,error}=await state.client.auth.getSession();
-        if(error)throw error;
-        state.session=data?.session||state.session||null;
-        state.user=state.session?.user||state.user||null;
-        state.sessionRestoreStatus=state.session?'active':'absent';
+        const outcome=await Promise.race([
+          restorePromise.then(value=>({kind:'result',value}),error=>({kind:'error',error})),
+          new Promise(resolve=>{restoreTimer=setTimeout(()=>resolve({kind:'timeout'}),SESSION_RESTORE_TIMEOUT_MS)})
+        ]);
+        clearTimeout(restoreTimer);
+        if(outcome.kind==='error')throw outcome.error;
+        if(outcome.kind==='timeout'){
+          if(state.sessionRestoreStatus==='pending'){
+            const error=new Error('Session restore exceeded '+SESSION_RESTORE_TIMEOUT_MS+'ms; continuing with the local workspace shell.');
+            error.code='SESSION_RESTORE_TIMEOUT';
+            state.sessionRestoreStatus='timeout';
+            state.sessionRestoreError=error;
+            console.warn('EduNizam session restore:',error.message);
+          }
+          // Supabase may still finish an expired-token refresh later. Keep that
+          // result useful without allowing the unresolved request to own app startup.
+          restorePromise.then(({data,error})=>{
+            if(error)throw error;
+            state.session=data?.session||state.session||null;
+            state.user=state.session?.user||state.user||null;
+            state.sessionRestoreStatus=state.session?'active':'absent';
+            state.sessionRestoreError=null;
+            window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event:'LATE_SESSION_RESTORE',user:state.user}}));
+          }).catch(e=>{
+            if(state.sessionRestoreStatus!=='active'){
+              state.sessionRestoreStatus='error';
+              state.sessionRestoreError=e;
+            }
+            console.warn('EduNizam late session restore:',e.message||e);
+            window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event:'LATE_SESSION_RESTORE_ERROR',user:state.user}}));
+          });
+        }else{
+          const {data,error}=outcome.value||{};
+          if(error)throw error;
+          state.session=data?.session||state.session||null;
+          state.user=state.session?.user||state.user||null;
+          state.sessionRestoreStatus=state.session?'active':'absent';
+        }
       }catch(e){
-        state.sessionRestoreStatus='error';
-        state.sessionRestoreError=e;
+        clearTimeout(restoreTimer);
+        if(state.sessionRestoreStatus!=='active'){
+          state.sessionRestoreStatus='error';
+          state.sessionRestoreError=e;
+        }
         console.warn('EduNizam session restore:',e.message||e);
       }finally{
         state.initialized=true;
@@ -232,10 +284,11 @@
   }
   async function getLinkedStudents(){
     if(!state.client||!state.user)return[];
-    const {data,error}=await state.client.from('parent_student_links')
+    const uid=String(state.user.id||'');
+    const {data}=await boundedRead('linked-students:'+uid,()=>state.client.from('parent_student_links')
       .select('student_user_id,status,user_profiles!parent_student_links_student_user_id_fkey(user_id,full_name,account_role)')
-      .eq('parent_user_id',state.user.id).eq('status','approved');
-    if(error)throw error;return data||[];
+      .eq('parent_user_id',state.user.id).eq('status','approved'),{cacheMs:15000,label:'Linked students'});
+    return data||[];
   }
   async function requestParentStudentLink(){
     throw new Error('Use the Student Code link flow so the child is verified inside the same school.');
@@ -487,14 +540,13 @@
   }
   async function listInstitutionTeachers(){
     if(!state.client||!cfg.institutionId)return[];
-    const {data:members,error}=await state.client.from('institution_members')
-      .select('user_id,role').eq('institution_id',cfg.institutionId).eq('role','teacher');
-    if(error)throw error;
+    const inst=String(cfg.institutionId);
+    const {data:members}=await boundedRead('institution-teachers-members:'+inst,()=>state.client.from('institution_members')
+      .select('user_id,role').eq('institution_id',cfg.institutionId).eq('role','teacher'),{cacheMs:20000,label:'Teacher accounts'});
     const ids=(members||[]).map(x=>x.user_id).filter(Boolean);
     if(!ids.length)return[];
-    const {data:staff,error:staffError}=await state.client.from('staff_profiles')
-      .select('user_id,full_name').eq('institution_id',cfg.institutionId).in('user_id',ids);
-    if(staffError)throw staffError;
+    const {data:staff}=await boundedRead('institution-teachers-profiles:'+inst+':'+ids.slice().sort().join(','),()=>state.client.from('staff_profiles')
+      .select('user_id,full_name').eq('institution_id',cfg.institutionId).in('user_id',ids),{cacheMs:20000,label:'Teacher profiles'});
     const names=new Map((staff||[]).filter(x=>x.user_id).map(x=>[x.user_id,x.full_name||'']));
     return (members||[]).map(x=>({user_id:x.user_id,role:x.role,full_name:names.get(x.user_id)||'Teacher'}));
   }
@@ -535,9 +587,10 @@
   }
   async function listMyTeacherAssignments(){
     if(!state.client||!state.user||!cfg.institutionId)return[];
-    const {data,error}=await state.client.from('teacher_student_links')
-      .select('student_user_id').eq('institution_id',cfg.institutionId).eq('teacher_user_id',state.user.id);
-    if(error)throw error;return (data||[]).map(x=>x.student_user_id);
+    const uid=String(state.user.id||''),inst=String(cfg.institutionId);
+    const {data}=await boundedRead('teacher-assignments:'+inst+':'+uid,()=>state.client.from('teacher_student_links')
+      .select('student_user_id').eq('institution_id',cfg.institutionId).eq('teacher_user_id',state.user.id),{cacheMs:15000,label:'Teacher assignments'});
+    return (data||[]).map(x=>x.student_user_id);
   }
   async function listApprovedParentsForStudent(studentUserId){
     if(!state.client||!cfg.institutionId||!studentUserId)return[];

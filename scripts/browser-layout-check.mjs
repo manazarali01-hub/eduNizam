@@ -447,6 +447,48 @@ try{
     if(!['WORKSPACE_READY','BACKGROUND_SYNC'].includes(settled.authState))pushFailure('auth handoff','Background authorization did not settle to a usable workspace state',JSON.stringify(settled));
     if(settled.verifyCalls!==1)pushFailure('auth handoff','Explicit background verification did not execute exactly once',JSON.stringify(settled));
 
+    // A hung Supabase getSession must never own application readiness. Exercise
+    // the actual admissions-cloud initializer, not a pre-baked cloud state.
+    await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
+    await authPage.evaluate(()=>{
+      const now=Date.now();
+      localStorage.setItem('edunizam_session',JSON.stringify({
+        role:'head',identity:'admin@example.test',loginAt:now,source:'supabase',institutionId:'school-1',schoolName:'Test School'
+      }));
+      localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify({enabled:true,institutionId:'school-1'}));
+      window.EDUNIZAM_CLOUD_CONFIG={
+        enabled:true,provider:'supabase',supabaseUrl:'https://qa-supabase.invalid',
+        supabasePublishableKey:'qa-publishable-key',institutionId:'school-1'
+      };
+      const never=new Promise(()=>{});
+      window.supabase={createClient:()=>({
+        auth:{
+          onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
+          getSession:()=>never,
+          signOut:()=>Promise.resolve({error:null})
+        }
+      })};
+    });
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/data-runtime.js'});
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/admissions-cloud.js'});
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/mobile-nav-core.js'});
+    await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
+    await authPage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:1800});
+    await authPage.waitForFunction(()=>window.EDUNIZAM_CLOUD?.state?.initialized&&window.EDUNIZAM_CLOUD?.state?.sessionRestoreStatus==='timeout',null,{timeout:5000});
+    const hungRestore=await authPage.evaluate(()=>({
+      guardPresent:!!document.getElementById('cloudAuthScreen'),
+      authState:document.documentElement.dataset.authState||'',
+      restoreStatus:window.EDUNIZAM_CLOUD?.state?.sessionRestoreStatus||'',
+      initialized:window.EDUNIZAM_CLOUD?.state?.initialized===true,
+      session:JSON.parse(localStorage.getItem('edunizam_session')||'null')
+    }));
+    if(hungRestore.guardPresent||!hungRestore.session||!hungRestore.initialized||hungRestore.restoreStatus!=='timeout'){
+      pushFailure('auth hung restore','Hung Supabase getSession blocked or evicted the valid local workspace',JSON.stringify(hungRestore));
+    }
+    if(!['WORKSPACE_READY','OFFLINE_READY','BACKGROUND_SYNC'].includes(hungRestore.authState)){
+      pushFailure('auth hung restore','Hung Supabase getSession left the app in a blocking auth state',JSON.stringify(hungRestore));
+    }
+
     // Temporary session restoration failures must preserve a valid local shell.
     await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});
     await authPage.evaluate(()=>{
