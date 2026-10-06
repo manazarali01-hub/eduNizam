@@ -138,14 +138,16 @@
     finally{if(btn)btn.disabled=false}
   }
 
-  async function acknowledgePublishedReport(id){
-    if(!cloudReady()||!['student','parent'].includes(role()))return;
+  async function acknowledgePublishedReport(id,btn){
+    if(!cloudReady()||!['student','parent'].includes(role())||btn?.disabled)return;
+    if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
     try{
       const {error}=await cloud().state.client.rpc('acknowledge_report_card_v1',{p_publication_id:id});
       if(error)throw error;
       window.EDUNIZAM_PREMIUM?.toast?.('Report marked as seen.','success');
       await loadPublishedReports();
     }catch(e){alert('Could not acknowledge report: '+(e.message||e))}
+    finally{if(btn){btn.disabled=false;btn.removeAttribute('aria-busy')}}
   }
 
   async function loadPublishedReports(){
@@ -173,7 +175,7 @@
         return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">Official</span><span class="mini-badge">v'+esc(x.version_no||1)+'</span></div><span class="mini-badge">'+esc(x.report_type||'Report')+'</span></div><h3>'+esc(x.core_students?.name||snap.student?.name||'Student')+'</h3><p class="muted">'+esc(x.core_students?.class_name||snap.student?.className||'-')+(x.core_students?.section_name?' · '+esc(x.core_students.section_name):'')+' · '+esc(x.published_at?new Date(x.published_at).toLocaleDateString():'')+'</p><p><strong>'+esc(snap.overall??0)+'%</strong> · Grade '+esc(snap.grade||'')+' · '+esc(snap.status||'')+'</p>'+seenText+'<div class="paper-actions"><button class="secondary" data-rd-pub-print="'+esc(x.id)+'">Open / Print</button>'+((!staff&&!mine)?'<button data-rd-pub-ack="'+esc(x.id)+'">Mark as Seen</button>':'')+'</div></article>';
       }).join('')+'</div>':'<div class="empty-state">No official report cards published yet.</div>';
       document.querySelectorAll('[data-rd-pub-print]').forEach(b=>b.onclick=()=>printPublishedReport(rows.find(x=>String(x.id)===String(b.dataset.rdPubPrint))));
-      document.querySelectorAll('[data-rd-pub-ack]').forEach(b=>b.onclick=()=>acknowledgePublishedReport(b.dataset.rdPubAck));
+      document.querySelectorAll('[data-rd-pub-ack]').forEach(b=>b.onclick=()=>acknowledgePublishedReport(b.dataset.rdPubAck,b));
     }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load published reports.')+'</div>'}
   }
 
