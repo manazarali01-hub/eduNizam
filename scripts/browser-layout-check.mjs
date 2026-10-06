@@ -207,6 +207,113 @@ try{
     }
   }
 
+  // Guest/public learning runtime: no login, school selection, or private workspace may be required.
+  const guestPage=await browser.newPage({
+    javaScriptEnabled:true,
+    viewport:{width:390,height:844},
+    isMobile:true,
+    hasTouch:true,
+    serviceWorkers:'block'
+  });
+  guestPage.setDefaultTimeout(6000);
+  guestPage.setDefaultNavigationTimeout(10000);
+  try{
+    await guestPage.route('**/*',route=>{
+      const requestUrl=new URL(route.request().url());
+      if(requestUrl.hostname==='127.0.0.1')route.continue();
+      else route.abort();
+    });
+    await guestPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:10000});
+    const guestEntry=guestPage.locator('a.guest-role[href="learn.html"]');
+    await guestEntry.waitFor({state:'visible',timeout:5000});
+    await guestEntry.tap({timeout:5000});
+    await guestPage.waitForURL(/\/learn\.html(?:#.*)?$/,{timeout:8000});
+
+    await guestPage.waitForFunction(()=>document.querySelectorAll('#homeCards .card').length>0&&document.getElementById('resourceCount')?.textContent!=='—',null,{timeout:8000});
+    const guestStart=await guestPage.evaluate(()=>({
+      url:location.pathname+location.hash,
+      searchVisible:!!document.getElementById('globalSearch')?.offsetParent,
+      homeCards:document.querySelectorAll('#homeCards .card').length,
+      resourceCount:document.getElementById('resourceCount')?.textContent||'',
+      privateGuard:!!document.getElementById('cloudAuthScreen')
+    }));
+    if(!guestStart.searchVisible||guestStart.homeCards<5||guestStart.privateGuard)pushFailure('guest learning','Continue as Guest did not land on a usable public Learning Hub',JSON.stringify(guestStart));
+
+    await guestPage.locator('.tabs .tab[data-tab="past"]').tap({timeout:5000});
+    await guestPage.waitForSelector('#past.section.active',{state:'visible',timeout:5000});
+    await guestPage.locator('#paperSearch').fill('Gujranwala Mathematics');
+    await guestPage.locator('#searchPapers').tap({timeout:5000});
+    await guestPage.waitForFunction(()=>String(document.getElementById('paperSummary')?.textContent||'').trim().length>0,null,{timeout:5000});
+    const pastState=await guestPage.evaluate(()=>({
+      active:document.querySelector('.section.active')?.id||'',
+      summary:(document.getElementById('paperSummary')?.textContent||'').trim(),
+      gridText:(document.getElementById('pastGrid')?.textContent||'').trim().length
+    }));
+    if(pastState.active!=='past'||!pastState.summary||pastState.gridText<20)pushFailure('guest learning','Past Papers search did not render a usable result state',JSON.stringify(pastState));
+
+    console.log('Guest step START: global public search');
+    await guestPage.locator('#globalSearch').fill('CS201 final term');
+    await guestPage.locator('#runGlobalSearch').tap({timeout:5000});
+    await guestPage.waitForSelector('#globalResults',{state:'visible',timeout:5000});
+    const globalState=await guestPage.evaluate(()=>({
+      active:document.querySelector('.section.active')?.id||'',
+      hash:location.hash,
+      text:(document.getElementById('globalResults')?.textContent||'').trim()
+    }));
+    if(globalState.active!=='home'||globalState.text.length<30||!/CS201|Virtual University|VU/i.test(globalState.text)){
+      pushFailure('guest learning','Global public search did not render relevant unified results',JSON.stringify({active:globalState.active,hash:globalState.hash,text:globalState.text.slice(0,260)}));
+    }
+    console.log('Guest step PASS: global public search');
+
+    await guestPage.locator('#clearSearch').tap({timeout:5000});
+    const cleared=await guestPage.locator('#globalSearch').inputValue();
+    if(cleared!=='')pushFailure('guest learning','Clear Search did not reset the global learning search',JSON.stringify({cleared}));
+
+    console.log('Guest step START: VU specific search');
+    await guestPage.locator('.tabs .tab[data-tab="vu"]').tap({timeout:5000});
+    await guestPage.waitForSelector('#vu.section.active',{state:'visible',timeout:5000});
+    await guestPage.locator('#vuGuestSearch').fill('CS201 final term');
+    await guestPage.locator('#vuGuestSearchBtn').tap({timeout:5000});
+    await guestPage.waitForFunction(()=>String(document.getElementById('vuSummary')?.textContent||'').trim().length>0,null,{timeout:5000});
+    const vuState=await guestPage.evaluate(()=>({
+      active:document.querySelector('.section.active')?.id||'',
+      summary:(document.getElementById('vuSummary')?.textContent||'').trim(),
+      gridText:(document.getElementById('vuGrid')?.textContent||'').trim()
+    }));
+    if(vuState.active!=='vu'||!vuState.summary||vuState.gridText.length<20)pushFailure('guest learning','VU-specific search did not render a usable result state',JSON.stringify({active:vuState.active,summary:vuState.summary,text:vuState.gridText.slice(0,260)}));
+    console.log('Guest step PASS: VU specific search');
+
+    await guestPage.locator('#clearSearch').tap({timeout:5000});
+    console.log('Guest step START: Practice Center');
+    await guestPage.locator('.tabs .tab[data-tab="practice"]').tap({timeout:5000});
+    await guestPage.waitForSelector('#practice.section.active',{state:'visible',timeout:5000});
+    await guestPage.waitForSelector('#guestPracticeApply',{state:'visible',timeout:5000});
+    await guestPage.locator('#guestPracticeApply').tap({timeout:5000});
+    await guestPage.waitForFunction(()=>String(document.getElementById('practiceQuestion')?.textContent||'').trim().length>5,null,{timeout:5000});
+    await guestPage.waitForSelector('#guestPracticeNext',{state:'visible',timeout:5000});
+    const q1=await guestPage.locator('#practiceQuestion').textContent();
+    await guestPage.locator('#guestPracticeNext').tap({timeout:5000});
+    await guestPage.waitForTimeout(80);
+    const practiceState=await guestPage.evaluate(()=>({
+      active:document.querySelector('.section.active')?.id||'',
+      question:(document.getElementById('practiceQuestion')?.textContent||'').trim(),
+      summary:(document.getElementById('guestPracticeSummary')?.textContent||document.getElementById('practiceGuestSummary')?.textContent||'').trim()
+    }));
+    if(practiceState.active!=='practice'||practiceState.question.length<5||practiceState.summary.length<5)pushFailure('guest learning','Practice Center did not remain usable after Next Question',JSON.stringify({q1,practiceState}));
+    console.log('Guest step PASS: Practice Center');
+
+    console.log('Guest step START: mobile scroll');
+    await guestPage.evaluate(()=>window.scrollTo(0,Math.min(document.documentElement.scrollHeight-500,1400)));
+    await guestPage.waitForTimeout(80);
+    const guestScroll=await guestPage.evaluate(()=>({y:window.scrollY,height:document.documentElement.scrollHeight,bodyOverflow:getComputedStyle(document.body).overflow}));
+    if(guestScroll.y<100)pushFailure('guest learning','Public Learning Hub could not scroll on mobile',JSON.stringify(guestScroll));
+    console.log('Guest step PASS: mobile scroll');
+  }catch(e){
+    pushFailure('guest learning','Guest Login -> Learning Hub interaction regression failed',e.message||String(e));
+  }finally{
+    await guestPage.close();
+  }
+
   console.log('Layout QA static viewport sweep complete. Starting auth/mobile runtime contract.');
   // Production auth/mobile regression: login handoff must open the workspace
   // immediately, and network verification must never own the hamburger or scroll.
