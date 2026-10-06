@@ -158,6 +158,7 @@ jobs:
           verify_exact_file "teacher-paper-builder.js"
           verify_exact_file "premium-ui.css"
           verify_exact_file "edunizam-visual-system.css"
+          verify_exact_file "home-showcase.css"
           verify_exact_file "premium-ui.js"
           verify_exact_file "sw.js"
           verify_exact_file "pwa-install.js"
