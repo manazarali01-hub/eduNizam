@@ -235,7 +235,18 @@ try{
       });
       await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/data-runtime.js'});
       await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
-      await authPage.waitForSelector('#cloudAuthLogin',{state:'visible',timeout:3000});
+      try{
+        await authPage.waitForSelector('#cloudAuthLogin',{state:'visible',timeout:6000});
+      }catch(error){
+        const authDiag=await authPage.evaluate(()=>({
+          ready:document.readyState,
+          authState:document.documentElement.dataset.authState||'',
+          guardPresent:!!document.getElementById('cloudAuthScreen'),
+          guardText:(document.getElementById('cloudAuthScreen')?.textContent||'').trim().slice(0,240),
+          bodyText:(document.body?.textContent||'').trim().slice(0,240)
+        })).catch(()=>({diagnostic:'page evaluate failed'}));
+        throw new Error('Signed-out auth guard did not expose Login within 6s: '+JSON.stringify(authDiag)+' :: '+(error?.message||error));
+      }
     };
 
     await loadSignedOut();
@@ -438,7 +449,7 @@ try{
       const query=()=> {
         const result={data:[],error:null};
         const q={
-          select(){return q},eq(){return q},neq(){return q},in(){return q},order(){return q},limit(){return q},
+          select(){return q},eq(){return q},neq(){return q},in(){return q},gte(){return q},lte(){return q},gt(){return q},lt(){return q},like(){return q},ilike(){return q},order(){return q},limit(){return q},
           insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
           maybeSingle(){return Promise.resolve({data:null,error:null})},
           single(){return Promise.resolve({data:null,error:null})},
