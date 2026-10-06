@@ -168,6 +168,16 @@ for(const marker of ["#practiceExplorer select,#practiceExplorer button","min-he
 }
 learn.includes("(window.EDUNIZAM_PUBLIC_LINKS||[]).length")?ok("learning:public-count"):bad("learning:public-count","overview excludes public portal links");
 
+// 3c) Parent-student link lifecycle regression guards
+const admissionsPortal=read("admissions-portal.js");
+html.includes('id="parentStudentCode"')?ok("access:parent-link-student-code"):bad("access:parent-link-student-code","Admissions parent link must use Student Code.");
+!html.includes('id="parentStudentUserId"')?ok("access:no-legacy-parent-uuid-input"):bad("access:no-legacy-parent-uuid-input","Legacy Student UUID parent-link input remains.");
+admissionsPortal.includes("requestParentLinkByStudentCode(studentCode)")?ok("access:parent-link-current-rpc"):bad("access:parent-link-current-rpc","Parent link request must call the scoped Student Code RPC.");
+!admissionsPortal.includes("requestParentStudentLink(id)")?ok("access:no-disabled-parent-link-call"):bad("access:no-disabled-parent-link-call","Disabled legacy parent-link call remains in Admissions portal.");
+admissionsPortal.includes("x.parent_name||'Parent / Guardian'")&&admissionsPortal.includes("x.student_name||'Student'")?ok("access:parent-link-readable-admin-list"):bad("access:parent-link-readable-admin-list","Admin parent-link list must show readable parent/student names.");
+const parentLinkMigration="supabase/migrations/20261006133812_parent_link_notifications.sql";
+exists(parentLinkMigration)&&read(parentLinkMigration).includes("notify_parent_student_link_v1")?ok("access:parent-link-notifications"):bad("access:parent-link-notifications","Parent link notification migration missing.");
+
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
 for(const p of jsFiles){
