@@ -391,6 +391,26 @@ try{
     hasTouch:true,
     serviceWorkers:'block'
   });
+  loginFlowPage.setDefaultTimeout(5000);
+  loginFlowPage.setDefaultNavigationTimeout(8000);
+  loginFlowPage.on('console',msg=>{
+    const text=msg.text();
+    if(msg.type()==='error'||/EduNizam|error|failed|timeout|warning/i.test(text))console.log('[login-flow browser '+msg.type()+'] '+text);
+  });
+  loginFlowPage.on('pageerror',error=>console.log('[login-flow pageerror] '+(error?.message||error)));
+  loginFlowPage.on('requestfailed',request=>console.log('[login-flow requestfailed] '+request.url()+' :: '+(request.failure()?.errorText||'unknown')));
+  const loginStep=async(label,fn)=>{
+    console.log('Full login step START: '+label);
+    const started=Date.now();
+    try{
+      const value=await fn();
+      console.log('Full login step PASS: '+label+' ('+(Date.now()-started)+'ms)');
+      return value;
+    }catch(error){
+      console.log('Full login step FAIL: '+label+' ('+(Date.now()-started)+'ms) :: '+(error?.message||error));
+      throw error;
+    }
+  };
   try{
     await loginFlowPage.addInitScript(()=>{
       const user={id:'user-1',email:'admin@example.test',user_metadata:{}};
@@ -447,16 +467,20 @@ try{
       status:200,contentType:'text/javascript',body:'/* Supabase stubbed by login regression test */'
     }));
 
-    await loginFlowPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:15000});
-    await loginFlowPage.locator('[data-role="admin"]').tap();
-    await loginFlowPage.locator('#loginSchoolName').fill('Test School');
-    await loginFlowPage.locator('#loginEmail').fill('admin@example.test');
-    await loginFlowPage.locator('#loginPassword').fill('correct-password');
-    await loginFlowPage.locator('#loginBtn').tap();
+    await loginStep('open login page',()=>loginFlowPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:8000}));
+    await loginStep('select Admin role',()=>loginFlowPage.locator('[data-role="admin"]').tap({timeout:5000}));
+    await loginStep('fill login fields',async()=>{
+      await loginFlowPage.locator('#loginSchoolName').fill('Test School',{timeout:5000});
+      await loginFlowPage.locator('#loginEmail').fill('admin@example.test',{timeout:5000});
+      await loginFlowPage.locator('#loginPassword').fill('correct-password',{timeout:5000});
+    });
+    await loginStep('submit Login',async()=>{
+      await loginFlowPage.locator('#loginBtn').tap({timeout:5000,noWaitAfter:true});
+    });
 
-    await loginFlowPage.waitForURL(/\/app\.html\?secureLogin=1$/,{timeout:5000})
+    await loginStep('redirect to app workspace',()=>loginFlowPage.waitForURL(/\/app\.html\?secureLogin=1$/,{timeout:5000}))
       .catch(e=>pushFailure('login contract','Successful Login did not redirect to app workspace',e.message));
-    await loginFlowPage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:5000})
+    await loginStep('mobile hamburger visible',()=>loginFlowPage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:5000}))
       .catch(e=>pushFailure('login contract','App mobile hamburger did not become visible after login',e.message));
 
     const openedApp=await loginFlowPage.evaluate(()=>({
