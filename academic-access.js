@@ -84,7 +84,9 @@
     if(document.querySelector('[data-view="notifications"]'))return;
     const nav=document.getElementById('nav');if(!nav)return;
     const b=document.createElement('button');b.className='nav-item';b.dataset.view='notifications';b.innerHTML='🔔  Notifications <span id="notificationCount"></span>';
-    const settings=nav.querySelector('[data-view="settings"]');settings?nav.insertBefore(b,settings):nav.appendChild(b);
+    const settings=nav.querySelector('[data-view="settings"]');
+    if(settings?.parentNode)settings.parentNode.insertBefore(b,settings);
+    else nav.appendChild(b);
     b.onclick=showNotifications;
     const main=document.querySelector('main');if(!main)return;
     const sec=document.createElement('section');sec.id='notifications';sec.className='view';
