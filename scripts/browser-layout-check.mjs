@@ -975,14 +975,15 @@ try{
         window.supabase={createClient:()=>client};
       },{role:roleCase.role,workspaceRole:roleCase.workspaceRole});
 
+      await rolePage.route('**/*',route=>{
+        const u=new URL(route.request().url());
+        if(u.hostname==='127.0.0.1')route.continue();
+        else if(u.hostname==='cdn.jsdelivr.net')route.fallback();
+        else route.abort();
+      });
       await rolePage.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
         status:200,contentType:'text/javascript',body:'/* Supabase stubbed by role auth regression */'
       }));
-      await rolePage.route('**/*',route=>{
-        const u=new URL(route.request().url());
-        if(u.hostname==='127.0.0.1'||u.hostname==='cdn.jsdelivr.net')route.continue();
-        else route.abort();
-      });
 
       console.log('Role auth START: '+roleCase.role);
       await rolePage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:10000});
