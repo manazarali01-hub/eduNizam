@@ -9,6 +9,17 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const canEdit=()=>['teacher','head'].includes(role());
+  const actorId=()=>String(cloud()?.state?.user?.id||identity());
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){
+      if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';
+      btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label;
+    }else{
+      btn.disabled=false;btn.removeAttribute('aria-busy');
+      if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}
+    }
+  }
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   function readSchedule(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
   function writeSchedule(v){localStorage.setItem(KEY,JSON.stringify(v))}
@@ -17,11 +28,20 @@
   function settings(){try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}}
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
   function visibleClasses(){
-    if(canEdit())return null;
+    if(role()==='head')return null;
     return new Set(visibleStudents().map(s=>String(s.className||'').trim()).filter(Boolean));
   }
   function classVisible(c){const set=visibleClasses();return set===null||set.has(String(c||'').trim())}
-  function mine(x){return role()==='head'||String(x.createdBy||'')===identity()}
+  function teacherCanManageClassSection(className,sectionName){
+    if(role()==='head')return true;
+    if(role()!=='teacher')return false;
+    const cls=String(className||'').trim().toLowerCase(),sec=String(sectionName||'').trim().toLowerCase();
+    return visibleStudents().some(s=>
+      String(s.className||'').trim().toLowerCase()===cls&&
+      String(s.sectionName||'').trim().toLowerCase()===sec
+    );
+  }
+  function mine(x){return role()==='head'||String(x.createdBy||'')===actorId()}
   let editingScheduleId='';
   function grade(p){if(p>=80)return'A+';if(p>=70)return'A';if(p>=60)return'B';if(p>=50)return'C';if(p>=40)return'D';return'F'}
 
@@ -121,15 +141,29 @@
     const className=$('exClass')?.value.trim(),sectionName=$('exSection')?.value.trim()||'',examName=$('exName')?.value,subject=$('exSubject')?.value.trim(),examDate=$('exDate')?.value,startTime=$('exTime')?.value,endTime=$('exEndTime')?.value,totalMarks=Number($('exTotal')?.value||0),roomLabel=$('exRoom')?.value.trim()||'',notes=$('exNotes')?.value.trim()||'';
     if(!className||!subject||!examDate||totalMarks<=0)return alert('Class, subject, date aur total marks complete karein.');
     if(startTime&&endTime&&endTime<=startTime)return alert('End time start time ke baad honi chahiye.');
+    if(role()==='teacher'&&!teacherCanManageClassSection(className,sectionName))return alert('Teacher sirf apni assigned class/section ka exam schedule manage kar sakta hai.');
     const arr=readSchedule(),existing=arr.find(x=>String(x.id)===String(editingScheduleId));
-    let item={id:editingScheduleId||String(Date.now()),className,sectionName,examName,subject,examDate,startTime,endTime,totalMarks,roomLabel,notes,createdBy:existing?.createdBy||identity(),createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+    const duplicate=arr.some(x=>
+      String(x.id)!==String(editingScheduleId)&&
+      String(x.className||'').trim().toLowerCase()===className.toLowerCase()&&
+      String(x.sectionName||'').trim().toLowerCase()===sectionName.toLowerCase()&&
+      String(x.examName||'').trim().toLowerCase()===String(examName||'').trim().toLowerCase()&&
+      String(x.subject||'').trim().toLowerCase()===subject.toLowerCase()&&
+      String(x.examDate||'')===String(examDate)
+    );
+    if(duplicate)return alert('Same class, section, exam, subject aur date ka schedule already exists.');
+    const btn=$('saveExamSchedule');if(btn?.disabled)return;setBusy(btn,true,'Saving...');
+    let item={id:editingScheduleId||String(Date.now()),className,sectionName,examName,subject,examDate,startTime,endTime,totalMarks,roomLabel,notes,createdBy:existing?.createdBy||actorId(),createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
     try{
       const row=editingScheduleId?await updateCloud(item):await insertCloud(item);
       if(row)item=mappedCloudRow(row);
-    }catch(e){if(cloudReady())return alert('Cloud schedule save failed: '+(e.message||e));}
-    if(editingScheduleId){const i=arr.findIndex(x=>String(x.id)===String(editingScheduleId));if(i>=0)arr[i]=item;else arr.push(item)}
-    else arr.push(item);
-    writeSchedule(arr);editingScheduleId='';render();
+      if(editingScheduleId){const i=arr.findIndex(x=>String(x.id)===String(editingScheduleId));if(i>=0)arr[i]=item;else arr.push(item)}
+      else arr.push(item);
+      writeSchedule(arr);editingScheduleId='';render();
+    }catch(e){
+      if(cloudReady())alert('Cloud schedule save failed. Nothing was saved locally: '+(e.message||e));
+      else alert('Schedule save failed: '+(e.message||e));
+    }finally{setBusy(btn,false)}
   }
   function editSchedule(id){const item=readSchedule().find(x=>String(x.id)===String(id));if(!item||!mine(item))return;editingScheduleId=String(id);render();setTimeout(()=>$('exClass')?.scrollIntoView({behavior:'smooth',block:'center'}),0)}
   function cancelEdit(){editingScheduleId='';render()}
