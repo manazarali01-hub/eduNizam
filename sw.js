@@ -1,4 +1,4 @@
-const CACHE='edunizam-v235-helpdesk-complaints'
+const CACHE='edunizam-v236-fee-payments'
 const CORE=[
   './',
   './index.html',
