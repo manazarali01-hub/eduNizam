@@ -1,0 +1,108 @@
+/* EduNizam homepage showcase overrides · 2026-10-06
+   Loaded after edunizam-visual-system.css so homepage visual accents stay visible. */
+
+.page-home .hero-image-wrap img{
+  object-position:center 38%!important;
+  transform:scale(1.08)!important;
+  transform-origin:center 38%!important;
+}
+.page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.10)!important}
+
+.page-home .experience-strip{
+  gap:10px!important;
+  padding:12px!important;
+  border:1px solid #c9dfef!important;
+  background:
+    radial-gradient(circle at 7% 0%,rgba(91,184,246,.18),transparent 17rem),
+    linear-gradient(135deg,#f5fbff 0%,#eaf7ff 52%,#fff7df 100%)!important;
+  box-shadow:0 20px 48px rgba(24,82,124,.12)!important;
+}
+.page-home .experience-strip article{
+  border:1px solid rgba(183,210,228,.92)!important;
+  border-radius:18px!important;
+  box-shadow:0 8px 20px rgba(31,83,121,.07)!important;
+}
+.page-home .experience-strip article:nth-child(1){background:linear-gradient(145deg,#e9f6ff,#ffffff)!important}
+.page-home .experience-strip article:nth-child(2){background:linear-gradient(145deg,#eaf9f1,#ffffff)!important}
+.page-home .experience-strip article:nth-child(3){background:linear-gradient(145deg,#fff2d4,#ffffff)!important}
+.page-home .experience-strip article:nth-child(4){background:linear-gradient(145deg,#eee9ff,#ffffff)!important}
+.page-home .experience-strip article:nth-child(5){background:linear-gradient(145deg,#ffe9e3,#ffffff)!important}
+.page-home .experience-strip article:nth-child(6){background:linear-gradient(145deg,#e8f8f7,#ffffff)!important}
+
+.page-home .role-showcase{
+  position:relative;
+  overflow:hidden;
+  padding:38px!important;
+  border:1px solid #bfe0d6!important;
+  border-radius:30px!important;
+  background:
+    radial-gradient(circle at 88% 6%,rgba(54,181,158,.20),transparent 21rem),
+    radial-gradient(circle at 6% 88%,rgba(91,184,246,.16),transparent 18rem),
+    linear-gradient(135deg,#effaf5 0%,#eaf7fb 52%,#f9fdff 100%)!important;
+  box-shadow:0 22px 58px rgba(25,87,101,.12)!important;
+}
+.page-home .role-showcase .eyebrow{color:#1e7a6d!important}
+.page-home .role-showcase .role-demo{
+  border-color:#c5e0dc!important;
+  background:rgba(255,255,255,.92)!important;
+  box-shadow:0 16px 38px rgba(28,91,102,.10)!important;
+}
+
+.page-home .value-section{
+  position:relative;
+  overflow:hidden;
+  padding:38px!important;
+  border:1px solid #e4d2aa!important;
+  border-radius:30px!important;
+  background:
+    radial-gradient(circle at 91% 8%,rgba(214,169,77,.22),transparent 20rem),
+    linear-gradient(135deg,#fffaf0 0%,#fff3df 54%,#fffdf8 100%)!important;
+  box-shadow:0 22px 58px rgba(112,82,35,.11)!important;
+}
+.page-home .value-section .eyebrow{color:#986515!important}
+.page-home .value-section .public-card:nth-child(1){
+  border-color:#bddced!important;
+  background:linear-gradient(155deg,#eaf6ff 0%,#ffffff 84%)!important;
+}
+.page-home .value-section .public-card:nth-child(2){
+  border-color:#c2e1d0!important;
+  background:linear-gradient(155deg,#eaf8ef 0%,#ffffff 84%)!important;
+}
+.page-home .value-section .public-card:nth-child(3){
+  border-color:#e4c98d!important;
+  background:linear-gradient(155deg,#fff0c9 0%,#ffffff 84%)!important;
+}
+.page-home .value-section .public-card:nth-child(1):before{background:linear-gradient(90deg,#2f80ed,#78c6f4)!important}
+.page-home .value-section .public-card:nth-child(2):before{background:linear-gradient(90deg,#2e9b7f,#74cbb2)!important}
+.page-home .value-section .public-card:nth-child(3):before{background:linear-gradient(90deg,#d6a94d,#efc978)!important}
+
+.page-home .learning-band{
+  border-color:#5a77c3!important;
+  background:
+    radial-gradient(circle at 86% 8%,rgba(139,213,255,.26),transparent 18rem),
+    radial-gradient(circle at 14% 92%,rgba(151,125,255,.22),transparent 20rem),
+    linear-gradient(135deg,#0d3157 0%,#24589a 46%,#5768c9 118%)!important;
+  box-shadow:0 28px 72px rgba(31,65,128,.26)!important;
+}
+.page-home .resource-card.r1{background:linear-gradient(145deg,#edf7ff,#ffffff)!important}
+.page-home .resource-card.r2{background:linear-gradient(145deg,#f0ecff,#ffffff)!important}
+.page-home .resource-card.r3{background:linear-gradient(145deg,#eaf8f0,#ffffff)!important}
+
+.page-home .public-disclaimer .public-note{
+  border-color:#dfc98f!important;
+  background:linear-gradient(135deg,#fff4d7,#fffdf5)!important;
+  color:#705a35!important;
+  box-shadow:0 12px 30px rgba(122,89,37,.08)!important;
+}
+
+@media(max-width:680px){
+  .page-home .role-showcase,
+  .page-home .value-section{padding:24px 17px!important;border-radius:24px!important}
+  .page-home .experience-strip{gap:7px!important}
+  .page-home .hero-image-wrap img{transform:scale(1.06)!important}
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.07)!important}
+}
+@media(max-width:360px){
+  .page-home .role-showcase,
+  .page-home .value-section{padding:20px 13px!important;border-radius:20px!important}
+}
