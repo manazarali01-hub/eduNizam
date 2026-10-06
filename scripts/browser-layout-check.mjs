@@ -530,6 +530,31 @@ try{
     }));
     if(afterLoginInteraction.scrollY<100)pushFailure('login contract','Page scrolling remains frozen after successful Login',JSON.stringify(afterLoginInteraction));
     if(afterLoginInteraction.locked||afterLoginInteraction.backdropPointer!=='none')pushFailure('login contract','Closed mobile navigation still blocks the page after Login',JSON.stringify(afterLoginInteraction));
+
+    // Primary Admin flow contract: core sections must remain clickable after login.
+    for(const view of ['students','attendance','fees','results','settings']){
+      await loginStep('open '+view+' section',async()=>{
+        await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
+        await loginFlowPage.evaluate(view=>{
+          const button=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const group=button?.closest('details');
+          if(group)group.open=true;
+        },view);
+        const button=loginFlowPage.locator('.nav-item[data-view="'+view+'"]');
+        await button.tap({timeout:5000});
+        await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
+      });
+      const sectionState=await boundedEvaluate('inspect '+view+' responsiveness',()=>({
+        active:document.querySelector('.view.active')?.id||'',
+        guardPresent:!!document.getElementById('cloudAuthScreen'),
+        locked:document.body.classList.contains('mobile-nav-lock'),
+        backdropPointer:getComputedStyle(document.getElementById('eduMobileNavBackdrop')).pointerEvents,
+        menuOpen:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false
+      }),5000);
+      if(sectionState.active!==view||sectionState.guardPresent||sectionState.locked||sectionState.backdropPointer!=='none'||sectionState.menuOpen){
+        pushFailure('admin primary navigation',view+' did not settle to a usable state',JSON.stringify(sectionState));
+      }
+    }
   }catch(e){
     pushFailure('login contract','Full Login -> dashboard interaction regression failed',e.message||String(e));
   }finally{
