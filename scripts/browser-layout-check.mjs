@@ -411,6 +411,10 @@ try{
       throw error;
     }
   };
+  const boundedEvaluate=(label,fn,timeout=5000)=>loginStep(label,()=>Promise.race([
+    loginFlowPage.evaluate(fn),
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' main-thread timeout after '+timeout+'ms')),timeout))
+  ]));
   try{
     await loginFlowPage.addInitScript(()=>{
       const user={id:'user-1',email:'admin@example.test',user_metadata:{}};
@@ -483,7 +487,7 @@ try{
     await loginStep('mobile hamburger visible',()=>loginFlowPage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:5000}))
       .catch(e=>pushFailure('login contract','App mobile hamburger did not become visible after login',e.message));
 
-    const openedApp=await loginFlowPage.evaluate(()=>({
+    const openedApp=await boundedEvaluate('inspect opened app state',()=>({
       guardPresent:!!document.getElementById('cloudAuthScreen'),
       dashboardActive:document.getElementById('dashboard')?.classList.contains('active')||false,
       handoff:JSON.parse(sessionStorage.getItem('edunizam_secure_login_handoff')||'null'),
@@ -499,18 +503,18 @@ try{
 
     await loginFlowPage.locator('#eduMobileMenuBtn').tap();
     await loginFlowPage.waitForTimeout(80);
-    const menuOpen=await loginFlowPage.evaluate(()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false);
+    const menuOpen=await boundedEvaluate('inspect opened mobile menu',()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false);
     if(!menuOpen)pushFailure('login contract','Hamburger is not clickable after successful Login');
 
     await loginFlowPage.locator('#eduMobileNavClose').tap();
     await loginFlowPage.waitForTimeout(80);
-    await loginFlowPage.evaluate(()=>{
+    await boundedEvaluate('prepare scroll probe',()=>{
       const spacer=document.createElement('div');
       spacer.id='qaScrollSpacer';spacer.style.height='1800px';document.querySelector('.main')?.appendChild(spacer);
       window.scrollTo(0,700);
     });
     await loginFlowPage.waitForTimeout(80);
-    const afterLoginInteraction=await loginFlowPage.evaluate(()=>({
+    const afterLoginInteraction=await boundedEvaluate('inspect scroll and overlay state',()=>({
       scrollY:window.scrollY,
       locked:document.body.classList.contains('mobile-nav-lock'),
       backdropPointer:getComputedStyle(document.getElementById('eduMobileNavBackdrop')).pointerEvents
