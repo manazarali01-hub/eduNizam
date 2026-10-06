@@ -184,10 +184,10 @@
 }
 .gold-home .hero-image-wrap img{
   width:100%;height:100%;display:block;object-fit:cover;object-position:56% center;
-  transform:scale(1.01);
+  transform:scale(1.08);
   transition:transform .8s var(--en-ease);
 }
-.gold-home .public-hero:hover .hero-image-wrap img{transform:scale(1.03)}
+.gold-home .public-hero:hover .hero-image-wrap img{transform:scale(1.10)}
 .gold-home .hero-image-shade{
   position:absolute;inset:0;pointer-events:none;
   background:
