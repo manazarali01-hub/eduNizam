@@ -85,7 +85,7 @@
     const nav=document.getElementById('nav');if(!nav)return;
     const b=document.createElement('button');b.className='nav-item';b.dataset.view='notifications';b.innerHTML='🔔  Notifications <span id="notificationCount"></span>';
     const settings=nav.querySelector('[data-view="settings"]');
-    if(settings?.parentNode)settings.parentNode.insertBefore(b,settings);
+    if(settings?.isConnected)settings.before(b);
     else nav.appendChild(b);
     b.onclick=showNotifications;
     const main=document.querySelector('main');if(!main)return;
