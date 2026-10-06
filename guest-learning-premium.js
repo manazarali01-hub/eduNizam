@@ -171,11 +171,15 @@ function emptyState(query){
  return '<div class="smart-empty"><h3>Exact resource not available yet.</h3><p>EduNizam did not find a genuine indexed match for “'+esc(query)+'”. Try a broader term or open a trusted resource center.</p><div class="related-row"><button data-tab="past">Past Papers</button><button data-tab="vu">Virtual University</button><button data-tab="grade">PECTA Grade 5/8</button><button data-tab="study">Study Library</button><button data-tab="ecosystem">Admissions & Opportunities</button><button data-tab="pathways">Exam Pathways</button><button data-clear-smart>Reset search</button></div></div>';
 }
 function resourceCard(r){
- const fav=favorites().some(x=>x.id===r.id),url=String(r.url||'').trim(),studyId=String(r.id||'').startsWith('study:')?String(r.id).slice(6):'',practiceId=String(r.id||'').startsWith('practice:'),builtIn=!!(studyId&&r.content&&!url);const meta=[r.board,r.classLevel&&((Number(r.classLevel)<=8?'Grade ':'Class ')+r.classLevel),r.subject,r.year,r.session,r.type].filter(Boolean);
+ const fav=favorites().some(x=>x.id===r.id),url=String(r.url||'').trim(),isPdf=/\.pdf(?:$|[?#])/i.test(url),studyId=String(r.id||'').startsWith('study:')?String(r.id).slice(6):'',practiceId=String(r.id||'').startsWith('practice:'),builtIn=!!(studyId&&r.content&&!url);const meta=[r.board,r.classLevel&&((Number(r.classLevel)<=8?'Grade ':'Class ')+r.classLevel),r.subject,r.year,r.session,r.type].filter(Boolean);
  let actions='<div class="guest-actions">';
  if(practiceId)actions+='<button class="primary-action" data-start-practice data-practice-class="'+esc(r.classLevel)+'" data-practice-subject="'+esc(r.subject||'')+'">Start Practice</button>';
  else if(builtIn)actions+='<button class="primary-action" data-study-id="'+esc(studyId)+'">Read Now</button>';
- else if(url)actions+='<button class="primary-action" data-preview-id="'+esc(r.id)+'">Preview</button><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open</a><button data-share-id="'+esc(r.id)+'">Share</button>';
+ else if(url){
+   actions+='<button class="primary-action" data-preview-id="'+esc(r.id)+'">Preview</button><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open</a>';
+   if(isPdf)actions+='<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" download>Download / Open PDF</a>';
+   actions+='<button data-share-id="'+esc(r.id)+'">Share</button>';
+ }
  else actions+='<button class="primary-action" type="button" disabled aria-disabled="true">Source unavailable</button>';
  actions+='<button class="'+(fav?'favorite-on':'')+'" data-fav-id="'+esc(r.id)+'">'+(fav?'★ Saved':'☆ Save')+'</button></div>';
  return '<article class="card resource-card"><span class="badge '+(r.source==='official'?'official':r.source==='verified'?'verified':'builtin')+'">'+esc(r.source==='official'?'Official Source':r.source==='verified'?'External Study Resource':'EduNizam Resource')+'</span><h3>'+esc(r.title)+'</h3><p>'+esc(r.description||'Public educational resource.')+'</p><div class="meta">'+meta.map(x=>'<span class="badge">'+esc(x)+'</span>').join('')+'</div>'+actions+'</article>';
@@ -459,20 +463,47 @@ function applyPracticeFilters(){
  renderGuestPractice();
 }
 function studyCard(x){if(x.url||x.fileUrl)return resourceCard({id:'study:'+x.id,title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,type:x.type,board:x.board,classLevel:(x.classLevels||[]).join('/'),subject:x.subject,section:'study'});return '<article class="card"><span class="badge builtin">EduNizam Resource</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.note||'Built-in study material available instantly.')+'</p><div class="meta"><span class="badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.type)+'</span></div><div class="guest-actions"><button class="primary-action" data-study-id="'+esc(x.id)+'">Read Now</button><button data-fav-id="study:'+esc(x.id)+'">☆ Save</button></div></article>'}
-function openStudy(id){const x=(window.EDUNIZAM_STUDY_DATA?.materials||[]).find(v=>v.id===id);if(!x)return;let m=$('premiumResourceModal');if(!m){openPreview('study:'+id);m=$('premiumResourceModal')}if(!m){m=document.createElement('div');m.id='premiumResourceModal';m.className='premium-modal';m.innerHTML='<div class="premium-dialog"><div class="premium-dialog-head"><h2 id="premiumPreviewTitle"></h2><button class="btn" data-close-premium>Close</button></div><div id="premiumPreviewMeta" class="premium-meta"></div><p id="premiumPreviewDesc"></p><div id="premiumPreviewBody"></div><div id="premiumPreviewActions" class="guest-actions"></div></div>';document.body.appendChild(m)}$('premiumPreviewTitle').textContent=x.title;$('premiumPreviewMeta').innerHTML='<span class="badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.type)+'</span>';$('premiumPreviewDesc').textContent=x.note||'';$('premiumPreviewBody').innerHTML='<div class="notice" style="white-space:pre-wrap">'+esc(x.content||'')+'</div>';$('premiumPreviewActions').innerHTML='<button onclick="window.print()">Print</button><button data-fav-id="study:'+esc(x.id)+'">☆ Save</button>';m.classList.add('open')}
+function ensurePremiumModal(){
+ let m=$('premiumResourceModal');
+ if(m)return m;
+ m=document.createElement('div');m.id='premiumResourceModal';m.className='premium-modal';m.setAttribute('aria-hidden','true');
+ m.innerHTML='<div class="premium-dialog" role="dialog" aria-modal="true" aria-labelledby="premiumPreviewTitle"><div class="premium-dialog-head"><h2 id="premiumPreviewTitle" style="margin:0"></h2><button class="btn" type="button" data-close-premium>Close</button></div><div id="premiumPreviewMeta" class="premium-meta"></div><p id="premiumPreviewDesc"></p><div id="premiumPreviewBody"></div><div id="premiumPreviewActions" class="guest-actions"></div></div>';
+ document.body.appendChild(m);return m;
+}
+function showPremiumModal(m){
+ m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.classList.add('guest-modal-open');
+ requestAnimationFrame(()=>m.querySelector('[data-close-premium]')?.focus({preventScroll:true}));
+}
+function printBuiltInStudy(id){
+ const x=(window.EDUNIZAM_STUDY_DATA?.materials||[]).find(v=>v.id===id);if(!x)return;
+ const w=window.open('','_blank','width=860,height=720');if(!w)return alert('Popup blocked. Browser mein popups allow karke dobara Print karein.');
+ w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(x.title)+'</title><style>body{font-family:Arial,sans-serif;padding:32px;line-height:1.6;color:#17324a;max-width:820px;margin:auto}h1{font-size:24px}.meta{color:#667;margin-bottom:20px}.content{white-space:pre-wrap;border-top:1px solid #d9e2e7;padding-top:18px}@media print{body{padding:0}}</style></head><body><h1>'+esc(x.title)+'</h1><div class="meta">'+esc(x.subject||'')+' · '+esc(x.type||'')+'</div><div class="content">'+esc(x.content||'')+'</div></body></html>');
+ w.document.close();w.focus();setTimeout(()=>{try{w.print()}catch(_){}},120);
+}
+function openStudy(id){
+ const x=(window.EDUNIZAM_STUDY_DATA?.materials||[]).find(v=>v.id===id);if(!x)return;
+ const m=ensurePremiumModal();
+ $('premiumPreviewTitle').textContent=x.title;
+ $('premiumPreviewMeta').innerHTML='<span class="badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.type)+'</span>';
+ $('premiumPreviewDesc').textContent=x.note||'';
+ $('premiumPreviewBody').innerHTML='<div class="notice" style="white-space:pre-wrap">'+esc(x.content||'')+'</div>';
+ $('premiumPreviewActions').innerHTML='<button type="button" data-print-study-id="'+esc(x.id)+'">Print Resource</button><button type="button" data-fav-id="study:'+esc(x.id)+'">'+(favorites().some(v=>v.id==='study:'+x.id)?'★ Saved':'☆ Save')+'</button>';
+ showPremiumModal(m);
+}
 function injectSaved(){
  const home=$('home');if(!home)return;const sec=document.createElement('div');sec.className='saved-panel card';sec.innerHTML='<div class="saved-head"><div><h3 style="margin:0">My Saved Resources</h3><p style="margin:4px 0 0">Saved locally on this browser — no login required.</p></div><button class="btn" id="clearFavorites">Clear all</button></div><div id="savedResources" class="grid" style="margin-top:14px"></div>';home.appendChild(sec);$('clearFavorites').onclick=()=>{setJSON(FKEY,[]);renderSaved()};renderSaved();
 }
 function renderSaved(){const box=$('savedResources');if(!box)return;const ids=favorites().map(x=>x.id),map=new Map(allResources().map(x=>[x.id,x]));const rows=ids.map(id=>map.get(id)).filter(Boolean);box.innerHTML=rows.length?rows.map(resourceCard).join(''):'<div class="empty">No saved resources yet. Use ☆ Save on any resource.</div>'}
 function openPreview(id){
- const r=allResources().find(x=>x.id===id);if(!r)return;if(!r.url&&r.content&&String(r.id).startsWith('study:')){openStudy(String(r.id).slice(6));return}let m=$('premiumResourceModal');if(!m){m=document.createElement('div');m.id='premiumResourceModal';m.className='premium-modal';m.innerHTML='<div class="premium-dialog" role="dialog" aria-modal="true" aria-labelledby="premiumPreviewTitle"><div class="premium-dialog-head"><h2 id="premiumPreviewTitle" style="margin:0"></h2><button class="btn" data-close-premium>Close</button></div><div id="premiumPreviewMeta" class="premium-meta"></div><p id="premiumPreviewDesc"></p><div id="premiumPreviewBody"></div><div id="premiumPreviewActions" class="guest-actions"></div></div>';document.body.appendChild(m)}
+ const r=allResources().find(x=>x.id===id);if(!r)return;if(!r.url&&r.content&&String(r.id).startsWith('study:')){openStudy(String(r.id).slice(6));return}
+ const m=ensurePremiumModal();
  $('premiumPreviewTitle').textContent=r.title;$('premiumPreviewDesc').textContent=r.description||'';
  $('premiumPreviewMeta').innerHTML=[r.board,r.classLevel&&('Class '+r.classLevel),r.subject,r.year,r.session,r.type,r.source==='official'?'Official Source':'External / EduNizam Resource'].filter(Boolean).map(x=>'<span class="badge">'+esc(x)+'</span>').join('');
  const isPdf=/\.pdf(?:$|[?#])/i.test(r.url||'');$('premiumPreviewBody').innerHTML=isPdf?'<iframe class="premium-preview-frame" src="'+esc(r.url)+'" title="'+esc(r.title)+'"></iframe>':'<div class="notice">This source is a web page rather than a directly hosted document. Open it at the source to view the genuine content.</div>';
- $('premiumPreviewActions').innerHTML='<a class="primary-action" href="'+esc(r.url||'#')+'" target="_blank" rel="noopener noreferrer">Open Source</a>'+(isPdf?'<button data-print-url="'+esc(r.url)+'">Print</button>':'')+'<button data-share-id="'+esc(r.id)+'">Share</button><button data-fav-id="'+esc(r.id)+'">'+(favorites().some(x=>x.id===r.id)?'★ Saved':'☆ Save')+'</button>';
- m.classList.add('open');document.body.classList.add('guest-modal-open');
+ $('premiumPreviewActions').innerHTML='<a class="primary-action" href="'+esc(r.url||'#')+'" target="_blank" rel="noopener noreferrer">Open Source</a>'+(isPdf?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer" download>Download / Open PDF</a><button type="button" data-print-url="'+esc(r.url)+'">Open PDF to Print</button>':'')+'<button type="button" data-share-id="'+esc(r.id)+'">Share</button><button type="button" data-fav-id="'+esc(r.id)+'">'+(favorites().some(x=>x.id===r.id)?'★ Saved':'☆ Save')+'</button>';
+ showPremiumModal(m);
 }
-function closePremium(){const m=$('premiumResourceModal');if(m)m.classList.remove('open');document.body.classList.remove('guest-modal-open')}
+function closePremium(){const m=$('premiumResourceModal');if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true');const frame=m.querySelector('iframe');if(frame)frame.src='about:blank'}document.body.classList.remove('guest-modal-open')}
 function toggleFav(id){let x=favorites();x=x.some(v=>v.id===id)?x.filter(v=>v.id!==id):[{id},...x];setJSON(FKEY,x);renderSaved();document.querySelectorAll('[data-fav-id="'+CSS.escape(id)+'"]').forEach(b=>{const on=x.some(v=>v.id===id);b.textContent=on?'★ Saved':'☆ Save';b.classList.toggle('favorite-on',on)})}
 async function shareResource(id){const r=allResources().find(x=>x.id===id);if(!r)return;try{if(navigator.share)await navigator.share({title:r.title,text:r.description||'',url:r.url});else{await navigator.clipboard.writeText(r.url);alert('Resource link copied.')}}catch(_){}}
 function selectAndFire(id,value){
@@ -527,7 +558,8 @@ function bind(){
   const st=e.target.closest('[data-study-id]');if(st){openStudy(st.dataset.studyId);return}
   if(e.target.closest('[data-close-premium]')){closePremium();return}
   if(e.target.closest('[data-clear-smart]')){$('globalSearch').value='';$('globalResults')?.remove();document.querySelector('.premium-tools')?.classList.remove('search-tools-collapsed');renderSuggestions();return}
-  const pr=e.target.closest('[data-print-url]');if(pr){const w=window.open(pr.dataset.printUrl,'_blank');if(w)setTimeout(()=>{try{w.print()}catch(_){}},900)}
+  const ps=e.target.closest('[data-print-study-id]');if(ps){printBuiltInStudy(ps.dataset.printStudyId);return}
+  const pr=e.target.closest('[data-print-url]');if(pr){const w=window.open(pr.dataset.printUrl,'_blank');if(!w)alert('Popup blocked. PDF ko Open Source se khol kar Print karein.');return}
  });
  $('searchPapers')?.addEventListener('click',()=>{saveRecent([$('paperBoard')?.selectedOptions[0]?.text,$('paperClass')?.selectedOptions[0]?.text,$('paperSubject')?.value,$('paperYear')?.value,$('paperSession')?.value].filter(x=>x&&!/^All/.test(x)).join(' '));setTimeout(enhancePastResults,0)});
  ['paperLevel','paperBoard','paperClass','paperSubject','paperYear','paperType','paperSession'].forEach(id=>$(id)?.addEventListener('change',()=>setTimeout(()=>$('searchPapers')?.click(),0)));
