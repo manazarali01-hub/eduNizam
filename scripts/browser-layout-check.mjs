@@ -1255,6 +1255,304 @@ try{
       await context.close();
     }
   }
+
+  // First Admin school creation: verified signup must register the institution,
+  // persist the Head workspace and enter app.html through the secure handoff.
+  {
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+    const page=await context.newPage();
+    page.setDefaultTimeout(6000);
+    page.setDefaultNavigationTimeout(10000);
+    try{
+      await page.addInitScript(()=>{
+        const institutionId='44444444-4444-4444-8444-444444444444';
+        const user={id:'qa-admin-signup',email:'admin-signup@example.test',user_metadata:{}};
+        const workspace={
+          institution_id:institutionId,
+          institution_name:'QA Admin School',
+          institution_type:'School',
+          registration_number:'REG-QA-ADMIN',
+          school_registration_code:'AUTO-QA-ADMIN',
+          workspace_role:'head_of_institute'
+        };
+        const signedIn=()=>sessionStorage.getItem('qa_admin_signup_signed_in')==='1';
+        const query=()=>{
+          const result={data:[],error:null};
+          const q={
+            select(){return q},eq(){return q},neq(){return q},in(){return q},gte(){return q},lte(){return q},gt(){return q},lt(){return q},like(){return q},ilike(){return q},order(){return q},limit(){return q},
+            insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
+            maybeSingle(){return Promise.resolve({data:null,error:null})},
+            single(){return Promise.resolve({data:null,error:null})},
+            then(resolve,reject){return Promise.resolve(result).then(resolve,reject)}
+          };
+          return q;
+        };
+        const client={
+          auth:{
+            signUp:()=>{sessionStorage.setItem('qa_admin_signup_signed_in','1');return Promise.resolve({data:{user,session:{user}},error:null})},
+            signInWithPassword:()=>{sessionStorage.setItem('qa_admin_signup_signed_in','1');return Promise.resolve({data:{user,session:{user}},error:null})},
+            signOut:()=>{sessionStorage.removeItem('qa_admin_signup_signed_in');return Promise.resolve({error:null})},
+            getSession:()=>Promise.resolve({data:{session:signedIn()?{user}:null},error:null}),
+            getUser:()=>Promise.resolve({data:{user:signedIn()?user:null},error:null}),
+            resend:()=>Promise.resolve({error:null}),
+            resetPasswordForEmail:()=>Promise.resolve({error:null}),
+            verifyOtp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            updateUser:()=>Promise.resolve({data:{user},error:null}),
+            onAuthStateChange:(cb)=>{setTimeout(()=>cb('INITIAL_SESSION',signedIn()?{user}:null),0);return {data:{subscription:{unsubscribe(){}}}}}
+          },
+          rpc:(name,args={})=>{
+            if(name==='register_admin_school_v2'){
+              sessionStorage.setItem('qa_admin_register_rpc',JSON.stringify(args));
+              return Promise.resolve({data:{institution_id:institutionId},error:null});
+            }
+            if(name==='my_authorized_workspaces'){
+              const n=Number(sessionStorage.getItem('qa_admin_workspace_calls')||0)+1;
+              sessionStorage.setItem('qa_admin_workspace_calls',String(n));
+              return Promise.resolve({data:[workspace],error:null});
+            }
+            if(name==='is_platform_admin')return Promise.resolve({data:false,error:null});
+            return Promise.resolve({data:null,error:null});
+          },
+          from:()=>query(),
+          storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),remove:()=>Promise.resolve({error:null})})}
+        };
+        window.supabase={createClient:()=>client};
+      });
+      await page.route('**/*',route=>{
+        const u=new URL(route.request().url());
+        if(u.hostname==='127.0.0.1')route.continue();
+        else if(u.hostname==='cdn.jsdelivr.net')route.fallback();
+        else route.abort();
+      });
+      await page.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
+        status:200,contentType:'text/javascript',body:'/* Supabase stubbed by admin onboarding regression */'
+      }));
+
+      console.log('Admin onboarding START');
+      await page.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:10000});
+      await page.locator('[data-role="admin"]').tap({timeout:5000});
+      await page.locator('#signupTab').tap({timeout:5000});
+      await page.locator('#schoolName').fill('QA Admin School');
+      await page.locator('#fullName').fill('QA Admin');
+      await page.locator('#contactNumber').fill('03000000000');
+      await page.locator('#signupEmail').fill('admin-signup@example.test');
+      await page.locator('#signupPassword').fill('correct-password');
+      await page.locator('#schoolCode').fill('REG-QA-ADMIN');
+      await page.locator('#signupBtn').tap({timeout:5000,noWaitAfter:true});
+      await page.waitForURL(/\/app\.html\?secureLogin=1$/,{timeout:6000});
+      await page.waitForSelector('#roleSession',{state:'visible',timeout:6000});
+      const adminState=await page.evaluate(()=>({
+        rpc:(()=>{try{return JSON.parse(sessionStorage.getItem('qa_admin_register_rpc')||'null')}catch(_){return null}})(),
+        local:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch(_){return null}})(),
+        settings:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){return{}}})(),
+        flash:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_flash_message')||'null')}catch(_){return null}})(),
+        workspaceCalls:Number(sessionStorage.getItem('qa_admin_workspace_calls')||0),
+        label:(document.querySelector('#roleSession strong')?.textContent||'').trim(),
+        guardPresent:!!document.getElementById('cloudAuthScreen')
+      }));
+      if(adminState.rpc?.p_school_name!=='QA Admin School'||adminState.rpc?.p_registration_number!=='REG-QA-ADMIN'){
+        pushFailure('admin onboarding','Admin signup did not register the expected school payload',JSON.stringify(adminState));
+      }
+      if(adminState.guardPresent||adminState.local?.role!=='head'||adminState.local?.institutionId!=='44444444-4444-4444-8444-444444444444'||adminState.settings?.schoolName!=='QA Admin School'||!adminState.label.includes('Head')){
+        pushFailure('admin onboarding','First Admin school creation did not settle into the Head workspace',JSON.stringify(adminState));
+      }
+      if(adminState.workspaceCalls!==1)pushFailure('admin onboarding','Admin signup repeated workspace authorization instead of trusting the fresh handoff',JSON.stringify(adminState));
+      console.log('Admin onboarding PASS');
+    }catch(error){
+      pushFailure('admin onboarding','First Admin school creation regression failed',error?.message||String(error));
+    }finally{
+      await context.close();
+    }
+  }
+
+  // Signup email verification continuation: an unverified Teacher signup must
+  // preserve its pending request, accept OTP, then submit approval exactly once.
+  {
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+    const page=await context.newPage();
+    page.setDefaultTimeout(6000);
+    page.setDefaultNavigationTimeout(10000);
+    try{
+      await page.addInitScript(()=>{
+        const institutionId='55555555-5555-4555-8555-555555555555';
+        const user={id:'qa-email-verify',email:'verify-teacher@example.test',user_metadata:{},identities:[{id:'identity-1'}]};
+        const directory={institution_id:institutionId,institution_name:'QA Verify School',institution_type:'School',registration_number:'VERIFY-QA',school_registration_code:'VERIFY-QA-LOGIN'};
+        const query=()=>{
+          const result={data:[],error:null};
+          const q={
+            select(){return q},eq(){return q},neq(){return q},in(){return q},gte(){return q},lte(){return q},gt(){return q},lt(){return q},like(){return q},ilike(){return q},order(){return q},limit(){return q},
+            insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
+            maybeSingle(){return Promise.resolve({data:null,error:null})},
+            single(){return Promise.resolve({data:null,error:null})},
+            then(resolve,reject){return Promise.resolve(result).then(resolve,reject)}
+          };
+          return q;
+        };
+        const client={
+          auth:{
+            signUp:()=>Promise.resolve({data:{user,session:null},error:null}),
+            verifyOtp:(args)=>{sessionStorage.setItem('qa_verify_signup_otp',JSON.stringify(args));return Promise.resolve({data:{user,session:{user}},error:null})},
+            signOut:()=>{sessionStorage.setItem('qa_verify_signup_signed_out','1');return Promise.resolve({error:null})},
+            getSession:()=>Promise.resolve({data:{session:null},error:null}),
+            getUser:()=>Promise.resolve({data:{user:null},error:null}),
+            signInWithPassword:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            resend:()=>Promise.resolve({error:null}),
+            resetPasswordForEmail:()=>Promise.resolve({error:null}),
+            updateUser:()=>Promise.resolve({data:{user},error:null}),
+            onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})
+          },
+          rpc:(name,args={})=>{
+            if(name==='list_school_directory_v1'||name==='search_school_directory_v1')return Promise.resolve({data:[directory],error:null});
+            if(name==='submit_teacher_school_request_v1'){
+              sessionStorage.setItem('qa_verify_signup_rpc',JSON.stringify(args));
+              return Promise.resolve({data:{ok:true},error:null});
+            }
+            return Promise.resolve({data:null,error:null});
+          },
+          from:()=>query(),
+          storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),remove:()=>Promise.resolve({error:null})})}
+        };
+        window.supabase={createClient:()=>client};
+      });
+      await page.route('**/*',route=>{
+        const u=new URL(route.request().url());
+        if(u.hostname==='127.0.0.1')route.continue();
+        else if(u.hostname==='cdn.jsdelivr.net')route.fallback();
+        else route.abort();
+      });
+      await page.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
+        status:200,contentType:'text/javascript',body:'/* Supabase stubbed by signup verification regression */'
+      }));
+
+      console.log('Signup verification START');
+      await page.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:10000});
+      await page.locator('[data-role="teacher"]').tap({timeout:5000});
+      await page.waitForFunction(()=>[...document.querySelectorAll('#memberSchoolDropdown option')].some(o=>o.value==='55555555-5555-4555-8555-555555555555'),null,{timeout:6000});
+      await page.locator('#memberSchoolDropdown').selectOption('55555555-5555-4555-8555-555555555555');
+      await page.locator('#signupTab').tap({timeout:5000});
+      await page.locator('#fullName').fill('QA Verify Teacher');
+      await page.locator('#contactNumber').fill('03000000000');
+      await page.locator('#signupEmail').fill('verify-teacher@example.test');
+      await page.locator('#signupPassword').fill('correct-password');
+      await page.locator('#signupBtn').tap({timeout:5000});
+      await page.waitForSelector('#otpView:not(.hidden)',{state:'visible',timeout:6000});
+      const pendingBeforeOtp=await page.evaluate(()=>({
+        pending:!!localStorage.getItem('edunizam_pending_signup'),
+        verifyEmail:localStorage.getItem('edunizam_verify_email')
+      }));
+      if(!pendingBeforeOtp.pending||pendingBeforeOtp.verifyEmail!=='verify-teacher@example.test'){
+        pushFailure('signup verification','Unverified signup did not preserve its pending continuation state',JSON.stringify(pendingBeforeOtp));
+      }
+      await page.locator('#otpCode').fill('654321');
+      await page.locator('#verifyOtpBtn').tap({timeout:5000});
+      await page.waitForFunction(()=>/Teacher request sent/i.test(document.getElementById('statusBox')?.textContent||''),null,{timeout:6000});
+      const verifiedState=await page.evaluate(()=>({
+        otp:(()=>{try{return JSON.parse(sessionStorage.getItem('qa_verify_signup_otp')||'null')}catch(_){return null}})(),
+        rpc:(()=>{try{return JSON.parse(sessionStorage.getItem('qa_verify_signup_rpc')||'null')}catch(_){return null}})(),
+        signedOut:sessionStorage.getItem('qa_verify_signup_signed_out')==='1',
+        pending:localStorage.getItem('edunizam_pending_signup'),
+        verifyEmail:localStorage.getItem('edunizam_verify_email'),
+        loginVisible:!document.getElementById('loginForm')?.classList.contains('hidden')
+      }));
+      if(verifiedState.otp?.email!=='verify-teacher@example.test'||verifiedState.otp?.token!=='654321'||verifiedState.otp?.type!=='email'){
+        pushFailure('signup verification','Signup OTP verification used the wrong email/token/type',JSON.stringify(verifiedState));
+      }
+      if(verifiedState.rpc?.p_institution_id!=='55555555-5555-4555-8555-555555555555'||!verifiedState.signedOut||verifiedState.pending!==null||verifiedState.verifyEmail!==null||!verifiedState.loginVisible){
+        pushFailure('signup verification','Verified Teacher signup did not complete its approval request and cleanup',JSON.stringify(verifiedState));
+      }
+      console.log('Signup verification PASS');
+    }catch(error){
+      pushFailure('signup verification','Email verification continuation regression failed',error?.message||String(error));
+    }finally{
+      await context.close();
+    }
+  }
+
+  // Pending/rejected access must fail closed with a useful message, never hang
+  // or open a private workspace.
+  for(const accessCase of [
+    {role:'teacher',status:'pending',note:'',expect:'Waiting for School Admin approval'},
+    {role:'student',status:'rejected',note:'Profile mismatch',expect:'rejected by School Admin: Profile mismatch'}
+  ]){
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+    const page=await context.newPage();
+    page.setDefaultTimeout(6000);
+    page.setDefaultNavigationTimeout(10000);
+    try{
+      await page.addInitScript(({role,status,note})=>{
+        const institutionId='66666666-6666-4666-8666-666666666666';
+        const user={id:'qa-'+role+'-'+status,email:role+'-'+status+'@example.test',user_metadata:{}};
+        const directory={institution_id:institutionId,institution_name:'QA Approval State School',institution_type:'School',registration_number:'STATE-QA',school_registration_code:'STATE-QA-LOGIN'};
+        const makeQuery=(table)=>{
+          const result={data:[],error:null};
+          const q={
+            select(){return q},eq(){return q},neq(){return q},in(){return q},gte(){return q},lte(){return q},gt(){return q},lt(){return q},like(){return q},ilike(){return q},order(){return q},limit(){return q},
+            insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
+            maybeSingle(){return Promise.resolve(table==='school_access_requests'?{data:{status,review_note:note,requested_role:role,institution_id:institutionId},error:null}:{data:null,error:null})},
+            single(){return Promise.resolve({data:null,error:null})},
+            then(resolve,reject){return Promise.resolve(result).then(resolve,reject)}
+          };
+          return q;
+        };
+        const client={
+          auth:{
+            signInWithPassword:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            signOut:()=>{sessionStorage.setItem('qa_access_state_signed_out','1');return Promise.resolve({error:null})},
+            getSession:()=>Promise.resolve({data:{session:null},error:null}),
+            getUser:()=>Promise.resolve({data:{user:null},error:null}),
+            signUp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            resend:()=>Promise.resolve({error:null}),
+            resetPasswordForEmail:()=>Promise.resolve({error:null}),
+            verifyOtp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            updateUser:()=>Promise.resolve({data:{user},error:null}),
+            onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})
+          },
+          rpc:(name)=>{
+            if(name==='list_school_directory_v1'||name==='search_school_directory_v1')return Promise.resolve({data:[directory],error:null});
+            if(name==='my_authorized_workspaces')return Promise.resolve({data:[],error:null});
+            return Promise.resolve({data:null,error:null});
+          },
+          from:(table)=>makeQuery(table),
+          storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),remove:()=>Promise.resolve({error:null})})}
+        };
+        window.supabase={createClient:()=>client};
+      },accessCase);
+      await page.route('**/*',route=>{
+        const u=new URL(route.request().url());
+        if(u.hostname==='127.0.0.1')route.continue();
+        else if(u.hostname==='cdn.jsdelivr.net')route.fallback();
+        else route.abort();
+      });
+      await page.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
+        status:200,contentType:'text/javascript',body:'/* Supabase stubbed by approval-state regression */'
+      }));
+
+      console.log('Approval state START: '+accessCase.role+' '+accessCase.status);
+      await page.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:10000});
+      await page.locator('[data-role="'+accessCase.role+'"]').tap({timeout:5000});
+      await page.waitForFunction(()=>[...document.querySelectorAll('#memberSchoolDropdown option')].some(o=>o.value==='66666666-6666-4666-8666-666666666666'),null,{timeout:6000});
+      await page.locator('#memberSchoolDropdown').selectOption('66666666-6666-4666-8666-666666666666');
+      await page.locator('#loginEmail').fill(accessCase.role+'-'+accessCase.status+'@example.test');
+      await page.locator('#loginPassword').fill('correct-password');
+      await page.locator('#loginBtn').tap({timeout:5000});
+      await page.waitForFunction(expect=>(document.getElementById('statusBox')?.textContent||'').includes(expect),accessCase.expect,{timeout:6000});
+      const accessState=await page.evaluate(()=>({
+        status:(document.getElementById('statusBox')?.textContent||'').trim(),
+        signedOut:sessionStorage.getItem('qa_access_state_signed_out')==='1',
+        local:localStorage.getItem('edunizam_session'),
+        path:location.pathname,
+        buttonDisabled:document.getElementById('loginBtn')?.disabled||false
+      }));
+      if(!accessState.signedOut||accessState.local!==null||!/\/login\.html$/.test(accessState.path)||accessState.buttonDisabled){
+        pushFailure('approval state',accessCase.role+' '+accessCase.status+' login did not fail closed cleanly',JSON.stringify(accessState));
+      }
+      console.log('Approval state PASS: '+accessCase.role+' '+accessCase.status);
+    }catch(error){
+      pushFailure('approval state',accessCase.role+' '+accessCase.status+' login-state regression failed',error?.message||String(error));
+    }finally{
+      await context.close();
+    }
+  }
 }finally{
   await browser.close().catch(()=>{});
   server.closeAllConnections?.();
