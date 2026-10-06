@@ -1,108 +1,182 @@
-/* EduNizam homepage showcase overrides · 2026-10-06
-   Loaded after edunizam-visual-system.css so homepage visual accents stay visible. */
+/* EduNizam homepage bold visual identity · 2026-10-06
+   Loaded after the canonical visual system so homepage-specific presentation wins. */
 
+.page-home .public-hero.premium-public-hero{
+  border:2px solid #b9dcec!important;
+  background:
+    radial-gradient(circle at 84% 12%,rgba(255,194,76,.28),transparent 19rem),
+    radial-gradient(circle at 12% 10%,rgba(91,184,246,.34),transparent 22rem),
+    linear-gradient(135deg,#eaf7ff 0%,#f7fbff 48%,#fff0c8 100%)!important;
+  box-shadow:0 34px 84px rgba(27,81,121,.18)!important;
+}
+.page-home .hero-image-wrap{
+  border:7px solid #ffffff!important;
+  box-shadow:0 26px 66px rgba(17,67,104,.24)!important;
+}
+.page-home .hero-image-wrap:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  box-shadow:inset 0 0 0 3px rgba(214,169,77,.26);
+  border-radius:inherit;
+}
 .page-home .hero-image-wrap img{
   object-position:center 38%!important;
-  transform:scale(1.08)!important;
+  transform:scale(1.14)!important;
   transform-origin:center 38%!important;
 }
-.page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.10)!important}
+.page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.16)!important}
+.page-home .quick-access-card{
+  border:1px solid #c5dcec!important;
+  box-shadow:0 22px 55px rgba(12,54,85,.30)!important;
+}
 
 .page-home .experience-strip{
   gap:10px!important;
-  padding:12px!important;
-  border:1px solid #c9dfef!important;
+  padding:13px!important;
+  border:2px solid #bedbec!important;
+  border-radius:24px!important;
   background:
-    radial-gradient(circle at 7% 0%,rgba(91,184,246,.18),transparent 17rem),
-    linear-gradient(135deg,#f5fbff 0%,#eaf7ff 52%,#fff7df 100%)!important;
-  box-shadow:0 20px 48px rgba(24,82,124,.12)!important;
+    radial-gradient(circle at 8% 0%,rgba(91,184,246,.22),transparent 18rem),
+    linear-gradient(135deg,#eaf7ff 0%,#f8fbff 52%,#fff0c8 100%)!important;
+  box-shadow:0 22px 54px rgba(24,82,124,.14)!important;
 }
 .page-home .experience-strip article{
-  border:1px solid rgba(183,210,228,.92)!important;
+  border:1px solid rgba(166,198,219,.95)!important;
   border-radius:18px!important;
-  box-shadow:0 8px 20px rgba(31,83,121,.07)!important;
+  box-shadow:0 9px 23px rgba(31,83,121,.09)!important;
 }
-.page-home .experience-strip article:nth-child(1){background:linear-gradient(145deg,#e9f6ff,#ffffff)!important}
-.page-home .experience-strip article:nth-child(2){background:linear-gradient(145deg,#eaf9f1,#ffffff)!important}
-.page-home .experience-strip article:nth-child(3){background:linear-gradient(145deg,#fff2d4,#ffffff)!important}
-.page-home .experience-strip article:nth-child(4){background:linear-gradient(145deg,#eee9ff,#ffffff)!important}
-.page-home .experience-strip article:nth-child(5){background:linear-gradient(145deg,#ffe9e3,#ffffff)!important}
-.page-home .experience-strip article:nth-child(6){background:linear-gradient(145deg,#e8f8f7,#ffffff)!important}
+.page-home .experience-strip article:nth-child(1){background:linear-gradient(145deg,#dff1ff,#f8fcff)!important}
+.page-home .experience-strip article:nth-child(2){background:linear-gradient(145deg,#dff5e8,#fbfffd)!important}
+.page-home .experience-strip article:nth-child(3){background:linear-gradient(145deg,#ffe8ad,#fffaf0)!important}
+.page-home .experience-strip article:nth-child(4){background:linear-gradient(145deg,#e8ddff,#fbf9ff)!important}
+.page-home .experience-strip article:nth-child(5){background:linear-gradient(145deg,#ffdcd3,#fff9f6)!important}
+.page-home .experience-strip article:nth-child(6){background:linear-gradient(145deg,#d9f3f1,#faffff)!important}
+.page-home .experience-strip article:nth-child(1) .feature-icon{background:#d2ecff!important}
+.page-home .experience-strip article:nth-child(2) .feature-icon{background:#d4f0df!important}
+.page-home .experience-strip article:nth-child(3) .feature-icon{background:#ffe39d!important}
+.page-home .experience-strip article:nth-child(4) .feature-icon{background:#e2d5ff!important}
+.page-home .experience-strip article:nth-child(5) .feature-icon{background:#ffd3c9!important}
+.page-home .experience-strip article:nth-child(6) .feature-icon{background:#cef0ed!important}
 
 .page-home .role-showcase{
   position:relative;
   overflow:hidden;
-  padding:38px!important;
-  border:1px solid #bfe0d6!important;
-  border-radius:30px!important;
+  padding:42px!important;
+  border:2px solid #9fd2c4!important;
+  border-radius:32px!important;
   background:
-    radial-gradient(circle at 88% 6%,rgba(54,181,158,.20),transparent 21rem),
-    radial-gradient(circle at 6% 88%,rgba(91,184,246,.16),transparent 18rem),
-    linear-gradient(135deg,#effaf5 0%,#eaf7fb 52%,#f9fdff 100%)!important;
-  box-shadow:0 22px 58px rgba(25,87,101,.12)!important;
+    radial-gradient(circle at 88% 6%,rgba(46,155,127,.25),transparent 22rem),
+    radial-gradient(circle at 5% 92%,rgba(91,184,246,.22),transparent 19rem),
+    linear-gradient(135deg,#dff5eb 0%,#eaf8f6 50%,#eef8ff 100%)!important;
+  box-shadow:0 25px 64px rgba(25,87,101,.15)!important;
 }
-.page-home .role-showcase .eyebrow{color:#1e7a6d!important}
+.page-home .role-showcase:before{
+  content:"ROLE EXPERIENCES";
+  position:absolute;
+  top:16px;
+  right:20px;
+  color:#237b70;
+  font-size:.62rem;
+  font-weight:900;
+  letter-spacing:.16em;
+  opacity:.58;
+}
+.page-home .role-showcase .eyebrow{color:#176f64!important}
 .page-home .role-showcase .role-demo{
-  border-color:#c5e0dc!important;
-  background:rgba(255,255,255,.92)!important;
-  box-shadow:0 16px 38px rgba(28,91,102,.10)!important;
+  border:1px solid #b7dcd5!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 18px 42px rgba(28,91,102,.12)!important;
 }
+.page-home .role-showcase .role-tab:not(.is-active){background:#f1faf7!important}
 
 .page-home .value-section{
   position:relative;
   overflow:hidden;
-  padding:38px!important;
-  border:1px solid #e4d2aa!important;
-  border-radius:30px!important;
+  padding:42px!important;
+  border:2px solid #e3bf75!important;
+  border-radius:32px!important;
   background:
-    radial-gradient(circle at 91% 8%,rgba(214,169,77,.22),transparent 20rem),
-    linear-gradient(135deg,#fffaf0 0%,#fff3df 54%,#fffdf8 100%)!important;
-  box-shadow:0 22px 58px rgba(112,82,35,.11)!important;
+    radial-gradient(circle at 92% 8%,rgba(214,169,77,.28),transparent 21rem),
+    radial-gradient(circle at 4% 92%,rgba(255,155,95,.15),transparent 18rem),
+    linear-gradient(135deg,#fff2d5 0%,#fff7e9 54%,#fffdf7 100%)!important;
+  box-shadow:0 25px 64px rgba(112,82,35,.14)!important;
 }
-.page-home .value-section .eyebrow{color:#986515!important}
+.page-home .value-section:before{
+  content:"SMARTER WORKFLOWS";
+  position:absolute;
+  top:16px;
+  right:20px;
+  color:#96641d;
+  font-size:.62rem;
+  font-weight:900;
+  letter-spacing:.16em;
+  opacity:.58;
+}
+.page-home .value-section .eyebrow{color:#8f5e13!important}
+.page-home .value-section .public-card{
+  box-shadow:0 14px 32px rgba(84,65,38,.10)!important;
+}
 .page-home .value-section .public-card:nth-child(1){
-  border-color:#bddced!important;
-  background:linear-gradient(155deg,#eaf6ff 0%,#ffffff 84%)!important;
+  border-color:#a9d4eb!important;
+  background:linear-gradient(155deg,#dff2ff 0%,#ffffff 84%)!important;
 }
 .page-home .value-section .public-card:nth-child(2){
-  border-color:#c2e1d0!important;
-  background:linear-gradient(155deg,#eaf8ef 0%,#ffffff 84%)!important;
+  border-color:#a9dabc!important;
+  background:linear-gradient(155deg,#def5e6 0%,#ffffff 84%)!important;
 }
 .page-home .value-section .public-card:nth-child(3){
-  border-color:#e4c98d!important;
-  background:linear-gradient(155deg,#fff0c9 0%,#ffffff 84%)!important;
+  border-color:#dfbc70!important;
+  background:linear-gradient(155deg,#ffe7aa 0%,#ffffff 84%)!important;
 }
 .page-home .value-section .public-card:nth-child(1):before{background:linear-gradient(90deg,#2f80ed,#78c6f4)!important}
 .page-home .value-section .public-card:nth-child(2):before{background:linear-gradient(90deg,#2e9b7f,#74cbb2)!important}
 .page-home .value-section .public-card:nth-child(3):before{background:linear-gradient(90deg,#d6a94d,#efc978)!important}
 
 .page-home .learning-band{
-  border-color:#5a77c3!important;
+  border:2px solid #6b78ce!important;
   background:
-    radial-gradient(circle at 86% 8%,rgba(139,213,255,.26),transparent 18rem),
-    radial-gradient(circle at 14% 92%,rgba(151,125,255,.22),transparent 20rem),
-    linear-gradient(135deg,#0d3157 0%,#24589a 46%,#5768c9 118%)!important;
-  box-shadow:0 28px 72px rgba(31,65,128,.26)!important;
+    radial-gradient(circle at 86% 8%,rgba(139,213,255,.28),transparent 18rem),
+    radial-gradient(circle at 14% 92%,rgba(151,125,255,.30),transparent 21rem),
+    linear-gradient(135deg,#082b4e 0%,#234f94 44%,#5d67ca 118%)!important;
+  box-shadow:0 30px 76px rgba(31,65,128,.30)!important;
 }
-.page-home .resource-card.r1{background:linear-gradient(145deg,#edf7ff,#ffffff)!important}
-.page-home .resource-card.r2{background:linear-gradient(145deg,#f0ecff,#ffffff)!important}
-.page-home .resource-card.r3{background:linear-gradient(145deg,#eaf8f0,#ffffff)!important}
+.page-home .learning-band .resource-card{
+  border-width:2px!important;
+  box-shadow:0 18px 42px rgba(7,40,65,.24)!important;
+}
+.page-home .resource-card.r1{background:linear-gradient(145deg,#ddecff,#ffffff)!important}
+.page-home .resource-card.r2{background:linear-gradient(145deg,#e9e2ff,#ffffff)!important}
+.page-home .resource-card.r3{background:linear-gradient(145deg,#dff4e7,#ffffff)!important}
 
 .page-home .public-disclaimer .public-note{
-  border-color:#dfc98f!important;
-  background:linear-gradient(135deg,#fff4d7,#fffdf5)!important;
-  color:#705a35!important;
-  box-shadow:0 12px 30px rgba(122,89,37,.08)!important;
+  border:2px solid #d7b45f!important;
+  border-left:8px solid #c58d22!important;
+  background:linear-gradient(135deg,#ffe9ae,#fff8e8)!important;
+  color:#654f2e!important;
+  box-shadow:0 14px 34px rgba(122,89,37,.11)!important;
+}
+.page-home .public-footer{
+  background:
+    radial-gradient(circle at 12% 0%,rgba(91,184,246,.16),transparent 17rem),
+    linear-gradient(135deg,#081f33,#123d61 58%,#1b537d)!important;
 }
 
+@media(max-width:900px){
+  .page-home .hero-image-wrap img{transform:scale(1.11)!important}
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.12)!important}
+}
 @media(max-width:680px){
   .page-home .role-showcase,
-  .page-home .value-section{padding:24px 17px!important;border-radius:24px!important}
-  .page-home .experience-strip{gap:7px!important}
-  .page-home .hero-image-wrap img{transform:scale(1.06)!important}
-  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.07)!important}
+  .page-home .value-section{padding:28px 18px!important;border-radius:25px!important}
+  .page-home .role-showcase:before,
+  .page-home .value-section:before{display:none}
+  .page-home .experience-strip{gap:7px!important;padding:9px!important}
+  .page-home .hero-image-wrap img{transform:scale(1.09)!important}
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.10)!important}
 }
 @media(max-width:360px){
   .page-home .role-showcase,
-  .page-home .value-section{padding:20px 13px!important;border-radius:20px!important}
+  .page-home .value-section{padding:22px 13px!important;border-radius:21px!important}
 }
