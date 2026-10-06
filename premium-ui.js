@@ -297,13 +297,20 @@
     }
     const main=$('.main');if(main){
       let mainFrame=0;
-      const obs=new MutationObserver(m=>{
-        const needsDecorate=m.some(x=>x.type==='childList');
-        if(!needsDecorate){updateDockActive();return}
+      let needsDecoration=false;
+      const obs=new MutationObserver(mutations=>{
+        // Only redecorate when actual elements are added. Text-node churn and
+        // class-only mutations must never create a self-sustaining render loop.
+        const decorate=mutations.some(m=>
+          m.type==='childList'&&[...m.addedNodes].some(node=>node.nodeType===Node.ELEMENT_NODE)
+        );
+        needsDecoration=needsDecoration||decorate;
         if(mainFrame)return;
         mainFrame=requestAnimationFrame(()=>{
           mainFrame=0;
-          decorateViews();
+          const shouldDecorate=needsDecoration;
+          needsDecoration=false;
+          if(shouldDecorate)decorateViews();
           updateDockActive();
         });
       });

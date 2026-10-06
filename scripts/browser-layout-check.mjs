@@ -174,7 +174,7 @@ try{
             sidebar.classList.add('mobile-nav-open');
             return true;
           });
-          if(sidebarExists)await page.waitForTimeout(300);
+          if(sidebarExists)await page.waitForTimeout(650);
           const drawer=await page.evaluate(()=>{
             const sidebar=document.querySelector('.sidebar');
             if(!sidebar)return {missing:true};
@@ -515,7 +515,12 @@ try{
     const text=msg.text();
     if(msg.type()==='error'||/EduNizam|error|failed|timeout|warning/i.test(text))console.log('[login-flow browser '+msg.type()+'] '+text);
   });
-  loginFlowPage.on('pageerror',error=>console.log('[login-flow pageerror] '+(error?.message||error)));
+  const loginRuntimeErrors=[];
+  loginFlowPage.on('pageerror',error=>{
+    const message=String(error?.message||error);
+    loginRuntimeErrors.push(message);
+    console.log('[login-flow pageerror] '+message);
+  });
   loginFlowPage.on('requestfailed',request=>console.log('[login-flow requestfailed] '+request.url()+' :: '+(request.failure()?.errorText||'unknown')));
   const loginStep=async(label,fn)=>{
     console.log('Full login step START: '+label);
@@ -657,6 +662,7 @@ try{
     }));
     if(afterLoginInteraction.scrollY<100)pushFailure('login contract','Page scrolling remains frozen after successful Login',JSON.stringify(afterLoginInteraction));
     if(afterLoginInteraction.locked||afterLoginInteraction.backdropPointer!=='none')pushFailure('login contract','Closed mobile navigation still blocks the page after Login',JSON.stringify(afterLoginInteraction));
+    if(loginRuntimeErrors.length)pushFailure('login contract','Runtime JavaScript errors occurred during Login → dashboard interaction',loginRuntimeErrors.slice(0,8).join(' | '));
 
     // Primary Admin flow contract: core sections must remain clickable after login.
     for(const view of ['students','attendance','fees','results','settings']){
