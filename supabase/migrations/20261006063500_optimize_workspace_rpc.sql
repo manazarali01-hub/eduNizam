@@ -95,3 +95,73 @@ $$;
 
 revoke all on function public.my_authorized_workspaces() from public, anon;
 grant execute on function public.my_authorized_workspaces() to authenticated;
+
+
+-- Avoid re-entering public.institutions RLS during hot owner checks.
+-- These expressions are authorization-equivalent to the prior direct EXISTS
+-- checks, but use the already-hardened private owner helper.
+
+alter policy "head manage staff profiles"
+on public.staff_profiles
+using (
+  (select private.is_institution_owner(
+    staff_profiles.institution_id,
+    (select auth.uid())
+  ))
+)
+with check (
+  (select private.is_institution_owner(
+    staff_profiles.institution_id,
+    (select auth.uid())
+  ))
+  and (
+    staff_profiles.user_id is null
+    or exists (
+      select 1
+      from public.institution_members m
+      where m.institution_id = staff_profiles.institution_id
+        and m.user_id = staff_profiles.user_id
+        and m.role = 'teacher'
+    )
+  )
+);
+
+alter policy "heads manage class sections"
+on public.class_sections
+using (
+  (select private.is_institution_owner(
+    class_sections.institution_id,
+    (select auth.uid())
+  ))
+)
+with check (
+  (select private.is_institution_owner(
+    class_sections.institution_id,
+    (select auth.uid())
+  ))
+  and (
+    class_sections.class_teacher_user_id is null
+    or exists (
+      select 1
+      from public.institution_members m
+      where m.institution_id = class_sections.institution_id
+        and m.user_id = class_sections.class_teacher_user_id
+        and m.role = 'teacher'
+    )
+  )
+);
+
+alter policy "head manage teacher student links"
+on public.teacher_student_links
+using (
+  (select private.is_institution_owner(
+    teacher_student_links.institution_id,
+    (select auth.uid())
+  ))
+)
+with check (
+  (select private.is_institution_owner(
+    teacher_student_links.institution_id,
+    (select auth.uid())
+  ))
+);
