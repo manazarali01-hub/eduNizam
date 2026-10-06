@@ -293,6 +293,31 @@ try{
       return rows.some(x=>x.id==='study:'+id);
     },studyId);
     if(!savedStudy)pushFailure('guest learning','Guest Save action did not persist the built-in Study Library resource',JSON.stringify({studyId}));
+
+    console.log('Guest step START: built-in study print action');
+    await guestPage.evaluate(()=>{
+      window.__qaGuestPrint={opened:0,writes:'',printed:0,focused:0,closed:0,url:''};
+      window.open=(url='')=>{
+        window.__qaGuestPrint.opened++;
+        window.__qaGuestPrint.url=String(url||'');
+        return {
+          document:{
+            write:html=>{window.__qaGuestPrint.writes+=String(html||'')},
+            close:()=>{window.__qaGuestPrint.closed++}
+          },
+          focus:()=>{window.__qaGuestPrint.focused++},
+          print:()=>{window.__qaGuestPrint.printed++}
+        };
+      };
+    });
+    await guestPage.locator('#premiumResourceModal [data-print-study-id]').tap({timeout:5000});
+    await guestPage.waitForFunction(()=>window.__qaGuestPrint?.printed>0,null,{timeout:3000});
+    const printState=await guestPage.evaluate(()=>window.__qaGuestPrint);
+    if(printState.opened!==1||printState.printed<1||printState.closed<1||printState.focused<1||printState.writes.length<80||!/<html|<!doctype/i.test(printState.writes)){
+      pushFailure('guest learning','Built-in Study Library Print Resource action did not create printable content',JSON.stringify(printState));
+    }
+    console.log('Guest step PASS: built-in study print action');
+
     await guestPage.locator('#premiumResourceModal [data-close-premium]').tap({timeout:5000});
     await guestPage.waitForFunction(()=>!document.getElementById('premiumResourceModal')?.classList.contains('open'));
     const closedStudy=await guestPage.evaluate(()=>({
@@ -320,6 +345,51 @@ try{
       pushFailure('guest learning','Study Library did not expose any previewable external resource');
     }
     console.log('Guest step PASS: external preview lifecycle');
+
+    console.log('Guest step START: PDF preview / download / print actions');
+    await guestPage.evaluate(()=>{
+      const rows=window.EDUNIZAM_STUDY_DATA?.materials;
+      if(Array.isArray(rows)&&!rows.some(x=>x.id==='qa-pdf-regression')){
+        rows.push({
+          id:'qa-pdf-regression',
+          title:'QA PDF Resource',
+          note:'Regression-only PDF action probe',
+          fileUrl:'https://example.test/qa-resource.pdf',
+          source:'official',
+          type:'Revision PDF',
+          board:'Punjab Boards',
+          classLevels:['10'],
+          subject:'Mathematics'
+        });
+      }
+    });
+    await guestPage.locator('#guestStudyQuery').fill('QA PDF Resource');
+    await guestPage.locator('#guestStudySearch').tap({timeout:5000});
+    await guestPage.waitForSelector('#guestStudyResults [data-preview-id="study:qa-pdf-regression"]',{state:'visible',timeout:5000});
+    await guestPage.locator('#guestStudyResults [data-preview-id="study:qa-pdf-regression"]').tap({timeout:5000});
+    await guestPage.waitForSelector('#premiumResourceModal.open',{state:'visible',timeout:5000});
+    const pdfActions=await guestPage.evaluate(()=>({
+      source:document.querySelector('#premiumPreviewActions a.primary-action')?.getAttribute('href')||'',
+      download:document.querySelector('#premiumPreviewActions a[download]')?.getAttribute('href')||'',
+      printUrl:document.querySelector('#premiumPreviewActions [data-print-url]')?.getAttribute('data-print-url')||'',
+      iframe:document.querySelector('#premiumPreviewBody iframe')?.getAttribute('src')||''
+    }));
+    if(pdfActions.source!=='https://example.test/qa-resource.pdf'||pdfActions.download!==pdfActions.source||pdfActions.printUrl!==pdfActions.source||pdfActions.iframe!==pdfActions.source){
+      pushFailure('guest learning','PDF Preview did not expose working source/download/print targets',JSON.stringify(pdfActions));
+    }
+    await guestPage.evaluate(()=>{
+      window.__qaPdfOpen={calls:[]};
+      window.open=(url,target)=>{window.__qaPdfOpen.calls.push({url:String(url||''),target:String(target||'')});return {focus(){}}};
+    });
+    await guestPage.locator('#premiumPreviewActions [data-print-url]').tap({timeout:5000});
+    const pdfOpen=await guestPage.evaluate(()=>window.__qaPdfOpen);
+    if(pdfOpen.calls.length!==1||pdfOpen.calls[0].url!=='https://example.test/qa-resource.pdf'||pdfOpen.calls[0].target!=='_blank'){
+      pushFailure('guest learning','Open PDF to Print action did not open the selected PDF in a new tab',JSON.stringify(pdfOpen));
+    }
+    await guestPage.locator('#premiumResourceModal [data-close-premium]').tap({timeout:5000});
+    await guestPage.locator('#guestStudyQuery').fill('');
+    await guestPage.locator('#guestStudySearch').tap({timeout:5000});
+    console.log('Guest step PASS: PDF preview / download / print actions');
 
     console.log('Guest step START: VU specific search');
     await guestPage.locator('.tabs .tab[data-tab="vu"]').tap({timeout:5000});
