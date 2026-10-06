@@ -439,15 +439,24 @@ $('saveResultBtn').onclick=async()=>{
  const studentId=Number($('resultStudent').value),subject=$('resultSubject').value.trim(),marks=Number($('resultMarks').value),total=Number($('resultTotal').value);
  if(!studentId||!subject||!Number.isFinite(marks)||!Number.isFinite(total)||total<=0||marks<0||marks>total)return alert('Enter valid marks between 0 and total marks.');
  const resultRecord={id:Date.now(),studentId,subject,marks,total,date:todayKey(),type:$('resultExamType')?.value||'Monthly Test'};
- const btn=$('saveResultBtn');if(btn)btn.disabled=true;
- state.results.push(resultRecord);persist();logActivity('Result added for '+subject);renderResults();
+ const duplicate=state.results.some(r=>
+   String(r.studentId)===String(studentId)&&
+   String(r.subject||'').trim().toLowerCase()===subject.toLowerCase()&&
+   String(r.type||'Result').trim()===String(resultRecord.type||'Result').trim()&&
+   String(r.date||'')===String(resultRecord.date||'')
+ );
+ if(duplicate)return alert('Is student ka same subject, assessment type aur date ka result already exists.');
+ const btn=$('saveResultBtn');if(btn?.disabled)return;if(btn)btn.disabled=true;
  try{
-   if(window.EDUNIZAM_CORE_CLOUD?.ready?.())await window.EDUNIZAM_CORE_CLOUD.saveResultRecord(resultRecord);
-   await window.EDUNIZAM_WORKFLOW_ALERTS?.resultSaved?.(resultRecord);
+   if(window.EDUNIZAM_CORE_CLOUD?.ready?.()){
+     await window.EDUNIZAM_CORE_CLOUD.saveResultRecord(resultRecord);
+   }
+   state.results.push(resultRecord);persist();logActivity('Result added for '+subject);renderResults();
+   try{await window.EDUNIZAM_WORKFLOW_ALERTS?.resultSaved?.(resultRecord)}catch(_){}
    window.dispatchEvent(new CustomEvent('edunizam:results-updated',{detail:{studentId,subject,type:resultRecord.type}}));
  }catch(e){
-   recordDiagnostic('Result Cloud Sync',e.message||e,'Results');
-   alert('Result device par save ho gaya, lekin cloud sync fail hui. Official report publish karne se pehle cloud reconnect/sync karein.');
+   recordDiagnostic('Result Cloud Save',e.message||e,'Results');
+   alert('Cloud result save failed. Nothing was saved locally: '+(e.message||e));
  }finally{if(btn)btn.disabled=false}
 };
 function renderResults(){

@@ -1,4 +1,4 @@
-const CACHE='edunizam-v236-fee-payments'
+const CACHE='edunizam-v237-results-reportcards'
 const CORE=[
   './',
   './index.html',
