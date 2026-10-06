@@ -1042,6 +1042,219 @@ try{
       await context.close();
     }
   }
+
+  // Public onboarding contract: non-admin sign-up must submit the correct
+  // approval request, clear temporary signup state, and return to Login.
+  const approvalCases=[
+    {role:'teacher',rpc:'submit_teacher_school_request_v1'},
+    {role:'student',rpc:'submit_school_access_request_v1'},
+    {role:'parent',rpc:'submit_school_access_request_v1'}
+  ];
+  for(const approvalCase of approvalCases){
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+    const page=await context.newPage();
+    page.setDefaultTimeout(6000);
+    page.setDefaultNavigationTimeout(10000);
+    try{
+      await page.addInitScript(({role})=>{
+        const institutionId='33333333-3333-4333-8333-333333333333';
+        const email=role+'-signup@example.test';
+        const user={id:'qa-signup-'+role,email,user_metadata:{}};
+        const directory={
+          institution_id:institutionId,
+          institution_name:'QA Signup School',
+          institution_type:'School',
+          registration_number:'SIGNUP-QA',
+          school_registration_code:'SIGNUP-QA-LOGIN',
+          address:'QA Signup Campus'
+        };
+        const query=()=>{
+          const result={data:[],error:null};
+          const q={
+            select(){return q},eq(){return q},neq(){return q},in(){return q},gte(){return q},lte(){return q},gt(){return q},lt(){return q},like(){return q},ilike(){return q},order(){return q},limit(){return q},
+            insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
+            maybeSingle(){return Promise.resolve({data:null,error:null})},
+            single(){return Promise.resolve({data:null,error:null})},
+            then(resolve,reject){return Promise.resolve(result).then(resolve,reject)}
+          };
+          return q;
+        };
+        const client={
+          auth:{
+            signUp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            signOut:()=>{sessionStorage.setItem('qa_signup_signed_out','1');return Promise.resolve({error:null})},
+            getSession:()=>Promise.resolve({data:{session:null},error:null}),
+            getUser:()=>Promise.resolve({data:{user:null},error:null}),
+            signInWithPassword:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            resend:()=>Promise.resolve({error:null}),
+            resetPasswordForEmail:()=>Promise.resolve({error:null}),
+            verifyOtp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            updateUser:()=>Promise.resolve({data:{user},error:null}),
+            onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})
+          },
+          rpc:(name,args={})=>{
+            if(name==='list_school_directory_v1'||name==='search_school_directory_v1')return Promise.resolve({data:[directory],error:null});
+            if(name==='submit_teacher_school_request_v1'||name==='submit_school_access_request_v1'){
+              sessionStorage.setItem('qa_signup_rpc',JSON.stringify({name,args}));
+              return Promise.resolve({data:{ok:true},error:null});
+            }
+            if(name==='is_platform_admin')return Promise.resolve({data:false,error:null});
+            return Promise.resolve({data:null,error:null});
+          },
+          from:()=>query(),
+          storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),remove:()=>Promise.resolve({error:null})})}
+        };
+        window.supabase={createClient:()=>client};
+      },{role:approvalCase.role});
+
+      await page.route('**/*',route=>{
+        const u=new URL(route.request().url());
+        if(u.hostname==='127.0.0.1')route.continue();
+        else if(u.hostname==='cdn.jsdelivr.net')route.fallback();
+        else route.abort();
+      });
+      await page.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
+        status:200,contentType:'text/javascript',body:'/* Supabase stubbed by onboarding regression */'
+      }));
+
+      console.log('Approval signup START: '+approvalCase.role);
+      await page.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:10000});
+      await page.locator('[data-role="'+approvalCase.role+'"]').tap({timeout:5000});
+      await page.waitForFunction(()=>[...document.querySelectorAll('#memberSchoolDropdown option')].some(o=>o.value==='33333333-3333-4333-8333-333333333333'),null,{timeout:6000});
+      await page.locator('#memberSchoolDropdown').selectOption('33333333-3333-4333-8333-333333333333');
+      await page.locator('#signupTab').tap({timeout:5000});
+      await page.locator('#fullName').fill('QA '+approvalCase.role);
+      await page.locator('#contactNumber').fill('03000000000');
+      await page.locator('#signupEmail').fill(approvalCase.role+'-signup@example.test');
+      await page.locator('#signupPassword').fill('correct-password');
+      if(approvalCase.role==='student'){
+        await page.locator('#approvalClassName').fill('Grade 5');
+        await page.locator('#approvalGuardianName').fill('QA Guardian');
+      }
+      if(approvalCase.role==='parent'){
+        await page.locator('#approvalStudentName').fill('QA Child');
+        await page.locator('#approvalClassName').fill('Grade 5');
+        await page.locator('#approvalRelationship').fill('Parent');
+      }
+      await page.locator('#signupBtn').tap({timeout:5000});
+      await page.waitForFunction(()=>/Waiting for School Admin Approval/i.test(document.getElementById('statusBox')?.textContent||''),null,{timeout:6000});
+      const approvalState=await page.evaluate(()=>({
+        rpc:(()=>{try{return JSON.parse(sessionStorage.getItem('qa_signup_rpc')||'null')}catch(_){return null}})(),
+        signedOut:sessionStorage.getItem('qa_signup_signed_out')==='1',
+        pending:localStorage.getItem('edunizam_pending_signup'),
+        loginVisible:!document.getElementById('loginForm')?.classList.contains('hidden'),
+        email:document.getElementById('loginEmail')?.value||'',
+        status:(document.getElementById('statusBox')?.textContent||'').trim()
+      }));
+      if(approvalState.rpc?.name!==approvalCase.rpc||approvalState.rpc?.args?.p_institution_id!=='33333333-3333-4333-8333-333333333333'){
+        pushFailure('signup approval',approvalCase.role+' sign-up did not submit the expected school approval request',JSON.stringify(approvalState));
+      }
+      if(approvalCase.role!=='teacher'&&approvalState.rpc?.args?.p_role!==approvalCase.role){
+        pushFailure('signup approval',approvalCase.role+' approval request carried the wrong role',JSON.stringify(approvalState.rpc));
+      }
+      if(!approvalState.signedOut||approvalState.pending!==null||!approvalState.loginVisible||approvalState.email!==approvalCase.role+'-signup@example.test'){
+        pushFailure('signup approval',approvalCase.role+' sign-up did not settle safely back to Login after request submission',JSON.stringify(approvalState));
+      }
+      console.log('Approval signup PASS: '+approvalCase.role);
+    }catch(error){
+      pushFailure('signup approval',approvalCase.role+' approval-request regression failed',error?.message||String(error));
+    }finally{
+      await context.close();
+    }
+  }
+
+  // Password recovery contract: registered email -> recovery request -> OTP ->
+  // new password, without needing a school name/code.
+  {
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+    const page=await context.newPage();
+    page.setDefaultTimeout(6000);
+    page.setDefaultNavigationTimeout(10000);
+    try{
+      await page.addInitScript(()=>{
+        const user={id:'qa-recovery-user',email:'recovery@example.test',user_metadata:{}};
+        const query=()=>{
+          const result={data:[],error:null};
+          const q={
+            select(){return q},eq(){return q},neq(){return q},in(){return q},gte(){return q},lte(){return q},gt(){return q},lt(){return q},like(){return q},ilike(){return q},order(){return q},limit(){return q},
+            insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
+            maybeSingle(){return Promise.resolve({data:null,error:null})},
+            single(){return Promise.resolve({data:null,error:null})},
+            then(resolve,reject){return Promise.resolve(result).then(resolve,reject)}
+          };
+          return q;
+        };
+        const client={
+          auth:{
+            resetPasswordForEmail:(email,options)=>{sessionStorage.setItem('qa_recovery_request',JSON.stringify({email,options}));return Promise.resolve({error:null})},
+            verifyOtp:(args)=>{sessionStorage.setItem('qa_recovery_otp',JSON.stringify(args));return Promise.resolve({data:{user,session:{user}},error:null})},
+            updateUser:(args)=>{sessionStorage.setItem('qa_recovery_update',JSON.stringify(args));return Promise.resolve({data:{user},error:null})},
+            getSession:()=>Promise.resolve({data:{session:null},error:null}),
+            getUser:()=>Promise.resolve({data:{user:null},error:null}),
+            signInWithPassword:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            signOut:()=>Promise.resolve({error:null}),
+            signUp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            resend:()=>Promise.resolve({error:null}),
+            onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})
+          },
+          rpc:()=>Promise.resolve({data:null,error:null}),
+          from:()=>query(),
+          storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),remove:()=>Promise.resolve({error:null})})}
+        };
+        window.supabase={createClient:()=>client};
+      });
+      await page.route('**/*',route=>{
+        const u=new URL(route.request().url());
+        if(u.hostname==='127.0.0.1')route.continue();
+        else if(u.hostname==='cdn.jsdelivr.net')route.fallback();
+        else route.abort();
+      });
+      await page.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
+        status:200,contentType:'text/javascript',body:'/* Supabase stubbed by recovery regression */'
+      }));
+
+      console.log('Password recovery START');
+      await page.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:10000});
+      await page.locator('[data-role="admin"]').tap({timeout:5000});
+      await page.locator('#loginEmail').fill('recovery@example.test');
+      await page.locator('#forgotBtn').tap({timeout:5000});
+      await page.waitForSelector('#otpView:not(.hidden)',{state:'visible',timeout:6000});
+      const requested=await page.evaluate(()=>(()=>{
+        try{return JSON.parse(sessionStorage.getItem('qa_recovery_request')||'null')}catch(_){return null}
+      })());
+      if(requested?.email!=='recovery@example.test'||!String(requested?.options?.redirectTo||'').includes('login.html?reset=1')){
+        pushFailure('password recovery','Recovery request did not use the registered email/reset redirect',JSON.stringify(requested));
+      }
+
+      await page.locator('#otpCode').fill('123456');
+      await page.locator('#verifyOtpBtn').tap({timeout:5000});
+      await page.waitForSelector('#resetView:not(.hidden)',{state:'visible',timeout:6000});
+      const otp=await page.evaluate(()=>(()=>{
+        try{return JSON.parse(sessionStorage.getItem('qa_recovery_otp')||'null')}catch(_){return null}
+      })());
+      if(otp?.email!=='recovery@example.test'||otp?.token!=='123456'||otp?.type!=='recovery'){
+        pushFailure('password recovery','Recovery OTP was not verified with the expected email/token/type',JSON.stringify(otp));
+      }
+
+      await page.locator('#newPassword').fill('new-secure-password');
+      await page.locator('#confirmNewPassword').fill('new-secure-password');
+      await page.locator('#resetForm button[type="submit"]').tap({timeout:5000});
+      await page.waitForFunction(()=>/Password changed successfully/i.test(document.getElementById('resetStatus')?.textContent||''),null,{timeout:6000});
+      const recoveryState=await page.evaluate(()=>({
+        update:(()=>{try{return JSON.parse(sessionStorage.getItem('qa_recovery_update')||'null')}catch(_){return null}})(),
+        recoveryEmail:localStorage.getItem('edunizam_recovery_email'),
+        status:(document.getElementById('resetStatus')?.textContent||'').trim()
+      }));
+      if(recoveryState.update?.password!=='new-secure-password'||recoveryState.recoveryEmail!==null){
+        pushFailure('password recovery','Password reset did not persist through updateUser and clear recovery state',JSON.stringify(recoveryState));
+      }
+      console.log('Password recovery PASS');
+    }catch(error){
+      pushFailure('password recovery','Forgot Password -> OTP -> New Password regression failed',error?.message||String(error));
+    }finally{
+      await context.close();
+    }
+  }
 }finally{
   await browser.close().catch(()=>{});
   server.closeAllConnections?.();
