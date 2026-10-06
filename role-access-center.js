@@ -29,7 +29,9 @@
     if(document.querySelector('[data-view="access"]'))return;
     const nav=document.getElementById('nav')||document.querySelector('.sidebar nav');if(!nav)return;
     const b=document.createElement('button');b.className='nav-item';b.dataset.view='access';b.innerHTML='<span>🔐&nbsp; Access & Roles</span><span id="accessPendingBadge" class="access-nav-badge hidden" aria-label="Pending approval requests"></span>';
-    const assistant=nav.querySelector('[data-view="assistant"]');assistant?nav.insertBefore(b,assistant):nav.appendChild(b);
+    const assistant=nav.querySelector('[data-view="assistant"]');
+    if(assistant?.parentNode)assistant.parentNode.insertBefore(b,assistant);
+    else nav.appendChild(b);
     b.onclick=show;
     const main=document.querySelector('main');if(!main)return;
     const sec=document.createElement('section');sec.id='access';sec.className='view';

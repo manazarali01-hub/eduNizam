@@ -174,7 +174,7 @@ try{
             sidebar.classList.add('mobile-nav-open');
             return true;
           });
-          if(sidebarExists)await page.waitForTimeout(120);
+          if(sidebarExists)await page.waitForTimeout(300);
           const drawer=await page.evaluate(()=>{
             const sidebar=document.querySelector('.sidebar');
             if(!sidebar)return {missing:true};
@@ -391,6 +391,30 @@ try{
     hasTouch:true,
     serviceWorkers:'block'
   });
+  loginFlowPage.setDefaultTimeout(5000);
+  loginFlowPage.setDefaultNavigationTimeout(8000);
+  loginFlowPage.on('console',msg=>{
+    const text=msg.text();
+    if(msg.type()==='error'||/EduNizam|error|failed|timeout|warning/i.test(text))console.log('[login-flow browser '+msg.type()+'] '+text);
+  });
+  loginFlowPage.on('pageerror',error=>console.log('[login-flow pageerror] '+(error?.message||error)));
+  loginFlowPage.on('requestfailed',request=>console.log('[login-flow requestfailed] '+request.url()+' :: '+(request.failure()?.errorText||'unknown')));
+  const loginStep=async(label,fn)=>{
+    console.log('Full login step START: '+label);
+    const started=Date.now();
+    try{
+      const value=await fn();
+      console.log('Full login step PASS: '+label+' ('+(Date.now()-started)+'ms)');
+      return value;
+    }catch(error){
+      console.log('Full login step FAIL: '+label+' ('+(Date.now()-started)+'ms) :: '+(error?.message||error));
+      throw error;
+    }
+  };
+  const boundedEvaluate=(label,fn,timeout=5000)=>loginStep(label,()=>Promise.race([
+    loginFlowPage.evaluate(fn),
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' main-thread timeout after '+timeout+'ms')),timeout))
+  ]));
   try{
     await loginFlowPage.addInitScript(()=>{
       const user={id:'user-1',email:'admin@example.test',user_metadata:{}};
@@ -446,20 +470,33 @@ try{
     await loginFlowPage.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
       status:200,contentType:'text/javascript',body:'/* Supabase stubbed by login regression test */'
     }));
+    // Diagnostic isolation: keep the critical auth/navigation shell real and
+    // temporarily blank non-critical startup modules. This identifies whether
+    // the freeze belongs to the shell or to an eager feature/decorator module.
+    const diagnosticBlockedStartup=[];
+    for(const src of diagnosticBlockedStartup){
+      await loginFlowPage.route('**/'+src+'*',route=>route.fulfill({
+        status:200,contentType:'text/javascript',body:'/* diagnostic startup module blanked: '+src+' */'
+      }));
+    }
 
-    await loginFlowPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:15000});
-    await loginFlowPage.locator('[data-role="admin"]').tap();
-    await loginFlowPage.locator('#loginSchoolName').fill('Test School');
-    await loginFlowPage.locator('#loginEmail').fill('admin@example.test');
-    await loginFlowPage.locator('#loginPassword').fill('correct-password');
-    await loginFlowPage.locator('#loginBtn').tap();
+    await loginStep('open login page',()=>loginFlowPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:8000}));
+    await loginStep('select Admin role',()=>loginFlowPage.locator('[data-role="admin"]').tap({timeout:5000}));
+    await loginStep('fill login fields',async()=>{
+      await loginFlowPage.locator('#loginSchoolName').fill('Test School',{timeout:5000});
+      await loginFlowPage.locator('#loginEmail').fill('admin@example.test',{timeout:5000});
+      await loginFlowPage.locator('#loginPassword').fill('correct-password',{timeout:5000});
+    });
+    await loginStep('submit Login',async()=>{
+      await loginFlowPage.locator('#loginBtn').tap({timeout:5000,noWaitAfter:true});
+    });
 
-    await loginFlowPage.waitForURL(/\/app\.html\?secureLogin=1$/,{timeout:5000})
+    await loginStep('redirect to app workspace',()=>loginFlowPage.waitForURL(/\/app\.html\?secureLogin=1$/,{timeout:5000}))
       .catch(e=>pushFailure('login contract','Successful Login did not redirect to app workspace',e.message));
-    await loginFlowPage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:5000})
+    await loginStep('mobile hamburger visible',()=>loginFlowPage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:5000}))
       .catch(e=>pushFailure('login contract','App mobile hamburger did not become visible after login',e.message));
 
-    const openedApp=await loginFlowPage.evaluate(()=>({
+    const openedApp=await boundedEvaluate('inspect opened app state',()=>({
       guardPresent:!!document.getElementById('cloudAuthScreen'),
       dashboardActive:document.getElementById('dashboard')?.classList.contains('active')||false,
       handoff:JSON.parse(sessionStorage.getItem('edunizam_secure_login_handoff')||'null'),
@@ -475,18 +512,18 @@ try{
 
     await loginFlowPage.locator('#eduMobileMenuBtn').tap();
     await loginFlowPage.waitForTimeout(80);
-    const menuOpen=await loginFlowPage.evaluate(()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false);
+    const menuOpen=await boundedEvaluate('inspect opened mobile menu',()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false);
     if(!menuOpen)pushFailure('login contract','Hamburger is not clickable after successful Login');
 
     await loginFlowPage.locator('#eduMobileNavClose').tap();
     await loginFlowPage.waitForTimeout(80);
-    await loginFlowPage.evaluate(()=>{
+    await boundedEvaluate('prepare scroll probe',()=>{
       const spacer=document.createElement('div');
       spacer.id='qaScrollSpacer';spacer.style.height='1800px';document.querySelector('.main')?.appendChild(spacer);
       window.scrollTo(0,700);
     });
     await loginFlowPage.waitForTimeout(80);
-    const afterLoginInteraction=await loginFlowPage.evaluate(()=>({
+    const afterLoginInteraction=await boundedEvaluate('inspect scroll and overlay state',()=>({
       scrollY:window.scrollY,
       locked:document.body.classList.contains('mobile-nav-lock'),
       backdropPointer:getComputedStyle(document.getElementById('eduMobileNavBackdrop')).pointerEvents
