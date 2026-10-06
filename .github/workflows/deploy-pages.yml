@@ -53,6 +53,9 @@ jobs:
       - name: Block deployment if rendered login/mobile interaction regresses
         run: node scripts/browser-layout-check.mjs
 
+      - name: Block deployment if Teacher Student Parent workflows regress
+        run: node scripts/role-workflow-check.mjs
+
       - name: Check latest main commit
         id: latest
         shell: bash

@@ -51,3 +51,5 @@ jobs:
           echo "PLAYWRIGHT_MODULE=file:///tmp/edunizam-pw/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
       - name: Run rendered mobile/layout regression checks
         run: node scripts/browser-layout-check.mjs
+      - name: Run Teacher Student Parent workflow regressions
+        run: node scripts/role-workflow-check.mjs
