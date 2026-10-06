@@ -1,4 +1,4 @@
-const CACHE='edunizam-v233-parent-link-lifecycle'
+const CACHE='edunizam-v234-cloud-communication'
 const CORE=[
   './',
   './index.html',
