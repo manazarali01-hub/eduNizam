@@ -14,7 +14,7 @@ const server=http.createServer((req,res)=>{
       res.end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="mount"></main></body></html>');
       return;
     }
-    let rel=decodeURIComponent(u.pathname).replace(/^\\/+/, '');
+    let rel=decodeURIComponent(u.pathname).replace(/^\/+/, '');
     const file=path.resolve(root,rel);
     if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){
       res.writeHead(404,{'content-type':'text/plain'});res.end('Not found');return;
