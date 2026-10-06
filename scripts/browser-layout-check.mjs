@@ -474,11 +474,9 @@ try{
     // temporarily blank non-critical startup modules. This identifies whether
     // the freeze belongs to the shell or to an eager feature/decorator module.
     const diagnosticBlockedStartup=[
-      'reliability-guardian.js','cloud-setup.js','core-cloud.js','account-security.js',
-      'ai-client.js','communication-cloud.js','role-access-center.js','academic-access.js',
-      'role-scope.js','student-insights-core.js','role-dashboard.js','workflow-alerts.js',
-      'backend-health.js','owner-center.js','audit-activity-center.js',
-      'navigation-enhancements.js','ui-polish.js','premium-ui.js','system-auto-update.js'
+      'role-dashboard.js','workflow-alerts.js','backend-health.js','owner-center.js',
+      'audit-activity-center.js','navigation-enhancements.js','ui-polish.js',
+      'premium-ui.js','system-auto-update.js'
     ];
     for(const src of diagnosticBlockedStartup){
       await loginFlowPage.route('**/'+src+'*',route=>route.fulfill({
