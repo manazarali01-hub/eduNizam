@@ -338,7 +338,7 @@ try{
 
   // In Local Mode a teacher may manage only notices created by that teacher.
   {
-    const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+    const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,serviceWorkers:'block'});
     const page=await context.newPage();
     try{
       await page.route('**/notice-owner-harness',route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body><div id="noticeBoardApp"></div></body></html>'}));
