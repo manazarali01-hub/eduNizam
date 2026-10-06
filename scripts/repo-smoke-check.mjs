@@ -188,6 +188,8 @@ communicationCloud.includes("No approved Parent account is linked to this studen
 communicationCloud.includes("institutionId:row.institution_id")?ok("communication:workspace-snapshot"):bad("communication:workspace-snapshot","Cloud meeting cache rows must carry institution identity.");
 const communicationMigration="supabase/migrations/20261006135301_communication_meeting_notifications.sql";
 exists(communicationMigration)&&read(communicationMigration).includes("notify_communication_meeting_v1")?ok("communication:meeting-notifications"):bad("communication:meeting-notifications","Meeting notification migration missing.");
+const communicationScopeMigration="supabase/migrations/20261006135825_harden_head_parent_meeting_scope.sql";
+exists(communicationScopeMigration)&&read(communicationScopeMigration).includes('heads create linked parent meetings')?ok("communication:head-parent-scope"):bad("communication:head-parent-scope","Head→Parent meeting INSERT policy must require an approved Parent-Student relationship.");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
