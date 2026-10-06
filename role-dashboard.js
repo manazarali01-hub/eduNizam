@@ -38,7 +38,8 @@
     if(I?.profile)return I.profile(s);
     const att=read('edunizam_attendance',{}),fees=read('edunizam_fees',[]),results=read('edunizam_results',[]);
     const days=Object.values(att).map(d=>d?.[s.id]??d?.[String(s.id)]).filter(Boolean);
-    const present=days.filter(x=>x==='Present').length,attPct=days.length?Math.round(present/days.length*100):null;
+    const present=days.filter(x=>x==='Present').length,late=days.filter(x=>x==='Late').length,absent=days.filter(x=>x==='Absent').length;
+    const attendanceDenominator=present+late+absent,attPct=attendanceDenominator?Math.round(((present+late)/attendanceDenominator)*100):null;
     const rs=results.filter(x=>String(x.studentId)===String(s.id)),marks=rs.reduce((a,x)=>a+Number(x.marks||0),0),total=rs.reduce((a,x)=>a+Number(x.total||0),0);
     const avg=total?Math.round(marks/total*100):null;
     const pending=fees.filter(x=>String(x.studentId)===String(s.id)&&x.status!=='Paid').reduce((a,x)=>a+Number(x.amount||0),0);
