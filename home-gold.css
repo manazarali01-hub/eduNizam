@@ -184,10 +184,10 @@
 }
 .gold-home .hero-image-wrap img{
   width:100%;height:100%;display:block;object-fit:cover;object-position:56% center;
-  transform:scale(1.01);
+  transform:scale(1.08);
   transition:transform .8s var(--en-ease);
 }
-.gold-home .public-hero:hover .hero-image-wrap img{transform:scale(1.03)}
+.gold-home .public-hero:hover .hero-image-wrap img{transform:scale(1.10)}
 .gold-home .hero-image-shade{
   position:absolute;inset:0;pointer-events:none;
   background:
@@ -619,3 +619,102 @@
   .gold-home .preview-content{padding:17px 12px}
 }
 
+
+
+/* 2026-10-06 · Homepage section identity pass */
+.gold-home .experience-strip{
+  gap:8px;
+  padding:10px;
+  border-color:#cfe3f1;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(91,184,246,.14),transparent 18rem),
+    linear-gradient(135deg,#f7fbff 0%,#eef8ff 58%,#fff9ea 100%);
+  box-shadow:0 18px 42px rgba(24,82,124,.09);
+}
+.gold-home .experience-strip article{
+  border:1px solid rgba(190,215,231,.78)!important;
+  border-radius:15px;
+  box-shadow:0 7px 18px rgba(31,83,121,.05);
+}
+.gold-home .experience-strip article:nth-child(1){background:linear-gradient(145deg,#eef8ff,#f9fdff)}
+.gold-home .experience-strip article:nth-child(2){background:linear-gradient(145deg,#effbf5,#fbfffd)}
+.gold-home .experience-strip article:nth-child(3){background:linear-gradient(145deg,#fff8e8,#fffdf7)}
+.gold-home .experience-strip article:nth-child(4){background:linear-gradient(145deg,#f4f1ff,#fcfbff)}
+.gold-home .experience-strip article:nth-child(5){background:linear-gradient(145deg,#fff1ee,#fffaf8)}
+.gold-home .experience-strip article:nth-child(6){background:linear-gradient(145deg,#edfafa,#fbffff)}
+
+.gold-home .role-showcase{
+  position:relative;
+  overflow:hidden;
+  padding:34px;
+  border:1px solid #cfe6df;
+  border-radius:28px;
+  background:
+    radial-gradient(circle at 88% 6%,rgba(82,190,173,.15),transparent 20rem),
+    radial-gradient(circle at 4% 88%,rgba(91,184,246,.12),transparent 18rem),
+    linear-gradient(135deg,#f4fbf8 0%,#eef8fb 55%,#fbfdff 100%);
+  box-shadow:0 20px 52px rgba(25,87,101,.09);
+}
+.gold-home .role-showcase .eyebrow{color:#237b70}
+.gold-home .role-showcase .role-demo{
+  border-color:#cfe4e2;
+  background:rgba(255,255,255,.86);
+  box-shadow:0 14px 34px rgba(28,91,102,.08);
+}
+
+.gold-home .value-section{
+  position:relative;
+  overflow:hidden;
+  padding:34px;
+  border:1px solid #eadfc8;
+  border-radius:28px;
+  background:
+    radial-gradient(circle at 92% 8%,rgba(214,169,77,.15),transparent 19rem),
+    linear-gradient(135deg,#fffdf8 0%,#fff8ec 56%,#fffdfb 100%);
+  box-shadow:0 20px 52px rgba(112,82,35,.08);
+}
+.gold-home .value-section .eyebrow{color:#9b6a1e}
+.gold-home .value-section .public-card:nth-child(1){
+  border-color:#cfe2ef;
+  background:linear-gradient(155deg,#f1f9ff 0%,#ffffff 82%);
+}
+.gold-home .value-section .public-card:nth-child(2){
+  border-color:#cfe5d9;
+  background:linear-gradient(155deg,#f1fbf5 0%,#ffffff 82%);
+}
+.gold-home .value-section .public-card:nth-child(3){
+  border-color:#eadab6;
+  background:linear-gradient(155deg,#fff8e8 0%,#ffffff 82%);
+}
+.gold-home .value-section .public-card:nth-child(1):before{background:linear-gradient(90deg,#2f80ed,#78c6f4)}
+.gold-home .value-section .public-card:nth-child(2):before{background:linear-gradient(90deg,#2e9b7f,#74cbb2)}
+.gold-home .value-section .public-card:nth-child(3):before{background:linear-gradient(90deg,#d6a94d,#efc978)}
+
+.gold-home .learning-band{
+  border-color:#5a77c3;
+  background:
+    radial-gradient(circle at 86% 8%,rgba(139,213,255,.24),transparent 18rem),
+    radial-gradient(circle at 14% 92%,rgba(151,125,255,.18),transparent 20rem),
+    linear-gradient(135deg,#12365f 0%,#235b9d 48%,#4f67c8 118%);
+  box-shadow:0 26px 68px rgba(31,65,128,.22);
+}
+.gold-home .resource-card.r1{background:linear-gradient(145deg,#f3f9ff,#ffffff)}
+.gold-home .resource-card.r2{background:linear-gradient(145deg,#f4f1ff,#ffffff)}
+.gold-home .resource-card.r3{background:linear-gradient(145deg,#eefbf6,#ffffff)}
+
+.gold-home .public-disclaimer .public-note{
+  border-color:#ead5a7;
+  background:linear-gradient(135deg,#fff8e8,#fffdf7);
+  color:#725f3f;
+  box-shadow:0 10px 26px rgba(122,89,37,.06);
+}
+
+@media(max-width:680px){
+  .gold-home .role-showcase,
+  .gold-home .value-section{padding:24px 17px;border-radius:23px}
+  .gold-home .experience-strip{gap:6px}
+}
+@media(max-width:360px){
+  .gold-home .role-showcase,
+  .gold-home .value-section{padding:20px 13px;border-radius:20px}
+}
