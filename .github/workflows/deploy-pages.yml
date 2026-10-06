@@ -11,8 +11,10 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  # Use a versioned group so an orphaned legacy "pages" run cannot block new deploys.
+  # Only the newest deployment for this ref matters; stale runs should yield immediately.
+  group: "edunizam-pages-v2-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
   deploy:
