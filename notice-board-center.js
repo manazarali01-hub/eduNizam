@@ -4,6 +4,8 @@
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
   const role=()=>session()?.role||'student';
+  const identity=()=>String(session()?.identity||'').trim().toLowerCase();
+  const meKey=()=>role()+':'+identity();
   const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
@@ -33,7 +35,13 @@
     }
     return false;
   }
-  function canManage(x){return isHead()||(role()==='teacher'&&(!x.createdBy||String(x.createdBy)===String(cloud()?.state?.user?.id||'')))}
+  function canManage(x){
+    if(isHead())return true;
+    if(role()!=='teacher')return false;
+    const uid=String(cloud()?.state?.user?.id||'');
+    if(x.createdBy)return !!uid&&String(x.createdBy)===uid;
+    return !!x.creatorKey&&x.creatorKey===meKey();
+  }
   function mapRow(x){return {id:x.id,title:x.title,body:x.body,audience:x.audience,className:x.class_name||'',sectionName:x.section_name||'',priority:x.priority||'Normal',pinned:x.pinned===true,validUntil:x.valid_until||'',createdBy:x.creator_user_id||'',createdAt:x.created_at,updatedAt:x.updated_at||x.created_at}}
   async function pullCloud(){
     const {data,error}=await cloud().state.client.from('school_announcements').select('*').eq('institution_id',cfg().institutionId).order('pinned',{ascending:false}).order('created_at',{ascending:false});
@@ -79,7 +87,7 @@
     const className=$('nbClass')?.value||'',sectionName=$('nbSection')?.value.trim()||'';
     if(audience==='class'&&!className)return alert('Specific Class ke liye class select karein.');
     const rows=read(),old=rows.find(x=>String(x.id)===String(id));
-    let item={id:id||String(Date.now()),title,body,audience,className:audience==='class'?className:'',sectionName:audience==='class'?sectionName:'',priority:$('nbPriority')?.value||'Normal',pinned:!!$('nbPinned')?.checked,validUntil:$('nbValidUntil')?.value||'',createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
+    let item={id:id||String(Date.now()),title,body,audience,className:audience==='class'?className:'',sectionName:audience==='class'?sectionName:'',priority:$('nbPriority')?.value||'Normal',pinned:!!$('nbPinned')?.checked,validUntil:$('nbValidUntil')?.value||'',createdBy:old?.createdBy||cloud()?.state?.user?.id||'',creatorKey:old?.creatorKey||(!cloudReady()?meKey():''),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
     try{if(cloudReady())item=await saveCloud(item)}catch(e){return alert('Cloud notice save failed: '+(e.message||e))}
     write(rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
   }
