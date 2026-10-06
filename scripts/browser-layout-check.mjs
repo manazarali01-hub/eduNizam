@@ -174,7 +174,7 @@ try{
             sidebar.classList.add('mobile-nav-open');
             return true;
           });
-          if(sidebarExists)await page.waitForTimeout(120);
+          if(sidebarExists)await page.waitForTimeout(300);
           const drawer=await page.evaluate(()=>{
             const sidebar=document.querySelector('.sidebar');
             if(!sidebar)return {missing:true};
@@ -473,9 +473,7 @@ try{
     // Diagnostic isolation: keep the critical auth/navigation shell real and
     // temporarily blank non-critical startup modules. This identifies whether
     // the freeze belongs to the shell or to an eager feature/decorator module.
-    const diagnosticBlockedStartup=[
-      'premium-ui.js'
-    ];
+    const diagnosticBlockedStartup=[];
     for(const src of diagnosticBlockedStartup){
       await loginFlowPage.route('**/'+src+'*',route=>route.fulfill({
         status:200,contentType:'text/javascript',body:'/* diagnostic startup module blanked: '+src+' */'
