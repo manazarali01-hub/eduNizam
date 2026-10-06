@@ -1,6 +1,8 @@
 -- Harden student-claim and parent-link RPCs without changing public signatures.
 -- Elevated implementations live in private; exposed public functions are SECURITY INVOKER.
 -- Existing authentication, school-scope and ownership checks are preserved.
+-- Applied to production on 2026-10-06 after rollback validation; Supabase security-definer
+-- advisor findings reduced from 9 to 5.
 
 create or replace function private.claim_student_account_v1_impl(p_student_code text)
 returns table(student_id uuid, student_code text, student_name text, institution_id uuid)
