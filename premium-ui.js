@@ -271,7 +271,8 @@
 
     const heroLabel=dash.querySelector('.campus-label');
     const labels={head:'Admin Control Center',admin:'Admin Control Center',teacher:'Teacher Workspace',parent:'Parent Connection',student:'Student Workspace'};
-    if(heroLabel && labels[role()])heroLabel.textContent=labels[role()];
+    const nextHeroLabel=labels[role()]||'';
+    if(heroLabel&&nextHeroLabel&&heroLabel.textContent!==nextHeroLabel)heroLabel.textContent=nextHeroLabel;
   }
 
   function decorateViews(){
@@ -282,11 +283,30 @@
 
   function observe(){
     const nav=$('#nav');if(nav){
-      const obs=new MutationObserver(()=>{premiumizeNavIcons();updateDockActive();mountMobileDock()});
+      let navFrame=0;
+      const obs=new MutationObserver(()=>{
+        if(navFrame)return;
+        navFrame=requestAnimationFrame(()=>{
+          navFrame=0;
+          premiumizeNavIcons();
+          updateDockActive();
+          mountMobileDock();
+        });
+      });
       obs.observe(nav,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
     }
     const main=$('.main');if(main){
-      const obs=new MutationObserver(m=>{if(m.some(x=>x.type==='childList'))decorateViews();updateDockActive()});
+      let mainFrame=0;
+      const obs=new MutationObserver(m=>{
+        const needsDecorate=m.some(x=>x.type==='childList');
+        if(!needsDecorate){updateDockActive();return}
+        if(mainFrame)return;
+        mainFrame=requestAnimationFrame(()=>{
+          mainFrame=0;
+          decorateViews();
+          updateDockActive();
+        });
+      });
       obs.observe(main,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
     }
   }
