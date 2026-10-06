@@ -11,8 +11,16 @@
   async function create(m){
     if(!ready())return null;
     const student=(window.state?.students||JSON.parse(localStorage.getItem('edunizam_students')||'[]')).find(s=>String(s.id)===String(m.personId));
-    const participantUserId=m.participantRole==='student'?(student?.authUserId||null):null;
-    const studentUserId=student?.authUserId||null;
+    const studentUserId=student?.authUserId||student?.auth_user_id||null;
+    if(!studentUserId)throw new Error('Selected student is not linked to a Student login yet.');
+    let participantUserId=m.participantRole==='student'?studentUserId:null;
+    if(m.participantRole==='parent'){
+      const parentIds=typeof c().listApprovedParentsForStudent==='function'
+        ? await c().listApprovedParentsForStudent(studentUserId)
+        : [];
+      if(!parentIds.length)throw new Error('No approved Parent account is linked to this student yet.');
+      if(parentIds.length===1)participantUserId=parentIds[0];
+    }
     const payload={
       institution_id:cfg().institutionId,
       created_by:c().state.user.id,
@@ -46,7 +54,7 @@
   function map(row){
     const dt=new Date(row.scheduled_for);
     return {
-      id:row.id,kind:row.created_by_role==='head_of_institute'?'head-parent':'teacher-student',
+      id:row.id,institutionId:row.institution_id,kind:row.created_by_role==='head_of_institute'?'head-parent':'teacher-student',
       personId:row.student_user_id||row.participant_user_id||'',personName:row.participant_role==='parent'?'Parent / Guardian':'Student',
       participantRole:row.participant_role,viewerRole:row.participant_role,title:row.title,
       date:localDate(dt),time:Number.isNaN(dt.getTime())?'':dt.toTimeString().slice(0,5),
