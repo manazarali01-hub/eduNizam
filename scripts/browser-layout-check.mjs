@@ -251,21 +251,40 @@ try{
     }));
     if(pastState.active!=='past'||!pastState.summary||pastState.gridText<20)pushFailure('guest learning','Past Papers search did not render a usable result state',JSON.stringify(pastState));
 
+    console.log('Guest step START: global public search');
     await guestPage.locator('#globalSearch').fill('CS201 final term');
     await guestPage.locator('#runGlobalSearch').tap({timeout:5000});
-    await guestPage.waitForFunction(()=>location.hash==='#vu'&&document.getElementById('vu')?.classList.contains('active'),null,{timeout:5000});
-    await guestPage.waitForFunction(()=>String(document.getElementById('vuSummary')?.textContent||'').trim().length>0,null,{timeout:5000});
-    const vuState=await guestPage.evaluate(()=>({
+    await guestPage.waitForSelector('#globalResults',{state:'visible',timeout:5000});
+    const globalState=await guestPage.evaluate(()=>({
       active:document.querySelector('.section.active')?.id||'',
-      summary:(document.getElementById('vuSummary')?.textContent||'').trim(),
-      gridText:(document.getElementById('vuGrid')?.textContent||'').trim().length
+      hash:location.hash,
+      text:(document.getElementById('globalResults')?.textContent||'').trim()
     }));
-    if(vuState.active!=='vu'||!vuState.summary||vuState.gridText<20)pushFailure('guest learning','Global VU search did not render a usable result state',JSON.stringify(vuState));
+    if(globalState.active!=='home'||globalState.text.length<30||!/CS201|Virtual University|VU/i.test(globalState.text)){
+      pushFailure('guest learning','Global public search did not render relevant unified results',JSON.stringify({active:globalState.active,hash:globalState.hash,text:globalState.text.slice(0,260)}));
+    }
+    console.log('Guest step PASS: global public search');
 
     await guestPage.locator('#clearSearch').tap({timeout:5000});
     const cleared=await guestPage.locator('#globalSearch').inputValue();
     if(cleared!=='')pushFailure('guest learning','Clear Search did not reset the global learning search',JSON.stringify({cleared}));
 
+    console.log('Guest step START: VU specific search');
+    await guestPage.locator('.tabs .tab[data-tab="vu"]').tap({timeout:5000});
+    await guestPage.waitForSelector('#vu.section.active',{state:'visible',timeout:5000});
+    await guestPage.locator('#vuGuestSearch').fill('CS201 final term');
+    await guestPage.locator('#vuGuestSearchBtn').tap({timeout:5000});
+    await guestPage.waitForFunction(()=>String(document.getElementById('vuSummary')?.textContent||'').trim().length>0,null,{timeout:5000});
+    const vuState=await guestPage.evaluate(()=>({
+      active:document.querySelector('.section.active')?.id||'',
+      summary:(document.getElementById('vuSummary')?.textContent||'').trim(),
+      gridText:(document.getElementById('vuGrid')?.textContent||'').trim()
+    }));
+    if(vuState.active!=='vu'||!vuState.summary||vuState.gridText.length<20)pushFailure('guest learning','VU-specific search did not render a usable result state',JSON.stringify({active:vuState.active,summary:vuState.summary,text:vuState.gridText.slice(0,260)}));
+    console.log('Guest step PASS: VU specific search');
+
+    await guestPage.locator('#clearSearch').tap({timeout:5000});
+    console.log('Guest step START: Practice Center');
     await guestPage.locator('.tabs .tab[data-tab="practice"]').tap({timeout:5000});
     await guestPage.waitForSelector('#practice.section.active',{state:'visible',timeout:5000});
     await guestPage.waitForFunction(()=>String(document.getElementById('practiceQuestion')?.textContent||'').trim().length>5,null,{timeout:5000});
@@ -278,11 +297,14 @@ try{
       summary:(document.getElementById('practiceGuestSummary')?.textContent||'').trim()
     }));
     if(practiceState.active!=='practice'||practiceState.question.length<5||practiceState.summary.length<5)pushFailure('guest learning','Practice Center did not remain usable after Next Question',JSON.stringify({q1,practiceState}));
+    console.log('Guest step PASS: Practice Center');
 
+    console.log('Guest step START: mobile scroll');
     await guestPage.evaluate(()=>window.scrollTo(0,Math.min(document.documentElement.scrollHeight-500,1400)));
     await guestPage.waitForTimeout(80);
     const guestScroll=await guestPage.evaluate(()=>({y:window.scrollY,height:document.documentElement.scrollHeight,bodyOverflow:getComputedStyle(document.body).overflow}));
     if(guestScroll.y<100)pushFailure('guest learning','Public Learning Hub could not scroll on mobile',JSON.stringify(guestScroll));
+    console.log('Guest step PASS: mobile scroll');
   }catch(e){
     pushFailure('guest learning','Guest Login -> Learning Hub interaction regression failed',e.message||String(e));
   }finally{
