@@ -187,7 +187,7 @@
       throw new Error('Valid marks and total are required.');
     }
     const {data,error}=await client.from('result_records')
-      .upsert(payload,{onConflict:'institution_id,local_id'})
+      .insert(payload)
       .select()
       .single();
     if(error)throw error;
