@@ -596,8 +596,12 @@ try{
 
     await boundedEvaluate('open attendance action view',()=>window.EDUNIZAM_APP_NAV.setView('attendance'));
     await loginStep('save attendance action',async()=>{
-      await loginFlowPage.locator('input[name="att_9001"][value="Present"]').check({timeout:5000});
+      const presentRadios=loginFlowPage.locator('#attendanceList input[value="Present"]');
+      const count=await presentRadios.count();
+      if(!count)throw new Error('No visible attendance rows were rendered');
+      for(let i=0;i<count;i++)await presentRadios.nth(i).check({timeout:5000});
       await loginFlowPage.locator('#saveAttendanceBtn').tap({timeout:5000});
+      await loginFlowPage.waitForFunction(()=>!document.getElementById('saveAttendanceBtn')?.disabled,null,{timeout:5000});
     });
     const attendanceAction=await boundedEvaluate('verify attendance save action',()=>{
       const days=JSON.parse(localStorage.getItem('edunizam_attendance')||'{}');
