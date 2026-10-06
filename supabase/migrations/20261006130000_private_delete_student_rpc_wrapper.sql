@@ -1,6 +1,8 @@
 -- Harden the destructive core-student delete RPC without changing its public signature.
 -- The elevated implementation moves to private; the exposed public function is SECURITY INVOKER.
 -- Existing School Admin ownership checks and cleanup behavior are preserved.
+-- Applied to production on 2026-10-06 after rollback validation; exposed authenticated
+-- SECURITY DEFINER advisor findings reduced from 1 to 0.
 
 create or replace function private.delete_core_student_v1_impl(
   p_institution_id uuid,
