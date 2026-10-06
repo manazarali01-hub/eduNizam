@@ -35,6 +35,22 @@ jobs:
       - name: Run EduNizam QA gate
         run: node qa-check.mjs
 
+      - name: Install pinned Playwright runtime for interaction gate
+        shell: bash
+        run: |
+          rm -rf /tmp/edunizam-pw
+          npm install --prefix /tmp/edunizam-pw --no-save playwright@1.55.0
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$CHROME" ]; then
+            echo "EDUNIZAM_BROWSER=$CHROME" >> "$GITHUB_ENV"
+          else
+            node /tmp/edunizam-pw/node_modules/playwright/cli.js install --with-deps chromium
+          fi
+          echo "PLAYWRIGHT_MODULE=file:///tmp/edunizam-pw/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+
+      - name: Block deployment if rendered login/mobile interaction regresses
+        run: node scripts/browser-layout-check.mjs
+
       - name: Check latest main commit
         id: latest
         shell: bash
