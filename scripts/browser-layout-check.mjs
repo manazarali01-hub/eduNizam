@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+// EduNizam production interaction regression gate. Keep Login → dashboard, mobile menu, and scroll fail-fast.\nimport fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
