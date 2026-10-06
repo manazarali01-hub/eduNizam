@@ -205,6 +205,18 @@ parentComplaintCenter.includes("Complaint save ho gayi, lekin kuch media upload 
 const privateGrantMigration="supabase/migrations/20261006142313_revoke_anon_helpdesk_complaint_tables.sql";
 exists(privateGrantMigration)&&read(privateGrantMigration).includes("from anon")?ok("complaints:no-anon-table-grants"):bad("complaints:no-anon-table-grants","Private helpdesk/complaint tables must revoke legacy anon table grants.");
 
+// 3f) Fee/payment privacy and cloud-authoritative regression guards
+const feeCenter=read("fee-center.js");
+feeCenter.includes(".from('fee_records').insert(payload)")?ok("fees:create-insert-only"):bad("fees:create-insert-only","New fee challans must insert, not silently upsert/overwrite an existing month.");
+!feeCenter.includes("Cloud sync unavailable; challan local mode mein save hoga")&&feeCenter.includes("Nothing was saved locally")?ok("fees:no-cloud-local-fallback"):bad("fees:no-cloud-local-fallback","Cloud Mode challan failures must not create local-only financial records.");
+feeCenter.includes("recordPayment(id,btn)")&&feeCenter.includes("setBusy(btn,true,'Recording...')")?ok("fees:payment-double-submit-guard"):bad("fees:payment-double-submit-guard","Fee payment action must lock while Cloud RPC is in flight.");
+feeCenter.includes("if(isHead())await pullClassFees()")&&feeCenter.includes("rows=cloudReady()?rows:visibleLocal(rows)")?ok("fees:rls-authoritative-view"):bad("fees:rls-authoritative-view","Cloud fee views must rely on RLS and class fee settings must remain Admin-only.");
+const feeMigration="supabase/migrations/20261006144031_harden_fee_payment_workflows.sql";
+exists(feeMigration)&&read(feeMigration).includes("fee_records_institution_student_month_key")?ok("fees:month-unique-constraint"):bad("fees:month-unique-constraint","Fee month conflict target must be backed by a real unique constraint.");
+exists(feeMigration)&&read(feeMigration).includes("can_read_student_fee_v1")&&!read(feeMigration).includes("can_access_core_student(fee_records.student_id)")?ok("fees:no-teacher-financial-read"):bad("fees:no-teacher-financial-read","Fee read policy must exclude generic Teacher student access.");
+exists(feeMigration)&&read(feeMigration).includes("notify_fee_payment_v1")?ok("fees:payment-notifications"):bad("fees:payment-notifications","Fee payment notification trigger missing.");
+exists(feeMigration)&&read(feeMigration).includes("from anon")?ok("fees:no-anon-table-grants"):bad("fees:no-anon-table-grants","Fee/payment tables must revoke legacy anon privileges.");
+
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
 for(const p of jsFiles){
