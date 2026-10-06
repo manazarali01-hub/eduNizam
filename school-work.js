@@ -281,7 +281,9 @@
   }
 
   async function render(){
-    const root=$('schoolWorkApp');if(!root)return mount();
+    const root=$('schoolWorkApp');
+    if(!root)return;
+    if(!$('swEditor')||!$('swList')){mount();return}
     let d=read();
     if(cloudReady()&&!root.dataset.cloudLoaded){
       root.dataset.cloudLoaded='1';
