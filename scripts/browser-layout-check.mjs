@@ -287,6 +287,8 @@ try{
     console.log('Guest step START: Practice Center');
     await guestPage.locator('.tabs .tab[data-tab="practice"]').tap({timeout:5000});
     await guestPage.waitForSelector('#practice.section.active',{state:'visible',timeout:5000});
+    await guestPage.waitForSelector('#guestPracticeApply',{state:'visible',timeout:5000});
+    await guestPage.locator('#guestPracticeApply').tap({timeout:5000});
     await guestPage.waitForFunction(()=>String(document.getElementById('practiceQuestion')?.textContent||'').trim().length>5,null,{timeout:5000});
     await guestPage.waitForSelector('#guestPracticeNext',{state:'visible',timeout:5000});
     const q1=await guestPage.locator('#practiceQuestion').textContent();
