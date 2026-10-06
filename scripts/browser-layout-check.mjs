@@ -482,6 +482,12 @@ try{
       await helpButton.tap({timeout:5000});
       await page.waitForSelector('#help.view.active',{state:'visible',timeout:7000});
       await page.waitForFunction(()=>!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
+
+      // setView() intentionally reveals the destination before lazy feature code
+      // finishes loading. That is healthy responsiveness, not a frozen app. Give
+      // the feature loader a bounded window to settle; failure to settle is real.
+      await page.waitForFunction(()=>!document.documentElement.classList.contains('edu-feature-loading'),null,{timeout:7000});
+
       const afterNav=await page.evaluate(()=>({
         active:document.querySelector('.view.active')?.id||'',
         locked:document.body.classList.contains('mobile-nav-lock'),
