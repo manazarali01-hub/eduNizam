@@ -760,20 +760,48 @@ try{
     });
     if(!studentAction.saved||!studentAction.formHidden)pushFailure('admin primary actions','Student save did not persist and settle',JSON.stringify(studentAction));
 
+    await boundedEvaluate('seed approved leave attendance',()=>{
+      const d=new Date(),key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const days=JSON.parse(localStorage.getItem('edunizam_attendance')||'{}');
+      days[key]=Object.assign({},days[key]||{}, {'9001':'Leave'});
+      localStorage.setItem('edunizam_attendance',JSON.stringify(days));
+      window.renderAll?.();
+      return key;
+    });
     await boundedEvaluate('open attendance action view',()=>window.EDUNIZAM_APP_NAV.setView('attendance'));
+    const approvedLeaveState=await boundedEvaluate('inspect approved leave attendance control',()=>({
+      leaveChecked:!!document.querySelector('#attendanceList input[name="att_9001"][value="Leave"]:checked'),
+      leaveOption:!!document.querySelector('#attendanceList input[name="att_9001"][value="Leave"]'),
+      lateOption:!!document.querySelector('#attendanceList input[name="att_9001"][value="Late"]')
+    }));
+    if(!approvedLeaveState.leaveChecked||!approvedLeaveState.leaveOption||!approvedLeaveState.lateOption){
+      pushFailure('admin primary actions','Approved Leave was not rendered as a selected attendance state',JSON.stringify(approvedLeaveState));
+    }
     await loginStep('save attendance action',async()=>{
-      const presentRadios=loginFlowPage.locator('#attendanceList input[value="Present"]');
-      const count=await presentRadios.count();
+      const rows=loginFlowPage.locator('#attendanceList .attendance-row');
+      const count=await rows.count();
       if(!count)throw new Error('No visible attendance rows were rendered');
-      for(let i=0;i<count;i++)await presentRadios.nth(i).check({timeout:5000});
+      for(let i=0;i<count;i++){
+        const row=rows.nth(i);
+        const leaveChecked=await row.locator('input[value="Leave"]:checked').count();
+        if(!leaveChecked)await row.locator('input[value="Present"]').check({timeout:5000});
+      }
       await loginFlowPage.locator('#saveAttendanceBtn').tap({timeout:5000});
       await loginFlowPage.waitForFunction(()=>!document.getElementById('saveAttendanceBtn')?.disabled,null,{timeout:5000});
     });
     const attendanceAction=await boundedEvaluate('verify attendance save action',()=>{
+      const rows=JSON.parse(localStorage.getItem('edunizam_students')||'[]');
+      const added=rows.find(x=>x.name==='QA New Student');
       const days=JSON.parse(localStorage.getItem('edunizam_attendance')||'{}');
-      return Object.values(days).some(day=>day&&String(day['9001']||day[9001])==='Present');
+      const values=Object.values(days);
+      return {
+        approvedLeavePreserved:values.some(day=>day&&String(day['9001']||day[9001])==='Leave'),
+        newStudentPresent:!!added&&values.some(day=>day&&String(day[String(added.id)]||day[added.id])==='Present')
+      };
     });
-    if(!attendanceAction)pushFailure('admin primary actions','Attendance save did not persist QA student as Present');
+    if(!attendanceAction.approvedLeavePreserved||!attendanceAction.newStudentPresent){
+      pushFailure('admin primary actions','Attendance save did not preserve approved Leave while saving other students',JSON.stringify(attendanceAction));
+    }
 
     await boundedEvaluate('open fees action view',()=>window.EDUNIZAM_APP_NAV.setView('fees'));
     await loginStep('save fee action',async()=>{
