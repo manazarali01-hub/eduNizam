@@ -426,6 +426,15 @@ try{
         school_registration_code:'LOGIN-1',
         workspace_role:'head_of_institute'
       };
+      try{
+        if(!localStorage.getItem('edunizam_students')){
+          localStorage.setItem('edunizam_students',JSON.stringify([{
+            id:9001,studentId:'STU-QA-9001',name:'QA Student',father:'QA Guardian',
+            className:'5',sectionName:'A',phone:'03000000000',bFormNo:'00000-0000000-0',
+            dateOfBirth:'2015-01-01',gender:'Male',admissionNo:'QA-9001',studentStatus:'active'
+          }]));
+        }
+      }catch(_){}
       const query=()=> {
         const result={data:[],error:null};
         const q={
@@ -555,6 +564,85 @@ try{
         pushFailure('admin primary navigation',view+' did not settle to a usable state',JSON.stringify(sectionState));
       }
     }
+
+    await boundedEvaluate('prepare local primary action contract',()=>{
+      if(window.EDUNIZAM_CORE_CLOUD)window.EDUNIZAM_CORE_CLOUD.ready=()=>false;
+      if(window.EDUNIZAM_WORKFLOW_ALERTS){
+        window.EDUNIZAM_WORKFLOW_ALERTS.attendanceSaved=async()=>{};
+        window.EDUNIZAM_WORKFLOW_ALERTS.feeSaved=async()=>{};
+        window.EDUNIZAM_WORKFLOW_ALERTS.resultSaved=async()=>{};
+      }
+      return true;
+    });
+
+    await boundedEvaluate('open students action view',()=>window.EDUNIZAM_APP_NAV.setView('students'));
+    await loginStep('add student action',async()=>{
+      await loginFlowPage.locator('#addStudentBtn').tap({timeout:5000});
+      await loginFlowPage.locator('#studentName').fill('QA New Student');
+      await loginFlowPage.locator('#fatherName').fill('QA Parent');
+      await loginFlowPage.locator('#studentClass').fill('6');
+      await loginFlowPage.locator('#studentPhone').fill('03110000000');
+      await loginFlowPage.locator('#studentBForm').fill('11111-1111111-1');
+      await loginFlowPage.locator('#studentGender').selectOption({label:'Female'});
+      await loginFlowPage.locator('#studentDob').fill('2014-02-02');
+      await loginFlowPage.locator('#admissionNo').fill('QA-NEW-1');
+      await loginFlowPage.locator('#saveStudentBtn').tap({timeout:5000});
+    });
+    const studentAction=await boundedEvaluate('verify student save action',()=>{
+      const rows=JSON.parse(localStorage.getItem('edunizam_students')||'[]');
+      return {saved:rows.some(x=>x.name==='QA New Student'),formHidden:document.getElementById('studentFormWrap')?.classList.contains('hidden')||false};
+    });
+    if(!studentAction.saved||!studentAction.formHidden)pushFailure('admin primary actions','Student save did not persist and settle',JSON.stringify(studentAction));
+
+    await boundedEvaluate('open attendance action view',()=>window.EDUNIZAM_APP_NAV.setView('attendance'));
+    await loginStep('save attendance action',async()=>{
+      await loginFlowPage.locator('input[name="att_9001"][value="Present"]').check({timeout:5000});
+      await loginFlowPage.locator('#saveAttendanceBtn').tap({timeout:5000});
+    });
+    const attendanceAction=await boundedEvaluate('verify attendance save action',()=>{
+      const days=JSON.parse(localStorage.getItem('edunizam_attendance')||'{}');
+      return Object.values(days).some(day=>day&&String(day['9001']||day[9001])==='Present');
+    });
+    if(!attendanceAction)pushFailure('admin primary actions','Attendance save did not persist QA student as Present');
+
+    await boundedEvaluate('open fees action view',()=>window.EDUNIZAM_APP_NAV.setView('fees'));
+    await loginStep('save fee action',async()=>{
+      await loginFlowPage.locator('#feeStudent').selectOption('9001');
+      await loginFlowPage.locator('#feeAmount').fill('1500');
+      await loginFlowPage.locator('#feeStatus').selectOption({label:'Paid'});
+      await loginFlowPage.locator('#saveFeeBtn').tap({timeout:5000});
+    });
+    const feeAction=await boundedEvaluate('verify fee save action',()=>{
+      const rows=JSON.parse(localStorage.getItem('edunizam_fees')||'[]');
+      return rows.some(x=>Number(x.studentId)===9001&&Number(x.amount)===1500&&x.status==='Paid');
+    });
+    if(!feeAction)pushFailure('admin primary actions','Fee save did not persist the valid record');
+
+    await boundedEvaluate('open results action view',()=>window.EDUNIZAM_APP_NAV.setView('results'));
+    await loginStep('save result action',async()=>{
+      await loginFlowPage.locator('#resultStudent').selectOption('9001');
+      await loginFlowPage.locator('#resultSubject').fill('Mathematics');
+      await loginFlowPage.locator('#resultMarks').fill('80');
+      await loginFlowPage.locator('#resultTotal').fill('100');
+      await loginFlowPage.locator('#saveResultBtn').tap({timeout:5000});
+      await loginFlowPage.waitForFunction(()=>!document.getElementById('saveResultBtn')?.disabled,null,{timeout:5000});
+    });
+    const resultAction=await boundedEvaluate('verify result save action',()=>{
+      const rows=JSON.parse(localStorage.getItem('edunizam_results')||'[]');
+      return rows.some(x=>Number(x.studentId)===9001&&x.subject==='Mathematics'&&Number(x.marks)===80&&Number(x.total)===100);
+    });
+    if(!resultAction)pushFailure('admin primary actions','Result save did not persist the valid record');
+
+    await boundedEvaluate('open settings action view',()=>window.EDUNIZAM_APP_NAV.setView('settings'));
+    await loginStep('save settings action',async()=>{
+      await loginFlowPage.locator('#schoolTaglineInput').fill('QA Stable Workspace');
+      await loginFlowPage.locator('#saveSettingsBtn').tap({timeout:5000});
+    });
+    const settingsAction=await boundedEvaluate('verify settings save action',()=>{
+      const settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}');
+      return settings.tagline==='QA Stable Workspace';
+    });
+    if(!settingsAction)pushFailure('admin primary actions','Settings save did not persist the updated tagline');
   }catch(e){
     pushFailure('login contract','Full Login -> dashboard interaction regression failed',e.message||String(e));
   }finally{
