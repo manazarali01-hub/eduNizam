@@ -235,7 +235,18 @@ try{
       });
       await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/data-runtime.js'});
       await authPage.addScriptTag({url:'http://127.0.0.1:'+port+'/auth-bridge.js'});
-      await authPage.waitForSelector('#cloudAuthLogin',{state:'visible',timeout:3000});
+      try{
+        await authPage.waitForSelector('#cloudAuthLogin',{state:'visible',timeout:6000});
+      }catch(error){
+        const authDiag=await authPage.evaluate(()=>({
+          ready:document.readyState,
+          authState:document.documentElement.dataset.authState||'',
+          guardPresent:!!document.getElementById('cloudAuthScreen'),
+          guardText:(document.getElementById('cloudAuthScreen')?.textContent||'').trim().slice(0,240),
+          bodyText:(document.body?.textContent||'').trim().slice(0,240)
+        })).catch(()=>({diagnostic:'page evaluate failed'}));
+        throw new Error('Signed-out auth guard did not expose Login within 6s: '+JSON.stringify(authDiag)+' :: '+(error?.message||error));
+      }
     };
 
     await loadSignedOut();
@@ -438,7 +449,7 @@ try{
       const query=()=> {
         const result={data:[],error:null};
         const q={
-          select(){return q},eq(){return q},neq(){return q},in(){return q},order(){return q},limit(){return q},
+          select(){return q},eq(){return q},neq(){return q},in(){return q},gte(){return q},lte(){return q},gt(){return q},lt(){return q},like(){return q},ilike(){return q},order(){return q},limit(){return q},
           insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
           maybeSingle(){return Promise.resolve({data:null,error:null})},
           single(){return Promise.resolve({data:null,error:null})},
@@ -677,6 +688,38 @@ try{
       }),5000);
       if(workflowState.active!==view||workflowState.guardPresent||workflowState.locked||workflowState.menuOpen||workflowState.featureLoading||workflowState.featureError||workflowState.activeText<10){
         pushFailure('admin workflow navigation',view+' did not settle to a usable rendered state',JSON.stringify(workflowState));
+      }
+    }
+
+    // People + operations sections: mobile navigation, lazy-loader completion, and unlocked rendered state.
+    for(const view of ['staffcenter','staffpayroll','training','financecenter','inventorycenter','librarycenter','transportcenter']){
+      await loginStep('open operations '+view,async()=>{
+        await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
+        await loginFlowPage.evaluate(view=>{
+          const button=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const group=button?.closest('details');
+          if(group)group.open=true;
+        },view);
+        await loginFlowPage.locator('.nav-item[data-view="'+view+'"]').tap({timeout:5000});
+        await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
+        await loginFlowPage.waitForFunction(view=>{
+          const loader=window.EDUNIZAM_FEATURE_LOADER;
+          const error=document.querySelector('#'+view+' .feature-loading-notice.error');
+          return !!error||!loader||loader.isReady(view);
+        },view,{timeout:8000});
+        await loginFlowPage.waitForTimeout(80);
+      });
+      const operationsState=await boundedEvaluate('inspect operations '+view,()=>({
+        active:document.querySelector('.view.active')?.id||'',
+        guardPresent:!!document.getElementById('cloudAuthScreen'),
+        locked:document.body.classList.contains('mobile-nav-lock'),
+        menuOpen:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false,
+        featureLoading:document.documentElement.classList.contains('edu-feature-loading'),
+        featureError:!!document.querySelector('.view.active .feature-loading-notice.error'),
+        activeText:(document.querySelector('.view.active')?.textContent||'').trim().length
+      }),5000);
+      if(operationsState.active!==view||operationsState.guardPresent||operationsState.locked||operationsState.menuOpen||operationsState.featureLoading||operationsState.featureError||operationsState.activeText<10){
+        pushFailure('admin operations navigation',view+' did not settle to a usable rendered state',JSON.stringify(operationsState));
       }
     }
   }catch(e){
