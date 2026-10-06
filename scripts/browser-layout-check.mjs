@@ -373,7 +373,7 @@ try{
       await page.locator('#nbTitle').fill('New Teacher Notice');
       await page.locator('#nbBody').fill('Owned by teacher one');
       await page.locator('#nbAudience').selectOption('all');
-      await page.locator('#nbSave').tap({timeout:5000});
+      await page.locator('#nbSave').click({timeout:5000});
       const savedOwner=await page.evaluate(()=>{
         const rows=JSON.parse(localStorage.getItem('edunizam_notice_board_v1')||'[]');
         return rows.find(x=>x.title==='New Teacher Notice')?.creatorKey||'';
