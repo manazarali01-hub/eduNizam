@@ -217,6 +217,24 @@ exists(feeMigration)&&read(feeMigration).includes("can_read_student_fee_v1")&&!r
 exists(feeMigration)&&read(feeMigration).includes("notify_fee_payment_v1")?ok("fees:payment-notifications"):bad("fees:payment-notifications","Fee payment notification trigger missing.");
 exists(feeMigration)&&read(feeMigration).includes("from anon")?ok("fees:no-anon-table-grants"):bad("fees:no-anon-table-grants","Fee/payment tables must revoke legacy anon privileges.");
 
+// 3g) Results / exams / official report card regression guards
+const appJs=read("app.js");
+const coreCloud=read("core-cloud.js");
+const examCenter=read("exam-center.js");
+const resultCenter=read("result-center-deep.js");
+appJs.includes("Cloud result save failed. Nothing was saved locally")&&appJs.indexOf("saveResultRecord(resultRecord)")<appJs.indexOf("state.results.push(resultRecord)")?ok("results:cloud-authoritative-save"):bad("results:cloud-authoritative-save","Cloud Mode result save must succeed before local result persistence.");
+appJs.includes("same subject, assessment type aur date ka result already exists")?ok("results:local-duplicate-guard"):bad("results:local-duplicate-guard","Result entry must block duplicate subject/type/date rows.");
+coreCloud.includes(".from('result_records')\n      .insert(payload)")?ok("results:insert-only"):bad("results:insert-only","New cloud results must insert rather than silently overwrite.");
+examCenter.includes("teacherCanManageClassSection")&&examCenter.includes("Teacher sirf apni assigned class/section")?ok("exams:teacher-assignment-guard"):bad("exams:teacher-assignment-guard","Teacher exam scheduling must be limited to assigned class/section.");
+examCenter.includes("Same class, section, exam, subject aur date ka schedule already exists")?ok("exams:duplicate-schedule-guard"):bad("exams:duplicate-schedule-guard","Exam schedule must block duplicate semantic entries.");
+resultCenter.includes("acknowledgePublishedReport(id,btn)")&&resultCenter.includes("aria-busy")?ok("reports:ack-inflight-lock"):bad("reports:ack-inflight-lock","Report acknowledgement must lock while RPC is in flight.");
+const resultMigration="supabase/migrations/20261006161532_harden_results_report_cards.sql";
+exists(resultMigration)&&read(resultMigration).includes("result_records_semantic_unique_idx")?ok("results:semantic-unique-index"):bad("results:semantic-unique-index","Result semantic duplicate index missing.");
+exists(resultMigration)&&read(resultMigration).includes("exam_schedule_semantic_unique_idx")&&read(resultMigration).includes("can_manage_exam_schedule_v1")?ok("exams:db-assignment-integrity"):bad("exams:db-assignment-integrity","Exam duplicate and assignment DB guards missing.");
+exists(resultMigration)&&read(resultMigration).includes("publish_report_card_v2_impl")&&read(resultMigration).includes("revoke insert,update,delete on table public.report_card_publications from authenticated")?ok("reports:rpc-only-publication"):bad("reports:rpc-only-publication","Official report cards must be canonical RPC-only writes.");
+exists(resultMigration)&&read(resultMigration).includes("acknowledge_report_card_v2_impl")&&read(resultMigration).includes("report_card_acknowledgements from authenticated")?ok("reports:rpc-only-ack"):bad("reports:rpc-only-ack","Report acknowledgements must use server-owned RPC timestamps.");
+exists(resultMigration)&&read(resultMigration).includes("from anon")?ok("results:no-anon-table-grants"):bad("results:no-anon-table-grants","Result/exam/remark tables must revoke legacy anon privileges.");
+
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
 for(const p of jsFiles){
