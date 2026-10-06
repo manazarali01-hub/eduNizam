@@ -200,7 +200,8 @@
     }
   }
   function editor(){
-    if(!isHead())return '<div class="coverage-note">Student/Parent apne challans aur receipts yahan dekh sakte hain. New challan Head of Institute generate karta hai.</div>';
+    if(role()==='teacher')return '<div class="coverage-note">Fee records are private to School Admin, the Student, and approved Parent accounts.</div>';
+    if(!isHead())return '<div class="coverage-note">Aap sirf apne linked challans aur receipts dekh sakte hain. New challan Head of Institute generate karta hai.</div>';
     const list=visibleStudents();
     return '<article class="card"><div class="section-head"><div><h3>Generate Monthly Fee Challan</h3><p class="muted">Class fee auto-fill hoti hai; discount aur arrears adjust kar sakte hain.</p></div></div>'+
       '<div class="form-grid">'+
