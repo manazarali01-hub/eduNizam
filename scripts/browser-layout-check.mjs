@@ -484,9 +484,13 @@ try{
       await page.waitForFunction(()=>!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
 
       // setView() intentionally reveals the destination before lazy feature code
-      // finishes loading. That is healthy responsiveness, not a frozen app. Give
-      // the feature loader a bounded window to settle; failure to settle is real.
-      await page.waitForFunction(()=>!document.documentElement.classList.contains('edu-feature-loading'),null,{timeout:7000});
+      // starts on the next paint. Waiting only for the loading class to be absent
+      // races with that paint. Wait for the loader's own readiness contract instead,
+      // then also require the global loading marker to be cleared.
+      await page.waitForFunction(()=>(
+        window.EDUNIZAM_FEATURE_LOADER?.isReady?.('help')===true &&
+        !document.documentElement.classList.contains('edu-feature-loading')
+      ),null,{timeout:9000});
 
       const afterNav=await page.evaluate(()=>({
         active:document.querySelector('.view.active')?.id||'',
