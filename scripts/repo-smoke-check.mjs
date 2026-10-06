@@ -178,6 +178,17 @@ admissionsPortal.includes("x.parent_name||'Parent / Guardian'")&&admissionsPorta
 const parentLinkMigration="supabase/migrations/20261006133812_parent_link_notifications.sql";
 exists(parentLinkMigration)&&read(parentLinkMigration).includes("notify_parent_student_link_v1")?ok("access:parent-link-notifications"):bad("access:parent-link-notifications","Parent link notification migration missing.");
 
+// 3d) Cloud communication regression guards
+const communicationCenter=read("communication-center.js");
+const communicationCloud=read("communication-cloud.js");
+communicationCenter.includes("Meeting save failed: ")?ok("communication:cloud-save-authoritative"):bad("communication:cloud-save-authoritative","Cloud meeting failures must not persist local success.");
+communicationCenter.includes("m.source==='cloud'&&String(m.institutionId||'')===inst")?ok("communication:participant-cloud-visibility"):bad("communication:participant-cloud-visibility","Participant meeting view must use the RLS-approved cloud snapshot.");
+communicationCenter.includes("await api.updateStatus(id,status)")&&communicationCenter.includes("await api.remove(id)")?ok("communication:cloud-first-mutations"):bad("communication:cloud-first-mutations","Meeting update/delete must be cloud-first in Cloud Mode.");
+communicationCloud.includes("No approved Parent account is linked to this student yet.")?ok("communication:parent-link-required"):bad("communication:parent-link-required","Head→Parent meeting must require an approved Parent link.");
+communicationCloud.includes("institutionId:row.institution_id")?ok("communication:workspace-snapshot"):bad("communication:workspace-snapshot","Cloud meeting cache rows must carry institution identity.");
+const communicationMigration="supabase/migrations/20261006135301_communication_meeting_notifications.sql";
+exists(communicationMigration)&&read(communicationMigration).includes("notify_communication_meeting_v1")?ok("communication:meeting-notifications"):bad("communication:meeting-notifications","Meeting notification migration missing.");
+
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
 for(const p of jsFiles){
