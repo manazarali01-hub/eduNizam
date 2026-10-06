@@ -314,6 +314,78 @@ try{
     await guestPage.close();
   }
 
+  // Daily Diary must use the user's local calendar date rather than UTC.
+  {
+    const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Karachi',serviceWorkers:'block'});
+    const page=await context.newPage();
+    try{
+      await page.route('**/diary-date-harness',route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body><div id="dailyDiaryApp"></div></body></html>'}));
+      await page.goto('http://127.0.0.1:'+port+'/diary-date-harness',{waitUntil:'domcontentloaded',timeout:8000});
+      await page.evaluate(()=>{
+        localStorage.clear();
+        window.EDUNIZAM_CLOUD_CONFIG={enabled:false,institutionId:''};
+        window.EDUNIZAM_CLOUD={state:{client:null,user:null}};
+      });
+      await page.addScriptTag({url:'http://127.0.0.1:'+port+'/daily-class-diary.js'});
+      const localDate=await page.evaluate(()=>window.EDUNIZAM_DAILY_DIARY?.dateStr?.(new Date('2026-10-05T20:30:00Z'))||'');
+      if(localDate!=='2026-10-06')pushFailure('daily diary','Diary date is derived from UTC instead of the browser local calendar date',JSON.stringify({localDate}));
+    }catch(error){
+      pushFailure('daily diary','Local-calendar date regression failed',error?.message||String(error));
+    }finally{
+      await context.close();
+    }
+  }
+
+  // In Local Mode a teacher may manage only notices created by that teacher.
+  {
+    const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+    const page=await context.newPage();
+    try{
+      await page.route('**/notice-owner-harness',route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body><div id="noticeBoardApp"></div></body></html>'}));
+      await page.goto('http://127.0.0.1:'+port+'/notice-owner-harness',{waitUntil:'domcontentloaded',timeout:8000});
+      await page.evaluate(()=>{
+        localStorage.clear();
+        localStorage.setItem('edunizam_session',JSON.stringify({role:'teacher',identity:'teacher1@example.test'}));
+        localStorage.setItem('edunizam_notice_board_v1',JSON.stringify([
+          {id:'own',title:'Own Notice',body:'Teacher one notice',audience:'all',className:'',sectionName:'',priority:'Normal',pinned:false,validUntil:'',createdBy:'',creatorKey:'teacher:teacher1@example.test',createdAt:'2026-10-06T07:00:00Z',updatedAt:'2026-10-06T07:00:00Z'},
+          {id:'other',title:'Other Notice',body:'Teacher two notice',audience:'all',className:'',sectionName:'',priority:'Normal',pinned:false,validUntil:'',createdBy:'',creatorKey:'teacher:teacher2@example.test',createdAt:'2026-10-06T06:00:00Z',updatedAt:'2026-10-06T06:00:00Z'}
+        ]));
+        window.EDUNIZAM_CLOUD_CONFIG={enabled:false,institutionId:''};
+        window.EDUNIZAM_CLOUD={state:{client:null,user:null}};
+      });
+      await page.addScriptTag({url:'http://127.0.0.1:'+port+'/notice-board-center.js'});
+      await page.waitForSelector('#nbSave',{state:'visible',timeout:5000});
+      const ownership=await page.evaluate(()=>{
+        const cards=[...document.querySelectorAll('#noticeBoardApp .paper-card')];
+        const state={};
+        for(const card of cards){
+          const title=card.querySelector('h3')?.textContent?.trim()||'';
+          state[title]={
+            edit:!!card.querySelector('[data-nb-edit]'),
+            remove:!!card.querySelector('[data-nb-delete]')
+          };
+        }
+        return state;
+      });
+      if(!ownership['Own Notice']?.edit||!ownership['Own Notice']?.remove||ownership['Other Notice']?.edit||ownership['Other Notice']?.remove){
+        pushFailure('notice board','Local teacher notice ownership controls are not isolated',JSON.stringify(ownership));
+      }
+      await page.locator('#nbTitle').fill('New Teacher Notice');
+      await page.locator('#nbBody').fill('Owned by teacher one');
+      await page.locator('#nbAudience').selectOption('all');
+      await page.locator('#nbSave').tap({timeout:5000});
+      const savedOwner=await page.evaluate(()=>{
+        const rows=JSON.parse(localStorage.getItem('edunizam_notice_board_v1')||'[]');
+        return rows.find(x=>x.title==='New Teacher Notice')?.creatorKey||'';
+      });
+      if(savedOwner!=='teacher:teacher1@example.test')pushFailure('notice board','New Local Mode notice did not persist teacher ownership',JSON.stringify({savedOwner}));
+    }catch(error){
+      pushFailure('notice board','Local teacher notice ownership regression failed',error?.message||String(error));
+    }finally{
+      await context.close();
+    }
+  }
+
   console.log('Layout QA static viewport sweep complete. Starting auth/mobile runtime contract.');
   // Production auth/mobile regression: login handoff must open the workspace
   // immediately, and network verification must never own the hamburger or scroll.
