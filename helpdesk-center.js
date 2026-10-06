@@ -2,6 +2,7 @@
   const KEY='edunizam_helpdesk_tickets_v1';
   const MAX_FILES=3;
   const MAX_BYTES=25*1024*1024;
+  const SIGNED_URL_TTL=600;
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
@@ -20,12 +21,22 @@
   function visibleLocal(rows){return isHead()?rows:rows.filter(x=>x.creatorKey===meKey())}
   function ticketNo(){return 'HD-'+Date.now().toString(36).toUpperCase()}
   function safeName(name){return String(name||'file').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-90)}
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){
+      if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';
+      btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label;
+    }else{
+      btn.disabled=false;btn.removeAttribute('aria-busy');
+      if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}
+    }
+  }
   function mapTicket(x){
     const s=x.core_students||{};
     return {id:x.id,ticketNo:x.ticket_no,category:x.category,priority:x.priority,subject:x.subject,description:x.description,status:x.status,adminResponse:x.admin_response||'',studentId:s.local_id!=null?String(s.local_id):'',studentName:s.name||'',className:s.class_name||'',sectionName:s.section_name||'',creatorRole:x.creator_role||'',createdBy:x.created_by||'',creatorKey:'',createdAt:x.created_at,updatedAt:x.updated_at,resolvedAt:x.resolved_at||'',attachments:[]};
   }
   async function signAttachment(a){
-    const {data,error}=await cloud().state.client.storage.from('helpdesk-media').createSignedUrl(a.storage_path,3600);
+    const {data,error}=await cloud().state.client.storage.from('helpdesk-media').createSignedUrl(a.storage_path,SIGNED_URL_TTL);
     return {id:a.id,fileName:a.file_name||'Attachment',mediaType:a.media_type||'',mimeType:a.mime_type||'',sizeBytes:Number(a.size_bytes||0),storagePath:a.storage_path,url:error?'':(data?.signedUrl||'')};
   }
   async function cloudStudent(localId){
@@ -122,6 +133,7 @@
       if(!(file.type.startsWith('image/')||file.type.startsWith('video/')))return alert('Only photo/video attachments allowed.');
       if(file.size>MAX_BYTES)return alert(file.name+' 25 MB se zyada hai.');
     }
+    const btn=$('hdSubmit');if(btn?.disabled)return;setBusy(btn,true,'Submitting...');
     const studentId=$('hdStudent')?.value||'',s=students().find(x=>String(x.id)===String(studentId));
     let item={id:String(Date.now()),ticketNo:ticketNo(),category:$('hdCategory')?.value||'Other',priority:$('hdPriority')?.value||'Normal',subject,description,status:'Open',adminResponse:'',studentId:studentId||'',studentName:s?.name||'',className:s?.className||'',sectionName:s?.sectionName||'',creatorRole:role(),creatorKey:meKey(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),resolvedAt:'',attachments:[]};
     try{
@@ -130,24 +142,36 @@
         if(!ticketId)throw new Error('Ticket was created but its ID was not returned.');
         if(files.length){
           try{await uploadFiles(ticketId,files)}
-          catch(fileError){alert('Ticket submit ho gaya, lekin media upload incomplete raha: '+(fileError.message||fileError))}
+          catch(fileError){alert('Ticket save ho gaya, lekin kuch media upload nahi ho saka. Ticket dobara submit na karein: '+(fileError.message||fileError))}
         }
         await pullCloud();render();return;
       }
-    }catch(e){return alert('Cloud ticket submit failed: '+(e.message||e))}
-    if(files.length)return alert('Photo/video complaint ke liye Cloud Mode required hai.');
-    const rows=read();rows.unshift(item);write(rows);render();
+      if(files.length)return alert('Photo/video complaint ke liye Cloud Mode required hai.');
+      const rows=read();rows.unshift(item);write(rows);render();
+    }catch(e){
+      alert('Cloud ticket submit failed: '+(e.message||e));
+    }finally{
+      setBusy(btn,false);
+    }
   }
-  async function changeStatus(id,status){
-    const rows=read(),x=rows.find(r=>String(r.id)===String(id));if(!x||!isHead())return;
-    try{if(cloudReady()){await updateCloud(id,status,x.adminResponse);await pullCloud();render();return}}catch(e){return alert('Cloud ticket update failed: '+(e.message||e))}
-    x.status=status;x.updatedAt=new Date().toISOString();if(status==='Resolved')x.resolvedAt=new Date().toISOString();write(rows);render();
+  async function changeStatus(id,status,btn){
+    const rows=read(),x=rows.find(r=>String(r.id)===String(id));if(!x||!isHead()||btn?.disabled)return;
+    setBusy(btn,true,'Saving...');
+    try{
+      if(cloudReady()){await updateCloud(id,status,x.adminResponse);await pullCloud();render();return}
+      x.status=status;x.updatedAt=new Date().toISOString();if(status==='Resolved')x.resolvedAt=new Date().toISOString();write(rows);render();
+    }catch(e){alert('Cloud ticket update failed: '+(e.message||e))}
+    finally{setBusy(btn,false)}
   }
-  async function respond(id){
-    const rows=read(),x=rows.find(r=>String(r.id)===String(id));if(!x||!isHead())return;
+  async function respond(id,btn){
+    const rows=read(),x=rows.find(r=>String(r.id)===String(id));if(!x||!isHead()||btn?.disabled)return;
     const response=prompt('Head response:',x.adminResponse||'');if(response===null)return;
-    try{if(cloudReady()){await updateCloud(id,x.status,response.trim());await pullCloud();render();return}}catch(e){return alert('Cloud response failed: '+(e.message||e))}
-    x.adminResponse=response.trim();x.updatedAt=new Date().toISOString();write(rows);render();
+    setBusy(btn,true,'Saving...');
+    try{
+      if(cloudReady()){await updateCloud(id,x.status,response.trim());await pullCloud();render();return}
+      x.adminResponse=response.trim();x.updatedAt=new Date().toISOString();write(rows);render();
+    }catch(e){alert('Cloud response failed: '+(e.message||e))}
+    finally{setBusy(btn,false)}
   }
   function printTicket(x){
     const st=settings(),w=window.open('','_blank','width=800,height=700');if(!w)return alert('Popup blocked.');
@@ -156,10 +180,10 @@
   }
   function bind(rows){
     $('hdSubmit')?.addEventListener('click',submit);$('hdStatusFilter')?.addEventListener('change',render);
-    document.querySelectorAll('[data-hd-progress]').forEach(b=>b.onclick=()=>changeStatus(b.dataset.hdProgress,'In Progress'));
-    document.querySelectorAll('[data-hd-resolve]').forEach(b=>b.onclick=()=>changeStatus(b.dataset.hdResolve,'Resolved'));
-    document.querySelectorAll('[data-hd-close]').forEach(b=>b.onclick=()=>changeStatus(b.dataset.hdClose,'Closed'));
-    document.querySelectorAll('[data-hd-response]').forEach(b=>b.onclick=()=>respond(b.dataset.hdResponse));
+    document.querySelectorAll('[data-hd-progress]').forEach(b=>b.onclick=()=>changeStatus(b.dataset.hdProgress,'In Progress',b));
+    document.querySelectorAll('[data-hd-resolve]').forEach(b=>b.onclick=()=>changeStatus(b.dataset.hdResolve,'Resolved',b));
+    document.querySelectorAll('[data-hd-close]').forEach(b=>b.onclick=()=>changeStatus(b.dataset.hdClose,'Closed',b));
+    document.querySelectorAll('[data-hd-response]').forEach(b=>b.onclick=()=>respond(b.dataset.hdResponse,b));
     document.querySelectorAll('[data-hd-print]').forEach(b=>b.onclick=()=>{const x=rows.find(r=>String(r.id)===String(b.dataset.hdPrint));if(x)printTicket(x)});
   }
   async function render(){
