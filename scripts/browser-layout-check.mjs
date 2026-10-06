@@ -679,6 +679,38 @@ try{
         pushFailure('admin workflow navigation',view+' did not settle to a usable rendered state',JSON.stringify(workflowState));
       }
     }
+
+    // People + operations sections: mobile navigation, lazy-loader completion, and unlocked rendered state.
+    for(const view of ['staffcenter','staffpayroll','training','financecenter','inventorycenter','librarycenter','transportcenter']){
+      await loginStep('open operations '+view,async()=>{
+        await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
+        await loginFlowPage.evaluate(view=>{
+          const button=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const group=button?.closest('details');
+          if(group)group.open=true;
+        },view);
+        await loginFlowPage.locator('.nav-item[data-view="'+view+'"]').tap({timeout:5000});
+        await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
+        await loginFlowPage.waitForFunction(view=>{
+          const loader=window.EDUNIZAM_FEATURE_LOADER;
+          const error=document.querySelector('#'+view+' .feature-loading-notice.error');
+          return !!error||!loader||loader.isReady(view);
+        },view,{timeout:8000});
+        await loginFlowPage.waitForTimeout(80);
+      });
+      const operationsState=await boundedEvaluate('inspect operations '+view,()=>({
+        active:document.querySelector('.view.active')?.id||'',
+        guardPresent:!!document.getElementById('cloudAuthScreen'),
+        locked:document.body.classList.contains('mobile-nav-lock'),
+        menuOpen:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false,
+        featureLoading:document.documentElement.classList.contains('edu-feature-loading'),
+        featureError:!!document.querySelector('.view.active .feature-loading-notice.error'),
+        activeText:(document.querySelector('.view.active')?.textContent||'').trim().length
+      }),5000);
+      if(operationsState.active!==view||operationsState.guardPresent||operationsState.locked||operationsState.menuOpen||operationsState.featureLoading||operationsState.featureError||operationsState.activeText<10){
+        pushFailure('admin operations navigation',view+' did not settle to a usable rendered state',JSON.stringify(operationsState));
+      }
+    }
   }catch(e){
     pushFailure('login contract','Full Login -> dashboard interaction regression failed',e.message||String(e));
   }finally{
