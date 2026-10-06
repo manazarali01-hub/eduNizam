@@ -2,6 +2,7 @@
   const KEY='edunizam_parent_complaints_v1';
   const MAX_FILES=3;
   const MAX_BYTES=25*1024*1024;
+  const SIGNED_URL_TTL=600;
   const ADMIN_BUCKET='parent-admin-complaints';
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -21,6 +22,16 @@
   function settings(){try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}}
   function meKey(){return role()+':'+String(session()?.identity||'').toLowerCase()}
   function safeName(name){return String(name||'file').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-90)}
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){
+      if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';
+      btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label;
+    }else{
+      btn.disabled=false;btn.removeAttribute('aria-busy');
+      if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}
+    }
+  }
   function localVisible(rows){
     if(isHead())return rows;
     const ids=new Set(visibleStudents().map(s=>String(s.id)));
@@ -38,7 +49,7 @@
     return {id:x.id,studentId:String(s.local_id??x.student_id),studentName:s.name||'Student',className:s.class_name||'',sectionName:s.section_name||'',subject:x.subject,message:x.message,severity:x.severity,actionRequested:x.action_requested||'',status:x.status,acknowledgedAt:x.acknowledged_at||'',resolvedAt:x.resolved_at||'',resolutionNote:x.resolution_note||'',createdBy:x.created_by||'',creatorKey:'',createdAt:x.created_at,attachments:[]};
   }
   async function signAttachment(a){
-    const {data,error}=await cloud().state.client.storage.from(bucket()).createSignedUrl(a.storage_path,3600);
+    const {data,error}=await cloud().state.client.storage.from(bucket()).createSignedUrl(a.storage_path,SIGNED_URL_TTL);
     return {id:a.id,fileName:a.file_name||'Attachment',mediaType:a.media_type,mimeType:a.mime_type||'',sizeBytes:Number(a.size_bytes||0),storagePath:a.storage_path,url:error?'':(data?.signedUrl||'')};
   }
   async function listTeachers(){
@@ -56,22 +67,31 @@
     const teacher=$('ptTeacher')?.value,subject=$('ptSubject')?.value.trim(),message=$('ptMessage')?.value.trim(),severity=$('ptSeverity')?.value||'Concern';
     if(!teacher||!subject||!message)return alert('Teacher, subject aur complaint details required hain.');
     if(!cloudReady())return alert('Private parent complaint ke liye secure Cloud Mode required hai.');
-    const {error}=await cloud().state.client.rpc('create_parent_teacher_complaint_v1',{p_institution_id:cfg().institutionId,p_teacher_user_id:teacher,p_subject:subject,p_message:message,p_severity:severity});
-    if(error)return alert('Complaint send failed: '+(error.message||error));
-    $('ptSubject').value='';$('ptMessage').value='';await render();
+    const btn=$('ptSend');if(btn?.disabled)return;setBusy(btn,true,'Sending...');
+    try{
+      const {error}=await cloud().state.client.rpc('create_parent_teacher_complaint_v1',{p_institution_id:cfg().institutionId,p_teacher_user_id:teacher,p_subject:subject,p_message:message,p_severity:severity});
+      if(error)throw error;
+      $('ptSubject').value='';$('ptMessage').value='';await render();
+    }catch(e){alert('Complaint send failed: '+(e.message||e))}
+    finally{setBusy(btn,false)}
   }
-  async function resolveParentTeacherComplaint(id){
-    if(!isHead()||!cloudReady())return;
+  async function resolveParentTeacherComplaint(id,btn){
+    if(!isHead()||!cloudReady()||btn?.disabled)return;
     const note=prompt('Admin resolution note (optional):')||'';
-    const {error}=await cloud().state.client.rpc('resolve_parent_teacher_complaint_v1',{p_complaint_id:id,p_admin_note:note});
-    if(error)return alert('Resolve failed: '+(error.message||error));await render();
+    setBusy(btn,true,'Resolving...');
+    try{
+      const {error}=await cloud().state.client.rpc('resolve_parent_teacher_complaint_v1',{p_complaint_id:id,p_admin_note:note});
+      if(error)throw error;
+      await render();
+    }catch(e){alert('Resolve failed: '+(e.message||e))}
+    finally{setBusy(btn,false)}
   }
   function parentTeacherCard(x,teacherMap){
     const teacher=teacherMap.get(String(x.teacher_user_id));
     return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">Private · '+esc(x.severity)+'</span><span class="badge">'+esc(x.status)+'</span></div><h3>'+esc(x.subject)+'</h3><p class="muted">Teacher: '+esc(teacher?.full_name||'School Teacher')+' · '+new Date(x.created_at).toLocaleString()+'</p><p>'+esc(x.message)+'</p>'+(x.admin_note?'<p><strong>Admin note:</strong> '+esc(x.admin_note)+'</p>':'')+(isHead()&&x.status!=='Resolved'?'<div class="paper-actions"><button data-pt-resolve="'+esc(x.id)+'">Mark Resolved</button></div>':'')+'</article>';
   }
   async function signParentAdminAttachment(a){
-    const {data,error}=await cloud().state.client.storage.from(ADMIN_BUCKET).createSignedUrl(a.storage_path,3600);
+    const {data,error}=await cloud().state.client.storage.from(ADMIN_BUCKET).createSignedUrl(a.storage_path,SIGNED_URL_TTL);
     return {id:a.id,fileName:a.file_name||'Attachment',mediaType:a.media_type,mimeType:a.mime_type||'',sizeBytes:Number(a.size_bytes||0),storagePath:a.storage_path,url:error?'':(data?.signedUrl||'')};
   }
   async function pullParentAdminCloud(){
@@ -119,27 +139,42 @@
       if(!(f.type.startsWith('image/')||f.type.startsWith('video/')))return alert('Only photo/video attachments allowed.');
       if(f.size>MAX_BYTES)return alert(f.name+' 25 MB se zyada hai.');
     }
-    const btn=$('paSend');if(btn)btn.disabled=true;
+    const btn=$('paSend');if(btn?.disabled)return;setBusy(btn,true,'Sending...');
+    let complaintId='';
     try{
       const {data,error}=await cloud().state.client.rpc('create_parent_admin_complaint_v1',{
         p_institution_id:cfg().institutionId,p_subject:subject,p_message:message,p_severity:severity
       });
       if(error)throw error;
-      const row=Array.isArray(data)?data[0]:data,complaintId=row?.id;
+      const row=Array.isArray(data)?data[0]:data;complaintId=row?.id||'';
       if(!complaintId)throw new Error('Complaint record was not created.');
-      if(files.length)await uploadParentAdminFiles(complaintId,files);
-      window.EDUNIZAM_PREMIUM?.toast?.('Private complaint sent to School Admin.','success');
+      let mediaError=null;
+      if(files.length){
+        try{await uploadParentAdminFiles(complaintId,files)}
+        catch(e){mediaError=e}
+      }
+      $('paSubject').value='';$('paMessage').value='';if($('paFiles'))$('paFiles').value='';
       await render();
-    }catch(e){alert('Private complaint send failed: '+(e.message||e))}
-    finally{if(btn)btn.disabled=false}
+      if(mediaError){
+        alert('Private complaint save ho gayi, lekin kuch media upload nahi ho saka. Complaint dobara submit na karein: '+(mediaError.message||mediaError));
+      }else{
+        window.EDUNIZAM_PREMIUM?.toast?.('Private complaint sent to School Admin.','success');
+      }
+    }catch(e){
+      if(!complaintId)alert('Private complaint send failed: '+(e.message||e));
+    }finally{setBusy(btn,false)}
   }
-  async function resolveParentAdminComplaint(id){
-    if(!isHead()||!cloudReady())return;
+  async function resolveParentAdminComplaint(id,btn){
+    if(!isHead()||!cloudReady()||btn?.disabled)return;
     const note=String(prompt('Admin resolution note (optional):')||'').trim();
-    const {error}=await cloud().state.client.rpc('resolve_parent_admin_complaint_v1',{p_complaint_id:id,p_admin_note:note});
-    if(error)return alert('Resolve failed: '+(error.message||error));
-    window.EDUNIZAM_PREMIUM?.toast?.('Private parent complaint resolved.','success');
-    await render();
+    setBusy(btn,true,'Resolving...');
+    try{
+      const {error}=await cloud().state.client.rpc('resolve_parent_admin_complaint_v1',{p_complaint_id:id,p_admin_note:note});
+      if(error)throw error;
+      window.EDUNIZAM_PREMIUM?.toast?.('Private parent complaint resolved.','success');
+      await render();
+    }catch(e){alert('Resolve failed: '+(e.message||e))}
+    finally{setBusy(btn,false)}
   }
   function parentAdminCard(x,parentNames){
     const who=isHead()?(parentNames.get(String(x.parentUserId))||'Parent account'):'Your private complaint';
@@ -271,31 +306,49 @@
       if(!(f.type.startsWith('image/')||f.type.startsWith('video/')))return alert('Only photo/video attachments allowed.');
       if(f.size>MAX_BYTES)return alert(f.name+' 25 MB se zyada hai.');
     }
-    const s=students().find(x=>String(x.id)===String(studentId));if(!s)return;
+    const btn=$('pcSend');if(btn?.disabled)return;setBusy(btn,true,'Sending...');
+    const s=students().find(x=>String(x.id)===String(studentId));if(!s){setBusy(btn,false);return}
     let item={id:String(Date.now()),studentId:String(s.id),studentName:s.name,className:s.className||'',sectionName:s.sectionName||'',subject,message,severity:$('pcSeverity')?.value||'Concern',actionRequested:$('pcAction')?.value.trim()||'',status:'Open',acknowledgedAt:'',resolvedAt:'',creatorKey:meKey(),createdAt:new Date().toISOString(),attachments:[]};
-    if(cloudReady()){
-      try{
-        const created=await createCloud(item),complaintId=created?.id||created;
+    let complaintId='';
+    try{
+      if(cloudReady()){
+        const created=await createCloud(item);complaintId=created?.id||created||'';
         if(!complaintId)throw new Error('Complaint record was not created.');
-        if(files.length)await uploadFiles(complaintId,files);
-        await pullCloud();render();return;
-      }catch(e){return alert('Complaint send failed: '+(e.message||e))}
-    }
-    if(files.length)return alert('Photo/video complaint ke liye Cloud Mode required hai.');
-    const rows=read();rows.unshift(item);write(rows);render();
+        let mediaError=null;
+        if(files.length){
+          try{await uploadFiles(complaintId,files)}
+          catch(e){mediaError=e}
+        }
+        await pullCloud();render();
+        if(mediaError)alert('Complaint save ho gayi, lekin kuch media upload nahi ho saka. Complaint dobara submit na karein: '+(mediaError.message||mediaError));
+        return;
+      }
+      if(files.length)return alert('Photo/video complaint ke liye Cloud Mode required hai.');
+      const rows=read();rows.unshift(item);write(rows);render();
+    }catch(e){
+      if(!complaintId)alert('Complaint send failed: '+(e.message||e));
+    }finally{setBusy(btn,false)}
   }
-  async function acknowledge(id){
-    const rows=read(),x=rows.find(r=>String(r.id)===String(id));if(!x||!isParent())return;
-    try{if(cloudReady()){await acknowledgeCloud(id);await pullCloud();render();return}}catch(e){return alert('Acknowledgement failed: '+(e.message||e))}
-    x.acknowledgedAt=new Date().toISOString();write(rows);render();
+  async function acknowledge(id,btn){
+    const rows=read(),x=rows.find(r=>String(r.id)===String(id));if(!x||!isParent()||btn?.disabled)return;
+    setBusy(btn,true,'Saving...');
+    try{
+      if(cloudReady()){await acknowledgeCloud(id);await pullCloud();render();return}
+      x.acknowledgedAt=new Date().toISOString();write(rows);render();
+    }catch(e){alert('Acknowledgement failed: '+(e.message||e))}
+    finally{setBusy(btn,false)}
   }
-  async function resolve(id){
-    if(!isHead())return;
+  async function resolve(id,btn){
+    if(!isHead()||btn?.disabled)return;
     const rows=read(),x=rows.find(r=>String(r.id)===String(id));if(!x)return;
     const note=String(prompt('Resolution note / action taken:',x.resolutionNote||'')||'').trim();
     if(!note)return alert('Resolution note required hai.');
-    try{if(cloudReady()){await resolveCloud(id,note);await pullCloud();render();return}}catch(e){return alert('Resolve failed: '+(e.message||e))}
-    x.status='Resolved';x.resolvedAt=new Date().toISOString();x.resolutionNote=note;write(rows);render();
+    setBusy(btn,true,'Resolving...');
+    try{
+      if(cloudReady()){await resolveCloud(id,note);await pullCloud();render();return}
+      x.status='Resolved';x.resolvedAt=new Date().toISOString();x.resolutionNote=note;write(rows);render();
+    }catch(e){alert('Resolve failed: '+(e.message||e))}
+    finally{setBusy(btn,false)}
   }
   function filterComplaints(rows,root){
     const status=root.dataset.pcStatus||'',severity=root.dataset.pcSeverity||'',ack=root.dataset.pcAck||'',q=(root.dataset.pcSearch||'').trim().toLowerCase();
@@ -313,8 +366,8 @@
     $('pcAckFilter')?.addEventListener('change',e=>{root.dataset.pcAck=e.target.value;render()});
     $('pcSearch')?.addEventListener('input',e=>{root.dataset.pcSearch=e.target.value;clearTimeout(bind.timer);bind.timer=setTimeout(render,160)});
     $('pcClearFilters')?.addEventListener('click',()=>{root.dataset.pcStatus='';root.dataset.pcSeverity='';root.dataset.pcAck='';root.dataset.pcSearch='';render()});
-    document.querySelectorAll('[data-pc-ack]').forEach(b=>b.onclick=()=>acknowledge(b.dataset.pcAck));
-    document.querySelectorAll('[data-pc-resolve]').forEach(b=>b.onclick=()=>resolve(b.dataset.pcResolve));
+    document.querySelectorAll('[data-pc-ack]').forEach(b=>b.onclick=()=>acknowledge(b.dataset.pcAck,b));
+    document.querySelectorAll('[data-pc-resolve]').forEach(b=>b.onclick=()=>resolve(b.dataset.pcResolve,b));
     document.querySelectorAll('[data-pc-print]').forEach(b=>b.onclick=()=>{const x=rows.find(r=>String(r.id)===String(b.dataset.pcPrint));if(x)printNotice(x)});
   }
   async function render(){
@@ -328,9 +381,9 @@
       '<article class="card" style="margin-top:18px"><div class="section-head"><div><h3>'+ (isParent()?'Complaint Notices':'Sent Student Complaints') +'</h3><p class="muted">'+filtered.length+' of '+rows.length+' records shown · acknowledgement, evidence and resolution history.</p></div><button id="pcClearFilters" class="secondary">Clear Filters</button></div><div class="form-grid"><select id="pcStatusFilter"><option value="">All Status</option>'+['Open','Resolved'].map(v=>'<option value="'+v+'" '+((root.dataset.pcStatus||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><select id="pcSeverityFilter"><option value="">All Severity</option>'+['Information','Concern','Serious'].map(v=>'<option value="'+v+'" '+((root.dataset.pcSeverity||'')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><select id="pcAckFilter"><option value="">All Acknowledgement</option><option value="ack" '+((root.dataset.pcAck||'')==='ack'?'selected':'')+'>Acknowledged</option><option value="pending" '+((root.dataset.pcAck||'')==='pending'?'selected':'')+'>Awaiting Acknowledgement</option></select><input id="pcSearch" type="search" value="'+esc(root.dataset.pcSearch||'')+'" placeholder="Search student, class, subject, complaint or resolution"></div></article><div class="paper-grid" style="margin-top:12px">'+(filtered.length?filtered.map(x=>card(x).replace('</div></article>','<button class="secondary" data-pc-print="'+esc(x.id)+'">Print Notice</button></div></article>')).join(''):'<div class="empty-state">No complaint matches these filters.</div>')+'</div>';
     bind(rows,root);
     $('paSend')?.addEventListener('click',sendParentAdminComplaint);
-    document.querySelectorAll('[data-pa-resolve]').forEach(b=>b.onclick=()=>resolveParentAdminComplaint(b.dataset.paResolve));
+    document.querySelectorAll('[data-pa-resolve]').forEach(b=>b.onclick=()=>resolveParentAdminComplaint(b.dataset.paResolve,b));
     $('ptSend')?.addEventListener('click',createParentTeacherComplaint);
-    document.querySelectorAll('[data-pt-resolve]').forEach(b=>b.onclick=()=>resolveParentTeacherComplaint(b.dataset.ptResolve));
+    document.querySelectorAll('[data-pt-resolve]').forEach(b=>b.onclick=()=>resolveParentTeacherComplaint(b.dataset.ptResolve,b));
   }
   window.addEventListener('edunizam:auth',render);
   setTimeout(render,0);setTimeout(render,900);
