@@ -1,6 +1,8 @@
 -- Harden admission/payment RPCs without changing public API signatures.
 -- Elevated implementations live in private; exposed public functions are SECURITY INVOKER.
 -- Existing applicant/admin/payment state checks and return types are preserved.
+-- Applied to production on 2026-10-06 after rollback validation; Supabase security-definer
+-- advisor findings reduced from 5 to 1.
 
 create or replace function private.confirm_admission_v2_impl(p_application_id uuid)
 returns public.applications
