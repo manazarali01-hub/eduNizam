@@ -190,6 +190,8 @@ const communicationMigration="supabase/migrations/20261006135301_communication_m
 exists(communicationMigration)&&read(communicationMigration).includes("notify_communication_meeting_v1")?ok("communication:meeting-notifications"):bad("communication:meeting-notifications","Meeting notification migration missing.");
 const communicationScopeMigration="supabase/migrations/20261006135825_harden_head_parent_meeting_scope.sql";
 exists(communicationScopeMigration)&&read(communicationScopeMigration).includes('heads create linked parent meetings')?ok("communication:head-parent-scope"):bad("communication:head-parent-scope","Head→Parent meeting INSERT policy must require an approved Parent-Student relationship.");
+const communicationParticipantMigration="supabase/migrations/20261006140035_harden_communication_participant_scope.sql";
+exists(communicationParticipantMigration)&&read(communicationParticipantMigration).includes("l.status='approved'")&&read(communicationParticipantMigration).includes('participant_user_id=(select auth.uid())')?ok("communication:parent-read-scope"):bad("communication:parent-read-scope","Parent meeting reads must re-check the current approved Parent-Student relationship.");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
