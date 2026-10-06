@@ -192,8 +192,10 @@ async function parentPrivateComplaint(){
         rpc:(name,args={})=>{
           if(name==='list_parent_teacher_directory_v1')return Promise.resolve({data:[],error:null});
           if(name==='create_parent_admin_complaint_v1'){
+            const count=Number(sessionStorage.getItem('qa_parent_admin_rpc_count')||'0')+1;
+            sessionStorage.setItem('qa_parent_admin_rpc_count',String(count));
             sessionStorage.setItem('qa_parent_admin_rpc',JSON.stringify(args));
-            return Promise.resolve({data:{id:'pa-1'},error:null});
+            return new Promise(resolve=>setTimeout(()=>resolve({data:{id:'pa-1'},error:null}),250));
           }
           return Promise.resolve({data:null,error:null});
         },
@@ -207,17 +209,76 @@ async function parentPrivateComplaint(){
     await page.locator('#paSubject').fill('Transport concern');
     await page.locator('#paMessage').fill('Please review the pickup timing.');
     await page.locator('#paSend').tap();
+    await page.waitForFunction(()=>document.getElementById('paSend')?.disabled===true);
+    await page.evaluate(()=>document.getElementById('paSend')?.click());
     await page.waitForFunction(()=>!!sessionStorage.getItem('qa_parent_admin_rpc'));
-    await page.waitForSelector('#paSend',{state:'visible'});
+    await page.waitForFunction(()=>document.getElementById('paSend')&&!document.getElementById('paSend').disabled);
     const state=await page.evaluate(()=>({
       rpc:JSON.parse(sessionStorage.getItem('qa_parent_admin_rpc')||'null'),
+      rpcCount:Number(sessionStorage.getItem('qa_parent_admin_rpc_count')||'0'),
       disabled:document.getElementById('paSend')?.disabled||false,
       alert:sessionStorage.getItem('qa_last_alert')||''
     }));
-    if(state.rpc?.p_institution_id!=='school-1'||state.rpc?.p_subject!=='Transport concern'||state.rpc?.p_message!=='Please review the pickup timing.'||state.disabled){
-      fail('parent complaint','Parent private complaint did not submit and recover the control',JSON.stringify(state));
+    if(state.rpc?.p_institution_id!=='school-1'||state.rpc?.p_subject!=='Transport concern'||state.rpc?.p_message!=='Please review the pickup timing.'||state.rpcCount!==1||state.disabled){
+      fail('parent complaint','Parent private complaint duplicate-submit guard or control recovery failed',JSON.stringify(state));
     }
   }catch(error){fail('parent complaint','Parent private complaint interaction failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+
+async function helpdeskDuplicateSubmitBlocked(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      document.getElementById('mount').innerHTML='<div id="helpdeskCenterApp"></div>';
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'parent',identity:'parent@example.test',institutionId:'school-1',source:'supabase'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([]));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
+      const user={id:'parent-1',email:'parent@example.test'};
+      const makeQuery=()=>{
+        const q={
+          select(){return q},eq(){return q},in(){return q},order(){return q},
+          maybeSingle(){return Promise.resolve({data:null,error:null})},
+          then(resolve,reject){return Promise.resolve({data:[],error:null}).then(resolve,reject)}
+        };
+        return q;
+      };
+      const client={
+        rpc:(name,args={})=>{
+          if(name==='create_helpdesk_ticket'){
+            const count=Number(sessionStorage.getItem('qa_helpdesk_rpc_count')||'0')+1;
+            sessionStorage.setItem('qa_helpdesk_rpc_count',String(count));
+            sessionStorage.setItem('qa_helpdesk_rpc_args',JSON.stringify(args));
+            return new Promise(resolve=>setTimeout(()=>resolve({data:{id:'hd-1'},error:null}),250));
+          }
+          return Promise.resolve({data:null,error:null});
+        },
+        from:()=>makeQuery(),
+        storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),upload:()=>Promise.resolve({error:null}),remove:()=>Promise.resolve({error:null})})}
+      };
+      window.EDUNIZAM_CLOUD={state:{client,user,initialized:true}};
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/helpdesk-center.js'});
+    await page.waitForSelector('#hdSubmit',{state:'visible'});
+    await page.locator('#hdSubject').fill('QA helpdesk issue');
+    await page.locator('#hdDescription').fill('QA verifies duplicate submit protection.');
+    await page.locator('#hdSubmit').tap();
+    await page.waitForFunction(()=>document.getElementById('hdSubmit')?.disabled===true);
+    await page.evaluate(()=>document.getElementById('hdSubmit')?.click());
+    await page.waitForFunction(()=>Number(sessionStorage.getItem('qa_helpdesk_rpc_count')||'0')===1);
+    await page.waitForFunction(()=>document.getElementById('hdSubmit')&&!document.getElementById('hdSubmit').disabled);
+    const state=await page.evaluate(()=>({
+      count:Number(sessionStorage.getItem('qa_helpdesk_rpc_count')||'0'),
+      args:JSON.parse(sessionStorage.getItem('qa_helpdesk_rpc_args')||'null'),
+      disabled:document.getElementById('hdSubmit')?.disabled||false
+    }));
+    if(state.count!==1||state.disabled||state.args?.p_institution_id!=='school-1'||state.args?.p_subject!=='QA helpdesk issue'){
+      fail('helpdesk duplicate submit','Helpdesk duplicate-submit guard failed',JSON.stringify(state));
+    }
+  }catch(error){fail('helpdesk duplicate submit','Helpdesk duplicate-submit browser test failed',error?.message||String(error))}
   finally{await context.close()}
 }
 
@@ -312,6 +373,7 @@ try{
   await teacherDiary();
   await studentSubmission();
   await parentPrivateComplaint();
+  await helpdeskDuplicateSubmitBlocked();
   await cloudMeetingFailureDoesNotPersist();
   await parentCloudMeetingVisible();
 }finally{
@@ -325,4 +387,4 @@ if(failures.length){
   for(const f of failures)console.error('FAIL',f.scope,'-',f.message,f.detail||'');
   process.exit(1);
 }
-console.log('EduNizam role workflow QA passed: Teacher leave, Teacher diary, Student assignment, Parent private complaint, cloud-authoritative meetings.');
+console.log('EduNizam role workflow QA passed: Teacher leave, Teacher diary, Student assignment, Parent private complaint, helpdesk duplicate guard, cloud-authoritative meetings.');
