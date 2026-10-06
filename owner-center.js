@@ -6,14 +6,42 @@
   const localRole=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role||'student'}catch{return'student'}};
   const ready=()=>!!(cfg().enabled&&cloud()?.state?.client&&cloud()?.state?.user);
   const FREE_LAUNCH_MODE=true; // Familiarization phase: keep every institute free; preserve billing infrastructure for later.
+  const OWNER_CACHE_KEY='edunizam_platform_owner_probe_v1';
+  const OWNER_CACHE_MS=5*60*1000;
   let owner=false,plans=[],institutions=[],adminRequests=[];
-
-  async function isOwner(){
-    if(!ready())return false;
+  function readOwnerCache(userId){
     try{
-      const {data,error}=await cloud().state.client.rpc('is_platform_admin');
-      if(error)throw error;
-      return data===true;
+      const row=JSON.parse(sessionStorage.getItem(OWNER_CACHE_KEY)||'null');
+      if(row?.userId===userId&&Date.now()-Number(row.at||0)<OWNER_CACHE_MS)return row.value===true;
+    }catch(_){}
+    return null;
+  }
+  function writeOwnerCache(userId,value){
+    try{sessionStorage.setItem(OWNER_CACHE_KEY,JSON.stringify({userId,value:value===true,at:Date.now()}))}catch(_){}
+  }
+
+  async function isOwner(force=false){
+    if(!ready())return false;
+    const userId=String(cloud()?.state?.user?.id||'');
+    if(!userId)return false;
+    if(!force){
+      const cached=readOwnerCache(userId);
+      if(cached!==null)return cached;
+    }
+    try{
+      const execute=async({signal}={})=>{
+        let request=cloud().state.client.rpc('is_platform_admin');
+        if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+        const {data,error}=await request;
+        if(error)throw error;
+        return data===true;
+      };
+      const runtime=window.EDUNIZAM_DATA_RUNTIME;
+      const value=runtime
+        ?await runtime.run('platform-owner:'+userId,execute,{timeout:5000,retries:1,cacheMs:OWNER_CACHE_MS,label:'Platform owner check'})
+        :await execute({});
+      writeOwnerCache(userId,value);
+      return value;
     }catch(_){return false}
   }
 
@@ -235,16 +263,30 @@
   async function mountHeadPlanCard(){
     if(localRole()!=='head'||!ready()||!cfg().institutionId||$('currentSubscriptionCard'))return;
     const settings=$('settings');if(!settings)return;
+    if(FREE_LAUNCH_MODE){
+      const card=document.createElement('article');card.className='card';card.id='currentSubscriptionCard';
+      card.innerHTML='<div class="section-head"><div><h2>EduNizam Free Launch</h2><p class="muted">All current school features are available free during the familiarization phase.</p></div><span class="academic-pill">Free</span></div><p>No paid-plan restriction is active for this institute.</p>';
+      settings.prepend(card);
+      return;
+    }
     try{
-      const {data,error}=await cloud().state.client.from('institution_subscriptions')
-        .select('status,trial_ends_at,current_period_end,subscription_plans(name,code,monthly_price_pkr)')
-        .eq('institution_id',cfg().institutionId).maybeSingle();
-      if(error||!data)return;
+      const execute=async({signal}={})=>{
+        let request=cloud().state.client.from('institution_subscriptions')
+          .select('status,trial_ends_at,current_period_end,subscription_plans(name,code,monthly_price_pkr)')
+          .eq('institution_id',cfg().institutionId).maybeSingle();
+        if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+        const result=await request;
+        if(result?.error)throw result.error;
+        return result;
+      };
+      const runtime=window.EDUNIZAM_DATA_RUNTIME;
+      const {data}=runtime
+        ?await runtime.run('subscription-card:'+cfg().institutionId,execute,{timeout:5000,retries:1,cacheMs:60000,label:'Subscription status'})
+        :await execute({});
+      if(!data)return;
       const card=document.createElement('article');card.className='card';card.id='currentSubscriptionCard';
       const p=data.subscription_plans||{};
-      card.innerHTML=FREE_LAUNCH_MODE
-        ?'<div class="section-head"><div><h2>EduNizam Free Launch</h2><p class="muted">All current school features are available free during the familiarization phase.</p></div><span class="academic-pill">Free</span></div><p>No paid-plan restriction is active for this institute.</p>'
-        :'<div class="section-head"><div><h2>Current EduNizam Plan</h2><p class="muted">Institute subscription status.</p></div><span class="academic-pill">'+esc(data.status||'active')+'</span></div>'+
+      card.innerHTML='<div class="section-head"><div><h2>Current EduNizam Plan</h2><p class="muted">Institute subscription status.</p></div><span class="academic-pill">'+esc(data.status||'active')+'</span></div>'+
         '<p><strong>'+esc(p.name||'Free')+'</strong> · '+money(p.monthly_price_pkr||0)+'/month</p>'+
         '<p class="muted">'+(data.trial_ends_at?'Trial ends: '+esc(String(data.trial_ends_at).slice(0,10))+' · ':'')+(data.current_period_end?'Period ends: '+esc(String(data.current_period_end).slice(0,10)):'')+'</p>';
       settings.prepend(card);
