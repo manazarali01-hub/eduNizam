@@ -470,18 +470,21 @@ try{
     await loginFlowPage.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
       status:200,contentType:'text/javascript',body:'/* Supabase stubbed by login regression test */'
     }));
-    // Diagnostic isolation: if the real reliability guardian owns a startup freeze,
-    // replacing only that script keeps the rest of the production app intact.
-    await loginFlowPage.route('**/reliability-guardian.js*',route=>route.fulfill({
-      status:200,
-      contentType:'text/javascript',
-      body:`window.EDUNIZAM_RELIABILITY={
-        state:{safeMode:false},
-        report(){},withRetry:fn=>Promise.resolve().then(fn),
-        beginFeature(){},endFeature(){},repairUI(){},render(){},
-        markRecoverableControl(){},clearRecoverableControl(){}
-      };`
-    }));
+    // Diagnostic isolation: keep the critical auth/navigation shell real and
+    // temporarily blank non-critical startup modules. This identifies whether
+    // the freeze belongs to the shell or to an eager feature/decorator module.
+    const diagnosticBlockedStartup=[
+      'reliability-guardian.js','cloud-setup.js','core-cloud.js','account-security.js',
+      'ai-client.js','communication-cloud.js','role-access-center.js','academic-access.js',
+      'role-scope.js','student-insights-core.js','role-dashboard.js','workflow-alerts.js',
+      'backend-health.js','owner-center.js','audit-activity-center.js',
+      'navigation-enhancements.js','ui-polish.js','premium-ui.js','system-auto-update.js'
+    ];
+    for(const src of diagnosticBlockedStartup){
+      await loginFlowPage.route('**/'+src+'*',route=>route.fulfill({
+        status:200,contentType:'text/javascript',body:'/* diagnostic startup module blanked: '+src+' */'
+      }));
+    }
 
     await loginStep('open login page',()=>loginFlowPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:8000}));
     await loginStep('select Admin role',()=>loginFlowPage.locator('[data-role="admin"]').tap({timeout:5000}));
