@@ -239,7 +239,7 @@ try{
     }));
     if(!guestStart.searchVisible||guestStart.homeCards<5||guestStart.privateGuard)pushFailure('guest learning','Continue as Guest did not land on a usable public Learning Hub',JSON.stringify(guestStart));
 
-    await guestPage.locator('[data-tab="past"]').tap({timeout:5000});
+    await guestPage.locator('.tabs .tab[data-tab="past"]').tap({timeout:5000});
     await guestPage.waitForSelector('#past.section.active',{state:'visible',timeout:5000});
     await guestPage.locator('#paperSearch').fill('Gujranwala Mathematics');
     await guestPage.locator('#searchPapers').tap({timeout:5000});
@@ -266,7 +266,7 @@ try{
     const cleared=await guestPage.locator('#globalSearch').inputValue();
     if(cleared!=='')pushFailure('guest learning','Clear Search did not reset the global learning search',JSON.stringify({cleared}));
 
-    await guestPage.locator('[data-tab="practice"]').tap({timeout:5000});
+    await guestPage.locator('.tabs .tab[data-tab="practice"]').tap({timeout:5000});
     await guestPage.waitForSelector('#practice.section.active',{state:'visible',timeout:5000});
     await guestPage.waitForFunction(()=>String(document.getElementById('practiceQuestion')?.textContent||'').trim().length>5,null,{timeout:5000});
     const q1=await guestPage.locator('#practiceQuestion').textContent();
