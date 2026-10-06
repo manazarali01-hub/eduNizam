@@ -221,11 +221,99 @@ async function parentPrivateComplaint(){
   finally{await context.close()}
 }
 
+async function cloudMeetingFailureDoesNotPersist(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'teacher',identity:'teacher@example.test'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([{id:1,name:'QA Student',className:'5',authUserId:'student-1'}]));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
+      window.EDUNIZAM_ROLE_SCOPE={getVisibleStudents:list=>list};
+      window.EDUNIZAM_COMMUNICATION_CLOUD={
+        ready:()=>true,
+        create:()=>Promise.reject(new Error('QA cloud failure')),
+        list:()=>Promise.resolve([]),
+        map:x=>x,
+        updateStatus:()=>Promise.resolve(null),
+        remove:()=>Promise.resolve(true)
+      };
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/communication-center.js'});
+    await page.waitForSelector('#saveMeeting',{state:'visible'});
+    await page.locator('#meetPerson').selectOption('1');
+    await page.locator('#meetTitle').fill('QA Cloud Failure Meeting');
+    await page.locator('#meetDate').fill('2026-10-10');
+    await page.locator('#meetTime').fill('10:00');
+    await page.locator('#saveMeeting').tap();
+    await page.waitForFunction(()=>(sessionStorage.getItem('qa_last_alert')||'').includes('Meeting save failed'));
+    const state=await page.evaluate(()=>({
+      rows:JSON.parse(localStorage.getItem('edunizam_meetings')||'[]'),
+      disabled:document.getElementById('saveMeeting')?.disabled||false,
+      alert:sessionStorage.getItem('qa_last_alert')||''
+    }));
+    if(state.rows.length!==0||state.disabled||!state.alert.includes('QA cloud failure')){
+      fail('cloud meeting failure','Failed cloud meeting was incorrectly persisted or control stayed disabled',JSON.stringify(state));
+    }
+  }catch(error){fail('cloud meeting failure','Cloud-authoritative meeting failure test failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+async function parentCloudMeetingVisible(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'parent',identity:'parent@example.test'}));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
+      window.EDUNIZAM_COMMUNICATION_CLOUD={
+        ready:()=>true,
+        list:()=>Promise.resolve([{
+          id:'00000000-0000-4000-8000-000000000777',
+          institution_id:'school-1',
+          created_by_role:'head_of_institute',
+          participant_role:'parent',
+          participant_user_id:'parent-1',
+          student_user_id:'student-1',
+          title:'Parent QA Meeting',
+          scheduled_for:'2026-10-10T10:00:00+05:00',
+          meet_url:'',
+          status:'scheduled'
+        }]),
+        map:row=>({
+          id:row.id,institutionId:row.institution_id,kind:'head-parent',
+          personId:row.student_user_id||row.participant_user_id||'',
+          personName:'Parent / Guardian',participantRole:'parent',viewerRole:'parent',
+          title:row.title,date:'2026-10-10',time:'10:00',url:'',status:'Scheduled',
+          createdByRole:'head',source:'cloud'
+        }),
+        create:()=>Promise.resolve(null),
+        updateStatus:()=>Promise.resolve(null),
+        remove:()=>Promise.resolve(true)
+      };
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/communication-center.js'});
+    await page.waitForFunction(()=>document.body.textContent.includes('Parent QA Meeting'));
+    const state=await page.evaluate(()=>({
+      text:document.getElementById('meetingList')?.textContent||'',
+      rows:JSON.parse(localStorage.getItem('edunizam_meetings')||'[]')
+    }));
+    if(!state.text.includes('Parent QA Meeting')||state.rows.length!==1||state.rows[0]?.institutionId!=='school-1'){
+      fail('parent cloud meeting','RLS-approved Parent cloud meeting was not rendered from cloud snapshot',JSON.stringify(state));
+    }
+  }catch(error){fail('parent cloud meeting','Parent cloud meeting visibility test failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
 try{
   await teacherLeave();
   await teacherDiary();
   await studentSubmission();
   await parentPrivateComplaint();
+  await cloudMeetingFailureDoesNotPersist();
+  await parentCloudMeetingVisible();
 }finally{
   await browser.close().catch(()=>{});
   server.closeAllConnections?.();
@@ -237,4 +325,4 @@ if(failures.length){
   for(const f of failures)console.error('FAIL',f.scope,'-',f.message,f.detail||'');
   process.exit(1);
 }
-console.log('EduNizam role workflow QA passed: Teacher leave, Teacher diary, Student assignment, Parent private complaint.');
+console.log('EduNizam role workflow QA passed: Teacher leave, Teacher diary, Student assignment, Parent private complaint, cloud-authoritative meetings.');
