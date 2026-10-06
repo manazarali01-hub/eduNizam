@@ -898,6 +898,150 @@ try{
   }finally{
     await loginFlowPage.close();
   }
+
+  // Role-based authentication contract: approved Teacher, Student and Parent
+  // must enter the selected school workspace without a blocking re-check.
+  const roleCases=[
+    {role:'teacher',workspaceRole:'teacher',localRole:'teacher',label:'Teacher',allowed:'students',denied:'settings'},
+    {role:'student',workspaceRole:'student',localRole:'student',label:'Student',allowed:'schoolwork',denied:'students'},
+    {role:'parent',workspaceRole:'parent',localRole:'parent',label:'Parent / Guardian',allowed:'parentcomplaints',denied:'paperbuilder'}
+  ];
+  for(const roleCase of roleCases){
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+    const rolePage=await context.newPage();
+    rolePage.setDefaultTimeout(6000);
+    rolePage.setDefaultNavigationTimeout(10000);
+    try{
+      await rolePage.addInitScript(({role,workspaceRole})=>{
+        const institutionId='22222222-2222-4222-8222-222222222222';
+        const email=role+'@example.test';
+        const user={id:'qa-'+role,email,user_metadata:{}};
+        const directory={
+          institution_id:institutionId,
+          institution_name:'QA Role School',
+          institution_type:'School',
+          registration_number:'ROLE-QA',
+          school_registration_code:'ROLE-QA-LOGIN',
+          address:'QA Campus'
+        };
+        const workspace={...directory,workspace_role:workspaceRole};
+        const signedOut=()=>sessionStorage.getItem('qa_role_signed_out')==='1';
+        const query=()=>{
+          const result={data:[],error:null};
+          const q={
+            select(){return q},eq(){return q},neq(){return q},in(){return q},gte(){return q},lte(){return q},gt(){return q},lt(){return q},like(){return q},ilike(){return q},order(){return q},limit(){return q},
+            insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
+            maybeSingle(){return Promise.resolve({data:null,error:null})},
+            single(){return Promise.resolve({data:null,error:null})},
+            then(resolve,reject){return Promise.resolve(result).then(resolve,reject)}
+          };
+          return q;
+        };
+        const client={
+          auth:{
+            signInWithPassword:()=>{
+              sessionStorage.removeItem('qa_role_signed_out');
+              return Promise.resolve({data:{user,session:{user}},error:null});
+            },
+            signOut:()=>{
+              sessionStorage.setItem('qa_role_signed_out','1');
+              return Promise.resolve({error:null});
+            },
+            getSession:()=>Promise.resolve({data:{session:signedOut()?null:{user}},error:null}),
+            getUser:()=>Promise.resolve({data:{user:signedOut()?null:user},error:null}),
+            signUp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            resend:()=>Promise.resolve({error:null}),
+            resetPasswordForEmail:()=>Promise.resolve({error:null}),
+            verifyOtp:()=>Promise.resolve({data:{user,session:{user}},error:null}),
+            updateUser:()=>Promise.resolve({data:{user},error:null}),
+            onAuthStateChange:(cb)=>{
+              setTimeout(()=>cb('INITIAL_SESSION',signedOut()?null:{user}),0);
+              return {data:{subscription:{unsubscribe(){}}}};
+            }
+          },
+          rpc:(name)=>{
+            if(name==='list_school_directory_v1'||name==='search_school_directory_v1')return Promise.resolve({data:[directory],error:null});
+            if(name==='my_authorized_workspaces'){
+              const count=Number(sessionStorage.getItem('qa_role_workspace_calls')||0)+1;
+              sessionStorage.setItem('qa_role_workspace_calls',String(count));
+              return Promise.resolve({data:[workspace],error:null});
+            }
+            if(name==='is_platform_admin')return Promise.resolve({data:false,error:null});
+            return Promise.resolve({data:null,error:null});
+          },
+          from:()=>query(),
+          storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),remove:()=>Promise.resolve({error:null})})}
+        };
+        window.supabase={createClient:()=>client};
+      },{role:roleCase.role,workspaceRole:roleCase.workspaceRole});
+
+      await rolePage.route('**/*',route=>{
+        const u=new URL(route.request().url());
+        if(u.hostname==='127.0.0.1')route.continue();
+        else if(u.hostname==='cdn.jsdelivr.net')route.fallback();
+        else route.abort();
+      });
+      await rolePage.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({
+        status:200,contentType:'text/javascript',body:'/* Supabase stubbed by role auth regression */'
+      }));
+
+      console.log('Role auth START: '+roleCase.role);
+      await rolePage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:10000});
+      await rolePage.evaluate(()=>{localStorage.removeItem('edunizam_session');sessionStorage.removeItem('qa_role_signed_out');sessionStorage.removeItem('qa_role_workspace_calls')});
+      await rolePage.locator('[data-role="'+roleCase.role+'"]').tap({timeout:5000});
+      await rolePage.waitForFunction(()=>[...document.querySelectorAll('#memberSchoolDropdown option')].some(o=>o.value==='22222222-2222-4222-8222-222222222222'),null,{timeout:6000});
+      await rolePage.locator('#memberSchoolDropdown').selectOption('22222222-2222-4222-8222-222222222222');
+      await rolePage.locator('#loginEmail').fill(roleCase.role+'@example.test');
+      await rolePage.locator('#loginPassword').fill('correct-password');
+      await rolePage.locator('#loginBtn').tap({timeout:5000,noWaitAfter:true});
+      await rolePage.waitForURL(/\/app\.html\?secureLogin=1$/,{timeout:6000});
+      await rolePage.waitForSelector('#roleSession',{state:'visible',timeout:6000});
+      await rolePage.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:6000});
+
+      const opened=await rolePage.evaluate(({localRole,label,allowed,denied})=>{
+        const local=JSON.parse(localStorage.getItem('edunizam_session')||'null');
+        return {
+          local,
+          guardPresent:!!document.getElementById('cloudAuthScreen'),
+          label:(document.querySelector('#roleSession strong')?.textContent||'').trim(),
+          workspaceCalls:Number(sessionStorage.getItem('qa_role_workspace_calls')||0),
+          allowedHidden:document.querySelector('.nav-item[data-view="'+allowed+'"]')?.classList.contains('role-hidden')??null,
+          deniedHidden:document.querySelector('.nav-item[data-view="'+denied+'"]')?.classList.contains('role-hidden')??null,
+          handoff:JSON.parse(sessionStorage.getItem('edunizam_secure_login_handoff')||'null')
+        };
+      },roleCase);
+      if(opened.guardPresent||opened.local?.role!==roleCase.localRole||opened.local?.institutionId!=='22222222-2222-4222-8222-222222222222'||!opened.label.includes(roleCase.label)){
+        pushFailure('role auth',roleCase.role+' login did not settle in the approved workspace',JSON.stringify(opened));
+      }
+      if(opened.workspaceCalls!==1)pushFailure('role auth',roleCase.role+' login repeated workspace authorization instead of trusting the fresh handoff',JSON.stringify(opened));
+      if(opened.allowedHidden!==false||opened.deniedHidden!==true)pushFailure('role auth',roleCase.role+' role navigation permissions were not applied correctly',JSON.stringify(opened));
+
+      await rolePage.locator('#eduMobileMenuBtn').tap({timeout:5000});
+      await rolePage.waitForTimeout(60);
+      const menuOpen=await rolePage.evaluate(()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false);
+      if(!menuOpen)pushFailure('role auth',roleCase.role+' hamburger was not interactive after login');
+      await rolePage.locator('#eduMobileNavClose').tap({timeout:5000});
+
+      await rolePage.locator('#roleSession button').tap({timeout:5000,noWaitAfter:true});
+      await rolePage.waitForFunction(()=>!localStorage.getItem('edunizam_session')&&!sessionStorage.getItem('edunizam_secure_login_handoff'),null,{timeout:6000});
+      await rolePage.waitForFunction(()=>!!document.getElementById('cloudAuthScreen')||/\/login\.html/.test(location.pathname),null,{timeout:6000});
+      const signedOut=await rolePage.evaluate(()=>({
+        local:localStorage.getItem('edunizam_session'),
+        handoff:sessionStorage.getItem('edunizam_secure_login_handoff'),
+        runtime:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}')}catch(_){return{}}})(),
+        guardPresent:!!document.getElementById('cloudAuthScreen'),
+        path:location.pathname
+      }));
+      if(signedOut.local||signedOut.handoff||signedOut.runtime?.institutionId){
+        pushFailure('role auth',roleCase.role+' logout left private workspace state behind',JSON.stringify(signedOut));
+      }
+      console.log('Role auth PASS: '+roleCase.role);
+    }catch(error){
+      pushFailure('role auth',roleCase.role+' approved-school login/logout regression failed',error?.message||String(error));
+    }finally{
+      await context.close();
+    }
+  }
 }finally{
   await browser.close().catch(()=>{});
   server.closeAllConnections?.();
