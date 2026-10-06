@@ -647,6 +647,38 @@ try{
       return settings.tagline==='QA Stable Workspace';
     });
     if(!settingsAction)pushFailure('admin primary actions','Settings save did not persist the updated tagline');
+
+    // High-value school workflow sections: mobile click + lazy-loader + unlocked UI contract.
+    for(const view of ['noticeboard','schedulecenter','dailydiary','paperbuilder','leavecenter','parentcomplaints']){
+      await loginStep('open workflow '+view,async()=>{
+        await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
+        await loginFlowPage.evaluate(view=>{
+          const button=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const group=button?.closest('details');
+          if(group)group.open=true;
+        },view);
+        await loginFlowPage.locator('.nav-item[data-view="'+view+'"]').tap({timeout:5000});
+        await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
+        await loginFlowPage.waitForFunction(view=>{
+          const loader=window.EDUNIZAM_FEATURE_LOADER;
+          const error=document.querySelector('#'+view+' .feature-loading-notice.error');
+          return !!error||!loader||loader.isReady(view);
+        },view,{timeout:8000});
+        await loginFlowPage.waitForTimeout(80);
+      });
+      const workflowState=await boundedEvaluate('inspect workflow '+view,()=>({
+        active:document.querySelector('.view.active')?.id||'',
+        guardPresent:!!document.getElementById('cloudAuthScreen'),
+        locked:document.body.classList.contains('mobile-nav-lock'),
+        menuOpen:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false,
+        featureLoading:document.documentElement.classList.contains('edu-feature-loading'),
+        featureError:!!document.querySelector('.view.active .feature-loading-notice.error'),
+        activeText:(document.querySelector('.view.active')?.textContent||'').trim().length
+      }),5000);
+      if(workflowState.active!==view||workflowState.guardPresent||workflowState.locked||workflowState.menuOpen||workflowState.featureLoading||workflowState.featureError||workflowState.activeText<10){
+        pushFailure('admin workflow navigation',view+' did not settle to a usable rendered state',JSON.stringify(workflowState));
+      }
+    }
   }catch(e){
     pushFailure('login contract','Full Login -> dashboard interaction regression failed',e.message||String(e));
   }finally{
