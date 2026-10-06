@@ -282,6 +282,60 @@ async function helpdeskDuplicateSubmitBlocked(){
   finally{await context.close()}
 }
 
+
+async function feeCloudFailureDoesNotPersist(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      document.getElementById('mount').innerHTML='<section id="fees"></section>';
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'head',identity:'admin@example.test'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([{id:1,name:'QA Student',className:'5',studentId:'STU-QA'}]));
+      localStorage.setItem('edunizam_class_fees',JSON.stringify({'5':1000}));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:false,institutionId:''};
+      window.EDUNIZAM_CLOUD={state:{client:null,user:null}};
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/fee-center.js'});
+    await page.waitForSelector('#fcGenerate',{state:'visible'});
+    await page.locator('#fcStudent').selectOption('1');
+    await page.locator('#fcBase').fill('1000');
+    await page.locator('#fcMonth').fill('2026-10');
+    await page.locator('#fcDue').fill('2026-10-15');
+    await page.evaluate(()=>{
+      const makeQuery=table=>{
+        const q={
+          select(){return q},eq(){return q},not(){return q},order(){return q},insert(){return q},
+          maybeSingle(){
+            if(table==='core_students')return Promise.resolve({data:{id:'student-cloud-1',local_id:1,name:'QA Student',class_name:'5',student_code:'STU-QA',auth_user_id:'student-user-1'},error:null});
+            return Promise.resolve({data:null,error:null});
+          },
+          single(){
+            if(table==='fee_records')return Promise.resolve({data:null,error:{message:'QA fee cloud failure'}});
+            return Promise.resolve({data:null,error:null});
+          },
+          then(resolve,reject){return Promise.resolve({data:[],error:null}).then(resolve,reject)}
+        };
+        return q;
+      };
+      const client={from:table=>makeQuery(table),rpc:()=>Promise.resolve({data:null,error:null})};
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
+      window.EDUNIZAM_CLOUD={state:{client,user:{id:'head-1'}}};
+    });
+    await page.locator('#fcGenerate').tap();
+    await page.waitForFunction(()=>(sessionStorage.getItem('qa_last_alert')||'').includes('Nothing was saved locally'));
+    const state=await page.evaluate(()=>({
+      rows:JSON.parse(localStorage.getItem('edunizam_fee_challans_v1')||'[]'),
+      disabled:document.getElementById('fcGenerate')?.disabled||false,
+      alert:sessionStorage.getItem('qa_last_alert')||''
+    }));
+    if(state.rows.length!==0||state.disabled||!state.alert.includes('QA fee cloud failure')){
+      fail('fee cloud failure','Failed cloud challan was incorrectly persisted locally or control stayed disabled',JSON.stringify(state));
+    }
+  }catch(error){fail('fee cloud failure','Cloud-authoritative fee challan test failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
 async function cloudMeetingFailureDoesNotPersist(){
   const {context,page}=await newPage();
   try{
@@ -374,6 +428,7 @@ try{
   await studentSubmission();
   await parentPrivateComplaint();
   await helpdeskDuplicateSubmitBlocked();
+  await feeCloudFailureDoesNotPersist();
   await cloudMeetingFailureDoesNotPersist();
   await parentCloudMeetingVisible();
 }finally{
@@ -387,4 +442,4 @@ if(failures.length){
   for(const f of failures)console.error('FAIL',f.scope,'-',f.message,f.detail||'');
   process.exit(1);
 }
-console.log('EduNizam role workflow QA passed: Teacher leave, Teacher diary, Student assignment, Parent private complaint, helpdesk duplicate guard, cloud-authoritative meetings.');
+console.log('EduNizam role workflow QA passed: Teacher leave, Teacher diary, Student assignment, Parent private complaint, helpdesk duplicate guard, cloud-authoritative fees and meetings.');
