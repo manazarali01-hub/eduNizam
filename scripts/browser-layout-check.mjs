@@ -474,7 +474,7 @@ try{
     // temporarily blank non-critical startup modules. This identifies whether
     // the freeze belongs to the shell or to an eager feature/decorator module.
     const diagnosticBlockedStartup=[
-      'premium-ui.js','system-auto-update.js'
+      'premium-ui.js'
     ];
     for(const src of diagnosticBlockedStartup){
       await loginFlowPage.route('**/'+src+'*',route=>route.fulfill({
