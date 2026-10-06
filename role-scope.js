@@ -65,11 +65,16 @@
     // students plus class-teacher sections (including students without login accounts).
     return localVisibleStudents(list||[]);
   }
-  async function refresh(){
+  let refreshInFlight=null,lastRefreshAt=0,lastRefreshKey='';
+  async function refresh(force=false){
     const c=cloud();
     if(!c?.state?.client||!c?.state?.user){
       window.renderAll?.();window.EDUNIZAM_PARENT_DASHBOARD?.render?.();return readCache();
     }
+    const refreshKey=[role(),String(c.state.user.id||''),String(cfg().institutionId||session()?.institutionId||'')].join('|');
+    if(!force&&refreshInFlight)return refreshInFlight;
+    if(!force&&refreshKey===lastRefreshKey&&lastRefreshAt&&Date.now()-lastRefreshAt<10000)return readCache();
+    refreshInFlight=(async()=>{
     const r=role(),next=readCache();
     if(r==='teacher'){
       if(c.listMyTeacherAssignments){
@@ -79,12 +84,21 @@
       const institutionId=String(cfg().institutionId||session()?.institutionId||'').trim();
       if(institutionId){
         try{
-          const {data,error}=await c.state.client.from('class_sections')
-            .select('class_name,section_name,class_teacher_user_id,active')
-            .eq('institution_id',institutionId)
-            .eq('class_teacher_user_id',c.state.user.id)
-            .eq('active',true);
-          if(error)throw error;
+          const execute=async({signal}={})=>{
+            let q=c.state.client.from('class_sections')
+              .select('class_name,section_name,class_teacher_user_id,active')
+              .eq('institution_id',institutionId)
+              .eq('class_teacher_user_id',c.state.user.id)
+              .eq('active',true);
+            if(signal&&typeof q?.abortSignal==='function')q=q.abortSignal(signal);
+            const result=await q;
+            if(result?.error)throw result.error;
+            return result;
+          };
+          const runtime=window.EDUNIZAM_DATA_RUNTIME;
+          const {data}=runtime
+            ?await runtime.run('role-scope:teacher-sections:'+institutionId+':'+c.state.user.id,execute,{timeout:6500,retries:1,cacheMs:15000,label:'Teacher class scope'})
+            :await execute({});
           next.teacherClassSections=(data||[]).map(x=>classKey(x.class_name,x.section_name));
         }catch(e){console.warn('Teacher class scope:',e.message||e)}
       }
@@ -96,9 +110,13 @@
       }catch(e){console.warn('Parent student scope:',e.message||e)}
     }
     next.updatedAt=Date.now();writeCache(next);
+    lastRefreshAt=Date.now();lastRefreshKey=refreshKey;
     window.renderAll?.();
     window.EDUNIZAM_PARENT_DASHBOARD?.render?.();
     return next;
+    })();
+    try{return await refreshInFlight}
+    finally{refreshInFlight=null}
   }
   const roleViews={
     student:new Set(['dashboard','studentprofile','ourstudents','functionscenter','behaviorcenter','gatecenter','attendanceanalytics','studentdocs','fees','librarycenter','transportcenter','results','schoolwork','noticeboard','lessoncenter','calendarcenter','schedulecenter','inboxcenter','helpdeskcenter','leavecenter','examcenter','dailydiary','pastpapers','practice','study','schoolassessments','universities','competitive','ecosystem','pathways','vu','communication','access','notifications','assistant','troubleshoot','help']),
