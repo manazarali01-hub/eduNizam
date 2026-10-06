@@ -758,14 +758,15 @@
   }
 
   async function requestParentLink(){
-    const cloud=window.EDUNIZAM_CLOUD,id=$('parentStudentUserId')?.value.trim();
-    if(!id)return alert('Enter student user UUID.');
+    const cloud=window.EDUNIZAM_CLOUD,studentCode=$('parentStudentCode')?.value.trim();
+    if(!studentCode)return alert('Enter the Student Code.');
     if(!cloud?.ready?.())return alert('Cloud Mode is required for parent-student linking.');
     try{
       const role=await cloud.getMyRole();if(role!=='parent')return alert('Only Parent accounts can request a student link.');
-      await cloud.requestParentStudentLink(id);
-      $('parentStudentUserId').value='';
-      alert('Parent-student link request submitted for institute approval.');
+      if(!cloud.config?.institutionId)return alert('Select your approved school workspace first.');
+      await cloud.requestParentLinkByStudentCode(studentCode);
+      $('parentStudentCode').value='';
+      alert('Parent-student link request submitted. The School Admin has been notified for approval.');
     }catch(e){alert(e.message||'Could not request link.')}
   }
   async function renderParentLinks(){
@@ -774,8 +775,17 @@
     try{
       const role=await cloud.getMyRole();
       if(role!=='head_of_institute'){el.innerHTML='<div class="empty-state">Only Head of Institute can approve parent-child links.</div>';return;}
-      const rows=await cloud.listParentStudentLinks();
-      el.innerHTML=rows.length?rows.map(x=>'<div class="practice-review"><div><strong>Parent:</strong> '+esc(x.parent_user_id)+'</div><div><strong>Student:</strong> '+esc(x.student_user_id)+'</div><div class="paper-meta"><span>'+esc(x.status)+'</span></div><div class="paper-actions"><button data-link-approve="'+esc(x.parent_user_id)+'" data-student="'+esc(x.student_user_id)+'">Approve</button><button class="secondary-action" data-link-reject="'+esc(x.parent_user_id)+'" data-student="'+esc(x.student_user_id)+'">Reject</button></div></div>').join(''):'<div class="empty-state">No parent-child link requests.</div>';
+      const rows=(await cloud.listParentStudentLinks()).slice().sort((a,b)=>{
+        const rank=x=>x.status==='pending'?0:x.status==='approved'?1:2;
+        return rank(a)-rank(b)||new Date(b.created_at||0)-new Date(a.created_at||0);
+      });
+      el.innerHTML=rows.length?rows.map(x=>{
+        const studentMeta=[x.student_class&&('Class '+x.student_class),x.student_code&&('Code '+x.student_code)].filter(Boolean).join(' · ');
+        const actions=x.status==='pending'
+          ?'<div class="paper-actions"><button data-link-approve="'+esc(x.parent_user_id)+'" data-student="'+esc(x.student_user_id)+'">Approve</button><button class="secondary-action" data-link-reject="'+esc(x.parent_user_id)+'" data-student="'+esc(x.student_user_id)+'">Reject</button></div>'
+          :'<div class="coverage-note">Reviewed · '+esc(x.status)+'</div>';
+        return '<div class="practice-review"><div><strong>Parent:</strong> '+esc(x.parent_name||'Parent / Guardian')+'</div><div><strong>Student:</strong> '+esc(x.student_name||'Student')+(studentMeta?' · '+esc(studentMeta):'')+'</div><div class="paper-meta"><span>'+esc(x.status)+'</span></div>'+actions+'</div>';
+      }).join(''):'<div class="empty-state">No parent-child link requests.</div>';
       document.querySelectorAll('[data-link-approve]').forEach(b=>b.onclick=()=>setParentLinkStatus(b.dataset.linkApprove,b.dataset.student,'approved'));
       document.querySelectorAll('[data-link-reject]').forEach(b=>b.onclick=()=>setParentLinkStatus(b.dataset.linkReject,b.dataset.student,'rejected'));
     }catch(e){el.innerHTML='<div class="empty-state">'+esc(e.message||'Could not load links.')+'</div>'}

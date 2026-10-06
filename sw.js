@@ -1,4 +1,4 @@
-const CACHE='edunizam-v232-production-auth-runtime'
+const CACHE='edunizam-v233-parent-link-lifecycle'
 const CORE=[
   './',
   './index.html',
@@ -16,6 +16,7 @@ const CORE=[
   './data-runtime.js',
   './cloud-setup.js',
   './admissions-cloud.js',
+  './admissions-portal.js',
   './core-cloud.js',
   './auth-bridge.js',
   './premium-auth.css',
