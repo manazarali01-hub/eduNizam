@@ -336,6 +336,50 @@ async function feeCloudFailureDoesNotPersist(){
   finally{await context.close()}
 }
 
+
+async function resultCloudFailureDoesNotPersist(){
+  const {context,page}=await newPage();
+  try{
+    await context.addInitScript(()=>{
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'head',identity:'admin@example.test'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([{id:1,name:'QA Student',className:'5',studentId:'STU-QA'}]));
+      localStorage.setItem('edunizam_results','[]');
+    });
+    const emptyJs=route=>route.fulfill({status:200,contentType:'text/javascript',body:''});
+    await page.route('**/cloud-setup.js*',emptyJs);
+    await page.route('**/admissions-cloud.js*',emptyJs);
+    await page.route('**/auth-bridge.js*',emptyJs);
+    await page.route('**/account-security.js*',emptyJs);
+    await page.route('**/core-cloud.js*',route=>route.fulfill({
+      status:200,
+      contentType:'text/javascript',
+      body:"window.EDUNIZAM_CORE_CLOUD={ready:()=>true,saveResultRecord:()=>Promise.reject(new Error('QA result cloud failure'))};"
+    }));
+    await page.goto('http://127.0.0.1:'+port+'/app.html',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#saveResultBtn',{state:'attached'});
+    await page.waitForFunction(()=>document.querySelector('#resultStudent')?.options?.length>1);
+    await page.evaluate(()=>{
+      document.getElementById('resultStudent').value='1';
+      document.getElementById('resultSubject').value='Mathematics';
+      document.getElementById('resultMarks').value='80';
+      document.getElementById('resultTotal').value='100';
+      document.getElementById('resultExamType').value='Monthly Test';
+      document.getElementById('saveResultBtn').click();
+    });
+    await page.waitForFunction(()=>(sessionStorage.getItem('qa_last_alert')||'').includes('Nothing was saved locally'));
+    const state=await page.evaluate(()=>({
+      rows:JSON.parse(localStorage.getItem('edunizam_results')||'[]'),
+      disabled:document.getElementById('saveResultBtn')?.disabled||false,
+      alert:sessionStorage.getItem('qa_last_alert')||''
+    }));
+    if(state.rows.length!==0||state.disabled||!state.alert.includes('QA result cloud failure')){
+      fail('result cloud failure','Failed cloud result was incorrectly persisted locally or control stayed disabled',JSON.stringify(state));
+    }
+  }catch(error){fail('result cloud failure','Cloud-authoritative result browser test failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
 async function cloudMeetingFailureDoesNotPersist(){
   const {context,page}=await newPage();
   try{
@@ -429,6 +473,7 @@ try{
   await parentPrivateComplaint();
   await helpdeskDuplicateSubmitBlocked();
   await feeCloudFailureDoesNotPersist();
+  await resultCloudFailureDoesNotPersist();
   await cloudMeetingFailureDoesNotPersist();
   await parentCloudMeetingVisible();
 }finally{
@@ -442,4 +487,4 @@ if(failures.length){
   for(const f of failures)console.error('FAIL',f.scope,'-',f.message,f.detail||'');
   process.exit(1);
 }
-console.log('EduNizam role workflow QA passed: Teacher leave, Teacher diary, Student assignment, Parent private complaint, helpdesk duplicate guard, cloud-authoritative fees and meetings.');
+console.log('EduNizam role workflow QA passed: Teacher leave, Teacher diary, Student assignment, Parent private complaint, helpdesk duplicate guard, cloud-authoritative fees, results and meetings.');
