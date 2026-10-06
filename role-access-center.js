@@ -21,8 +21,9 @@
     card.className='card';
     card.id='dashboardAccessApprovalCard';
     card.innerHTML='<div class="section-head"><div><h2>Pending Access Requests</h2><p class="muted">Teacher, Parent aur Student approval requests.</p></div><button id="dashboardReviewAccessBtn" class="secondary" type="button">Review</button></div><div class="coverage-note"><strong id="dashboardPendingAccessCount">0</strong> request(s) waiting for approval.</div>';
-    const target=dashboard.querySelector('.grid-2')||dashboard;
-    target.parentNode.insertBefore(card,target);
+    const target=dashboard.querySelector('.grid-2');
+    if(target?.isConnected)target.before(card);
+    else dashboard.prepend(card);
     document.getElementById('dashboardReviewAccessBtn')?.addEventListener('click',show);
   }
   function inject(){
