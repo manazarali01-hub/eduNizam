@@ -381,6 +381,149 @@ try{
     await guestPage.close();
   }
 
+
+  // Authenticated mobile app shell must never remain trapped behind startup/auth UI.
+  // Exercise every role with a valid local Supabase workspace while the remote CDN/cloud
+  // is unavailable: dashboard must open immediately, navigation must remain tappable,
+  // drawer locks must clear, and normal page scrolling must recover after the drawer closes.
+  console.log('App shell step START: authenticated role navigation / mobile interaction');
+  for(const roleCase of [
+    {role:'head',label:'School Admin',visible:'settings',hidden:null},
+    {role:'teacher',label:'Teacher',visible:'attendance',hidden:'settings'},
+    {role:'parent',label:'Parent',visible:'parentcomplaints',hidden:'students'},
+    {role:'student',label:'Student',visible:'help',hidden:'attendance'}
+  ]){
+    const context=await browser.newContext({
+      viewport:{width:390,height:844},
+      isMobile:true,
+      hasTouch:true,
+      serviceWorkers:'block'
+    });
+    const page=await context.newPage();
+    page.setDefaultTimeout(7000);
+    page.setDefaultNavigationTimeout(10000);
+    const shellErrors=[];
+    page.on('pageerror',error=>shellErrors.push(error.message||String(error)));
+    try{
+      await page.addInitScript(({role})=>{
+        localStorage.clear();
+        sessionStorage.clear();
+        localStorage.setItem('edunizam_session',JSON.stringify({
+          role,
+          identity:role+'@example.test',
+          source:'supabase',
+          institutionId:'school-qa-1',
+          schoolName:'QA School',
+          loginAt:Date.now()
+        }));
+        localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify({
+          enabled:true,
+          institutionId:'school-qa-1'
+        }));
+        localStorage.setItem('edunizam_settings',JSON.stringify({
+          schoolName:'QA School',
+          schoolType:'School'
+        }));
+        localStorage.setItem('edunizam_students',JSON.stringify([
+          {id:1,name:'QA Student',className:'5',sectionName:'A',studentId:'QA-1',authUserId:'student-user-1'}
+        ]));
+      },{role:roleCase.role});
+      await page.route('**/*',route=>{
+        const u=new URL(route.request().url());
+        if(u.hostname==='127.0.0.1')route.continue();
+        else route.abort();
+      });
+      await page.goto('http://127.0.0.1:'+port+'/app.html',{waitUntil:'domcontentloaded',timeout:10000});
+      await page.waitForSelector('#dashboard.view.active',{state:'visible',timeout:7000});
+      await page.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:7000});
+      await page.waitForSelector('#roleSession',{state:'visible',timeout:7000});
+      await page.waitForFunction(()=>!document.getElementById('cloudAuthScreen'),null,{timeout:4000});
+
+      const startup=await page.evaluate(({visible,hidden,label})=>{
+        const visibleBtn=document.querySelector('.nav-item[data-view="'+visible+'"]');
+        const hiddenBtn=hidden?document.querySelector('.nav-item[data-view="'+hidden+'"]'):null;
+        const roleText=(document.getElementById('roleSession')?.textContent||'').trim();
+        return {
+          authState:document.documentElement.dataset.authState||'',
+          loader:document.documentElement.classList.contains('edu-feature-loading'),
+          authScreen:!!document.getElementById('cloudAuthScreen'),
+          dashboard:document.getElementById('dashboard')?.classList.contains('active')||false,
+          roleText,
+          roleLabelPresent:roleText.includes(label),
+          visibleAllowed:!!visibleBtn&&!visibleBtn.classList.contains('role-hidden')&&!visibleBtn.hidden,
+          hiddenBlocked:hidden?(!hiddenBtn||hiddenBtn.classList.contains('role-hidden')||hiddenBtn.hidden):true,
+          bodyOverflow:getComputedStyle(document.body).overflowY
+        };
+      },roleCase);
+      if(startup.authScreen||!startup.dashboard||startup.loader||!startup.roleLabelPresent||!startup.visibleAllowed||!startup.hiddenBlocked){
+        pushFailure('app shell '+roleCase.role,'Authenticated role did not reach a usable dashboard immediately',JSON.stringify(startup));
+      }
+
+      await page.locator('#eduMobileMenuBtn').tap({timeout:5000});
+      await page.waitForFunction(()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'));
+      const opened=await page.evaluate(()=>({
+        open:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false,
+        locked:document.body.classList.contains('mobile-nav-lock'),
+        backdrop:document.getElementById('eduMobileNavBackdrop')?.classList.contains('show')||false,
+        expanded:document.getElementById('eduMobileMenuBtn')?.getAttribute('aria-expanded')||''
+      }));
+      if(!opened.open||!opened.locked||!opened.backdrop||opened.expanded!=='true'){
+        pushFailure('app shell '+roleCase.role,'Mobile navigation did not open into a consistent locked state',JSON.stringify(opened));
+      }
+
+      const helpButton=page.locator('.sidebar .nav-item[data-view="help"]');
+      await helpButton.scrollIntoViewIfNeeded();
+      await helpButton.tap({timeout:5000});
+      await page.waitForSelector('#help.view.active',{state:'visible',timeout:7000});
+      await page.waitForFunction(()=>!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
+      const afterNav=await page.evaluate(()=>({
+        active:document.querySelector('.view.active')?.id||'',
+        locked:document.body.classList.contains('mobile-nav-lock'),
+        backdrop:document.getElementById('eduMobileNavBackdrop')?.classList.contains('show')||false,
+        expanded:document.getElementById('eduMobileMenuBtn')?.getAttribute('aria-expanded')||'',
+        loading:document.documentElement.classList.contains('edu-feature-loading'),
+        title:(document.getElementById('page-title')?.textContent||'').trim()
+      }));
+      if(afterNav.active!=='help'||afterNav.locked||afterNav.backdrop||afterNav.expanded!=='false'||afterNav.loading){
+        pushFailure('app shell '+roleCase.role,'Navigation click left the app frozen or drawer-locked',JSON.stringify(afterNav));
+      }
+
+      // Re-open then close through the backdrop to prove no invisible overlay remains.
+      await page.locator('#eduMobileMenuBtn').tap({timeout:5000});
+      await page.waitForFunction(()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'));
+      await page.locator('#eduMobileNavBackdrop').tap({position:{x:380,y:820},timeout:5000}).catch(async()=>{
+        await page.evaluate(()=>document.getElementById('eduMobileNavBackdrop')?.click());
+      });
+      await page.waitForFunction(()=>!document.body.classList.contains('mobile-nav-lock'),null,{timeout:5000});
+
+      await page.evaluate(()=>window.EDUNIZAM_APP_NAV?.setView?.('dashboard'));
+      await page.waitForSelector('#dashboard.view.active',{state:'visible',timeout:5000});
+      await page.evaluate(()=>window.scrollTo(0,Math.min(1200,Math.max(0,document.documentElement.scrollHeight-innerHeight))));
+      await page.waitForTimeout(120);
+      const scrollState=await page.evaluate(()=>({
+        y:window.scrollY,
+        max:Math.max(0,document.documentElement.scrollHeight-innerHeight),
+        locked:document.body.classList.contains('mobile-nav-lock'),
+        bodyOverflow:getComputedStyle(document.body).overflowY,
+        pointer:document.elementFromPoint(innerWidth/2,Math.min(innerHeight-80,520))?.tagName||''
+      }));
+      if(scrollState.max>120&&scrollState.y<80){
+        pushFailure('app shell '+roleCase.role,'Mobile app page could not scroll after closing navigation',JSON.stringify(scrollState));
+      }
+      if(scrollState.locked||scrollState.bodyOverflow==='hidden'){
+        pushFailure('app shell '+roleCase.role,'Mobile navigation left page scrolling locked',JSON.stringify(scrollState));
+      }
+
+      const critical=shellErrors.filter(x=>!/supabase|Failed to fetch|ERR_FAILED|cdn\.jsdelivr|MathJax/i.test(x));
+      if(critical.length)pushFailure('app shell '+roleCase.role,'Authenticated shell produced browser errors',critical.slice(0,6).join(' | '));
+    }catch(error){
+      pushFailure('app shell '+roleCase.role,'Authenticated mobile app-shell regression failed',error?.message||String(error));
+    }finally{
+      await context.close();
+    }
+  }
+  console.log('App shell step PASS: authenticated role navigation / mobile interaction');
+
   // Daily Diary must use the user's local calendar date rather than UTC.
   {
     const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Karachi',serviceWorkers:'block'});
