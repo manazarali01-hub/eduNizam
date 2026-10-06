@@ -269,6 +269,58 @@ try{
     const cleared=await guestPage.locator('#globalSearch').inputValue();
     if(cleared!=='')pushFailure('guest learning','Clear Search did not reset the global learning search',JSON.stringify({cleared}));
 
+    console.log('Guest step START: Study Library read/save/modal');
+    await guestPage.locator('.tabs .tab[data-tab="study"]').tap({timeout:5000});
+    await guestPage.waitForSelector('#study.section.active',{state:'visible',timeout:5000});
+    await guestPage.waitForSelector('#study [data-study-id]',{state:'visible',timeout:5000});
+    const studyId=await guestPage.locator('#study [data-study-id]').first().getAttribute('data-study-id');
+    await guestPage.locator('#study [data-study-id]').first().tap({timeout:5000});
+    await guestPage.waitForSelector('#premiumResourceModal.open',{state:'visible',timeout:5000});
+    const studyModal=await guestPage.evaluate(()=>({
+      title:(document.getElementById('premiumPreviewTitle')?.textContent||'').trim(),
+      body:(document.getElementById('premiumPreviewBody')?.textContent||'').trim(),
+      locked:document.body.classList.contains('guest-modal-open'),
+      aria:document.getElementById('premiumResourceModal')?.getAttribute('aria-hidden'),
+      printButton:!!document.querySelector('#premiumResourceModal [data-print-study-id]'),
+      saveButton:!!document.querySelector('#premiumResourceModal [data-fav-id]')
+    }));
+    if(!studyId||studyModal.title.length<5||studyModal.body.length<10||!studyModal.locked||studyModal.aria!=='false'||!studyModal.printButton||!studyModal.saveButton){
+      pushFailure('guest learning','Built-in Study Library Read Now did not open a usable resource modal',JSON.stringify({studyId,studyModal}));
+    }
+    await guestPage.locator('#premiumResourceModal [data-fav-id]').tap({timeout:5000});
+    const savedStudy=await guestPage.evaluate(id=>{
+      const rows=JSON.parse(localStorage.getItem('edunizam_guest_favorites')||'[]');
+      return rows.some(x=>x.id==='study:'+id);
+    },studyId);
+    if(!savedStudy)pushFailure('guest learning','Guest Save action did not persist the built-in Study Library resource',JSON.stringify({studyId}));
+    await guestPage.locator('#premiumResourceModal [data-close-premium]').tap({timeout:5000});
+    await guestPage.waitForFunction(()=>!document.getElementById('premiumResourceModal')?.classList.contains('open'));
+    const closedStudy=await guestPage.evaluate(()=>({
+      locked:document.body.classList.contains('guest-modal-open'),
+      aria:document.getElementById('premiumResourceModal')?.getAttribute('aria-hidden')
+    }));
+    if(closedStudy.locked||closedStudy.aria!=='true')pushFailure('guest learning','Closing Study Library modal did not restore mobile page interaction',JSON.stringify(closedStudy));
+    console.log('Guest step PASS: Study Library read/save/modal');
+
+    console.log('Guest step START: external preview lifecycle');
+    const preview=guestPage.locator('#study [data-preview-id]').first();
+    if(await preview.count()){
+      await preview.tap({timeout:5000});
+      await guestPage.waitForSelector('#premiumResourceModal.open',{state:'visible',timeout:5000});
+      const previewState=await guestPage.evaluate(()=>({
+        open:document.getElementById('premiumResourceModal')?.classList.contains('open')||false,
+        source:document.querySelector('#premiumPreviewActions a.primary-action')?.getAttribute('href')||'',
+        actions:(document.getElementById('premiumPreviewActions')?.textContent||'').trim()
+      }));
+      if(!previewState.open||!/^https?:\/\//i.test(previewState.source)||!previewState.actions.includes('Open Source')){
+        pushFailure('guest learning','External learning resource Preview did not expose a genuine source action',JSON.stringify(previewState));
+      }
+      await guestPage.locator('#premiumResourceModal [data-close-premium]').tap({timeout:5000});
+    }else{
+      pushFailure('guest learning','Study Library did not expose any previewable external resource');
+    }
+    console.log('Guest step PASS: external preview lifecycle');
+
     console.log('Guest step START: VU specific search');
     await guestPage.locator('.tabs .tab[data-tab="vu"]').tap({timeout:5000});
     await guestPage.waitForSelector('#vu.section.active',{state:'visible',timeout:5000});
@@ -282,6 +334,21 @@ try{
     }));
     if(vuState.active!=='vu'||!vuState.summary||vuState.gridText.length<20)pushFailure('guest learning','VU-specific search did not render a usable result state',JSON.stringify({active:vuState.active,summary:vuState.summary,text:vuState.gridText.slice(0,260)}));
     console.log('Guest step PASS: VU specific search');
+    console.log('Guest step START: VU material explorer');
+    await guestPage.waitForSelector('#vuExplorerSearchBtn',{state:'visible',timeout:5000});
+    await guestPage.locator('#vuExplorerQuery').fill('CS101');
+    await guestPage.locator('#vuExplorerSearchBtn').tap({timeout:5000});
+    await guestPage.waitForFunction(()=>String(document.getElementById('vuExplorerSummary')?.textContent||'').trim().length>10,null,{timeout:5000});
+    const vuExplorerState=await guestPage.evaluate(()=>({
+      summary:(document.getElementById('vuExplorerSummary')?.textContent||'').trim(),
+      quick:(document.getElementById('vuExplorerQuick')?.textContent||'').trim(),
+      materials:(document.getElementById('vuExplorerMaterials')?.textContent||'').trim(),
+      results:(document.getElementById('vuExplorerResults')?.textContent||'').trim()
+    }));
+    if(!/CS101|Course matched/i.test(vuExplorerState.summary)||((vuExplorerState.quick+vuExplorerState.materials+vuExplorerState.results).length<30)){
+      pushFailure('guest learning','VU material explorer did not render a usable CS101 resource pack',JSON.stringify(vuExplorerState));
+    }
+    console.log('Guest step PASS: VU material explorer');
 
     await guestPage.locator('#clearSearch').tap({timeout:5000});
     console.log('Guest step START: Practice Center');
