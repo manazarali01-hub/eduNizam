@@ -1,4 +1,4 @@
-const CACHE='edunizam-v237-results-reportcards'
+const CACHE='edunizam-v238-guest-learning'
 const CORE=[
   './',
   './index.html',
