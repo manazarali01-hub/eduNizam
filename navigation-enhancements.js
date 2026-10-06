@@ -33,12 +33,13 @@
     }
     if(byView.size){const details=document.createElement('details');details.className='nav-group';details.dataset.groupTitle='More';details.innerHTML='<summary><span>＋</span><strong>More</strong><small>›</small></summary><div class="nav-group-items"></div>';const box=details.lastElementChild;byView.forEach(b=>box.appendChild(b));nav.appendChild(details)}
     }
+    // Keep navigation groups independent. Auto-closing sibling groups fought
+    // with the active-group auto-open logic and could make a tapped destination
+    // disappear while Playwright/a real user was trying to select it.
     nav.querySelectorAll('.nav-group').forEach(group=>{
       group.addEventListener('toggle',()=>{
-        if(!group.open)return;
-        nav.querySelectorAll('.nav-group').forEach(other=>{
-          if(other!==group && other.open && group.dataset.groupTitle!=='Daily Work')other.open=false;
-        });
+        if(group.open)group.dataset.userOpened='1';
+        else delete group.dataset.userOpened;
       });
     });
     const input=document.getElementById('navFeatureSearch');
