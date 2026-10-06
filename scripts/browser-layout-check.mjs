@@ -754,6 +754,38 @@ try{
         pushFailure('admin campus navigation',view+' did not settle to a usable rendered state',JSON.stringify(campusState));
       }
     }
+
+    // Academic management sections: mobile navigation, lazy-loader completion, rendered content and unlocked UI.
+    for(const view of ['studentprofile','classcenter','bulkimport','attendanceanalytics','schoolwork','lessoncenter','examcenter','calendarcenter']){
+      await loginStep('open academic '+view,async()=>{
+        await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
+        await loginFlowPage.evaluate(view=>{
+          const button=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const group=button?.closest('details');
+          if(group)group.open=true;
+        },view);
+        await loginFlowPage.locator('.nav-item[data-view="'+view+'"]').tap({timeout:5000});
+        await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
+        await loginFlowPage.waitForFunction(view=>{
+          const loader=window.EDUNIZAM_FEATURE_LOADER;
+          const error=document.querySelector('#'+view+' .feature-loading-notice.error');
+          return !!error||!loader||loader.isReady(view);
+        },view,{timeout:8000});
+        await loginFlowPage.waitForTimeout(80);
+      });
+      const academicState=await boundedEvaluate('inspect academic '+view,()=>({
+        active:document.querySelector('.view.active')?.id||'',
+        guardPresent:!!document.getElementById('cloudAuthScreen'),
+        locked:document.body.classList.contains('mobile-nav-lock'),
+        menuOpen:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false,
+        featureLoading:document.documentElement.classList.contains('edu-feature-loading'),
+        featureError:!!document.querySelector('.view.active .feature-loading-notice.error'),
+        activeText:(document.querySelector('.view.active')?.textContent||'').trim().length
+      }),5000);
+      if(academicState.active!==view||academicState.guardPresent||academicState.locked||academicState.menuOpen||academicState.featureLoading||academicState.featureError||academicState.activeText<10){
+        pushFailure('admin academic navigation',view+' did not settle to a usable rendered state',JSON.stringify(academicState));
+      }
+    }
   }catch(e){
     pushFailure('login contract','Full Login -> dashboard interaction regression failed',e.message||String(e));
   }finally{
