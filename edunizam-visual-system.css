@@ -1598,3 +1598,23 @@ img{image-rendering:auto}
     isolation:isolate;
   }
 }
+
+
+/* ---------- HOMEPAGE HERO INTRINSIC IMAGE WIDTH GUARD 2026-10-06 ---------- */
+@media(max-width:720px){
+  .page-home .hero-visual,
+  .page-home .hero-image-wrap{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  .page-home .hero-image-wrap img{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    height:100%!important;
+    object-fit:cover!important;
+  }
+}
