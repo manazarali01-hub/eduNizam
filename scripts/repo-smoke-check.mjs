@@ -202,6 +202,8 @@ helpdeskCenter.includes("if(btn?.disabled)return;setBusy(btn,true,'Submitting...
 parentComplaintCenter.includes("if(btn?.disabled)return;setBusy(btn,true,'Sending...')")?ok("complaints:duplicate-submit-guard"):bad("complaints:duplicate-submit-guard","Private complaint sends must lock while Cloud save is in flight.");
 parentComplaintCenter.includes("Private complaint save ho gayi, lekin kuch media upload nahi ho saka")?ok("complaints:partial-media-truthful"):bad("complaints:partial-media-truthful","Parent→Admin partial media failure must not misreport the saved complaint as failed.");
 parentComplaintCenter.includes("Complaint save ho gayi, lekin kuch media upload nahi ho saka")?ok("complaints:student-parent-partial-media"):bad("complaints:student-parent-partial-media","School→Parent partial media failure must preserve the saved complaint and report media failure separately.");
+const privateGrantMigration="supabase/migrations/20261006142313_revoke_anon_helpdesk_complaint_tables.sql";
+exists(privateGrantMigration)&&read(privateGrantMigration).includes("from anon")?ok("complaints:no-anon-table-grants"):bad("complaints:no-anon-table-grants","Private helpdesk/complaint tables must revoke legacy anon table grants.");
 
 // 4) Browser JS syntax
 const jsFiles=fs.readdirSync(root).filter(x=>x.endsWith(".js"));
