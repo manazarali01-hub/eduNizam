@@ -14,7 +14,8 @@ function bad(name,msg){fail.push({name,msg})}
 // 1) Required files
 const required=[
   "index.html","app.html","style.css","app.js","manifest.webmanifest","sw.js",
-  "robots.txt","sitemap.xml","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html","public.css",
+  "robots.txt","sitemap.xml","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html",
+  "aiou-student-resources-pakistan.html","virtual-university-resources-pakistan.html","university-results-lms-past-papers-pakistan.html","css-ppsc-fpsc-pakistan.html","pakistan-education-services.html","pakistan-entry-tests-scholarships.html","pakistan-degree-accreditation-recognition.html","technical-vocational-digital-skills-pakistan.html","pakistan-textbooks-curriculum-research.html","pakistan-exam-study-pathways.html","public.css",
   "past-papers-data.js","past-papers-inventory.js","university-data.js","study-data.js","practice-data.js","learning-premium-data.js","learning-complete-data.js","learning-required-data.js","practice-complete-data.js","practice-session-core.js","learning-search-engine.js","guest-learning-nav.js","guest-learning-premium.js",
   "vu-course-catalog.js","cloud-config.js","ai-client.js",
   "staff-time-attendance.js","teacher-training-center.js","bulk-import-center.js",
@@ -24,7 +25,7 @@ const required=[
 for(const p of required){exists(p)?ok("file:"+p):bad("file:"+p,"missing")}
 
 // 2) HTML integrity, accessibility basics and local references
-const htmlPages=["index.html","app.html","login.html","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html"];
+const htmlPages=["index.html","app.html","login.html","edunizam.html","about.html","features.html","privacy.html","404.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html","learn.html","aiou-student-resources-pakistan.html","virtual-university-resources-pakistan.html","university-results-lms-past-papers-pakistan.html","css-ppsc-fpsc-pakistan.html","pakistan-education-services.html","pakistan-entry-tests-scholarships.html","pakistan-degree-accreditation-recognition.html","technical-vocational-digital-skills-pakistan.html","pakistan-textbooks-curriculum-research.html","pakistan-exam-study-pathways.html"];
 const htmlByPage=Object.fromEntries(htmlPages.map(p=>[p,read(p)]));
 const html=htmlByPage["app.html"];
 
@@ -62,7 +63,17 @@ const canonicalPages={
   "school-management-system-pakistan.html":base+"school-management-system-pakistan.html",
   "online-school-admissions.html":base+"online-school-admissions.html",
   "learning-resources-pakistan.html":base+"learning-resources-pakistan.html",
-  "learn.html":base+"learn.html"
+  "learn.html":base+"learn.html",
+  "aiou-student-resources-pakistan.html":base+"aiou-student-resources-pakistan.html",
+  "virtual-university-resources-pakistan.html":base+"virtual-university-resources-pakistan.html",
+  "university-results-lms-past-papers-pakistan.html":base+"university-results-lms-past-papers-pakistan.html",
+  "css-ppsc-fpsc-pakistan.html":base+"css-ppsc-fpsc-pakistan.html",
+  "pakistan-education-services.html":base+"pakistan-education-services.html",
+  "pakistan-entry-tests-scholarships.html":base+"pakistan-entry-tests-scholarships.html",
+  "pakistan-degree-accreditation-recognition.html":base+"pakistan-degree-accreditation-recognition.html",
+  "technical-vocational-digital-skills-pakistan.html":base+"technical-vocational-digital-skills-pakistan.html",
+  "pakistan-textbooks-curriculum-research.html":base+"pakistan-textbooks-curriculum-research.html",
+  "pakistan-exam-study-pathways.html":base+"pakistan-exam-study-pathways.html"
 };
 for(const [page,expected] of Object.entries(canonicalPages)){
   const source=htmlByPage[page];
@@ -106,9 +117,18 @@ const crawlFiles=["about.html","features.html","privacy.html","school-management
 const orphaned=crawlFiles.filter(p=>!homeLinks.includes(p) && !htmlByPage["features.html"].includes('href="'+p+'"'));
 orphaned.length?bad("seo:orphan-public-pages",orphaned.join(", ")):ok("seo:orphan-public-pages");
 
-const expectedUrls=Object.values(canonicalPages);
+const expectedUrls=[...new Set(Object.values(canonicalPages))];
 const missingSitemap=expectedUrls.filter(x=>!sitemapUrls.includes(x));
 missingSitemap.length?bad("seo:sitemap",missingSitemap.join(", ")):ok("seo:sitemap");
+const unexpectedSitemap=sitemapUrls.filter(x=>!expectedUrls.includes(x));
+unexpectedSitemap.length?bad("seo:sitemap-unverified-public-url",unexpectedSitemap.join(", ")):ok("seo:sitemap-unverified-public-url");
+const duplicateSitemap=[...new Set(sitemapUrls.filter((x,i)=>sitemapUrls.indexOf(x)!==i))];
+duplicateSitemap.length?bad("seo:sitemap-duplicate-url",duplicateSitemap.join(", ")):ok("seo:sitemap-duplicate-url");
+const missingSitemapFiles=sitemapUrls
+  .filter(x=>x.startsWith(base))
+  .map(x=>x===base?"index.html":decodeURIComponent(x.slice(base.length)))
+  .filter(p=>p&&!exists(p));
+missingSitemapFiles.length?bad("seo:sitemap-local-file",missingSitemapFiles.join(", ")):ok("seo:sitemap-local-file");
 if(sitemapUrls.some(x=>/app\.html|login\.html|admission\.html|404\.html/i.test(x)))bad("seo:sitemap-private","private app URLs must not be listed");
 else ok("seo:sitemap-private");
 const robots=read("robots.txt");
