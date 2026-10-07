@@ -1218,6 +1218,79 @@ try{
     if(afterLoginInteraction.locked||afterLoginInteraction.backdropPointer!=='none')pushFailure('login contract','Closed mobile navigation still blocks the page after Login',JSON.stringify(afterLoginInteraction));
     if(loginRuntimeErrors.length)pushFailure('login contract','Runtime JavaScript errors occurred during Login → dashboard interaction',loginRuntimeErrors.slice(0,8).join(' | '));
 
+    // Rapid-navigation stress contract: simulate a user tapping different
+    // unloaded sections quickly while feature-code requests have mobile-like latency.
+    const stressAssets=[
+      'transport-center.js',
+      'inventory-center.js',
+      'library-center.js',
+      'gate-pass-center.js',
+      'lesson-plan-center.js',
+      'calendar-center.js'
+    ];
+    const stressViews=['transportcenter','inventorycenter','librarycenter','gatecenter','lessoncenter','calendarcenter'];
+    const stressAssetHits=Object.fromEntries(stressAssets.map(x=>[x,0]));
+    const stressRoutes=[];
+    for(const asset of stressAssets){
+      const pattern='**/'+asset+'*';
+      const handler=async route=>{
+        stressAssetHits[asset]=(stressAssetHits[asset]||0)+1;
+        await new Promise(resolve=>setTimeout(resolve,350));
+        await route.continue();
+      };
+      stressRoutes.push({pattern,handler});
+      await loginFlowPage.route(pattern,handler);
+    }
+    try{
+      const clickPlan=Array.from({length:30},(_,i)=>stressViews[i%stressViews.length]);
+      const rapidStart=Date.now();
+      await loginFlowPage.evaluate(async views=>{
+        for(const view of views){
+          document.querySelector('.nav-item[data-view="'+view+'"]')?.click();
+          await new Promise(resolve=>setTimeout(resolve,18));
+        }
+      },clickPlan);
+      const finalView='transportcenter';
+      const activationStart=Date.now();
+      await loginFlowPage.evaluate(view=>document.querySelector('.nav-item[data-view="'+view+'"]')?.click(),finalView);
+      await loginFlowPage.waitForFunction(view=>document.querySelector('.view.active')?.id===view,finalView,{timeout:1000});
+      const activationMs=Date.now()-activationStart;
+      await loginFlowPage.waitForFunction(views=>{
+        const loader=window.EDUNIZAM_FEATURE_LOADER;
+        return !!loader&&views.every(view=>loader.isReady(view));
+      },stressViews,{timeout:10000});
+      await loginFlowPage.waitForTimeout(80);
+      const stressState=await boundedEvaluate('inspect rapid navigation stress',()=>({
+        active:document.querySelector('.view.active')?.id||'',
+        guardPresent:!!document.getElementById('cloudAuthScreen'),
+        locked:document.body.classList.contains('mobile-nav-lock'),
+        menuOpen:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false,
+        featureError:!!document.querySelector('.feature-loading-notice.error'),
+        loadingNotices:document.querySelectorAll('.feature-loading-notice').length,
+        bodyOverflow:getComputedStyle(document.body).overflowY
+      }),5000);
+      const duplicateAssets=Object.entries(stressAssetHits).filter(([,count])=>count>1);
+      console.log('Rapid navigation stress:',JSON.stringify({
+        taps:clickPlan.length+1,
+        activationMs,
+        totalMs:Date.now()-rapidStart,
+        assetHits:stressAssetHits,
+        state:stressState
+      }));
+      if(activationMs>500){
+        pushFailure('rapid navigation stress','Final destination did not become visible quickly under slow feature loading',JSON.stringify({activationMs,stressState}));
+      }
+      if(duplicateAssets.length){
+        pushFailure('rapid navigation stress','Rapid taps triggered duplicate lazy asset requests',JSON.stringify(duplicateAssets));
+      }
+      if(stressState.active!==finalView||stressState.guardPresent||stressState.locked||stressState.menuOpen||stressState.featureError||stressState.loadingNotices){
+        pushFailure('rapid navigation stress','App did not settle cleanly after rapid section switching',JSON.stringify(stressState));
+      }
+    }finally{
+      for(const {pattern,handler} of stressRoutes)await loginFlowPage.unroute(pattern,handler);
+      await boundedEvaluate('return to dashboard after rapid stress',()=>window.EDUNIZAM_APP_NAV?.setView?.('dashboard'));
+    }
+
     // Primary Admin flow contract: core sections must remain clickable after login.
     for(const view of ['students','attendance','fees','results','settings']){
       await loginStep('open '+view+' section',async()=>{
