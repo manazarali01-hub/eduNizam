@@ -367,3 +367,139 @@
   .page-home .role-tab{min-height:45px!important;font-size:14.5px!important}
   .page-home .learning-band{padding:24px 15px!important}
 }
+
+
+/* ===== Appearance Consistency Pass · Phase L · 2026-10-07 ===== */
+/* Last-mile homepage chrome, navigation, footer and interaction polish. */
+.page-home .public-nav{
+  position:sticky!important;
+  top:10px!important;
+  z-index:80!important;
+  border-color:#b9d9e9!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 16px 42px rgba(19,70,103,.12)!important;
+}
+.page-home .public-brand{
+  min-width:0!important;
+}
+.page-home .public-links a{
+  position:relative!important;
+  color:#345a73!important;
+  font-weight:800!important;
+  border:1px solid transparent!important;
+}
+.page-home .public-links a:hover{
+  color:#0f5f98!important;
+  border-color:#c9e0ec!important;
+  background:#f1f9fd!important;
+}
+.page-home .public-links .nav-primary{
+  color:#fff!important;
+  border-color:transparent!important;
+  background:linear-gradient(135deg,#1769aa,#21836e)!important;
+  box-shadow:0 8px 20px rgba(23,105,170,.17)!important;
+}
+.page-home .public-links .nav-primary:hover{
+  color:#fff!important;
+  background:linear-gradient(135deg,#125d98,#19745f)!important;
+}
+.page-home .section-heading .eyebrow{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:31px!important;
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  border:1px solid currentColor!important;
+  opacity:.88;
+  background:rgba(255,255,255,.62)!important;
+}
+.page-home .experience-strip article{
+  transition:transform .18s ease,box-shadow .22s ease,border-color .18s ease!important;
+}
+@media(hover:hover){
+  .page-home .experience-strip article:hover{
+    transform:translateY(-3px)!important;
+    box-shadow:0 15px 30px rgba(27,79,111,.13)!important;
+  }
+  .page-home .quick-actions a:hover,
+  .page-home .quick-actions button:hover{
+    transform:translateY(-2px)!important;
+  }
+}
+.page-home .quick-actions a,
+.page-home .quick-actions button{
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important;
+}
+.page-home .quick-actions a:not(.quick-main):hover,
+.page-home .quick-actions button:hover{
+  border-color:#a9d1e5!important;
+  box-shadow:0 10px 22px rgba(23,78,108,.09)!important;
+}
+.page-home .public-disclaimer{
+  padding-top:24px!important;
+}
+.page-home .public-disclaimer .public-note{
+  border-left-width:6px!important;
+  font-size:14.5px!important;
+  line-height:1.62!important;
+}
+.page-home .public-footer{
+  width:min(1420px,calc(100% - 44px))!important;
+  margin:28px auto 22px!important;
+  padding:24px 26px!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  border-radius:26px!important;
+  box-shadow:0 24px 58px rgba(8,38,62,.21)!important;
+}
+.page-home .public-footer>div strong{
+  color:#fff!important;
+  font-size:20px!important;
+}
+.page-home .public-footer>div span,
+.page-home .public-footer small{
+  color:#bfd7e5!important;
+}
+.page-home .public-footer nav{
+  display:flex!important;
+  gap:7px!important;
+  flex-wrap:wrap!important;
+}
+.page-home .public-footer nav a{
+  min-height:40px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  padding:8px 11px!important;
+  border-radius:10px!important;
+  color:#e7f4fa!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  background:rgba(255,255,255,.055)!important;
+}
+.page-home .public-footer nav a:hover{
+  color:#fff!important;
+  border-color:rgba(255,255,255,.18)!important;
+  background:rgba(255,255,255,.10)!important;
+}
+@media(max-width:720px){
+  .page-home .public-nav,
+  .page-home .public-nav.is-scrolled{
+    position:relative!important;
+    top:auto!important;
+  }
+  .page-home .public-footer{
+    width:calc(100% - 16px)!important;
+    padding:20px 16px!important;
+    border-radius:20px!important;
+  }
+  .page-home .public-footer nav{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .page-home .public-footer nav a{
+    justify-content:center!important;
+    text-align:center!important;
+  }
+}
+@media(max-width:430px){
+  .page-home .public-footer{width:calc(100% - 12px)!important}
+  .page-home .public-footer nav{grid-template-columns:1fr!important}
+}
