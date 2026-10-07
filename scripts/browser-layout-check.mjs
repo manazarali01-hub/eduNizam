@@ -1353,6 +1353,41 @@ try{
     ));
     if(clippedDockLabels.length)pushFailure('mobile dock','Quick navigation labels are clipped or ellipsized',JSON.stringify(clippedDockLabels));
 
+    const adminDeskVisual=await boundedEvaluate('inspect admin desk visual contract',()=>({
+      cards:[...document.querySelectorAll('#adminDailyDesk .admin-daily-actions > button')].map(el=>{
+        const cs=getComputedStyle(el);
+        const colors=(cs.backgroundImage.match(/rgba?\(([^)]+)\)/g)||[]).map(raw=>{
+          const nums=raw.match(/[\d.]+/g)?.slice(0,3).map(Number)||[];
+          if(nums.length<3)return null;
+          const [r,g,b]=nums;
+          const lum=(0.2126*r+0.7152*g+0.0722*b)/255;
+          return {r,g,b,lum:Number(lum.toFixed(3))};
+        }).filter(Boolean);
+        return {
+          text:(el.querySelector('strong')?.textContent||'').trim(),
+          backgroundColor:cs.backgroundColor,
+          backgroundImage:cs.backgroundImage,
+          textColor:getComputedStyle(el.querySelector('strong')||el).color,
+          darkestGradient:colors.length?Math.min(...colors.map(x=>x.lum)):1
+        };
+      }),
+      dock:(()=>{
+        const d=document.getElementById('premiumMobileDock');
+        const b=document.getElementById('eduBackTop');
+        if(!d||!b)return {missing:true,intersects:false};
+        const dr=d.getBoundingClientRect(),br=b.getBoundingClientRect();
+        return {
+          missing:false,
+          intersects:br.left<dr.right&&br.right>dr.left&&br.top<dr.bottom&&br.bottom>dr.top,
+          dock:{top:Math.round(dr.top),bottom:Math.round(dr.bottom)},
+          backTop:{top:Math.round(br.top),bottom:Math.round(br.bottom)}
+        };
+      })()
+    }),5000);
+    const darkAdminCards=adminDeskVisual.cards.filter(x=>x.darkestGradient<0.68);
+    if(darkAdminCards.length)pushFailure('admin desk visual','Admin action cards regressed to dark/saturated slabs',JSON.stringify(darkAdminCards));
+    if(adminDeskVisual.dock?.intersects)pushFailure('mobile dock','Back-to-top control overlaps the mobile dock',JSON.stringify(adminDeskVisual.dock));
+
     await loginFlowPage.locator('#eduMobileMenuBtn').tap();
     await loginFlowPage.waitForTimeout(80);
     const menuOpen=await boundedEvaluate('inspect opened mobile menu',()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')||false);
