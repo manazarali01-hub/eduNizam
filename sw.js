@@ -1,4 +1,4 @@
-const CACHE='edunizam-v251-colorful-full-app'
+const CACHE='edunizam-v252-final-appearance-v2'
 const CORE=[
   './',
   './index.html',
