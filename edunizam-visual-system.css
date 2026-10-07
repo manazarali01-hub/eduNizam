@@ -3592,3 +3592,230 @@ body.learning-sky{
   .page-home .public-card:hover,
   .premium-public-page .public-card:hover{transform:none!important}
 }
+
+
+/* ---------- APPEARANCE SURFACE STORYTELLING · PHASE P-Q 2026-10-07 ----------
+   Purpose: make containers visually distinct, premium and readable without
+   touching the locked sidebar/navigation design. */
+:root{
+  --en-surface-blue:rgba(233,246,255,.91);
+  --en-surface-mint:rgba(231,248,241,.91);
+  --en-surface-gold:rgba(255,246,222,.92);
+  --en-surface-lilac:rgba(244,239,255,.92);
+  --en-surface-rose:rgba(255,239,241,.90);
+  --en-surface-sky:rgba(237,249,252,.92);
+  --en-surface-ink:#102f49;
+  --en-surface-muted:#546f84;
+  --en-premium-ring:rgba(185,203,214,.76);
+}
+
+/* Homepage: each major container gets its own restrained visual personality. */
+.page-home .experience-strip{
+  border:1px solid rgba(194,211,222,.80)!important;
+  box-shadow:0 18px 46px rgba(12,57,88,.09),inset 0 1px 0 rgba(255,255,255,.88)!important;
+}
+.page-home .experience-strip > *:nth-child(4n+1),
+.page-home .public-grid > .public-card:nth-child(4n+1){
+  background:linear-gradient(145deg,var(--en-surface-blue),rgba(255,255,255,.93))!important;
+  border-color:rgba(120,184,222,.48)!important;
+}
+.page-home .experience-strip > *:nth-child(4n+2),
+.page-home .public-grid > .public-card:nth-child(4n+2){
+  background:linear-gradient(145deg,var(--en-surface-mint),rgba(255,255,255,.93))!important;
+  border-color:rgba(100,181,145,.42)!important;
+}
+.page-home .experience-strip > *:nth-child(4n+3),
+.page-home .public-grid > .public-card:nth-child(4n+3){
+  background:linear-gradient(145deg,var(--en-surface-gold),rgba(255,255,255,.94))!important;
+  border-color:rgba(213,175,89,.44)!important;
+}
+.page-home .experience-strip > *:nth-child(4n),
+.page-home .public-grid > .public-card:nth-child(4n){
+  background:linear-gradient(145deg,var(--en-surface-lilac),rgba(255,255,255,.94))!important;
+  border-color:rgba(150,128,210,.38)!important;
+}
+.page-home :is(.role-showcase,.value-section,.learning-band){
+  border:1px solid rgba(188,207,219,.78)!important;
+  border-radius:30px!important;
+  overflow:hidden;
+}
+.page-home .role-showcase:before,
+.page-home .value-section:before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:5px;
+  background:linear-gradient(180deg,var(--en-luxe-gold),#5cb5da,#49a881);
+  opacity:.84;
+  pointer-events:none;
+}
+.page-home .role-showcase,
+.page-home .value-section{position:relative}
+.page-home .section-heading h2{
+  color:var(--en-surface-ink)!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.85);
+}
+.page-home .public-card :is(h2,h3,strong),
+.page-home .experience-strip :is(h2,h3,strong){
+  color:var(--en-surface-ink)!important;
+}
+.page-home .public-card :is(p,small,span),
+.page-home .experience-strip :is(p,small,span){
+  color:var(--en-surface-muted);
+}
+
+/* Public information pages: alternate section surfaces so long pages do not feel flat. */
+.premium-public-page .public-section{
+  position:relative;
+  padding:clamp(22px,3vw,34px)!important;
+  border:1px solid var(--en-premium-ring);
+  border-radius:26px!important;
+  box-shadow:0 12px 30px rgba(16,64,94,.065),inset 0 1px 0 rgba(255,255,255,.92);
+  overflow:hidden;
+}
+.premium-public-page .public-section:nth-of-type(4n+2){
+  background:linear-gradient(135deg,var(--en-surface-blue),rgba(255,255,255,.88))!important;
+}
+.premium-public-page .public-section:nth-of-type(4n+3){
+  background:linear-gradient(135deg,var(--en-surface-mint),rgba(255,255,255,.88))!important;
+}
+.premium-public-page .public-section:nth-of-type(4n){
+  background:linear-gradient(135deg,var(--en-surface-gold),rgba(255,255,255,.90))!important;
+}
+.premium-public-page .public-section:nth-of-type(4n+1){
+  background:linear-gradient(135deg,var(--en-surface-lilac),rgba(255,255,255,.90))!important;
+}
+.premium-public-page .public-section:before{
+  content:"";
+  position:absolute;
+  top:0;left:22px;right:22px;height:3px;
+  border-radius:0 0 999px 999px;
+  background:linear-gradient(90deg,transparent,rgba(201,154,61,.72),rgba(79,173,207,.70),transparent);
+  opacity:.68;
+}
+.premium-public-page .public-section :is(h2,h3,strong){color:var(--en-surface-ink)!important}
+.premium-public-page .public-section p,
+.premium-public-page .public-section li{color:#4c687d!important}
+.premium-public-page .public-grid>.public-card:nth-child(3n+1){
+  background:linear-gradient(145deg,rgba(235,247,255,.96),rgba(255,255,255,.93))!important;
+}
+.premium-public-page .public-grid>.public-card:nth-child(3n+2){
+  background:linear-gradient(145deg,rgba(235,249,241,.96),rgba(255,255,255,.93))!important;
+}
+.premium-public-page .public-grid>.public-card:nth-child(3n){
+  background:linear-gradient(145deg,rgba(255,248,226,.97),rgba(255,255,255,.94))!important;
+}
+
+/* Guest learning: richer learning cards with visible category separation. */
+.learning-sky .quick-item:nth-child(4n+1),
+.learning-sky .grid>.card:nth-child(4n+1){background:linear-gradient(145deg,var(--en-surface-blue),#fff)!important}
+.learning-sky .quick-item:nth-child(4n+2),
+.learning-sky .grid>.card:nth-child(4n+2){background:linear-gradient(145deg,var(--en-surface-mint),#fff)!important}
+.learning-sky .quick-item:nth-child(4n+3),
+.learning-sky .grid>.card:nth-child(4n+3){background:linear-gradient(145deg,var(--en-surface-gold),#fff)!important}
+.learning-sky .quick-item:nth-child(4n),
+.learning-sky .grid>.card:nth-child(4n){background:linear-gradient(145deg,var(--en-surface-lilac),#fff)!important}
+.learning-sky :is(.quick-item,.card){
+  border:1px solid rgba(184,205,216,.78)!important;
+  box-shadow:0 10px 26px rgba(14,62,93,.065),inset 0 1px 0 rgba(255,255,255,.94)!important;
+}
+.learning-sky :is(.quick-item,.card) :is(h2,h3,strong){color:var(--en-surface-ink)!important}
+.learning-sky :is(.quick-item,.card) :is(p,small){color:#536e82!important}
+
+/* Login/auth: role choices are visually distinct but text remains high contrast. */
+.auth-page .role{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(187,207,219,.86)!important;
+  color:var(--en-surface-ink)!important;
+  box-shadow:0 9px 24px rgba(17,66,97,.07),inset 0 1px 0 rgba(255,255,255,.92)!important;
+}
+.auth-page .role:before{
+  content:"";
+  position:absolute;
+  left:0;top:0;right:0;height:4px;
+  background:var(--auth-role-accent,#1769aa);
+}
+.auth-page .role[data-role="admin"]{--auth-role-accent:#1769aa;background:linear-gradient(145deg,var(--en-surface-blue),#fff)!important}
+.auth-page .role[data-role="teacher"]{--auth-role-accent:#29936d;background:linear-gradient(145deg,var(--en-surface-mint),#fff)!important}
+.auth-page .role[data-role="parent"]{--auth-role-accent:#b8872f;background:linear-gradient(145deg,var(--en-surface-gold),#fff)!important}
+.auth-page .role[data-role="student"]{--auth-role-accent:#7961b9;background:linear-gradient(145deg,var(--en-surface-lilac),#fff)!important}
+.auth-page .role :is(strong,small){position:relative;z-index:1}
+.auth-page .role small{color:#5c7387!important}
+
+/* Authenticated app: main content gains richer container hierarchy; sidebar remains untouched. */
+.page-app .main .view.active > .card:nth-of-type(4n+1),
+.page-app .main .view.active > .cards > .card:nth-child(4n+1){
+  background:linear-gradient(145deg,var(--en-surface-blue),rgba(255,255,255,.95))!important;
+}
+.page-app .main .view.active > .card:nth-of-type(4n+2),
+.page-app .main .view.active > .cards > .card:nth-child(4n+2){
+  background:linear-gradient(145deg,var(--en-surface-mint),rgba(255,255,255,.95))!important;
+}
+.page-app .main .view.active > .card:nth-of-type(4n+3),
+.page-app .main .view.active > .cards > .card:nth-child(4n+3){
+  background:linear-gradient(145deg,var(--en-surface-gold),rgba(255,255,255,.95))!important;
+}
+.page-app .main .view.active > .card:nth-of-type(4n),
+.page-app .main .view.active > .cards > .card:nth-child(4n){
+  background:linear-gradient(145deg,var(--en-surface-lilac),rgba(255,255,255,.95))!important;
+}
+.page-app .main :is(.card,.paper-card,.practice-review) :is(h2,h3,h4,strong,label){
+  color:var(--en-surface-ink);
+}
+.page-app .main :is(.card,.paper-card,.practice-review) :is(p,small,.muted){
+  color:#526d82;
+}
+.page-app .main :is(input,select,textarea){
+  background:rgba(255,255,255,.94)!important;
+  border-color:rgba(170,197,213,.92)!important;
+  color:#17324d!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.96),0 2px 8px rgba(16,65,96,.035);
+}
+.page-app .main :is(input,select,textarea):focus{
+  border-color:#4c9dca!important;
+  box-shadow:0 0 0 3px rgba(76,157,202,.15)!important;
+}
+
+/* Contrast guard: button text must never disappear into premium fills. */
+.page-app .main button:not(.secondary):not(.icon-btn),
+.auth-page .primary,
+.learning-sky .btn.primary,
+.gold-home .public-cta:not(.public-cta-secondary),
+.premium-public-page .public-cta:not(.public-cta-secondary){
+  color:#fff!important;
+  text-shadow:0 1px 1px rgba(4,31,49,.20);
+}
+.gold-home .public-cta-secondary,
+.premium-public-page .public-cta-secondary,
+.learning-sky .btn:not(.primary),
+.auth-page .secondary{
+  color:#154a70!important;
+}
+
+/* Motion stays subtle, and touch layouts never depend on hover. */
+@media(hover:hover) and (pointer:fine){
+  .page-home .public-card,
+  .premium-public-page .public-card,
+  .learning-sky .card,
+  .auth-page .role,
+  .page-app .main .card{
+    transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+  }
+  .auth-page .role:hover{transform:translateY(-2px)}
+}
+@media(max-width:720px){
+  .premium-public-page .public-section{padding:20px!important;border-radius:20px!important}
+  .page-home :is(.role-showcase,.value-section,.learning-band){border-radius:22px!important}
+  .page-home .role-showcase:before,.page-home .value-section:before{width:4px}
+  .learning-sky :is(.quick-item,.card),.auth-page .role{box-shadow:0 8px 20px rgba(17,66,97,.06)!important}
+  .page-app .main .view.active > .card,
+  .page-app .main .view.active > .cards > .card{background-blend-mode:normal!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .page-home .public-card,
+  .premium-public-page .public-card,
+  .learning-sky .card,
+  .auth-page .role,
+  .page-app .main .card{transition:none!important}
+}
