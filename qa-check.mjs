@@ -520,6 +520,11 @@ else{
   if(!admission.includes('id="schoolSearch"')) fail.push('Admission applicant school search missing.');
   if(!admission.includes("list_school_directory_v1")) fail.push('Admission portal does not load school dropdown.');
   if(!admission.includes("search_school_directory_v1")) fail.push('Admission portal school search RPC missing.');
+const admissionsPortal=read('admissions-portal.js');
+if(admissionsPortal.includes('const n=apps().length+1')) fail.push('Admissions local Application ID can be reused after a deletion.');
+if(!admissionsPortal.includes("const highest=apps().reduce((max,row)=>")) fail.push('Admissions Application ID does not advance from the highest existing sequence.');
+if(!admissionsPortal.includes('let applicationSaveInFlight=false')) fail.push('Admission Draft/Submit has no duplicate-submit guard.');
+if(!admissionsPortal.includes("btn.setAttribute('aria-busy','true')")) fail.push('Admission save buttons do not expose a busy state during async save.');
   if(!admission.includes(".from('applications').insert")) fail.push('Admission applicant submission is not wired to applications table.');
   if(admission.includes('create_owned_institution')||admission.includes('register_admin_school')) fail.push('Admission applicant portal can create schools.');
 }

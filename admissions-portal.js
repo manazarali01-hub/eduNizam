@@ -12,8 +12,14 @@
   function nextId(){
     const s=setup();
     const year=(s.admissionSession||new Date().getFullYear()).toString().match(/\d{4}/)?.[0]||new Date().getFullYear();
-    const n=apps().length+1;
-    return (s.applicationPrefix||'ADM')+'-'+year+'-'+String(n).padStart(4,'0');
+    const prefix=(s.applicationPrefix||'ADM')+'-'+year+'-';
+    const highest=apps().reduce((max,row)=>{
+      const id=String(row?.applicationId||'');
+      if(!id.startsWith(prefix))return max;
+      const n=Number(id.slice(prefix.length));
+      return Number.isInteger(n)&&n>max?n:max;
+    },0);
+    return prefix+String(highest+1).padStart(4,'0');
   }
   function calcPct(){
     const o=Number($('admObtainedMarks').value||0),t=Number($('admTotalMarks').value||0);
@@ -303,29 +309,43 @@
   };
 
   const originalSaveApplication=saveApplication;
+  let applicationSaveInFlight=false;
   saveApplication=async function(status){
-    const a=getForm(status);
-    if(!valid(a,status==='Draft'))return alert(status==='Draft'?'Enter at least applicant name, CNIC or program.':'Please complete applicant name, guardian name, CNIC/B-Form, program and previous qualification.');
-    try{a.attachments=await collectUploads(a.applicationId)}catch(e){console.error(e);return alert('Could not save one or more uploaded files on this device.')}
-    const uploadFields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile']];
-    const arr=apps();arr.push(a);write(KEY.apps,arr);
-    let cloudNote='';
-    const cloud=window.EDUNIZAM_CLOUD;
-    if(cloud?.ready?.()&&cloud.state?.user&&status!=='Draft'){
-      try{
-        const remote=await cloud.syncLocalApplication(a);
-        a.cloudId=remote?.id||null;a.applicantUserId=remote?.applicant_user_id||cloud.state?.user?.id||null;a.cloudSyncedAt=new Date().toISOString();
-        const idx=arr.findIndex(x=>x.applicationId===a.applicationId);if(idx>=0)arr[idx]=a;write(KEY.apps,arr);
-        for(const [kind,id] of uploadFields){
-          const file=$(id)?.files?.[0];
-          if(file&&remote?.id)await cloud.uploadDocument(remote.id,kind,file);
-        }
-        cloudNote=' · Cloud synced';
-      }catch(e){console.warn('Cloud sync failed:',e);cloudNote=' · Saved locally; cloud sync pending';}
+    if(applicationSaveInFlight)return;
+    applicationSaveInFlight=true;
+    const submitButtons=[$('submitAdmissionBtn'),$('saveAdmissionDraftBtn')].filter(Boolean);
+    submitButtons.forEach(btn=>{btn.disabled=true;btn.setAttribute('aria-busy','true')});
+    try{
+      const a=getForm(status);
+      if(!valid(a,status==='Draft')){
+        alert(status==='Draft'?'Enter at least applicant name, CNIC or program.':'Please complete applicant name, guardian name, CNIC/B-Form, program and previous qualification.');
+        return;
+      }
+      try{a.attachments=await collectUploads(a.applicationId)}
+      catch(e){console.error(e);alert('Could not save one or more uploaded files on this device.');return}
+      const uploadFields=[['photo','admPhotoFile'],['identity','admIdentityFile'],['result','admResultFile'],['support','admSupportFile']];
+      const arr=apps();arr.push(a);write(KEY.apps,arr);
+      let cloudNote='';
+      const cloud=window.EDUNIZAM_CLOUD;
+      if(cloud?.ready?.()&&cloud.state?.user&&status!=='Draft'){
+        try{
+          const remote=await cloud.syncLocalApplication(a);
+          a.cloudId=remote?.id||null;a.applicantUserId=remote?.applicant_user_id||cloud.state?.user?.id||null;a.cloudSyncedAt=new Date().toISOString();
+          const idx=arr.findIndex(x=>x.applicationId===a.applicationId);if(idx>=0)arr[idx]=a;write(KEY.apps,arr);
+          for(const [kind,id] of uploadFields){
+            const file=$(id)?.files?.[0];
+            if(file&&remote?.id)await cloud.uploadDocument(remote.id,kind,file);
+          }
+          cloudNote=' · Cloud synced';
+        }catch(e){console.warn('Cloud sync failed:',e);cloudNote=' · Saved locally; cloud sync pending';}
+      }
+      clearForm();renderAdmin();updateStats();
+      $('admissionSubmitResult').innerHTML='<div class="admission-success"><strong>'+esc(a.applicationId)+'</strong><span>'+esc(status==='Draft'?'Draft saved':'Application submitted successfully')+esc(cloudNote)+'</span><button data-print-admission="'+a.applicationId+'" class="secondary">Print Application</button></div>';
+      document.querySelector('[data-print-admission]')?.addEventListener('click',()=>printApplication(a.applicationId));
+    }finally{
+      applicationSaveInFlight=false;
+      submitButtons.forEach(btn=>{btn.disabled=false;btn.removeAttribute('aria-busy')});
     }
-    clearForm();renderAdmin();updateStats();
-    $('admissionSubmitResult').innerHTML='<div class="admission-success"><strong>'+esc(a.applicationId)+'</strong><span>'+esc(status==='Draft'?'Draft saved':'Application submitted successfully')+esc(cloudNote)+'</span><button data-print-admission="'+a.applicationId+'" class="secondary">Print Application</button></div>';
-    document.querySelector('[data-print-admission]')?.addEventListener('click',()=>printApplication(a.applicationId));
   };
 
   const originalClearForm=clearForm;

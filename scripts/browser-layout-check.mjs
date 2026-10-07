@@ -1242,18 +1242,20 @@ try{
 
     const prefetchContract=await boundedEvaluate('inspect feature prefetch contract',async()=>{
       const loader=window.EDUNIZAM_FEATURE_LOADER;
-      if(!loader?.prefetch)return {available:false,seen:[],ready:false};
+      if(!loader?.prefetch)return {available:false,seen:[],ready:false,expected:''};
       const seen=[];
+      const expected=loader.versionedUrl?.('math-editor.js')||'';
       const realFetch=window.fetch;
       window.fetch=(input,init)=>{
         seen.push({url:String(input),cache:init?.cache||'',credentials:init?.credentials||''});
         return Promise.resolve(new Response('/* prefetched */',{status:200,headers:{'content-type':'text/javascript'}}));
       };
       try{await loader.prefetch('assistant')}finally{window.fetch=realFetch}
-      return {available:true,seen,ready:loader.isReady('assistant')};
+      return {available:true,seen,ready:loader.isReady('assistant'),expected};
     },5000);
     if(!prefetchContract.available||
-       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-staffscale1/.test(x.url)&&x.cache==='force-cache')||
+       !prefetchContract.expected||
+       !prefetchContract.seen.some(x=>x.url===prefetchContract.expected&&x.cache==='force-cache')||
        prefetchContract.ready){
       pushFailure('navigation performance','Feature prefetch did not warm versioned code without executing it',JSON.stringify(prefetchContract));
     }
