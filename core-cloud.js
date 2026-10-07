@@ -187,10 +187,23 @@
       throw new Error('Valid marks and total are required.');
     }
     const {data,error}=await client.from('result_records')
-      .upsert(payload,{onConflict:'institution_id,local_id'})
+      .insert(payload)
       .select()
       .single();
-    if(error)throw error;
+    if(error){
+      // A retry after an ambiguous network response may hit the unique local record key.
+      // Reconcile only that exact local record; never overwrite an existing result.
+      if(String(error.code||'')==='23505'){
+        const {data:existing,error:lookupError}=await client.from('result_records')
+          .select('*')
+          .eq('institution_id',cfg.institutionId)
+          .eq('local_id',payload.local_id)
+          .maybeSingle();
+        if(lookupError)throw lookupError;
+        if(existing)return existing;
+      }
+      throw error;
+    }
     return data;
   }
 
