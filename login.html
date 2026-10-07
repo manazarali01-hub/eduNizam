@@ -558,24 +558,49 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
         if(completed!==false)return;
       }
 
-      const inst=await resolveInstitution(data.user,requestedInstitute,selectedRole,selectedSchoolId);
+      let effectiveRole=selectedRole;
+      let inst=await resolveInstitution(data.user,requestedInstitute,effectiveRole,selectedSchoolId);
+
+      // A verified school owner must never be blocked just because the role
+      // picker is stale or the user tapped Teacher/Parent/Student by mistake.
+      // Re-resolve the SAME requested school against the account's authorized
+      // workspaces and only upgrade to Admin when Supabase proves ownership.
+      if(!inst&&effectiveRole!=='admin'){
+        const authorized=await authorizedWorkspaces(data.user,true);
+        const wantedId=String(selectedSchoolId||'').trim();
+        const wantedName=normalizeInstituteName(requestedInstitute);
+        const owned=authorized.filter(x=>{
+          if(x.workspace_role!=='head_of_institute')return false;
+          if(wantedId)return String(x.id)===wantedId;
+          return wantedName&&normalizeInstituteName(x.name)===wantedName;
+        });
+        if(owned.length===1){
+          effectiveRole='admin';
+          inst=owned[0];
+          localStorage.setItem('edunizam_flash_message',JSON.stringify({
+            type:'success',
+            text:'This email is the verified Admin account for '+(inst.name||'this school')+'. Admin workspace opened.'
+          }));
+        }
+      }
+
       if(!inst){
-        if(selectedRole==='teacher'||selectedRole==='parent'||selectedRole==='student'){
-          const status=await schoolAccessStatus(data.user.id,selectedRole,selectedSchoolId);
+        if(effectiveRole==='teacher'||effectiveRole==='parent'||effectiveRole==='student'){
+          const status=await schoolAccessStatus(data.user.id,effectiveRole,selectedSchoolId);
           await client.auth.signOut();
           if(status?.status==='pending')throw new Error('Waiting for School Admin approval.');
           if(status?.status==='rejected'){
-            const label=selectedRole==='teacher'?'Teacher request':'Your approval request';
+            const label=effectiveRole==='teacher'?'Teacher request':'Your approval request';
             throw new Error(label+' was rejected by School Admin'+(status.review_note?': '+status.review_note:'')+'.');
           }
         }else{
           await client.auth.signOut();
         }
-        throw new Error(selectedRole==='admin'
+        throw new Error(effectiveRole==='admin'
           ?'No institute with this name is linked to this Admin account. Check the institute name and try again.'
           :'This account is not approved for the selected school and role yet.');
       }
-      await openApp(data.user,selectedRole,requestedInstitute,selectedSchoolId,inst);
+      await openApp(data.user,effectiveRole,requestedInstitute,selectedSchoolId,inst);
     }catch(err){message(friendly(err.message||err))}finally{busy($('loginBtn'),false)}
   };
 
