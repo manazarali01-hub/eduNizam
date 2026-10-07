@@ -439,6 +439,10 @@ const repairCloudStateSource=repairCloudStateFile.slice(repairCloudStateFile.ind
 if(/auth\.getSession\s*\(/.test(repairCloudStateSource)) fail.push('Reliability Guardian still owns a second Supabase session restore path.');
 if(!login.includes('global:{fetch:supabaseFetch}')||!login.includes('setTimeout(()=>controller.abort(),12000)')) fail.push('Login Supabase network requests have no finite deadline.');
 if(!authBridgeE2E.includes('refreshScopedRoleCache')) fail.push('Role-scoped cache refresh missing after member login.');
+if(app.includes('function applyRole(retry=0)')||app.includes('setTimeout(()=>applyRole(retry+1),300)')) fail.push('Role bootstrap still uses a fixed retry window that can race secure session restore.');
+if(!app.includes("window.addEventListener('edunizam:workspace-ready',()=>applyRole())")) fail.push('Role UI does not wait for the secure workspace-ready lifecycle.');
+if(app.includes("localStorage.removeItem(ROLE_KEY);location.reload()")) fail.push('Logout still reloads before centralized cloud sign-out can complete.');
+if(!app.includes("if(window.EDUNIZAM_AUTH_BRIDGE)return;localStorage.removeItem(ROLE_KEY);location.replace('login.html?from=logout-fallback')")) fail.push('Logout fallback is not delegated to the centralized auth bridge.');
 if(!app.includes("if($('attendance')?.classList.contains('active'))renderAttendanceAudit()")) fail.push('Hidden Attendance view can still trigger its cloud audit fetch.');
 if(!read('core-cloud.js').includes("attendance-audit:'+cfg.institutionId+':'+date+':'+key")||!read('core-cloud.js').includes('timeout:7000,retries:1')) fail.push('Attendance audit queries are not bounded and deduplicated.');
 if(authBridgeE2E.includes('pullAllCloudToLocal')) fail.push('Auth bridge must not bulk-load core school tables during startup.');
