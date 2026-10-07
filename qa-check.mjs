@@ -1065,6 +1065,15 @@ for(const marker of [
   if(!ref6.includes(marker)) fail.push('Ref6 marker missing: '+marker);
 }
 
+const loginSource=read('login.html');
+for(const marker of [
+  'A verified school owner must never be blocked just because the role',
+  "effectiveRole='admin'",
+  'verified Admin account for '
+]){
+  if(!loginSource.includes(marker)) fail.push('Admin login recovery marker missing: '+marker);
+}
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
