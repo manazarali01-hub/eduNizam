@@ -1031,7 +1031,7 @@ for(const marker of [
   if(!referenceVisual.includes(marker)) fail.push('Reference reconstruction marker missing: '+marker);
 }
 for(const page of ['index.html','login.html','learn.html','app.html','about.html','features.html']){
-  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref6')) fail.push('Reference reconstruction stylesheet missing from '+page);
+  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref7')) fail.push('Reference reconstruction stylesheet missing from '+page);
 }
 
 const mobileRef4=read('reference-reconstruction.css');
@@ -1073,6 +1073,18 @@ for(const marker of [
 ]){
   if(!loginSource.includes(marker)) fail.push('Admin login recovery marker missing: '+marker);
 }
+
+const colorfulRef7=read('reference-reconstruction.css');
+for(const marker of [
+  'Colorful full app pass · 2026-10-07 · ref7',
+  '--en-pastel-mint:#eefaf3',
+  '#students #studentFormWrap',
+  'input[type="file"]::file-selector-button',
+  '.view.active tbody tr:nth-child(4n+4)'
+]){
+  if(!colorfulRef7.includes(marker)) fail.push('Colorful ref7 marker missing: '+marker);
+}
+if(!read('app.html').includes('reference-reconstruction.css?v=20261007-ref7')) fail.push('Colorful ref7 stylesheet cache token missing from app.html.');
 
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
