@@ -18,6 +18,17 @@
   let contacts=[],conversations=[],activeId='',messages=[],unreadByConversation={};
   let conversationSearch='',unreadOnly=false,messageSearch='';
   let contactsInFlight=null,contactsLoadedAt=0,contactsLoadKey='',conversationsInFlight=null,conversationsLoadedAt=0,conversationsLoadKey='';
+  let messagingStartInFlight=false,messagingSendInFlight=false,threadLoadInFlight=null;
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
+    else{btn.disabled=false;btn.removeAttribute('aria-busy');if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}}
+  }
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1,cacheMs=0}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,cacheMs,label}):factory({});
+  }
 
   function roleLabel(r){return ({head:'Head of Institute',teacher:'Teacher',parent:'Parent / Guardian',student:'Student'}[r]||r)}
   function localUserKey(){return role()+':'+(identity()||'local')}
@@ -44,9 +55,11 @@
     if(contactsInFlight)return contactsInFlight;
     if(!force&&contactsLoadKey===loadKey&&contactsLoadedAt&&Date.now()-contactsLoadedAt<60000)return contacts;
     contactsInFlight=(async()=>{
-      const {data,error}=await cloud().state.client.rpc('list_message_contacts');
-      if(error)throw error;
-      contacts=(data||[]).map(x=>({targetUserId:x.target_user_id,targetRole:x.target_role,displayName:x.display_name,studentUserId:x.student_user_id,studentName:x.student_name,conversationType:x.conversation_type}));
+      const result=await runCloud('messages-contacts:'+loadKey,'Message contacts',async({signal}={})=>{
+        let q=cloud().state.client.rpc('list_message_contacts');q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out;
+      },{timeout:6500,retries:1,cacheMs:30000});
+      contacts=(result.data||[]).map(x=>({targetUserId:x.target_user_id,targetRole:x.target_role,displayName:x.display_name,studentUserId:x.student_user_id,studentName:x.student_name,conversationType:x.conversation_type}));
       contactsLoadKey=loadKey;
       contactsLoadedAt=Date.now();
       return contacts;
@@ -76,20 +89,19 @@
     if(!force&&conversationsLoadKey===loadKey&&conversationsLoadedAt&&Date.now()-conversationsLoadedAt<3000)return conversations;
     conversationsInFlight=(async()=>{
       const c=cloud().state.client;
-      const cr=await c.from('school_conversations').select('*')
-        .eq('institution_id',cfg().institutionId)
-        .order('updated_at',{ascending:false});
-      if(cr.error)throw cr.error;
+      const cr=await runCloud('messages-conversations:'+loadKey,'Message conversations',async({signal}={})=>{
+        let q=c.from('school_conversations').select('*').eq('institution_id',cfg().institutionId).order('updated_at',{ascending:false});
+        q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+      },{timeout:7000,retries:1});
       conversations=cr.data||[];
       unreadByConversation={};
       const ids=conversations.map(x=>x.id).filter(Boolean);
       for(let start=0;start<ids.length;start+=100){
         const batch=ids.slice(start,start+100);
-        const mr=await c.from('school_messages')
-          .select('conversation_id,sender_user_id,read_at')
-          .in('conversation_id',batch)
-          .neq('sender_user_id',uid());
-        if(mr.error)throw mr.error;
+        const mr=await runCloud('messages-unread:'+loadKey+':'+start,'Unread messages',async({signal}={})=>{
+          let q=c.from('school_messages').select('conversation_id,sender_user_id,read_at').in('conversation_id',batch).neq('sender_user_id',uid());
+          q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+        },{timeout:6500,retries:1});
         (mr.data||[]).filter(m=>!m.read_at).forEach(m=>{
           unreadByConversation[m.conversation_id]=(unreadByConversation[m.conversation_id]||0)+1;
         });
@@ -107,19 +119,32 @@
     return c.participant_a===uid()?c.participant_b_label:c.participant_a_label;
   }
   async function openConversation(id){
-    activeId=String(id);
+    const requestedId=String(id);activeId=requestedId;
+    if(threadLoadInFlight&&threadLoadInFlight.id===requestedId)return threadLoadInFlight.promise;
     if(!cloudReady()){
       const me=localUserKey(),all=read(MSG_KEY);
       messages=all.filter(m=>String(m.conversationId)===activeId).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
       let changed=false;all.forEach(m=>{if(String(m.conversationId)===activeId&&m.senderKey!==me&&!m.readAt){m.readAt=new Date().toISOString();changed=true}});if(changed)write(MSG_KEY,all);
     }else{
-      const {data,error}=await cloud().state.client.from('school_messages').select('*').eq('conversation_id',id).order('created_at');
-      if(error)throw error;messages=data||[];
-      const {error:re}=await cloud().state.client.rpc('mark_school_messages_read',{p_conversation_id:id});if(re)console.warn(re.message);
+      const promise=(async()=>{
+        const result=await runCloud('messages-thread:'+requestedId,'Message thread',async({signal}={})=>{
+          let q=cloud().state.client.from('school_messages').select('*').eq('conversation_id',requestedId).order('created_at');
+          q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+        },{timeout:7000,retries:1});
+        if(activeId!==requestedId)return;
+        messages=result.data||[];
+        runCloud('messages-read:'+requestedId,'Mark messages read',async({signal}={})=>{
+          let q=cloud().state.client.rpc('mark_school_messages_read',{p_conversation_id:requestedId});q=withSignal(q,signal);
+          const out=await q;if(out.error)throw out.error;return out;
+        },{timeout:5000,retries:1}).catch(e=>console.warn('Mark messages read:',e.message||e));
+      })();
+      threadLoadInFlight={id:requestedId,promise};
+      try{await promise}finally{if(threadLoadInFlight?.id===requestedId)threadLoadInFlight=null}
     }
-    await loadConversations(true);renderUI();
+    await loadConversations(true);if(activeId===requestedId)renderUI();
   }
   async function startConversation(){
+    const btn=$('msgStart');if(messagingStartInFlight||btn?.disabled)return;
     const key=$('msgContact')?.value,subject=$('msgSubject')?.value.trim()||'General';
     if(!key)return alert('Contact select karein.');
     const contact=contacts[Number(key)];if(!contact)return;
@@ -128,23 +153,38 @@
       const c={id:String(Date.now()),conversationType:contact.conversationType,studentKey:contact.studentKey,studentName:contact.studentName,participantAKey:me,participantBKey:targetKey,participantALabel:myLabel,participantBLabel:contact.displayName,subject,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
       const arr=read(CONV_KEY);arr.unshift(c);write(CONV_KEY,arr);await loadConversations();await openConversation(c.id);return;
     }
-    const {data,error}=await cloud().state.client.rpc('create_school_conversation',{
-      p_target_user_id:contact.targetUserId,p_student_user_id:contact.studentUserId,p_conversation_type:contact.conversationType,p_subject:subject
-    });
-    if(error)return alert(error.message||error);
-    const row=Array.isArray(data)?data[0]:data;if(!row?.id)return alert('Conversation create nahi hui.');
-    await loadConversations();await openConversation(row.id);
+    messagingStartInFlight=true;setBusy(btn,true,'Starting...');
+    try{
+      const result=await runCloud('messages-start:'+cfg().institutionId+':'+contact.targetUserId+':'+String(contact.studentUserId||'')+':'+contact.conversationType,'Start conversation',async({signal}={})=>{
+        let q=cloud().state.client.rpc('create_school_conversation',{
+          p_target_user_id:contact.targetUserId,p_student_user_id:contact.studentUserId,p_conversation_type:contact.conversationType,p_subject:subject
+        });q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out;
+      },{timeout:8000,retries:1});
+      const row=Array.isArray(result.data)?result.data[0]:result.data;if(!row?.id)return alert('Conversation create nahi hui.');
+      await loadConversations(true);await openConversation(row.id);
+    }catch(e){alert('Conversation start failed: '+(e.message||e))}
+    finally{messagingStartInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function sendMessage(){
+    const btn=$('msgSend');if(messagingSendInFlight||btn?.disabled)return;
     const body=$('msgBody')?.value.trim();if(!activeId||!body)return;
     if(body.length>4000)return alert('Message 4000 characters se chhota rakhein.');
     if(!cloudReady()){
       const arr=read(MSG_KEY);arr.push({id:String(Date.now()),conversationId:activeId,senderKey:localUserKey(),senderLabel:roleLabel(role()),body,createdAt:new Date().toISOString(),readAt:null});write(MSG_KEY,arr);
       const cs=read(CONV_KEY),c=cs.find(x=>String(x.id)===activeId);if(c)c.updatedAt=new Date().toISOString();write(CONV_KEY,cs);$('msgBody').value='';await openConversation(activeId);return;
     }
-    const {data,error}=await cloud().state.client.rpc('send_school_message',{p_conversation_id:activeId,p_body:body});
-    if(error)return alert(error.message||error);
-    $('msgBody').value='';await openConversation(activeId);
+    const conversationId=activeId;messagingSendInFlight=true;setBusy(btn,true,'Sending...');
+    try{
+      await runCloud('messages-send:'+conversationId,'Send message',async({signal}={})=>{
+        let q=cloud().state.client.rpc('send_school_message',{p_conversation_id:conversationId,p_body:body});q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out;
+      },{timeout:8000,retries:0});
+      if($('msgBody'))$('msgBody').value='';await openConversation(conversationId);
+    }catch(e){
+      try{await openConversation(conversationId)}catch(_){}
+      alert('Message send status refreshed after failure. Check the thread before sending again: '+(e.message||e));
+    }finally{messagingSendInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   function filteredConversations(){
     const q=conversationSearch.trim().toLowerCase();
