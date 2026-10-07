@@ -618,8 +618,7 @@
 @media(hover:none){
   .page-home .experience-strip article:hover,
   .page-home .quick-actions a:hover,
-  .page-home .quick-actions button:hover,
-  .page-home .public-hero:hover .hero-image-wrap img{
+  .page-home .quick-actions button:hover{
     transform:none!important;
   }
 }
