@@ -3138,3 +3138,110 @@ body.admission-premium{
     transform:none!important;
   }
 }
+
+
+/* ---------- APP BACKGROUND VISIBILITY FIX 2026-10-07 ----------
+   Keep authenticated pages visibly photographic without sacrificing text contrast.
+   Protected-app backgrounds use bundled local assets so they do not depend on a
+   third-party image host and remain visible on mobile. */
+body.app-page{
+  background:
+    linear-gradient(180deg,rgba(239,248,252,.82),rgba(247,251,253,.90)),
+    url("assets/edunizam-login-children.webp") center top / cover fixed no-repeat!important;
+}
+
+/* Default + category-specific local education photography. */
+.page-app .view{--view-photo:url("assets/edunizam-login-children.webp")}
+.page-app :is(#staffcenter,#stafftime,#staffpayroll,#training,#ourstudents,#behaviorcenter,#gatecenter,#studentdocs,#leavecenter){
+  --view-photo:url("assets/edunizam-login-children.webp");
+}
+.page-app :is(#attendance,#attendanceanalytics,#results,#schoolwork,#lessoncenter,#examcenter,#paperbuilder,#dailydiary,#schedulecenter,#calendarcenter){
+  --view-photo:url("assets/edunizam-girl-hero.webp");
+}
+.page-app :is(#fees,#financecenter,#inventorycenter,#librarycenter,#transportcenter){
+  --view-photo:url("assets/edunizam-login-children.webp");
+}
+.page-app :is(#noticeboard,#functionscenter,#inboxcenter,#parentcomplaints,#helpdeskcenter){
+  --view-photo:url("assets/edunizam-login-children.webp");
+}
+.page-app :is(#pastpapers,#practice,#study,#schoolassessments,#universities,#competitive,#ecosystem,#pathways,#vu,#admissions){
+  --view-photo:url("assets/edunizam-girl-hero.webp");
+}
+.page-app :is(#assistant,#settings,#troubleshoot,#help){
+  --view-photo:url("assets/edunizam-girl-hero.webp");
+}
+
+/* The page canvas now keeps a visible photo zone at the right/top. */
+.page-app .view.active{
+  position:relative;
+  background:
+    linear-gradient(100deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.88) 48%,rgba(248,252,254,.66) 72%,rgba(241,248,252,.42) 100%),
+    var(--view-photo) right top / min(620px,52vw) auto no-repeat!important;
+}
+
+/* Make every module opening visibly photographic, not just technically image-backed. */
+.page-app .view.active > .section-head:first-child{
+  min-height:132px;
+  display:flex;
+  align-items:center;
+  background:
+    linear-gradient(92deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.94) 45%,rgba(244,250,253,.70) 67%,rgba(9,38,60,.22) 100%),
+    var(--view-photo) right center / 48% 100% no-repeat!important;
+  border-color:rgba(166,202,223,.86)!important;
+  box-shadow:0 16px 38px rgba(16,68,102,.10)!important;
+}
+.page-app .view.active > .section-head:first-child > *{
+  position:relative;
+  z-index:1;
+}
+.page-app .view.active > .section-head:first-child:after{
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(6,30,47,.10))!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  border-radius:inherit!important;
+}
+
+/* Dashboard keeps the strongest student image treatment. */
+.page-app #dashboard .campus-hero{
+  background:
+    linear-gradient(105deg,rgba(6,26,43,.91) 0%,rgba(8,35,58,.80) 48%,rgba(15,49,80,.48) 72%,rgba(15,49,80,.22) 100%),
+    url("assets/edunizam-login-children.webp") center 38% / cover no-repeat!important;
+}
+
+@media(max-width:720px){
+  body.app-page{
+    background:
+      linear-gradient(180deg,rgba(241,249,252,.86),rgba(248,252,253,.92)),
+      url("assets/edunizam-login-children.webp") center top / cover scroll no-repeat!important;
+  }
+  .page-app .view.active{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.80) 0%,rgba(248,252,254,.90) 260px,rgba(248,252,254,.88) 100%),
+      var(--view-photo) center top / 100% auto no-repeat!important;
+  }
+  .page-app .view.active > .section-head:first-child{
+    min-height:150px;
+    background:
+      linear-gradient(100deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.86) 50%,rgba(246,251,253,.60) 72%,rgba(8,35,58,.24) 100%),
+      var(--view-photo) center 35% / cover no-repeat!important;
+  }
+  .page-app #dashboard .campus-hero{
+    background:
+      linear-gradient(115deg,rgba(6,26,43,.88),rgba(15,49,80,.66)),
+      url("assets/edunizam-login-children.webp") center 36% / cover no-repeat!important;
+  }
+}
+@media(max-width:430px){
+  .page-app .view.active{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.84) 0%,rgba(248,252,254,.93) 250px,rgba(248,252,254,.91) 100%),
+      var(--view-photo) center top / 100% auto no-repeat!important;
+  }
+  .page-app .view.active > .section-head:first-child{
+    min-height:142px;
+    background:
+      linear-gradient(100deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.87) 54%,rgba(245,250,253,.62) 76%,rgba(8,35,58,.22) 100%),
+      var(--view-photo) center 36% / cover no-repeat!important;
+  }
+}

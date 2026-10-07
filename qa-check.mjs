@@ -628,6 +628,11 @@ if(!index.includes('data-view="settings"')) fail.push('Settings navigation item 
 if(!index.includes('data-view="troubleshoot"')) fail.push('Troubleshoot navigation item missing.');
 if(!index.includes('id="troubleshoot"')) fail.push('Troubleshoot section missing.');
 if(!index.includes('data-view="help"')) fail.push('Help & Support navigation item missing.');
+const visualSystem=read('edunizam-visual-system.css');
+if(!visualSystem.includes('APP BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push('Visible authenticated app background fix is missing.');
+if(!visualSystem.includes('url("assets/edunizam-login-children.webp")')||!visualSystem.includes('url("assets/edunizam-girl-hero.webp")')) fail.push('Authenticated app backgrounds are not using bundled local education images.');
+if(!visualSystem.includes('.page-app .view.active > .section-head:first-child')||!visualSystem.includes('min-height:132px')) fail.push('Authenticated view opening banners are not visibly image-backed.');
+if(!read('app.html').includes('edunizam-visual-system.css?v=20261007-visiblebg1')) fail.push('App visual-system cache token was not bumped for visible background deployment.');
 if(!index.includes('id="help"')) fail.push('Help & Support section missing.');
 if(!index.includes('id="reliabilityDiagnosticsCard"')) fail.push('Reliability diagnostics card missing.');
 if(!app.includes("window.addEventListener('error'")) fail.push('Runtime JavaScript error capture missing.');
