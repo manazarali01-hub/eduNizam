@@ -108,6 +108,7 @@ try{
   }
 }finally{
   await browser.close();
+  if(typeof server.closeAllConnections==='function')server.closeAllConnections();
   await new Promise(resolve=>server.close(resolve));
 }
 fs.writeFileSync(path.join(outDir,'manifest.json'),JSON.stringify(manifest,null,2));
