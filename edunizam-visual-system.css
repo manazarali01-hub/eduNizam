@@ -3358,3 +3358,237 @@ body.learning-sky{
   }
   .page-home .experience-strip{background:rgba(255,255,255,.64)!important}
 }
+
+
+/* ---------- PREMIUM CALLIGRAPHIC POLISH 2026-10-07 ----------
+   Decorative typography + restrained luxury detailing.
+   Sidebar intentionally excluded: its current design is locked. */
+:root{
+  --en-font-display:"Palatino Linotype","Book Antiqua",Palatino,Georgia,"Times New Roman",serif;
+  --en-font-calligraphy:Georgia,"Palatino Linotype","Book Antiqua",Palatino,serif;
+  --en-luxe-gold:#c99a3d;
+  --en-luxe-gold-soft:#f4dfaa;
+  --en-luxe-ink:#0a2b44;
+  --en-luxe-glass:rgba(255,255,255,.82);
+}
+
+/* Selective calligraphic accents: decorative only, never form/body copy. */
+.page-home .public-kicker,
+.premium-public-page .public-kicker,
+.learning-sky .kicker,
+.auth-page .eyebrow,
+.admission-premium .eyebrow,
+.page-app .academic-kicker,
+.page-app .campus-label{
+  font-family:var(--en-font-calligraphy)!important;
+  font-style:italic;
+  font-weight:700!important;
+  letter-spacing:.035em!important;
+  text-transform:none!important;
+}
+.page-home .hero-gold{
+  font-family:var(--en-font-display)!important;
+  font-style:italic;
+  font-weight:700!important;
+  letter-spacing:-.035em!important;
+}
+.page-home .section-heading h2,
+.premium-public-page .public-section>h2,
+.learning-sky .section-head h2,
+.page-app .view.active>.section-head:first-child h2{
+  letter-spacing:-.025em!important;
+}
+
+/* Public hero: jewelry-like frame instead of flat card edges. */
+.page-home .premium-public-hero,
+.premium-public-page .public-hero,
+.learning-sky .hero-card{
+  border:1px solid rgba(206,169,91,.55)!important;
+  box-shadow:
+    0 28px 70px rgba(6,35,58,.14),
+    inset 0 1px 0 rgba(255,255,255,.92),
+    inset 0 0 0 1px rgba(255,255,255,.30)!important;
+}
+.page-home .premium-public-hero:after,
+.premium-public-page .public-hero:before,
+.learning-sky .hero-card:before{
+  content:"";
+  position:absolute;
+  left:clamp(22px,3vw,40px);
+  right:clamp(22px,3vw,40px);
+  top:16px;
+  height:1px;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--en-luxe-gold-soft),var(--en-luxe-gold),var(--en-luxe-gold-soft),transparent);
+  opacity:.92;
+}
+.page-home .premium-public-hero>*,
+.premium-public-page .public-hero>*,
+.learning-sky .hero-card>*{position:relative;z-index:1}
+
+/* Elegant section titles with a restrained gold flourish. */
+.page-home .section-heading,
+.premium-public-page .public-section>h2,
+.learning-sky .section-head,
+.page-app .view.active>.section-head:first-child{
+  position:relative;
+}
+.page-home .section-heading:after,
+.learning-sky .section-head:after{
+  content:"";
+  display:block;
+  width:96px;
+  height:3px;
+  margin-top:12px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--en-luxe-gold),#61b7dd,transparent);
+}
+.premium-public-page .public-section>h2:after{
+  content:"";
+  display:block;
+  width:82px;
+  height:3px;
+  margin-top:11px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--en-luxe-gold),#6dbcd9,transparent);
+}
+
+/* Public cards: translucent porcelain + subtle metallic edge. */
+.page-home .public-card,
+.premium-public-page .public-card,
+.learning-sky .card,
+.learning-sky .quick-card{
+  border-color:rgba(190,207,216,.82)!important;
+  box-shadow:
+    0 14px 34px rgba(17,65,96,.08),
+    inset 0 1px 0 rgba(255,255,255,.94)!important;
+}
+.page-home .public-card:hover,
+.premium-public-page .public-card:hover,
+.learning-sky .card:hover{
+  border-color:rgba(201,154,61,.52)!important;
+  box-shadow:
+    0 20px 44px rgba(17,65,96,.12),
+    0 0 0 1px rgba(201,154,61,.10)!important;
+}
+
+/* Auth / login panel becomes more boutique without reducing clarity. */
+.auth-page .card,
+.admission-premium .card{
+  border:1px solid rgba(197,168,109,.42)!important;
+  box-shadow:
+    0 32px 82px rgba(8,45,72,.18),
+    inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
+.auth-page .card h1,
+.auth-page .card h2,
+.admission-premium .card h1,
+.admission-premium .card h2{
+  letter-spacing:-.025em!important;
+}
+
+/* Authenticated workspace: preserve sidebar, enrich only main content. */
+.app-page .topbar{
+  border-color:rgba(192,210,220,.84)!important;
+  background:
+    linear-gradient(110deg,rgba(255,255,255,.94),rgba(248,252,254,.88))!important;
+  box-shadow:
+    0 16px 40px rgba(15,62,94,.10),
+    inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
+.app-page .topbar:after{
+  height:4px!important;
+  background:linear-gradient(90deg,#1769aa 0%,#36a486 30%,var(--en-luxe-gold) 57%,#806cc1 80%,#1769aa 100%)!important;
+}
+.page-app .view.active>.section-head:first-child{
+  border-color:rgba(197,168,109,.48)!important;
+  box-shadow:
+    0 18px 42px rgba(14,61,94,.10),
+    inset 0 1px 0 rgba(255,255,255,.92)!important;
+}
+.page-app .view.active>.section-head:first-child h2{
+  color:var(--en-luxe-ink)!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.75);
+}
+
+/* Dashboard premium focal point. */
+.app-page .campus-hero{
+  border:1px solid rgba(238,209,139,.55)!important;
+  box-shadow:
+    0 34px 82px rgba(4,31,49,.24),
+    inset 0 1px 0 rgba(255,255,255,.22)!important;
+}
+.app-page .campus-hero h2{
+  letter-spacing:-.035em!important;
+  text-shadow:0 4px 22px rgba(2,24,39,.36)!important;
+}
+.app-page .campus-visual{
+  background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.09))!important;
+  border-color:rgba(241,216,155,.38)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+/* Core app cards get a soft premium lift without changing their color identities. */
+.app-page .card,
+.app-page .paper-card,
+.app-page .pp-stats article,
+.app-page .practice-review{
+  box-shadow:
+    0 13px 32px rgba(17,65,96,.075),
+    inset 0 1px 0 rgba(255,255,255,.90)!important;
+}
+.app-page .card:hover,
+.app-page .paper-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(201,154,61,.42)!important;
+  box-shadow:
+    0 20px 42px rgba(17,65,96,.11),
+    0 0 0 1px rgba(201,154,61,.08)!important;
+}
+
+/* Premium buttons: stronger depth, still role-aware and readable. */
+.app-page .main button:not(.secondary):not(.icon-btn),
+.auth-page .primary,
+.learning-sky .btn.primary,
+.gold-home .public-cta:not(.public-cta-secondary),
+.premium-public-page .public-cta{
+  box-shadow:
+    0 12px 28px rgba(23,105,170,.20),
+    inset 0 1px 0 rgba(255,255,255,.22)!important;
+}
+.gold-home .public-cta,
+.premium-public-page .public-cta,
+.learning-sky .btn{
+  border-radius:15px!important;
+}
+
+/* Decorative quote/accent text can use the display face when present. */
+.page-home :is(.portrait-caption strong,.learning-copy .eyebrow),
+.premium-public-page :is(.eyebrow,.quote,.pullquote),
+.learning-sky :is(.eyebrow,.paper-summary){
+  font-family:var(--en-font-display);
+}
+
+/* Mobile keeps the premium cues but avoids cramped script styling. */
+@media(max-width:720px){
+  .page-home .public-kicker,
+  .premium-public-page .public-kicker,
+  .learning-sky .kicker,
+  .auth-page .eyebrow,
+  .admission-premium .eyebrow,
+  .page-app .academic-kicker,
+  .page-app .campus-label{
+    font-size:13.5px!important;
+    letter-spacing:.025em!important;
+  }
+  .page-home .hero-gold{letter-spacing:-.02em!important}
+  .page-home .premium-public-hero:after,
+  .premium-public-page .public-hero:before,
+  .learning-sky .hero-card:before{top:11px}
+  .page-home .section-heading:after,
+  .learning-sky .section-head:after{width:72px}
+  .app-page .card:hover,
+  .app-page .paper-card:hover,
+  .page-home .public-card:hover,
+  .premium-public-page .public-card:hover{transform:none!important}
+}
