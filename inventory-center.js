@@ -9,6 +9,23 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const isHead=()=>role()==='head';
+  let inventorySaveInFlight=false;
+  const inventoryDeleteInFlight=new Set(),inventoryStockInFlight=new Set();
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){
+      if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';
+      btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label;
+    }else{
+      btn.disabled=false;btn.removeAttribute('aria-busy');
+      if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}
+    }
+  }
+  function withSignal(query,signal){return signal&&typeof query?.abortSignal==='function'?query.abortSignal(signal):query}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
   function write(v){localStorage.setItem(KEY,JSON.stringify(v))}
   function staff(){try{return JSON.parse(localStorage.getItem('edunizam_staff_profiles_v1')||'[]')}catch{return[]}}
@@ -36,22 +53,30 @@
   async function pullCloud(){
     if(!cloudReady())return read();
     const c=cloud().state.client,id=cfg().institutionId;
-    const [items,moves]=await Promise.all([
-      c.from('school_inventory_items').select('*,staff_profiles(full_name,staff_code)').eq('institution_id',id).order('item_name'),
-      c.from('school_inventory_movements').select('*').eq('institution_id',id).order('created_at',{ascending:false}).limit(200)
-    ]);
-    if(items.error)throw items.error;
+    const execute=async({signal}={})=>{
+      const [items,moves]=await Promise.all([
+        withSignal(c.from('school_inventory_items').select('*,staff_profiles(full_name,staff_code)').eq('institution_id',id).order('item_name'),signal),
+        withSignal(c.from('school_inventory_movements').select('*').eq('institution_id',id).order('created_at',{ascending:false}).limit(200),signal)
+      ]);
+      if(items.error)throw items.error;
+      return {items,moves};
+    };
+    const {items,moves}=await runCloud('inventory-load:'+id,'Inventory data',execute,{timeout:7000,retries:1});
     if(!moves.error)writeMovements((moves.data||[]).map(mapMovement));
     const rows=(items.data||[]).map(toLocal);write(rows);return rows;
   }
   async function adjustStockCloud(id,delta,note){
-    const {data,error}=await cloud().state.client.rpc('adjust_inventory_stock',{p_item_id:id,p_quantity_delta:delta,p_note:note||null});
-    if(error)throw error;return data;
+    const inst=cfg().institutionId;
+    return runCloud('inventory-stock:'+inst+':'+id,'Adjust inventory stock',async({signal}={})=>{
+      let q=cloud().state.client.rpc('adjust_inventory_stock',{p_item_id:id,p_quantity_delta:delta,p_note:note||null});
+      q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;return data;
+    },{timeout:8000,retries:0});
   }
   async function saveCloud(item){
     if(!cloudReady())return null;
-    const payload={
-      institution_id:cfg().institutionId,item_code:item.itemCode,item_name:item.itemName,item_type:item.itemType,
+    const inst=cfg().institutionId,payload={
+      institution_id:inst,item_code:item.itemCode,item_name:item.itemName,item_type:item.itemType,
       category:item.category,quantity:item.itemType==='Asset'?Math.max(1,Number(item.quantity||1)):Math.max(0,Number(item.quantity||0)),
       reorder_level:item.itemType==='Stock Item'?Math.max(0,Number(item.reorderLevel||0)):0,
       unit_cost:Math.max(0,Number(item.unitCost||0)),condition:item.itemType==='Asset'?item.condition:'Good',
@@ -59,15 +84,21 @@
       assigned_staff_profile_id:item.itemType==='Asset'?(item.assignedStaffId||null):null,
       notes:item.notes||null,active:item.active!==false,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()
     };
-    const {data,error}=await cloud().state.client.from('school_inventory_items')
-      .upsert(payload,{onConflict:'institution_id,item_code'})
-      .select('*,staff_profiles(full_name,staff_code)').single();
-    if(error)throw error;return toLocal(data);
+    return runCloud('inventory-save:'+inst+':'+String(item.id||item.itemCode),'Save inventory item',async({signal}={})=>{
+      let q=cloud().state.client.from('school_inventory_items').upsert(payload,{onConflict:'institution_id,item_code'})
+        .select('*,staff_profiles(full_name,staff_code)').single();
+      q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;return toLocal(data);
+    },{timeout:8000,retries:1});
   }
   async function deleteCloud(id){
     if(!cloudReady())return;
-    const {error}=await cloud().state.client.from('school_inventory_items').delete().eq('id',id);
-    if(error)throw error;
+    const inst=cfg().institutionId;
+    return runCloud('inventory-delete:'+inst+':'+id,'Delete inventory item',async({signal}={})=>{
+      let q=cloud().state.client.from('school_inventory_items').delete().eq('institution_id',inst).eq('id',id);
+      q=withSignal(q,signal);
+      const {error}=await q;if(error)throw error;
+    },{timeout:8000,retries:1});
   }
   function editor(edit=null){
     if(!isHead())return '<div class="coverage-note">Inventory read-only view. Changes Head of Institute manage karta hai.</div>';
@@ -125,35 +156,55 @@
     return rows.length?rows.map(m=>{const item=items.get(String(m.itemId));return '<div class="row"><strong>'+esc(item?.itemName||'Stock Item')+'</strong><span>'+esc(m.type)+'</span><span>'+(m.delta>0?'+':'')+m.delta+' ('+m.before+' → '+m.after+')</span><span>'+new Date(m.createdAt).toLocaleString()+'</span><span>'+esc(m.note||'')+'</span></div>'}).join(''):'<div class="muted">No stock movements recorded yet.</div>';
   }
   async function save(){
+    const btn=$('invSave');if(inventorySaveInFlight||btn?.disabled)return;
     const id=$('invEditId')?.value||'',itemCode=$('invCode')?.value.trim(),itemName=$('invName')?.value.trim(),itemType=$('invType')?.value;
     if(!itemCode||!itemName)return alert('Item code aur item name required hain.');
     const current=read(),duplicate=current.find(x=>x.itemCode.toLowerCase()===itemCode.toLowerCase()&&String(x.id)!==String(id));if(duplicate)return alert('Item code already exists.');
-    let item={id:id||String(Date.now()),itemCode,itemName,itemType,category:$('invCategory')?.value||'Other',quantity:Number($('invQty')?.value||0),reorderLevel:Number($('invReorder')?.value||0),unitCost:Number($('invUnitCost')?.value||0),condition:$('invCondition')?.value||'Good',location:$('invLocation')?.value.trim()||'',purchaseDate:$('invPurchaseDate')?.value||'',assignedStaffId:$('invAssignedStaff')?.value||'',assignedStaffName:activeStaff().find(s=>String(s.id)===String($('invAssignedStaff')?.value||''))?.fullName||'',notes:$('invNotes')?.value.trim()||'',active:$('invActive')?.value==='true',createdAt:new Date().toISOString()};
-    if(item.itemType==='Asset'){item.quantity=Math.max(1,item.quantity||1);item.reorderLevel=0}else{item.assignedStaffId='';item.assignedStaffName='';item.condition='Good'}
-    try{const c=await saveCloud(item);if(c)item=c}catch(e){if(cloudReady())return alert('Cloud inventory save failed: '+(e.message||e))}
-    const next=current.filter(x=>String(x.id)!==String(id)&&x.itemCode.toLowerCase()!==itemCode.toLowerCase());next.push(item);write(next);render();
+    inventorySaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
+    try{
+      let item={id:id||String(Date.now()),itemCode,itemName,itemType,category:$('invCategory')?.value||'Other',quantity:Number($('invQty')?.value||0),reorderLevel:Number($('invReorder')?.value||0),unitCost:Number($('invUnitCost')?.value||0),condition:$('invCondition')?.value||'Good',location:$('invLocation')?.value.trim()||'',purchaseDate:$('invPurchaseDate')?.value||'',assignedStaffId:$('invAssignedStaff')?.value||'',assignedStaffName:activeStaff().find(s=>String(s.id)===String($('invAssignedStaff')?.value||''))?.fullName||'',notes:$('invNotes')?.value.trim()||'',active:$('invActive')?.value==='true',createdAt:new Date().toISOString()};
+      if(item.itemType==='Asset'){item.quantity=Math.max(1,item.quantity||1);item.reorderLevel=0}else{item.assignedStaffId='';item.assignedStaffName='';item.condition='Good'}
+      try{const c=await saveCloud(item);if(c)item=c}catch(e){if(cloudReady())return alert('Cloud inventory save failed: '+(e.message||e))}
+      const next=current.filter(x=>String(x.id)!==String(id)&&x.itemCode.toLowerCase()!==itemCode.toLowerCase());next.push(item);write(next);render();
+    }finally{
+      inventorySaveInFlight=false;if(btn?.isConnected)setBusy(btn,false);
+    }
   }
   async function edit(id){
     const x=read().find(r=>String(r.id)===String(id));if(!x||!isHead())return;
     const box=$('invEditor');if(box)box.innerHTML=editor(x);bindEditor();
   }
-  async function remove(id){
-    if(!isHead()||!confirm('Delete this inventory item?'))return;
-    try{await deleteCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
-    write(read().filter(x=>String(x.id)!==String(id)));render();
+  async function remove(id,btn){
+    const key=String(id||'');if(!isHead()||inventoryDeleteInFlight.has(key)||btn?.disabled)return;
+    if(!confirm('Delete this inventory item?'))return;
+    inventoryDeleteInFlight.add(key);setBusy(btn,true,'Deleting...');
+    try{
+      try{await deleteCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
+      write(read().filter(x=>String(x.id)!==String(id)));render();
+    }finally{
+      inventoryDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false);
+    }
   }
-  async function adjustStock(id,direction){
-    if(!isHead())return;
+  async function adjustStock(id,direction,btn){
+    const key=String(id||'');if(!isHead()||inventoryStockInFlight.has(key)||btn?.disabled)return;
     const rows=read(),item=rows.find(x=>String(x.id)===String(id));if(!item||item.itemType!=='Stock Item')return;
     const raw=prompt((direction>0?'Stock In':'Stock Out')+' quantity for '+item.itemName+':','1');if(raw===null)return;
     const qty=Math.floor(Number(raw));if(!Number.isFinite(qty)||qty<1)return alert('Enter a valid quantity of 1 or more.');
     const delta=direction*qty;if(Number(item.quantity||0)+delta<0)return alert('Stock cannot go below zero.');
     const note=prompt('Movement note / reference (optional):','')||'';
+    inventoryStockInFlight.add(key);setBusy(btn,true,direction>0?'Stocking In...':'Stocking Out...');
     try{
-      if(cloudReady()){await adjustStockCloud(id,delta,note);await pullCloud();render();return}
-    }catch(e){return alert('Cloud stock adjustment failed: '+(e.message||e))}
-    const before=Number(item.quantity||0);item.quantity=before+delta;write(rows);
-    const ms=movements();ms.unshift({id:String(Date.now()),itemId:item.id,type:delta>0?'IN':'OUT',delta,before,after:item.quantity,note,createdAt:new Date().toISOString()});writeMovements(ms);render();
+      try{
+        if(cloudReady()){await adjustStockCloud(id,delta,note);await pullCloud();render();return}
+      }catch(e){
+        if(cloudReady()){try{await pullCloud();render()}catch{}return alert('Cloud stock adjustment status refreshed after failure: '+(e.message||e))}
+        return alert('Cloud stock adjustment failed: '+(e.message||e));
+      }
+      const before=Number(item.quantity||0);item.quantity=before+delta;write(rows);
+      const ms=movements();ms.unshift({id:String(Date.now()),itemId:item.id,type:delta>0?'IN':'OUT',delta,before,after:item.quantity,note,createdAt:new Date().toISOString()});writeMovements(ms);render();
+    }finally{
+      inventoryStockInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false);
+    }
   }
   function printReport(rows){
     const st=settings(),active=rows.filter(x=>x.active!==false),value=active.reduce((a,x)=>a+totalValue(x),0),w=window.open('','_blank','width=1000,height=760');if(!w)return alert('Popup blocked.');
@@ -177,10 +228,10 @@
     $('invFilterStatus')?.addEventListener('change',e=>{root.dataset.invStatus=e.target.value;render()});
     $('invSearch')?.addEventListener('input',e=>{root.dataset.invSearch=e.target.value;clearTimeout(bind.timer);bind.timer=setTimeout(render,150)});
     $('invClearFilters')?.addEventListener('click',()=>{root.dataset.invType='';root.dataset.invCategory='';root.dataset.invStatus='';root.dataset.invSearch='';render()});
-    document.querySelectorAll('[data-inv-stock-in]').forEach(b=>b.onclick=()=>adjustStock(b.dataset.invStockIn,1));
-    document.querySelectorAll('[data-inv-stock-out]').forEach(b=>b.onclick=()=>adjustStock(b.dataset.invStockOut,-1));
+    document.querySelectorAll('[data-inv-stock-in]').forEach(b=>b.onclick=()=>adjustStock(b.dataset.invStockIn,1,b));
+    document.querySelectorAll('[data-inv-stock-out]').forEach(b=>b.onclick=()=>adjustStock(b.dataset.invStockOut,-1,b));
     document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.invEdit));
-    document.querySelectorAll('[data-inv-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.invDelete));
+    document.querySelectorAll('[data-inv-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.invDelete,b));
   }
   async function render(){
     const root=$('inventoryCenterApp');if(!root)return;
