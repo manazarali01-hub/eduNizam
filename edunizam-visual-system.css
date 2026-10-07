@@ -3819,3 +3819,449 @@ body.learning-sky{
   .auth-page .role,
   .page-app .main .card{transition:none!important}
 }
+
+
+/* ---------- FINAL LUXURY COMPOSITION · PHASE R-S 2026-10-07 ----------
+   Typography rhythm, spacing, per-page mood and mobile reading polish.
+   The authenticated navigation rail is intentionally outside this phase. */
+:root{
+  --en-reading-width:76ch;
+  --en-heading-ink:#0d304b;
+  --en-copy-ink:#49677c;
+  --en-section-gap:clamp(34px,5vw,64px);
+  --en-card-pad:clamp(20px,2.4vw,30px);
+  --en-control-height:48px;
+  --en-page-accent:#3f9bc4;
+  --en-page-accent-soft:rgba(63,155,196,.14);
+}
+
+/* Global content typography: calmer line lengths and stronger hierarchy. */
+.page-home :is(h1,h2,h3),
+.premium-public-page :is(h1,h2,h3),
+.learning-sky :is(h1,h2,h3),
+.auth-page :is(h1,h2,h3),
+.admission-premium :is(h1,h2,h3),
+.page-app .main :is(h1,h2,h3){
+  text-wrap:balance;
+}
+.page-home :is(p,li),
+.premium-public-page :is(p,li),
+.learning-sky :is(p,li),
+.auth-page :is(p,li),
+.admission-premium :is(p,li),
+.page-app .main :is(p,li){
+  overflow-wrap:anywhere;
+}
+.premium-public-page .public-section>p,
+.premium-public-page .prose>p,
+.learning-sky .section-head p{
+  max-width:var(--en-reading-width);
+}
+
+/* Homepage composition: generous rhythm without making mobile feel oversized. */
+.page-home .public-main{
+  padding-bottom:clamp(54px,7vw,92px)!important;
+}
+.page-home .premium-public-hero{
+  padding:clamp(32px,4.8vw,64px)!important;
+}
+.page-home .hero-copy h1{
+  max-width:14.5ch;
+  line-height:.98!important;
+  letter-spacing:-.052em!important;
+}
+.page-home .hero-copy>p{
+  max-width:62ch;
+  font-size:clamp(1rem,1.3vw,1.13rem)!important;
+  line-height:1.72!important;
+}
+.page-home :is(.experience-strip,.role-showcase,.value-section,.learning-band){
+  margin-top:var(--en-section-gap)!important;
+}
+.page-home .experience-strip article{
+  min-height:154px;
+  padding:clamp(17px,2vw,24px)!important;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+.page-home .experience-strip article h3{
+  margin:12px 0 6px!important;
+  font-size:1rem!important;
+  line-height:1.25!important;
+}
+.page-home .experience-strip article p{
+  margin:0!important;
+  line-height:1.6!important;
+}
+.page-home .section-heading{
+  margin-bottom:clamp(20px,2.7vw,32px)!important;
+}
+.page-home .section-heading h2{
+  max-width:19ch;
+  font-size:clamp(1.95rem,4vw,3.05rem)!important;
+  line-height:1.05!important;
+}
+.page-home .section-heading p{
+  max-width:67ch;
+  line-height:1.72!important;
+}
+.page-home :is(.role-showcase,.value-section) .public-card{
+  padding:var(--en-card-pad)!important;
+}
+.page-home .learning-band{
+  padding:clamp(28px,4.2vw,52px)!important;
+}
+.page-home .learning-band :is(h2,h3){
+  letter-spacing:-.025em!important;
+}
+.page-home .public-cta{
+  min-height:50px!important;
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  line-height:1.25!important;
+}
+
+/* Public page-specific mood accents. */
+.page-about{--en-page-accent:#4a9f86;--en-page-accent-soft:rgba(74,159,134,.16)}
+.page-features{--en-page-accent:#347fbd;--en-page-accent-soft:rgba(52,127,189,.15)}
+.page-school-management{--en-page-accent:#2f9674;--en-page-accent-soft:rgba(47,150,116,.15)}
+.page-learning-resources,
+.page-aiou,
+.page-competitive{--en-page-accent:#7965b7;--en-page-accent-soft:rgba(121,101,183,.15)}
+.premium-public-page .public-hero{
+  border-color:color-mix(in srgb,var(--en-page-accent) 48%,#d7b86f)!important;
+}
+.premium-public-page .public-kicker{
+  color:var(--en-page-accent)!important;
+  background:rgba(255,255,255,.82);
+  width:max-content;
+  max-width:100%;
+  padding:7px 11px;
+  border:1px solid var(--en-page-accent-soft);
+  border-radius:999px;
+}
+.premium-public-page .public-kicker:before{
+  background:linear-gradient(90deg,var(--en-page-accent),var(--en-luxe-gold))!important;
+}
+.premium-public-page .public-main{
+  padding-top:clamp(24px,3vw,38px)!important;
+  padding-bottom:clamp(60px,7vw,96px)!important;
+}
+.premium-public-page .public-hero{
+  padding:clamp(36px,5vw,60px)!important;
+}
+.premium-public-page .public-hero h1{
+  max-width:17ch!important;
+  font-size:clamp(2.35rem,5vw,4.15rem)!important;
+  line-height:1.01!important;
+}
+.premium-public-page .public-hero p{
+  max-width:68ch!important;
+  font-size:clamp(.98rem,1.25vw,1.08rem)!important;
+  line-height:1.72!important;
+}
+.premium-public-page .public-section{
+  margin-top:clamp(24px,3.8vw,46px)!important;
+}
+.premium-public-page .public-section>h2,
+.premium-public-page .public-section>div>h2{
+  max-width:23ch;
+  margin-bottom:14px!important;
+  font-size:clamp(1.62rem,2.7vw,2.35rem)!important;
+  line-height:1.12!important;
+}
+.premium-public-page .public-section>p,
+.premium-public-page .prose>p{
+  font-size:clamp(.94rem,1.15vw,1.03rem)!important;
+  line-height:1.78!important;
+}
+.premium-public-page .public-grid{
+  gap:clamp(14px,2vw,20px)!important;
+  margin-top:24px!important;
+}
+.premium-public-page .public-card{
+  padding:var(--en-card-pad)!important;
+}
+.premium-public-page .public-card h3{
+  font-size:1.08rem!important;
+  line-height:1.32!important;
+}
+.premium-public-page .public-card p{
+  font-size:.88rem!important;
+  line-height:1.67!important;
+}
+.premium-public-page .public-list{
+  gap:13px!important;
+}
+.premium-public-page .public-list li{
+  line-height:1.55!important;
+}
+.premium-public-page .public-note{
+  padding:18px 20px!important;
+  line-height:1.65!important;
+}
+.premium-public-page .public-cta{
+  min-height:48px!important;
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  line-height:1.2!important;
+}
+
+/* Guest Learning: dense controls become easier to scan and tap. */
+.learning-sky .hero{
+  padding-top:clamp(34px,5vw,58px)!important;
+  padding-bottom:clamp(24px,3vw,38px)!important;
+}
+.learning-sky .hero-grid{
+  gap:clamp(16px,2.2vw,26px)!important;
+}
+.learning-sky .hero-card{
+  padding:clamp(26px,4vw,44px)!important;
+}
+.learning-sky .hero h1{
+  max-width:14ch!important;
+  line-height:.99!important;
+}
+.learning-sky .hero p{
+  max-width:66ch!important;
+  line-height:1.72!important;
+}
+.learning-sky .quick-card{
+  padding:clamp(20px,2.5vw,28px)!important;
+}
+.learning-sky .quick-list{gap:12px!important}
+.learning-sky .quick-item{padding:15px 16px!important}
+.learning-sky .searchbox{
+  padding:10px 12px!important;
+  gap:10px!important;
+  border-radius:18px!important;
+}
+.learning-sky .searchbox input,
+.learning-sky .paper-filters :is(input,select),
+.learning-sky :is(input,select,textarea){
+  min-height:var(--en-control-height)!important;
+  font-size:16px!important;
+}
+.learning-sky .btn,
+.learning-sky .tab{
+  min-height:46px!important;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1.2!important;
+}
+.learning-sky .section{
+  padding-bottom:clamp(30px,4vw,54px);
+}
+.learning-sky .section-head{
+  margin-bottom:20px!important;
+}
+.learning-sky .section-head h2{
+  font-size:clamp(1.65rem,3vw,2.35rem)!important;
+  line-height:1.12!important;
+}
+.learning-sky .section-head p{
+  font-size:.98rem!important;
+  line-height:1.7!important;
+}
+.learning-sky .grid{
+  gap:clamp(12px,2vw,18px)!important;
+}
+.learning-sky .grid>.card{
+  padding:clamp(18px,2.3vw,26px)!important;
+}
+.learning-sky .paper-filters{
+  gap:10px!important;
+}
+.learning-sky .paper-summary{
+  line-height:1.6!important;
+}
+
+/* Login/auth: polished density, not oversized forms. */
+.auth-page .card{
+  padding:clamp(22px,3.5vw,38px)!important;
+}
+.auth-page .view h2{
+  margin-bottom:8px!important;
+  font-size:clamp(1.75rem,3.5vw,2.45rem)!important;
+  line-height:1.08!important;
+}
+.auth-page .subtitle{
+  max-width:54ch;
+  line-height:1.65!important;
+}
+.auth-page .roles{
+  gap:12px!important;
+  margin-top:20px!important;
+}
+.auth-page .role{
+  min-height:112px!important;
+  padding:17px!important;
+}
+.auth-page .role strong{
+  font-size:1rem!important;
+  line-height:1.2!important;
+}
+.auth-page .role small{
+  margin-top:4px;
+  line-height:1.45!important;
+}
+.auth-page .field{
+  margin-top:13px!important;
+}
+.auth-page :is(input,select,textarea){
+  min-height:var(--en-control-height)!important;
+  font-size:16px!important;
+}
+.auth-page :is(.primary,.secondary,button){
+  min-height:46px;
+}
+
+/* Standalone admission portal receives the same reading rhythm. */
+.admission-premium .card{
+  padding:clamp(22px,3.5vw,38px)!important;
+}
+.admission-premium :is(input,select,textarea){
+  min-height:var(--en-control-height)!important;
+  font-size:16px!important;
+}
+.admission-premium :is(p,li){
+  line-height:1.65!important;
+}
+
+/* Authenticated workspace main area: consistent rhythm, tables and forms. */
+.page-app .main{
+  min-width:0;
+  padding:clamp(18px,2.6vw,34px)!important;
+}
+.page-app .main .topbar{
+  margin-bottom:clamp(18px,2.4vw,28px)!important;
+}
+.page-app .main .topbar-title h1{
+  font-size:clamp(1.72rem,3vw,2.35rem)!important;
+  line-height:1.08!important;
+  letter-spacing:-.032em!important;
+}
+.page-app .main .view.active{
+  min-width:0;
+}
+.page-app .main .view.active>.section-head:first-child{
+  padding:clamp(20px,2.8vw,32px)!important;
+  margin-bottom:clamp(16px,2.2vw,24px)!important;
+}
+.page-app .main .view.active>.section-head:first-child h2{
+  max-width:24ch;
+  font-size:clamp(1.55rem,2.7vw,2.2rem)!important;
+  line-height:1.12!important;
+}
+.page-app .main :is(.card,.paper-card,.practice-review,.pp-stats article){
+  padding:clamp(17px,2vw,24px)!important;
+}
+.page-app .main :is(.card,.paper-card,.practice-review) :is(h2,h3,h4){
+  line-height:1.25!important;
+  letter-spacing:-.018em;
+}
+.page-app .main :is(.card,.paper-card,.practice-review) p{
+  line-height:1.62!important;
+}
+.page-app .main .cards{
+  gap:clamp(12px,1.8vw,18px)!important;
+  margin-bottom:clamp(16px,2vw,22px)!important;
+}
+.page-app .main .grid-2{
+  gap:clamp(14px,2vw,20px)!important;
+}
+.page-app .main .form-grid{
+  gap:12px!important;
+  margin:16px 0!important;
+}
+.page-app .main :is(input,select,textarea){
+  min-height:var(--en-control-height)!important;
+  font-size:16px!important;
+  line-height:1.35!important;
+}
+.page-app .main textarea{
+  min-height:110px;
+}
+.page-app .main button,
+.page-app .main .paper-actions a{
+  min-height:44px;
+  line-height:1.2!important;
+}
+.page-app .main .row{
+  gap:12px!important;
+  padding:14px!important;
+  line-height:1.5!important;
+}
+.page-app .main table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:.92rem;
+  line-height:1.5;
+}
+.page-app .main table th{
+  font-size:.78rem;
+  letter-spacing:.025em;
+  line-height:1.35;
+  white-space:normal;
+}
+.page-app .main table :is(th,td){
+  padding:12px 13px!important;
+  vertical-align:middle;
+}
+.page-app .main .output{
+  line-height:1.62!important;
+}
+.page-app .main :is(.paper-grid,.check-grid,.attachment-grid){
+  gap:clamp(11px,1.7vw,17px)!important;
+}
+
+/* Small screens: preserve spaciousness while keeping the first screen useful. */
+@media(max-width:760px){
+  :root{--en-section-gap:34px;--en-card-pad:19px}
+  .page-home .premium-public-hero{padding:26px 18px!important}
+  .page-home .hero-copy h1{max-width:17ch;font-size:clamp(2.15rem,10vw,3.15rem)!important}
+  .page-home .hero-copy>p{font-size:1rem!important}
+  .page-home .experience-strip article{min-height:auto;padding:16px!important}
+  .page-home .section-heading{margin-bottom:18px!important}
+  .page-home .section-heading h2{font-size:clamp(1.75rem,8vw,2.45rem)!important}
+  .page-home .learning-band{padding:24px 18px!important}
+
+  .premium-public-page .public-hero{padding:30px 21px!important}
+  .premium-public-page .public-hero h1{max-width:18ch!important;font-size:clamp(2.05rem,9.5vw,3rem)!important}
+  .premium-public-page .public-section{margin-top:20px!important}
+  .premium-public-page .public-section>h2,
+  .premium-public-page .public-section>div>h2{font-size:clamp(1.48rem,7vw,2rem)!important}
+  .premium-public-page .public-section>p,
+  .premium-public-page .prose>p{font-size:.96rem!important}
+
+  .learning-sky .hero-card{padding:24px 19px!important}
+  .learning-sky .hero h1{max-width:17ch!important;font-size:clamp(2rem,9vw,3rem)!important}
+  .learning-sky .quick-card{padding:19px!important}
+  .learning-sky .searchbox{align-items:stretch!important}
+  .learning-sky .section-head h2{font-size:clamp(1.5rem,7vw,2rem)!important}
+
+  .auth-page .card,
+  .admission-premium .card{padding:20px 16px!important}
+  .auth-page .roles{gap:9px!important}
+  .auth-page .role{min-height:96px!important;padding:14px!important}
+
+  .page-app .main{padding:16px 13px max(22px,env(safe-area-inset-bottom))!important}
+  .page-app .main .view.active>.section-head:first-child{padding:18px 16px!important}
+  .page-app .main :is(.card,.paper-card,.practice-review,.pp-stats article){padding:16px!important}
+  .page-app .main table{font-size:.87rem}
+  .page-app .main table :is(th,td){padding:10px!important}
+}
+@media(max-width:430px){
+  .page-home .public-cta,
+  .premium-public-page .public-cta,
+  .learning-sky .btn{
+    min-height:46px!important;
+  }
+  .auth-page .role small{font-size:.75rem!important}
+  .page-app .main .topbar-title h1{font-size:1.65rem!important}
+}
