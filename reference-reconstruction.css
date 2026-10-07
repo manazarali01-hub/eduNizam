@@ -1137,3 +1137,125 @@
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
   }
 }
+
+
+/* ---------- Admin desk definitive correction · 2026-10-07 · ref6 ----------
+   Definitive override for the live Admin Daily Desk blue-slab regression. */
+
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button{
+  position:relative!important;
+  min-width:0!important;
+  min-height:94px!important;
+  display:grid!important;
+  grid-template-columns:38px minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;
+  column-gap:10px!important;
+  align-items:center!important;
+  padding:13px!important;
+  border:1px solid rgba(1,65,28,.16)!important;
+  border-radius:18px!important;
+  background-color:#fff!important;
+  background-image:linear-gradient(145deg,#ffffff 0%,#f1faf5 100%)!important;
+  color:#123b32!important;
+  box-shadow:0 10px 24px rgba(1,65,28,.07),inset 0 0 0 1px rgba(255,255,255,.78)!important;
+  filter:none!important;
+  text-shadow:none!important;
+}
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button:nth-child(4n+2){
+  background-image:linear-gradient(145deg,#f2f9ff,#ffffff)!important;
+  border-color:rgba(35,115,170,.18)!important;
+}
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button:nth-child(4n+3){
+  background-image:linear-gradient(145deg,#fff8df,#ffffff)!important;
+  border-color:rgba(201,154,61,.25)!important;
+}
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button:nth-child(4n+4){
+  background-image:linear-gradient(145deg,#f8f2ff,#ffffff)!important;
+  border-color:rgba(113,82,170,.18)!important;
+}
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button::before,
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button::after{
+  display:none!important;
+  content:none!important;
+}
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>span:not(.admin-action-count){
+  grid-row:1/3!important;
+  width:38px!important;
+  height:38px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:13px!important;
+  background:rgba(1,122,61,.09)!important;
+  color:#07814a!important;
+  opacity:1!important;
+  filter:none!important;
+}
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>span:not(.admin-action-count) svg{
+  width:22px!important;
+  height:22px!important;
+  color:#07814a!important;
+  stroke:currentColor!important;
+}
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>strong{
+  align-self:end!important;
+  color:#123b32!important;
+  font-size:15px!important;
+  line-height:1.18!important;
+  font-weight:850!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>small{
+  align-self:start!important;
+  color:#5f7770!important;
+  font-size:12px!important;
+  line-height:1.22!important;
+  font-weight:650!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+
+/* Keep back-to-top useful, but never let it replace/cover the More dock item. */
+@media(max-width:950px){
+  body.app-page.page-app #eduBackTop.edu-back-top{
+    right:14px!important;
+    bottom:88px!important;
+    width:38px!important;
+    height:38px!important;
+    border-radius:12px!important;
+    background:linear-gradient(135deg,#01411c,#07814a)!important;
+    color:#fff!important;
+    border:1px solid rgba(255,255,255,.55)!important;
+    box-shadow:0 9px 22px rgba(1,65,28,.22)!important;
+    font-size:18px!important;
+    z-index:68!important;
+  }
+}
+@media(max-width:760px){
+  body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+  }
+  body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button{
+    min-height:92px!important;
+    padding:12px!important;
+    grid-template-columns:34px minmax(0,1fr)!important;
+    column-gap:9px!important;
+  }
+  body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>span:not(.admin-action-count){
+    width:34px!important;
+    height:34px!important;
+    border-radius:11px!important;
+  }
+  body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>strong{
+    font-size:14px!important;
+  }
+  body.app-page.page-app #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>small{
+    font-size:11.5px!important;
+  }
+}
