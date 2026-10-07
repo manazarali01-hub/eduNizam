@@ -46,7 +46,14 @@ html{scroll-behavior:smooth}
   padding:5px;border:0;border-radius:14px;font-size:.62rem;
 }
 .premium-mobile-dock button strong{
-  max-width:100%;font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;
+  font-size:clamp(.58rem,2.35vw,.68rem);
+  line-height:1.08;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  overflow-wrap:anywhere;
+  text-align:center;
 }
 
 /* Toast */
