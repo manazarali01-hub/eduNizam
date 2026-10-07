@@ -439,6 +439,11 @@ const repairCloudStateSource=repairCloudStateFile.slice(repairCloudStateFile.ind
 if(/auth\.getSession\s*\(/.test(repairCloudStateSource)) fail.push('Reliability Guardian still owns a second Supabase session restore path.');
 if(!login.includes('global:{fetch:supabaseFetch}')||!login.includes('setTimeout(()=>controller.abort(),12000)')) fail.push('Login Supabase network requests have no finite deadline.');
 if(!authBridgeE2E.includes('refreshScopedRoleCache')) fail.push('Role-scoped cache refresh missing after member login.');
+const navEnhancements=read('navigation-enhancements.js');
+if(navEnhancements.includes("setTimeout(scheduleWarm,180)")) fail.push('Feature warm-up is still scheduled directly from the auth event.');
+if(navEnhancements.includes("filter();scheduleWarm()},900")) fail.push('Feature warm-up still starts during initial navigation mount.');
+if(!navEnhancements.includes("window.addEventListener('edunizam:workspace-ready',scheduleWarm)")) fail.push('Feature warm-up is not deferred until the workspace is ready.');
+if(!navEnhancements.includes('warmScheduled=false,warmStarted=false')) fail.push('Feature warm-up is not single-flight guarded.');
 if(app.includes('function applyRole(retry=0)')||app.includes('setTimeout(()=>applyRole(retry+1),300)')) fail.push('Role bootstrap still uses a fixed retry window that can race secure session restore.');
 if(!app.includes("window.addEventListener('edunizam:workspace-ready',()=>applyRole())")) fail.push('Role UI does not wait for the secure workspace-ready lifecycle.');
 if(app.includes("localStorage.removeItem(ROLE_KEY);location.reload()")) fail.push('Logout still reloads before centralized cloud sign-out can complete.');
