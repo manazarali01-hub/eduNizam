@@ -10,6 +10,18 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const isHead=()=>role()==='head';
+  let transportRouteSaveInFlight=false,transportVehicleSaveInFlight=false,transportAssignInFlight=false;
+  const transportDeactivateInFlight=new Set();
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
+    else{btn.disabled=false;btn.removeAttribute('aria-busy');if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}}
+  }
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   function read(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}}
   function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
@@ -32,10 +44,12 @@
   async function cloudStudent(localId){
     if(!cloudReady())return null;
     const s=students().find(x=>String(x.id)===String(localId));if(!s)return null;
-    let q=cloud().state.client.from('core_students').select('id,local_id,name,class_name,section_name,student_code,auth_user_id')
-      .eq('institution_id',cfg().institutionId);
-    if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
-    const {data,error}=await q.maybeSingle();if(error)throw error;return data||null;
+    const inst=cfg().institutionId,lookup=s.studentId?('code:'+s.studentId):('local:'+Number(s.id));
+    return runCloud('transport-student:'+inst+':'+lookup,'Transport student link',async({signal}={})=>{
+      let q=cloud().state.client.from('core_students').select('id,local_id,name,class_name,section_name,student_code,auth_user_id').eq('institution_id',inst);
+      if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
+      q=q.maybeSingle();q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return data||null;
+    },{timeout:6000,retries:1});
   }
   function mapRoute(x){return {id:x.id,routeCode:x.route_code,routeName:x.route_name,pickupTime:x.pickup_time||'',dropTime:x.drop_time||'',monthlyFee:Number(x.monthly_fee||0),stops:x.stops||[],active:x.active!==false,notes:x.notes||''}}
   function mapVehicle(x){return {id:x.id,registrationNo:x.registration_no,vehicleType:x.vehicle_type,capacity:Number(x.capacity||0),driverName:x.driver_name||'',driverPhone:x.driver_phone||'',conductorName:x.conductor_name||'',conductorPhone:x.conductor_phone||'',status:x.status||'active',notes:x.notes||''}}
@@ -46,38 +60,53 @@
     if(!cloudReady())return;
     const c=cloud().state.client,id=cfg().institutionId;
     if(isHead()){
-      const [rr,vr]=await Promise.all([
-        c.from('transport_routes').select('*').eq('institution_id',id).order('route_name'),
-        c.from('transport_vehicles').select('*').eq('institution_id',id).order('registration_no')
-      ]);
-      if(rr.error)throw rr.error;if(vr.error)throw vr.error;
+      const {rr,vr}=await runCloud('transport-directory:'+id,'Transport routes and vehicles',async({signal}={})=>{
+        const [rr,vr]=await Promise.all([
+          withSignal(c.from('transport_routes').select('*').eq('institution_id',id).order('route_name'),signal),
+          withSignal(c.from('transport_vehicles').select('*').eq('institution_id',id).order('registration_no'),signal)
+        ]);
+        if(rr.error)throw rr.error;if(vr.error)throw vr.error;return {rr,vr};
+      },{timeout:7000,retries:1});
       write(ROUTE_KEY,(rr.data||[]).map(mapRoute));write(VEHICLE_KEY,(vr.data||[]).map(mapVehicle));
     }
-    const {data,error}=await c.rpc('list_my_transport_assignments');if(error)throw error;
-    write(ASSIGN_KEY,(data||[]).map(mapAssignment));
+    const result=await runCloud('transport-assignments:'+id+':'+role(),'Transport assignments',async({signal}={})=>{
+      let q=c.rpc('list_my_transport_assignments');q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+    },{timeout:7000,retries:1});
+    write(ASSIGN_KEY,(result.data||[]).map(mapAssignment));
   }
   async function saveRouteCloud(item){
     if(!cloudReady())return null;
-    const {data,error}=await cloud().state.client.from('transport_routes').upsert({
-      institution_id:cfg().institutionId,route_code:item.routeCode,route_name:item.routeName,pickup_time:item.pickupTime||null,drop_time:item.dropTime||null,monthly_fee:item.monthlyFee,stops:item.stops,active:item.active!==false,notes:item.notes||null,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()
-    },{onConflict:'institution_id,route_code'}).select().single();
-    if(error)throw error;return mapRoute(data);
+    const inst=cfg().institutionId;
+    return runCloud('transport-route-save:'+inst+':'+item.routeCode,'Save transport route',async({signal}={})=>{
+      let q=cloud().state.client.from('transport_routes').upsert({
+        institution_id:inst,route_code:item.routeCode,route_name:item.routeName,pickup_time:item.pickupTime||null,drop_time:item.dropTime||null,monthly_fee:item.monthlyFee,stops:item.stops,active:item.active!==false,notes:item.notes||null,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()
+      },{onConflict:'institution_id,route_code'}).select().single();
+      q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return mapRoute(data);
+    },{timeout:8000,retries:1});
   }
   async function saveVehicleCloud(item){
     if(!cloudReady())return null;
-    const {data,error}=await cloud().state.client.from('transport_vehicles').upsert({
-      institution_id:cfg().institutionId,registration_no:item.registrationNo,vehicle_type:item.vehicleType,capacity:item.capacity,driver_name:item.driverName||null,driver_phone:item.driverPhone||null,conductor_name:item.conductorName||null,conductor_phone:item.conductorPhone||null,status:item.status,notes:item.notes||null,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()
-    },{onConflict:'institution_id,registration_no'}).select().single();
-    if(error)throw error;return mapVehicle(data);
+    const inst=cfg().institutionId;
+    return runCloud('transport-vehicle-save:'+inst+':'+item.registrationNo,'Save transport vehicle',async({signal}={})=>{
+      let q=cloud().state.client.from('transport_vehicles').upsert({
+        institution_id:inst,registration_no:item.registrationNo,vehicle_type:item.vehicleType,capacity:item.capacity,driver_name:item.driverName||null,driver_phone:item.driverPhone||null,conductor_name:item.conductorName||null,conductor_phone:item.conductorPhone||null,status:item.status,notes:item.notes||null,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()
+      },{onConflict:'institution_id,registration_no'}).select().single();
+      q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return mapVehicle(data);
+    },{timeout:8000,retries:1});
   }
   async function assignCloud(studentLocalId,routeId,vehicleId,pickupStop,dropStop,effectiveFrom){
     const cs=await cloudStudent(studentLocalId);if(!cs)throw new Error('Student cloud record not found.');
-    const {data,error}=await cloud().state.client.rpc('assign_student_transport',{p_student_id:cs.id,p_route_id:routeId,p_vehicle_id:vehicleId,p_pickup_stop:pickupStop||null,p_drop_stop:dropStop||null,p_effective_from:effectiveFrom});
-    if(error)throw error;return data;
+    return runCloud('transport-assign:'+cfg().institutionId+':'+cs.id,'Assign student transport',async({signal}={})=>{
+      let q=cloud().state.client.rpc('assign_student_transport',{p_student_id:cs.id,p_route_id:routeId,p_vehicle_id:vehicleId,p_pickup_stop:pickupStop||null,p_drop_stop:dropStop||null,p_effective_from:effectiveFrom});
+      q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return data;
+    },{timeout:8000,retries:1});
   }
   async function deactivateCloud(id){
-    const {data,error}=await cloud().state.client.from('student_transport_assignments').update({status:'inactive',updated_at:new Date().toISOString()}).eq('id',id).select().single();
-    if(error)throw error;return data;
+    const inst=cfg().institutionId;
+    return runCloud('transport-deactivate:'+inst+':'+id,'Deactivate transport assignment',async({signal}={})=>{
+      let q=cloud().state.client.from('student_transport_assignments').update({status:'inactive',updated_at:new Date().toISOString()}).eq('institution_id',inst).eq('id',id).select().single();
+      q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return data;
+    },{timeout:8000,retries:1});
   }
   function routeEditor(edit=null){
     if(!isHead())return '';
@@ -144,37 +173,53 @@
     return vs.length?vs.map(v=>{const used=activeAssignmentsForVehicle(v.id).length,free=availableSeats(v),pct=v.capacity?Math.round(used/Number(v.capacity)*100):0;return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(v.registrationNo)+'</span><span class="badge">'+esc(v.status)+'</span></div><h3>'+esc(v.vehicleType)+'</h3><p><strong>Capacity:</strong> '+v.capacity+' · <strong>Assigned:</strong> '+used+' · <strong>Free:</strong> '+free+'</p><div class="coverage-note">Occupancy '+pct+'%</div><p><strong>Driver:</strong> '+esc(v.driverName||'-')+(v.driverPhone?' · '+esc(v.driverPhone):'')+'</p>'+(v.conductorName?'<p><strong>Conductor:</strong> '+esc(v.conductorName)+(v.conductorPhone?' · '+esc(v.conductorPhone):'')+'</p>':'')+(isHead()?'<div class="paper-actions"><button data-tr-edit-vehicle="'+esc(v.id)+'">Edit</button></div>':'')+'</article>'}).join(''):'<div class="empty-state">No vehicles configured.</div>';
   }
   async function saveRoute(){
+    const btn=$('trSaveRoute');if(transportRouteSaveInFlight||btn?.disabled)return;
     const id=$('trRouteEditId')?.value||'',routeCode=$('trRouteCode')?.value.trim(),routeName=$('trRouteName')?.value.trim();
     if(!routeCode||!routeName)return alert('Route code aur route name required hain.');
     const rows=routes(),dupe=rows.find(x=>x.routeCode.toLowerCase()===routeCode.toLowerCase()&&String(x.id)!==String(id));if(dupe)return alert('Route code already exists.');
-    let item={id:id||String(Date.now()),routeCode,routeName,pickupTime:$('trPickupTime')?.value||'',dropTime:$('trDropTime')?.value||'',monthlyFee:Number($('trMonthlyFee')?.value||0),stops:($('trStops')?.value||'').split(',').map(x=>x.trim()).filter(Boolean),active:$('trRouteActive')?.value==='true',notes:$('trRouteNotes')?.value.trim()||''};
-    try{const c=await saveRouteCloud(item);if(c)item=c}catch(e){if(cloudReady())return alert('Cloud route save failed: '+(e.message||e))}
-    write(ROUTE_KEY,rows.filter(x=>String(x.id)!==String(id)&&x.routeCode.toLowerCase()!==routeCode.toLowerCase()).concat(item));render();
+    transportRouteSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
+    try{
+      let item={id:id||String(Date.now()),routeCode,routeName,pickupTime:$('trPickupTime')?.value||'',dropTime:$('trDropTime')?.value||'',monthlyFee:Number($('trMonthlyFee')?.value||0),stops:($('trStops')?.value||'').split(',').map(x=>x.trim()).filter(Boolean),active:$('trRouteActive')?.value==='true',notes:$('trRouteNotes')?.value.trim()||''};
+      try{const c=await saveRouteCloud(item);if(c)item=c}catch(e){if(cloudReady())return alert('Cloud route save failed: '+(e.message||e))}
+      write(ROUTE_KEY,rows.filter(x=>String(x.id)!==String(id)&&x.routeCode.toLowerCase()!==routeCode.toLowerCase()).concat(item));render();
+    }finally{transportRouteSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function saveVehicle(){
+    const btn=$('trSaveVehicle');if(transportVehicleSaveInFlight||btn?.disabled)return;
     const id=$('trVehicleEditId')?.value||'',registrationNo=$('trReg')?.value.trim(),capacity=Number($('trCapacity')?.value||0);
     if(!registrationNo||capacity<1)return alert('Registration no. aur valid capacity required hain.');
     const rows=vehicles(),dupe=rows.find(x=>x.registrationNo.toLowerCase()===registrationNo.toLowerCase()&&String(x.id)!==String(id));if(dupe)return alert('Registration no. already exists.');
     const assigned=id?activeAssignmentsForVehicle(id).length:0;if(capacity<assigned)return alert('Capacity current active assignments se kam nahi ho sakti.');
-    let item={id:id||String(Date.now()),registrationNo,vehicleType:$('trVehicleType')?.value||'Van',capacity,driverName:$('trDriverName')?.value.trim()||'',driverPhone:$('trDriverPhone')?.value.trim()||'',conductorName:$('trConductorName')?.value.trim()||'',conductorPhone:$('trConductorPhone')?.value.trim()||'',status:$('trVehicleStatus')?.value||'active',notes:$('trVehicleNotes')?.value.trim()||''};
-    try{const c=await saveVehicleCloud(item);if(c)item=c}catch(e){if(cloudReady())return alert('Cloud vehicle save failed: '+(e.message||e))}
-    write(VEHICLE_KEY,rows.filter(x=>String(x.id)!==String(id)&&x.registrationNo.toLowerCase()!==registrationNo.toLowerCase()).concat(item));render();
+    transportVehicleSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
+    try{
+      let item={id:id||String(Date.now()),registrationNo,vehicleType:$('trVehicleType')?.value||'Van',capacity,driverName:$('trDriverName')?.value.trim()||'',driverPhone:$('trDriverPhone')?.value.trim()||'',conductorName:$('trConductorName')?.value.trim()||'',conductorPhone:$('trConductorPhone')?.value.trim()||'',status:$('trVehicleStatus')?.value||'active',notes:$('trVehicleNotes')?.value.trim()||''};
+      try{const c=await saveVehicleCloud(item);if(c)item=c}catch(e){if(cloudReady())return alert('Cloud vehicle save failed: '+(e.message||e))}
+      write(VEHICLE_KEY,rows.filter(x=>String(x.id)!==String(id)&&x.registrationNo.toLowerCase()!==registrationNo.toLowerCase()).concat(item));render();
+    }finally{transportVehicleSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function assign(){
+    const btn=$('trAssign');if(transportAssignInFlight||btn?.disabled)return;
     const studentId=$('trStudent')?.value,routeId=$('trRoute')?.value,vehicleId=$('trVehicle')?.value,effectiveFrom=$('trEffective')?.value,pickupStop=$('trPickupStop')?.value.trim()||'',dropStop=$('trDropStop')?.value.trim()||'';
     if(!studentId||!routeId||!vehicleId||!effectiveFrom)return alert('Student, route, vehicle aur effective date required hain.');
     const v=vehicles().find(x=>String(x.id)===String(vehicleId)),r=routes().find(x=>String(x.id)===String(routeId)),s=students().find(x=>String(x.id)===String(studentId));if(!v||!r||!s)return;
     if(v.status!=='active')return alert('Selected vehicle active nahi.');
     if(availableSeats(v,studentId)<1)return alert('Vehicle capacity full hai.');
-    try{const c=await assignCloud(studentId,routeId,vehicleId,pickupStop,dropStop,effectiveFrom);if(c){await pullCloud();render();return}}catch(e){if(cloudReady())return alert('Cloud assignment failed: '+(e.message||e))}
-    const rows=assignments().filter(x=>String(x.studentId)!==String(studentId));
-    rows.unshift({id:String(Date.now()),studentId:String(s.id),studentName:s.name,className:s.className||'',sectionName:s.sectionName||'',routeId:r.id,routeName:r.routeName,vehicleId:v.id,registrationNo:v.registrationNo,driverName:v.driverName,driverPhone:v.driverPhone,pickupStop,dropStop,monthlyFee:r.monthlyFee,effectiveFrom,status:'active'});
-    write(ASSIGN_KEY,rows);render();
+    transportAssignInFlight=true;setBusy(btn,true,'Saving...');
+    try{
+      try{const c=await assignCloud(studentId,routeId,vehicleId,pickupStop,dropStop,effectiveFrom);if(c){await pullCloud();render();return}}catch(e){if(cloudReady()){try{await pullCloud();render()}catch{}return alert('Cloud assignment status refreshed after failure: '+(e.message||e))}}
+      const rows=assignments().filter(x=>String(x.studentId)!==String(studentId));
+      rows.unshift({id:String(Date.now()),studentId:String(s.id),studentName:s.name,className:s.className||'',sectionName:s.sectionName||'',routeId:r.id,routeName:r.routeName,vehicleId:v.id,registrationNo:v.registrationNo,driverName:v.driverName,driverPhone:v.driverPhone,pickupStop,dropStop,monthlyFee:r.monthlyFee,effectiveFrom,status:'active'});
+      write(ASSIGN_KEY,rows);render();
+    }finally{transportAssignInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
-  async function deactivate(id){
-    if(!isHead()||!confirm('Deactivate this transport assignment?'))return;
-    try{if(cloudReady()){await deactivateCloud(id);await pullCloud();render();return}}catch(e){return alert('Cloud update failed: '+(e.message||e))}
-    const rows=assignments(),x=rows.find(a=>String(a.id)===String(id));if(x)x.status='inactive';write(ASSIGN_KEY,rows);render();
+  async function deactivate(id,btn){
+    const key=String(id||'');if(!isHead()||transportDeactivateInFlight.has(key)||btn?.disabled)return;
+    if(!confirm('Deactivate this transport assignment?'))return;
+    transportDeactivateInFlight.add(key);setBusy(btn,true,'Deactivating...');
+    try{
+      try{if(cloudReady()){await deactivateCloud(id);await pullCloud();render();return}}catch(e){if(cloudReady()){try{await pullCloud();render()}catch{}return alert('Cloud update status refreshed after failure: '+(e.message||e))}}
+      const rows=assignments(),x=rows.find(a=>String(a.id)===String(id));if(x)x.status='inactive';write(ASSIGN_KEY,rows);render();
+    }finally{transportDeactivateInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
   function editRoute(id){const x=routes().find(r=>String(r.id)===String(id));if(!x)return;const b=$('trRouteEditor');if(b)b.innerHTML=routeEditor(x);bindEditors()}
   function editVehicle(id){const x=vehicles().find(v=>String(v.id)===String(id));if(!x)return;const b=$('trVehicleEditor');if(b)b.innerHTML=vehicleEditor(x);bindEditors()}
@@ -204,7 +249,7 @@
     document.querySelectorAll('[data-tr-edit-route]').forEach(b=>b.onclick=()=>editRoute(b.dataset.trEditRoute));
     document.querySelectorAll('[data-tr-edit-vehicle]').forEach(b=>b.onclick=()=>editVehicle(b.dataset.trEditVehicle));
     document.querySelectorAll('[data-tr-edit-assignment]').forEach(b=>b.onclick=()=>editAssignment(b.dataset.trEditAssignment));
-    document.querySelectorAll('[data-tr-deactivate]').forEach(b=>b.onclick=()=>deactivate(b.dataset.trDeactivate));
+    document.querySelectorAll('[data-tr-deactivate]').forEach(b=>b.onclick=()=>deactivate(b.dataset.trDeactivate,b));
   }
   async function render(){
     const root=$('transportCenterApp');if(!root)return;
