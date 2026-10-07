@@ -1007,6 +1007,18 @@ for(const page of ['features.html','school-management-system-pakistan.html','onl
 
 
 
+const workspaceAtmosphere=read('workspace-atmosphere.css');
+for(const marker of [
+  'EduNizam final workspace atmosphere · 2026-10-07',
+  '--en-workspace-photo:url("assets/edunizam-login-children.webp")',
+  '.page-app .view:not(#dashboard).active>.card:first-child',
+  '@media(max-width:600px)'
+]){
+  if(!workspaceAtmosphere.includes(marker)) fail.push('Workspace atmosphere marker missing: '+marker);
+}
+if(/\\.sidebar\\b|\\.nav-item\\b/.test(workspaceAtmosphere)) fail.push('Workspace atmosphere must not modify the locked sidebar/navigation.');
+if(!read('app.html').includes('workspace-atmosphere.css?v=20261007-final1')) fail.push('Workspace atmosphere stylesheet is not loaded by app.html.');
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);

@@ -1,0 +1,46 @@
+/* EduNizam final workspace atmosphere · 2026-10-07
+   Dedicated appearance layer. Sidebar/navigation intentionally untouched. */
+:root{--en-workspace-photo:url("assets/edunizam-login-children.webp");--en-workspace-detail:url("assets/edunizam-girl-hero.webp")}
+.page-app .main{
+  background:
+    linear-gradient(180deg,rgba(241,248,252,.91) 0%,rgba(247,251,253,.95) 52%,rgba(244,249,252,.96) 100%),
+    var(--en-workspace-photo) center 10%/cover fixed no-repeat!important;
+}
+.page-app .main .topbar{
+  background:rgba(255,255,255,.94)!important;
+  border:1px solid rgba(188,212,227,.80)!important;
+  backdrop-filter:blur(16px) saturate(1.06);
+  -webkit-backdrop-filter:blur(16px) saturate(1.06);
+}
+.page-app .view:not(#dashboard).active>.card:first-child{
+  background:
+    linear-gradient(100deg,rgba(255,255,255,.995) 0%,rgba(255,255,255,.97) 58%,rgba(242,249,252,.88) 78%,rgba(235,246,250,.80) 100%),
+    var(--en-workspace-detail) right 28%/340px auto no-repeat!important;
+  border-top:4px solid var(--view-accent,var(--role-accent,var(--en-blue-600)))!important;
+  box-shadow:0 18px 46px rgba(10,49,80,.10),inset 0 1px 0 rgba(255,255,255,.94)!important;
+}
+.page-app .view:not(#dashboard).active>.card:first-child>.section-head:first-child{
+  padding-bottom:14px!important;margin-bottom:16px!important;border-bottom:1px solid rgba(190,212,226,.70)
+}
+.page-app .view:not(#dashboard).active>.card:first-child>.section-head:first-child h2{
+  font-family:var(--en-font-display)!important;font-weight:700!important;letter-spacing:-.025em!important;color:var(--en-heading-ink)!important
+}
+@media(max-width:900px){
+  .page-app .main{
+    background:
+      linear-gradient(180deg,rgba(241,248,252,.90),rgba(248,251,253,.96)),
+      var(--en-workspace-photo) center top/auto 520px no-repeat!important;
+  }
+}
+@media(max-width:600px){
+  .page-app .main{
+    background:
+      linear-gradient(180deg,rgba(242,249,252,.88),rgba(249,252,253,.97)),
+      var(--en-workspace-photo) center top/auto 430px no-repeat!important;
+  }
+  .page-app .view:not(#dashboard).active>.card:first-child{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.985)),
+      var(--en-workspace-detail) center 18%/cover no-repeat!important;
+  }
+}

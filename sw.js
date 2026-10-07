@@ -1,4 +1,4 @@
-const CACHE='edunizam-v242-luxury-composition'
+const CACHE='edunizam-v243-workspace-atmosphere'
 const CORE=[
   './',
   './index.html',
@@ -7,7 +7,7 @@ const CORE=[
   './admission.html',
   './style.css',
   './edunizam-brand-refresh.css',
-  './edunizam-visual-system.css',
+  './edunizam-visual-system.css',\n  './workspace-atmosphere.css',
   './cloud-config.js',
   './storage-scope.js',
   './reliability-guardian.js',
