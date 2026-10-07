@@ -444,6 +444,10 @@ if(navEnhancements.includes("setTimeout(scheduleWarm,180)")) fail.push('Feature 
 if(navEnhancements.includes("filter();scheduleWarm()},900")) fail.push('Feature warm-up still starts during initial navigation mount.');
 if(!navEnhancements.includes("window.addEventListener('edunizam:workspace-ready',scheduleWarm)")) fail.push('Feature warm-up is not deferred until the workspace is ready.');
 if(!navEnhancements.includes('warmScheduled=false,warmStarted=false')) fail.push('Feature warm-up is not single-flight guarded.');
+const featureLoader=read('feature-loader.js');
+if(!featureLoader.includes('},6500);')) fail.push('Feature script attempt timeout is not bounded to the fast-fail budget.');
+if(!featureLoader.includes("retries:1,delay:450,timeout:7000,label:'Feature '+src")) fail.push('Feature loader still uses an excessive automatic retry budget.');
+if(featureLoader.includes('for(let attempt=0;attempt<3;attempt++)')) fail.push('Feature loader fallback still retries a failed script three times.');
 if(app.includes('function applyRole(retry=0)')||app.includes('setTimeout(()=>applyRole(retry+1),300)')) fail.push('Role bootstrap still uses a fixed retry window that can race secure session restore.');
 if(!app.includes("window.addEventListener('edunizam:workspace-ready',()=>applyRole())")) fail.push('Role UI does not wait for the secure workspace-ready lifecycle.');
 if(app.includes("localStorage.removeItem(ROLE_KEY);location.reload()")) fail.push('Logout still reloads before centralized cloud sign-out can complete.');
