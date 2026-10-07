@@ -158,3 +158,58 @@
   .page-app .view.active>.card{background-size:auto 100%,cover!important}
 }
 
+
+
+
+/* ===== TRUE GLASS APP + TOUCH DEVICE OVERRIDE · V2.2 · 2026-10-07 ===== */
+.page-app :is(.view.active>.card,.role-home-hero,.role-action-card,.dashboard-quick-card,.dashboard-activity-card,.premium-family-card,.paper-card,.premium-paper-card,.study-viewer-card,.admission-review-card,.attachment-card,.timeclock-card,.training-card,.function-card,.leave-request-card,.highlight-card,.profile-alert,.parent-summary,.campus-hero,.request-panel,.feature-panel,.dashboard-panel,.login-card,.cloud-auth-card){
+  background-color:rgba(255,255,255,.40)!important;
+  background-image:
+    linear-gradient(145deg,rgba(255,255,255,.36),rgba(242,250,255,.18)),
+    var(--en-card-art,var(--en-art-openbook))!important;
+  background-size:cover!important;
+  background-position:center!important;
+  border-width:1.5px!important;
+  backdrop-filter:blur(20px) saturate(1.25)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(1.25)!important;
+  box-shadow:0 14px 36px rgba(8,48,78,.10),inset 0 1px 0 rgba(255,255,255,.90)!important;
+}
+.page-app .bottom-nav{
+  background:rgba(255,255,255,.44)!important;
+  border:1.5px solid rgba(71,173,226,.62)!important;
+  backdrop-filter:blur(24px) saturate(1.28)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(1.28)!important;
+  box-shadow:0 -8px 30px rgba(8,48,78,.12),inset 0 1px 0 rgba(255,255,255,.90)!important;
+}
+@media (hover:none) and (pointer:coarse) and (max-width:1100px){
+  .page-app :is(.role-action-grid,.cards,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards){
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+  }
+  .page-app :is(.role-action-card,.dashboard-quick-card,.dashboard-activity-card,.premium-family-card,.paper-card,.premium-paper-card,.timeclock-card,.training-card,.function-card,.leave-request-card,.highlight-card){
+    min-height:132px!important;
+    padding:18px!important;
+  }
+  .page-app :is(.role-action-card,.dashboard-quick-card,.dashboard-activity-card,.premium-family-card,.paper-card,.premium-paper-card,.timeclock-card,.training-card,.function-card,.leave-request-card,.highlight-card) :is(h2,h3,strong){
+    font-size:clamp(18px,4.5vw,22px)!important;
+    line-height:1.15!important;
+    word-break:normal!important;
+    overflow-wrap:normal!important;
+    hyphens:none!important;
+  }
+  .page-app :is(.role-action-card,.dashboard-quick-card,.dashboard-activity-card,.premium-family-card,.paper-card,.premium-paper-card,.timeclock-card,.training-card,.function-card,.leave-request-card,.highlight-card) :is(p,small,span){
+    word-break:normal!important;
+    overflow-wrap:break-word!important;
+  }
+  .page-app .main{
+    background:
+      linear-gradient(180deg,rgba(235,248,255,.55),rgba(247,252,255,.68)),
+      var(--en-art-campus) center top/cover fixed no-repeat!important;
+  }
+  .page-app .topbar{
+    background:rgba(255,255,255,.42)!important;
+    backdrop-filter:blur(22px) saturate(1.25)!important;
+    -webkit-backdrop-filter:blur(22px) saturate(1.25)!important;
+  }
+}
+
