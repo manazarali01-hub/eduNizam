@@ -3084,3 +3084,57 @@ body.admission-premium{
   .page-admission .shell{margin-bottom:30px!important}
   .page-app .campus-visual{border-radius:16px!important}
 }
+
+
+/* ===== Appearance Roadmap · Phase P · 2026-10-07 ===== */
+/* Performance-safe visual optimization: preserve the same design language while
+   reducing mobile image payload and expensive paint/compositing work. */
+
+/* Fixed full-page backgrounds are visually subtle but expensive during scroll. */
+body.auth-page,
+body.learning-sky,
+body.app-page,
+body.admission-premium{
+  background-attachment:scroll!important;
+}
+
+/* Phones receive smaller variants of the same licensed photographs. */
+@media(max-width:720px){
+  :root{
+    --en-photo-kids:url("https://images.pexels.com/photos/8926544/pexels-photo-8926544.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop");
+    --en-photo-students:url("https://images.pexels.com/photos/8419199/pexels-photo-8419199.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop");
+    --en-photo-study:url("https://images.pexels.com/photos/37831090/pexels-photo-37831090.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop");
+    --en-photo-flatlay:url("https://images.pexels.com/photos/5088012/pexels-photo-5088012.jpeg?auto=compress&cs=tinysrgb&w=900&h=760&fit=crop");
+    --en-photo-stationery:url("https://images.pexels.com/photos/28503364/pexels-photo-28503364.jpeg?auto=compress&cs=tinysrgb&w=900&h=760&fit=crop");
+    --en-photo-classroom:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=900&h=760&fit=crop");
+  }
+
+  /* Mobile backgrounds are already opaque enough; removing blur cuts paint cost. */
+  .page-learning .topbar,
+  .page-app .topbar,
+  .page-app .view.active>.section-head:first-child,
+  .page-login .mobile-brand,
+  .page-app .premium-toast{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  .page-learning .topbar{background:rgba(255,255,255,.98)!important}
+  .page-app .topbar{background:rgba(255,255,255,.98)!important}
+  .page-app .view.active>.section-head:first-child{background:rgba(255,255,255,.97)!important}
+
+  /* Keep decorative workspace photography lightweight and out of text flow. */
+  .page-app .view.active{
+    background-size:190px auto!important;
+    background-position:right -82px top -10px!important;
+  }
+}
+
+/* Avoid unnecessary hover compositing on touch-first devices. */
+@media(hover:none){
+  .page-app .card:hover,
+  .page-app .paper-card:hover,
+  .learning-sky .card:hover,
+  .premium-public-page .public-card:hover{
+    transform:none!important;
+  }
+}
