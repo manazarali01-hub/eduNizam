@@ -622,3 +622,127 @@
     transform:none!important;
   }
 }
+
+
+/* ===== Final Visual Defect Hunt · Phase T-U · 2026-10-07 =====
+   Reconcile the homepage's last-loaded showcase layer with the final luxury
+   composition so the rendered page, not just the canonical system, keeps the
+   intended spacing and typography. */
+.page-home .premium-public-hero{
+  padding:clamp(32px,4.8vw,64px)!important;
+}
+.page-home .hero-copy h1{
+  max-width:14.5ch!important;
+  line-height:.98!important;
+  letter-spacing:-.052em!important;
+}
+.page-home .hero-copy>p{
+  max-width:62ch!important;
+  font-size:clamp(1rem,1.3vw,1.13rem)!important;
+  line-height:1.72!important;
+}
+.page-home .experience-strip{
+  margin-top:clamp(28px,4vw,48px)!important;
+}
+.page-home .experience-strip article{
+  min-height:154px!important;
+  padding:clamp(17px,2vw,24px)!important;
+}
+.page-home .experience-strip article h3{
+  margin:12px 0 6px!important;
+  font-size:1rem!important;
+  line-height:1.25!important;
+}
+.page-home .experience-strip article p{
+  margin:0!important;
+  line-height:1.6!important;
+}
+.page-home .role-showcase,
+.page-home .value-section,
+.page-home .learning-band{
+  margin-top:clamp(34px,5vw,64px)!important;
+}
+.page-home .section-heading{
+  margin-bottom:clamp(20px,2.7vw,32px)!important;
+}
+.page-home .section-heading h2{
+  max-width:19ch!important;
+  font-size:clamp(1.95rem,4vw,3.05rem)!important;
+  line-height:1.05!important;
+  letter-spacing:-.035em!important;
+}
+.page-home .section-heading p{
+  max-width:67ch!important;
+  line-height:1.72!important;
+}
+.page-home :is(.role-showcase,.value-section) .public-card{
+  padding:clamp(20px,2.4vw,30px)!important;
+}
+.page-home .learning-band{
+  padding:clamp(28px,4.2vw,52px)!important;
+}
+.page-home .public-cta{
+  min-height:50px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1.25!important;
+}
+
+/* Defect guards for the hero visual/caption and the mobile public navigation. */
+.page-home .hero-visual,
+.page-home .hero-image-wrap,
+.page-home .quick-access-card{
+  min-width:0!important;
+}
+.page-home .portrait-caption{
+  max-width:min(420px,calc(100% - 30px))!important;
+}
+.page-home .portrait-caption :is(span,strong){
+  overflow-wrap:anywhere;
+}
+.page-home .quick-access-card{
+  width:min(430px,100%)!important;
+  max-width:100%!important;
+}
+.page-home .public-links a{
+  overflow-wrap:anywhere;
+}
+
+/* Prevent the final showcase stylesheet from re-compressing sections on phones. */
+@media(max-width:720px){
+  .page-home .premium-public-hero{padding:26px 18px!important}
+  .page-home .hero-copy h1{
+    max-width:17ch!important;
+    font-size:clamp(2.15rem,10vw,3.15rem)!important;
+  }
+  .page-home .hero-copy>p{font-size:1rem!important}
+  .page-home .experience-strip{margin-top:26px!important}
+  .page-home .experience-strip article{
+    min-height:auto!important;
+    padding:16px!important;
+  }
+  .page-home .role-showcase,
+  .page-home .value-section,
+  .page-home .learning-band{
+    margin-top:32px!important;
+  }
+  .page-home .section-heading{
+    margin-bottom:18px!important;
+  }
+  .page-home .section-heading h2{
+    font-size:clamp(1.75rem,8vw,2.45rem)!important;
+  }
+  .page-home .learning-band{padding:24px 18px!important}
+  .page-home .quick-access-card{width:100%!important}
+}
+@media(max-width:430px){
+  .page-home .role-showcase,
+  .page-home .value-section,
+  .page-home .learning-band{
+    margin-top:28px!important;
+  }
+  .page-home .portrait-caption{
+    max-width:calc(100% - 28px)!important;
+  }
+}

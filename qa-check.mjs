@@ -149,6 +149,21 @@ for(const marker of [
 const luxuryPhase=visual.slice(visual.indexOf('FINAL LUXURY COMPOSITION · PHASE R-S 2026-10-07'));
 if(/\.sidebar\b|\.nav-item\b/.test(luxuryPhase)) fail.push('Final luxury composition must not modify the locked authenticated navigation rail.');
 
+
+const finalShowcase=read('home-showcase.css');
+for(const marker of [
+  'Final Visual Defect Hunt · Phase T-U · 2026-10-07',
+  '.page-home .role-showcase,',
+  '.page-home .section-heading h2',
+  '.page-home .portrait-caption',
+  '@media(max-width:720px)'
+]){
+  if(!finalShowcase.includes(marker)) fail.push('Final homepage defect-hunt marker missing: '+marker);
+}
+const defectPhase=finalShowcase.slice(finalShowcase.indexOf('Final Visual Defect Hunt · Phase T-U · 2026-10-07'));
+if(/\.sidebar\b|\.nav-item\b/.test(defectPhase)) fail.push('Final homepage defect hunt must not modify the authenticated navigation rail.');
+if(!read('index.html').includes('home-showcase.css?v=20261007-showcase8')) fail.push('Homepage showcase cache token was not bumped for final defect hunt.');
+
 const authBridgeMobileFix=read('auth-bridge.js');
 const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
