@@ -289,12 +289,12 @@
       '<div class="paper-actions"><button class="secondary" data-fc-print="'+esc(x.id)+'">'+(x.status==='Paid'?'Print Receipt':x.status==='Partially Paid'?'Print Statement':'Print Challan')+'</button>'+
       (canPay?'<button data-fc-payment="'+esc(x.id)+'">Record Payment</button>':'')+'</div></article>';
   }
-  function printDoc(item){
+  function printDoc(item,existingWindow=null){
     const settings=(()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}})();
     const paid=item.status==='Paid',partial=item.status==='Partially Paid',logo=settings.schoolLogo?'<img class="school-logo" src="'+esc(settings.schoolLogo)+'" alt="Institute logo">':'';
     const balance=Number(item.balanceAmount!=null?item.balanceAmount:Math.max(0,Number(item.totalAmount||0)-Number(item.paidAmount||0)));
     const history=Array.isArray(item.paymentHistory)?item.paymentHistory:[];
-    const w=window.open('','_blank','width=850,height=700');if(!w)return alert('Popup blocked.');
+    const w=existingWindow||window.open('','_blank','width=850,height=700');if(!w)return alert('Popup blocked.');
     const title=paid?'Fee Receipt':partial?'Fee Payment Statement':'Fee Challan';
     const paymentRows=history.length?'<h4>Payment History</h4>'+history.map(p=>'<div class="row"><span>'+esc(p.receiptNo||'Receipt')+(p.reference?' · '+esc(p.reference):'')+'</span><strong>'+money(p.amount)+' · '+esc(p.paidAt?String(p.paidAt).slice(0,10):'')+'</strong></div>').join(''):'';
     w.document.write('<!doctype html><html><head><title>'+title+'</title><style>body{font-family:Arial,sans-serif;color:#17324a;padding:28px}.box{border:1px solid #bbb;border-radius:14px;padding:18px;max-width:720px;margin:auto}.row{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #eee;padding:9px 0}.total{font-size:22px;font-weight:700}.muted{color:#667}.head{text-align:center;margin-bottom:18px}.school-logo{width:72px;height:72px;object-fit:contain;border:1px solid #d8e2e7;border-radius:12px;padding:5px}.head h2{margin:8px 0 4px}@media print{body{padding:0}}</style></head><body><div class="box"><div class="head">'+logo+'<h2>'+esc(settings.schoolName||'EduNizam Institute')+'</h2><h3>'+title+'</h3><div class="muted">'+esc(settings.session||'')+'</div></div>'+
@@ -383,7 +383,7 @@
     document.querySelectorAll('[data-fc-payment]').forEach(b=>b.onclick=()=>recordPayment(b.dataset.fcPayment,b));
     document.querySelectorAll('[data-fc-history]').forEach(details=>details.addEventListener('toggle',async()=>{
       if(!details.open||!cloudReady())return;
-      const id=details.dataset.fcHistory,body=document.querySelector('[data-fc-history-body="'+CSS.escape(id)+'"]');
+      const id=details.dataset.fcHistory,body=details.querySelector('[data-fc-history-body]');
       if(!body||details.dataset.historyLoaded==='1')return;
       body.textContent='Loading payment history...';
       try{
@@ -396,10 +396,18 @@
     }));
     document.querySelectorAll('[data-fc-print]').forEach(b=>b.onclick=async()=>{
       let item=read().find(x=>String(x.id)===String(b.dataset.fcPrint));if(!item)return;
+      const popup=window.open('','_blank','width=850,height=700');
+      if(!popup)return alert('Popup blocked.');
+      popup.document.write('<!doctype html><html><body style="font-family:Arial,sans-serif;padding:24px">Preparing fee document...</body></html>');
+      popup.document.close();
       setBusy(b,true,'Preparing...');
-      try{if(cloudReady()&&Number(item.paidAmount||0)>0)item=await withPaymentHistory(item);printDoc(item)}
-      catch(e){alert('Receipt history could not load: '+(e.message||e))}
-      finally{setBusy(b,false)}
+      try{
+        if(cloudReady()&&Number(item.paidAmount||0)>0)item=await withPaymentHistory(item);
+        printDoc(item,popup);
+      }catch(e){
+        try{popup.close()}catch(_){}
+        alert('Receipt history could not load: '+(e.message||e));
+      }finally{setBusy(b,false)}
     });
   }
   function paint(root,rows,cloudError=''){
