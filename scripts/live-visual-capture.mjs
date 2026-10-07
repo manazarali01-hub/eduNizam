@@ -55,7 +55,7 @@ try{
       await page.route('**/*',async r=>{
         const req=r.request();
         const u=new URL(req.url());
-        if(u.hostname==='127.0.0.1'||u.hostname==='images.pexels.com')return r.continue();
+        if(u.hostname==='127.0.0.1')return r.continue();
         return r.abort();
       });
       const url=base+route.path;
@@ -65,10 +65,22 @@ try{
         const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:12000});
         await page.waitForTimeout(500);
         await page.addStyleTag({content:`
+          :root{
+            --en-photo-kids:url("/assets/edunizam-login-children.webp")!important;
+            --en-photo-students:url("/assets/edunizam-girl-hero.webp")!important;
+            --en-photo-study:url("/assets/edunizam-girl-hero.webp")!important;
+            --en-photo-flatlay:url("/assets/edunizam-login-children.webp")!important;
+            --en-photo-stationery:url("/assets/edunizam-girl-hero.webp")!important;
+            --en-photo-classroom:url("/assets/edunizam-login-children.webp")!important;
+          }
           [class*="adsbygoogle"],ins.adsbygoogle{display:none!important}
           html{scroll-behavior:auto!important}
           *,*:before,*:after{animation:none!important;transition:none!important}
         `});
+        await page.evaluate(()=>{
+          const hero=document.querySelector('.page-home .hero-image-wrap img');
+          if(hero)hero.setAttribute('src','assets/edunizam-login-children.webp');
+        });
         const metrics=await page.evaluate(()=>({
           title:document.title,
           viewport:document.documentElement.clientWidth,
