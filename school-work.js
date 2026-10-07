@@ -13,25 +13,81 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   function cloudReady(){const c=cloud(),x=cfg();return !!(x.enabled&&x.institutionId&&c?.state?.client&&c?.state?.user)}
   function cloudStatus(){return cloudReady()?'Cloud Sync':'Local Mode'}
+  const mapAnnouncements=rows=>(rows||[]).map(x=>({id:x.id,title:x.title,body:x.body,audience:x.audience,createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at}));
+  const mapHomework=rows=>(rows||[]).map(x=>({id:x.id,className:x.class_name,sectionName:x.section_name||'',subject:x.subject,title:x.title,details:x.details||'',dueDate:x.due_date||'',assignmentType:x.assignment_type||'homework',maxMarks:x.max_marks==null?'':Number(x.max_marks),allowSubmission:x.allow_submission!==false,allowLateSubmission:x.allow_late_submission!==false,createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at,updatedAt:x.updated_at}));
+  const mapSubmissions=rows=>(rows||[]).map(x=>({id:x.id,homeworkId:x.homework_id,studentId:x.student_id,studentName:x.student_name||'Student',text:x.submission_text||'',url:x.submission_url||'',status:x.status||'submitted',marks:x.marks==null?'':Number(x.marks),feedback:x.feedback||'',submittedAt:x.submitted_at,gradedAt:x.graded_at||'',cloud:true}));
+  const mapTimetable=rows=>(rows||[]).map(x=>({id:x.id,className:x.class_name,sectionName:x.section_name||'',day:x.weekday,periodNumber:Number(x.period_number||0),time:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',subject:x.subject,teacherName:x.teacher_name||'',roomLabel:x.room_label||'',createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}));
   function mapCloud(ann,hw,tt,subs){
-    return {
-      announcements:(ann||[]).map(x=>({id:x.id,title:x.title,body:x.body,audience:x.audience,createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at})),
-      homework:(hw||[]).map(x=>({id:x.id,className:x.class_name,sectionName:x.section_name||'',subject:x.subject,title:x.title,details:x.details||'',dueDate:x.due_date||'',assignmentType:x.assignment_type||'homework',maxMarks:x.max_marks==null?'':Number(x.max_marks),allowSubmission:x.allow_submission!==false,allowLateSubmission:x.allow_late_submission!==false,createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at,updatedAt:x.updated_at})),
-      submissions:(subs||[]).map(x=>({id:x.id,homeworkId:x.homework_id,studentId:x.student_id,studentName:x.student_name||'Student',text:x.submission_text||'',url:x.submission_url||'',status:x.status||'submitted',marks:x.marks==null?'':Number(x.marks),feedback:x.feedback||'',submittedAt:x.submitted_at,gradedAt:x.graded_at||'',cloud:true})),
-      timetable:(tt||[]).map(x=>({id:x.id,className:x.class_name,sectionName:x.section_name||'',day:x.weekday,periodNumber:Number(x.period_number||0),time:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',subject:x.subject,teacherName:x.teacher_name||'',roomLabel:x.room_label||'',createdBy:x.creator_user_id,createdRole:'cloud',createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}))
-    };
+    return {announcements:mapAnnouncements(ann),homework:mapHomework(hw),submissions:mapSubmissions(subs),timetable:mapTimetable(tt)};
   }
-  async function pullCloud(){
+
+  let cloudLoadKey='',cloudLoadedScopes=new Set(),cloudScopeInFlight=new Map();
+  function resetCloudScopes(){
+    cloudLoadKey='';
+    cloudLoadedScopes.clear();
+    cloudScopeInFlight.clear();
+  }
+  function ensureCloudKey(){
+    const key=cloudReady()?[cfg().institutionId,cloud()?.state?.user?.id||''].join('|'):'';
+    if(key!==cloudLoadKey){
+      cloudLoadKey=key;
+      cloudLoadedScopes.clear();
+      cloudScopeInFlight.clear();
+    }
+    return key;
+  }
+  async function pullCloud(scope='all',force=false){
     if(!cloudReady())return read();
-    const c=cloud(),id=cfg().institutionId;
-    const [a,h,t,s]=await Promise.all([
-      c.state.client.from('school_announcements').select('*').eq('institution_id',id).order('created_at',{ascending:false}),
-      c.state.client.from('homework_items').select('*').eq('institution_id',id).order('created_at',{ascending:false}),
-      c.state.client.from('timetable_entries').select('*').eq('institution_id',id).order('weekday').order('start_time'),
-      c.state.client.from('homework_submissions').select('*').eq('institution_id',id).order('submitted_at',{ascending:false})
-    ]);
-    for(const r of [a,h,t,s])if(r.error)throw r.error;
-    const mapped=mapCloud(a.data,h.data,t.data,s.data);write(mapped);return mapped;
+    ensureCloudKey();
+    const normalized=['announcements','homework','submissions','timetable','all'].includes(scope)?scope:'all';
+    if(!force&&normalized!=='all'&&cloudLoadedScopes.has(normalized))return read();
+    if(cloudScopeInFlight.has(normalized))return cloudScopeInFlight.get(normalized);
+    const task=(async()=>{
+      const requestKey=cloudLoadKey;
+      const c=cloud(),id=cfg().institutionId,current=read();
+      if(normalized==='all'){
+        const [a,h,t,s]=await Promise.all([
+          c.state.client.from('school_announcements').select('*').eq('institution_id',id).order('created_at',{ascending:false}),
+          c.state.client.from('homework_items').select('*').eq('institution_id',id).order('created_at',{ascending:false}),
+          c.state.client.from('timetable_entries').select('*').eq('institution_id',id).order('weekday').order('start_time'),
+          c.state.client.from('homework_submissions').select('*').eq('institution_id',id).order('submitted_at',{ascending:false})
+        ]);
+        for(const r of [a,h,t,s])if(r.error)throw r.error;
+        const mapped=mapCloud(a.data,h.data,t.data,s.data);
+        if(requestKey!==ensureCloudKey())return read();
+        write(mapped);
+        ['announcements','homework','submissions','timetable'].forEach(x=>cloudLoadedScopes.add(x));
+        return mapped;
+      }
+      if(normalized==='announcements'){
+        const a=await c.state.client.from('school_announcements').select('*').eq('institution_id',id).order('created_at',{ascending:false});
+        if(a.error)throw a.error;
+        current.announcements=mapAnnouncements(a.data);
+      }else if(normalized==='homework'){
+        const h=await c.state.client.from('homework_items').select('*').eq('institution_id',id).order('created_at',{ascending:false});
+        if(h.error)throw h.error;
+        current.homework=mapHomework(h.data);
+      }else if(normalized==='timetable'){
+        const t=await c.state.client.from('timetable_entries').select('*').eq('institution_id',id).order('weekday').order('start_time');
+        if(t.error)throw t.error;
+        current.timetable=mapTimetable(t.data);
+      }else{
+        const [h,s]=await Promise.all([
+          c.state.client.from('homework_items').select('*').eq('institution_id',id).order('created_at',{ascending:false}),
+          c.state.client.from('homework_submissions').select('*').eq('institution_id',id).order('submitted_at',{ascending:false})
+        ]);
+        if(h.error)throw h.error;if(s.error)throw s.error;
+        current.homework=mapHomework(h.data);
+        current.submissions=mapSubmissions(s.data);
+        cloudLoadedScopes.add('homework');
+      }
+      if(requestKey!==ensureCloudKey())return read();
+      write(current);
+      cloudLoadedScopes.add(normalized);
+      return current;
+    })();
+    cloudScopeInFlight.set(normalized,task);
+    try{return await task}finally{cloudScopeInFlight.delete(normalized)}
   }
   async function insertCloud(kind,x){
     if(!cloudReady())return null;
@@ -240,7 +296,7 @@
       try{
         if(cloudReady()){
           await submitCloud(homeworkId,text,url);
-          const fresh=await pullCloud();write(fresh);
+          await pullCloud('submissions',true);
         }else{
           const student=visibleStudents()[0];if(!student)throw new Error('Student profile link required.');
           if(isLate(hw)&&hw.allowLateSubmission===false)throw new Error('Submission deadline has passed.');
@@ -258,7 +314,7 @@
       if(marks==='')return alert('Marks required hain.');
       const d=read(),sub=(d.submissions||[]).find(s=>String(s.id)===String(id));if(!sub)return;
       try{
-        if(cloudReady()){await gradeCloud(id,marks,feedback,false);const fresh=await pullCloud();write(fresh)}
+        if(cloudReady()){await gradeCloud(id,marks,feedback,false);await pullCloud('submissions',true)}
         else{sub.status='graded';sub.marks=Number(marks);sub.feedback=feedback;sub.gradedAt=new Date().toISOString();write(d)}
         render();
       }catch(e){alert('Grading failed: '+(e.message||e))}
@@ -267,7 +323,7 @@
       const id=b.dataset.swReturn,feedback=document.querySelector('[data-sw-grade-feedback="'+id+'"]')?.value.trim()||'Please revise and resubmit.';
       const d=read(),sub=(d.submissions||[]).find(s=>String(s.id)===String(id));if(!sub)return;
       try{
-        if(cloudReady()){await gradeCloud(id,null,feedback,true);const fresh=await pullCloud();write(fresh)}
+        if(cloudReady()){await gradeCloud(id,null,feedback,true);await pullCloud('submissions',true)}
         else{sub.status='returned';sub.marks='';sub.feedback=feedback;sub.gradedAt=new Date().toISOString();write(d)}
         render();
       }catch(e){alert('Return for revision failed: '+(e.message||e))}
@@ -280,17 +336,9 @@
     });
   }
 
-  async function render(){
-    const root=$('schoolWorkApp');
-    if(!root)return;
-    if(!$('swEditor')||!$('swList')){mount();return}
-    let d=read();
-    if(cloudReady()&&!root.dataset.cloudLoaded){
-      root.dataset.cloudLoaded='1';
-      try{d=await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('School Work cloud sync:',e.message)}
-    }
+  function paint(root,d,tab){
     const status=$('swCloudStatus');if(status)status.textContent=cloudStatus();
-    const tab=root.dataset.tab||'announcements';$('swEditor').innerHTML=editor(tab);
+    $('swEditor').innerHTML=editor(tab);
     let arr=tab==='announcements'?d.announcements.filter(x=>audienceVisible(x.audience)):tab==='homework'?d.homework.filter(x=>classVisible(x.className)):tab==='submissions'?visibleSubmissions(d):d.timetable.filter(x=>classVisible(x.className));
     if(tab==='submissions')arr=[...arr].sort((a,b)=>String(b.submittedAt||'').localeCompare(String(a.submittedAt||'')));
     if(tab==='timetable'){
@@ -301,7 +349,27 @@
     bind(tab);
   }
 
-  window.addEventListener('edunizam:auth',()=>{const root=$('schoolWorkApp');if(root)delete root.dataset.cloudLoaded;render()});
+  async function render(force=false){
+    const root=$('schoolWorkApp');
+    if(!root)return;
+    if(!$('swEditor')||!$('swList')){mount();return}
+    const tab=root.dataset.tab||'announcements';
+    // Paint cached/local content first so a tab tap always feels immediate.
+    paint(root,read(),tab);
+    if(!cloudReady())return;
+    ensureCloudKey();
+    const scope=tab==='submissions'?'submissions':tab;
+    if(!force&&cloudLoadedScopes.has(scope))return;
+    try{
+      const fresh=await pullCloud(scope,force===true);
+      // Do not repaint over a newer tab selection.
+      if((root.dataset.tab||'announcements')===tab)paint(root,fresh,tab);
+    }catch(e){
+      console.warn('School Work cloud sync:',e.message||e);
+    }
+  }
+
+  window.addEventListener('edunizam:auth',()=>{resetCloudScopes();render(true)});
   setTimeout(mount,0);setTimeout(mount,600);
   window.EDUNIZAM_SCHOOL_WORK={mount,render,read,pullCloud,cloudReady};
 })();
