@@ -668,20 +668,47 @@ showStartupFlash();
   }
   window.addEventListener('edunizam:auth-invalid',showLogin);
   window.addEventListener('edunizam:school-selection-required',showLogin);
-  function applyRole(retry=0){
-    const session=JSON.parse(localStorage.getItem(ROLE_KEY)||'null');
-    if(!session){
-      if(retry<8){
-        setTimeout(()=>applyRole(retry+1),300);
+
+  // Role UI must never race the secure-session state machine. auth-bridge owns
+  // authentication/session restoration; app.js only reacts when a workspace is ready.
+  let roleBootstrapFallback=0;
+  let roleBootstrapBound=false;
+  function bindRoleBootstrap(){
+    if(roleBootstrapBound)return;
+    roleBootstrapBound=true;
+    window.addEventListener('edunizam:workspace-ready',()=>applyRole());
+    window.addEventListener('edunizam:auth-state',event=>{
+      const state=String(event.detail?.state||'');
+      if(state==='WORKSPACE_READY'||state==='OFFLINE_READY')applyRole();
+    });
+  }
+  function scheduleRoleBootstrapFallback(){
+    if(roleBootstrapFallback)return;
+    roleBootstrapFallback=setTimeout(()=>{
+      roleBootstrapFallback=0;
+      const session=JSON.parse(localStorage.getItem(ROLE_KEY)||'null');
+      if(session){applyRole();return}
+      // If the auth bridge exists, let its native Login / Guest screen remain
+      // authoritative instead of forcing a competing redirect.
+      if(window.EDUNIZAM_AUTH_BRIDGE){
+        window.EDUNIZAM_AUTH_BRIDGE.boot?.();
         return;
       }
       showLogin();
+    },8000);
+  }
+  function applyRole(){
+    const session=JSON.parse(localStorage.getItem(ROLE_KEY)||'null');
+    if(!session){
+      bindRoleBootstrap();
+      scheduleRoleBootstrapFallback();
       return;
     }
+    if(roleBootstrapFallback){clearTimeout(roleBootstrapFallback);roleBootstrapFallback=0}
     const normalizedRole=session.role==='admin'?'head':session.role;
     const allowed=roleViews[normalizedRole]||roleViews.student;
     document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.toggle('role-hidden',!allowed.includes(b.dataset.view)));
-    const actions=document.querySelector('.topbar-actions');if(actions&&!document.getElementById('roleSession')){const chip=document.createElement('span');chip.id='roleSession';chip.className='session-chip';chip.innerHTML='<strong>'+(labels[normalizedRole]||labels.student)+'</strong><button class="secondary" style="padding:4px 8px">Logout</button>';chip.querySelector('button').onclick=()=>{localStorage.removeItem(ROLE_KEY);location.reload()};actions.prepend(chip)}
+    const actions=document.querySelector('.topbar-actions');if(actions&&!document.getElementById('roleSession')){const chip=document.createElement('span');chip.id='roleSession';chip.className='session-chip';chip.innerHTML='<strong>'+(labels[normalizedRole]||labels.student)+'</strong><button class="secondary" style="padding:4px 8px">Logout</button>';chip.querySelector('button').onclick=()=>{if(window.EDUNIZAM_AUTH_BRIDGE)return;localStorage.removeItem(ROLE_KEY);location.replace('login.html?from=logout-fallback')};actions.prepend(chip)}
     const active=document.querySelector('.view.active')?.id;if(active&&!allowed.includes(active))setView(allowed[0]);
     renderAll();
   }
