@@ -1,4 +1,4 @@
-const CACHE='edunizam-v248-live-screenshot-ref5'
+const CACHE='edunizam-v249-admin-desk-ref6'
 const CORE=[
   './',
   './index.html',
