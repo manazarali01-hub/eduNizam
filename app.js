@@ -143,6 +143,7 @@ document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=async()=>{
   if(targetView==='students')openStudentForm();
 });
 let editingStudentId=null,studentSaveInFlight=false;
+const studentDeleteInFlight=new Set();
 function makeStudentCode(){
   const bytes=new Uint8Array(4);
   if(window.crypto?.getRandomValues)window.crypto.getRandomValues(bytes);
@@ -255,7 +256,7 @@ function renderStudents(){
    const initials=String(s.name||'?').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
    const avatar='<span data-student-avatar-path="'+esc(s.photoPath||'')+'" style="width:42px;height:42px;border-radius:50%;display:inline-grid;place-items:center;background:#e8f4f0;color:#075347;font-weight:900;overflow:hidden;flex:0 0 42px">'+esc(initials)+'</span>';
    const details=[s.admissionNo&&('Adm '+s.admissionNo),s.gender,s.bFormNo&&('B-Form '+s.bFormNo),s.studentStatus&&s.studentStatus!=='active'?s.studentStatus:''].filter(Boolean).join(' · ');
-   return '<div class="row"><div style="display:flex;gap:10px;align-items:center">'+avatar+'<div><strong>'+esc(s.name)+'</strong><small style="display:block;margin-top:4px;color:#64748b">Student Code: '+esc(s.studentId||'-')+(details?' · '+esc(details):'')+'</small></div></div><span>'+esc(s.father||'-')+'</span><span>'+esc([s.className,s.sectionName&&('Sec '+s.sectionName)].filter(Boolean).join(' · ')||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canManage?'<span class="access-row"><button class="secondary" onclick="editStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Edit</button><button onclick="removeStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Delete</button></span>':'<span></span>')+'</div>';
+   return '<div class="row"><div style="display:flex;gap:10px;align-items:center">'+avatar+'<div><strong>'+esc(s.name)+'</strong><small style="display:block;margin-top:4px;color:#64748b">Student Code: '+esc(s.studentId||'-')+(details?' · '+esc(details):'')+'</small></div></div><span>'+esc(s.father||'-')+'</span><span>'+esc([s.className,s.sectionName&&('Sec '+s.sectionName)].filter(Boolean).join(' · ')||'-')+'</span><span>'+esc(s.phone||'-')+'</span>'+(canManage?'<span class="access-row"><button class="secondary" onclick="editStudent(\''+String(s.id).replace(/'/g,"\\'")+'\')">Edit</button><button onclick="removeStudent(\''+String(s.id).replace(/'/g,"\\'")+'\',this)">Delete</button></span>':'<span></span>')+'</div>';
  }).join(''):'<div class="muted">No accessible students.</div>';
  hydrateStudentAvatars();
  const addBtn=$('addStudentBtn');if(addBtn)addBtn.style.display=canManage?'inline-block':'none';
@@ -306,23 +307,27 @@ window.editStudent=id=>{
  $('saveStudentBtn').textContent='Update Student';
  $('studentName').focus();
 };
-window.removeStudent=async id=>{
+window.removeStudent=async(id,btn)=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can delete students.');
- const s=state.students.find(x=>String(x.id)===String(id));if(!s)return;
+ const key=String(id||'');if(studentDeleteInFlight.has(key)||btn?.disabled)return;
+ const s=state.students.find(x=>String(x.id)===key);if(!s)return;
  if(!confirm('Delete '+s.name+' and related attendance, fee and result records?'))return;
+ studentDeleteInFlight.add(key);if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
  try{
    if(window.EDUNIZAM_CORE_CLOUD?.ready?.()){
      await window.EDUNIZAM_CORE_CLOUD.deleteStudentByLocalId(s.id);
    }
+   state.students=state.students.filter(x=>String(x.id)!==key);
+   state.fees=state.fees.filter(x=>String(x.studentId)!==key);
+   state.results=state.results.filter(x=>String(x.studentId)!==key);
+   Object.values(state.attendance).forEach(day=>{delete day[id];delete day[String(id)]});
+   logActivity('Student deleted: '+s.name);persist();renderAll();
  }catch(e){
    alert('Student could not be deleted from cloud: '+(e.message||e));
-   return;
+ }finally{
+   studentDeleteInFlight.delete(key);
+   if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy')}
  }
- state.students=state.students.filter(x=>String(x.id)!==String(id));
- state.fees=state.fees.filter(x=>String(x.studentId)!==String(id));
- state.results=state.results.filter(x=>String(x.studentId)!==String(id));
- Object.values(state.attendance).forEach(day=>{delete day[id];delete day[String(id)]});
- logActivity('Student deleted: '+s.name);persist();renderAll();
 };
 window.addStudentFromAdmission=(student)=>{
   if(!student||!student.name)return null;

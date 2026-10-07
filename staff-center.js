@@ -11,6 +11,7 @@
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const currentUserId=()=>cloud()?.state?.user?.id||'';
   const isHead=()=>role()==='head';
+  const staffDeleteInFlight=new Set();
   async function boundedRead(key,builder,{timeout=7000,retries=1,cacheMs=0,label='Staff Directory'}={}){
     const execute=async({signal}={})=>{
       let request=builder();
@@ -165,9 +166,17 @@
   }
   async function deleteCloud(id){
     if(!cloudReady())return;
-    const rows=read(),item=rows.find(x=>String(x.id)===String(id));
-    const {error}=await cloud().state.client.from('staff_profiles').delete().eq('id',id);
-    if(error)throw error;
+    const rows=read(),item=rows.find(x=>String(x.id)===String(id)),inst=String(cfg().institutionId||'');
+    const execute=async({signal}={})=>{
+      let request=cloud().state.client.from('staff_profiles').delete().eq('id',id);
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;
+      if(result?.error)throw result.error;
+      return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    if(runtime)await runtime.run('staff-delete:'+inst+':'+String(id),execute,{timeout:8000,retries:1,label:'Delete staff profile'});
+    else await execute({});
     if(item?.photoPath)cloud().state.client.storage.from('school-profile-photos').remove([item.photoPath]).catch(()=>{});
   }
 
@@ -254,15 +263,23 @@
     }
   }
 
-  async function remove(id){
-    if(!isHead())return;const rows=read(),item=rows.find(x=>String(x.id)===String(id));if(!item)return;
+  async function remove(id,btn){
+    if(!isHead())return;const key=String(id||'');if(staffDeleteInFlight.has(key)||btn?.disabled)return;
+    const rows=read(),item=rows.find(x=>String(x.id)===key);if(!item)return;
     if(!confirm('Delete staff profile for '+item.fullName+'?'))return;
-    try{await deleteCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
-    write(rows.filter(x=>String(x.id)!==String(id)));render();
+    staffDeleteInFlight.add(key);if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
+    try{
+      await deleteCloud(id);
+      write(rows.filter(x=>String(x.id)!==key));render();
+    }catch(e){if(cloudReady())alert('Cloud delete failed: '+(e.message||e))}
+    finally{
+      staffDeleteInFlight.delete(key);
+      if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy')}
+    }
   }
   async function edit(id){if(!isHead())return;const item=read().find(x=>String(x.id)===String(id));if(!item)return;const box=$('staffEditor');if(box)box.innerHTML=await editorHtml(item);bindEditor();window.scrollTo({top:box?.offsetTop||0,behavior:'smooth'})}
   function bindEditor(){if($('saveStaffProfile'))$('saveStaffProfile').onclick=save;if($('saveMyStaffProfile'))$('saveMyStaffProfile').onclick=saveMyStaffProfile;if($('cancelStaffEdit'))$('cancelStaffEdit').onclick=render}
-  function bindCards(){document.querySelectorAll('[data-staff-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.staffEdit));document.querySelectorAll('[data-staff-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.staffDelete))}
+  function bindCards(){document.querySelectorAll('[data-staff-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.staffEdit));document.querySelectorAll('[data-staff-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.staffDelete,b))}
   async function hydrateAvatars(){
     if(!cloudReady())return;
     await Promise.all([...document.querySelectorAll('[data-staff-avatar]')].filter(n=>n.dataset.staffAvatar).map(async n=>{try{const url=await signedPhoto(n.dataset.staffAvatar);if(url)n.innerHTML='<img src="'+esc(url)+'" alt="Staff profile" style="width:100%;height:100%;object-fit:cover">'}catch(_){}}));

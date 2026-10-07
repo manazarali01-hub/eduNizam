@@ -72,11 +72,23 @@
   async function cloudStudent(localId){
     if(!cloudReady())return null;
     const s=students().find(x=>String(x.id)===String(localId));if(!s)return null;
-    let q=cloud().state.client.from('core_students').select('id,local_id,name,class_name,student_code,auth_user_id')
-      .eq('institution_id',cfg().institutionId);
-    if(s.studentId)q=q.eq('student_code',s.studentId);
-    else q=q.eq('local_id',Number(s.id));
-    const {data,error}=await q.maybeSingle();if(error)throw error;return data||null;
+    const inst=String(cfg().institutionId||''),lookup=s.studentId?('code:'+s.studentId):('local:'+Number(s.id));
+    const execute=async({signal}={})=>{
+      let q=cloud().state.client.from('core_students').select('id,local_id,name,class_name,student_code,auth_user_id')
+        .eq('institution_id',cfg().institutionId);
+      if(s.studentId)q=q.eq('student_code',s.studentId);
+      else q=q.eq('local_id',Number(s.id));
+      q=q.maybeSingle();
+      if(signal&&typeof q?.abortSignal==='function')q=q.abortSignal(signal);
+      const result=await q;
+      if(result?.error)throw result.error;
+      return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    const result=runtime
+      ?await runtime.run('fee-student:'+inst+':'+lookup,execute,{timeout:6000,retries:1,cacheMs:30000,label:'Fee student link'})
+      :await execute({});
+    return result.data||null;
   }
   function toLocalRow(x){
     const s=x.core_students||{};
@@ -184,19 +196,35 @@
       updated_by:cloud().state.user.id,updated_at:new Date().toISOString()
     }));
     if(!rows.length)return true;
-    const {error}=await cloud().state.client.from('class_fee_structure').upsert(rows,{onConflict:'institution_id,class_name'});
-    if(error)throw error;return true;
+    const execute=async({signal}={})=>{
+      let request=cloud().state.client.from('class_fee_structure').upsert(rows,{onConflict:'institution_id,class_name'});
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;if(result?.error)throw result.error;return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    if(runtime){
+      await runtime.run('fee-class-sync:'+String(cfg().institutionId||''),execute,{timeout:7000,retries:1,label:'Class fee sync'});
+      runtime.invalidate?.('fee-class-fees:');
+    }else await execute({});
+    return true;
   }
   async function pullClassFees(force=false){
     if(!cloudReady())return classFees();
-    ensureFeeLoadKey();
+    const requestKey=ensureFeeLoadKey();
     if(!force&&classFeesLoadedAt&&Date.now()-classFeesLoadedAt<60000)return classFees();
-    const {data,error}=await cloud().state.client.from('class_fee_structure').select('class_name,monthly_fee')
-      .eq('institution_id',cfg().institutionId);
-    if(error)throw error;
+    const execute=async({signal}={})=>{
+      let request=cloud().state.client.from('class_fee_structure').select('class_name,monthly_fee')
+        .eq('institution_id',cfg().institutionId);
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;if(result?.error)throw result.error;return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    const result=runtime
+      ?await runtime.run('fee-class-fees:'+requestKey,execute,{timeout:6000,retries:1,cacheMs:force?0:60000,label:'Class fee structure'})
+      :await execute({});
     classFeesLoadedAt=Date.now();
-    if(data?.length){
-      const map={};data.forEach(x=>map[x.class_name]=Number(x.monthly_fee||0));
+    if(result.data?.length){
+      const map={};result.data.forEach(x=>map[x.class_name]=Number(x.monthly_fee||0));
       localStorage.setItem(CLASS_KEY,JSON.stringify(map));return map;
     }
     return classFees();
@@ -226,8 +254,33 @@
       created_by:cloud().state.user.id,
       updated_at:new Date().toISOString()
     };
-    const {data,error}=await cloud().state.client.from('fee_records').insert(payload).select('*,core_students(local_id,name,class_name,student_code,auth_user_id)').single();
-    if(error)throw error;return toLocalRow(data);
+    const execute=async({signal}={})=>{
+      let request=cloud().state.client.from('fee_records').insert(payload).select('*,core_students(local_id,name,class_name,student_code,auth_user_id)').single();
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;if(result?.error)throw result.error;return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    try{
+      const result=runtime
+        ?await runtime.run('fee-create:'+cfg().institutionId+':'+cs.id+':'+item.feeMonth,execute,{timeout:8000,retries:0,label:'Generate fee challan'})
+        :await execute({});
+      return toLocalRow(result.data);
+    }catch(error){
+      const ambiguous=String(error?.code||'')==='23505'||error?.name==='TimeoutError'||/timed out|timeout/i.test(String(error?.message||''));
+      if(!ambiguous)throw error;
+      const reconcile=async({signal}={})=>{
+        let request=cloud().state.client.from('fee_records')
+          .select('*,core_students(local_id,name,class_name,student_code,auth_user_id)')
+          .eq('institution_id',cfg().institutionId).eq('student_id',cs.id).eq('fee_month',item.feeMonth).maybeSingle();
+        if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+        const result=await request;if(result?.error)throw result.error;return result;
+      };
+      const existing=runtime
+        ?await runtime.run('fee-reconcile:'+cfg().institutionId+':'+cs.id+':'+item.feeMonth,reconcile,{timeout:5000,retries:1,label:'Reconcile fee challan'})
+        :await reconcile({});
+      if(existing.data)return toLocalRow(existing.data);
+      throw error;
+    }
   }
   async function recordPaymentCloud(item,amount,reference){
     if(!cloudReady())return null;

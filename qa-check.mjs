@@ -563,6 +563,13 @@ if(staffCrud.indexOf("from('staff_profiles').delete().eq('id',id)")>staffCrud.in
 if(!staffCrud.includes('Cloud staff save failed. Nothing was saved locally')) fail.push('Staff cloud save failure can still create a divergent local-only record.');
 if(!staffCrud.includes("Staff profile text was saved, but profile photo upload failed")) fail.push('Staff photo failure is not separated from successful cloud profile text save.');
 if(!app.includes('studentSaveInFlight=false')) fail.push('Student Save has no single-flight guard.');
+if(!app.includes('studentDeleteInFlight=new Set()')||!app.includes("removeStudent(\\'")||!app.includes(",this)")) fail.push('Student Delete has no single-flight button guard.');
+if(!coreCloudWrite.includes("runtime.run('student-delete:'")||!coreCloudWrite.includes("timeout:8000,retries:1,label:'Delete student'")) fail.push('Student cloud delete is not bounded/idempotently retried.');
+if(!staffCrud.includes('staffDeleteInFlight=new Set()')||!staffCrud.includes("runtime.run('staff-delete:'")) fail.push('Staff Delete is not single-flight with a finite cloud deadline.');
+const feeCrud=read('fee-center.js');
+if(!feeCrud.includes("runtime.run('fee-student:'")||!feeCrud.includes("runtime.run('fee-class-fees:'")) fail.push('Fee student/class fee reads are not bounded/deduplicated.');
+if(!feeCrud.includes("runtime.run('fee-class-sync:'")||!feeCrud.includes("timeout:7000,retries:1,label:'Class fee sync'")) fail.push('Class fee sync has no finite idempotent write deadline.');
+if(!feeCrud.includes(".from('fee_records').insert(payload)")||!feeCrud.includes("runtime.run('fee-create:'")||!feeCrud.includes("runtime.run('fee-reconcile:'")) fail.push('Fee challan creation is not insert-only with bounded ambiguity reconciliation.');
 if(read('role-access-center.js').includes('id="teacherRequestCard"')||read('role-access-center.js').includes('id="inviteAdminCard"')) fail.push('Legacy code controls remain in Access & Roles.');
 if(!read('role-access-center.js').includes('id="toggleReviewedRequests"')) fail.push('Reviewed requests cannot be inspected after approval.');
 if(!fs.existsSync(path.join(root,'supabase-teacher-access-ambiguity-fix.sql'))) fail.push('Teacher access ambiguity fix SQL is missing from the repository.');
