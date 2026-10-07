@@ -1086,6 +1086,24 @@ for(const marker of [
 }
 if(!read('app.html').includes('reference-reconstruction.css?v=20261007-ref7')) fail.push('Colorful ref7 stylesheet cache token missing from app.html.');
 
+/* Indexing recovery crawl-path guard · 2026-10-07 */
+const crawlHub=read('index.html');
+for(const page of [
+  'features.html','school-management-system-pakistan.html','online-school-admissions.html',
+  'learning-resources-pakistan.html','learn.html','aiou-student-resources-pakistan.html',
+  'virtual-university-resources-pakistan.html','university-results-lms-past-papers-pakistan.html',
+  'css-ppsc-fpsc-pakistan.html','pakistan-education-services.html',
+  'pakistan-entry-tests-scholarships.html','pakistan-degree-accreditation-recognition.html',
+  'technical-vocational-digital-skills-pakistan.html','pakistan-textbooks-curriculum-research.html',
+  'pakistan-exam-study-pathways.html','about.html','privacy.html'
+]){
+  if(!crawlHub.includes('href="'+page+'"')) fail.push('Homepage crawl hub missing public link: '+page);
+}
+const legacyLanding=read('edunizam.html');
+if(!legacyLanding.includes('noindex,follow,noarchive')) fail.push('Legacy edunizam.html must remain noindex.');
+if(!legacyLanding.includes('http-equiv="refresh"')) fail.push('Legacy edunizam.html redirect signal missing.');
+if(!read('index.html').includes("pathname.endsWith('/index.html')")) fail.push('index.html canonical-root redirect guard missing.');
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
