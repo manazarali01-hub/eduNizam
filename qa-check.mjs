@@ -1019,6 +1019,21 @@ for(const marker of [
 if(/\\.sidebar\\b|\\.nav-item\\b/.test(workspaceAtmosphere)) fail.push('Workspace atmosphere must not modify the locked sidebar/navigation.');
 if(!read('app.html').includes('workspace-atmosphere.css?v=20261007-final1')) fail.push('Workspace atmosphere stylesheet is not loaded by app.html.');
 
+const referenceVisual=read('reference-reconstruction.css');
+for(const marker of [
+  'EduNizam Reference Reconstruction Pass · 2026-10-07',
+  '--ref-script:',
+  '.page-home .premium-public-hero',
+  '.auth-page .story-copy h1::after',
+  '.page-app .premium-mobile-dock',
+  '.page-app #dashboard>.cards'
+]){
+  if(!referenceVisual.includes(marker)) fail.push('Reference reconstruction marker missing: '+marker);
+}
+for(const page of ['index.html','login.html','learn.html','app.html','about.html','features.html']){
+  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref1')) fail.push('Reference reconstruction stylesheet missing from '+page);
+}
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
