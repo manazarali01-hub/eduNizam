@@ -948,6 +948,35 @@ try{
     loginFlowPage.evaluate(fn),
     new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' main-thread timeout after '+timeout+'ms')),timeout))
   ]));
+  const inspectActiveTemporalControls=async(scope)=>{
+    const issues=await boundedEvaluate('inspect mobile date/time controls '+scope,()=>{
+      const active=document.querySelector('.view.active');
+      if(!active)return [];
+      const viewport=document.documentElement.clientWidth;
+      const visible=el=>{
+        const cs=getComputedStyle(el);
+        if(cs.display==='none'||cs.visibility==='hidden'||Number(cs.opacity)===0)return false;
+        const r=el.getBoundingClientRect();
+        return r.width>1&&r.height>1;
+      };
+      return [...active.querySelectorAll('input[type="date"],input[type="time"],input[type="datetime-local"]')]
+        .filter(visible)
+        .map(el=>{
+          const r=el.getBoundingClientRect();
+          return {
+            id:el.id||'',
+            type:el.type,
+            left:Math.round(r.left),
+            right:Math.round(r.right),
+            width:Math.round(r.width),
+            height:Math.round(r.height),
+            viewport
+          };
+        })
+        .filter(x=>x.left<-2||x.right>x.viewport+2||x.width>x.viewport+2||x.height<42);
+    },5000);
+    if(issues.length)pushFailure('mobile temporal controls',scope+' has clipped or undersized date/time controls',JSON.stringify(issues));
+  };
   try{
     await loginFlowPage.addInitScript(()=>{
       const user={id:'user-1',email:'admin@example.test',user_metadata:{}};
@@ -1055,6 +1084,28 @@ try{
       pushFailure('login contract','Login did not persist the authorized school workspace',JSON.stringify(openedApp.local));
     }
     if(openedApp.workspaceRpcCalls!==1)pushFailure('login contract','Login -> app startup repeated my_authorized_workspaces instead of trusting the fresh handoff',JSON.stringify(openedApp));
+
+    const dockLabels=await boundedEvaluate('inspect mobile dock labels',()=>[...document.querySelectorAll('#premiumMobileDock strong')].map(el=>{
+      const cs=getComputedStyle(el);
+      const r=el.getBoundingClientRect();
+      return {
+        text:(el.textContent||'').trim(),
+        whiteSpace:cs.whiteSpace,
+        textOverflow:cs.textOverflow,
+        overflow:cs.overflow,
+        width:Math.round(r.width),
+        scrollWidth:el.scrollWidth,
+        height:Math.round(r.height),
+        scrollHeight:el.scrollHeight
+      };
+    }));
+    const clippedDockLabels=dockLabels.filter(x=>x.text&&(
+      x.textOverflow==='ellipsis'||
+      x.whiteSpace==='nowrap'||
+      x.scrollWidth>x.width+2||
+      x.scrollHeight>x.height+2
+    ));
+    if(clippedDockLabels.length)pushFailure('mobile dock','Quick navigation labels are clipped or ellipsized',JSON.stringify(clippedDockLabels));
 
     await loginFlowPage.locator('#eduMobileMenuBtn').tap();
     await loginFlowPage.waitForTimeout(80);
@@ -1236,6 +1287,7 @@ try{
       if(workflowState.active!==view||workflowState.guardPresent||workflowState.locked||workflowState.menuOpen||workflowState.featureLoading||workflowState.featureError||workflowState.activeText<10){
         pushFailure('admin workflow navigation',view+' did not settle to a usable rendered state',JSON.stringify(workflowState));
       }
+      await inspectActiveTemporalControls('workflow '+view);
     }
 
     // People + operations sections: mobile navigation, lazy-loader completion, and unlocked rendered state.
@@ -1300,6 +1352,7 @@ try{
       if(campusState.active!==view||campusState.guardPresent||campusState.locked||campusState.menuOpen||campusState.featureLoading||campusState.featureError||campusState.activeText<10){
         pushFailure('admin campus navigation',view+' did not settle to a usable rendered state',JSON.stringify(campusState));
       }
+      await inspectActiveTemporalControls('campus '+view);
     }
 
     // Academic management sections: mobile navigation, lazy-loader completion, rendered content and unlocked UI.
@@ -1332,6 +1385,7 @@ try{
       if(academicState.active!==view||academicState.guardPresent||academicState.locked||academicState.menuOpen||academicState.featureLoading||academicState.featureError||academicState.activeText<10){
         pushFailure('admin academic navigation',view+' did not settle to a usable rendered state',JSON.stringify(academicState));
       }
+      await inspectActiveTemporalControls('academic '+view);
     }
   }catch(e){
     pushFailure('login contract','Full Login -> dashboard interaction regression failed',e.message||String(e));

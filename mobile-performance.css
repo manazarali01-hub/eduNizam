@@ -72,6 +72,16 @@ button,a,input,select,textarea{touch-action:manipulation}
 /* Production mobile form stability */
 input,select,textarea{min-width:0}
 @media(max-width:700px){
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"]{
+    display:block;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    min-height:48px;
+    box-sizing:border-box;
+  }
   input,select,textarea{font-size:16px}
   .form-grid,.grid-2,.analytics-grid,.check-grid{grid-template-columns:minmax(0,1fr)!important}
   .section-head{flex-wrap:wrap}
