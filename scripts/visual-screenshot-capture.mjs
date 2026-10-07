@@ -78,5 +78,6 @@ try{
   console.log('Visual screenshots captured:',routes.length*sizes.length);
 }finally{
   await browser.close().catch(()=>{});
-  await new Promise(resolve=>server.close(()=>resolve()));
+  if(typeof server.closeAllConnections==='function')server.closeAllConnections();
+  server.close();
 }
