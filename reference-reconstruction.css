@@ -792,3 +792,168 @@
   .page-app .admin-daily-actions{gap:8px!important}
   .page-app .admin-daily-actions button{min-height:88px!important;padding:10px!important}
 }
+
+
+/* ---------- Mobile composition refinement · 2026-10-07 · ref4 ----------
+   Final mobile composition refinements from live screenshots:
+   structured homepage navigation, controlled login photo lockup, richer frames. */
+
+@media(max-width:760px){
+  /* Homepage header becomes a deliberate mobile navigation panel. */
+  .page-home .public-nav{
+    gap:9px!important;
+    padding:10px!important;
+    background:rgba(255,255,255,.95)!important;
+    border:1px solid rgba(1,65,28,.20)!important;
+    box-shadow:0 14px 34px rgba(1,65,28,.10)!important;
+  }
+  .page-home .public-brand{
+    width:100%!important;
+    min-height:52px!important;
+    padding:3px 5px 9px!important;
+    border-bottom:1px solid rgba(1,65,28,.10);
+  }
+  .page-home .public-mark{
+    width:42px!important;height:42px!important;flex:0 0 42px!important;
+    border-radius:13px!important;
+  }
+  .page-home .brand-name{
+    font-size:1.05rem!important;
+    line-height:1!important;
+  }
+  .page-home .brand-copy small{
+    margin-top:4px!important;
+    font-size:.58rem!important;
+    letter-spacing:.10em!important;
+  }
+  .page-home .public-links{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+    overflow:visible!important;
+    padding:0!important;
+  }
+  .page-home .public-links a{
+    min-width:0!important;
+    min-height:38px!important;
+    padding:7px 5px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+    border:1px solid rgba(1,65,28,.10)!important;
+    border-radius:11px!important;
+    background:#f8fcfa!important;
+    color:#24584b!important;
+    font-size:11px!important;
+    font-weight:780!important;
+    line-height:1.1!important;
+    white-space:normal!important;
+  }
+  .page-home .public-links .nav-primary{
+    grid-column:span 1!important;
+    background:linear-gradient(135deg,var(--ref-green),var(--ref-green-2))!important;
+    color:#fff!important;
+    border-color:transparent!important;
+  }
+
+  /* Hero gains more visual breathing room without feeling zoomed out. */
+  .page-home .premium-public-hero{
+    padding:13px!important;
+    border-radius:24px!important;
+  }
+  .page-home .hero-copy{
+    padding:19px 16px!important;
+    border-radius:20px!important;
+  }
+  .page-home .hero-copy h1{
+    font-size:clamp(1.95rem,9.4vw,2.85rem)!important;
+    line-height:1!important;
+  }
+  .page-home .public-kicker{
+    font-size:.78rem!important;
+  }
+  .page-home .hero-copy>p{
+    font-size:.92rem!important;
+    line-height:1.55!important;
+  }
+  .page-home .public-cta-row{
+    gap:8px!important;
+  }
+  .page-home .public-cta{
+    min-height:44px!important;
+    padding:10px 13px!important;
+    font-size:.82rem!important;
+  }
+
+  /* Login photo lockup: explicitly cap height so it cannot balloon on mobile. */
+  .auth-page .mobile-brand{
+    height:164px!important;
+    min-height:164px!important;
+    max-height:164px!important;
+    margin-bottom:14px!important;
+    padding:14px!important;
+    overflow:hidden!important;
+    display:flex!important;
+    align-items:flex-end!important;
+    gap:10px!important;
+    background:
+      linear-gradient(180deg,rgba(1,65,28,.06) 0%,rgba(1,65,28,.18) 35%,rgba(1,65,28,.80) 100%),
+      var(--ref-students) center 42%/cover no-repeat!important;
+    border-radius:20px!important;
+    border:1px solid rgba(255,193,7,.42)!important;
+    box-shadow:0 16px 34px rgba(1,65,28,.15)!important;
+  }
+  .auth-page .mobile-brand img{
+    width:64px!important;height:64px!important;
+    flex:0 0 64px!important;
+    margin:0!important;
+    border-radius:17px!important;
+    background:#fff!important;
+    padding:5px!important;
+    box-shadow:0 10px 24px rgba(0,0,0,.18)!important;
+  }
+  .auth-page .mobile-brand strong{
+    margin:0 0 2px!important;
+    font-size:1.65rem!important;
+    line-height:1!important;
+    color:#fff!important;
+    text-shadow:0 3px 16px rgba(0,0,0,.28)!important;
+  }
+  .auth-page .mobile-brand::after{
+    left:14px!important;
+    right:auto!important;
+    top:12px!important;
+    bottom:auto!important;
+    font-size:.98rem!important;
+    line-height:1.15!important;
+    color:#fff4bf!important;
+  }
+
+  /* Framed content sections echo the user's reference boards more clearly. */
+  .page-home :is(.role-showcase,.value-section,.learning-band),
+  .auth-page .card{
+    outline:1px solid rgba(255,193,7,.22)!important;
+    outline-offset:3px!important;
+  }
+}
+
+@media(max-width:420px){
+  .page-home .public-links{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .page-home .public-links .nav-primary{
+    grid-column:auto!important;
+  }
+  .auth-page .mobile-brand{
+    height:150px!important;
+    min-height:150px!important;
+    max-height:150px!important;
+  }
+  .auth-page .mobile-brand img{
+    width:58px!important;height:58px!important;flex-basis:58px!important;
+  }
+  .auth-page .mobile-brand strong{
+    font-size:1.45rem!important;
+  }
+}
