@@ -555,7 +555,8 @@ if(!read('role-access-center.js').includes('data-school-access-approve')) fail.p
 if(!read('role-access-center.js').includes('decideTeacherSchoolRequest')) fail.push('Teacher approval is not linked to Admin.');
 if(!read('core-cloud.js').includes("student_code:s.studentId||fallbackStudentCode(s)")) fail.push('Internal student cloud identity can be lost.');
 const coreCloudWrite=read('core-cloud.js');
-if(!coreCloudWrite.includes(".upsert(payload,{onConflict:'institution_id,local_id'})")) fail.push('Result cloud writes are not idempotent on the local record key.');
+if(!coreCloudWrite.includes(".from('result_records')\n      .insert(payload)")) fail.push('Result cloud writes must remain insert-only.');
+if(!coreCloudWrite.includes("String(error.code||'')==='23505'")||!coreCloudWrite.includes(".eq('local_id',payload.local_id)")) fail.push('Ambiguous result insert retries are not reconciled by exact local record key.');
 if(!coreCloudWrite.includes("await client.storage.from('school-profile-photos').remove([path]).catch(()=>{})")) fail.push('Student photo upload does not clean up a newly uploaded file after DB update failure.');
 const staffCrud=read('staff-center.js');
 if(staffCrud.indexOf("from('staff_profiles').delete().eq('id',id)")>staffCrud.indexOf("if(item?.photoPath)cloud().state.client.storage.from('school-profile-photos').remove([item.photoPath])")) fail.push('Staff delete removes the photo before the database record.');
