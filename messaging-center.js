@@ -17,7 +17,7 @@
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
   let contacts=[],conversations=[],activeId='',messages=[],unreadByConversation={};
   let conversationSearch='',unreadOnly=false,messageSearch='';
-  let contactsInFlight=null,contactsLoadedAt=0,conversationsInFlight=null,conversationsLoadedAt=0,conversationsLoadKey='';
+  let contactsInFlight=null,contactsLoadedAt=0,contactsLoadKey='',conversationsInFlight=null,conversationsLoadedAt=0,conversationsLoadKey='';
 
   function roleLabel(r){return ({head:'Head of Institute',teacher:'Teacher',parent:'Parent / Guardian',student:'Student'}[r]||r)}
   function localUserKey(){return role()+':'+(identity()||'local')}
@@ -40,12 +40,14 @@
   }
   async function loadContacts(force=false){
     if(!cloudReady()){contacts=localContacts();return contacts}
-    if(!force&&contactsInFlight)return contactsInFlight;
-    if(!force&&contactsLoadedAt&&Date.now()-contactsLoadedAt<60000)return contacts;
+    const loadKey=[cfg().institutionId,uid()].join('|');
+    if(contactsInFlight)return contactsInFlight;
+    if(!force&&contactsLoadKey===loadKey&&contactsLoadedAt&&Date.now()-contactsLoadedAt<60000)return contacts;
     contactsInFlight=(async()=>{
       const {data,error}=await cloud().state.client.rpc('list_message_contacts');
       if(error)throw error;
       contacts=(data||[]).map(x=>({targetUserId:x.target_user_id,targetRole:x.target_role,displayName:x.display_name,studentUserId:x.student_user_id,studentName:x.student_name,conversationType:x.conversation_type}));
+      contactsLoadKey=loadKey;
       contactsLoadedAt=Date.now();
       return contacts;
     })();
@@ -70,7 +72,7 @@
       return conversations;
     }
     const loadKey=[cfg().institutionId,uid()].join('|');
-    if(!force&&conversationsInFlight)return conversationsInFlight;
+    if(conversationsInFlight)return conversationsInFlight;
     if(!force&&conversationsLoadKey===loadKey&&conversationsLoadedAt&&Date.now()-conversationsLoadedAt<3000)return conversations;
     conversationsInFlight=(async()=>{
       const c=cloud().state.client;
@@ -198,7 +200,7 @@
     try{await Promise.all([loadContacts(force===true),loadConversations(force===true)]);if(activeId){const exists=conversations.some(x=>String(x.id)===activeId);if(!exists){activeId='';messages=[]}}renderUI()}
     catch(e){root.innerHTML='<div class="empty-state">Inbox error: '+esc(e.message||e)+'</div>'}
   }
-  window.addEventListener('edunizam:auth',()=>{activeId='';messages=[];contactsLoadedAt=0;conversationsLoadedAt=0;render(true)});
+  window.addEventListener('edunizam:auth',()=>{activeId='';messages=[];contactsLoadedAt=0;contactsLoadKey='';conversationsLoadedAt=0;conversationsLoadKey='';render(true)});
   setTimeout(render,0);setTimeout(render,900);
   window.EDUNIZAM_MESSAGING_CENTER={render,openConversation,cloudReady};
 })();
