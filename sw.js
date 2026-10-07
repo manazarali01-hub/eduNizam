@@ -1,4 +1,4 @@
-const CACHE='edunizam-v238-guest-learning'
+const CACHE='edunizam-v239-speed-cache'
 const CORE=[
   './',
   './index.html',
@@ -147,7 +147,21 @@ self.addEventListener('fetch',event=>{
   if(isCode){
     event.respondWith((async()=>{
       const cache=await caches.open(CACHE);
-      // Network-first for code: fixes to CSS/JS must be visible immediately online.
+      const versioned=url.searchParams.has('v');
+      // Versioned code URLs are immutable for that release. Serve them from
+      // Cache Storage immediately; a new release changes ?v= and misses safely.
+      if(versioned){
+        const cached=await cache.match(event.request);
+        if(cached)return cached;
+        try{
+          const response=await fetch(event.request,{cache:'no-store'});
+          if(response?.ok)await cache.put(event.request,response.clone());
+          return response;
+        }catch(_){
+          return Response.error();
+        }
+      }
+      // Unversioned code stays network-first so emergency fixes remain fresh.
       try{
         const response=await fetch(event.request,{cache:'no-store'});
         if(response?.ok)await cache.put(event.request,response.clone());
