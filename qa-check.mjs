@@ -133,6 +133,22 @@ for(const marker of [
 const surfacePhase=visual.slice(visual.indexOf('APPEARANCE SURFACE STORYTELLING · PHASE P-Q 2026-10-07'));
 if(/\.sidebar\b|\.nav-item\b/.test(surfacePhase)) fail.push('Premium surface storytelling must not modify the locked sidebar/navigation.');
 
+
+for(const marker of [
+  'FINAL LUXURY COMPOSITION · PHASE R-S 2026-10-07',
+  '--en-reading-width:76ch',
+  '.page-home .hero-copy h1',
+  '.premium-public-page .public-section>p',
+  '.learning-sky .searchbox input',
+  '.auth-page .role',
+  '.page-app .main table',
+  '@media(max-width:760px)'
+]){
+  if(!visual.includes(marker)) fail.push('Final luxury composition marker missing: '+marker);
+}
+const luxuryPhase=visual.slice(visual.indexOf('FINAL LUXURY COMPOSITION · PHASE R-S 2026-10-07'));
+if(/\.sidebar\b|\.nav-item\b/.test(luxuryPhase)) fail.push('Final luxury composition must not modify the locked authenticated navigation rail.');
+
 const authBridgeMobileFix=read('auth-bridge.js');
 const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
