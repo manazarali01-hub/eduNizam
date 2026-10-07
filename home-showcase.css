@@ -503,3 +503,100 @@
   .page-home .public-footer{width:calc(100% - 12px)!important}
   .page-home .public-footer nav{grid-template-columns:1fr!important}
 }
+
+
+/* ===== Live Visual QA + Final Surface Correction · Phase O · 2026-10-07 ===== */
+/* Keep every public destination reachable on phones, strengthen the preferred
+   student-photo crop, and remove the last small-screen compression points. */
+
+/* Stronger hero crop without changing the selected student photograph. */
+.page-home .hero-image-wrap img{
+  transform:scale(1.18)!important;
+  transform-origin:center 38%!important;
+}
+@media(hover:hover){
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.20)!important}
+}
+
+/* Keep the full public navigation visible instead of silently hiding links. */
+@media(max-width:720px){
+  .page-home .public-links{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    overflow:visible!important;
+    padding:0!important;
+  }
+  .page-home .public-links a,
+  .page-home .public-links a:nth-child(n+3){
+    display:flex!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:44px!important;
+    padding:10px 9px!important;
+    justify-content:center!important;
+    text-align:center!important;
+    white-space:normal!important;
+    line-height:1.25!important;
+  }
+
+  /* Preserve the photo as a focal point, but avoid text/caption collisions. */
+  .page-home .hero-image-wrap{
+    min-height:330px!important;
+  }
+  .page-home .hero-image-wrap img{
+    transform:scale(1.14)!important;
+    object-position:center 38%!important;
+  }
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.14)!important}
+  .page-home .portrait-caption{
+    left:14px!important;
+    right:14px!important;
+    bottom:14px!important;
+    max-width:calc(100% - 28px)!important;
+    padding:14px 15px!important;
+    border-radius:15px!important;
+  }
+  .page-home .portrait-caption strong{
+    max-width:22ch!important;
+    line-height:1.24!important;
+  }
+
+  /* Make section transitions feel deliberate rather than compressed. */
+  .page-home .role-showcase,
+  .page-home .value-section,
+  .page-home .learning-band{
+    margin-top:18px!important;
+  }
+  .page-home .section-heading{
+    gap:12px!important;
+  }
+  .page-home .section-heading p{
+    margin-top:0!important;
+  }
+}
+
+@media(max-width:430px){
+  .page-home .public-links{gap:7px!important}
+  .page-home .public-links a,
+  .page-home .public-links a:nth-child(n+3){
+    min-height:42px!important;
+    padding:9px 7px!important;
+    font-size:13.5px!important;
+  }
+  .page-home .hero-image-wrap{min-height:295px!important}
+  .page-home .hero-image-wrap img{transform:scale(1.12)!important}
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.12)!important}
+  .page-home .portrait-caption{padding:12px 13px!important}
+  .page-home .portrait-caption span{font-size:11.5px!important}
+  .page-home .portrait-caption strong{font-size:1.06rem!important}
+}
+
+@media(max-width:360px){
+  .page-home .public-links a,
+  .page-home .public-links a:nth-child(n+3){
+    font-size:13px!important;
+    padding-inline:6px!important;
+  }
+  .page-home .hero-image-wrap{min-height:276px!important}
+}
