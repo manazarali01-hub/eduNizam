@@ -93,6 +93,18 @@ for(const marker of [
   if(!visual.includes(marker)) fail.push('Appearance refinement marker missing: '+marker);
 }
 
+for(const marker of [
+  'Appearance Depth Pass · Phase I',
+  '.page-home .role-tab.is-active[data-role="teacher"]',
+  '.page-home .value-section .card-index',
+  'Appearance Depth Pass · Phase J-K',
+  '.page-app #dashboard>.cards>.stat:before',
+  '.learning-sky .tab.active',
+  '--auth-role-accent'
+]){
+  if(!visual.includes(marker)&&!read('home-showcase.css').includes(marker)) fail.push('Appearance depth marker missing: '+marker);
+}
+
 const authBridgeMobileFix=read('auth-bridge.js');
 const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
