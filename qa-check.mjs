@@ -83,6 +83,16 @@ for(const marker of [
 ]){
   if(!visual.includes(marker)) fail.push('Final visual polish marker missing: '+marker);
 }
+for(const marker of [
+  'Appearance Roadmap Continuation · Phase F-H',
+  '--view-photo:var(--en-photo-stationery)',
+  '.page-app .view.active > .card:nth-of-type',
+  'hard contrast / typography guards',
+  '@media(max-width:430px)'
+]){
+  if(!visual.includes(marker)) fail.push('Appearance refinement marker missing: '+marker);
+}
+
 const authBridgeMobileFix=read('auth-bridge.js');
 const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
