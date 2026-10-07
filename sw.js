@@ -1,4 +1,4 @@
-const CACHE='edunizam-v255-diverse-education-scenes'
+const CACHE='edunizam-v256-photo-glass-v24'
 const CORE=[
   './',
   './index.html',
