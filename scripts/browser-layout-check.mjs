@@ -1098,9 +1098,22 @@ try{
       return {available:true,seen,ready:loader.isReady('assistant')};
     },5000);
     if(!prefetchContract.available||
-       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-speed1/.test(x.url)&&x.cache==='force-cache')||
+       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-msgscale1/.test(x.url)&&x.cache==='force-cache')||
        prefetchContract.ready){
       pushFailure('navigation performance','Feature prefetch did not warm versioned code without executing it',JSON.stringify(prefetchContract));
+    }
+
+    const messagingScaleContract=await boundedEvaluate('inspect messaging scale contract',async()=>{
+      const source=await fetch('/messaging-center.js').then(r=>r.text());
+      return {
+        scopedUnread:source.includes(".in('conversation_id',batch)")&&source.includes(".neq('sender_user_id',uid())"),
+        batched:source.includes("start+=100"),
+        dedupe:source.includes("conversationsInFlight")&&source.includes("Date.now()-conversationsLoadedAt<3000"),
+        contactsCache:source.includes("Date.now()-contactsLoadedAt<60000")
+      };
+    },5000);
+    if(!messagingScaleContract.scopedUnread||!messagingScaleContract.batched||!messagingScaleContract.dedupe||!messagingScaleContract.contactsCache){
+      pushFailure('messaging performance','Inbox scale guards are missing',JSON.stringify(messagingScaleContract));
     }
 
     const intentPrefetch=await boundedEvaluate('inspect navigation intent prefetch',async()=>{
