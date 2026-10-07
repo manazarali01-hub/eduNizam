@@ -11,6 +11,8 @@
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const isStaff=()=>['teacher','head'].includes(role());
   const isHead=()=>role()==='head';
+  let noticeSaveInFlight=false;
+  const noticeDeleteInFlight=new Set();
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
   function write(v){localStorage.setItem(KEY,JSON.stringify(v))}
@@ -86,16 +88,32 @@
     if(!title||!body||!audience)return alert('Title, notice details aur audience required hain.');
     const className=$('nbClass')?.value||'',sectionName=$('nbSection')?.value.trim()||'';
     if(audience==='class'&&!className)return alert('Specific Class ke liye class select karein.');
-    const rows=read(),old=rows.find(x=>String(x.id)===String(id));
-    let item={id:id||String(Date.now()),title,body,audience,className:audience==='class'?className:'',sectionName:audience==='class'?sectionName:'',priority:$('nbPriority')?.value||'Normal',pinned:!!$('nbPinned')?.checked,validUntil:$('nbValidUntil')?.value||'',createdBy:old?.createdBy||cloud()?.state?.user?.id||'',creatorKey:old?.creatorKey||(!cloudReady()?meKey():''),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
-    try{if(cloudReady())item=await saveCloud(item)}catch(e){return alert('Cloud notice save failed: '+(e.message||e))}
-    write(rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
+    const btn=$('nbSave');if(noticeSaveInFlight||btn?.disabled)return;
+    noticeSaveInFlight=true;if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
+    try{
+      const rows=read(),old=rows.find(x=>String(x.id)===String(id));
+      let item={id:id||String(Date.now()),title,body,audience,className:audience==='class'?className:'',sectionName:audience==='class'?sectionName:'',priority:$('nbPriority')?.value||'Normal',pinned:!!$('nbPinned')?.checked,validUntil:$('nbValidUntil')?.value||'',createdBy:old?.createdBy||cloud()?.state?.user?.id||'',creatorKey:old?.creatorKey||(!cloudReady()?meKey():''),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
+      if(cloudReady())item=await saveCloud(item);
+      write(rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
+    }catch(e){alert('Cloud notice save failed: '+(e.message||e))}
+    finally{
+      noticeSaveInFlight=false;
+      if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy')}
+    }
   }
   function edit(id){const x=read().find(r=>String(r.id)===String(id));if(!x||!canManage(x))return;const b=$('nbEditor');if(b)b.innerHTML=editor(x);bindEditor()}
-  async function remove(id){
-    const x=read().find(r=>String(r.id)===String(id));if(!x||!canManage(x)||!confirm('Delete this notice?'))return;
-    try{if(cloudReady())await deleteCloud(id)}catch(e){return alert('Cloud delete failed: '+(e.message||e))}
-    write(read().filter(r=>String(r.id)!==String(id)));render();
+  async function remove(id,btn){
+    const key=String(id||'');if(noticeDeleteInFlight.has(key)||btn?.disabled)return;
+    const x=read().find(r=>String(r.id)===key);if(!x||!canManage(x)||!confirm('Delete this notice?'))return;
+    noticeDeleteInFlight.add(key);if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
+    try{
+      if(cloudReady())await deleteCloud(id);
+      write(read().filter(r=>String(r.id)!==key));render();
+    }catch(e){alert('Cloud delete failed: '+(e.message||e))}
+    finally{
+      noticeDeleteInFlight.delete(key);
+      if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy')}
+    }
   }
   function printNotice(x){
     const st=settings(),w=window.open('','_blank','width=800,height=700');if(!w)return alert('Popup blocked.');
@@ -110,7 +128,7 @@
   function bind(rows){
     bindEditor();$('nbArchiveToggle')?.addEventListener('change',render);
     document.querySelectorAll('[data-nb-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.nbEdit));
-    document.querySelectorAll('[data-nb-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.nbDelete));
+    document.querySelectorAll('[data-nb-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.nbDelete,b));
     document.querySelectorAll('[data-nb-print]').forEach(b=>b.onclick=()=>{const x=rows.find(r=>String(r.id)===String(b.dataset.nbPrint));if(x)printNotice(x)});
   }
   async function render(){

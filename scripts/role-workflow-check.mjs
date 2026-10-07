@@ -98,7 +98,12 @@ async function teacherDiary(){
           maybeSingle(){return Promise.resolve({data:null,error:null})},
           update(payload){sessionStorage.setItem('qa_diary_update',JSON.stringify(payload));return q},
           delete(){return q},
-          upsert(payload,options){sessionStorage.setItem('qa_diary_upsert',JSON.stringify({payload,options}));return Promise.resolve({data:null,error:null})},
+          upsert(payload,options){
+            const count=Number(sessionStorage.getItem('qa_diary_upsert_count')||'0')+1;
+            sessionStorage.setItem('qa_diary_upsert_count',String(count));
+            sessionStorage.setItem('qa_diary_upsert',JSON.stringify({payload,options}));
+            return new Promise(resolve=>setTimeout(()=>resolve({data:null,error:null}),250));
+          },
           then(resolve,reject){
             let data=[];
             if(table==='class_sections')data=[{class_name:'5',section_name:'A'}];
@@ -116,15 +121,20 @@ async function teacherDiary(){
     await page.locator('#diaryTopic').fill('Fractions');
     await page.locator('#diaryHomework').fill('Exercise 4');
     await page.locator('#saveDiary').tap();
+    await page.waitForFunction(()=>document.getElementById('saveDiary')?.disabled===true);
+    await page.evaluate(()=>document.getElementById('saveDiary')?.click());
     await page.waitForFunction(()=>!!sessionStorage.getItem('qa_diary_upsert'));
+    await page.waitForFunction(()=>document.getElementById('saveDiary')?.disabled===false);
     const state=await page.evaluate(()=>({
       saved:JSON.parse(sessionStorage.getItem('qa_diary_upsert')||'null'),
+      upsertCount:Number(sessionStorage.getItem('qa_diary_upsert_count')||'0'),
+      disabled:document.getElementById('saveDiary')?.disabled||false,
       buttonText:document.getElementById('saveDiary')?.textContent||'',
       alert:sessionStorage.getItem('qa_last_alert')||''
     }));
     const p=state.saved?.payload;
-    if(!p||p.institution_id!=='school-1'||p.teacher_user_id!=='teacher-1'||p.class_name!=='5'||p.section_name!=='A'||p.subject!=='Mathematics'||p.topic!=='Fractions'){
-      fail('teacher diary','Teacher diary did not save the assigned class payload',JSON.stringify(state));
+    if(!p||p.institution_id!=='school-1'||p.teacher_user_id!=='teacher-1'||p.class_name!=='5'||p.section_name!=='A'||p.subject!=='Mathematics'||p.topic!=='Fractions'||state.upsertCount!==1||state.disabled){
+      fail('teacher diary','Teacher diary save payload or duplicate-submit recovery failed',JSON.stringify(state));
     }
   }catch(error){fail('teacher diary','Teacher diary interaction failed',error?.message||String(error))}
   finally{await context.close()}
