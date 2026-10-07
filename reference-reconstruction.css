@@ -957,3 +957,183 @@
     font-size:1.45rem!important;
   }
 }
+
+
+/* ---------- Live screenshot correction · 2026-10-07 · ref5 ----------
+   Grounded in the user's 21:11–21:13 live mobile screenshots. */
+
+/* LOGIN: stop mid-word breaking inside the two-column role selector. */
+@media(max-width:760px){
+  .auth-page #roleView .roles .role{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:flex-start!important;
+    min-width:0!important;
+    min-height:108px!important;
+    padding:13px!important;
+    gap:0!important;
+    text-align:left!important;
+  }
+  .auth-page #roleView .roles .role .icon{
+    display:grid!important;
+    place-items:center!important;
+    flex:0 0 auto!important;
+    margin:0 0 8px!important;
+  }
+  .auth-page #roleView .roles .role strong,
+  .auth-page #roleView .roles .role small{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    white-space:normal!important;
+    word-break:normal!important;
+    overflow-wrap:normal!important;
+    hyphens:none!important;
+  }
+  .auth-page #roleView .roles .role strong{
+    font-size:.94rem!important;
+    line-height:1.15!important;
+  }
+  .auth-page #roleView .roles .role small{
+    font-size:.72rem!important;
+    line-height:1.32!important;
+  }
+  .auth-page #roleView .roles #admissionApplicantRole,
+  .auth-page #roleView .roles .guest-role{
+    grid-column:1/-1!important;
+    min-height:88px!important;
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr)!important;
+    grid-template-rows:auto auto!important;
+    column-gap:12px!important;
+    align-items:center!important;
+  }
+  .auth-page #roleView .roles #admissionApplicantRole .icon,
+  .auth-page #roleView .roles .guest-role .icon{
+    grid-row:1/3!important;
+    margin:0!important;
+  }
+  .auth-page #roleView .roles #admissionApplicantRole strong,
+  .auth-page #roleView .roles .guest-role strong{
+    align-self:end!important;
+  }
+  .auth-page #roleView .roles #admissionApplicantRole small,
+  .auth-page #roleView .roles .guest-role small{
+    align-self:start!important;
+  }
+}
+
+/* APP: exact selectors beat the legacy blue dock rules. */
+@media(max-width:950px){
+  body.app-page.page-app #premiumMobileDock.premium-mobile-dock{
+    display:flex!important;
+    width:min(520px,calc(100% - 18px))!important;
+    min-height:64px!important;
+    padding:5px!important;
+    border:2px solid rgba(1,65,28,.46)!important;
+    border-radius:18px!important;
+    background:rgba(255,255,255,.965)!important;
+    box-shadow:0 12px 30px rgba(1,65,28,.18)!important;
+    -webkit-backdrop-filter:blur(16px) saturate(1.08)!important;
+    backdrop-filter:blur(16px) saturate(1.08)!important;
+  }
+  body.app-page.page-app #premiumMobileDock.premium-mobile-dock>button{
+    min-width:0!important;
+    min-height:52px!important;
+    padding:5px 2px!important;
+    border:0!important;
+    border-radius:12px!important;
+    background:transparent!important;
+    color:#2c6658!important;
+    box-shadow:none!important;
+  }
+  body.app-page.page-app #premiumMobileDock.premium-mobile-dock>button.active{
+    background:linear-gradient(135deg,#01411c,#07814a)!important;
+    color:#fff!important;
+    box-shadow:0 7px 17px rgba(1,65,28,.20)!important;
+  }
+  body.app-page.page-app #premiumMobileDock.premium-mobile-dock>button strong{
+    color:inherit!important;
+    font-size:clamp(10px,2.65vw,12px)!important;
+    line-height:1.06!important;
+    white-space:normal!important;
+    word-break:normal!important;
+    overflow-wrap:normal!important;
+    text-overflow:clip!important;
+    text-shadow:none!important;
+  }
+  body.app-page.page-app #premiumMobileDock .premium-dock-icon{
+    color:inherit!important;
+  }
+
+  /* Form density: retain 44px+ touch targets without oversized empty fields. */
+  body.app-page.page-app .view.active :is(input,select,textarea){
+    min-height:46px!important;
+    padding:10px 12px!important;
+    border-radius:13px!important;
+    font-size:16px!important;
+    line-height:1.25!important;
+  }
+  body.app-page.page-app .view.active textarea{
+    min-height:92px!important;
+  }
+  body.app-page.page-app .view.active .field{
+    gap:5px!important;
+  }
+}
+
+/* HOMEPAGE mobile nav — these rules are intentionally high-specificity because
+   home-showcase.css used to overwrite the reference reconstruction. */
+@media(max-width:760px){
+  body.gold-home.page-home header.public-nav{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    padding:10px!important;
+    border-radius:18px!important;
+    background:rgba(255,255,255,.97)!important;
+  }
+  body.gold-home.page-home header.public-nav .public-brand{
+    width:100%!important;
+    min-height:50px!important;
+    padding:2px 4px 8px!important;
+    border-bottom:1px solid rgba(1,65,28,.10)!important;
+  }
+  body.gold-home.page-home header.public-nav .public-links{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+    width:100%!important;
+    overflow:visible!important;
+    padding:0!important;
+  }
+  body.gold-home.page-home header.public-nav .public-links a{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:0!important;
+    min-height:38px!important;
+    padding:7px 5px!important;
+    border:1px solid rgba(1,65,28,.11)!important;
+    border-radius:10px!important;
+    background:#f7fcf9!important;
+    color:#24584b!important;
+    font-size:11px!important;
+    font-weight:800!important;
+    line-height:1.12!important;
+    text-align:center!important;
+    white-space:normal!important;
+  }
+  body.gold-home.page-home header.public-nav .public-links a.nav-primary{
+    color:#fff!important;
+    background:linear-gradient(135deg,#01411c,#07814a)!important;
+    border-color:transparent!important;
+  }
+}
+@media(max-width:420px){
+  body.gold-home.page-home header.public-nav .public-links{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
