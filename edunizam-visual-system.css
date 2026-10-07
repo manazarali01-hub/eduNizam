@@ -3245,3 +3245,116 @@ body.app-page{
       var(--view-photo) center 36% / cover no-repeat!important;
   }
 }
+
+
+/* ---------- HOME + PUBLIC BACKGROUND VISIBILITY FIX 2026-10-07 ----------
+   The public homepage and public information pages must visibly show education
+   photography, not only contain technically-present images hidden by opaque
+   overlays. Use bundled local assets for reliable rendering. */
+body.gold-home{
+  background:
+    linear-gradient(180deg,rgba(239,248,252,.72) 0%,rgba(247,251,253,.78) 52%,rgba(250,247,239,.76) 100%),
+    url("assets/edunizam-login-children.webp") center top / cover fixed no-repeat!important;
+}
+body.premium-public-page{
+  background:
+    linear-gradient(180deg,rgba(241,249,252,.74),rgba(248,251,253,.82)),
+    url("assets/edunizam-girl-hero.webp") center top / cover fixed no-repeat!important;
+}
+body.learning-sky{
+  background:
+    linear-gradient(180deg,rgba(240,248,252,.72),rgba(247,251,253,.82)),
+    url("assets/edunizam-girl-hero.webp") center top / cover fixed no-repeat!important;
+}
+
+/* Homepage sections keep the photo clearly visible through controlled glass. */
+.page-home .premium-public-hero{
+  background:
+    linear-gradient(102deg,rgba(255,255,255,.94) 0%,rgba(247,252,255,.86) 47%,rgba(239,248,252,.56) 100%),
+    url("assets/edunizam-login-children.webp") center 38% / cover no-repeat!important;
+}
+.page-home .experience-strip{
+  background:rgba(255,255,255,.70)!important;
+  backdrop-filter:blur(8px);
+}
+.page-home .role-showcase{
+  background:
+    linear-gradient(110deg,rgba(230,247,240,.86) 0%,rgba(237,248,252,.72) 58%,rgba(237,248,252,.48) 100%),
+    url("assets/edunizam-login-children.webp") center 36% / cover no-repeat!important;
+  box-shadow:0 18px 46px rgba(18,72,105,.10)!important;
+}
+.page-home .value-section{
+  background:
+    linear-gradient(110deg,rgba(255,245,219,.88) 0%,rgba(255,251,242,.76) 58%,rgba(250,247,239,.50) 100%),
+    url("assets/edunizam-girl-hero.webp") center 40% / cover no-repeat!important;
+  box-shadow:0 18px 46px rgba(18,72,105,.09)!important;
+}
+.page-home .learning-band{
+  background:
+    linear-gradient(105deg,rgba(7,35,59,.91) 0%,rgba(20,66,107,.80) 47%,rgba(63,77,145,.58) 100%),
+    url("assets/edunizam-login-children.webp") center 36% / cover no-repeat!important;
+}
+
+/* Public informational pages: local photos with a readable but visible overlay. */
+.premium-public-page .public-hero{
+  background:
+    linear-gradient(102deg,rgba(255,255,255,.94) 0%,rgba(248,252,255,.86) 53%,rgba(232,245,250,.56) 100%),
+    url("assets/edunizam-girl-hero.webp") center 40% / cover no-repeat!important;
+}
+.premium-public-page .public-card{
+  background-color:rgba(255,255,255,.88)!important;
+}
+.premium-public-page .public-section:not(.prose){
+  background-color:rgba(255,255,255,.42);
+  border-radius:24px;
+}
+
+/* Guest learning receives the same visible local-image treatment. */
+.page-learning .hero-card,
+.learning-sky .hero-card{
+  background:
+    linear-gradient(100deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.86) 52%,rgba(239,247,252,.54) 100%),
+    url("assets/edunizam-girl-hero.webp") center 38% / cover no-repeat!important;
+}
+.learning-sky .quick-card,
+.learning-sky .card{
+  background-color:rgba(255,255,255,.88)!important;
+}
+
+/* Phones: imagery stays visible but no fixed-background repaint cost. */
+@media(max-width:720px){
+  body.gold-home{
+    background:
+      linear-gradient(180deg,rgba(239,248,252,.70),rgba(247,251,253,.78)),
+      url("assets/edunizam-login-children.webp") center top / cover scroll no-repeat!important;
+  }
+  body.premium-public-page,
+  body.learning-sky{
+    background:
+      linear-gradient(180deg,rgba(241,249,252,.72),rgba(248,251,253,.80)),
+      url("assets/edunizam-girl-hero.webp") center top / cover scroll no-repeat!important;
+  }
+  .page-home .premium-public-hero{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.90) 0%,rgba(247,252,255,.76) 56%,rgba(235,247,251,.46) 100%),
+      url("assets/edunizam-login-children.webp") center 34% / cover no-repeat!important;
+  }
+  .page-home .role-showcase{
+    background:
+      linear-gradient(180deg,rgba(231,248,241,.84),rgba(239,249,252,.66)),
+      url("assets/edunizam-login-children.webp") center 34% / cover no-repeat!important;
+  }
+  .page-home .value-section{
+    background:
+      linear-gradient(180deg,rgba(255,247,225,.86),rgba(255,252,244,.68)),
+      url("assets/edunizam-girl-hero.webp") center 36% / cover no-repeat!important;
+  }
+  .premium-public-page .public-hero,
+  .page-learning .hero-card,
+  .learning-sky .hero-card{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.90),rgba(245,251,253,.68)),
+      url("assets/edunizam-girl-hero.webp") center 34% / cover no-repeat!important;
+  }
+  .page-home .experience-strip{background:rgba(255,255,255,.64)!important}
+}
