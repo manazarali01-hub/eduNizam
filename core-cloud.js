@@ -461,12 +461,21 @@
 
   async function deleteStudentByLocalId(localId){
     const c=await requireHead(),client=c.state.client;
-    const {data,error}=await client.rpc('delete_core_student_v1',{
-      p_institution_id:cfg.institutionId,
-      p_local_id:Number(localId)
-    });
-    if(error)throw error;
-    const row=Array.isArray(data)?data[0]:data;
+    const execute=async({signal}={})=>{
+      let request=client.rpc('delete_core_student_v1',{
+        p_institution_id:cfg.institutionId,
+        p_local_id:Number(localId)
+      });
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;
+      if(result?.error)throw result.error;
+      return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    const result=runtime
+      ?await runtime.run('student-delete:'+cfg.institutionId+':'+Number(localId),execute,{timeout:8000,retries:1,label:'Delete student'})
+      :await execute({});
+    const row=Array.isArray(result.data)?result.data[0]:result.data;
     return {
       ok:true,
       deleted:!!row?.deleted,
