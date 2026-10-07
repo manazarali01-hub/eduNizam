@@ -1,0 +1,42 @@
+name: Phase O Live Visual Capture
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright runtime
+        shell: bash
+        run: |
+          rm -rf /tmp/edunizam-pw
+          npm install --prefix /tmp/edunizam-pw --no-save playwright@1.55.0
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$CHROME" ]; then
+            echo "EDUNIZAM_BROWSER=$CHROME" >> "$GITHUB_ENV"
+          else
+            node /tmp/edunizam-pw/node_modules/playwright/cli.js install --with-deps chromium
+          fi
+          echo "PLAYWRIGHT_MODULE=file:///tmp/edunizam-pw/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+      - name: Capture production screenshots
+        run: node scripts/live-visual-capture.mjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-o-live-visual-qa
+          path: artifacts/live-visual-qa
+          if-no-files-found: error
+          retention-days: 3
