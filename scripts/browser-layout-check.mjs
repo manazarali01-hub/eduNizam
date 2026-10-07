@@ -1521,6 +1521,23 @@ try{
     await boundedEvaluate('open students action view',()=>window.EDUNIZAM_APP_NAV.setView('students'));
     await loginStep('add student action',async()=>{
       await loginFlowPage.locator('#addStudentBtn').tap({timeout:5000});
+      const colorfulForm=await boundedEvaluate('inspect colorful student form contract',()=>[...document.querySelectorAll('#studentFormWrap > input, #studentFormWrap > select, #studentFormWrap > textarea')].slice(0,18).map(el=>{
+        const cs=getComputedStyle(el);
+        return {
+          id:el.id,
+          backgroundImage:cs.backgroundImage,
+          backgroundColor:cs.backgroundColor,
+          color:cs.color,
+          borderColor:cs.borderColor
+        };
+      }),5000);
+      const colorfulBackgrounds=[...new Set(colorfulForm.map(x=>x.backgroundImage).filter(x=>x&&x!=='none'))];
+      if(colorfulForm.length<10||colorfulBackgrounds.length<4){
+        pushFailure('colorful form visual','Student form does not render enough distinct pastel input treatments',JSON.stringify({count:colorfulForm.length,backgrounds:colorfulBackgrounds,fields:colorfulForm.slice(0,10)}));
+      }
+      if(colorfulForm.some(x=>/rgba?\(0, 0, 0/.test(x.color))){
+        pushFailure('colorful form visual','Student form text color regressed to unsafe black/transparent rendering',JSON.stringify(colorfulForm.slice(0,10)));
+      }
       await loginFlowPage.locator('#studentName').fill('QA New Student');
       await loginFlowPage.locator('#fatherName').fill('QA Parent');
       await loginFlowPage.locator('#studentClass').fill('6');
