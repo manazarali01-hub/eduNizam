@@ -10,6 +10,18 @@
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const isStaff=()=>['teacher','head'].includes(role());
   const isHead=()=>role()==='head';
+  let lessonPlanSaveInFlight=false,syllabusUnitSaveInFlight=false;
+  const lessonDeleteInFlight=new Set();
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
+    else{btn.disabled=false;btn.removeAttribute('aria-busy');if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}}
+  }
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   function read(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}}
   function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
@@ -39,24 +51,58 @@
   async function pullCloud(){
     if(!cloudReady())return;
     const c=cloud().state.client,id=cfg().institutionId;
-    const [p,u]=await Promise.all([
-      c.from('lesson_plans').select('*').eq('institution_id',id).order('week_start',{ascending:false}),
-      c.from('syllabus_progress_units').select('*').eq('institution_id',id).order('subject').order('unit_title')
-    ]);
-    if(p.error)throw p.error;if(u.error)throw u.error;
+    const {p,u}=await runCloud('lesson-syllabus-load:'+id,'Lesson plans and syllabus',async({signal}={})=>{
+      const [p,u]=await Promise.all([
+        withSignal(c.from('lesson_plans').select('*').eq('institution_id',id).order('week_start',{ascending:false}),signal),
+        withSignal(c.from('syllabus_progress_units').select('*').eq('institution_id',id).order('subject').order('unit_title'),signal)
+      ]);
+      if(p.error)throw p.error;if(u.error)throw u.error;return {p,u};
+    },{timeout:7000,retries:1});
     write(PLAN_KEY,(p.data||[]).map(mapPlan));write(UNIT_KEY,(u.data||[]).map(mapUnit));
   }
   async function savePlanCloud(item){
-    const payload={institution_id:cfg().institutionId,class_name:item.className,section_name:item.sectionName||null,subject:item.subject,week_start:item.weekStart,topic:item.topic,objectives:item.objectives||null,activities:item.activities||null,homework_note:item.homeworkNote||null,status:item.status,created_by:item.createdBy||cloud().state.user.id,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
-    const q=item.cloudExisting?cloud().state.client.from('lesson_plans').update(payload).eq('id',item.id):cloud().state.client.from('lesson_plans').insert(payload);
-    const {data,error}=await q.select().single();if(error)throw error;return mapPlan(data);
+    const inst=cfg().institutionId,payload={institution_id:inst,class_name:item.className,section_name:item.sectionName||null,subject:item.subject,week_start:item.weekStart,topic:item.topic,objectives:item.objectives||null,activities:item.activities||null,homework_note:item.homeworkNote||null,status:item.status,created_by:item.createdBy||cloud().state.user.id,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
+    const writeOnce=async({signal}={})=>{
+      let q=item.cloudExisting?cloud().state.client.from('lesson_plans').update(payload).eq('institution_id',inst).eq('id',item.id):cloud().state.client.from('lesson_plans').insert(payload);
+      q=q.select().single();q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return mapPlan(data);
+    };
+    try{return await runCloud('lesson-plan-save:'+inst+':'+String(item.id||item.className+':'+item.weekStart+':'+item.subject),'Save lesson plan',writeOnce,{timeout:8000,retries:item.cloudExisting?1:0})}
+    catch(error){
+      if(item.cloudExisting)throw error;
+      const reconcile=async({signal}={})=>{
+        let q=cloud().state.client.from('lesson_plans').select('*').eq('institution_id',inst).eq('class_name',item.className).eq('subject',item.subject).eq('week_start',item.weekStart).eq('topic',item.topic).eq('created_by',payload.created_by);
+        q=item.sectionName?q.eq('section_name',item.sectionName):q.is('section_name',null);q=q.order('created_at',{ascending:false}).limit(2);q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out.data||[];
+      };
+      const rows=await runCloud('lesson-plan-reconcile:'+inst+':'+item.className+':'+item.weekStart+':'+item.subject,'Reconcile lesson plan',reconcile,{timeout:5000,retries:1});
+      if(rows.length===1)return mapPlan(rows[0]);throw error;
+    }
   }
   async function saveUnitCloud(item){
-    const payload={institution_id:cfg().institutionId,class_name:item.className,section_name:item.sectionName||null,subject:item.subject,unit_title:item.unitTitle,target_end:item.targetEnd||null,completion_percent:item.completion,status:item.status,family_visible:item.familyVisible,created_by:item.createdBy||cloud().state.user.id,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
-    const q=item.cloudExisting?cloud().state.client.from('syllabus_progress_units').update(payload).eq('id',item.id):cloud().state.client.from('syllabus_progress_units').insert(payload);
-    const {data,error}=await q.select().single();if(error)throw error;return mapUnit(data);
+    const inst=cfg().institutionId,payload={institution_id:inst,class_name:item.className,section_name:item.sectionName||null,subject:item.subject,unit_title:item.unitTitle,target_end:item.targetEnd||null,completion_percent:item.completion,status:item.status,family_visible:item.familyVisible,created_by:item.createdBy||cloud().state.user.id,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
+    const writeOnce=async({signal}={})=>{
+      let q=item.cloudExisting?cloud().state.client.from('syllabus_progress_units').update(payload).eq('institution_id',inst).eq('id',item.id):cloud().state.client.from('syllabus_progress_units').insert(payload);
+      q=q.select().single();q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return mapUnit(data);
+    };
+    try{return await runCloud('syllabus-unit-save:'+inst+':'+String(item.id||item.className+':'+item.subject+':'+item.unitTitle),'Save syllabus unit',writeOnce,{timeout:8000,retries:item.cloudExisting?1:0})}
+    catch(error){
+      if(item.cloudExisting)throw error;
+      const reconcile=async({signal}={})=>{
+        let q=cloud().state.client.from('syllabus_progress_units').select('*').eq('institution_id',inst).eq('class_name',item.className).eq('subject',item.subject).eq('unit_title',item.unitTitle).eq('created_by',payload.created_by);
+        q=item.sectionName?q.eq('section_name',item.sectionName):q.is('section_name',null);q=q.order('created_at',{ascending:false}).limit(2);q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out.data||[];
+      };
+      const rows=await runCloud('syllabus-unit-reconcile:'+inst+':'+item.className+':'+item.subject+':'+item.unitTitle,'Reconcile syllabus unit',reconcile,{timeout:5000,retries:1});
+      if(rows.length===1)return mapUnit(rows[0]);throw error;
+    }
   }
-  async function deleteCloud(table,id){const {error}=await cloud().state.client.from(table).delete().eq('id',id);if(error)throw error}
+  async function deleteCloud(table,id){
+    const inst=cfg().institutionId;
+    return runCloud('lesson-delete:'+table+':'+inst+':'+id,'Delete lesson record',async({signal}={})=>{
+      let q=cloud().state.client.from(table).delete().eq('institution_id',inst).eq('id',id);q=withSignal(q,signal);
+      const {error}=await q;if(error)throw error;
+    },{timeout:8000,retries:1});
+  }
   function planEditor(edit=null){
     if(!isStaff())return '<div class="coverage-note">Aap ko sirf Published lesson plans aur family-visible syllabus progress dikhaya ja raha hai.</div>';
     return '<article class="card"><h3>'+(edit?'Edit Weekly Lesson Plan':'Create Weekly Lesson Plan')+'</h3><div class="form-grid">'+
@@ -101,29 +147,41 @@
     return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.status)+'</span></div><h3>'+esc(x.unitTitle)+'</h3><p class="muted">Class '+esc(x.className)+(x.sectionName?' - '+esc(x.sectionName):'')+(x.targetEnd?' · Target '+esc(x.targetEnd):'')+'</p><p><strong>Completion:</strong> '+Number(x.completion||0)+'%</p><div style="height:9px;border-radius:999px;background:#e6ecef;overflow:hidden"><div style="height:100%;width:'+Math.min(100,Math.max(0,Number(x.completion||0)))+'%;background:currentColor"></div></div>'+(canManage?'<div class="paper-actions" style="margin-top:12px"><button data-lp-edit-unit="'+esc(x.id)+'">Edit</button><button class="secondary" data-lp-delete-unit="'+esc(x.id)+'">Delete</button></div>':'')+'</article>';
   }
   async function savePlan(){
+    const btn=$('lpSavePlan');if(lessonPlanSaveInFlight||btn?.disabled)return;
     const id=$('lpPlanEditId')?.value||'',className=$('lpPlanClass')?.value,subject=$('lpPlanSubject')?.value.trim(),topic=$('lpTopic')?.value.trim(),weekStart=$('lpWeekStart')?.value;
     if(!className||!subject||!topic||!weekStart)return alert('Class, subject, topic aur week start required hain.');
     const rows=read(PLAN_KEY),old=rows.find(x=>String(x.id)===String(id));
-    let item={id:id||String(Date.now()),className,sectionName:$('lpPlanSection')?.value.trim()||'',subject,weekStart,topic,objectives:$('lpObjectives')?.value.trim()||'',activities:$('lpActivities')?.value.trim()||'',homeworkNote:$('lpHomework')?.value.trim()||'',status:$('lpPlanStatus')?.value||'Draft',createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
-    try{if(cloudReady())item=await savePlanCloud(item)}catch(e){return alert('Cloud lesson-plan save failed: '+(e.message||e))}
-    write(PLAN_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
+    lessonPlanSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
+    try{
+      let item={id:id||String(Date.now()),className,sectionName:$('lpPlanSection')?.value.trim()||'',subject,weekStart,topic,objectives:$('lpObjectives')?.value.trim()||'',activities:$('lpActivities')?.value.trim()||'',homeworkNote:$('lpHomework')?.value.trim()||'',status:$('lpPlanStatus')?.value||'Draft',createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
+      try{if(cloudReady())item=await savePlanCloud(item)}catch(e){return alert('Cloud lesson-plan save failed: '+(e.message||e))}
+      write(PLAN_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
+    }finally{lessonPlanSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function saveUnit(){
+    const btn=$('lpSaveUnit');if(syllabusUnitSaveInFlight||btn?.disabled)return;
     const id=$('lpUnitEditId')?.value||'',className=$('lpUnitClass')?.value,subject=$('lpUnitSubject')?.value.trim(),unitTitle=$('lpUnitTitle')?.value.trim(),completion=Math.max(0,Math.min(100,Number($('lpCompletion')?.value||0)));
     if(!className||!subject||!unitTitle)return alert('Class, subject aur unit title required hain.');
     let status=$('lpUnitStatus')?.value||'Planned';if(completion>=100)status='Completed';else if(completion>0&&status==='Planned')status='In Progress';
     const rows=read(UNIT_KEY),old=rows.find(x=>String(x.id)===String(id));
-    let item={id:id||String(Date.now()),className,sectionName:$('lpUnitSection')?.value.trim()||'',subject,unitTitle,targetEnd:$('lpTargetEnd')?.value||'',completion,status,familyVisible:!!$('lpFamilyVisible')?.checked,createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
-    try{if(cloudReady())item=await saveUnitCloud(item)}catch(e){return alert('Cloud syllabus progress save failed: '+(e.message||e))}
-    write(UNIT_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
+    syllabusUnitSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
+    try{
+      let item={id:id||String(Date.now()),className,sectionName:$('lpUnitSection')?.value.trim()||'',subject,unitTitle,targetEnd:$('lpTargetEnd')?.value||'',completion,status,familyVisible:!!$('lpFamilyVisible')?.checked,createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
+      try{if(cloudReady())item=await saveUnitCloud(item)}catch(e){return alert('Cloud syllabus progress save failed: '+(e.message||e))}
+      write(UNIT_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
+    }finally{syllabusUnitSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   function editPlan(id){const x=read(PLAN_KEY).find(r=>String(r.id)===String(id));if(!x)return;const b=$('lpPlanEditor');if(b)b.innerHTML=planEditor(x);bindEditors()}
   function editUnit(id){const x=read(UNIT_KEY).find(r=>String(r.id)===String(id));if(!x)return;const b=$('lpUnitEditor');if(b)b.innerHTML=unitEditor(x);bindEditors()}
-  async function remove(kind,id){
-    if(!isStaff()||!confirm('Delete this '+(kind==='plan'?'lesson plan':'syllabus unit')+'?'))return;
+  async function remove(kind,id,btn){
+    const flightKey=kind+':'+String(id||'');if(!isStaff()||lessonDeleteInFlight.has(flightKey)||btn?.disabled)return;
+    if(!confirm('Delete this '+(kind==='plan'?'lesson plan':'syllabus unit')+'?'))return;
     const key=kind==='plan'?PLAN_KEY:UNIT_KEY,table=kind==='plan'?'lesson_plans':'syllabus_progress_units';
-    try{if(cloudReady())await deleteCloud(table,id)}catch(e){return alert('Cloud delete failed: '+(e.message||e))}
-    write(key,read(key).filter(x=>String(x.id)!==String(id)));render();
+    lessonDeleteInFlight.add(flightKey);setBusy(btn,true,'Deleting...');
+    try{
+      try{if(cloudReady())await deleteCloud(table,id)}catch(e){return alert('Cloud delete failed: '+(e.message||e))}
+      write(key,read(key).filter(x=>String(x.id)!==String(id)));render();
+    }finally{lessonDeleteInFlight.delete(flightKey);if(btn?.isConnected)setBusy(btn,false)}
   }
   function printProgress(units){
     const st=settings(),w=window.open('','_blank','width=1000,height=760');if(!w)return alert('Popup blocked.');
@@ -137,9 +195,9 @@
   function bind(units){
     bindEditors();$('lpPrint')?.addEventListener('click',()=>printProgress(units));
     document.querySelectorAll('[data-lp-edit-plan]').forEach(b=>b.onclick=()=>editPlan(b.dataset.lpEditPlan));
-    document.querySelectorAll('[data-lp-delete-plan]').forEach(b=>b.onclick=()=>remove('plan',b.dataset.lpDeletePlan));
+    document.querySelectorAll('[data-lp-delete-plan]').forEach(b=>b.onclick=()=>remove('plan',b.dataset.lpDeletePlan,b));
     document.querySelectorAll('[data-lp-edit-unit]').forEach(b=>b.onclick=()=>editUnit(b.dataset.lpEditUnit));
-    document.querySelectorAll('[data-lp-delete-unit]').forEach(b=>b.onclick=()=>remove('unit',b.dataset.lpDeleteUnit));
+    document.querySelectorAll('[data-lp-delete-unit]').forEach(b=>b.onclick=()=>remove('unit',b.dataset.lpDeleteUnit,b));
   }
   async function render(){
     const root=$('lessonCenterApp');if(!root)return;
