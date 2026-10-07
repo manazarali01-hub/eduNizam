@@ -600,3 +600,26 @@
   }
   .page-home .hero-image-wrap{min-height:276px!important}
 }
+
+
+/* ===== Homepage Performance-Safe Polish · Phase P · 2026-10-07 ===== */
+.page-home{background-attachment:scroll!important}
+@media(max-width:720px){
+  .page-home .public-nav,
+  .page-home .experience-strip,
+  .page-home .portrait-caption{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  .page-home .public-nav{background:rgba(255,255,255,.98)!important}
+  .page-home .experience-strip{background:rgba(255,255,255,.94)!important}
+  .page-home .portrait-caption{background:rgba(7,40,65,.78)!important}
+}
+@media(hover:none){
+  .page-home .experience-strip article:hover,
+  .page-home .quick-actions a:hover,
+  .page-home .quick-actions button:hover,
+  .page-home .public-hero:hover .hero-image-wrap img{
+    transform:none!important;
+  }
+}
