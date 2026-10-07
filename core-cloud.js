@@ -190,7 +190,20 @@
       .insert(payload)
       .select()
       .single();
-    if(error)throw error;
+    if(error){
+      // A retry after an ambiguous network response may hit the unique local record key.
+      // Reconcile only that exact local record; never overwrite an existing result.
+      if(String(error.code||'')==='23505'){
+        const {data:existing,error:lookupError}=await client.from('result_records')
+          .select('*')
+          .eq('institution_id',cfg.institutionId)
+          .eq('local_id',payload.local_id)
+          .maybeSingle();
+        if(lookupError)throw lookupError;
+        if(existing)return existing;
+      }
+      throw error;
+    }
     return data;
   }
 
@@ -433,7 +446,10 @@
     const {error:upError}=await client.storage.from('school-profile-photos').upload(path,file,{upsert:false,contentType:file.type});
     if(upError)throw upError;
     const {data,error}=await client.from('core_students').update({photo_path:path,updated_at:new Date().toISOString()}).eq('id',student.id).select().single();
-    if(error)throw error;
+    if(error){
+      await client.storage.from('school-profile-photos').remove([path]).catch(()=>{});
+      throw error;
+    }
     if(student.photo_path&&student.photo_path!==path)client.storage.from('school-profile-photos').remove([student.photo_path]).catch(()=>{});
     return data;
   }

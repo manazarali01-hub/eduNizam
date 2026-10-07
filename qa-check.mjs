@@ -554,6 +554,15 @@ if(!read('role-access-center.js').includes('Teacher, Parent & Student Requests')
 if(!read('role-access-center.js').includes('data-school-access-approve')) fail.push('One-click Parent/Student approval button missing.');
 if(!read('role-access-center.js').includes('decideTeacherSchoolRequest')) fail.push('Teacher approval is not linked to Admin.');
 if(!read('core-cloud.js').includes("student_code:s.studentId||fallbackStudentCode(s)")) fail.push('Internal student cloud identity can be lost.');
+const coreCloudWrite=read('core-cloud.js');
+if(!coreCloudWrite.includes(".from('result_records')\n      .insert(payload)")) fail.push('Result cloud writes must remain insert-only.');
+if(!coreCloudWrite.includes("String(error.code||'')==='23505'")||!coreCloudWrite.includes(".eq('local_id',payload.local_id)")) fail.push('Ambiguous result insert retries are not reconciled by exact local record key.');
+if(!coreCloudWrite.includes("await client.storage.from('school-profile-photos').remove([path]).catch(()=>{})")) fail.push('Student photo upload does not clean up a newly uploaded file after DB update failure.');
+const staffCrud=read('staff-center.js');
+if(staffCrud.indexOf("from('staff_profiles').delete().eq('id',id)")>staffCrud.indexOf("if(item?.photoPath)cloud().state.client.storage.from('school-profile-photos').remove([item.photoPath])")) fail.push('Staff delete removes the photo before the database record.');
+if(!staffCrud.includes('Cloud staff save failed. Nothing was saved locally')) fail.push('Staff cloud save failure can still create a divergent local-only record.');
+if(!staffCrud.includes("Staff profile text was saved, but profile photo upload failed")) fail.push('Staff photo failure is not separated from successful cloud profile text save.');
+if(!app.includes('studentSaveInFlight=false')) fail.push('Student Save has no single-flight guard.');
 if(read('role-access-center.js').includes('id="teacherRequestCard"')||read('role-access-center.js').includes('id="inviteAdminCard"')) fail.push('Legacy code controls remain in Access & Roles.');
 if(!read('role-access-center.js').includes('id="toggleReviewedRequests"')) fail.push('Reviewed requests cannot be inspected after approval.');
 if(!fs.existsSync(path.join(root,'supabase-teacher-access-ambiguity-fix.sql'))) fail.push('Teacher access ambiguity fix SQL is missing from the repository.');

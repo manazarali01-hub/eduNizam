@@ -104,7 +104,10 @@
     const {error:upError}=await client.storage.from('school-profile-photos').upload(path,file,{upsert:false,contentType:file.type});
     if(upError)throw upError;
     const {data,error}=await client.from('staff_profiles').update({photo_path:path,updated_at:new Date().toISOString()}).eq('id',row.id).select().single();
-    if(error)throw error;
+    if(error){
+      await client.storage.from('school-profile-photos').remove([path]).catch(()=>{});
+      throw error;
+    }
     if(oldPath&&oldPath!==path)client.storage.from('school-profile-photos').remove([oldPath]).catch(()=>{});
     return data;
   }
@@ -163,9 +166,9 @@
   async function deleteCloud(id){
     if(!cloudReady())return;
     const rows=read(),item=rows.find(x=>String(x.id)===String(id));
-    if(item?.photoPath)cloud().state.client.storage.from('school-profile-photos').remove([item.photoPath]).catch(()=>{});
     const {error}=await cloud().state.client.from('staff_profiles').delete().eq('id',id);
     if(error)throw error;
+    if(item?.photoPath)cloud().state.client.storage.from('school-profile-photos').remove([item.photoPath]).catch(()=>{});
   }
 
   function card(x){
@@ -231,15 +234,24 @@
       photoPath:existing?.photoPath||'',createdAt:existing?.createdAt||new Date().toISOString()
     };
     const duplicate=current.find(x=>String(x.staffCode||'').toLowerCase()===staffCode.toLowerCase()&&String(x.id)!==String(editId));if(duplicate)return alert('Ye staff code already use ho raha hai.');
-    const btn=$('saveStaffProfile');if(btn)btn.disabled=true;
+    const btn=$('saveStaffProfile');if(btn?.disabled)return;if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
     try{
-      let row=await upsertCloud(item);
-      if(row&&file)row=await uploadPhoto(row,file);
-      if(row)item=mapCloud(row);
-      else if(file)alert('Profile text save ho gaya, lekin picture upload ke liye Cloud Mode required hai.');
-    }catch(e){alert('Cloud sync/profile photo failed; text profile local mode mein save hoga. '+(e.message||e))}
-    finally{if(btn)btn.disabled=false}
-    const next=current.filter(x=>String(x.id)!==String(editId)&&String(x.staffCode||'').toLowerCase()!==staffCode.toLowerCase());next.push(item);write(next);render();
+      if(cloudReady()){
+        let row;
+        try{row=await upsertCloud(item)}
+        catch(e){alert('Cloud staff save failed. Nothing was saved locally: '+(e.message||e));return}
+        item=mapCloud(row);
+        if(file){
+          try{row=await uploadPhoto(row,file);item=mapCloud(row)}
+          catch(e){alert('Staff profile text was saved, but profile photo upload failed: '+(e.message||e))}
+        }
+      }else if(file){
+        alert('Profile text local mode mein save ho gaya, lekin picture upload ke liye Cloud Mode required hai.');
+      }
+      const next=current.filter(x=>String(x.id)!==String(editId)&&String(x.staffCode||'').toLowerCase()!==staffCode.toLowerCase());next.push(item);write(next);render();
+    }finally{
+      if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy')}
+    }
   }
 
   async function remove(id){

@@ -142,7 +142,7 @@ document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=async()=>{
   await setView(targetView);
   if(targetView==='students')openStudentForm();
 });
-let editingStudentId=null;
+let editingStudentId=null,studentSaveInFlight=false;
 function makeStudentCode(){
   const bytes=new Uint8Array(4);
   if(window.crypto?.getRandomValues)window.crypto.getRandomValues(bytes);
@@ -171,6 +171,8 @@ const addStudentBtn=$('addStudentBtn');
 if(addStudentBtn)addStudentBtn.onclick=openStudentForm;
 $('saveStudentBtn').onclick=async()=>{
  if(currentRole()!=='head')return alert('Only Head of Institute can add or edit students.');
+ const saveBtn=$('saveStudentBtn');if(studentSaveInFlight||saveBtn?.disabled)return;
+ studentSaveInFlight=true;if(saveBtn){saveBtn.disabled=true;saveBtn.setAttribute('aria-busy','true')}
  const name=$('studentName').value.trim();
  const required={
    name,
@@ -183,10 +185,11 @@ $('saveStudentBtn').onclick=async()=>{
    bFormNo:$('studentBForm')?.value.trim()||''
  };
  const missing=Object.entries(required).filter(([,v])=>!v).map(([k])=>({name:'Student name',className:'Academic group',admissionNo:'Admission / Student No.',dateOfBirth:'Date of birth',gender:'Gender',father:'Guardian name',phone:'Guardian contact',bFormNo:'B-Form No.'}[k]||k));
- if(missing.length)return alert('Required fields complete karein: '+missing.join(', '));
+ const releaseStudentSave=()=>{studentSaveInFlight=false;if(saveBtn?.isConnected){saveBtn.disabled=false;saveBtn.removeAttribute('aria-busy')}};
+ if(missing.length){releaseStudentSave();return alert('Required fields complete karein: '+missing.join(', '))}
  const photoFile=$('studentPhotoFile')?.files?.[0]||null;
- if(photoFile&&!['image/jpeg','image/png','image/webp'].includes(photoFile.type))return alert('Profile picture JPG, PNG ya WEBP honi chahiye.');
- if(photoFile&&photoFile.size>2*1024*1024)return alert('Profile picture 2 MB se chhoti honi chahiye.');
+ if(photoFile&&!['image/jpeg','image/png','image/webp'].includes(photoFile.type)){releaseStudentSave();return alert('Profile picture JPG, PNG ya WEBP honi chahiye.')}
+ if(photoFile&&photoFile.size>2*1024*1024){releaseStudentSave();return alert('Profile picture 2 MB se chhoti honi chahiye.')}
  const patch={
    ...required,
    sectionName:$('studentSection')?.value.trim()||'',
@@ -212,7 +215,7 @@ $('saveStudentBtn').onclick=async()=>{
  let savedStudent=null;
  if(editingStudentId!=null){
    const s=state.students.find(x=>String(x.id)===String(editingStudentId));
-   if(!s)return alert('Student record not found.');
+   if(!s){releaseStudentSave();return alert('Student record not found.')}
    Object.assign(s,patch);
    savedStudent=s;
    logActivity('Student updated: '+name);
@@ -240,6 +243,7 @@ $('saveStudentBtn').onclick=async()=>{
    alert('Student is saved on this device, but cloud/profile photo sync failed. Open Troubleshoot to see the exact error, then retry Cloud Backup & Sync.');
  }
  renderStudents();
+ releaseStudentSave();
 };
 function scopedStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(state.students)||state.students}
 function renderStudents(){
