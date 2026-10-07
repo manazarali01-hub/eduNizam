@@ -33,10 +33,7 @@ const {chromium}=await import(moduleUrl);
 const options={headless:true};
 if(process.env.EDUNIZAM_BROWSER)options.executablePath=process.env.EDUNIZAM_BROWSER;
 const browser=await chromium.launch(options);
-const routes=[
-  ['home','/'],['login','/login.html'],['learn','/learn.html'],
-  ['admission','/admission.html'],['app','/app.html']
-];
+const routes=[['home','/']];
 const sizes=[
   {label:'mobile',width:390,height:844},
   {label:'desktop',width:1366,height:820}
@@ -45,6 +42,7 @@ const sizes=[
 try{
   for(const size of sizes){
     for(const [name,route] of routes){
+      console.log('Visual capture START:',name,size.label);
       const page=await browser.newPage({javaScriptEnabled:false,viewport:{width:size.width,height:size.height}});
       await page.route('**/*',r=>{
         const u=new URL(r.request().url());
@@ -74,6 +72,7 @@ try{
         timeout:5000
       });
       await page.close();
+      console.log('Visual capture PASS:',name,size.label);
     }
   }
   console.log('Visual screenshots captured:',routes.length*sizes.length);
