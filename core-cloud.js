@@ -187,7 +187,7 @@
       throw new Error('Valid marks and total are required.');
     }
     const {data,error}=await client.from('result_records')
-      .insert(payload)
+      .upsert(payload,{onConflict:'institution_id,local_id'})
       .select()
       .single();
     if(error)throw error;
@@ -433,7 +433,10 @@
     const {error:upError}=await client.storage.from('school-profile-photos').upload(path,file,{upsert:false,contentType:file.type});
     if(upError)throw upError;
     const {data,error}=await client.from('core_students').update({photo_path:path,updated_at:new Date().toISOString()}).eq('id',student.id).select().single();
-    if(error)throw error;
+    if(error){
+      await client.storage.from('school-profile-photos').remove([path]).catch(()=>{});
+      throw error;
+    }
     if(student.photo_path&&student.photo_path!==path)client.storage.from('school-profile-photos').remove([student.photo_path]).catch(()=>{});
     return data;
   }
