@@ -26,6 +26,16 @@
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
   function classFees(){try{return JSON.parse(localStorage.getItem(CLASS_KEY)||'{}')}catch{return{}}}
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
+  let feeLoadKey='',feeLoadInFlight=null,feeLoadedAt=0,classFeesLoadedAt=0;
+  const paymentHistoryInFlight=new Map(),paymentHistoryLoadedAt=new Map();
+  function ensureFeeLoadKey(){
+    const key=cloudReady()?[cfg().institutionId,cloud()?.state?.user?.id||''].join('|'):'';
+    if(key!==feeLoadKey){
+      feeLoadKey=key;feeLoadInFlight=null;feeLoadedAt=0;classFeesLoadedAt=0;
+      paymentHistoryInFlight.clear();paymentHistoryLoadedAt.clear();
+    }
+    return key;
+  }
   function money(v){const s=JSON.parse(localStorage.getItem('edunizam_settings')||'{}'),currency=s.currency||'PKR',locale=s.locale||'en-PK';try{return new Intl.NumberFormat(locale,{style:'currency',currency,maximumFractionDigits:2}).format(Number(v||0))}catch(e){return currency+' '+Number(v||0).toLocaleString()}}
   function statusRisk(s){return s==='Paid'?'good':(s==='Pending'||s==='Partially Paid')?'medium':'high'}
   function isOverdue(x){return x.status!=='Paid'&&x.dueDate&&String(x.dueDate)<localDate()}
@@ -94,33 +104,77 @@
       paidAt:x.paid_at||''
     };
   }
-  async function pullCloud(){
+  async function pullCloud(force=false){
     if(!cloudReady())return read();
-    const [feesRes,paymentsRes]=await Promise.all([
-      cloud().state.client.from('fee_records')
-        .select('*,core_students(local_id,name,class_name,student_code,auth_user_id)')
-        .eq('institution_id',cfg().institutionId)
-        .not('fee_month','is',null)
-        .order('created_at',{ascending:false}),
-      cloud().state.client.from('fee_payments')
-        .select('*')
-        .eq('institution_id',cfg().institutionId)
-        .order('paid_at',{ascending:false})
-    ]);
-    if(feesRes.error)throw feesRes.error;
-    if(paymentsRes.error)throw paymentsRes.error;
-    const byFee=new Map();
-    (paymentsRes.data||[]).forEach(p=>{
-      const k=String(p.fee_record_id);
-      if(!byFee.has(k))byFee.set(k,[]);
-      byFee.get(k).push({
-        id:p.id,amount:Number(p.amount||0),reference:p.payment_reference||'',
-        receiptNo:p.receipt_no||'',paidAt:p.paid_at,recordedBy:p.recorded_by||''
+    const requestKey=ensureFeeLoadKey();
+    if(feeLoadInFlight)return feeLoadInFlight;
+    if(!force&&feeLoadedAt&&Date.now()-feeLoadedAt<15000)return read();
+    feeLoadInFlight=(async()=>{
+      const execute=async({signal}={})=>{
+        let q=cloud().state.client.from('fee_records')
+          .select('*,core_students(local_id,name,class_name,student_code,auth_user_id)')
+          .eq('institution_id',cfg().institutionId)
+          .not('fee_month','is',null)
+          .order('created_at',{ascending:false});
+        if(signal&&typeof q?.abortSignal==='function')q=q.abortSignal(signal);
+        const result=await q;
+        if(result?.error)throw result.error;
+        return result;
+      };
+      const runtime=window.EDUNIZAM_DATA_RUNTIME;
+      const feesRes=runtime
+        ?await runtime.run('fee-register:'+requestKey,execute,{timeout:8000,retries:1,cacheMs:force?0:15000,label:'Fee register'})
+        :await execute({});
+      if(requestKey!==ensureFeeLoadKey())return read();
+      const previous=new Map(read().map(x=>[String(x.id),x]));
+      const rows=(feesRes.data||[]).map(x=>{
+        const old=previous.get(String(x.id));
+        return toLocalRow(Object.assign({},x,{paymentHistory:Array.isArray(old?.paymentHistory)?old.paymentHistory:[]}));
       });
-    });
-    const rows=(feesRes.data||[]).map(x=>toLocalRow(Object.assign({},x,{paymentHistory:byFee.get(String(x.id))||[]})));
-    write(rows);
-    return rows;
+      write(rows);feeLoadedAt=Date.now();return rows;
+    })();
+    try{return await feeLoadInFlight}finally{feeLoadInFlight=null}
+  }
+  function mapPaymentRow(p){
+    return {id:p.id,amount:Number(p.amount||0),reference:p.payment_reference||'',receiptNo:p.receipt_no||'',paidAt:p.paid_at,recordedBy:p.recorded_by||''};
+  }
+  async function loadPaymentHistory(feeRecordId,force=false){
+    if(!cloudReady())return read().find(x=>String(x.id)===String(feeRecordId))?.paymentHistory||[];
+    const id=String(feeRecordId||'');if(!id)return[];
+    const requestKey=ensureFeeLoadKey(),cacheKey=requestKey+'|'+id;
+    if(paymentHistoryInFlight.has(cacheKey))return paymentHistoryInFlight.get(cacheKey);
+    const existing=read().find(x=>String(x.id)===id)?.paymentHistory||[];
+    const loadedAt=paymentHistoryLoadedAt.get(cacheKey)||0;
+    if(!force&&loadedAt&&Date.now()-loadedAt<60000)return existing;
+    const task=(async()=>{
+      const execute=async({signal}={})=>{
+        let q=cloud().state.client.from('fee_payments')
+          .select('id,fee_record_id,amount,payment_reference,receipt_no,paid_at,recorded_by')
+          .eq('fee_record_id',id)
+          .order('paid_at',{ascending:false});
+        if(signal&&typeof q?.abortSignal==='function')q=q.abortSignal(signal);
+        const result=await q;
+        if(result?.error)throw result.error;
+        return result;
+      };
+      const runtime=window.EDUNIZAM_DATA_RUNTIME;
+      const res=runtime
+        ?await runtime.run('fee-history:'+cacheKey,execute,{timeout:6000,retries:1,cacheMs:force?0:60000,label:'Fee payment history'})
+        :await execute({});
+      if(requestKey!==ensureFeeLoadKey())return[];
+      const history=(res.data||[]).map(mapPaymentRow);
+      const rows=read(),index=rows.findIndex(x=>String(x.id)===id);
+      if(index>=0){rows[index]=Object.assign({},rows[index],{paymentHistory:history});write(rows)}
+      paymentHistoryLoadedAt.set(cacheKey,Date.now());
+      return history;
+    })();
+    paymentHistoryInFlight.set(cacheKey,task);
+    try{return await task}finally{paymentHistoryInFlight.delete(cacheKey)}
+  }
+  async function withPaymentHistory(item,force=false){
+    if(!item||!cloudReady())return item;
+    const history=await loadPaymentHistory(item.id,force);
+    return Object.assign({},item,{paymentHistory:history});
   }
   async function syncClassFees(map=classFees()){
     if(!cloudReady()||!isHead())return false;
@@ -132,11 +186,14 @@
     const {error}=await cloud().state.client.from('class_fee_structure').upsert(rows,{onConflict:'institution_id,class_name'});
     if(error)throw error;return true;
   }
-  async function pullClassFees(){
+  async function pullClassFees(force=false){
     if(!cloudReady())return classFees();
+    ensureFeeLoadKey();
+    if(!force&&classFeesLoadedAt&&Date.now()-classFeesLoadedAt<60000)return classFees();
     const {data,error}=await cloud().state.client.from('class_fee_structure').select('class_name,monthly_fee')
       .eq('institution_id',cfg().institutionId);
     if(error)throw error;
+    classFeesLoadedAt=Date.now();
     if(data?.length){
       const map={};data.forEach(x=>map[x.class_name]=Number(x.monthly_fee||0));
       localStorage.setItem(CLASS_KEY,JSON.stringify(map));return map;
@@ -219,9 +276,9 @@
     const balance=Number(x.balanceAmount!=null?x.balanceAmount:Math.max(0,Number(x.totalAmount||0)-Number(x.paidAmount||0)));
     const paid=Number(x.paidAmount||0),canPay=isHead()&&balance>0,overdue=isOverdue(x),label=overdue?'Overdue':x.status;
     const history=Array.isArray(x.paymentHistory)?x.paymentHistory:[];
-    const paymentTrail=history.length?'<details class="coverage-note"><summary><strong>Payment history ('+history.length+')</strong></summary>'+
-      history.map(p=>'<div style="padding:8px 0;border-bottom:1px solid #e6edf1"><strong>'+money(p.amount)+'</strong> · '+esc(p.receiptNo||'-')+'<br><span class="muted">'+esc(p.paidAt?new Date(p.paidAt).toLocaleString():'')+(p.reference?' · Ref '+esc(p.reference):'')+'</span></div>').join('')+
-      '</details>':'';
+    const hasPayments=Number(x.paidAmount||0)>0||history.length>0;
+    const historyRows=history.map(p=>'<div style="padding:8px 0;border-bottom:1px solid #e6edf1"><strong>'+money(p.amount)+'</strong> · '+esc(p.receiptNo||'-')+'<br><span class="muted">'+esc(p.paidAt?new Date(p.paidAt).toLocaleString():'')+(p.reference?' · Ref '+esc(p.reference):'')+'</span></div>').join('');
+    const paymentTrail=hasPayments?'<details class="coverage-note" data-fc-history="'+esc(x.id)+'"><summary><strong>Payment history'+(history.length?' ('+history.length+')':'')+'</strong></summary><div data-fc-history-body="'+esc(x.id)+'">'+(history.length?historyRows:(cloudReady()?'Open to load payment history.':'No local payment details loaded.'))+'</div></details>':'';
     return '<article class="paper-card">'+
       '<div class="paper-card-top"><span class="mini-badge">'+esc(x.feeMonth||'Fee')+'</span><span data-risk="'+(overdue?'high':statusRisk(x.status))+'">'+esc(label)+'</span></div>'+
       '<h3>'+esc(x.studentName||'Student')+'</h3><p class="muted">Class '+esc(x.className||'-')+' · Due '+esc(x.dueDate||'-')+(overdue?' · <strong>Past due</strong>':'')+'</p>'+
@@ -267,7 +324,7 @@
     try{
       if(cloudReady()){
         item=await insertCloud(item);
-        await pullCloud();
+        await pullCloud(true);
         mirrorLegacy(item);
         render();
         return;
@@ -293,8 +350,9 @@
     try{
       if(cloudReady()){
         await recordPaymentCloud(item,amount,ref);
-        rows=await pullCloud();
+        rows=await pullCloud(true);
         item=rows.find(x=>String(x.id)===String(id))||item;
+        item=await withPaymentHistory(item,true);
       }else{
         const payment={id:String(Date.now()),amount,reference:ref,receiptNo:nextNo('RCPT'),paidAt:new Date().toISOString()};
         item.paymentHistory=[payment,...(item.paymentHistory||[])];
@@ -323,26 +381,28 @@
     $('fcFilterSearch')?.addEventListener('input',e=>{root.dataset.fcSearch=e.target.value;clearTimeout(bind.searchTimer);bind.searchTimer=setTimeout(mount,160)});
     $('fcClearFilters')?.addEventListener('click',()=>{root.dataset.fcStatus='';root.dataset.fcMonth='';root.dataset.fcClass='';root.dataset.fcSearch='';mount()});
     document.querySelectorAll('[data-fc-payment]').forEach(b=>b.onclick=()=>recordPayment(b.dataset.fcPayment,b));
-    document.querySelectorAll('[data-fc-print]').forEach(b=>b.onclick=()=>{const item=read().find(x=>String(x.id)===String(b.dataset.fcPrint));if(item)printDoc(item)});
-  }
-  async function mount(){
-    const section=$('fees');if(!section)return;
-    let root=$('feeChallanCenter');
-    if(!root){root=document.createElement('div');root.id='feeChallanCenter';section.appendChild(root)}
-    let rows=read(),cloudError='';
-    if(cloudReady()&&!root.dataset.cloudLoaded){
-      root.dataset.cloudLoaded='1';
+    document.querySelectorAll('[data-fc-history]').forEach(details=>details.addEventListener('toggle',async()=>{
+      if(!details.open||!cloudReady())return;
+      const id=details.dataset.fcHistory,body=document.querySelector('[data-fc-history-body="'+CSS.escape(id)+'"]');
+      if(!body||details.dataset.historyLoaded==='1')return;
+      body.textContent='Loading payment history...';
       try{
-        if(isHead())await pullClassFees();
-        rows=await pullCloud();
-        rows.forEach(mirrorLegacy);
-      }catch(e){
-        root.dataset.cloudLoaded='';
-        rows=[];
-        cloudError=e.message||String(e);
-        console.warn('Fee Center cloud sync:',cloudError);
-      }
-    }
+        const history=await loadPaymentHistory(id);
+        details.dataset.historyLoaded='1';
+        body.innerHTML=history.length
+          ?history.map(p=>'<div style="padding:8px 0;border-bottom:1px solid #e6edf1"><strong>'+money(p.amount)+'</strong> · '+esc(p.receiptNo||'-')+'<br><span class="muted">'+esc(p.paidAt?new Date(p.paidAt).toLocaleString():'')+(p.reference?' · Ref '+esc(p.reference):'')+'</span></div>').join('')
+          :'<span class="muted">No payment history found.</span>';
+      }catch(e){body.textContent='Payment history could not load: '+(e.message||e)}
+    }));
+    document.querySelectorAll('[data-fc-print]').forEach(b=>b.onclick=async()=>{
+      let item=read().find(x=>String(x.id)===String(b.dataset.fcPrint));if(!item)return;
+      setBusy(b,true,'Preparing...');
+      try{if(cloudReady()&&Number(item.paidAmount||0)>0)item=await withPaymentHistory(item);printDoc(item)}
+      catch(e){alert('Receipt history could not load: '+(e.message||e))}
+      finally{setBusy(b,false)}
+    });
+  }
+  function paint(root,rows,cloudError=''){
     rows=cloudReady()?rows:visibleLocal(rows);
     const classes=[...new Set(rows.map(x=>x.className).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
     const filtered=filteredRows(rows,root);
@@ -352,8 +412,28 @@
       '<div class="paper-grid" style="margin-top:16px">'+(filtered.length?filtered.map(card).join(''):'<div class="empty-state">Is filter ke liye koi challan/receipt nahi hai.</div>')+'</div>';
     bind(root);
   }
+  async function mount(force=false){
+    const section=$('fees');if(!section)return;
+    let root=$('feeChallanCenter');
+    if(!root){root=document.createElement('div');root.id='feeChallanCenter';section.appendChild(root)}
+    paint(root,read());
+    if(!cloudReady())return;
+    const requestKey=ensureFeeLoadKey();
+    try{
+      const tasks=[pullCloud(force===true)];
+      if(isHead())tasks.push(pullClassFees(force===true));
+      const [rows]=await Promise.all(tasks);
+      if(requestKey!==ensureFeeLoadKey())return;
+      rows.forEach(mirrorLegacy);
+      paint(root,rows);
+    }catch(e){
+      const cloudError=e.message||String(e);
+      console.warn('Fee Center cloud sync:',cloudError);
+      if(requestKey===ensureFeeLoadKey())paint(root,read(),cloudError);
+    }
+  }
   function render(){return mount()}
-  window.addEventListener('edunizam:auth',()=>{const root=$('feeChallanCenter');if(root)delete root.dataset.cloudLoaded;mount()});
+  window.addEventListener('edunizam:auth',()=>{feeLoadKey='';feeLoadedAt=0;classFeesLoadedAt=0;paymentHistoryInFlight.clear();paymentHistoryLoadedAt.clear();mount(true)});
   setTimeout(mount,0);setTimeout(mount,900);
   window.EDUNIZAM_FEE_CENTER={render,mount,read,pullCloud,syncClassFees,cloudReady};
 })();
