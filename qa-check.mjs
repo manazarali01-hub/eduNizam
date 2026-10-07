@@ -1031,7 +1031,7 @@ for(const marker of [
   if(!referenceVisual.includes(marker)) fail.push('Reference reconstruction marker missing: '+marker);
 }
 for(const page of ['index.html','login.html','learn.html','app.html','about.html','features.html']){
-  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref7')) fail.push('Reference reconstruction stylesheet missing from '+page);
+  if(!read(page).includes('reference-reconstruction.css?v=20261008-photo-glass-v24')) fail.push('Reference reconstruction stylesheet missing from '+page);
 }
 
 const mobileRef4=read('reference-reconstruction.css');
@@ -1084,7 +1084,7 @@ for(const marker of [
 ]){
   if(!colorfulRef7.includes(marker)) fail.push('Colorful ref7 marker missing: '+marker);
 }
-if(!read('app.html').includes('reference-reconstruction.css?v=20261007-ref7')) fail.push('Colorful ref7 stylesheet cache token missing from app.html.');
+if(!read('app.html').includes('reference-reconstruction.css?v=20261008-photo-glass-v24')) fail.push('Photo-glass V2.4 stylesheet cache token missing from app.html.');
 
 /* Indexing recovery crawl-path guard · 2026-10-07 */
 const crawlHub=read('index.html');
