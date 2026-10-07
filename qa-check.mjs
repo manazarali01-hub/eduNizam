@@ -1031,7 +1031,17 @@ for(const marker of [
   if(!referenceVisual.includes(marker)) fail.push('Reference reconstruction marker missing: '+marker);
 }
 for(const page of ['index.html','login.html','learn.html','app.html','about.html','features.html']){
-  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref3')) fail.push('Reference reconstruction stylesheet missing from '+page);
+  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref4')) fail.push('Reference reconstruction stylesheet missing from '+page);
+}
+
+const mobileRef4=read('reference-reconstruction.css');
+for(const marker of [
+  'Mobile composition refinement · 2026-10-07 · ref4',
+  '.page-home .public-links{',
+  '.auth-page .mobile-brand{',
+  'height:164px!important'
+]){
+  if(!mobileRef4.includes(marker)) fail.push('Mobile composition ref4 marker missing: '+marker);
 }
 
 if(fail.length){
