@@ -105,6 +105,18 @@ for(const marker of [
   if(!visual.includes(marker)&&!read('home-showcase.css').includes(marker)) fail.push('Appearance depth marker missing: '+marker);
 }
 
+for(const marker of [
+  'Appearance Consistency Pass · Phase L',
+  '.page-home .public-footer nav a',
+  'Appearance Consistency Pass · Phase M-N',
+  '.premium-public-page .public-footer',
+  '.learning-sky #premiumResourceModal',
+  '.page-app .premium-context-chip.sync.online',
+  '.page-app table tbody tr:hover td'
+]){
+  if(!visual.includes(marker)&&!read('home-showcase.css').includes(marker)) fail.push('Appearance consistency marker missing: '+marker);
+}
+
 const authBridgeMobileFix=read('auth-bridge.js');
 const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
