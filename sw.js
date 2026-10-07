@@ -1,4 +1,4 @@
-const CACHE='edunizam-v240-auth-race'
+const CACHE='edunizam-v241-premium-surfaces'
 const CORE=[
   './',
   './index.html',
