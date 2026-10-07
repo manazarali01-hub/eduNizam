@@ -80,10 +80,20 @@
       };
       next();
     };
+    let warmScheduled=false,warmStarted=false;
     const scheduleWarm=()=>{
-      const run=()=>warmCommonViews();
-      if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:2200});
-      else setTimeout(run,1200);
+      if(warmScheduled||warmStarted||document.hidden)return;
+      warmScheduled=true;
+      const run=()=>{
+        warmScheduled=false;
+        if(warmStarted||document.hidden)return;
+        warmStarted=true;
+        warmCommonViews();
+      };
+      // Background feature warming is optional. Give authentication, role scope,
+      // dashboard rendering and the mobile shell a quiet window first.
+      if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:5000});
+      else setTimeout(run,4500);
     };
     nav.addEventListener('click',e=>{const b=e.target.closest('.nav-item');if(!b)return;const g=b.closest('.nav-group');if(g)g.open=true;if(window.innerWidth<951)window.EDUNIZAM_MOBILE_NAV_CORE?.close?.()});
     const observer=new MutationObserver(mutations=>{
@@ -98,8 +108,9 @@
       if(changed)setTimeout(filter,0);
     });
     observer.observe(nav,{childList:true,subtree:true});
-    window.addEventListener('edunizam:auth',()=>{setTimeout(filter,50);setTimeout(scheduleWarm,180)});
-    setTimeout(()=>{nav.querySelectorAll('.nav-item').forEach(b=>placeButton(nav,b));filter();scheduleWarm()},900);
+    window.addEventListener('edunizam:auth',()=>setTimeout(filter,50));
+    window.addEventListener('edunizam:workspace-ready',scheduleWarm);
+    setTimeout(()=>{nav.querySelectorAll('.nav-item').forEach(b=>placeButton(nav,b));filter()},900);
   }
   setTimeout(mount,0);setTimeout(mount,800);window.EDUNIZAM_NAVIGATION={mount};
 })();
