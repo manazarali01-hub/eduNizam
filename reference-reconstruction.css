@@ -578,3 +578,217 @@
   .auth-page,
   .page-app .sidebar{background-attachment:scroll!important}
 }
+
+
+/* ---------- Screenshot correction pass · 2026-10-07 · ref3 ----------
+   Directly targets the user's live mobile screenshots:
+   compact login choices, readable Admin Daily Desk cards, cleaner dock. */
+
+/* Login: keep the photo story, but make the role selector feel like a mobile app
+   instead of a long desktop form stacked vertically. */
+@media(max-width:760px){
+  .auth-page .card{
+    padding:16px!important;
+    border-radius:22px!important;
+  }
+  .auth-page .eyebrow{
+    margin-top:2px!important;
+    font-size:.9rem!important;
+  }
+  .auth-page .view h2{
+    margin:5px 0 5px!important;
+    font-size:clamp(1.7rem,7.5vw,2.1rem)!important;
+    line-height:1.02!important;
+    letter-spacing:-.04em!important;
+  }
+  .auth-page .subtitle{
+    margin-bottom:14px!important;
+    font-size:.96rem!important;
+    line-height:1.45!important;
+  }
+  .auth-page .roles{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+  }
+  .auth-page .role{
+    min-height:104px!important;
+    padding:13px!important;
+    border-radius:18px!important;
+    background:
+      linear-gradient(145deg,rgba(255,255,255,.98),rgba(239,250,244,.96))!important;
+    border:1px solid rgba(1,65,28,.18)!important;
+    box-shadow:0 10px 24px rgba(1,65,28,.07)!important;
+  }
+  .auth-page .role .icon{
+    width:38px!important;height:38px!important;
+    margin-bottom:7px!important;
+  }
+  .auth-page .role strong{
+    font-size:.95rem!important;
+    line-height:1.15!important;
+    color:#123b32!important;
+  }
+  .auth-page .role small{
+    margin-top:4px!important;
+    font-size:.75rem!important;
+    line-height:1.28!important;
+    color:#607a73!important;
+  }
+  .auth-page #admissionApplicantRole{
+    grid-column:1/-1!important;
+    min-height:88px!important;
+  }
+}
+
+/* Admin Daily Desk: replace blue slabs with the reference board's
+   white/green/gold framed cards and strong readable text. */
+.page-app .admin-daily-desk{
+  background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(244,251,247,.96))!important;
+  border:1px solid rgba(1,65,28,.17)!important;
+  border-top:4px solid var(--ref-gold)!important;
+  box-shadow:0 18px 42px rgba(1,65,28,.08)!important;
+}
+.page-app .admin-daily-actions{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+.page-app .admin-daily-actions button{
+  min-height:96px!important;
+  padding:13px!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,#ffffff,#f1faf5)!important;
+  color:#123b32!important;
+  border:1px solid rgba(1,65,28,.18)!important;
+  box-shadow:
+    0 10px 24px rgba(1,65,28,.07),
+    inset 0 0 0 1px rgba(255,255,255,.75)!important;
+  text-shadow:none!important;
+}
+.page-app .admin-daily-actions button:nth-child(4n+2){
+  background:linear-gradient(145deg,#f2f9ff,#fff)!important;
+  border-color:rgba(23,105,170,.18)!important;
+}
+.page-app .admin-daily-actions button:nth-child(4n+3){
+  background:linear-gradient(145deg,#fff9e8,#fff)!important;
+  border-color:rgba(201,154,61,.24)!important;
+}
+.page-app .admin-daily-actions button:nth-child(4n+4){
+  background:linear-gradient(145deg,#f8f2ff,#fff)!important;
+  border-color:rgba(112,82,170,.18)!important;
+}
+.page-app .admin-daily-actions button>span{
+  width:38px!important;height:38px!important;
+  display:grid!important;place-items:center!important;
+  border-radius:13px!important;
+  background:rgba(1,122,61,.09)!important;
+  color:var(--ref-green-2)!important;
+  font-size:20px!important;
+}
+.page-app .admin-daily-actions button>strong{
+  color:#123b32!important;
+  font-size:15px!important;
+  line-height:1.22!important;
+  font-weight:850!important;
+  text-shadow:none!important;
+}
+.page-app .admin-daily-actions button>small{
+  color:#5a746d!important;
+  font-size:12.5px!important;
+  line-height:1.25!important;
+  font-weight:650!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+
+/* Daily metric chips: less vertical waste, more information density. */
+.page-app .admin-daily-stats{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:9px!important;
+}
+.page-app .admin-daily-stats>div{
+  min-height:82px!important;
+  padding:12px 13px!important;
+  border-radius:16px!important;
+  background:rgba(255,255,255,.92)!important;
+  border:1px solid rgba(1,65,28,.14)!important;
+}
+.page-app .admin-daily-stats span{
+  color:#607a73!important;
+  font-size:11.5px!important;
+}
+.page-app .admin-daily-stats strong{
+  color:#123b32!important;
+  font-size:21px!important;
+}
+
+/* Bottom dock: no blue slabs. A light glass bar with one calm green active state. */
+.page-app .premium-mobile-dock{
+  background:rgba(255,255,255,.96)!important;
+  border:2px solid rgba(1,65,28,.54)!important;
+  box-shadow:0 14px 34px rgba(0,45,28,.20)!important;
+  backdrop-filter:blur(14px) saturate(1.08)!important;
+}
+.page-app .premium-mobile-dock button{
+  background:transparent!important;
+  color:#24584b!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+.page-app .premium-mobile-dock button:is(.active,[aria-current="page"]){
+  background:linear-gradient(135deg,var(--ref-green),var(--ref-green-2))!important;
+  color:#fff!important;
+  box-shadow:0 8px 20px rgba(1,65,28,.20)!important;
+}
+.page-app .premium-mobile-dock button strong{
+  color:inherit!important;
+  text-shadow:none!important;
+}
+.page-app .premium-mobile-dock .premium-dock-icon{
+  color:inherit!important;
+}
+
+/* Mobile density: two useful cards per row, readable labels, no giant slabs. */
+@media(max-width:760px){
+  .page-app .admin-daily-stats{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .page-app .admin-daily-stats>div{
+    min-height:76px!important;
+    padding:11px 12px!important;
+  }
+  .page-app .admin-daily-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+  }
+  .page-app .admin-daily-actions button{
+    min-height:92px!important;
+    padding:12px!important;
+    column-gap:9px!important;
+  }
+  .page-app .admin-daily-actions button>span{
+    width:34px!important;height:34px!important;
+    font-size:18px!important;
+  }
+  .page-app .admin-daily-actions button>strong{
+    font-size:14px!important;
+  }
+  .page-app .admin-daily-actions button>small{
+    font-size:11.5px!important;
+  }
+  .page-app .premium-mobile-dock{
+    width:calc(100% - 18px)!important;
+    padding:5px!important;
+    border-radius:18px!important;
+  }
+  .page-app .premium-mobile-dock button{
+    min-height:52px!important;
+    padding:5px 3px!important;
+    border-radius:12px!important;
+  }
+}
+@media(max-width:390px){
+  .auth-page .roles{gap:8px!important}
+  .auth-page .role{min-height:98px!important;padding:11px!important}
+  .page-app .admin-daily-actions{gap:8px!important}
+  .page-app .admin-daily-actions button{min-height:88px!important;padding:10px!important}
+}
