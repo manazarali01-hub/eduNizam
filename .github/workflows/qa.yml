@@ -53,13 +53,11 @@ jobs:
         run: node scripts/browser-layout-check.mjs
       - name: Run Teacher Student Parent workflow regressions
         run: node scripts/role-workflow-check.mjs
-      - name: Capture live production visual QA
-        run: node scripts/live-visual-capture.mjs
-      - name: Upload live visual QA screenshots
+      - name: Upload Phase O visual screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: live-visual-qa
-          path: artifacts/live-visual-qa
+          name: phase-o-rendered-screenshots
+          path: artifacts/visual-qa
           if-no-files-found: error
           retention-days: 7
