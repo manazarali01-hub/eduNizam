@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
-const BUILD='20261007-ref6', KEY='edunizam_system_build';
-const ACTIVE_CACHE='edunizam-v249-admin-desk-ref6';
+const BUILD='20261007-login-recovery', KEY='edunizam_system_build';
+const ACTIVE_CACHE='edunizam-v250-admin-login-recovery';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}
