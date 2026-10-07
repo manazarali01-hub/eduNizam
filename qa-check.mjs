@@ -1031,7 +1031,7 @@ for(const marker of [
   if(!referenceVisual.includes(marker)) fail.push('Reference reconstruction marker missing: '+marker);
 }
 for(const page of ['index.html','login.html','learn.html','app.html','about.html','features.html']){
-  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref1')) fail.push('Reference reconstruction stylesheet missing from '+page);
+  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref2')) fail.push('Reference reconstruction stylesheet missing from '+page);
 }
 
 if(fail.length){
