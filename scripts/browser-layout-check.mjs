@@ -4,8 +4,6 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const visualDir=path.resolve(root,'artifacts','visual-qa');
-fs.mkdirSync(visualDir,{recursive:true});
 const port=4173;
 const mime={
   '.html':'text/html; charset=utf-8',
@@ -160,33 +158,6 @@ try{
         await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
         const {result,errors}=await inspectPage(page,'http://127.0.0.1:'+port+route,width);
         const scope=route+' @ '+width+'px';
-
-        // Final visual screenshot: reuse the proven layout-QA browser at review widths.
-        if(width===390||width===1366){
-          await page.addStyleTag({content:`
-            :root{
-              --en-photo-kids:url("/assets/edunizam-login-children.webp")!important;
-              --en-photo-students:url("/assets/edunizam-girl-hero.webp")!important;
-              --en-photo-study:url("/assets/edunizam-girl-hero.webp")!important;
-              --en-photo-flatlay:url("/assets/edunizam-login-children.webp")!important;
-              --en-photo-stationery:url("/assets/edunizam-girl-hero.webp")!important;
-              --en-photo-classroom:url("/assets/edunizam-login-children.webp")!important;
-            }
-            *,*:before,*:after{animation:none!important;transition:none!important}
-          `});
-          await page.evaluate(()=>{
-            const hero=document.querySelector('.page-home .hero-image-wrap img');
-            if(hero)hero.setAttribute('src','assets/edunizam-login-children.webp');
-            window.scrollTo(0,0);
-          });
-          await page.waitForTimeout(90);
-          const routeName=route==='/'?'home':route.replace(/^\//,'').replace(/\.html$/,'');
-          await page.screenshot({
-            path:path.join(visualDir,routeName+'-'+width+'.png'),
-            fullPage:false,
-            timeout:7000
-          });
-        }
         if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px '+JSON.stringify(result.wideElements));
         if(result.clipped.length)pushFailure(scope,'Interactive controls escape the viewport',JSON.stringify(result.clipped));
         if(route==='/'&&width<=430){
