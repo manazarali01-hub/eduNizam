@@ -36,11 +36,11 @@ if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZA
 const browser=await chromium.launch(launchOptions);
 const base='http://127.0.0.1:'+port;
 const routes=[
-  {name:'home',path:'/',scrolls:[0,760,1500,2300]},
+  {name:'home',path:'/',scrolls:[0]},
   {name:'login',path:'/login.html',scrolls:[0]},
-  {name:'learn',path:'/learn.html',scrolls:[0,760,1500]},
-  {name:'admission',path:'/admission.html',scrolls:[0,760]},
-  {name:'app',path:'/app.html',scrolls:[0,760]}
+  {name:'learn',path:'/learn.html',scrolls:[0]},
+  {name:'admission',path:'/admission.html',scrolls:[0]},
+  {name:'app',path:'/app.html',scrolls:[0]}
 ];
 const viewports=[
   {name:'mobile',width:390,height:844},
