@@ -11,23 +11,16 @@ fs.mkdirSync(outDir,{recursive:true});
 const browser=await chromium.launch(launchOptions);
 const base='https://edunizam.online';
 const routes=[
-  {name:'home',path:'/'},
-  {name:'login',path:'/login.html'},
-  {name:'learn',path:'/learn.html'},
-  {name:'admission',path:'/admission.html'},
-  {name:'app',path:'/app.html',js:false}
+  {name:'home',path:'/',scrolls:[0,760,1500,2300]},
+  {name:'login',path:'/login.html',scrolls:[0]},
+  {name:'learn',path:'/learn.html',scrolls:[0,760,1500]},
+  {name:'admission',path:'/admission.html',scrolls:[0,760]},
+  {name:'app',path:'/app.html',scrolls:[0,760]}
 ];
 const viewports=[
   {name:'mobile',width:390,height:844},
   {name:'desktop',width:1366,height:900}
 ];
-const selectors={
-  home:['.premium-public-hero','.role-showcase','.value-section','.learning-band'],
-  login:['.story','.card'],
-  learn:['.hero-grid','.search-wrap','.tabs'],
-  admission:['.shell>section.card:first-of-type','.card'],
-  app:['.topbar','#dashboard']
-};
 const manifest=[];
 
 for(const vp of viewports){
@@ -37,22 +30,23 @@ for(const vp of viewports){
       viewport:{width:vp.width,height:vp.height},
       serviceWorkers:'block'
     });
+    page.setDefaultTimeout(5000);
     await page.route('**/*',async r=>{
-      const u=new URL(r.request().url());
-      if(r.request().resourceType()==='script'||/doubleclick|googlesyndication|google-analytics|googletagmanager|pagead2/.test(u.hostname))return r.abort();
+      const req=r.request();
+      const u=new URL(req.url());
+      if(req.resourceType()==='script'||req.resourceType()==='media'||req.resourceType()==='font'||/doubleclick|googlesyndication|google-analytics|googletagmanager|pagead2/.test(u.hostname))return r.abort();
       return r.continue();
     });
     const url=base+route.path;
     const errors=[];
     page.on('pageerror',e=>errors.push(String(e.message||e)));
     try{
-      page.setDefaultTimeout(6000);
-      const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:20000});
-      await page.waitForTimeout(700);
+      const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:15000});
+      await page.waitForTimeout(600);
       await page.addStyleTag({content:`
         [class*="adsbygoogle"],ins.adsbygoogle{display:none!important}
         html{scroll-behavior:auto!important}
-        *,*:before,*:after{animation-duration:.001ms!important;animation-delay:0s!important;transition-duration:.001ms!important}
+        *,*:before,*:after{animation:none!important;transition:none!important}
       `});
       const metrics=await page.evaluate(()=>({
         title:document.title,
@@ -61,28 +55,22 @@ for(const vp of viewports){
         scrollHeight:Math.max(document.documentElement.scrollHeight,document.body?.scrollHeight||0),
         bodyClass:document.body?.className||''
       }));
-      const full=`${route.name}-${vp.name}-viewport.png`;
-      await page.screenshot({path:path.join(outDir,full),fullPage:false});
-      const captured=[];
-      for(let i=0;i<(selectors[route.name]||[]).length;i++){
-        const sel=selectors[route.name][i];
-        const loc=page.locator(sel).first();
-        if(await loc.count()){
-          try{
-            if(await loc.isVisible()){
-              const file=`${route.name}-${vp.name}-section-${i+1}.png`;
-              await loc.screenshot({path:path.join(outDir,file)});
-              captured.push({selector:sel,file});
-            }
-          }catch{}
-        }
+      const shots=[];
+      for(const requestedY of route.scrolls){
+        const y=await page.evaluate(y=>{window.scrollTo(0,Math.min(y,Math.max(0,document.documentElement.scrollHeight-innerHeight)));return Math.round(scrollY)},requestedY);
+        await page.waitForTimeout(100);
+        const file=`${route.name}-${vp.name}-y${y}.png`;
+        await page.screenshot({path:path.join(outDir,file),fullPage:false,timeout:8000});
+        shots.push({requestedY,y,file});
       }
       manifest.push({
         route:route.name,viewport:vp.name,url,status:response?.status()||0,
-        metrics,errors:errors.slice(0,5),full,captured
+        metrics,errors:errors.slice(0,5),shots
       });
+      console.log('Captured',route.name,vp.name,shots.length,'shots',metrics);
     }catch(error){
       manifest.push({route:route.name,viewport:vp.name,url,error:String(error.message||error),errors});
+      console.error('Capture failed',route.name,vp.name,String(error.message||error));
     }finally{
       await page.close();
     }
