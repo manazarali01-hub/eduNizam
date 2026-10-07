@@ -128,7 +128,7 @@
         settled=true;
         script.remove();
         reject(new Error('Feature script timed out: '+src));
-      },12000);
+      },6500);
       const finish=(ok,error)=>{
         if(settled)return;
         settled=true;
@@ -153,12 +153,12 @@
       const rel=reliability();
       let attempt=0;
       const runner=rel?.withRetry
-        ?()=>rel.withRetry(()=>loadAttempt(src,++attempt),{retries:2,delay:550,timeout:13000,label:'Feature '+src})
+        ?()=>rel.withRetry(()=>loadAttempt(src,++attempt),{retries:1,delay:450,timeout:7000,label:'Feature '+src})
         :async()=>{
             let last;
-            for(let attempt=0;attempt<3;attempt++){
+            for(let attempt=0;attempt<2;attempt++){
               try{return await loadAttempt(src,attempt+1)}
-              catch(e){last=e;if(attempt<2)await new Promise(r=>setTimeout(r,550*(attempt+1)))}
+              catch(e){last=e;if(attempt<1)await new Promise(r=>setTimeout(r,450))}
             }
             throw last;
           };
