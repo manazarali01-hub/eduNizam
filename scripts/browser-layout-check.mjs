@@ -1098,7 +1098,7 @@ try{
       return {available:true,seen,ready:loader.isReady('assistant')};
     },5000);
     if(!prefetchContract.available||
-       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-feescale1/.test(x.url)&&x.cache==='force-cache')||
+       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-staffscale1/.test(x.url)&&x.cache==='force-cache')||
        prefetchContract.ready){
       pushFailure('navigation performance','Feature prefetch did not warm versioned code without executing it',JSON.stringify(prefetchContract));
     }
@@ -1141,6 +1141,20 @@ try{
     },5000);
     if(!feeScaleContract.instantPaint||!feeScaleContract.noBroadPaymentPull||!feeScaleContract.indexedHistory||!feeScaleContract.dedupe||!feeScaleContract.printHydrates){
       pushFailure('fee performance','Fee Center scale guards are missing',JSON.stringify(feeScaleContract));
+    }
+
+    const staffTimeScaleContract=await boundedEvaluate('inspect staff time scale contract',async()=>{
+      const source=await fetch('/staff-time-attendance.js').then(r=>r.text());
+      return {
+        noPolling:!source.includes("setInterval("),
+        monthScoped:source.includes(".gte('attendance_date',bounds.start)")&&source.includes(".lt('attendance_date',bounds.next)"),
+        onDemandMonth:source.includes("pullCloud(selected,false)")&&source.includes("root.dataset.staMonth=selected"),
+        dedupe:source.includes("staffLoadInFlight.has(requestKey)")&&source.includes("Date.now()-loadedAt<15000"),
+        lifecycle:source.includes("'edunizam:view-open'")&&source.includes("document.addEventListener('visibilitychange'")
+      };
+    },5000);
+    if(!staffTimeScaleContract.noPolling||!staffTimeScaleContract.monthScoped||!staffTimeScaleContract.onDemandMonth||!staffTimeScaleContract.dedupe||!staffTimeScaleContract.lifecycle){
+      pushFailure('staff time performance','Staff Time scale guards are missing',JSON.stringify(staffTimeScaleContract));
     }
 
     const intentPrefetch=await boundedEvaluate('inspect navigation intent prefetch',async()=>{
