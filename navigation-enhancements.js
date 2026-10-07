@@ -45,6 +45,46 @@
     const input=document.getElementById('navFeatureSearch');
     function filter(){const q=input.value.trim().toLowerCase();nav.querySelectorAll('.nav-group').forEach(g=>{let shown=0;g.querySelectorAll('.nav-item').forEach(b=>{const match=!q||b.textContent.toLowerCase().includes(q);b.classList.toggle('nav-search-hidden',!match);if(match&&!b.classList.contains('role-hidden'))shown++});g.hidden=shown===0;if(q&&shown)g.open=true})}
     input.addEventListener('input',filter);document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus();input.select()}if(e.key==='Escape'&&document.activeElement===input){input.value='';filter();input.blur()}});
+    const connectionAllowsPrefetch=()=>{
+      const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+      return !c?.saveData&&!/^(slow-)?2g$/i.test(c?.effectiveType||'');
+    };
+    const prefetchView=view=>{
+      if(!view||!connectionAllowsPrefetch())return;
+      const loader=window.EDUNIZAM_FEATURE_LOADER;
+      if(!loader?.prefetch||loader.isReady?.(view))return;
+      loader.prefetch(view).catch(()=>{});
+    };
+    const intentPrefetch=e=>{
+      const b=e.target.closest?.('.nav-item[data-view]');
+      if(!b||b.hidden||b.classList.contains('role-hidden'))return;
+      prefetchView(b.dataset.view);
+    };
+    nav.addEventListener('pointerover',intentPrefetch,{passive:true});
+    nav.addEventListener('focusin',intentPrefetch);
+    nav.addEventListener('touchstart',intentPrefetch,{passive:true});
+    const warmCommonViews=()=>{
+      if(!connectionAllowsPrefetch())return;
+      const loader=window.EDUNIZAM_FEATURE_LOADER;if(!loader?.prefetch)return;
+      const preferred=['noticeboard','schedulecenter','inboxcenter','studentprofile','results','schoolwork','staffcenter','stafftime','leavecenter','examcenter','calendarcenter','paperbuilder','dailydiary'];
+      const visible=preferred.filter(view=>{
+        const b=nav.querySelector('.nav-item[data-view="'+view+'"]');
+        return b&&!b.hidden&&!b.classList.contains('role-hidden')&&(loader.scriptsFor?.(view)||[]).length;
+      }).slice(0,4);
+      let index=0;
+      const next=()=>{
+        const view=visible[index++];if(!view)return;
+        loader.prefetch(view).catch(()=>{}).finally(()=>{
+          if(index<visible.length)setTimeout(next,120);
+        });
+      };
+      next();
+    };
+    const scheduleWarm=()=>{
+      const run=()=>warmCommonViews();
+      if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:2200});
+      else setTimeout(run,1200);
+    };
     nav.addEventListener('click',e=>{const b=e.target.closest('.nav-item');if(!b)return;const g=b.closest('.nav-group');if(g)g.open=true;if(window.innerWidth<951)window.EDUNIZAM_MOBILE_NAV_CORE?.close?.()});
     const observer=new MutationObserver(mutations=>{
       let changed=false;
@@ -58,8 +98,8 @@
       if(changed)setTimeout(filter,0);
     });
     observer.observe(nav,{childList:true,subtree:true});
-    window.addEventListener('edunizam:auth',()=>setTimeout(filter,50));
-    setTimeout(()=>{nav.querySelectorAll('.nav-item').forEach(b=>placeButton(nav,b));filter()},900);
+    window.addEventListener('edunizam:auth',()=>{setTimeout(filter,50);setTimeout(scheduleWarm,180)});
+    setTimeout(()=>{nav.querySelectorAll('.nav-item').forEach(b=>placeButton(nav,b));filter();scheduleWarm()},900);
   }
   setTimeout(mount,0);setTimeout(mount,800);window.EDUNIZAM_NAVIGATION={mount};
 })();

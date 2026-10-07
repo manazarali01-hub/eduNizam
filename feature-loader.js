@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261006-workflow1';
+  const VERSION='20261007-speed1';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -107,9 +107,17 @@
   };
   const loaded=new Set();
   const inflight=new Map();
+  const prefetched=new Set();
+  const prefetching=new Map();
   const bundleScriptsFor=view=>(featureBundles[view]||[]).flatMap(name=>sharedBundles[name]||[]);
   const scriptsFor=view=>[...bundleScriptsFor(view),...(featureScripts[view]||[])];
   const reliability=()=>window.EDUNIZAM_RELIABILITY;
+  const versionedUrl=src=>{
+    const url=new URL(src,location.href);
+    if(url.origin!==location.origin)return src;
+    url.searchParams.set('v',VERSION);
+    return url.pathname+url.search+url.hash;
+  };
 
   function loadAttempt(src,attempt){
     return new Promise((resolve,reject)=>{
@@ -128,8 +136,10 @@
         if(ok)resolve();else{script.remove();reject(error)}
       };
       script.async=false;
-      const sep=src.includes('?')?'&':'?';
-      script.src=src+sep+'v='+VERSION+'&attempt='+attempt;
+      const base=versionedUrl(src);
+      script.src=attempt>1&&new URL(src,location.href).origin===location.origin
+        ?base+(base.includes('?')?'&':'?')+'retry='+attempt
+        :base;
       script.onload=()=>finish(true);
       script.onerror=()=>finish(false,new Error('Could not load '+src));
       document.head.appendChild(script);
@@ -141,8 +151,9 @@
     if(inflight.has(src))return inflight.get(src);
     const run=async()=>{
       const rel=reliability();
+      let attempt=0;
       const runner=rel?.withRetry
-        ?()=>rel.withRetry(()=>loadAttempt(src,Date.now()),{retries:2,delay:550,timeout:13000,label:'Feature '+src})
+        ?()=>rel.withRetry(()=>loadAttempt(src,++attempt),{retries:2,delay:550,timeout:13000,label:'Feature '+src})
         :async()=>{
             let last;
             for(let attempt=0;attempt<3;attempt++){
@@ -164,6 +175,28 @@
     return task;
   }
   function isReady(view){return scriptsFor(view).every(src=>loaded.has(src))}
+  function prefetchScript(src){
+    if(loaded.has(src)||prefetched.has(src))return Promise.resolve(true);
+    if(prefetching.has(src))return prefetching.get(src);
+    const url=new URL(src,location.href);
+    if(url.origin!==location.origin)return Promise.resolve(false);
+    const task=fetch(versionedUrl(src),{
+      method:'GET',
+      credentials:'same-origin',
+      cache:'force-cache'
+    }).then(response=>{
+      if(!response.ok)throw new Error('Could not prefetch '+src);
+      prefetched.add(src);
+      return true;
+    }).catch(()=>false).finally(()=>prefetching.delete(src));
+    prefetching.set(src,task);
+    return task;
+  }
+  async function prefetch(view){
+    const list=scriptsFor(view);
+    if(!list.length)return [];
+    return Promise.all(list.map(prefetchScript));
+  }
   async function ensure(view){
     const list=scriptsFor(view);if(!list.length)return;
     const rel=reliability();
@@ -180,5 +213,5 @@
       rel?.endFeature?.(view);
     }
   }
-  window.EDUNIZAM_FEATURE_LOADER={ensure,isReady,scriptsFor};
+  window.EDUNIZAM_FEATURE_LOADER={ensure,isReady,scriptsFor,prefetch,versionedUrl};
 })();
