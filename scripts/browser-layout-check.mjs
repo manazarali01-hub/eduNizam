@@ -1098,7 +1098,7 @@ try{
       return {available:true,seen,ready:loader.isReady('assistant')};
     },5000);
     if(!prefetchContract.available||
-       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-msgscale1/.test(x.url)&&x.cache==='force-cache')||
+       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-workscale1/.test(x.url)&&x.cache==='force-cache')||
        prefetchContract.ready){
       pushFailure('navigation performance','Feature prefetch did not warm versioned code without executing it',JSON.stringify(prefetchContract));
     }
@@ -1114,6 +1114,19 @@ try{
     },5000);
     if(!messagingScaleContract.scopedUnread||!messagingScaleContract.batched||!messagingScaleContract.dedupe||!messagingScaleContract.contactsCache){
       pushFailure('messaging performance','Inbox scale guards are missing',JSON.stringify(messagingScaleContract));
+    }
+
+    const schoolWorkScaleContract=await boundedEvaluate('inspect school work scale contract',async()=>{
+      const source=await fetch('/school-work.js').then(r=>r.text());
+      return {
+        firstPaint:source.includes("paint(root,read(),tab)")&&source.includes("const scope=tab==='submissions'?'submissions':tab"),
+        scopedLoads:source.includes("normalized==='announcements'")&&source.includes("normalized==='homework'")&&source.includes("normalized==='timetable'"),
+        submissionPair:source.includes("current.submissions=mapSubmissions(s.data)")&&source.includes("cloudLoadedScopes.add('homework')"),
+        dedupe:source.includes("cloudScopeInFlight.has(normalized)")
+      };
+    },5000);
+    if(!schoolWorkScaleContract.firstPaint||!schoolWorkScaleContract.scopedLoads||!schoolWorkScaleContract.submissionPair||!schoolWorkScaleContract.dedupe){
+      pushFailure('school work performance','School Work lazy data guards are missing',JSON.stringify(schoolWorkScaleContract));
     }
 
     const intentPrefetch=await boundedEvaluate('inspect navigation intent prefetch',async()=>{
