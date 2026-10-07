@@ -910,6 +910,161 @@ try{
     await authPage.close();
   }
 
+  console.log('Auth/mobile runtime contract complete. Starting pilot onboarding contract.');
+  const onboardingPage=await browser.newPage({
+    javaScriptEnabled:true,
+    viewport:{width:390,height:844},
+    isMobile:true,
+    hasTouch:true,
+    serviceWorkers:'block'
+  });
+  onboardingPage.setDefaultTimeout(6000);
+  onboardingPage.setDefaultNavigationTimeout(8000);
+  const onboardingErrors=[];
+  onboardingPage.on('pageerror',error=>onboardingErrors.push(String(error?.message||error)));
+  try{
+    await onboardingPage.addInitScript(()=>{
+      const school={
+        institution_id:'33333333-3333-4333-8333-333333333333',
+        institution_name:'Pilot QA School',
+        institution_type:'School',
+        registration_number:'PILOT-QA-1',
+        school_registration_code:'QA-PILOT',
+        address:'QA Campus'
+      };
+      const readCalls=()=>{try{return JSON.parse(localStorage.getItem('qa_onboarding_calls')||'[]')}catch{return[]}};
+      const record=(name,args={})=>{
+        const calls=readCalls();calls.push({name,args});
+        localStorage.setItem('qa_onboarding_calls',JSON.stringify(calls));
+      };
+      let currentUser=null;
+      const query=()=>{
+        const result={data:[],error:null};
+        const q={
+          select(){return q},eq(){return q},neq(){return q},in(){return q},gte(){return q},lte(){return q},gt(){return q},lt(){return q},
+          like(){return q},ilike(){return q},order(){return q},limit(){return q},insert(){return q},upsert(){return q},update(){return q},delete(){return q},abortSignal(){return q},
+          maybeSingle(){return Promise.resolve({data:null,error:null})},
+          single(){return Promise.resolve({data:null,error:null})},
+          then(resolve,reject){return Promise.resolve(result).then(resolve,reject)}
+        };
+        return q;
+      };
+      const client={
+        auth:{
+          signUp:({email,options})=>{
+            currentUser={id:'qa-'+String(email||'user').replace(/[^a-z0-9]/gi,'-'),email,user_metadata:options?.data||{},identities:[{id:'qa'}]};
+            record('auth.signUp',{email,metadata:options?.data||{}});
+            return Promise.resolve({data:{user:currentUser,session:{user:currentUser}},error:null});
+          },
+          signInWithPassword:({email})=>{
+            currentUser={id:'qa-login-user',email,user_metadata:{}};
+            record('auth.signInWithPassword',{email});
+            return Promise.resolve({data:{user:currentUser,session:{user:currentUser}},error:null});
+          },
+          signOut:()=>{record('auth.signOut');currentUser=null;return Promise.resolve({error:null})},
+          getSession:()=>Promise.resolve({data:{session:currentUser?{user:currentUser}:null},error:null}),
+          getUser:()=>Promise.resolve({data:{user:currentUser},error:null}),
+          resend:()=>Promise.resolve({error:null}),
+          resetPasswordForEmail:()=>Promise.resolve({error:null}),
+          verifyOtp:()=>Promise.resolve({data:{user:currentUser,session:currentUser?{user:currentUser}:null},error:null}),
+          updateUser:()=>Promise.resolve({data:{user:currentUser},error:null}),
+          onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})
+        },
+        rpc:(name,args={})=>{
+          record(name,args);
+          if(name==='list_school_directory_v1'||name==='search_school_directory_v1')return Promise.resolve({data:[school],error:null});
+          if(name==='register_admin_school_v2')return Promise.resolve({data:{institution_id:school.institution_id},error:null});
+          if(name==='my_authorized_workspaces')return Promise.resolve({data:[{...school,workspace_role:'head_of_institute'}],error:null});
+          if(name==='submit_teacher_school_request_v1')return Promise.resolve({data:{id:'teacher-request',status:'pending'},error:null});
+          if(name==='submit_school_access_request_v1')return Promise.resolve({data:{id:'member-request',status:'pending'},error:null});
+          return Promise.resolve({data:null,error:null});
+        },
+        from:()=>query()
+      };
+      window.supabase={createClient:()=>client};
+    });
+    await onboardingPage.route('**/*',route=>{
+      const u=new URL(route.request().url());
+      if(u.hostname==='127.0.0.1')return route.continue();
+      if(u.hostname==='cdn.jsdelivr.net'&&u.pathname.includes('@supabase'))return route.fulfill({status:200,contentType:'text/javascript',body:'/* onboarding Supabase stub */'});
+      return route.abort();
+    });
+
+    const reset=async()=>{
+      await onboardingPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:8000});
+      await onboardingPage.evaluate(()=>{
+        localStorage.removeItem('qa_onboarding_calls');
+        localStorage.removeItem('edunizam_pending_signup');
+        localStorage.removeItem('edunizam_verify_email');
+        localStorage.removeItem('edunizam_session');
+        sessionStorage.clear();
+      });
+      await onboardingPage.reload({waitUntil:'domcontentloaded',timeout:8000});
+    };
+    const calls=()=>onboardingPage.evaluate(()=>JSON.parse(localStorage.getItem('qa_onboarding_calls')||'[]'));
+    const commonSignup=async({role,email,name='QA User',phone='03001234567',className='',childName=''})=>{
+      await onboardingPage.locator('[data-role="'+role+'"]').tap({timeout:5000});
+      await onboardingPage.locator('#signupTab').tap({timeout:5000});
+      if(role!=='admin'){
+        await onboardingPage.waitForFunction(()=>document.querySelectorAll('#memberSchoolDropdown option').length>1,null,{timeout:5000});
+        await onboardingPage.locator('#memberSchoolDropdown').selectOption('33333333-3333-4333-8333-333333333333');
+      }
+      if(role==='admin')await onboardingPage.locator('#schoolName').fill('Pilot QA School');
+      await onboardingPage.locator('#fullName').fill(name);
+      await onboardingPage.locator('#contactNumber').fill(phone);
+      await onboardingPage.locator('#signupEmail').fill(email);
+      await onboardingPage.locator('#signupPassword').fill('SecurePass123!');
+      if(className)await onboardingPage.locator('#approvalClassName').fill(className);
+      if(childName)await onboardingPage.locator('#approvalStudentName').fill(childName);
+      await onboardingPage.locator('#signupBtn').tap({timeout:5000,noWaitAfter:true});
+    };
+
+    await reset();
+    await commonSignup({role:'admin',email:'pilot-admin@example.test',name:'Pilot Admin'});
+    await onboardingPage.waitForURL(/\/app\.html\?secureLogin=1$/,{timeout:6000});
+    const adminCalls=await calls();
+    const adminRegister=adminCalls.find(x=>x.name==='register_admin_school_v2');
+    const adminWorkspace=adminCalls.find(x=>x.name==='my_authorized_workspaces');
+    const adminSession=await onboardingPage.evaluate(()=>JSON.parse(localStorage.getItem('edunizam_session')||'null'));
+    if(!adminRegister||!adminWorkspace||adminSession?.role!=='head'||adminSession?.institutionId!=='33333333-3333-4333-8333-333333333333'){
+      pushFailure('pilot onboarding admin','Admin signup did not create and enter the owned school workspace',JSON.stringify({adminCalls,adminSession}));
+    }
+
+    await reset();
+    await commonSignup({role:'teacher',email:'pilot-teacher@example.test',name:'Pilot Teacher'});
+    await onboardingPage.waitForFunction(()=>/Teacher request sent/.test(document.getElementById('statusBox')?.textContent||''),null,{timeout:5000});
+    const teacherCalls=await calls();
+    const teacherRequest=teacherCalls.find(x=>x.name==='submit_teacher_school_request_v1');
+    if(!teacherRequest||teacherRequest.args?.p_institution_id!=='33333333-3333-4333-8333-333333333333'||teacherRequest.args?.p_full_name!=='Pilot Teacher'){
+      pushFailure('pilot onboarding teacher','Teacher signup did not submit the selected-school approval request',JSON.stringify(teacherCalls));
+    }
+
+    await reset();
+    await commonSignup({role:'student',email:'pilot-student@example.test',name:'Pilot Student',className:'5'});
+    await onboardingPage.waitForFunction(()=>/Waiting for School Admin Approval/.test(document.getElementById('statusBox')?.textContent||''),null,{timeout:5000});
+    const studentCalls=await calls();
+    const studentRequest=studentCalls.find(x=>x.name==='submit_school_access_request_v1');
+    if(!studentRequest||studentRequest.args?.p_role!=='student'||studentRequest.args?.p_class_name!=='5'||studentRequest.args?.p_institution_id!=='33333333-3333-4333-8333-333333333333'){
+      pushFailure('pilot onboarding student','Student signup did not submit the required school/profile approval data',JSON.stringify(studentCalls));
+    }
+
+    await reset();
+    await commonSignup({role:'parent',email:'pilot-parent@example.test',name:'Pilot Parent',className:'5',childName:'Pilot Child'});
+    await onboardingPage.waitForFunction(()=>/Waiting for School Admin Approval/.test(document.getElementById('statusBox')?.textContent||''),null,{timeout:5000});
+    const parentCalls=await calls();
+    const parentRequest=parentCalls.find(x=>x.name==='submit_school_access_request_v1');
+    if(!parentRequest||parentRequest.args?.p_role!=='parent'||parentRequest.args?.p_student_name!=='Pilot Child'||parentRequest.args?.p_class_name!=='5'||parentRequest.args?.p_institution_id!=='33333333-3333-4333-8333-333333333333'){
+      pushFailure('pilot onboarding parent','Parent signup did not submit the selected child/school approval data',JSON.stringify(parentCalls));
+    }
+
+    if(onboardingErrors.length)pushFailure('pilot onboarding','Runtime JavaScript errors occurred during onboarding flows',onboardingErrors.slice(0,8).join(' | '));
+    console.log('Pilot onboarding contract PASS: Admin + Teacher + Student + Parent signup paths.');
+  }catch(e){
+    pushFailure('pilot onboarding','Pilot onboarding browser regression failed',e.message||String(e));
+  }finally{
+    await onboardingPage.close();
+  }
+
   console.log('Auth/mobile runtime contract complete. Starting full login contract.');
   // Full login contract: real Login page -> app redirect -> usable mobile dashboard.
   const loginFlowPage=await browser.newPage({
