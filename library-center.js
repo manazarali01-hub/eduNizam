@@ -10,6 +10,18 @@
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const isHead=()=>role()==='head';
   const isStaff=()=>['head','teacher'].includes(role());
+  let libraryBookSaveInFlight=false,libraryIssueInFlight=false;
+  const libraryDeleteInFlight=new Set(),libraryReturnInFlight=new Set(),libraryRenewInFlight=new Set();
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
+    else{btn.disabled=false;btn.removeAttribute('aria-busy');if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}}
+  }
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   const plusDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   function read(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}}
@@ -31,10 +43,13 @@
   async function cloudStudent(localId){
     if(!cloudReady())return null;
     const s=students().find(x=>String(x.id)===String(localId));if(!s)return null;
-    let q=cloud().state.client.from('core_students').select('id,local_id,name,class_name,section_name,student_code,auth_user_id')
-      .eq('institution_id',cfg().institutionId);
-    if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
-    const {data,error}=await q.maybeSingle();if(error)throw error;return data||null;
+    const inst=cfg().institutionId,lookup=s.studentId?('code:'+s.studentId):('local:'+Number(s.id));
+    return runCloud('library-student:'+inst+':'+lookup,'Library student link',async({signal}={})=>{
+      let q=cloud().state.client.from('core_students').select('id,local_id,name,class_name,section_name,student_code,auth_user_id').eq('institution_id',inst);
+      if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
+      q=q.maybeSingle();q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;return data||null;
+    },{timeout:6000,retries:1});
   }
   function mapBook(x){
     return {id:x.id,accessionNo:x.accession_no,title:x.title,author:x.author||'',isbn:x.isbn||'',category:x.category||'General',publisher:x.publisher||'',shelf:x.shelf_location||'',totalCopies:Number(x.total_copies||0),active:x.active!==false,createdAt:x.created_at};
@@ -46,35 +61,50 @@
   async function pullCloud(){
     if(!cloudReady())return;
     const c=cloud().state.client,id=cfg().institutionId;
-    const [br,lr]=await Promise.all([
-      c.from('library_books').select('*').eq('institution_id',id).order('title'),
-      c.from('library_loans').select('*,core_students(local_id,name,class_name,section_name,auth_user_id),library_books(title,accession_no)').eq('institution_id',id).order('issued_at',{ascending:false})
-    ]);
-    if(br.error)throw br.error;if(lr.error)throw lr.error;
+    const {br,lr}=await runCloud('library-load:'+id,'Library data',async({signal}={})=>{
+      const [br,lr]=await Promise.all([
+        withSignal(c.from('library_books').select('*').eq('institution_id',id).order('title'),signal),
+        withSignal(c.from('library_loans').select('*,core_students(local_id,name,class_name,section_name,auth_user_id),library_books(title,accession_no)').eq('institution_id',id).order('issued_at',{ascending:false}),signal)
+      ]);
+      if(br.error)throw br.error;if(lr.error)throw lr.error;return {br,lr};
+    },{timeout:7000,retries:1});
     write(BOOK_KEY,(br.data||[]).map(mapBook));write(LOAN_KEY,(lr.data||[]).map(mapLoan));
   }
   async function saveBookCloud(item){
     if(!cloudReady())return null;
     const payload={institution_id:cfg().institutionId,accession_no:item.accessionNo,title:item.title,author:item.author||null,isbn:item.isbn||null,category:item.category||'General',publisher:item.publisher||null,shelf_location:item.shelf||null,total_copies:item.totalCopies,active:item.active!==false,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
-    const {data,error}=await cloud().state.client.from('library_books').upsert(payload,{onConflict:'institution_id,accession_no'}).select().single();
-    if(error)throw error;return mapBook(data);
+    const inst=cfg().institutionId;
+    return runCloud('library-book-save:'+inst+':'+item.accessionNo,'Save library book',async({signal}={})=>{
+      let q=cloud().state.client.from('library_books').upsert(payload,{onConflict:'institution_id,accession_no'}).select().single();
+      q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return mapBook(data);
+    },{timeout:8000,retries:1});
   }
   async function deleteBookCloud(id){
     if(!cloudReady())return;
-    const {error}=await cloud().state.client.from('library_books').delete().eq('id',id);if(error)throw error;
+    const inst=cfg().institutionId;
+    return runCloud('library-book-delete:'+inst+':'+id,'Delete library book',async({signal}={})=>{
+      let q=cloud().state.client.from('library_books').delete().eq('institution_id',inst).eq('id',id);q=withSignal(q,signal);
+      const {error}=await q;if(error)throw error;
+    },{timeout:8000,retries:1});
   }
   async function issueCloud(bookId,studentLocalId,dueDate){
     const cs=await cloudStudent(studentLocalId);if(!cs)throw new Error('Student cloud record not found.');
-    const {data,error}=await cloud().state.client.rpc('issue_library_book',{p_book_id:bookId,p_student_id:cs.id,p_due_date:dueDate});
-    if(error)throw error;return data;
+    return runCloud('library-issue:'+cfg().institutionId+':'+bookId+':'+cs.id,'Issue library book',async({signal}={})=>{
+      let q=cloud().state.client.rpc('issue_library_book',{p_book_id:bookId,p_student_id:cs.id,p_due_date:dueDate});q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;return data;
+    },{timeout:8000,retries:0});
   }
   async function returnCloud(loanId){
-    const {data,error}=await cloud().state.client.rpc('return_library_book',{p_loan_id:loanId});
-    if(error)throw error;return data;
+    return runCloud('library-return:'+cfg().institutionId+':'+loanId,'Return library book',async({signal}={})=>{
+      let q=cloud().state.client.rpc('return_library_book',{p_loan_id:loanId});q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;return data;
+    },{timeout:8000,retries:0});
   }
   async function renewCloud(loanId,newDueDate){
-    const {data,error}=await cloud().state.client.rpc('renew_library_loan',{p_loan_id:loanId,p_new_due_date:newDueDate});
-    if(error)throw error;return data;
+    return runCloud('library-renew:'+cfg().institutionId+':'+loanId,'Renew library loan',async({signal}={})=>{
+      let q=cloud().state.client.rpc('renew_library_loan',{p_loan_id:loanId,p_new_due_date:newDueDate});q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;return data;
+    },{timeout:8000,retries:0});
   }
   function catalogEditor(edit=null){
     if(!isHead())return '';
@@ -119,27 +149,35 @@
     return loans.map(x=>'<div class="row"><strong>'+esc(x.studentName)+'</strong><span>'+esc(x.bookTitle)+'<small class="muted"> · '+esc(x.accessionNo||'')+'</small></span><span>'+esc(x.dueDate)+'</span><span class="badge">'+loanStatus(x)+'</span>'+(isStaff()&&!x.returnedAt?'<span class="paper-actions"><button class="secondary" data-lib-renew="'+esc(x.id)+'">Renew</button><button data-lib-return="'+esc(x.id)+'">Return</button></span>':'<span></span>')+'</div>').join('');
   }
   async function saveBook(){
+    const btn=$('libSaveBook');if(libraryBookSaveInFlight||btn?.disabled)return;
     const id=$('libEditId')?.value||'',accessionNo=$('libAccession')?.value.trim(),title=$('libTitle')?.value.trim(),totalCopies=Number($('libCopies')?.value||0);
     if(!accessionNo||!title||totalCopies<1)return alert('Accession no., title aur copies required hain.');
     const rows=read(BOOK_KEY),dupe=rows.find(x=>x.accessionNo.toLowerCase()===accessionNo.toLowerCase()&&String(x.id)!==String(id));if(dupe)return alert('Accession number already exists.');
     const activeCount=read(LOAN_KEY).filter(x=>String(x.bookId)===String(id)&&!x.returnedAt).length;
     if(id&&totalCopies<activeCount)return alert('Total copies active issued copies se kam nahi ho sakti.');
-    let item={id:id||String(Date.now()),accessionNo,title,author:$('libAuthor')?.value.trim()||'',isbn:$('libISBN')?.value.trim()||'',category:$('libCategory')?.value.trim()||'General',publisher:$('libPublisher')?.value.trim()||'',shelf:$('libShelf')?.value.trim()||'',totalCopies,active:$('libActive')?.value==='true',createdAt:new Date().toISOString()};
-    try{const c=await saveBookCloud(item);if(c)item=c}catch(e){if(cloudReady())return alert('Cloud book save failed: '+(e.message||e))}
-    const next=rows.filter(x=>String(x.id)!==String(id)&&x.accessionNo.toLowerCase()!==accessionNo.toLowerCase());next.push(item);write(BOOK_KEY,next);render();
+    libraryBookSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
+    try{
+      let item={id:id||String(Date.now()),accessionNo,title,author:$('libAuthor')?.value.trim()||'',isbn:$('libISBN')?.value.trim()||'',category:$('libCategory')?.value.trim()||'General',publisher:$('libPublisher')?.value.trim()||'',shelf:$('libShelf')?.value.trim()||'',totalCopies,active:$('libActive')?.value==='true',createdAt:new Date().toISOString()};
+      try{const c=await saveBookCloud(item);if(c)item=c}catch(e){if(cloudReady())return alert('Cloud book save failed: '+(e.message||e))}
+      const next=rows.filter(x=>String(x.id)!==String(id)&&x.accessionNo.toLowerCase()!==accessionNo.toLowerCase());next.push(item);write(BOOK_KEY,next);render();
+    }finally{libraryBookSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function editBook(id){
     const b=read(BOOK_KEY).find(x=>String(x.id)===String(id));if(!b||!isHead())return;
     const box=$('libCatalogEditor');if(box)box.innerHTML=catalogEditor(b);bindEditors();
   }
-  async function deleteBook(id){
-    if(!isHead())return;
+  async function deleteBook(id,btn){
+    const key=String(id||'');if(!isHead()||libraryDeleteInFlight.has(key)||btn?.disabled)return;
     if(read(LOAN_KEY).some(x=>String(x.bookId)===String(id)))return alert('Book ki loan history maujood hai; delete ke bajaye Inactive karein.');
     if(!confirm('Delete this catalog book?'))return;
-    try{await deleteBookCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
-    write(BOOK_KEY,read(BOOK_KEY).filter(x=>String(x.id)!==String(id)));render();
+    libraryDeleteInFlight.add(key);setBusy(btn,true,'Deleting...');
+    try{
+      try{await deleteBookCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
+      write(BOOK_KEY,read(BOOK_KEY).filter(x=>String(x.id)!==String(id)));render();
+    }finally{libraryDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
   async function issue(){
+    const btn=$('libIssueBtn');if(libraryIssueInFlight||btn?.disabled)return;
     const bookId=$('libIssueBook')?.value,studentId=$('libIssueStudent')?.value,dueDate=$('libDueDate')?.value;
     if(!bookId||!studentId||!dueDate)return alert('Book, student aur due date select karein.');
     if(dueDate<today())return alert('Due date aaj ya future ki honi chahiye.');
@@ -147,26 +185,42 @@
     if(availableCopies(book)<1)return alert('Is book ki koi copy available nahi.');
     if(read(LOAN_KEY).some(x=>String(x.bookId)===String(bookId)&&String(x.studentId)===String(studentId)&&!x.returnedAt))return alert('Ye book is student ko already issued hai.');
     let loan={id:String(Date.now()),bookId:book.id,studentId:String(student.id),studentName:student.name,className:student.className||'',sectionName:student.sectionName||'',bookTitle:book.title,accessionNo:book.accessionNo,issuedAt:today(),dueDate,returnedAt:'',status:'Issued',notes:''};
+    libraryIssueInFlight=true;setBusy(btn,true,'Issuing...');
     try{
-      const c=await issueCloud(bookId,studentId,dueDate);
-      if(c){await pullCloud();render();return}
-    }catch(e){if(cloudReady())return alert('Cloud issue failed: '+(e.message||e))}
-    const loans=read(LOAN_KEY);loans.unshift(loan);write(LOAN_KEY,loans);render();
+      try{
+        const c=await issueCloud(bookId,studentId,dueDate);
+        if(c){await pullCloud();render();return}
+      }catch(e){
+        if(cloudReady()){
+          try{await pullCloud();const linked=read(LOAN_KEY).some(x=>String(x.bookId)===String(bookId)&&String(x.studentId)===String(studentId)&&!x.returnedAt);render();if(linked)return}catch{}
+          return alert('Cloud issue failed: '+(e.message||e));
+        }
+      }
+      const loans=read(LOAN_KEY);loans.unshift(loan);write(LOAN_KEY,loans);render();
+    }finally{libraryIssueInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
-  async function returnBook(id){
+  async function returnBook(id,btn){
+    const key=String(id||'');if(libraryReturnInFlight.has(key)||btn?.disabled)return;
     const loans=read(LOAN_KEY),loan=loans.find(x=>String(x.id)===String(id));if(!loan||!isStaff())return;
     if(!confirm('Mark '+loan.bookTitle+' as returned?'))return;
-    try{const c=await returnCloud(id);if(c){await pullCloud();render();return}}catch(e){if(cloudReady())return alert('Cloud return failed: '+(e.message||e))}
-    loan.returnedAt=today();loan.status='Returned';write(LOAN_KEY,loans);render();
+    libraryReturnInFlight.add(key);setBusy(btn,true,'Returning...');
+    try{
+      try{const c=await returnCloud(id);if(c){await pullCloud();render();return}}catch(e){if(cloudReady()){try{await pullCloud();render()}catch{}return alert('Cloud return status refreshed after failure: '+(e.message||e))}}
+      loan.returnedAt=today();loan.status='Returned';write(LOAN_KEY,loans);render();
+    }finally{libraryReturnInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
-  async function renewBook(id){
+  async function renewBook(id,btn){
+    const key=String(id||'');if(libraryRenewInFlight.has(key)||btn?.disabled)return;
     const loans=read(LOAN_KEY),loan=loans.find(x=>String(x.id)===String(id));if(!loan||!isStaff()||loan.returnedAt)return;
     const base=new Date((loan.dueDate||today())+'T00:00:00');base.setDate(base.getDate()+14);
     const suggested=base.getFullYear()+'-'+String(base.getMonth()+1).padStart(2,'0')+'-'+String(base.getDate()).padStart(2,'0');
     const next=prompt('New due date (YYYY-MM-DD):',suggested);if(!next)return;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(next)||next<=String(loan.dueDate||''))return alert('New due date current due date se later honi chahiye.');
-    try{const x=await renewCloud(id,next);if(x){await pullCloud();render();return}}catch(e){if(cloudReady())return alert('Cloud renewal failed: '+(e.message||e))}
-    loan.dueDate=next;write(LOAN_KEY,loans);render();
+    libraryRenewInFlight.add(key);setBusy(btn,true,'Renewing...');
+    try{
+      try{const x=await renewCloud(id,next);if(x){await pullCloud();render();return}}catch(e){if(cloudReady()){try{await pullCloud();render()}catch{}return alert('Cloud renewal status refreshed after failure: '+(e.message||e))}}
+      loan.dueDate=next;write(LOAN_KEY,loans);render();
+    }finally{libraryRenewInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
   function printRegister(books,loans){
     const st=settings(),w=window.open('','_blank','width=1000,height=760');if(!w)return alert('Popup blocked.');
@@ -184,9 +238,9 @@
     $('libLoanSearch')?.addEventListener('input',e=>{root.dataset.libLoanSearch=e.target.value;clearTimeout(bind.loanTimer);bind.loanTimer=setTimeout(render,150)});
     $('libLoanClear')?.addEventListener('click',()=>{root.dataset.libLoanStatus='';root.dataset.libLoanSearch='';render()});
     document.querySelectorAll('[data-lib-edit]').forEach(b=>b.onclick=()=>editBook(b.dataset.libEdit));
-    document.querySelectorAll('[data-lib-delete]').forEach(b=>b.onclick=()=>deleteBook(b.dataset.libDelete));
-    document.querySelectorAll('[data-lib-return]').forEach(b=>b.onclick=()=>returnBook(b.dataset.libReturn));
-    document.querySelectorAll('[data-lib-renew]').forEach(b=>b.onclick=()=>renewBook(b.dataset.libRenew));
+    document.querySelectorAll('[data-lib-delete]').forEach(b=>b.onclick=()=>deleteBook(b.dataset.libDelete,b));
+    document.querySelectorAll('[data-lib-return]').forEach(b=>b.onclick=()=>returnBook(b.dataset.libReturn,b));
+    document.querySelectorAll('[data-lib-renew]').forEach(b=>b.onclick=()=>renewBook(b.dataset.libRenew,b));
   }
   async function render(){
     const root=$('libraryCenterApp');if(!root)return;
