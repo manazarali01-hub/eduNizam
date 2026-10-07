@@ -2189,3 +2189,222 @@ body.admission-premium{
   .page-home .public-cta:hover,
   .premium-public-page .public-cta:hover{transform:none!important}
 }
+
+
+/* ===== EduNizam Appearance Roadmap Continuation · Phase F-H · 2026-10-07 ===== */
+/*
+  Refinement goals:
+  F — page/view-specific atmosphere without sacrificing readability.
+  G — universal card/container colour management, including dynamically rendered modules.
+  H — hard contrast, typography and mobile density guards.
+*/
+
+/* ----- F: view-specific atmosphere ----- */
+.page-app .view{--view-photo:var(--en-photo-stationery)}
+.page-app :is(#staffcenter,#stafftime,#staffpayroll,#training,#ourstudents,#behaviorcenter,#gatecenter,#studentdocs,#leavecenter){
+  --view-photo:var(--en-photo-students);
+}
+.page-app :is(#attendance,#attendanceanalytics,#results,#schoolwork,#lessoncenter,#examcenter,#paperbuilder,#dailydiary,#schedulecenter,#calendarcenter){
+  --view-photo:var(--en-photo-stationery);
+}
+.page-app :is(#fees,#financecenter,#inventorycenter,#librarycenter,#transportcenter){
+  --view-photo:var(--en-photo-flatlay);
+}
+.page-app :is(#noticeboard,#functionscenter,#inboxcenter,#parentcomplaints,#helpdeskcenter){
+  --view-photo:var(--en-photo-kids);
+}
+.page-app :is(#pastpapers,#practice,#study,#schoolassessments,#universities,#competitive,#ecosystem,#pathways,#vu,#admissions){
+  --view-photo:var(--en-photo-study);
+}
+.page-app :is(#assistant,#settings,#troubleshoot,#help){
+  --view-photo:var(--en-photo-classroom);
+}
+.page-app .view.active{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.80) 0%,rgba(248,252,254,.94) 190px,rgba(248,252,254,.82) 100%),
+    var(--view-photo) right -85px top -34px / 540px auto no-repeat!important;
+}
+
+/* Public pages get their own education context rather than one repeated hero. */
+.page-about .public-hero,
+.page-features .public-hero,
+.page-school-management .public-hero{
+  background:
+    linear-gradient(102deg,rgba(255,255,255,.985) 0%,rgba(247,252,255,.955) 56%,rgba(228,245,249,.76) 100%),
+    var(--en-photo-students) center 42% / cover no-repeat!important;
+}
+.page-admissions-info .public-hero{
+  background:
+    linear-gradient(102deg,rgba(255,255,255,.985) 0%,rgba(249,253,255,.95) 56%,rgba(255,244,219,.74) 100%),
+    var(--en-photo-stationery) center 46% / cover no-repeat!important;
+}
+.page-learning-resources .public-hero,
+.page-aiou .public-hero,
+.page-vu .public-hero,
+.page-university .public-hero{
+  background:
+    linear-gradient(102deg,rgba(255,255,255,.985) 0%,rgba(246,252,255,.95) 55%,rgba(228,244,250,.72) 100%),
+    var(--en-photo-study) center 42% / cover no-repeat!important;
+}
+.page-textbooks-research .public-hero,
+.page-skills .public-hero{
+  background:
+    linear-gradient(102deg,rgba(255,255,255,.985) 0%,rgba(248,253,251,.95) 57%,rgba(229,246,239,.72) 100%),
+    var(--en-photo-flatlay) center 44% / cover no-repeat!important;
+}
+.page-competitive .public-hero,
+.page-entry-scholarships .public-hero,
+.page-exam-pathways .public-hero,
+.page-recognition .public-hero,
+.page-education-services .public-hero{
+  background:
+    linear-gradient(102deg,rgba(255,255,255,.985) 0%,rgba(250,252,255,.95) 57%,rgba(238,234,255,.73) 100%),
+    var(--en-photo-kids) center 38% / cover no-repeat!important;
+}
+
+/* ----- G: universal container colour management ----- */
+.page-app :is(
+  .role-action-card,
+  .workspace-choice,
+  .highlight-card,
+  .practice-review,
+  .pp-stats article,
+  .admin-daily-stats>div,
+  .quick-item,
+  .feature-panel,
+  .dashboard-panel
+){
+  color:#17364f!important;
+  border:1px solid #cbdfe9!important;
+  box-shadow:0 9px 24px rgba(20,70,102,.07)!important;
+}
+.page-app :is(.role-action-grid,.pp-stats,.admin-daily-stats,.quick-actions,.grid,.cards,.paper-grid) > :nth-child(6n+1){
+  background:linear-gradient(155deg,#e4f3ff 0%,#fff 82%)!important;
+  border-color:#b9d9ed!important;
+}
+.page-app :is(.role-action-grid,.pp-stats,.admin-daily-stats,.quick-actions,.grid,.cards,.paper-grid) > :nth-child(6n+2){
+  background:linear-gradient(155deg,#e4f6ec 0%,#fff 82%)!important;
+  border-color:#b9dfc9!important;
+}
+.page-app :is(.role-action-grid,.pp-stats,.admin-daily-stats,.quick-actions,.grid,.cards,.paper-grid) > :nth-child(6n+3){
+  background:linear-gradient(155deg,#fff2d2 0%,#fff 82%)!important;
+  border-color:#ead18e!important;
+}
+.page-app :is(.role-action-grid,.pp-stats,.admin-daily-stats,.quick-actions,.grid,.cards,.paper-grid) > :nth-child(6n+4){
+  background:linear-gradient(155deg,#eee9ff 0%,#fff 82%)!important;
+  border-color:#cfc3ef!important;
+}
+.page-app :is(.role-action-grid,.pp-stats,.admin-daily-stats,.quick-actions,.grid,.cards,.paper-grid) > :nth-child(6n+5){
+  background:linear-gradient(155deg,#ffeae5 0%,#fff 82%)!important;
+  border-color:#efc2b8!important;
+}
+.page-app :is(.role-action-grid,.pp-stats,.admin-daily-stats,.quick-actions,.grid,.cards,.paper-grid) > :nth-child(6n){
+  background:linear-gradient(155deg,#e1f6f3 0%,#fff 82%)!important;
+  border-color:#b5dfd8!important;
+}
+.page-app :is(.role-action-card,.workspace-choice,.highlight-card,.practice-review,.pp-stats article,.admin-daily-stats>div) :is(h2,h3,strong){
+  color:#102f49!important;
+}
+.page-app :is(.role-action-card,.workspace-choice,.highlight-card,.practice-review,.pp-stats article,.admin-daily-stats>div) :is(p,span,small){
+  color:#536f83!important;
+}
+
+/* Alternate standalone cards too, not only cards inside .cards/.paper-grid. */
+.page-app .view.active > .card:nth-of-type(6n+1){background:linear-gradient(155deg,#eaf6ff,#fff 84%)!important;border-color:#bedbec!important}
+.page-app .view.active > .card:nth-of-type(6n+2){background:linear-gradient(155deg,#e9f7ef,#fff 84%)!important;border-color:#c2e1cf!important}
+.page-app .view.active > .card:nth-of-type(6n+3){background:linear-gradient(155deg,#fff5db,#fff 84%)!important;border-color:#ead7a2!important}
+.page-app .view.active > .card:nth-of-type(6n+4){background:linear-gradient(155deg,#f1edff,#fff 84%)!important;border-color:#d4c9ef!important}
+
+/* ----- H: hard contrast / typography guards ----- */
+.page-app :is(.card,.paper-card,.row,.role-action-card,.workspace-choice,.highlight-card,.practice-review),
+.learning-sky :is(.card,.quick-item),
+.premium-public-page .public-card{
+  --panel-text:#17364f;
+  color:var(--panel-text)!important;
+}
+.page-app :is(.card,.paper-card,.row,.role-action-card,.workspace-choice,.highlight-card,.practice-review) a:not(.btn):not(.secondary),
+.learning-sky :is(.card,.quick-item) a:not(.btn),
+.premium-public-page .public-card a:not(.public-cta){
+  color:#105f9f!important;
+  font-weight:780;
+  text-decoration-thickness:1.5px;
+  text-underline-offset:3px;
+}
+.page-app :is(.card,.paper-card,.row,.role-action-card,.workspace-choice,.highlight-card,.practice-review) :is(p,small,.muted),
+.learning-sky :is(.card,.quick-item) :is(p,small,.muted),
+.premium-public-page .public-card :is(p,small,.muted){
+  color:#506d82!important;
+}
+.page-app :is(.card,.paper-card,.row,.role-action-card,.workspace-choice,.highlight-card,.practice-review) :is(h2,h3,h4,strong),
+.learning-sky :is(.card,.quick-item) :is(h2,h3,h4,strong),
+.premium-public-page .public-card :is(h2,h3,h4,strong){
+  color:#102f49!important;
+}
+.page-app .main :is(button,.btn)[style*="background"],
+.learning-sky :is(button,.btn)[style*="background"],
+.auth-page :is(button,.btn)[style*="background"]{
+  text-shadow:none;
+}
+.page-app .main button:not(.secondary):not(.icon-btn):not(.paper-tab):not(.tab):not(.option):not(.search-suggestion){
+  color:#fff!important;
+}
+.page-app .main :is(.secondary,.secondary-action,.paper-tab),
+.auth-page .secondary,
+.learning-sky .btn:not(.primary){
+  color:#123d61!important;
+}
+.page-app :is(.badge,.mini-badge,.academic-pill,.paper-meta span,.coverage-note),
+.learning-sky :is(.badge,.kicker,.paper-summary),
+.premium-public-page :is(.badge,.public-kicker){
+  font-size:max(14px,.82rem)!important;
+}
+.page-app .row small,
+.page-app .card small,
+.page-app .paper-card small{font-size:14.5px!important;line-height:1.48!important}
+
+/* Clean section separation — image atmosphere behind, readable content in front. */
+.page-app .view.active > :is(.cards,.grid-2,.paper-grid,.list,.form-grid),
+.learning-sky .section.active > :is(.grid,.stats,.paper-filters){
+  position:relative;
+  z-index:1;
+}
+.page-app .view.active > .section-head:first-child{
+  backdrop-filter:blur(12px);
+}
+
+/* Mobile: preserve visual identity but never let photography compete with text. */
+@media(max-width:720px){
+  .page-app .view.active{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.94),rgba(248,252,254,.97)),
+      var(--view-photo) right -90px top -18px / 235px auto no-repeat!important;
+  }
+  .premium-public-page .public-hero,
+  .learning-sky .hero-card{
+    background-blend-mode:normal!important;
+  }
+  .page-app .view.active>.section-head:first-child,
+  .page-app .card,
+  .page-app .paper-card,
+  .learning-sky .card,
+  .premium-public-page .public-card{
+    background-clip:padding-box!important;
+  }
+  .page-app .card p,
+  .page-app .paper-card p,
+  .learning-sky .card p,
+  .premium-public-page .public-card p{
+    font-size:16px!important;
+    line-height:1.62!important;
+  }
+}
+@media(max-width:430px){
+  .page-app .view.active{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.965),rgba(248,252,254,.985)),
+      var(--view-photo) right -105px top -14px / 205px auto no-repeat!important;
+  }
+  .page-app :is(.badge,.mini-badge,.academic-pill,.paper-meta span,.coverage-note){
+    font-size:13.5px!important;
+  }
+}
