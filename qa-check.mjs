@@ -1031,7 +1031,7 @@ for(const marker of [
   if(!referenceVisual.includes(marker)) fail.push('Reference reconstruction marker missing: '+marker);
 }
 for(const page of ['index.html','login.html','learn.html','app.html','about.html','features.html']){
-  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref4')) fail.push('Reference reconstruction stylesheet missing from '+page);
+  if(!read(page).includes('reference-reconstruction.css?v=20261007-ref5')) fail.push('Reference reconstruction stylesheet missing from '+page);
 }
 
 const mobileRef4=read('reference-reconstruction.css');
@@ -1043,6 +1043,17 @@ for(const marker of [
 ]){
   if(!mobileRef4.includes(marker)) fail.push('Mobile composition ref4 marker missing: '+marker);
 }
+
+const liveRef5=read('reference-reconstruction.css');
+for(const marker of [
+  'Live screenshot correction · 2026-10-07 · ref5',
+  'body.app-page.page-app #premiumMobileDock.premium-mobile-dock',
+  '.auth-page #roleView .roles .role strong',
+  'body.gold-home.page-home header.public-nav .public-links'
+]){
+  if(!liveRef5.includes(marker)) fail.push('Live screenshot ref5 marker missing: '+marker);
+}
+if(read('index.html').indexOf('home-showcase.css')>read('index.html').indexOf('reference-reconstruction.css')) fail.push('Reference reconstruction must load after home-showcase.css on index.html.');
 
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
