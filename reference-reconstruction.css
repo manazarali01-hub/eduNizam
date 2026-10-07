@@ -556,8 +556,8 @@
     font-size:clamp(9px,2.55vw,11px)!important;
     line-height:1!important;
     white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
     overflow-wrap:normal!important;
     word-break:normal!important;
   }
