@@ -188,7 +188,7 @@ if(loginHtml.includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.pu
 if(read('admissions-cloud.js').includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.push('Admission auth redirects still leave the production custom domain.');
 const admissionHtml=read('admission.html');
 if(admissionHtml.includes("body+'<script src=\"system-auto-update.js")) fail.push('Admission printable markup still embeds a literal script closing tag inside inline JavaScript.');
-if(!admissionHtml.includes('system-auto-update.js?v=20261005-authstate700')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
+if(!admissionHtml.includes('system-auto-update.js?v=20261008-photo-glass-v24')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
 const aiEdge=read('supabase/functions/ai-assistant/index.ts');
 if(!aiEdge.includes('https://edunizam.online')) fail.push('AI Edge Function does not allow the production custom domain.');
 if(!aiEdge.includes('supabaseUser.auth.getUser()')) fail.push('AI Edge Function does not verify the authenticated user.');
@@ -210,7 +210,7 @@ if(/querySelectorAll\(['"]button\[disabled\]['"]\)/.test(reliabilitySafety)) fai
 for(const page of ['index.html','login.html','app.html','learn.html','admission.html','about.html','features.html','learning-resources-pakistan.html','online-school-admissions.html','privacy.html','school-management-system-pakistan.html']){
   const html=read(page);
   for(const ref of [...html.matchAll(/(?:pwa-install|system-auto-update)\.js\?v=([A-Za-z0-9._-]+)/g)].map(m=>m[1])){
-    if(ref!=='20261005-authstate700') fail.push('Stale runtime cache-busting token on '+page+': '+ref);
+    if(ref!=='20261008-photo-glass-v24') fail.push('Stale runtime cache-busting token on '+page+': '+ref);
   }
 }
 const appExternalScriptTags=[...index.matchAll(/<script[^>]+src=["'][^"']+["'][^>]*>/g)].map(m=>m[0]);
