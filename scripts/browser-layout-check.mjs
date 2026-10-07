@@ -1098,7 +1098,7 @@ try{
       return {available:true,seen,ready:loader.isReady('assistant')};
     },5000);
     if(!prefetchContract.available||
-       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-workscale1/.test(x.url)&&x.cache==='force-cache')||
+       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-feescale1/.test(x.url)&&x.cache==='force-cache')||
        prefetchContract.ready){
       pushFailure('navigation performance','Feature prefetch did not warm versioned code without executing it',JSON.stringify(prefetchContract));
     }
@@ -1127,6 +1127,20 @@ try{
     },5000);
     if(!schoolWorkScaleContract.firstPaint||!schoolWorkScaleContract.scopedLoads||!schoolWorkScaleContract.submissionPair||!schoolWorkScaleContract.dedupe){
       pushFailure('school work performance','School Work lazy data guards are missing',JSON.stringify(schoolWorkScaleContract));
+    }
+
+    const feeScaleContract=await boundedEvaluate('inspect fee scale contract',async()=>{
+      const source=await fetch('/fee-center.js').then(r=>r.text());
+      return {
+        instantPaint:source.includes("paint(root,read())"),
+        noBroadPaymentPull:!source.includes(".from('fee_payments')\n        .select('*')"),
+        indexedHistory:source.includes(".eq('fee_record_id',id)")&&source.includes("loadPaymentHistory"),
+        dedupe:source.includes("feeLoadInFlight")&&source.includes("paymentHistoryInFlight"),
+        printHydrates:source.includes("item=await withPaymentHistory(item)")
+      };
+    },5000);
+    if(!feeScaleContract.instantPaint||!feeScaleContract.noBroadPaymentPull||!feeScaleContract.indexedHistory||!feeScaleContract.dedupe||!feeScaleContract.printHydrates){
+      pushFailure('fee performance','Fee Center scale guards are missing',JSON.stringify(feeScaleContract));
     }
 
     const intentPrefetch=await boundedEvaluate('inspect navigation intent prefetch',async()=>{
