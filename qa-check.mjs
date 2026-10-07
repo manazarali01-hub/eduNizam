@@ -305,7 +305,7 @@ for(const page of ['index.html','login.html','app.html','learn.html','admission.
 }
 if(!read('home-gold.css').includes('EduNizam homepage · premium product showcase')) fail.push('Canonical premium homepage layer missing.');
 if(!read('home-gold.css').includes('.gold-home .public-hero.premium-public-hero')) fail.push('Premium homepage hero styling missing.');
-if(!read('index.html').includes('assets/edunizam-login-children.webp')) fail.push('Homepage student visual missing.');
+if(!read('index.html').includes('pexels-photo-8926544.jpeg')) fail.push('Homepage licensed student visual missing.');
 
 const premiumUi=read('premium-ui.css');
 if(!premiumUi.includes('Canonical Premium Workspace')) fail.push('Canonical premium workspace layer missing.');
@@ -321,7 +321,7 @@ if(premiumImportantCount>20) fail.push('Premium workspace override debt is too h
 const premiumAuth=read('premium-auth.css');
 if(!premiumAuth.includes('EduNizam authentication + admission visual layer')) fail.push('Canonical premium auth layer missing.');
 if(!premiumAuth.includes('.auth-page .story')) fail.push('Premium login split-story treatment missing.');
-if(!premiumAuth.includes('edunizam-login-children.webp')) fail.push('Login education background image missing.');
+if(!premiumAuth.includes('pexels-photo-8926544.jpeg')) fail.push('Login licensed education background image missing.');
 if(!premiumAuth.includes('.auth-page .brand-i:after')) fail.push('Golden EduNizam i-dot treatment missing.');
 if(!premiumAuth.includes('body.admission-premium')) fail.push('Admission portal is not covered by the premium auth design system.');
 
@@ -799,7 +799,7 @@ const seoRobots=read('robots.txt');
 if(!seoPublic.includes('index,follow,max-image-preview:large')) fail.push('Public EduNizam landing is not indexable.');
 if(!seoPublic.includes('href="https://edunizam.online/"')) fail.push('Public EduNizam canonical URL missing.');
 if(!seoPublic.includes('"@type":"SoftwareApplication"')) fail.push('Public EduNizam SoftwareApplication schema missing.');
-if(!seoPublic.includes('edunizam-login-children.webp')) fail.push('Public landing preferred image signal missing.');
+if(!seoPublic.includes('pexels-photo-8926544.jpeg')) fail.push('Public landing licensed preferred image signal missing.');
 if(!index.includes('noindex,follow,noarchive')) fail.push('Private app.html must remain noindex.');
 if(!read('login.html').includes('noindex,follow,noarchive')) fail.push('Login page must remain noindex.');
 if(!read('admission.html').includes('noindex,follow,noarchive')) fail.push('Admission application page must remain noindex.');
