@@ -9,6 +9,18 @@
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const canCreate=()=>role()==='head'||role()==='teacher';
   const isHead=()=>role()==='head';
+  let calendarSaveInFlight=false;
+  const calendarDeleteInFlight=new Set();
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
+    else{btn.disabled=false;btn.removeAttribute('aria-busy');if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}}
+  }
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   const monthKey=()=>today().slice(0,7);
   function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
@@ -42,22 +54,41 @@
   }
   async function pullCloud(){
     if(!cloudReady())return read();
-    const {data,error}=await cloud().state.client.from('school_calendar_events').select('*')
-      .eq('institution_id',cfg().institutionId).order('event_date',{ascending:true}).order('start_time',{ascending:true});
-    if(error)throw error;
-    const rows=(data||[]).map(toLocal);write(rows);return rows;
+    const inst=cfg().institutionId;
+    const result=await runCloud('calendar-load:'+inst,'Calendar events',async({signal}={})=>{
+      let q=cloud().state.client.from('school_calendar_events').select('*').eq('institution_id',inst).order('event_date',{ascending:true}).order('start_time',{ascending:true});
+      q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+    },{timeout:7000,retries:1});
+    const rows=(result.data||[]).map(toLocal);write(rows);return rows;
   }
   async function saveCloud(item){
     if(!cloudReady())return null;
-    const payload={institution_id:cfg().institutionId,creator_user_id:currentUserId(),creator_role:role()==='head'?'head':'teacher',title:item.title,category:item.category,event_date:item.eventDate,start_time:item.startTime||null,end_time:item.endTime||null,audience:item.audience,class_name:item.className||null,section_name:item.sectionName||null,location:item.location||null,notes:item.notes||null,updated_at:new Date().toISOString()};
-    const q=item.cloudExisting
-      ?cloud().state.client.from('school_calendar_events').update(payload).eq('id',item.id)
-      :cloud().state.client.from('school_calendar_events').insert(payload);
-    const {data,error}=await q.select().single();if(error)throw error;return toLocal(data);
+    const inst=cfg().institutionId,payload={institution_id:inst,creator_user_id:currentUserId(),creator_role:role()==='head'?'head':'teacher',title:item.title,category:item.category,event_date:item.eventDate,start_time:item.startTime||null,end_time:item.endTime||null,audience:item.audience,class_name:item.className||null,section_name:item.sectionName||null,location:item.location||null,notes:item.notes||null,updated_at:new Date().toISOString()};
+    const writeOnce=async({signal}={})=>{
+      let q=item.cloudExisting
+        ?cloud().state.client.from('school_calendar_events').update(payload).eq('institution_id',inst).eq('id',item.id)
+        :cloud().state.client.from('school_calendar_events').insert(payload);
+      q=q.select().single();q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return toLocal(data);
+    };
+    try{return await runCloud('calendar-save:'+inst+':'+String(item.id||item.title+':'+item.eventDate),'Save calendar event',writeOnce,{timeout:8000,retries:item.cloudExisting?1:0})}
+    catch(error){
+      if(item.cloudExisting)throw error;
+      const reconcile=async({signal}={})=>{
+        let q=cloud().state.client.from('school_calendar_events').select('*').eq('institution_id',inst).eq('creator_user_id',payload.creator_user_id).eq('title',item.title).eq('category',item.category).eq('event_date',item.eventDate).eq('audience',item.audience);
+        q=q.order('created_at',{ascending:false}).limit(2);q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out.data||[];
+      };
+      const rows=await runCloud('calendar-reconcile:'+inst+':'+item.title+':'+item.eventDate,'Reconcile calendar event',reconcile,{timeout:5000,retries:1});
+      if(rows.length===1)return toLocal(rows[0]);throw error;
+    }
   }
   async function deleteCloud(id){
     if(!cloudReady())return;
-    const {error}=await cloud().state.client.from('school_calendar_events').delete().eq('id',id);if(error)throw error;
+    const inst=cfg().institutionId;
+    return runCloud('calendar-delete:'+inst+':'+id,'Delete calendar event',async({signal}={})=>{
+      let q=cloud().state.client.from('school_calendar_events').delete().eq('institution_id',inst).eq('id',id);q=withSignal(q,signal);
+      const {error}=await q;if(error)throw error;
+    },{timeout:8000,retries:1});
   }
   function editor(edit=null){
     if(!canCreate())return '<div class="coverage-note">Aap ko sirf relevant school events dikhaye ja rahe hain.</div>';
@@ -92,23 +123,31 @@
     return rows.filter(x=>x.eventDate>=t&&relevantLocal(x)).sort((a,b)=>String(a.eventDate).localeCompare(String(b.eventDate))||String(a.startTime).localeCompare(String(b.startTime))).slice(0,6);
   }
   async function save(){
+    const btn=$('calSave');if(calendarSaveInFlight||btn?.disabled)return;
     const title=$('calTitle')?.value.trim(),category=$('calCategory')?.value,eventDate=$('calDate')?.value,audience=$('calAudience')?.value,className=$('calClass')?.value||'',sectionName=$('calSection')?.value.trim()||'';
     if(!title||!eventDate||!audience)return alert('Title, date aur audience required hain.');
     if(audience==='class'&&!className)return alert('Specific Class audience ke liye class select karein.');
     const rows=read(),editId=$('calEditId')?.value||'',old=rows.find(x=>String(x.id)===String(editId));
-    let item={id:editId||String(Date.now()),title,category,eventDate,startTime:$('calStart')?.value||'',endTime:$('calEnd')?.value||'',audience,className:audience==='class'?className:'',sectionName:audience==='class'?sectionName:'',location:$('calLocation')?.value.trim()||'',notes:$('calNotes')?.value.trim()||'',creatorUserId:old?.creatorUserId||currentUserId(),creatorRole:old?.creatorRole||role(),createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
-    try{const c=await saveCloud(item);if(c)item=c}catch(e){if(cloudReady())return alert('Cloud calendar save failed: '+(e.message||e))}
-    const next=rows.filter(x=>String(x.id)!==String(editId));next.push(item);write(next);render();
+    calendarSaveInFlight=true;setBusy(btn,true,editId?'Updating...':'Saving...');
+    try{
+      let item={id:editId||String(Date.now()),title,category,eventDate,startTime:$('calStart')?.value||'',endTime:$('calEnd')?.value||'',audience,className:audience==='class'?className:'',sectionName:audience==='class'?sectionName:'',location:$('calLocation')?.value.trim()||'',notes:$('calNotes')?.value.trim()||'',creatorUserId:old?.creatorUserId||currentUserId(),creatorRole:old?.creatorRole||role(),createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
+      try{const saved=await saveCloud(item);if(saved)item=saved}catch(e){if(cloudReady())return alert('Cloud calendar save failed: '+(e.message||e))}
+      const next=rows.filter(x=>String(x.id)!==String(editId));next.push(item);write(next);render();
+    }finally{calendarSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function edit(id){
     const x=read().find(r=>String(r.id)===String(id));if(!x||!canManageEvent(x))return;
     const box=$('calEditor');if(box)box.innerHTML=editor(x);bindEditor();
   }
-  async function remove(id){
+  async function remove(id,btn){
+    const key=String(id||'');if(calendarDeleteInFlight.has(key)||btn?.disabled)return;
     const x=read().find(r=>String(r.id)===String(id));if(!x||!canManageEvent(x))return;
     if(!confirm('Delete '+x.title+'?'))return;
-    try{await deleteCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
-    write(read().filter(r=>String(r.id)!==String(id)));render();
+    calendarDeleteInFlight.add(key);setBusy(btn,true,'Deleting...');
+    try{
+      try{await deleteCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
+      write(read().filter(r=>String(r.id)!==String(id)));render();
+    }finally{calendarDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
   function bindEditor(){
     $('calSave')?.addEventListener('click',save);$('calCancel')?.addEventListener('click',render);
@@ -118,7 +157,7 @@
   function bind(){
     bindEditor();$('calMonth')?.addEventListener('change',render);
     document.querySelectorAll('[data-cal-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.calEdit));
-    document.querySelectorAll('[data-cal-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.calDelete));
+    document.querySelectorAll('[data-cal-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.calDelete,b));
   }
   async function render(){
     const root=$('calendarCenterApp');if(!root)return;

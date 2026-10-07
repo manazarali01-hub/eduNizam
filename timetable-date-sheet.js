@@ -11,6 +11,18 @@
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const canManage=()=>['head','teacher'].includes(role());
   const canManageItem=x=>role()==='head'||(role()==='teacher'&&String(x?.createdBy||'')===String(cloud()?.state?.user?.id||''));
+  let timetableSaveInFlight=false,dateSheetSaveInFlight=false;
+  const scheduleDeleteInFlight=new Set();
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
+    else{btn.disabled=false;btn.removeAttribute('aria-busy');if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}}
+  }
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   const uuid=id=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(id||''));
 
@@ -47,23 +59,48 @@
   async function pullCloud(){
     if(!cloudReady())return;
     const c=cloud().state.client,id=cfg().institutionId;
-    const [tt,ds]=await Promise.all([
-      c.from('timetable_entries').select('*').eq('institution_id',id).order('weekday').order('start_time'),
-      c.from('exam_schedule_entries').select('*').eq('institution_id',id).order('exam_date').order('start_time')
-    ]);
-    if(tt.error)throw tt.error;if(ds.error)throw ds.error;
+    const {tt,ds}=await runCloud('schedule-load:'+id,'Timetable and date sheet',async({signal}={})=>{
+      const [tt,ds]=await Promise.all([
+        withSignal(c.from('timetable_entries').select('*').eq('institution_id',id).order('weekday').order('start_time'),signal),
+        withSignal(c.from('exam_schedule_entries').select('*').eq('institution_id',id).order('exam_date').order('start_time'),signal)
+      ]);
+      if(tt.error)throw tt.error;if(ds.error)throw ds.error;return {tt,ds};
+    },{timeout:7000,retries:1});
     writeTimetable((tt.data||[]).map(mapTimetableRow));writeDateSheets((ds.data||[]).map(mapExamRow));
   }
   async function saveCloud(kind,item){
     if(!cloudReady())return null;
-    const base={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,updated_at:new Date().toISOString()};
+    const inst=cfg().institutionId,base={institution_id:inst,creator_user_id:cloud().state.user.id,updated_at:new Date().toISOString()};
     const timetablePayload={...base,class_name:item.className,section_name:item.sectionName||null,weekday:item.day,period_number:item.periodNumber||null,start_time:item.time||null,end_time:item.endTime||null,subject:item.subject,teacher_name:item.teacherName||null,room_label:item.roomLabel||null};
     const examPayload={...base,class_name:item.className,section_name:item.sectionName||null,exam_name:item.examName,subject:item.subject,exam_date:item.examDate,start_time:item.startTime||null,end_time:item.endTime||null,total_marks:Number(item.totalMarks||0),room_label:item.roomLabel||null,notes:item.notes||null};
-    const table=kind==='timetable'?'timetable_entries':'exam_schedule_entries',payload=kind==='timetable'?timetablePayload:examPayload;
-    const q=item.cloudExisting&&uuid(item.id)?cloud().state.client.from(table).update(payload).eq('id',item.id):cloud().state.client.from(table).insert(payload);
-    const {data,error}=await q.select().single();if(error)throw error;return kind==='timetable'?mapTimetableRow(data):mapExamRow(data);
+    const table=kind==='timetable'?'timetable_entries':'exam_schedule_entries',payload=kind==='timetable'?timetablePayload:examPayload,isUpdate=item.cloudExisting&&uuid(item.id);
+    const writeOnce=async({signal}={})=>{
+      let q=isUpdate?cloud().state.client.from(table).update(payload).eq('institution_id',inst).eq('id',item.id):cloud().state.client.from(table).insert(payload);
+      q=q.select().single();q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return kind==='timetable'?mapTimetableRow(data):mapExamRow(data);
+    };
+    try{return await runCloud('schedule-save:'+kind+':'+inst+':'+String(item.id||item.className+':'+item.subject),'Save '+(kind==='timetable'?'timetable period':'date-sheet paper'),writeOnce,{timeout:8000,retries:isUpdate?1:0})}
+    catch(error){
+      if(isUpdate)throw error;
+      const reconcile=async({signal}={})=>{
+        let q=cloud().state.client.from(table).select('*').eq('institution_id',inst).eq('creator_user_id',base.creator_user_id).eq('class_name',item.className).eq('subject',item.subject);
+        q=item.sectionName?q.eq('section_name',item.sectionName):q.is('section_name',null);
+        if(kind==='timetable')q=q.eq('weekday',item.day).eq('period_number',item.periodNumber).eq('start_time',item.time);
+        else q=q.eq('exam_name',item.examName).eq('exam_date',item.examDate).eq('start_time',item.startTime);
+        q=q.order('created_at',{ascending:false}).limit(2);q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out.data||[];
+      };
+      const rows=await runCloud('schedule-reconcile:'+kind+':'+inst+':'+item.className+':'+item.subject,'Reconcile '+kind,reconcile,{timeout:5000,retries:1});
+      if(rows.length===1)return kind==='timetable'?mapTimetableRow(rows[0]):mapExamRow(rows[0]);throw error;
+    }
   }
-  async function deleteCloud(kind,id){if(!cloudReady()||!uuid(id))return;const table=kind==='timetable'?'timetable_entries':'exam_schedule_entries';const{error}=await cloud().state.client.from(table).delete().eq('id',id);if(error)throw error}
+  async function deleteCloud(kind,id){
+    if(!cloudReady()||!uuid(id))return;
+    const inst=cfg().institutionId,table=kind==='timetable'?'timetable_entries':'exam_schedule_entries';
+    return runCloud('schedule-delete:'+kind+':'+inst+':'+id,'Delete '+kind,async({signal}={})=>{
+      let q=cloud().state.client.from(table).delete().eq('institution_id',inst).eq('id',id);q=withSignal(q,signal);
+      const {error}=await q;if(error)throw error;
+    },{timeout:8000,retries:1});
+  }
 
   function injectStyles(){
     if($('scheduleCenterStyles'))return;
@@ -113,27 +150,39 @@
     (item.roomLabel&&x.roomLabel&&x.roomLabel.toLowerCase()===item.roomLabel.toLowerCase()&&overlaps(x.startTime,x.endTime,item.startTime,item.endTime))
   ))}
   async function saveTimetable(){
+    const btn=$('ttSave');if(timetableSaveInFlight||btn?.disabled)return;
     const cls=splitClass($('ttClass')?.value),editId=$('ttEditId')?.value||'';
     const item={id:editId||String(Date.now()),...cls,day:$('ttDay')?.value,periodNumber:Number($('ttPeriod')?.value||0),time:$('ttStart')?.value||'',endTime:$('ttEnd')?.value||'',subject:$('ttSubject')?.value.trim()||'',teacherName:$('ttTeacher')?.value.trim()||'',roomLabel:$('ttRoom')?.value.trim()||'',createdAt:new Date().toISOString(),cloudExisting:uuid(editId)};
     if(!item.className||!item.subject||!item.day||!item.periodNumber||!item.time||!item.endTime)return alert('Class, day, period, start/end time aur subject required hain.');
     if(timeValue(item.time)>=timeValue(item.endTime))return alert('End time start time ke baad honi chahiye.');
     const rows=timetable(),conflicts=timetableClashes(rows,item,editId);if(conflicts.length&&!confirm('Clash detected: '+conflicts.map(x=>label(x)+' / '+x.subject).join(', ')+'. Phir bhi save karein?'))return;
-    try{const saved=await saveCloud('timetable',item);if(saved)item=saved}catch(e){if(cloudReady())return alert('Cloud timetable save failed: '+(e.message||e))}
-    writeTimetable(rows.filter(x=>String(x.id)!==String(editId)).concat(item));render();
+    timetableSaveInFlight=true;setBusy(btn,true,editId?'Updating...':'Saving...');
+    try{
+      try{const saved=await saveCloud('timetable',item);if(saved)item=saved}catch(e){if(cloudReady())return alert('Cloud timetable save failed: '+(e.message||e))}
+      writeTimetable(rows.filter(x=>String(x.id)!==String(editId)).concat(item));render();
+    }finally{timetableSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function saveDateSheet(){
+    const btn=$('dsSave');if(dateSheetSaveInFlight||btn?.disabled)return;
     const cls=splitClass($('dsClass')?.value),editId=$('dsEditId')?.value||'';
     let item={id:editId||String(Date.now()),...cls,examName:$('dsExam')?.value.trim()||'',subject:$('dsSubject')?.value.trim()||'',examDate:$('dsDate')?.value||'',startTime:$('dsStart')?.value||'',endTime:$('dsEnd')?.value||'',totalMarks:Number($('dsMarks')?.value||0),roomLabel:$('dsRoom')?.value.trim()||'',notes:$('dsNotes')?.value.trim()||'',createdAt:new Date().toISOString(),cloudExisting:uuid(editId)};
     if(!item.className||!item.examName||!item.subject||!item.examDate||!item.startTime||!item.endTime||item.totalMarks<=0)return alert('Class, exam, subject, date, start/end time aur total marks required hain.');
     if(timeValue(item.startTime)>=timeValue(item.endTime))return alert('End time start time ke baad honi chahiye.');
     const rows=dateSheets(),conflicts=dateClashes(rows,item,editId);if(conflicts.length&&!confirm('Date-sheet clash detected: '+conflicts.map(x=>label(x)+' / '+x.subject).join(', ')+'. Phir bhi save karein?'))return;
-    try{const saved=await saveCloud('datesheet',item);if(saved)item=saved}catch(e){if(cloudReady())return alert('Cloud date sheet save failed: '+(e.message||e))}
-    writeDateSheets(rows.filter(x=>String(x.id)!==String(editId)).concat(item));render();
+    dateSheetSaveInFlight=true;setBusy(btn,true,editId?'Updating...':'Saving...');
+    try{
+      try{const saved=await saveCloud('datesheet',item);if(saved)item=saved}catch(e){if(cloudReady())return alert('Cloud date sheet save failed: '+(e.message||e))}
+      writeDateSheets(rows.filter(x=>String(x.id)!==String(editId)).concat(item));render();
+    }finally{dateSheetSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
-  async function remove(kind,id){
-    if(!canManage())return;const rows=kind==='timetable'?timetable():dateSheets(),item=rows.find(x=>String(x.id)===String(id));if(!item||!canManageItem(item)||!confirm('Delete '+(item.subject||'entry')+'?'))return;
-    try{await deleteCloud(kind,id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
-    if(kind==='timetable')writeTimetable(rows.filter(x=>String(x.id)!==String(id)));else writeDateSheets(rows.filter(x=>String(x.id)!==String(id)));render();
+  async function remove(kind,id,btn){
+    const key=kind+':'+String(id||'');if(!canManage()||scheduleDeleteInFlight.has(key)||btn?.disabled)return;
+    const rows=kind==='timetable'?timetable():dateSheets(),item=rows.find(x=>String(x.id)===String(id));if(!item||!canManageItem(item)||!confirm('Delete '+(item.subject||'entry')+'?'))return;
+    scheduleDeleteInFlight.add(key);setBusy(btn,true,'Deleting...');
+    try{
+      try{await deleteCloud(kind,id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
+      if(kind==='timetable')writeTimetable(rows.filter(x=>String(x.id)!==String(id)));else writeDateSheets(rows.filter(x=>String(x.id)!==String(id)));render();
+    }finally{scheduleDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
 
   function timetableRows(rows){
@@ -160,7 +209,7 @@
     $('printDateSheet')?.addEventListener('click',()=>{const root=$('scheduleCenterApp'),f=root.dataset.classFilter||'',ex=root.dataset.examFilter||'',rows=dateSheets().filter(accessible).filter(x=>(!f||x.className+'|'+(x.sectionName||'')===f)&&(!ex||x.examName===ex)).sort((a,b)=>a.examDate.localeCompare(b.examDate)||a.startTime.localeCompare(b.startTime));printView('datesheet',rows,'Date Sheet'+(ex?' — '+ex:'')+(f?' — '+label(splitClass(f)):'') )});
     document.querySelectorAll('[data-tt-edit]').forEach(b=>b.onclick=()=>{const x=timetable().find(r=>String(r.id)===String(b.dataset.ttEdit));if(x&&canManageItem(x)){$('scheduleEditor').innerHTML=timetableEditor(x);bind()}});
     document.querySelectorAll('[data-ds-edit]').forEach(b=>b.onclick=()=>{const x=dateSheets().find(r=>String(r.id)===String(b.dataset.dsEdit));if(x&&canManageItem(x)){$('scheduleEditor').innerHTML=dateSheetEditor(x);bind()}});
-    document.querySelectorAll('[data-tt-delete]').forEach(b=>b.onclick=()=>remove('timetable',b.dataset.ttDelete));document.querySelectorAll('[data-ds-delete]').forEach(b=>b.onclick=()=>remove('datesheet',b.dataset.dsDelete));
+    document.querySelectorAll('[data-tt-delete]').forEach(b=>b.onclick=()=>remove('timetable',b.dataset.ttDelete,b));document.querySelectorAll('[data-ds-delete]').forEach(b=>b.onclick=()=>remove('datesheet',b.dataset.dsDelete,b));
   }
   async function render(){
     const root=$('scheduleCenterApp');if(!root)return;injectStyles();

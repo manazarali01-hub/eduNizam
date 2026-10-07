@@ -8,6 +8,18 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const isHead=()=>role()==='head';
+  let classSectionSaveInFlight=false,classSectionAssignInFlight=false;
+  const classSectionDeleteInFlight=new Set();
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
+    else{btn.disabled=false;btn.removeAttribute('aria-busy');if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}}
+  }
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
   function write(v){localStorage.setItem(KEY,JSON.stringify(v))}
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
@@ -26,10 +38,12 @@
   }
   async function pullCloud(){
     if(!cloudReady())return read();
-    const {data,error}=await cloud().state.client.from('class_sections').select('*')
-      .eq('institution_id',cfg().institutionId).order('class_name').order('section_name');
-    if(error)throw error;
-    const rows=(data||[]).map(x=>({
+    const inst=cfg().institutionId;
+    const result=await runCloud('class-sections-load:'+inst,'Class and section directory',async({signal}={})=>{
+      let q=cloud().state.client.from('class_sections').select('*').eq('institution_id',inst).order('class_name').order('section_name');
+      q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+    },{timeout:7000,retries:1});
+    const rows=(result.data||[]).map(x=>({
       id:x.id,className:x.class_name,sectionName:x.section_name,
       classTeacherUserId:x.class_teacher_user_id||'',classTeacherName:x.class_teacher_name||'',
       roomLabel:x.room_label||'',capacity:Number(x.capacity||0),active:x.active!==false,createdAt:x.created_at
@@ -46,22 +60,30 @@
       room_label:item.roomLabel||null,capacity:item.capacity||null,active:item.active!==false,
       updated_by:cloud().state.user.id,updated_at:new Date().toISOString()
     };
-    const {data,error}=await cloud().state.client.from('class_sections')
-      .upsert(payload,{onConflict:'institution_id,class_name,section_name'}).select().single();
-    if(error)throw error;
-    return {id:data.id,className:data.class_name,sectionName:data.section_name,classTeacherUserId:data.class_teacher_user_id||'',classTeacherName:data.class_teacher_name||'',roomLabel:data.room_label||'',capacity:Number(data.capacity||0),active:data.active!==false,createdAt:data.created_at};
+    const inst=cfg().institutionId;
+    return runCloud('class-section-save:'+inst+':'+item.className+':'+item.sectionName,'Save class section',async({signal}={})=>{
+      let q=cloud().state.client.from('class_sections').upsert(payload,{onConflict:'institution_id,class_name,section_name'}).select().single();
+      q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;
+      return {id:data.id,className:data.class_name,sectionName:data.section_name,classTeacherUserId:data.class_teacher_user_id||'',classTeacherName:data.class_teacher_name||'',roomLabel:data.room_label||'',capacity:Number(data.capacity||0),active:data.active!==false,createdAt:data.created_at};
+    },{timeout:8000,retries:1});
   }
   async function removeCloud(id){
     if(!cloudReady())return;
-    const {error}=await cloud().state.client.from('class_sections').delete().eq('id',id);if(error)throw error;
+    const inst=cfg().institutionId;
+    return runCloud('class-section-delete:'+inst+':'+id,'Delete class section',async({signal}={})=>{
+      let q=cloud().state.client.from('class_sections').delete().eq('institution_id',inst).eq('id',id);q=withSignal(q,signal);
+      const {error}=await q;if(error)throw error;
+    },{timeout:8000,retries:1});
   }
   async function assignCloud(studentLocalId,className,sectionName){
     if(!cloudReady())return;
     const s=students().find(x=>String(x.id)===String(studentLocalId));if(!s)return;
-    let q=cloud().state.client.from('core_students').update({class_name:className,section_name:sectionName,updated_at:new Date().toISOString()})
-      .eq('institution_id',cfg().institutionId);
-    if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
-    const {error}=await q;if(error)throw error;
+    const inst=cfg().institutionId,lookup=s.studentId?('code:'+s.studentId):('local:'+Number(s.id));
+    return runCloud('class-section-assign:'+inst+':'+lookup,'Assign student section',async({signal}={})=>{
+      let q=cloud().state.client.from('core_students').update({class_name:className,section_name:sectionName,updated_at:new Date().toISOString()}).eq('institution_id',inst);
+      if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
+      q=withSignal(q,signal);const {error}=await q;if(error)throw error;
+    },{timeout:8000,retries:1});
   }
   function editor(edit=null){
     if(!isHead())return '<div class="coverage-note">Teacher class/section structure read-only dekh sakta hai. Changes Head of Institute karta hai.</div>';
@@ -94,27 +116,35 @@
       '</article>';
   }
   async function save(){
+    const btn=$('csSave');if(classSectionSaveInFlight||btn?.disabled)return;
     const className=$('csClass')?.value.trim(),sectionName=$('csSection')?.value.trim();
     if(!className||!sectionName)return alert('Class aur section required hain.');
     const rows=read(),editId=$('csEditId')?.value||'',staffId=$('csTeacher')?.value||'';
     let item={id:editId||String(Date.now()),className,sectionName,classTeacherStaffId:staffId,classTeacherName:staff().find(x=>String(x.id)===String(staffId))?.fullName||'',roomLabel:$('csRoom')?.value.trim()||'',capacity:Number($('csCapacity')?.value||0),active:$('csActive')?.value==='true',createdAt:new Date().toISOString()};
     const duplicate=rows.find(x=>String(x.className).toLowerCase()===className.toLowerCase()&&String(x.sectionName).toLowerCase()===sectionName.toLowerCase()&&String(x.id)!==String(editId));
     if(duplicate)return alert('Ye class/section already exists.');
-    try{const c=await saveCloud(item);if(c){c.classTeacherStaffId=staffId;item=c}}catch(e){alert('Cloud sync failed; section local mode mein save hoga. '+(e.message||e))}
-    const next=rows.filter(x=>String(x.id)!==String(editId)&&!(String(x.className).toLowerCase()===className.toLowerCase()&&String(x.sectionName).toLowerCase()===sectionName.toLowerCase()));
-    next.push(item);write(next);render();
+    classSectionSaveInFlight=true;setBusy(btn,true,editId?'Updating...':'Saving...');
+    try{
+      try{const saved=await saveCloud(item);if(saved){saved.classTeacherStaffId=staffId;item=saved}}catch(e){if(cloudReady())return alert('Cloud class/section save failed. Nothing was saved locally: '+(e.message||e))}
+      const next=rows.filter(x=>String(x.id)!==String(editId)&&!(String(x.className).toLowerCase()===className.toLowerCase()&&String(x.sectionName).toLowerCase()===sectionName.toLowerCase()));
+      next.push(item);write(next);render();
+    }finally{classSectionSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function assign(){
+    const btn=$('csAssign');if(classSectionAssignInFlight||btn?.disabled)return;
     const sid=$('csStudent')?.value,targetId=$('csTarget')?.value;
     const row=read().find(x=>String(x.id)===String(targetId));if(!sid||!row)return alert('Student aur class/section select karein.');
     const count=studentCount(row),already=students().find(s=>String(s.id)===String(sid)&&s.className===row.className&&s.sectionName===row.sectionName);
     if(row.capacity>0&&count>=row.capacity&&!already)return alert('Selected section capacity full hai.');
-    try{await assignCloud(sid,row.className,row.sectionName)}catch(e){if(cloudReady())return alert('Cloud allocation failed: '+(e.message||e))}
-    if(window.EDUNIZAM_STUDENT_BRIDGE?.update)window.EDUNIZAM_STUDENT_BRIDGE.update(sid,{className:row.className,sectionName:row.sectionName});
-    else{
-      const arr=students(),s=arr.find(x=>String(x.id)===String(sid));if(s){s.className=row.className;s.sectionName=row.sectionName;localStorage.setItem('edunizam_students',JSON.stringify(arr))}
-    }
-    render();
+    classSectionAssignInFlight=true;setBusy(btn,true,'Assigning...');
+    try{
+      try{await assignCloud(sid,row.className,row.sectionName)}catch(e){if(cloudReady())return alert('Cloud allocation failed: '+(e.message||e))}
+      if(window.EDUNIZAM_STUDENT_BRIDGE?.update)window.EDUNIZAM_STUDENT_BRIDGE.update(sid,{className:row.className,sectionName:row.sectionName});
+      else{
+        const arr=students(),s=arr.find(x=>String(x.id)===String(sid));if(s){s.className=row.className;s.sectionName=row.sectionName;localStorage.setItem('edunizam_students',JSON.stringify(arr))}
+      }
+      render();
+    }finally{classSectionAssignInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function edit(id){
     const x=read().find(r=>String(r.id)===String(id));if(!x)return;
@@ -123,13 +153,16 @@
     }
     const box=$('csEditor');if(box)box.innerHTML=editor(x);bindEditor();
   }
-  async function remove(id){
-    if(!isHead())return;
+  async function remove(id,btn){
+    const key=String(id||'');if(!isHead()||classSectionDeleteInFlight.has(key)||btn?.disabled)return;
     const x=read().find(r=>String(r.id)===String(id));if(!x)return;
     if(studentCount(x)>0)return alert('Pehle is section ke students kisi aur section mein move karein.');
     if(!confirm('Delete Class '+x.className+' - '+x.sectionName+'?'))return;
-    try{await removeCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
-    write(read().filter(r=>String(r.id)!==String(id)));render();
+    classSectionDeleteInFlight.add(key);setBusy(btn,true,'Deleting...');
+    try{
+      try{await removeCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
+      write(read().filter(r=>String(r.id)!==String(id)));render();
+    }finally{classSectionDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
   function bindEditor(){
     $('csSave')?.addEventListener('click',save);$('csCancel')?.addEventListener('click',render);
@@ -137,7 +170,7 @@
   function bind(){
     bindEditor();$('csAssign')?.addEventListener('click',assign);
     document.querySelectorAll('[data-cs-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.csEdit));
-    document.querySelectorAll('[data-cs-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.csDelete));
+    document.querySelectorAll('[data-cs-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.csDelete,b));
   }
   async function render(){
     const root=$('classSectionApp');if(!root)return;

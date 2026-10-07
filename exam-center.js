@@ -10,6 +10,13 @@
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const canEdit=()=>['teacher','head'].includes(role());
   const actorId=()=>String(cloud()?.state?.user?.id||identity());
+  let examScheduleSaveInFlight=false;
+  const examScheduleDeleteInFlight=new Set();
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   function setBusy(btn,busy,label='Working...'){
     if(!btn)return;
     if(busy){
@@ -47,34 +54,56 @@
 
   async function pullCloud(){
     if(!cloudReady())return readSchedule();
-    const {data,error}=await cloud().state.client.from('exam_schedule_entries').select('*').eq('institution_id',cfg().institutionId).order('exam_date').order('start_time');
-    if(error)throw error;
-    const mapped=(data||[]).map(x=>({id:x.id,className:x.class_name,sectionName:x.section_name||'',examName:x.exam_name,subject:x.subject,examDate:x.exam_date,startTime:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',totalMarks:Number(x.total_marks||0),roomLabel:x.room_label||'',notes:x.notes||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}));
+    const inst=cfg().institutionId;
+    const result=await runCloud('exam-schedule-load:'+inst,'Exam schedule',async({signal}={})=>{
+      let q=cloud().state.client.from('exam_schedule_entries').select('*').eq('institution_id',inst).order('exam_date').order('start_time');
+      q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+    },{timeout:7000,retries:1});
+    const mapped=(result.data||[]).map(x=>({id:x.id,className:x.class_name,sectionName:x.section_name||'',examName:x.exam_name,subject:x.subject,examDate:x.exam_date,startTime:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',totalMarks:Number(x.total_marks||0),roomLabel:x.room_label||'',notes:x.notes||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}));
     writeSchedule(mapped);return mapped;
   }
   async function insertCloud(x){
     if(!cloudReady())return null;
-    const c=cloud();
-    const {data,error}=await c.state.client.from('exam_schedule_entries').insert({
-      institution_id:cfg().institutionId,creator_user_id:c.state.user.id,class_name:x.className,
+    const c=cloud(),inst=cfg().institutionId,payload={
+      institution_id:inst,creator_user_id:c.state.user.id,class_name:x.className,
       exam_name:x.examName,subject:x.subject,exam_date:x.examDate,start_time:x.startTime||null,end_time:x.endTime||null,total_marks:Number(x.totalMarks||0),section_name:x.sectionName||null,room_label:x.roomLabel||null,notes:x.notes||null,updated_at:new Date().toISOString()
-    }).select().single();
-    if(error)throw error;return data;
+    };
+    const writeOnce=async({signal}={})=>{
+      let q=c.state.client.from('exam_schedule_entries').insert(payload).select().single();q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;return data;
+    };
+    try{return await runCloud('exam-schedule-create:'+inst+':'+x.className+':'+x.examName+':'+x.subject+':'+x.examDate,'Create exam schedule',writeOnce,{timeout:8000,retries:0})}
+    catch(error){
+      const reconcile=async({signal}={})=>{
+        let q=c.state.client.from('exam_schedule_entries').select('*').eq('institution_id',inst).eq('creator_user_id',c.state.user.id).eq('class_name',x.className).eq('exam_name',x.examName).eq('subject',x.subject).eq('exam_date',x.examDate);
+        q=x.sectionName?q.eq('section_name',x.sectionName):q.is('section_name',null);q=q.order('created_at',{ascending:false}).limit(2);q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out.data||[];
+      };
+      const rows=await runCloud('exam-schedule-reconcile:'+inst+':'+x.className+':'+x.subject+':'+x.examDate,'Reconcile exam schedule',reconcile,{timeout:5000,retries:1});
+      if(rows.length===1)return rows[0];throw error;
+    }
   }
   async function updateCloud(x){
     if(!cloudReady())return null;
-    let q=cloud().state.client.from('exam_schedule_entries').update({
-      class_name:x.className,section_name:x.sectionName||null,exam_name:x.examName,subject:x.subject,
-      exam_date:x.examDate,start_time:x.startTime||null,end_time:x.endTime||null,total_marks:Number(x.totalMarks||0),
-      room_label:x.roomLabel||null,notes:x.notes||null,updated_at:new Date().toISOString()
-    }).eq('institution_id',cfg().institutionId).eq('id',x.id);
-    if(role()==='teacher')q=q.eq('creator_user_id',cloud().state.user.id);
-    const {data,error}=await q.select().maybeSingle();if(error)throw error;return data;
+    const inst=cfg().institutionId;
+    return runCloud('exam-schedule-update:'+inst+':'+x.id,'Update exam schedule',async({signal}={})=>{
+      let q=cloud().state.client.from('exam_schedule_entries').update({
+        class_name:x.className,section_name:x.sectionName||null,exam_name:x.examName,subject:x.subject,
+        exam_date:x.examDate,start_time:x.startTime||null,end_time:x.endTime||null,total_marks:Number(x.totalMarks||0),
+        room_label:x.roomLabel||null,notes:x.notes||null,updated_at:new Date().toISOString()
+      }).eq('institution_id',inst).eq('id',x.id);
+      if(role()==='teacher')q=q.eq('creator_user_id',cloud().state.user.id);
+      q=q.select().maybeSingle();q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return data;
+    },{timeout:8000,retries:1});
   }
   async function deleteCloud(id){
     if(!cloudReady())return;
-    const {error}=await cloud().state.client.from('exam_schedule_entries').delete().eq('id',id);
-    if(error)throw error;
+    const inst=cfg().institutionId;
+    return runCloud('exam-schedule-delete:'+inst+':'+id,'Delete exam schedule',async({signal}={})=>{
+      let q=cloud().state.client.from('exam_schedule_entries').delete().eq('institution_id',inst).eq('id',id);
+      if(role()==='teacher')q=q.eq('creator_user_id',cloud().state.user.id);
+      q=withSignal(q,signal);const {error}=await q;if(error)throw error;
+    },{timeout:8000,retries:1});
   }
 
   function scheduleEditor(){
@@ -152,7 +181,7 @@
       String(x.examDate||'')===String(examDate)
     );
     if(duplicate)return alert('Same class, section, exam, subject aur date ka schedule already exists.');
-    const btn=$('saveExamSchedule');if(btn?.disabled)return;setBusy(btn,true,'Saving...');
+    const btn=$('saveExamSchedule');if(examScheduleSaveInFlight||btn?.disabled)return;examScheduleSaveInFlight=true;setBusy(btn,true,'Saving...');
     let item={id:editingScheduleId||String(Date.now()),className,sectionName,examName,subject,examDate,startTime,endTime,totalMarks,roomLabel,notes,createdBy:existing?.createdBy||actorId(),createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
     try{
       const row=editingScheduleId?await updateCloud(item):await insertCloud(item);
@@ -163,14 +192,18 @@
     }catch(e){
       if(cloudReady())alert('Cloud schedule save failed. Nothing was saved locally: '+(e.message||e));
       else alert('Schedule save failed: '+(e.message||e));
-    }finally{setBusy(btn,false)}
+    }finally{examScheduleSaveInFlight=false;setBusy(btn,false)}
   }
   function editSchedule(id){const item=readSchedule().find(x=>String(x.id)===String(id));if(!item||!mine(item))return;editingScheduleId=String(id);render();setTimeout(()=>$('exClass')?.scrollIntoView({behavior:'smooth',block:'center'}),0)}
   function cancelEdit(){editingScheduleId='';render()}
-  async function removeSchedule(id){
+  async function removeSchedule(id,btn){
+    const key=String(id||'');if(examScheduleDeleteInFlight.has(key)||btn?.disabled)return;
     const arr=readSchedule(),item=arr.find(x=>String(x.id)===String(id));if(!item||!mine(item))return;
-    try{await deleteCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
-    writeSchedule(arr.filter(x=>String(x.id)!==String(id)));if(String(editingScheduleId)===String(id))editingScheduleId='';render();
+    examScheduleDeleteInFlight.add(key);setBusy(btn,true,'Deleting...');
+    try{
+      try{await deleteCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
+      writeSchedule(arr.filter(x=>String(x.id)!==String(id)));if(String(editingScheduleId)===String(id))editingScheduleId='';render();
+    }finally{examScheduleDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
 
   function bind(){
@@ -181,7 +214,7 @@
     ['exFilterClass','exFilterType','exFilterWhen'].forEach(id=>$(id)?.addEventListener('change',render));
     $('exSearch')?.addEventListener('input',()=>{clearTimeout(bind.searchTimer);bind.searchTimer=setTimeout(render,160)});
     document.querySelectorAll('[data-ex-edit]').forEach(b=>b.onclick=()=>editSchedule(b.dataset.exEdit));
-    document.querySelectorAll('[data-ex-delete]').forEach(b=>b.onclick=()=>removeSchedule(b.dataset.exDelete));
+    document.querySelectorAll('[data-ex-delete]').forEach(b=>b.onclick=()=>removeSchedule(b.dataset.exDelete,b));
   }
 
   async function render(){
