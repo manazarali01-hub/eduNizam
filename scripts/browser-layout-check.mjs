@@ -1085,6 +1085,41 @@ try{
     }
     if(openedApp.workspaceRpcCalls!==1)pushFailure('login contract','Login -> app startup repeated my_authorized_workspaces instead of trusting the fresh handoff',JSON.stringify(openedApp));
 
+    const prefetchContract=await boundedEvaluate('inspect feature prefetch contract',async()=>{
+      const loader=window.EDUNIZAM_FEATURE_LOADER;
+      if(!loader?.prefetch)return {available:false,seen:[],ready:false};
+      const seen=[];
+      const realFetch=window.fetch;
+      window.fetch=(input,init)=>{
+        seen.push({url:String(input),cache:init?.cache||'',credentials:init?.credentials||''});
+        return Promise.resolve(new Response('/* prefetched */',{status:200,headers:{'content-type':'text/javascript'}}));
+      };
+      try{await loader.prefetch('assistant')}finally{window.fetch=realFetch}
+      return {available:true,seen,ready:loader.isReady('assistant')};
+    },5000);
+    if(!prefetchContract.available||
+       !prefetchContract.seen.some(x=>/math-editor\.js\?v=20261007-speed1/.test(x.url)&&x.cache==='force-cache')||
+       prefetchContract.ready){
+      pushFailure('navigation performance','Feature prefetch did not warm versioned code without executing it',JSON.stringify(prefetchContract));
+    }
+
+    const intentPrefetch=await boundedEvaluate('inspect navigation intent prefetch',async()=>{
+      const loader=window.EDUNIZAM_FEATURE_LOADER;
+      const button=document.querySelector('.nav-item[data-view="examcenter"]');
+      if(!loader?.prefetch||!button)return [];
+      const calls=[];
+      const real=loader.prefetch;
+      loader.prefetch=view=>{calls.push(view);return Promise.resolve([])};
+      try{
+        button.dispatchEvent(new PointerEvent('pointerover',{bubbles:true,pointerType:'touch'}));
+        await new Promise(resolve=>setTimeout(resolve,0));
+      }finally{loader.prefetch=real}
+      return calls;
+    },5000);
+    if(!intentPrefetch.includes('examcenter')){
+      pushFailure('navigation performance','Pointer/touch intent did not prefetch the destination feature',JSON.stringify(intentPrefetch));
+    }
+
     const dockLabels=await boundedEvaluate('inspect mobile dock labels',()=>[...document.querySelectorAll('#premiumMobileDock strong')].map(el=>{
       const cs=getComputedStyle(el);
       const r=el.getBoundingClientRect();
