@@ -116,7 +116,7 @@
     const url=new URL(src,location.href);
     if(url.origin!==location.origin)return src;
     url.searchParams.set('v',VERSION);
-    return url.pathname.replace(/^\//,'')+url.search+url.hash;
+    return url.pathname+url.search+url.hash;
   };
 
   function loadAttempt(src,attempt){
