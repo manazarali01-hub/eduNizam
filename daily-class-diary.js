@@ -8,7 +8,8 @@ const role=()=>session().role==='admin'?'head':session().role||'student';
 const ready=()=>!!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId);
 const students=()=>{try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}};
 const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students();
-let editingId='',teacherClasses=[];
+let editingId='',teacherClasses=[],diarySaveInFlight=false;
+const diaryDeleteInFlight=new Set();
 
 function dateStr(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function normalizeClass(v){return String(v||'').trim().replace(/\s*[·|-]\s*[^·|-]+$/,'').trim()}
@@ -77,17 +78,25 @@ async function save(){
   if(!ready()||role()!=='teacher')return;
   const v=formValues();
   if(!v.cls||!v.subject||!v.topic||!v.date)return alert('Date, class, subject aur topic required hain.');
-  const payload={institution_id:cfg().institutionId,teacher_user_id:cloud().state.user.id,diary_date:v.date,class_name:v.cls,section_name:v.sec,subject:v.subject,topic:v.topic,homework:v.homework,instructions:v.instructions,updated_at:new Date().toISOString()};
-  let error;
-  if(editingId){
-    ({error}=await cloud().state.client.from('daily_class_diaries').update(payload)
-      .eq('id',editingId).eq('institution_id',cfg().institutionId).eq('teacher_user_id',cloud().state.user.id));
-  }else{
-    ({error}=await cloud().state.client.from('daily_class_diaries').upsert(payload,{onConflict:'institution_id,teacher_user_id,diary_date,class_name,section_name,subject'}));
+  const btn=$('#saveDiary');if(diarySaveInFlight||btn?.disabled)return;
+  diarySaveInFlight=true;if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
+  try{
+    const payload={institution_id:cfg().institutionId,teacher_user_id:cloud().state.user.id,diary_date:v.date,class_name:v.cls,section_name:v.sec,subject:v.subject,topic:v.topic,homework:v.homework,instructions:v.instructions,updated_at:new Date().toISOString()};
+    let error;
+    if(editingId){
+      ({error}=await cloud().state.client.from('daily_class_diaries').update(payload)
+        .eq('id',editingId).eq('institution_id',cfg().institutionId).eq('teacher_user_id',cloud().state.user.id));
+    }else{
+      ({error}=await cloud().state.client.from('daily_class_diaries').upsert(payload,{onConflict:'institution_id,teacher_user_id,diary_date,class_name,section_name,subject'}));
+    }
+    if(error)throw error;
+    window.EDUNIZAM_PREMIUM?.toast?.(editingId?'Diary updated.':'Daily diary saved.','success');
+    clearForm();await load();
+  }catch(e){alert(e.message||e)}
+  finally{
+    diarySaveInFlight=false;
+    if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy')}
   }
-  if(error)return alert(error.message);
-  window.EDUNIZAM_PREMIUM?.toast?.(editingId?'Diary updated.':'Daily diary saved.','success');
-  clearForm();await load();
 }
 async function editRow(id){
   if(role()!=='teacher')return;
@@ -107,13 +116,21 @@ async function editRow(id){
   $('#cancelDiaryEdit')?.classList.remove('hidden');
   $('#dailyDiaryApp')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
-async function deleteRow(id){
+async function deleteRow(id,btn){
   if(!ready()||!['teacher','head'].includes(role()))return;
+  const key=String(id||'');if(diaryDeleteInFlight.has(key)||btn?.disabled)return;
   if(!confirm('Delete this diary entry?'))return;
-  let q=cloud().state.client.from('daily_class_diaries').delete().eq('id',id).eq('institution_id',cfg().institutionId);
-  if(role()==='teacher')q=q.eq('teacher_user_id',cloud().state.user.id);
-  const {error}=await q;if(error)return alert(error.message);
-  window.EDUNIZAM_PREMIUM?.toast?.('Diary entry deleted.','success');load();
+  diaryDeleteInFlight.add(key);if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
+  try{
+    let q=cloud().state.client.from('daily_class_diaries').delete().eq('id',id).eq('institution_id',cfg().institutionId);
+    if(role()==='teacher')q=q.eq('teacher_user_id',cloud().state.user.id);
+    const {error}=await q;if(error)throw error;
+    window.EDUNIZAM_PREMIUM?.toast?.('Diary entry deleted.','success');await load();
+  }catch(e){alert(e.message||e)}
+  finally{
+    diaryDeleteInFlight.delete(key);
+    if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy')}
+  }
 }
 async function acknowledgeDiary(id,updatedAt){
   if(!ready()||!['student','parent'].includes(role()))return;
@@ -173,7 +190,7 @@ async function load(){
   $('#diaryCount')&&( $('#diaryCount').textContent=rows.length+' entr'+(rows.length===1?'y':'ies') );
   el.innerHTML=rows.length?rows.map(card).join(''):'<div class="empty-state">Is filter ke liye koi relevant diary entry nahi hai.</div>';
   all('[data-diary-edit]').forEach(b=>b.onclick=()=>editRow(b.dataset.diaryEdit));
-  all('[data-diary-delete]').forEach(b=>b.onclick=()=>deleteRow(b.dataset.diaryDelete));
+  all('[data-diary-delete]').forEach(b=>b.onclick=()=>deleteRow(b.dataset.diaryDelete,b));
   all('[data-diary-ack]').forEach(b=>b.onclick=()=>acknowledgeDiary(b.dataset.diaryAck,b.dataset.diaryVersion));
 }
 async function render(){
