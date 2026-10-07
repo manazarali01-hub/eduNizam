@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const BUILD='20261007-colorful-ref7', KEY='edunizam_system_build';
-const ACTIVE_CACHE='edunizam-v254-true-glass-touch';
+const ACTIVE_CACHE='edunizam-v255-diverse-education-scenes';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}

@@ -213,3 +213,20 @@
   }
 }
 
+
+
+
+/* ===== DIVERSE APP BACKGROUNDS · V2.3 · 2026-10-07 ===== */
+.page-app .main{background-image:linear-gradient(180deg,rgba(235,248,255,.48),rgba(247,252,255,.62)),var(--en-art-world)!important}
+.page-app .view.active:nth-of-type(10n+1){--en-view-art:var(--en-art-board)!important}.page-app .view.active:nth-of-type(10n+2){--en-view-art:var(--en-art-exam)!important}.page-app .view.active:nth-of-type(10n+3){--en-view-art:var(--en-art-math)!important}.page-app .view.active:nth-of-type(10n+4){--en-view-art:var(--en-art-digital)!important}.page-app .view.active:nth-of-type(10n+5){--en-view-art:var(--en-art-world)!important}.page-app .view.active:nth-of-type(10n+6){--en-view-art:var(--en-art-stationery)!important}.page-app .view.active:nth-of-type(10n+7){--en-view-art:var(--en-art-shelves)!important}.page-app .view.active:nth-of-type(10n+8){--en-view-art:var(--en-art-lab)!important}.page-app .view.active:nth-of-type(10n+9){--en-view-art:var(--en-art-creative)!important}.page-app .view.active:nth-of-type(10n){--en-view-art:var(--en-art-reading)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n+1){--en-card-art:var(--en-art-board)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n+2){--en-card-art:var(--en-art-exam)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n+3){--en-card-art:var(--en-art-math)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n+4){--en-card-art:var(--en-art-digital)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n+5){--en-card-art:var(--en-art-world)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n+6){--en-card-art:var(--en-art-stationery)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n+7){--en-card-art:var(--en-art-shelves)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n+8){--en-card-art:var(--en-art-lab)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n+9){--en-card-art:var(--en-art-creative)!important}
+.page-app :is(.cards,.role-action-grid,.paper-grid,.analytics-grid,.attendance-grid,.time-punch-grid,.audit-stat-grid,.check-grid,.attachment-grid,.preview-cards)>:nth-child(10n){--en-card-art:var(--en-art-reading)!important}
+

@@ -2398,3 +2398,56 @@ body.app-page.page-app .view.active :is(.warning,.pending){
   .page-home .experience-strip article{min-height:118px!important}
 }
 
+
+
+
+/* ===== DIVERSE EDUCATION BACKGROUND LIBRARY · V2.3 · 2026-10-07 ===== */
+:root{
+ --en-art-lab:url("assets/themes/science-lab.svg");
+ --en-art-math:url("assets/themes/mathematics.svg");
+ --en-art-digital:url("assets/themes/digital-learning.svg");
+ --en-art-world:url("assets/themes/world-learning.svg");
+ --en-art-stationery:url("assets/themes/stationery.svg");
+ --en-art-shelves:url("assets/themes/library-shelves.svg");
+ --en-art-board:url("assets/themes/classroom-board.svg");
+ --en-art-creative:url("assets/themes/creative-learning.svg");
+ --en-art-exam:url("assets/themes/exam-study.svg");
+ --en-art-reading:url("assets/themes/reading-books.svg");
+}
+.page-home .premium-public-hero{background-image:linear-gradient(145deg,rgba(242,251,255,.32),rgba(255,255,255,.15)),var(--en-art-stationery)!important}
+.page-home .hero-copy{background-image:linear-gradient(145deg,rgba(255,255,255,.43),rgba(250,253,255,.21)),var(--en-art-reading)!important}
+.page-home .quick-access-card{background-image:linear-gradient(145deg,rgba(255,255,255,.39),rgba(244,253,250,.20)),var(--en-art-digital)!important}
+.page-home .experience-strip{background-image:linear-gradient(145deg,rgba(255,255,255,.14),rgba(238,249,255,.10)),var(--en-art-board)!important}
+.page-home .experience-strip article:nth-child(1){background-image:linear-gradient(145deg,rgba(255,255,255,.39),rgba(245,252,255,.18)),var(--en-art-exam)!important}
+.page-home .experience-strip article:nth-child(2){background-image:linear-gradient(145deg,rgba(255,255,255,.39),rgba(244,253,250,.18)),var(--en-art-board)!important}
+.page-home .experience-strip article:nth-child(3){background-image:linear-gradient(145deg,rgba(255,255,255,.39),rgba(255,251,238,.18)),var(--en-art-math)!important}
+.page-home .experience-strip article:nth-child(4){background-image:linear-gradient(145deg,rgba(255,255,255,.39),rgba(249,247,255,.18)),var(--en-art-reading)!important}
+.page-home .experience-strip article:nth-child(5){background-image:linear-gradient(145deg,rgba(255,255,255,.39),rgba(255,247,245,.18)),var(--en-art-stationery)!important}
+.page-home .experience-strip article:nth-child(6){background-image:linear-gradient(145deg,rgba(255,255,255,.39),rgba(244,253,251,.18)),var(--en-art-digital)!important}
+.page-home .role-showcase{--en-section-art:var(--en-art-board)!important}
+.page-home .value-section{--en-section-art:var(--en-art-stationery)!important}
+.page-home .learning-band{background-image:linear-gradient(135deg,rgba(12,47,79,.68),rgba(58,69,146,.58)),var(--en-art-world)!important}
+.premium-public-page .public-section:nth-of-type(10n+1){--en-section-art:var(--en-art-lab)!important}
+.premium-public-page .public-section:nth-of-type(10n+2){--en-section-art:var(--en-art-math)!important}
+.premium-public-page .public-section:nth-of-type(10n+3){--en-section-art:var(--en-art-digital)!important}
+.premium-public-page .public-section:nth-of-type(10n+4){--en-section-art:var(--en-art-world)!important}
+.premium-public-page .public-section:nth-of-type(10n+5){--en-section-art:var(--en-art-stationery)!important}
+.premium-public-page .public-section:nth-of-type(10n+6){--en-section-art:var(--en-art-shelves)!important}
+.premium-public-page .public-section:nth-of-type(10n+7){--en-section-art:var(--en-art-board)!important}
+.premium-public-page .public-section:nth-of-type(10n+8){--en-section-art:var(--en-art-creative)!important}
+.premium-public-page .public-section:nth-of-type(10n+9){--en-section-art:var(--en-art-exam)!important}
+.premium-public-page .public-section:nth-of-type(10n){--en-section-art:var(--en-art-reading)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n+1){--en-card-art:var(--en-art-lab)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n+2){--en-card-art:var(--en-art-math)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n+3){--en-card-art:var(--en-art-digital)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n+4){--en-card-art:var(--en-art-world)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n+5){--en-card-art:var(--en-art-stationery)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n+6){--en-card-art:var(--en-art-shelves)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n+7){--en-card-art:var(--en-art-board)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n+8){--en-card-art:var(--en-art-creative)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n+9){--en-card-art:var(--en-art-exam)!important}
+:is(.page-home,.premium-public-page) .public-grid>.public-card:nth-child(10n){--en-card-art:var(--en-art-reading)!important}
+.learning-sky #home{--en-section-art:var(--en-art-reading)!important}.learning-sky #past{--en-section-art:var(--en-art-exam)!important}.learning-sky #grade{--en-section-art:var(--en-art-math)!important}.learning-sky #study{--en-section-art:var(--en-art-shelves)!important}.learning-sky #universities{--en-section-art:var(--en-art-world)!important}.learning-sky #competitive{--en-section-art:var(--en-art-board)!important}.learning-sky #ecosystem{--en-section-art:var(--en-art-digital)!important}.learning-sky #pathways{--en-section-art:var(--en-art-stationery)!important}.learning-sky #vu{--en-section-art:var(--en-art-digital)!important}.learning-sky #practice{--en-section-art:var(--en-art-exam)!important}
+.auth-page .card{background-image:linear-gradient(145deg,rgba(255,255,255,.45),rgba(246,251,255,.22)),var(--en-art-stationery)!important}
+.auth-page .role:nth-child(1){--en-role-art:var(--en-art-board)!important}.auth-page .role:nth-child(2){--en-role-art:var(--en-art-reading)!important}.auth-page .role:nth-child(3){--en-role-art:var(--en-art-digital)!important}.auth-page .role:nth-child(4){--en-role-art:var(--en-art-world)!important}
+

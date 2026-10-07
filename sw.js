@@ -1,4 +1,4 @@
-const CACHE='edunizam-v254-true-glass-touch'
+const CACHE='edunizam-v255-diverse-education-scenes'
 const CORE=[
   './',
   './index.html',
@@ -35,6 +35,16 @@ const CORE=[
   './assets/edunizam-premium-mark.svg',
   './assets/edunizam-login-children.webp',
   './assets/edunizam-girl-hero.webp',
+  './assets/themes/science-lab.svg',
+  './assets/themes/mathematics.svg',
+  './assets/themes/digital-learning.svg',
+  './assets/themes/world-learning.svg',
+  './assets/themes/stationery.svg',
+  './assets/themes/library-shelves.svg',
+  './assets/themes/classroom-board.svg',
+  './assets/themes/creative-learning.svg',
+  './assets/themes/exam-study.svg',
+  './assets/themes/reading-books.svg',
   './icon-192.svg',
   './icon-512.svg',
   './icon-192.png',
