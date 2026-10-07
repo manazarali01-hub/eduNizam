@@ -150,6 +150,7 @@
       const execute=async({signal}={})=>{
         let q=cloud().state.client.from('fee_payments')
           .select('id,fee_record_id,amount,payment_reference,receipt_no,paid_at,recorded_by')
+          .eq('institution_id',cfg().institutionId)
           .eq('fee_record_id',id)
           .order('paid_at',{ascending:false});
         if(signal&&typeof q?.abortSignal==='function')q=q.abortSignal(signal);
@@ -296,6 +297,7 @@
     const history=Array.isArray(item.paymentHistory)?item.paymentHistory:[];
     const w=existingWindow||window.open('','_blank','width=850,height=700');if(!w)return alert('Popup blocked.');
     const title=paid?'Fee Receipt':partial?'Fee Payment Statement':'Fee Challan';
+    try{w.document.open()}catch(_){}
     const paymentRows=history.length?'<h4>Payment History</h4>'+history.map(p=>'<div class="row"><span>'+esc(p.receiptNo||'Receipt')+(p.reference?' · '+esc(p.reference):'')+'</span><strong>'+money(p.amount)+' · '+esc(p.paidAt?String(p.paidAt).slice(0,10):'')+'</strong></div>').join(''):'';
     w.document.write('<!doctype html><html><head><title>'+title+'</title><style>body{font-family:Arial,sans-serif;color:#17324a;padding:28px}.box{border:1px solid #bbb;border-radius:14px;padding:18px;max-width:720px;margin:auto}.row{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #eee;padding:9px 0}.total{font-size:22px;font-weight:700}.muted{color:#667}.head{text-align:center;margin-bottom:18px}.school-logo{width:72px;height:72px;object-fit:contain;border:1px solid #d8e2e7;border-radius:12px;padding:5px}.head h2{margin:8px 0 4px}@media print{body{padding:0}}</style></head><body><div class="box"><div class="head">'+logo+'<h2>'+esc(settings.schoolName||'EduNizam Institute')+'</h2><h3>'+title+'</h3><div class="muted">'+esc(settings.session||'')+'</div></div>'+
       '<div class="row"><span>Student</span><strong>'+esc(item.studentName)+'</strong></div>'+
