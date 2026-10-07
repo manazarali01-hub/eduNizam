@@ -31,29 +31,47 @@
       if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}
     }
   }
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   function mapTicket(x){
     const s=x.core_students||{};
     return {id:x.id,ticketNo:x.ticket_no,category:x.category,priority:x.priority,subject:x.subject,description:x.description,status:x.status,adminResponse:x.admin_response||'',studentId:s.local_id!=null?String(s.local_id):'',studentName:s.name||'',className:s.class_name||'',sectionName:s.section_name||'',creatorRole:x.creator_role||'',createdBy:x.created_by||'',creatorKey:'',createdAt:x.created_at,updatedAt:x.updated_at,resolvedAt:x.resolved_at||'',attachments:[]};
   }
   async function signAttachment(a){
-    const {data,error}=await cloud().state.client.storage.from('helpdesk-media').createSignedUrl(a.storage_path,SIGNED_URL_TTL);
-    return {id:a.id,fileName:a.file_name||'Attachment',mediaType:a.media_type||'',mimeType:a.mime_type||'',sizeBytes:Number(a.size_bytes||0),storagePath:a.storage_path,url:error?'':(data?.signedUrl||'')};
+    try{
+      const result=await runCloud('helpdesk-sign:'+a.storage_path,'Helpdesk attachment link',async()=>{
+        const out=await cloud().state.client.storage.from('helpdesk-media').createSignedUrl(a.storage_path,SIGNED_URL_TTL);
+        if(out.error)throw out.error;return out;
+      },{timeout:5000,retries:1});
+      return {id:a.id,fileName:a.file_name||'Attachment',mediaType:a.media_type||'',mimeType:a.mime_type||'',sizeBytes:Number(a.size_bytes||0),storagePath:a.storage_path,url:result.data?.signedUrl||''};
+    }catch(_){
+      return {id:a.id,fileName:a.file_name||'Attachment',mediaType:a.media_type||'',mimeType:a.mime_type||'',sizeBytes:Number(a.size_bytes||0),storagePath:a.storage_path,url:''};
+    }
   }
   async function cloudStudent(localId){
     if(!cloudReady()||!localId)return null;
     const s=students().find(x=>String(x.id)===String(localId));if(!s)return null;
-    let q=cloud().state.client.from('core_students').select('id,local_id,name,class_name,section_name,student_code,auth_user_id').eq('institution_id',cfg().institutionId);
-    if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
-    const {data,error}=await q.maybeSingle();if(error)throw error;return data||null;
+    const inst=cfg().institutionId,lookup=s.studentId?('code:'+s.studentId):('local:'+Number(s.id));
+    return runCloud('helpdesk-student:'+inst+':'+lookup,'Helpdesk student link',async({signal}={})=>{
+      let q=cloud().state.client.from('core_students').select('id,local_id,name,class_name,section_name,student_code,auth_user_id').eq('institution_id',inst);
+      if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
+      q=q.maybeSingle();q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return data||null;
+    },{timeout:6000,retries:1});
   }
   async function pullCloud(){
     if(!cloudReady())return read();
-    const {data,error}=await cloud().state.client.from('school_helpdesk_tickets')
-      .select('*,core_students(local_id,name,class_name,section_name,auth_user_id),school_helpdesk_attachments(*)')
-      .eq('institution_id',cfg().institutionId).order('created_at',{ascending:false});
-    if(error)throw error;
+    const inst=cfg().institutionId;
+    const result=await runCloud('helpdesk-load:'+inst,'Helpdesk tickets',async({signal}={})=>{
+      let q=cloud().state.client.from('school_helpdesk_tickets')
+        .select('*,core_students(local_id,name,class_name,section_name,auth_user_id),school_helpdesk_attachments(*)')
+        .eq('institution_id',inst).order('created_at',{ascending:false});
+      q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+    },{timeout:7500,retries:1});
     const rows=[];
-    for(const raw of (data||[])){
+    for(const raw of (result.data||[])){
       const row=mapTicket(raw);
       row.attachments=await Promise.all((raw.school_helpdesk_attachments||[]).map(signAttachment));
       rows.push(row);
@@ -62,15 +80,32 @@
     return rows;
   }
   async function createCloud(item){
-    const cs=item.studentId?await cloudStudent(item.studentId):null;
-    const {data,error}=await cloud().state.client.rpc('create_helpdesk_ticket',{
-      p_institution_id:cfg().institutionId,p_student_id:cs?.id||null,p_category:item.category,p_priority:item.priority,p_subject:item.subject,p_description:item.description
-    });
-    if(error)throw error;return data;
+    const cs=item.studentId?await cloudStudent(item.studentId):null,inst=cfg().institutionId,userId=cloud().state.user.id;
+    const writeOnce=async({signal}={})=>{
+      let q=cloud().state.client.rpc('create_helpdesk_ticket',{
+        p_institution_id:inst,p_student_id:cs?.id||null,p_category:item.category,p_priority:item.priority,p_subject:item.subject,p_description:item.description
+      });q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out.data;
+    };
+    try{return await runCloud('helpdesk-create:'+inst+':'+userId+':'+item.subject,'Create helpdesk ticket',writeOnce,{timeout:8000,retries:0})}
+    catch(error){
+      const reconcile=async({signal}={})=>{
+        let q=cloud().state.client.from('school_helpdesk_tickets').select('*')
+          .eq('institution_id',inst).eq('created_by',userId).eq('category',item.category).eq('priority',item.priority)
+          .eq('subject',item.subject).eq('description',item.description);
+        q=cs?.id?q.eq('student_id',cs.id):q.is('student_id',null);
+        q=q.order('created_at',{ascending:false}).limit(2);q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out.data||[];
+      };
+      const rows=await runCloud('helpdesk-reconcile:'+inst+':'+userId+':'+item.subject,'Reconcile helpdesk ticket',reconcile,{timeout:5000,retries:1});
+      if(rows.length===1)return rows[0];throw error;
+    }
   }
   async function updateCloud(id,status,response){
-    const {data,error}=await cloud().state.client.rpc('update_helpdesk_ticket',{p_ticket_id:id,p_status:status,p_admin_response:response||null});
-    if(error)throw error;return data;
+    const inst=cfg().institutionId;
+    return runCloud('helpdesk-update:'+inst+':'+id,'Update helpdesk ticket',async({signal}={})=>{
+      let q=cloud().state.client.rpc('update_helpdesk_ticket',{p_ticket_id:id,p_status:status,p_admin_response:response||null});
+      q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out.data;
+    },{timeout:8000,retries:1});
   }
   async function uploadFiles(ticketId,files){
     const uploaded=[];

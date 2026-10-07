@@ -602,6 +602,18 @@ if(!scheduleCrud.includes("runCloud('schedule-load:")||!scheduleCrud.includes("r
 const examCrud=read('exam-center.js');
 if(!examCrud.includes('examScheduleSaveInFlight=false')||!examCrud.includes('examScheduleDeleteInFlight=new Set()')) fail.push('Exam schedule actions are missing single-flight guards.');
 if(!examCrud.includes("runCloud('exam-schedule-load:")||!examCrud.includes("runCloud('exam-schedule-reconcile:")||!examCrud.includes("runCloud('exam-schedule-delete:")) fail.push('Exam schedule actions lack bounded reads, reconciliation, or delete deadline.');
+const messagingCrud=read('messaging-center.js');
+if(!messagingCrud.includes('messagingStartInFlight=false,messagingSendInFlight=false')||!messagingCrud.includes('threadLoadInFlight=null')) fail.push('Messaging create/send/thread actions are missing single-flight guards.');
+if(!messagingCrud.includes("runCloud('messages-contacts:")||!messagingCrud.includes("runCloud('messages-conversations:")||!messagingCrud.includes("runCloud('messages-thread:")) fail.push('Messaging cloud reads are not bounded/deduplicated.');
+if(!messagingCrud.includes("runCloud('messages-send:")||!messagingCrud.includes('{timeout:8000,retries:0}')) fail.push('Message send must use a finite non-retrying mutation deadline.');
+const helpdeskCrud=read('helpdesk-center.js');
+if(!helpdeskCrud.includes("runCloud('helpdesk-load:")||!helpdeskCrud.includes("runCloud('helpdesk-student:")||!helpdeskCrud.includes("runCloud('helpdesk-update:")) fail.push('Helpdesk cloud reads/idempotent updates are not bounded.');
+if(!helpdeskCrud.includes("runCloud('helpdesk-reconcile:")||!helpdeskCrud.includes("'Create helpdesk ticket'")||!helpdeskCrud.includes('{timeout:8000,retries:0}')) fail.push('Helpdesk ticket creation lacks bounded ambiguity reconciliation.');
+const leaveCrud=read('leave-center.js');
+if(!leaveCrud.includes('leaveSubmitInFlight=false')||!leaveCrud.includes('leaveTeacherReviewInFlight=new Set()')||!leaveCrud.includes('leaveDecisionInFlight=new Set()')) fail.push('Leave actions are missing single-flight guards.');
+if(!leaveCrud.includes("runCloud('leave-load:")||!leaveCrud.includes("runCloud('leave-reconcile:")||!leaveCrud.includes("runCloud('leave-review:")||!leaveCrud.includes("runCloud('leave-decision:")) fail.push('Leave reads/submission/review/decision paths are not bounded.');
+if(leaveCrud.includes('Cloud submit unavailable; request sirf is device ke Local Mode mein save hogi.')) fail.push('Cloud leave failure can still create a divergent local-only request.');
+if(!leaveCrud.includes('Cloud leave submit failed. Nothing was saved locally')) fail.push('Leave cloud failure does not explicitly prevent local-only divergence.');
 if(read('role-access-center.js').includes('id="teacherRequestCard"')||read('role-access-center.js').includes('id="inviteAdminCard"')) fail.push('Legacy code controls remain in Access & Roles.');
 if(!read('role-access-center.js').includes('id="toggleReviewedRequests"')) fail.push('Reviewed requests cannot be inspected after approval.');
 if(!fs.existsSync(path.join(root,'supabase-teacher-access-ambiguity-fix.sql'))) fail.push('Teacher access ambiguity fix SQL is missing from the repository.');

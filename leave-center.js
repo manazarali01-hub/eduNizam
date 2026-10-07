@@ -10,6 +10,13 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const currentUserId=()=>cloud()?.state?.user?.id||'';
+  let leaveSubmitInFlight=false;
+  const leaveTeacherReviewInFlight=new Set(),leaveDecisionInFlight=new Set();
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1,cacheMs=0}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,cacheMs,label}):factory({});
+  }
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   const daysBetween=(from,to)=>{
     if(!from||!to)return 0;
@@ -65,8 +72,11 @@
     if(!cloudReady())return identity()||'User';
     const c=cloud();
     try{
-      const {data,error}=await c.state.client.from('user_profiles').select('full_name').eq('user_id',c.state.user.id).maybeSingle();
-      if(!error&&data?.full_name)return data.full_name;
+      const result=await runCloud('leave-profile:'+c.state.user.id,'Leave requester profile',async({signal}={})=>{
+        let q=c.state.client.from('user_profiles').select('full_name').eq('user_id',c.state.user.id).maybeSingle();
+        q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+      },{timeout:5000,retries:1,cacheMs:60000});
+      if(result.data?.full_name)return result.data.full_name;
     }catch(_){}
     return c.state.user?.email||identity()||'User';
   }
@@ -75,21 +85,24 @@
     const s=students().find(x=>String(x.id)===String(localId));
     if(s?.authUserId)return s.authUserId;
     if(!cloudReady()||!s)return null;
-    const c=cloud();
-    let q=c.state.client.from('core_students').select('auth_user_id').eq('institution_id',cfg().institutionId);
-    if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
-    const {data,error}=await q.maybeSingle();
-    if(error)throw error;
-    return data?.auth_user_id||null;
+    const c=cloud(),inst=cfg().institutionId,lookup=s.studentId?('code:'+s.studentId):('local:'+Number(s.id));
+    const result=await runCloud('leave-student:'+inst+':'+lookup,'Leave student link',async({signal}={})=>{
+      let q=c.state.client.from('core_students').select('auth_user_id').eq('institution_id',inst);
+      if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
+      q=q.maybeSingle();q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+    },{timeout:6000,retries:1,cacheMs:30000});
+    return result.data?.auth_user_id||null;
   }
 
   async function pullCloud(){
     if(!cloudReady())return read();
-    const c=cloud();
-    const {data,error}=await c.state.client.from('leave_requests').select('*').eq('institution_id',cfg().institutionId).order('created_at',{ascending:false});
-    if(error)throw error;
+    const c=cloud(),inst=cfg().institutionId;
+    const result=await runCloud('leave-load:'+inst+':'+role(),'Leave requests',async({signal}={})=>{
+      let q=c.state.client.from('leave_requests').select('*').eq('institution_id',inst).order('created_at',{ascending:false});
+      q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+    },{timeout:7000,retries:1});
     const local=students(),byAuth=new Map(local.filter(s=>s.authUserId).map(s=>[s.authUserId,s]));
-    const mapped=(data||[]).map(x=>{
+    const mapped=(result.data||[]).map(x=>{
       const ls=x.student_user_id?byAuth.get(x.student_user_id):null,leaveFor=x.leave_for||'student';
       return {
         id:x.id,cloudSynced:true,leaveFor,
@@ -111,14 +124,14 @@
 
   async function insertCloud(item){
     if(!cloudReady())return null;
-    const c=cloud(),requesterName=await currentProfileName();
+    const c=cloud(),inst=cfg().institutionId,requesterName=await currentProfileName();
     let studentUserId=null;
     if(item.leaveFor==='student'){
       studentUserId=await cloudStudentAuthId(item.studentLocalId);
       if(!studentUserId)throw new Error('Student cloud account/link required before leave submission.');
     }
     const payload={
-      institution_id:cfg().institutionId,leave_for:item.leaveFor,student_user_id:studentUserId,
+      institution_id:inst,leave_for:item.leaveFor,student_user_id:studentUserId,
       local_student_id:item.leaveFor==='student'?(Number(item.studentLocalId)||null):null,
       student_name:item.leaveFor==='student'?item.studentName:null,
       class_name:item.leaveFor==='student'?(item.className||null):null,
@@ -127,19 +140,37 @@
       from_date:item.fromDate,to_date:item.toDate,number_of_days:item.numberOfDays,
       reason:item.reason,guardian_note:item.guardianNote||null,status:'Pending'
     };
-    const {data,error}=await c.state.client.from('leave_requests').insert(payload).select().single();
-    if(error)throw error;return data;
+    const writeOnce=async({signal}={})=>{
+      let q=c.state.client.from('leave_requests').insert(payload).select().single();q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;return data;
+    };
+    try{return await runCloud('leave-create:'+inst+':'+c.state.user.id+':'+item.leaveFor+':'+item.fromDate+':'+item.toDate,'Submit leave request',writeOnce,{timeout:8000,retries:0})}
+    catch(error){
+      const reconcile=async({signal}={})=>{
+        let q=c.state.client.from('leave_requests').select('*').eq('institution_id',inst).eq('submitted_by',c.state.user.id)
+          .eq('leave_for',item.leaveFor).eq('from_date',item.fromDate).eq('to_date',item.toDate).eq('reason',item.reason);
+        q=studentUserId?q.eq('student_user_id',studentUserId):q.is('student_user_id',null);
+        q=q.order('created_at',{ascending:false}).limit(2);q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out.data||[];
+      };
+      const rows=await runCloud('leave-reconcile:'+inst+':'+c.state.user.id+':'+item.leaveFor+':'+item.fromDate+':'+item.toDate,'Reconcile leave request',reconcile,{timeout:5000,retries:1});
+      if(rows.length===1)return rows[0];throw error;
+    }
   }
 
   async function reviewCloud(id,response,note){
     if(!cloudReady())return null;
-    const {data,error}=await cloud().state.client.rpc('review_leave_request_v2',{p_request_id:id,p_response:response,p_note:note});
-    if(error)throw error;return data;
+    return runCloud('leave-review:'+cfg().institutionId+':'+id,'Review leave request',async({signal}={})=>{
+      let q=cloud().state.client.rpc('review_leave_request_v2',{p_request_id:id,p_response:response,p_note:note});q=withSignal(q,signal);
+      const out=await q;if(out.error)throw out.error;return out.data;
+    },{timeout:8000,retries:1});
   }
   async function decideCloud(id,status,note){
     if(!cloudReady())return null;
-    const {data,error}=await cloud().state.client.rpc('decide_leave_request_v1',{p_request_id:id,p_status:status,p_decision_note:note});
-    if(error)throw error;return Array.isArray(data)?data[0]:data;
+    return runCloud('leave-decision:'+cfg().institutionId+':'+id,'Decide leave request',async({signal}={})=>{
+      let q=cloud().state.client.rpc('decide_leave_request_v1',{p_request_id:id,p_status:status,p_decision_note:note});q=withSignal(q,signal);
+      const out=await q;if(out.error)throw out.error;return Array.isArray(out.data)?out.data[0]:out.data;
+    },{timeout:8000,retries:1});
   }
 
   function validateAttachment(file){
@@ -242,6 +273,7 @@
   }
 
   async function submit(){
+    const btn=$('submitLeave');if(leaveSubmitInFlight||btn?.disabled)return;
     const from=$('leaveFrom')?.value,to=$('leaveTo')?.value,reason=$('leaveReason')?.value.trim(),guardianNote=$('leaveGuardianNote')?.value.trim()||'',numberOfDays=daysBetween(from,to);
     const attachmentFile=$('leaveAttachment')?.files?.[0]||null;
     try{validateAttachment(attachmentFile)}catch(e){return alert(e.message||e)}
@@ -256,12 +288,16 @@
       const s=students().find(x=>String(x.id)===String(sid));if(!s)return alert('Student record not found.');
       item={id:String(Date.now()),cloudSynced:false,leaveFor:'student',studentLocalId:s.id,studentUserId:s.authUserId||null,studentName:s.name,personName:s.name,className:s.className||'',sectionName:s.sectionName||'',fromDate:from,toDate:to,numberOfDays,reason,guardianNote,status:'Pending',teacherResponse:'',teacherNote:'',decisionNote:'',submittedBy:identity(),submittedIdentity:identity(),submittedRole:role(),createdAt:new Date().toISOString()};
     }
-    const btn=$('submitLeave');if(btn)btn.disabled=true;
+    leaveSubmitInFlight=true;if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');btn.dataset.busyLabel=btn.textContent||'';btn.textContent='Submitting...'}
     try{
-      const row=await insertCloud(item);
-      if(row){
+      if(cloudReady()){
+        let row;
+        try{row=await insertCloud(item)}catch(e){return alert('Cloud leave submit failed. Nothing was saved locally: '+(e.message||e))}
+        if(!row)return alert('Cloud leave submit did not return a request. Nothing was saved locally.');
         item.id=row.id;item.cloudSynced=true;item.studentUserId=row.student_user_id||null;item.submittedBy=row.submitted_by;item.personName=row.leave_for==='staff'?(row.requester_name||item.personName):(row.student_name||item.personName);item.createdAt=row.created_at;
-        try{await cloud().state.client.rpc('notify_leave_submission_v1',{p_request_id:row.id})}catch(e){console.warn('Leave submission notification:',e.message||e)}
+        runCloud('leave-notify:'+row.id,'Leave submission notification',async({signal}={})=>{
+          let q=cloud().state.client.rpc('notify_leave_submission_v1',{p_request_id:row.id});q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+        },{timeout:5000,retries:1}).catch(e=>console.warn('Leave submission notification:',e.message||e));
         if(attachmentFile){
           try{
             const attached=await uploadLeaveAttachment(row.id,attachmentFile);
@@ -273,13 +309,15 @@
           }
         }
       }else if(attachmentFile){
-        alert('Leave request Local Mode mein save ho gi; attachment ke liye Cloud Mode / sign-in required hai.');
+        return alert('Leave request Local Mode mein save ho gi; attachment ke liye Cloud Mode / sign-in required hai.');
       }
-    }catch(e){alert('Cloud submit unavailable; request sirf is device ke Local Mode mein save hogi. '+(e.message||e))}
-    finally{if(btn)btn.disabled=false}
-    const arr=read();arr.unshift(item);write(arr);
-    if($('leaveReason'))$('leaveReason').value='';if($('leaveGuardianNote'))$('leaveGuardianNote').value='';if($('leaveAttachment'))$('leaveAttachment').value='';
-    render(true);
+      const arr=read();arr.unshift(item);write(arr);
+      if($('leaveReason'))$('leaveReason').value='';if($('leaveGuardianNote'))$('leaveGuardianNote').value='';if($('leaveAttachment'))$('leaveAttachment').value='';
+      render(true);
+    }finally{
+      leaveSubmitInFlight=false;
+      if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy');if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}}
+    }
   }
 
   async function sendNotification(userId,title,body){
@@ -287,10 +325,11 @@
     try{await window.EDUNIZAM_CLOUD.sendNotification(userId,title,body,'leave')}catch(_){}
   }
   async function reviewTeacher(id,response){
+    const key=String(id||'');if(leaveTeacherReviewInFlight.has(key))return;
     const arr=read(),item=arr.find(x=>String(x.id)===String(id));if(!item||!isTeacher()||item.status!=='Pending')return;
     const note=String(document.querySelector('[data-leave-teacher-note="'+String(id)+'"]')?.value||'').trim();
     if(!note)return alert('Teacher review reason required hai.');
-    const buttons=[...document.querySelectorAll('[data-leave-teacher-approve="'+String(id)+'"],[data-leave-teacher-reject="'+String(id)+'"]')];buttons.forEach(b=>b.disabled=true);
+    const buttons=[...document.querySelectorAll('[data-leave-teacher-approve="'+String(id)+'"],[data-leave-teacher-reject="'+String(id)+'"]')];buttons.forEach(b=>b.disabled=true);leaveTeacherReviewInFlight.add(key);
     try{
       if(item.cloudSynced&&cloudReady())await reviewCloud(id,response,note);
       item.teacherResponse=response;item.teacherNote=note;item.teacherReviewedAt=new Date().toISOString();item.teacherReviewedBy=currentUserId()||identity();write(arr);
@@ -298,13 +337,15 @@
       for(const uid of recipients)await sendNotification(uid,'Leave request reviewed by teacher',response+' · '+note);
       if(item.cloudSynced&&cloudReady()){const root=$('leaveCenterApp');if(root)delete root.dataset.cloudLoaded}
       await render(true);
-    }catch(e){alert('Teacher review failed: '+(e.message||e));buttons.forEach(b=>b.disabled=false)}
+    }catch(e){alert('Teacher review failed: '+(e.message||e))}
+    finally{leaveTeacherReviewInFlight.delete(key);buttons.forEach(b=>{if(b.isConnected)b.disabled=false})}
   }
   async function decide(id,status){
+    const key=String(id||'');if(leaveDecisionInFlight.has(key))return;
     const arr=read(),item=arr.find(x=>String(x.id)===String(id));if(!item||!isAdmin())return;
     const note=String(document.querySelector('[data-leave-decision-note="'+String(id)+'"]')?.value||'').trim();
     if(!note)return alert((status==='Approved'?'Approval reason':'Rejection cause')+' required hai.');
-    const buttons=[...document.querySelectorAll('[data-leave-approve="'+String(id)+'"],[data-leave-reject="'+String(id)+'"]')];buttons.forEach(b=>b.disabled=true);
+    const buttons=[...document.querySelectorAll('[data-leave-approve="'+String(id)+'"],[data-leave-reject="'+String(id)+'"]')];buttons.forEach(b=>b.disabled=true);leaveDecisionInFlight.add(key);
     try{
       let result=null;if(item.cloudSynced&&cloudReady())result=await decideCloud(id,status,note);
       item.status=status;item.decisionNote=note;item.decidedAt=new Date().toISOString();item.decidedBy=currentUserId()||identity();write(arr);
@@ -316,7 +357,8 @@
       for(const uid of recipients)await sendNotification(uid,'Leave request '+status.toLowerCase(),item.fromDate+' to '+item.toDate+' · '+note);
       if(item.cloudSynced&&cloudReady()){const root=$('leaveCenterApp');if(root)delete root.dataset.cloudLoaded}
       await render(true);
-    }catch(e){alert('Leave decision failed: '+(e.message||e));buttons.forEach(b=>b.disabled=false)}
+    }catch(e){alert('Leave decision failed: '+(e.message||e))}
+    finally{leaveDecisionInFlight.delete(key);buttons.forEach(b=>{if(b.isConnected)b.disabled=false})}
   }
 
   function bind(root){
