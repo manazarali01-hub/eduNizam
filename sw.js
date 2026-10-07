@@ -1,4 +1,4 @@
-const CACHE='edunizam-v250-admin-login-recovery'
+const CACHE='edunizam-v251-colorful-full-app'
 const CORE=[
   './',
   './index.html',
