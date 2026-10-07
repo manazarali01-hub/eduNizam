@@ -555,7 +555,7 @@
   .page-app .premium-mobile-dock button strong{
     font-size:clamp(9px,2.55vw,11px)!important;
     line-height:1!important;
-    white-space:nowrap!important;
+    white-space:normal!important;
     overflow:visible!important;
     text-overflow:clip!important;
     overflow-wrap:normal!important;
