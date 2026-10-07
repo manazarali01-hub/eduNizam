@@ -8,7 +8,23 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const isHead=()=>role()==='head';
-  let editingId='';
+  let editingId='',financeSaveInFlight=false;
+  const financeDeleteInFlight=new Set();
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){
+      if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';
+      btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label;
+    }else{
+      btn.disabled=false;btn.removeAttribute('aria-busy');
+      if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}
+    }
+  }
+  function withSignal(query,signal){return signal&&typeof query?.abortSignal==='function'?query.abortSignal(signal):query}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
+  }
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   const monthKey=()=>today().slice(0,7);
   function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
@@ -35,12 +51,17 @@
   async function cloudSummary(month){
     if(!cloudReady())return localSummary(month);
     const c=cloud().state.client,id=cfg().institutionId,{start,end}=monthBounds(month);
-    const [fees,payroll,entries]=await Promise.all([
-      c.from('fee_records').select('amount,fee_date,status').eq('institution_id',id).eq('status','Paid').gte('fee_date',start).lt('fee_date',end),
-      c.from('staff_payroll_records').select('net_salary,paid_at,status').eq('institution_id',id).eq('status','Paid').gte('paid_at',start+'T00:00:00').lt('paid_at',end+'T00:00:00'),
-      c.from('school_finance_entries').select('*').eq('institution_id',id).gte('entry_date',start).lt('entry_date',end).order('entry_date',{ascending:false})
-    ]);
-    for(const r of [fees,payroll,entries])if(r.error)throw r.error;
+    const execute=async({signal}={})=>{
+      const queries=[
+        c.from('fee_records').select('amount,fee_date,status').eq('institution_id',id).eq('status','Paid').gte('fee_date',start).lt('fee_date',end),
+        c.from('staff_payroll_records').select('net_salary,paid_at,status').eq('institution_id',id).eq('status','Paid').gte('paid_at',start+'T00:00:00').lt('paid_at',end+'T00:00:00'),
+        c.from('school_finance_entries').select('*').eq('institution_id',id).gte('entry_date',start).lt('entry_date',end).order('entry_date',{ascending:false})
+      ].map(q=>withSignal(q,signal));
+      const [fees,payroll,entries]=await Promise.all(queries);
+      for(const r of [fees,payroll,entries])if(r.error)throw r.error;
+      return {fees,payroll,entries};
+    };
+    const {fees,payroll,entries}=await runCloud('finance-summary:'+id+':'+month,'Finance summary',execute,{timeout:7000,retries:1});
     const mapped=(entries.data||[]).map(x=>({id:x.id,entryType:x.entry_type,category:x.category,amount:Number(x.amount||0),entryDate:x.entry_date,reference:x.reference||'',note:x.note||'',createdAt:x.created_at}));
     const all=read().filter(x=>!String(x.entryDate||'').startsWith(month)).concat(mapped);write(all);
     return {
@@ -53,25 +74,38 @@
   }
   async function insertCloud(item){
     if(!cloudReady())return null;
-    const {data,error}=await cloud().state.client.from('school_finance_entries').insert({
-      institution_id:cfg().institutionId,entry_type:item.entryType,category:item.category,amount:item.amount,
-      entry_date:item.entryDate,reference:item.reference||null,note:item.note||null,created_by:cloud().state.user.id
-    }).select().single();
-    if(error)throw error;
-    return {id:data.id,entryType:data.entry_type,category:data.category,amount:Number(data.amount||0),entryDate:data.entry_date,reference:data.reference||'',note:data.note||'',createdAt:data.created_at};
+    const inst=cfg().institutionId,key=['finance-create',inst,item.entryDate,item.entryType,item.category,item.amount,item.reference||'',item.note||''].join(':');
+    return runCloud(key,'Create finance entry',async({signal}={})=>{
+      let q=cloud().state.client.from('school_finance_entries').insert({
+        institution_id:inst,entry_type:item.entryType,category:item.category,amount:item.amount,
+        entry_date:item.entryDate,reference:item.reference||null,note:item.note||null,created_by:cloud().state.user.id
+      }).select().single();
+      q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;
+      return {id:data.id,entryType:data.entry_type,category:data.category,amount:Number(data.amount||0),entryDate:data.entry_date,reference:data.reference||'',note:data.note||'',createdAt:data.created_at};
+    },{timeout:8000,retries:0});
   }
   async function updateCloud(item){
     if(!cloudReady())return null;
-    const {data,error}=await cloud().state.client.from('school_finance_entries').update({
-      entry_type:item.entryType,category:item.category,amount:item.amount,entry_date:item.entryDate,
-      reference:item.reference||null,note:item.note||null
-    }).eq('institution_id',cfg().institutionId).eq('id',item.id).select().single();
-    if(error)throw error;
-    return {id:data.id,entryType:data.entry_type,category:data.category,amount:Number(data.amount||0),entryDate:data.entry_date,reference:data.reference||'',note:data.note||'',createdAt:data.created_at};
+    const inst=cfg().institutionId;
+    return runCloud('finance-update:'+inst+':'+item.id,'Update finance entry',async({signal}={})=>{
+      let q=cloud().state.client.from('school_finance_entries').update({
+        entry_type:item.entryType,category:item.category,amount:item.amount,entry_date:item.entryDate,
+        reference:item.reference||null,note:item.note||null
+      }).eq('institution_id',inst).eq('id',item.id).select().single();
+      q=withSignal(q,signal);
+      const {data,error}=await q;if(error)throw error;
+      return {id:data.id,entryType:data.entry_type,category:data.category,amount:Number(data.amount||0),entryDate:data.entry_date,reference:data.reference||'',note:data.note||'',createdAt:data.created_at};
+    },{timeout:8000,retries:1});
   }
   async function deleteCloud(id){
     if(!cloudReady())return;
-    const {error}=await cloud().state.client.from('school_finance_entries').delete().eq('id',id);if(error)throw error;
+    const inst=cfg().institutionId;
+    return runCloud('finance-delete:'+inst+':'+id,'Delete finance entry',async({signal}={})=>{
+      let q=cloud().state.client.from('school_finance_entries').delete().eq('institution_id',inst).eq('id',id);
+      q=withSignal(q,signal);
+      const {error}=await q;if(error)throw error;
+    },{timeout:8000,retries:1});
   }
   function editor(){
     const x=read().find(v=>String(v.id)===String(editingId))||{},type=x.entryType||'Expense',cat=x.category||'Utilities';
@@ -125,21 +159,33 @@
     return rows.length?rows.map(([k,v])=>'<div class="row"><strong>'+esc(k)+'</strong><span>'+money(v)+'</span><span></span><span></span><span></span></div>').join(''):'<div class="muted">No manual categories for this month.</div>';
   }
   async function save(){
+    const btn=$('finSave');if(financeSaveInFlight||btn?.disabled)return;
     const entryType=$('finType')?.value,category=$('finCategory')?.value,amount=Number($('finAmount')?.value||0),entryDate=$('finDate')?.value,reference=$('finReference')?.value.trim()||'',note=$('finNote')?.value.trim()||'';
     if(!entryType||!category||amount<=0||!entryDate)return alert('Type, category, valid amount aur date required hain.');
-    const rows=read(),existing=rows.find(x=>String(x.id)===String(editingId));
-    let item={id:editingId||String(Date.now()),entryType,category,amount,entryDate,reference,note,createdAt:existing?.createdAt||new Date().toISOString()};
-    try{const saved=editingId?await updateCloud(item):await insertCloud(item);if(saved)item=saved}catch(e){if(cloudReady())return alert('Cloud finance entry failed: '+(e.message||e))}
-    if(editingId){const i=rows.findIndex(x=>String(x.id)===String(editingId));if(i>=0)rows[i]=item;else rows.unshift(item)}
-    else rows.unshift(item);
-    write(rows);editingId='';await render();
+    financeSaveInFlight=true;setBusy(btn,true,editingId?'Updating...':'Saving...');
+    try{
+      const rows=read(),existing=rows.find(x=>String(x.id)===String(editingId));
+      let item={id:editingId||String(Date.now()),entryType,category,amount,entryDate,reference,note,createdAt:existing?.createdAt||new Date().toISOString()};
+      try{const saved=editingId?await updateCloud(item):await insertCloud(item);if(saved)item=saved}catch(e){if(cloudReady())return alert('Cloud finance entry failed: '+(e.message||e))}
+      if(editingId){const i=rows.findIndex(x=>String(x.id)===String(editingId));if(i>=0)rows[i]=item;else rows.unshift(item)}
+      else rows.unshift(item);
+      write(rows);editingId='';await render();
+    }finally{
+      financeSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false);
+    }
   }
   function edit(id){const x=read().find(v=>String(v.id)===String(id));if(!x)return;editingId=String(id);render();setTimeout(()=>$('finAmount')?.scrollIntoView({behavior:'smooth',block:'center'}),0)}
   function cancelEdit(){editingId='';render()}
-  async function remove(id){
+  async function remove(id,btn){
+    const key=String(id||'');if(financeDeleteInFlight.has(key)||btn?.disabled)return;
     if(!confirm('Delete this cashbook entry?'))return;
-    try{await deleteCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
-    write(read().filter(x=>String(x.id)!==String(id)));if(String(editingId)===String(id))editingId='';await render();
+    financeDeleteInFlight.add(key);setBusy(btn,true,'Deleting...');
+    try{
+      try{await deleteCloud(id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
+      write(read().filter(x=>String(x.id)!==String(id)));if(String(editingId)===String(id))editingId='';await render();
+    }finally{
+      financeDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false);
+    }
   }
   function printStatement(month,s){
     const st=settings(),income=s.fees+s.otherIncome,expenses=s.payroll+s.otherExpenses,net=income-expenses;
@@ -158,7 +204,7 @@
     $('finSearch')?.addEventListener('input',e=>{root.dataset.finSearch=e.target.value;clearTimeout(bind.timer);bind.timer=setTimeout(render,160)});
     $('finClear')?.addEventListener('click',()=>{root.dataset.finType='';root.dataset.finCategory='';root.dataset.finSearch='';render()});
     document.querySelectorAll('[data-fin-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.finEdit));
-    document.querySelectorAll('[data-fin-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.finDelete));
+    document.querySelectorAll('[data-fin-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.finDelete,b));
   }
   async function render(){
     const root=$('financeCenterApp');if(!root)return;
