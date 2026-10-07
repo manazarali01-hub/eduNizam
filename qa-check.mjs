@@ -632,6 +632,12 @@ if(!leaveMigration.includes('teachers submit own leave')) fail.push('Teacher lea
 if(!leaveMigration.includes('heads decide institute leave')) fail.push('Admin-only leave decision policy missing.');
 if(leaveMigration.includes('create policy "teachers decide assigned leave"')) fail.push('Legacy Teacher leave-decision policy still present.');
 if(!leaveMigration.includes('leave_requests_decision_complete_check')) fail.push('Leave decision cause integrity constraint missing.');
+const diaryUi=read('daily-class-diary.js');
+if(!diaryUi.includes('diarySaveInFlight=false')) fail.push('Daily Diary save has no duplicate-submit guard.');
+if(!diaryUi.includes('diaryDeleteInFlight=new Set()')) fail.push('Daily Diary delete has no duplicate-submit guard.');
+const noticeUi=read('notice-board-center.js');
+if(!noticeUi.includes('noticeSaveInFlight=false')) fail.push('Notice Board save has no duplicate-submit guard.');
+if(!noticeUi.includes('noticeDeleteInFlight=new Set()')) fail.push('Notice Board delete has no duplicate-submit guard.');
 const diaryModerationMigration='supabase/migrations/20261005062500_admin_daily_diary_moderation.sql';
 if(!exists(diaryModerationMigration)) fail.push('Admin Daily Diary moderation policy migration missing.');
 else{
