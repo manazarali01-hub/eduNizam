@@ -43,6 +43,7 @@
     if(!force&&normalized!=='all'&&cloudLoadedScopes.has(normalized))return read();
     if(cloudScopeInFlight.has(normalized))return cloudScopeInFlight.get(normalized);
     const task=(async()=>{
+      const requestKey=cloudLoadKey;
       const c=cloud(),id=cfg().institutionId,current=read();
       if(normalized==='all'){
         const [a,h,t,s]=await Promise.all([
@@ -53,6 +54,7 @@
         ]);
         for(const r of [a,h,t,s])if(r.error)throw r.error;
         const mapped=mapCloud(a.data,h.data,t.data,s.data);
+        if(requestKey!==ensureCloudKey())return read();
         write(mapped);
         ['announcements','homework','submissions','timetable'].forEach(x=>cloudLoadedScopes.add(x));
         return mapped;
@@ -79,6 +81,7 @@
         current.submissions=mapSubmissions(s.data);
         cloudLoadedScopes.add('homework');
       }
+      if(requestKey!==ensureCloudKey())return read();
       write(current);
       cloudLoadedScopes.add(normalized);
       return current;
