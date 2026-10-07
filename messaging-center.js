@@ -17,6 +17,7 @@
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
   let contacts=[],conversations=[],activeId='',messages=[],unreadByConversation={};
   let conversationSearch='',unreadOnly=false,messageSearch='';
+  let contactsInFlight=null,contactsLoadedAt=0,contactsLoadKey='',conversationsInFlight=null,conversationsLoadedAt=0,conversationsLoadKey='';
 
   function roleLabel(r){return ({head:'Head of Institute',teacher:'Teacher',parent:'Parent / Guardian',student:'Student'}[r]||r)}
   function localUserKey(){return role()+':'+(identity()||'local')}
@@ -37,12 +38,20 @@
     }
     const seen=new Set();return rows.filter(x=>{const k=x.targetKey+'|'+x.studentKey+'|'+x.conversationType;if(seen.has(k))return false;seen.add(k);return true});
   }
-  async function loadContacts(){
+  async function loadContacts(force=false){
     if(!cloudReady()){contacts=localContacts();return contacts}
-    const {data,error}=await cloud().state.client.rpc('list_message_contacts');
-    if(error)throw error;
-    contacts=(data||[]).map(x=>({targetUserId:x.target_user_id,targetRole:x.target_role,displayName:x.display_name,studentUserId:x.student_user_id,studentName:x.student_name,conversationType:x.conversation_type}));
-    return contacts;
+    const loadKey=[cfg().institutionId,uid()].join('|');
+    if(contactsInFlight)return contactsInFlight;
+    if(!force&&contactsLoadKey===loadKey&&contactsLoadedAt&&Date.now()-contactsLoadedAt<60000)return contacts;
+    contactsInFlight=(async()=>{
+      const {data,error}=await cloud().state.client.rpc('list_message_contacts');
+      if(error)throw error;
+      contacts=(data||[]).map(x=>({targetUserId:x.target_user_id,targetRole:x.target_role,displayName:x.display_name,studentUserId:x.student_user_id,studentName:x.student_name,conversationType:x.conversation_type}));
+      contactsLoadKey=loadKey;
+      contactsLoadedAt=Date.now();
+      return contacts;
+    })();
+    try{return await contactsInFlight}finally{contactsInFlight=null}
   }
   function localVisibleConversation(c){
     const me=localUserKey();
@@ -55,22 +64,41 @@
     if(role()==='student')return c.conversationType==='teacher-student'&&String(c.studentKey)===String(targetStudent.id);
     return false;
   }
-  async function loadConversations(){
+  async function loadConversations(force=false){
     if(!cloudReady()){
       conversations=read(CONV_KEY).filter(localVisibleConversation).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
       const allMsgs=read(MSG_KEY),me=localUserKey();unreadByConversation={};
       allMsgs.filter(m=>!m.readAt&&m.senderKey!==me).forEach(m=>unreadByConversation[m.conversationId]=(unreadByConversation[m.conversationId]||0)+1);
       return conversations;
     }
-    const c=cloud().state.client;
-    const [cr,mr]=await Promise.all([
-      c.from('school_conversations').select('*').eq('institution_id',cfg().institutionId).order('updated_at',{ascending:false}),
-      c.from('school_messages').select('conversation_id,sender_user_id,read_at')
-    ]);
-    if(cr.error)throw cr.error;if(mr.error)throw mr.error;
-    conversations=cr.data||[];unreadByConversation={};
-    (mr.data||[]).filter(m=>!m.read_at&&m.sender_user_id!==uid()).forEach(m=>unreadByConversation[m.conversation_id]=(unreadByConversation[m.conversation_id]||0)+1);
-    return conversations;
+    const loadKey=[cfg().institutionId,uid()].join('|');
+    if(conversationsInFlight)return conversationsInFlight;
+    if(!force&&conversationsLoadKey===loadKey&&conversationsLoadedAt&&Date.now()-conversationsLoadedAt<3000)return conversations;
+    conversationsInFlight=(async()=>{
+      const c=cloud().state.client;
+      const cr=await c.from('school_conversations').select('*')
+        .eq('institution_id',cfg().institutionId)
+        .order('updated_at',{ascending:false});
+      if(cr.error)throw cr.error;
+      conversations=cr.data||[];
+      unreadByConversation={};
+      const ids=conversations.map(x=>x.id).filter(Boolean);
+      for(let start=0;start<ids.length;start+=100){
+        const batch=ids.slice(start,start+100);
+        const mr=await c.from('school_messages')
+          .select('conversation_id,sender_user_id,read_at')
+          .in('conversation_id',batch)
+          .neq('sender_user_id',uid());
+        if(mr.error)throw mr.error;
+        (mr.data||[]).filter(m=>!m.read_at).forEach(m=>{
+          unreadByConversation[m.conversation_id]=(unreadByConversation[m.conversation_id]||0)+1;
+        });
+      }
+      conversationsLoadKey=loadKey;
+      conversationsLoadedAt=Date.now();
+      return conversations;
+    })();
+    try{return await conversationsInFlight}finally{conversationsInFlight=null}
   }
   function conversationOtherName(c){
     if(!cloudReady()){
@@ -89,7 +117,7 @@
       if(error)throw error;messages=data||[];
       const {error:re}=await cloud().state.client.rpc('mark_school_messages_read',{p_conversation_id:id});if(re)console.warn(re.message);
     }
-    await loadConversations();renderUI();
+    await loadConversations(true);renderUI();
   }
   async function startConversation(){
     const key=$('msgContact')?.value,subject=$('msgSubject')?.value.trim()||'General';
@@ -158,7 +186,7 @@
     root.innerHTML='<style>.msg-layout{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(360px,1.5fr);gap:16px}.msg-list{display:grid;gap:8px}.msg-conv{display:grid;gap:4px;text-align:left;padding:12px;border:1px solid #dce6eb;border-radius:12px;background:#fff;color:inherit}.msg-conv.active{outline:2px solid #0f766e;background:#eef9f7}.msg-conv span,.msg-conv small{color:#667}.msg-thread-wrap{min-height:420px;display:flex;flex-direction:column}.msg-thread-head{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e6edef;padding-bottom:10px}.msg-thread{display:flex;flex-direction:column;gap:9px;min-height:280px;max-height:480px;overflow:auto;padding:14px 0}.msg-line{max-width:78%;padding:10px 12px;border-radius:14px;background:#edf2f5}.msg-line.mine{align-self:flex-end;background:#dff3ef}.msg-line.theirs{align-self:flex-start}.msg-line small{display:block;color:#697b86;font-size:11px;margin-top:5px}.msg-compose{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:auto}.msg-compose textarea{width:100%;box-sizing:border-box}.msg-empty{padding:40px 12px;text-align:center;color:#6a7b88}@media(max-width:800px){.msg-layout{grid-template-columns:1fr}.msg-compose{grid-template-columns:1fr}}</style>'+
       '<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Secure Cloud Inbox':'Local Demo Mode')+'</span><p class="muted">'+conversations.length+' conversation'+(conversations.length===1?'':'s')+' · '+Object.values(unreadByConversation).reduce((a,n)=>a+Number(n||0),0)+' unread message'+(Object.values(unreadByConversation).reduce((a,n)=>a+Number(n||0),0)===1?'':'s')+'</p></div></div>'+createPanel()+
       '<div class="msg-layout" style="margin-top:16px"><article class="card"><div class="section-head"><div><h3>Conversations</h3><p class="muted">'+filteredConversations().length+' shown</p></div><button id="msgRefresh" class="secondary">Refresh</button></div><div class="form-grid"><input id="msgConversationSearch" type="search" value="'+esc(conversationSearch)+'" placeholder="Search contact, subject or student"><label class="coverage-note"><input id="msgUnreadOnly" type="checkbox" '+(unreadOnly?'checked':'')+'> Unread only</label></div><div class="msg-list" style="margin-top:10px">'+conversationList()+'</div></article><article class="card msg-thread-wrap">'+thread()+'</article></div>';
-    $('msgStart')?.addEventListener('click',startConversation);$('msgRefresh')?.addEventListener('click',render);
+    $('msgStart')?.addEventListener('click',startConversation);$('msgRefresh')?.addEventListener('click',()=>render(true));
     $('msgSend')?.addEventListener('click',sendMessage);
     $('msgConversationSearch')?.addEventListener('input',e=>{conversationSearch=e.target.value;clearTimeout(renderUI.searchTimer);renderUI.searchTimer=setTimeout(renderUI,140)});
     $('msgUnreadOnly')?.addEventListener('change',e=>{unreadOnly=e.target.checked;renderUI()});
@@ -166,13 +194,13 @@
     $('msgBody')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();sendMessage()}});
     document.querySelectorAll('[data-msg-open]').forEach(b=>b.onclick=()=>{messageSearch='';openConversation(b.dataset.msgOpen)});
   }
-  async function render(){
+  async function render(force=false){
     const root=$('inboxCenterApp');if(!root)return;
     root.innerHTML='<div class="coverage-note">Inbox loading...</div>';
-    try{await Promise.all([loadContacts(),loadConversations()]);if(activeId){const exists=conversations.some(x=>String(x.id)===activeId);if(!exists){activeId='';messages=[]}}renderUI()}
+    try{await Promise.all([loadContacts(force===true),loadConversations(force===true)]);if(activeId){const exists=conversations.some(x=>String(x.id)===activeId);if(!exists){activeId='';messages=[]}}renderUI()}
     catch(e){root.innerHTML='<div class="empty-state">Inbox error: '+esc(e.message||e)+'</div>'}
   }
-  window.addEventListener('edunizam:auth',()=>{activeId='';messages=[];render()});
+  window.addEventListener('edunizam:auth',()=>{activeId='';messages=[];contactsLoadedAt=0;contactsLoadKey='';conversationsLoadedAt=0;conversationsLoadKey='';render(true)});
   setTimeout(render,0);setTimeout(render,900);
   window.EDUNIZAM_MESSAGING_CENTER={render,openConversation,cloudReady};
 })();
