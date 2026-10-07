@@ -430,9 +430,9 @@
     if(!cloudReady())return;
     const requestKey=ensureFeeLoadKey();
     try{
-      const tasks=[pullCloud(force===true)];
-      if(isHead())tasks.push(pullClassFees(force===true));
-      const [rows]=await Promise.all(tasks);
+      const feeTask=pullCloud(force===true);
+      const classFeeTask=(async()=>{if(isHead())await pullClassFees()})();
+      const [rows]=await Promise.all([feeTask,classFeeTask]);
       if(requestKey!==ensureFeeLoadKey())return;
       rows.forEach(mirrorLegacy);
       paint(root,rows);
