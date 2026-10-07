@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261007-feescale1';
+  const VERSION='20261007-staffscale1';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
