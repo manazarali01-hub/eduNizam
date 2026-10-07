@@ -1,4 +1,4 @@
-const CACHE='edunizam-v246-screenshot-correction'
+const CACHE='edunizam-v247-mobile-composition-ref4'
 const CORE=[
   './',
   './index.html',
