@@ -51,17 +51,17 @@ try{
         if(u.hostname==='127.0.0.1')r.continue(); else r.abort();
       });
       await page.goto('http://127.0.0.1:'+port+route,{waitUntil:'domcontentloaded',timeout:10000});
-      await page.addStyleTag({content:\`
-        :root{
-          --en-photo-kids:url("/assets/edunizam-login-children.webp")!important;
-          --en-photo-students:url("/assets/edunizam-girl-hero.webp")!important;
-          --en-photo-study:url("/assets/edunizam-girl-hero.webp")!important;
-          --en-photo-flatlay:url("/assets/edunizam-login-children.webp")!important;
-          --en-photo-stationery:url("/assets/edunizam-girl-hero.webp")!important;
-          --en-photo-classroom:url("/assets/edunizam-login-children.webp")!important;
-        }
-        *,*:before,*:after{animation:none!important;transition:none!important}
-      \`});
+      await page.addStyleTag({content:[
+        ':root{',
+        '--en-photo-kids:url("/assets/edunizam-login-children.webp")!important;',
+        '--en-photo-students:url("/assets/edunizam-girl-hero.webp")!important;',
+        '--en-photo-study:url("/assets/edunizam-girl-hero.webp")!important;',
+        '--en-photo-flatlay:url("/assets/edunizam-login-children.webp")!important;',
+        '--en-photo-stationery:url("/assets/edunizam-girl-hero.webp")!important;',
+        '--en-photo-classroom:url("/assets/edunizam-login-children.webp")!important;',
+        '}',
+        '*,*:before,*:after{animation:none!important;transition:none!important}'
+      ].join('\n')});
       await page.evaluate(()=>{
         const hero=document.querySelector('.page-home .hero-image-wrap img');
         if(hero)hero.setAttribute('src','assets/edunizam-login-children.webp');
