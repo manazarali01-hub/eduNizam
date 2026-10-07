@@ -16,6 +16,26 @@
   const monthKey=()=>today().slice(0,7);
   const staff=()=>read(STAFF_KEY,[]);
   const attendance=()=>read(ATT_KEY,[]);
+  let staffLoadKey='';
+  const staffLoadInFlight=new Map(),staffLoadedAt=new Map();
+  function ensureStaffLoadKey(){
+    const key=cloudReady()?[cfg().institutionId,cloud()?.state?.user?.id||''].join('|'):'';
+    if(key!==staffLoadKey){
+      staffLoadKey=key;
+      staffLoadInFlight.clear();
+      staffLoadedAt.clear();
+    }
+    return key;
+  }
+  function monthBounds(month){
+    const m=/^(\d{4})-(\d{2})$/.exec(String(month||''));
+    if(!m)return monthBounds(monthKey());
+    const year=Number(m[1]),index=Number(m[2])-1;
+    const start=new Date(Date.UTC(year,index,1));
+    const next=new Date(Date.UTC(year,index+1,1));
+    const key=d=>d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
+    return {start:key(start),next:key(next)};
+  }
   function mine(){
     if(isHead())return staff();
     const id=identity(),uid=String(cloud()?.state?.user?.id||'');
@@ -28,12 +48,42 @@
   function mapLink(lat,lng,accuracy){if(lat==null||lng==null)return'<span class="muted">Not captured</span>';const url='https://www.google.com/maps?q='+encodeURIComponent(lat+','+lng);return'<a class="secondary-link" href="'+url+'" target="_blank" rel="noopener">Map · ±'+Number(accuracy||0)+'m</a>'}
   function rowFor(staffId,date=today()){return attendance().find(x=>String(x.staffId)===String(staffId)&&x.date===date)||null}
   function canAct(staffId){return role()==='teacher'&&mine().some(x=>String(x.id)===String(staffId))}
-  async function pullCloud(){
-    if(!cloudReady())return;
-    const {data,error}=await cloud().state.client.from('staff_attendance_records').select('*,staff_profiles(full_name,staff_code,user_id)').eq('institution_id',cfg().institutionId).order('attendance_date',{ascending:false});
-    if(error)throw error;
-    const mapped=(data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,date:x.attendance_date,status:x.status,note:x.note||'',checkInAt:x.check_in_at||'',checkOutAt:x.check_out_at||'',checkInLat:x.check_in_latitude,checkInLng:x.check_in_longitude,checkInAccuracy:x.check_in_accuracy_m,checkOutLat:x.check_out_latitude,checkOutLng:x.check_out_longitude,checkOutAccuracy:x.check_out_accuracy_m,staffName:x.staff_profiles?.full_name||'',staffUserId:x.staff_profiles?.user_id||'',markedBy:x.marked_by||''}));
-    write(ATT_KEY,mapped);
+  async function pullCloud(month=monthKey(),force=false){
+    if(!cloudReady())return attendance();
+    const requestBase=ensureStaffLoadKey(),requestedMonth=/^\d{4}-\d{2}$/.test(String(month||''))?String(month):monthKey();
+    const requestKey=requestBase+'|'+requestedMonth;
+    if(staffLoadInFlight.has(requestKey))return staffLoadInFlight.get(requestKey);
+    const loadedAt=staffLoadedAt.get(requestKey)||0;
+    if(!force&&loadedAt&&Date.now()-loadedAt<15000)return attendance();
+
+    const task=(async()=>{
+      const bounds=monthBounds(requestedMonth);
+      const execute=async({signal}={})=>{
+        let q=cloud().state.client.from('staff_attendance_records')
+          .select('*,staff_profiles(full_name,staff_code,user_id)')
+          .eq('institution_id',cfg().institutionId)
+          .gte('attendance_date',bounds.start)
+          .lt('attendance_date',bounds.next)
+          .order('attendance_date',{ascending:false});
+        if(signal&&typeof q?.abortSignal==='function')q=q.abortSignal(signal);
+        const result=await q;
+        if(result?.error)throw result.error;
+        return result;
+      };
+      const runtime=window.EDUNIZAM_DATA_RUNTIME;
+      const res=runtime
+        ?await runtime.run('staff-attendance:'+requestKey,execute,{timeout:8000,retries:1,cacheMs:force?0:15000,label:'Staff attendance'})
+        :await execute({});
+      if(requestBase!==ensureStaffLoadKey())return attendance();
+      const mapped=(res.data||[]).map(x=>({id:x.id,staffId:x.staff_profile_id,date:x.attendance_date,status:x.status,note:x.note||'',checkInAt:x.check_in_at||'',checkOutAt:x.check_out_at||'',checkInLat:x.check_in_latitude,checkInLng:x.check_in_longitude,checkInAccuracy:x.check_in_accuracy_m,checkOutLat:x.check_out_latitude,checkOutLng:x.check_out_longitude,checkOutAccuracy:x.check_out_accuracy_m,staffName:x.staff_profiles?.full_name||'',staffUserId:x.staff_profiles?.user_id||'',markedBy:x.marked_by||''}));
+      const kept=attendance().filter(x=>!String(x.date||'').startsWith(requestedMonth+'-'));
+      const merged=[...mapped,...kept].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+      write(ATT_KEY,merged);
+      staffLoadedAt.set(requestKey,Date.now());
+      return merged;
+    })();
+    staffLoadInFlight.set(requestKey,task);
+    try{return await task}finally{staffLoadInFlight.delete(requestKey)}
   }
   async function saveCloud(item){
     if(!cloudReady())return null;
@@ -132,17 +182,55 @@
     document.querySelectorAll('[data-clock-out]').forEach(b=>b.onclick=()=>clock(b.dataset.clockOut,'out'));
     document.querySelectorAll('[data-mark-staff-absent]').forEach(b=>b.onclick=()=>markStaffAbsent(b.dataset.markStaffAbsent));
     document.querySelectorAll('[data-admin-staff-status]').forEach(b=>b.onclick=()=>adminMarkStaffStatus(b.dataset.adminStaffStatus,b.dataset.status));
-    $('staManualSave')?.addEventListener('click',manualSave);$('staMonth')?.addEventListener('change',e=>{const box=$('staLog');if(box)box.innerHTML=logRows(e.target.value)});
+    $('staManualSave')?.addEventListener('click',manualSave);
+    $('staMonth')?.addEventListener('change',async e=>{
+      const root=$('staffTimeApp'),selected=e.target.value||monthKey();
+      if(root)root.dataset.staMonth=selected;
+      const box=$('staLog');if(box)box.innerHTML='<div class="coverage-note">Loading selected month...</div>';
+      try{
+        if(cloudReady())await pullCloud(selected,false);
+        if(box)box.innerHTML=logRows(selected);
+      }catch(err){
+        console.warn('Staff time month load:',err.message||err);
+        if(box)box.innerHTML=logRows(selected);
+      }
+    });
   }
-  async function render(){
-    const root=$('staffTimeApp');if(!root)return;
-    if(cloudReady()&&!root.dataset.cloudLoaded){root.dataset.cloudLoaded='1';try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Staff time cloud sync:',e.message)}}
+  function paint(root){
     const people=mine().filter(x=>x.status!=='inactive'),todayRows=people.map(x=>rowFor(x.id)).filter(Boolean),inside=todayRows.filter(x=>x.checkInAt&&!x.checkOutAt).length,complete=todayRows.filter(x=>x.checkOutAt).length;
-    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Time + Location':'Local Time Mode')+'</span><p class="muted">'+(isHead()?'Admin view: kisi bhi Teacher ko Present / Absent / Leave mark karein; exact/back-date correction neeche Manual Time Adjustment se karein.':'Teacher sirf apni attendance Clock In/Out kar sakta hai; doosre Teacher ki attendance access nahi.')+'</p></div><strong>'+new Date().toLocaleString()+'</strong></div><div class="cards"><article class="card stat"><span>Visible Staff</span><strong>'+people.length+'</strong></article><article class="card stat"><span>Checked In</span><strong>'+inside+'</strong></article><article class="card stat"><span>Completed Today</span><strong>'+complete+'</strong></article><article class="card stat"><span>Not Marked</span><strong>'+Math.max(0,people.length-todayRows.length)+'</strong></article></div>'+manualEditor()+'<div class="section-head" style="margin-top:18px"><div><h3>Today Time Clock</h3><p class="muted">Second-level timestamps with device location.</p></div></div><div class="paper-grid">'+(people.length?people.map(todayCard).join(''):'<div class="empty-state">No linked staff profile.</div>')+'</div><article class="card" style="margin-top:18px"><div class="section-head"><div><h3>Monthly Time Log</h3><p class="muted">Exact attendance history, worked duration and location.</p></div><input id="staMonth" type="month" value="'+monthKey()+'"></div><div id="staLog">'+logRows(monthKey())+'</div></article>';
+    const selectedMonth=root.dataset.staMonth||monthKey();
+    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Time + Location':'Local Time Mode')+'</span><p class="muted">'+(isHead()?'Admin view: kisi bhi Teacher ko Present / Absent / Leave mark karein; exact/back-date correction neeche Manual Time Adjustment se karein.':'Teacher sirf apni attendance Clock In/Out kar sakta hai; doosre Teacher ki attendance access nahi.')+'</p></div><strong>'+new Date().toLocaleString()+'</strong></div><div class="cards"><article class="card stat"><span>Visible Staff</span><strong>'+people.length+'</strong></article><article class="card stat"><span>Checked In</span><strong>'+inside+'</strong></article><article class="card stat"><span>Completed Today</span><strong>'+complete+'</strong></article><article class="card stat"><span>Not Marked</span><strong>'+Math.max(0,people.length-todayRows.length)+'</strong></article></div>'+manualEditor()+'<div class="section-head" style="margin-top:18px"><div><h3>Today Time Clock</h3><p class="muted">Second-level timestamps with device location.</p></div></div><div class="paper-grid">'+(people.length?people.map(todayCard).join(''):'<div class="empty-state">No linked staff profile.</div>')+'</div><article class="card" style="margin-top:18px"><div class="section-head"><div><h3>Monthly Time Log</h3><p class="muted">Exact attendance history, worked duration and location.</p></div><input id="staMonth" type="month" value="'+esc(selectedMonth)+'"></div><div id="staLog">'+logRows(selectedMonth)+'</div></article>';
     bind();
   }
-  window.addEventListener('edunizam:auth',()=>{const root=$('staffTimeApp');if(root)delete root.dataset.cloudLoaded;render()});
-  setInterval(()=>{if(document.getElementById('stafftime')?.classList.contains('active')){const root=$('staffTimeApp');if(root)delete root.dataset.cloudLoaded;render()}},30000);
-  setTimeout(render,0);setTimeout(render,900);
+  async function render(force=false){
+    const root=$('staffTimeApp');if(!root)return;
+    paint(root);
+    if(!cloudReady())return;
+    const selectedMonth=root.dataset.staMonth||monthKey();
+    try{
+      await pullCloud(selectedMonth,force===true);
+      paint(root);
+    }catch(e){
+      console.warn('Staff time cloud sync:',e.message||e);
+    }
+  }
+  window.addEventListener('edunizam:auth',()=>{
+    staffLoadKey='';
+    staffLoadInFlight.clear();
+    staffLoadedAt.clear();
+    const root=$('staffTimeApp');if(root)root.dataset.staMonth=monthKey();
+    render(true);
+  });
+  window.addEventListener('edunizam:view-open',e=>{
+    if(e.detail?.view==='stafftime')render(false);
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&document.getElementById('stafftime')?.classList.contains('active'))render(false);
+  });
+  window.addEventListener('focus',()=>{
+    if(document.getElementById('stafftime')?.classList.contains('active'))render(false);
+  });
+  setTimeout(()=>{if(document.getElementById('stafftime')?.classList.contains('active'))render(false)},0);
   window.EDUNIZAM_STAFF_TIME={render,pullCloud,cloudReady};
+
 })();
