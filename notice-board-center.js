@@ -11,6 +11,17 @@
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const isStaff=()=>['teacher','head'].includes(role());
   const isHead=()=>role()==='head';
+  async function boundedRead(key,builder,{timeout=6500,retries=1,label='Notice Board'}={}){
+    const execute=async({signal}={})=>{
+      let request=builder();
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;
+      if(result?.error)throw result.error;
+      return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,execute,{timeout,retries,label}):execute({});
+  }
   let noticeSaveInFlight=false;
   const noticeDeleteInFlight=new Set();
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
@@ -46,8 +57,10 @@
   }
   function mapRow(x){return {id:x.id,title:x.title,body:x.body,audience:x.audience,className:x.class_name||'',sectionName:x.section_name||'',priority:x.priority||'Normal',pinned:x.pinned===true,validUntil:x.valid_until||'',createdBy:x.creator_user_id||'',createdAt:x.created_at,updatedAt:x.updated_at||x.created_at}}
   async function pullCloud(){
-    const {data,error}=await cloud().state.client.from('school_announcements').select('*').eq('institution_id',cfg().institutionId).order('pinned',{ascending:false}).order('created_at',{ascending:false});
-    if(error)throw error;
+    const inst=String(cfg().institutionId||''),uid=String(cloud()?.state?.user?.id||'');
+    const {data}=await boundedRead('notice-board:'+inst+':'+uid,()=>cloud().state.client.from('school_announcements')
+      .select('*').eq('institution_id',cfg().institutionId)
+      .order('pinned',{ascending:false}).order('created_at',{ascending:false}),{timeout:6500,retries:1,label:'Notice Board'});
     const rows=(data||[]).map(mapRow);write(rows);return rows;
   }
   async function saveCloud(item){

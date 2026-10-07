@@ -6,6 +6,17 @@ const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
 const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'{}')}catch{return{}}};
 const role=()=>session().role==='admin'?'head':session().role||'student';
 const ready=()=>!!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId);
+async function boundedRead(key,builder,{timeout=7000,retries=1,cacheMs=0,label='Daily Diary'}={}){
+  const execute=async({signal}={})=>{
+    let request=builder();
+    if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+    const result=await request;
+    if(result?.error)throw result.error;
+    return result;
+  };
+  const runtime=window.EDUNIZAM_DATA_RUNTIME;
+  return runtime?runtime.run(key,execute,{timeout,retries,cacheMs,label}):execute({});
+}
 const students=()=>{try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}};
 const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students();
 let editingId='',teacherClasses=[],diarySaveInFlight=false;
@@ -27,13 +38,13 @@ function canSeeRow(row){
 }
 async function myClasses(){
   if(!ready()||role()!=='teacher')return[];
-  const {data,error}=await cloud().state.client.from('class_sections')
+  const inst=String(cfg().institutionId||''),uid=String(cloud().state.user.id||'');
+  const {data}=await boundedRead('daily-diary:classes:'+inst+':'+uid,()=>cloud().state.client.from('class_sections')
     .select('class_name,section_name')
     .eq('institution_id',cfg().institutionId)
     .eq('class_teacher_user_id',cloud().state.user.id)
     .eq('active',true)
-    .order('class_name',{ascending:true});
-  if(error)throw error;
+    .order('class_name',{ascending:true}),{timeout:6500,retries:1,cacheMs:15000,label:'Assigned diary classes'});
   return data||[];
 }
 function syncSection(){
@@ -168,20 +179,31 @@ function card(x){
 async function load(){
   if(!ready())return;
   const date=$('#diaryFilterDate')?.value||dateStr(),mode=$('#diaryRange')?.value||'day';
-  let q=cloud().state.client.from('daily_class_diaries').select('*').eq('institution_id',cfg().institutionId);
-  if(mode==='day')q=q.eq('diary_date',date);
-  else{
-    const d=new Date(date+'T00:00:00');d.setDate(d.getDate()-(mode==='week'?6:29));
-    q=q.gte('diary_date',dateStr(d)).lte('diary_date',date);
+  const inst=String(cfg().institutionId||''),uid=String(cloud()?.state?.user?.id||''),scope=role()+':'+uid;
+  const buildDiaryQuery=()=>{
+    let q=cloud().state.client.from('daily_class_diaries').select('*').eq('institution_id',cfg().institutionId);
+    if(mode==='day')q=q.eq('diary_date',date);
+    else{
+      const d=new Date(date+'T00:00:00');d.setDate(d.getDate()-(mode==='week'?6:29));
+      q=q.gte('diary_date',dateStr(d)).lte('diary_date',date);
+    }
+    return q.order('diary_date',{ascending:false}).order('created_at',{ascending:false}).limit(300);
+  };
+  const el=$('#diaryList');if(!el)return;
+  let data=[];
+  try{
+    const result=await boundedRead('daily-diary:list:'+inst+':'+scope+':'+mode+':'+date,buildDiaryQuery,{timeout:7000,retries:1,label:'Daily Diary history'});
+    data=result.data||[];
+  }catch(error){
+    el.innerHTML='<div class="empty-state">'+esc(error.message||error)+'</div>';return;
   }
-  q=q.order('diary_date',{ascending:false}).order('created_at',{ascending:false}).limit(300);
-  const {data,error}=await q,el=$('#diaryList');if(!el)return;
-  if(error){el.innerHTML='<div class="empty-state">'+esc(error.message)+'</div>';return}
   let acknowledgements=[];
   const ids=(data||[]).map(x=>x.id).filter(Boolean);
   if(ids.length){
-    const {data:ackData,error:ackError}=await cloud().state.client.from('daily_diary_acknowledgements').select('*').in('diary_id',ids);
-    if(!ackError)acknowledgements=ackData||[];
+    try{
+      const ack=await boundedRead('daily-diary:acks:'+inst+':'+scope+':'+ids.join(','),()=>cloud().state.client.from('daily_diary_acknowledgements').select('*').in('diary_id',ids),{timeout:6000,retries:1,label:'Diary acknowledgements'});
+      acknowledgements=ack.data||[];
+    }catch(error){console.warn('Diary acknowledgements:',error?.message||error)}
   }
   const byDiary=new Map();
   acknowledgements.forEach(a=>{const k=String(a.diary_id);if(!byDiary.has(k))byDiary.set(k,[]);byDiary.get(k).push(a)});

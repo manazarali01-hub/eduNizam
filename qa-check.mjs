@@ -632,9 +632,15 @@ if(!leaveMigration.includes('teachers submit own leave')) fail.push('Teacher lea
 if(!leaveMigration.includes('heads decide institute leave')) fail.push('Admin-only leave decision policy missing.');
 if(leaveMigration.includes('create policy "teachers decide assigned leave"')) fail.push('Legacy Teacher leave-decision policy still present.');
 if(!leaveMigration.includes('leave_requests_decision_complete_check')) fail.push('Leave decision cause integrity constraint missing.');
+const noticeReadUi=read('notice-board-center.js');
+const staffReadUi=read('staff-center.js');
+if(!noticeReadUi.includes("runtime.run(key,execute,{timeout,retries,label})")||!noticeReadUi.includes("abortSignal==='function'")) fail.push('Notice Board initial cloud reads are not bounded/cancellable.');
+if(!staffReadUi.includes("runtime.run(key,execute,{timeout,retries,cacheMs,label})")||!staffReadUi.includes("staff-directory:")) fail.push('Staff Directory initial cloud read is not bounded/deduplicated.');
 const diaryUi=read('daily-class-diary.js');
 if(!diaryUi.includes('diarySaveInFlight=false')) fail.push('Daily Diary save has no duplicate-submit guard.');
 if(!diaryUi.includes('diaryDeleteInFlight=new Set()')) fail.push('Daily Diary delete has no duplicate-submit guard.');
+if(!diaryUi.includes("daily-diary:classes:")||!diaryUi.includes("daily-diary:list:")||!diaryUi.includes("daily-diary:acks:")) fail.push('Daily Diary initial/history reads are not routed through bounded request keys.');
+if(!diaryUi.includes("abortSignal==='function'")||!diaryUi.includes("timeout:7000,retries:1")) fail.push('Daily Diary cloud reads are not cancellable with finite deadlines.');
 const noticeUi=read('notice-board-center.js');
 if(!noticeUi.includes('noticeSaveInFlight=false')) fail.push('Notice Board save has no duplicate-submit guard.');
 if(!noticeUi.includes('noticeDeleteInFlight=new Set()')) fail.push('Notice Board delete has no duplicate-submit guard.');

@@ -11,6 +11,17 @@
   const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
   const currentUserId=()=>cloud()?.state?.user?.id||'';
   const isHead=()=>role()==='head';
+  async function boundedRead(key,builder,{timeout=7000,retries=1,cacheMs=0,label='Staff Directory'}={}){
+    const execute=async({signal}={})=>{
+      let request=builder();
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;
+      if(result?.error)throw result.error;
+      return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,execute,{timeout,retries,cacheMs,label}):execute({});
+  }
   function read(){
     try{
       const rows=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -52,9 +63,9 @@
 
   async function pullCloud(){
     if(!cloudReady())return read();
-    const {data,error}=await cloud().state.client.from('staff_profiles').select('*')
-      .eq('institution_id',cfg().institutionId).order('full_name');
-    if(error)throw error;
+    const inst=String(cfg().institutionId||''),uid=String(cloud()?.state?.user?.id||'');
+    const {data}=await boundedRead('staff-directory:'+inst+':'+uid,()=>cloud().state.client.from('staff_profiles').select('*')
+      .eq('institution_id',cfg().institutionId).order('full_name'),{timeout:7000,retries:1,cacheMs:10000,label:'Staff Directory'});
     const rows=(data||[]).map(mapCloud);write(rows);return rows;
   }
   async function listTeacherAccounts(){
