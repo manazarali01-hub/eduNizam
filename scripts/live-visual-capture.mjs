@@ -9,7 +9,15 @@ if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZA
 const outDir=path.resolve('artifacts/live-visual-qa');
 fs.mkdirSync(outDir,{recursive:true});
 const browser=await chromium.launch(launchOptions);
-const base='https://edunizam.online';
+const baseCandidates=['https://edunizam.online','https://manazarali01-hub.github.io/eduNizam'];
+let base=baseCandidates[0];
+for(const candidate of baseCandidates){
+  try{
+    const response=await fetch(candidate,{method:'GET',redirect:'follow',signal:AbortSignal.timeout(6000)});
+    if(response.ok){base=candidate.replace(/\/$/,'');break;}
+  }catch{}
+}
+console.log('Visual QA origin:',base);
 const routes=[
   {name:'home',path:'/',scrolls:[0,760,1500,2300]},
   {name:'login',path:'/login.html',scrolls:[0]},
