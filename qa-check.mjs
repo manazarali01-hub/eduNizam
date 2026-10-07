@@ -117,6 +117,22 @@ for(const marker of [
   if(!visual.includes(marker)&&!read('home-showcase.css').includes(marker)) fail.push('Appearance consistency marker missing: '+marker);
 }
 
+
+for(const marker of [
+  'APPEARANCE SURFACE STORYTELLING · PHASE P-Q 2026-10-07',
+  '--en-surface-blue',
+  '.page-home .public-grid > .public-card:nth-child(4n+1)',
+  '.premium-public-page .public-section:nth-of-type(4n+2)',
+  '.learning-sky .quick-item:nth-child(4n+1)',
+  '.auth-page .role[data-role="teacher"]',
+  '.page-app .main .view.active > .card:nth-of-type(4n+1)',
+  'Contrast guard: button text must never disappear'
+]){
+  if(!visual.includes(marker)) fail.push('Premium surface storytelling marker missing: '+marker);
+}
+const surfacePhase=visual.slice(visual.indexOf('APPEARANCE SURFACE STORYTELLING · PHASE P-Q 2026-10-07'));
+if(/\.sidebar\b|\.nav-item\b/.test(surfacePhase)) fail.push('Premium surface storytelling must not modify the locked sidebar/navigation.');
+
 const authBridgeMobileFix=read('auth-bridge.js');
 const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
