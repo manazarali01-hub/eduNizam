@@ -189,10 +189,10 @@
       const box=$('staLog');if(box)box.innerHTML='<div class="coverage-note">Loading selected month...</div>';
       try{
         if(cloudReady())await pullCloud(selected,false);
-        if(box)box.innerHTML=logRows(selected);
+        if(root?.dataset.staMonth===selected&&box?.isConnected)box.innerHTML=logRows(selected);
       }catch(err){
         console.warn('Staff time month load:',err.message||err);
-        if(box)box.innerHTML=logRows(selected);
+        if(root?.dataset.staMonth===selected&&box?.isConnected)box.innerHTML=logRows(selected);
       }
     });
   }
