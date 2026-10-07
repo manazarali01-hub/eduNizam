@@ -33,21 +33,22 @@ const manifest=[];
 for(const vp of viewports){
   for(const route of routes){
     const page=await browser.newPage({
-      javaScriptEnabled:route.js!==false,
+      javaScriptEnabled:false,
       viewport:{width:vp.width,height:vp.height},
       serviceWorkers:'block'
     });
     await page.route('**/*',async r=>{
       const u=new URL(r.request().url());
-      if(/doubleclick|googlesyndication|google-analytics|googletagmanager|pagead2/.test(u.hostname))return r.abort();
+      if(r.request().resourceType()==='script'||/doubleclick|googlesyndication|google-analytics|googletagmanager|pagead2/.test(u.hostname))return r.abort();
       return r.continue();
     });
     const url=base+route.path;
     const errors=[];
     page.on('pageerror',e=>errors.push(String(e.message||e)));
     try{
-      const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
-      await page.waitForTimeout(1800);
+      page.setDefaultTimeout(6000);
+      const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:20000});
+      await page.waitForTimeout(700);
       await page.addStyleTag({content:`
         [class*="adsbygoogle"],ins.adsbygoogle{display:none!important}
         html{scroll-behavior:auto!important}
@@ -60,8 +61,8 @@ for(const vp of viewports){
         scrollHeight:Math.max(document.documentElement.scrollHeight,document.body?.scrollHeight||0),
         bodyClass:document.body?.className||''
       }));
-      const full=`${route.name}-${vp.name}-full.png`;
-      await page.screenshot({path:path.join(outDir,full),fullPage:true});
+      const full=`${route.name}-${vp.name}-viewport.png`;
+      await page.screenshot({path:path.join(outDir,full),fullPage:false});
       const captured=[];
       for(let i=0;i<(selectors[route.name]||[]).length;i++){
         const sel=selectors[route.name][i];
