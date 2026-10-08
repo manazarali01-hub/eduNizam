@@ -55,15 +55,49 @@
     requestInstall();
   });
 
+  // A resumed installed home can retain a stale, desktop-sized visual layout.
+  // Detect the actual defect rather than reloading healthy pages unconditionally.
+  // One network navigation per session avoids a reload loop on poor connections.
+  const LAUNCH='20261008-v36';
+  function repairStaleHomeIfNeeded(){
+    if(!/^\/(?:index\.html)?$/.test(location.pathname))return;
+    if(!window.matchMedia('(max-width:1024px)').matches || !navigator.onLine)return;
+    const visual=document.querySelector('.hero-visual');
+    const quick=document.querySelector('.quick-access-card');
+    if(!visual || !quick)return;
+    const width=visual.getBoundingClientRect().width;
+    const card=quick.getBoundingClientRect().width;
+    if(width<220 || card>=width*.83)return;
+    const key='edu-home-layout-retry-'+LAUNCH;
+    try{
+      if(sessionStorage.getItem(key)==='1')return;
+      sessionStorage.setItem(key,'1');
+    }catch(_){
+      if(location.search.includes('edu_layout_retry=1'))return;
+    }
+    const next=new URL(location.href);
+    next.searchParams.set('edu_pwa_launch',LAUNCH);
+    next.searchParams.set('edu_layout_retry','1');
+    location.replace(next.href);
+  }
+
   function boot(){
     setVisible(!installed());
+    // Registration must not wait for large background photos / advertising
+    // resources. The SW's network-first navigation protects the cold launch.
     if('serviceWorker' in navigator){
-      window.addEventListener('load',()=>{
-        navigator.serviceWorker.register('./sw.js?v=20261008-mobile-layout-repair-v35',{updateViaCache:'none'})
-          .then(reg=>reg.update())
-          .catch(()=>{});
-      },{once:true});
+      navigator.serviceWorker.register('./sw.js?v=20261008-coldstart-v36',{updateViaCache:'none'})
+        .then(reg=>reg.update())
+        .catch(()=>{});
     }
+    // Check once after layout, and again on Android PWA resume.
+    requestAnimationFrame(()=>requestAnimationFrame(repairStaleHomeIfNeeded));
+    window.addEventListener('pageshow',()=>{
+      requestAnimationFrame(repairStaleHomeIfNeeded);
+    });
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden)requestAnimationFrame(repairStaleHomeIfNeeded);
+    });
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();
