@@ -83,14 +83,20 @@
       toggle:()=>setOpen(!sidebar.classList.contains('mobile-nav-open')),
       reconcile:()=>setOpen(window.innerWidth<=950&&sidebar.classList.contains('mobile-nav-open'))
     };
-    setOpen(false);
+    // Re-mounts during auth/background loading must not close an open drawer.
+    setOpen(sidebar.classList.contains('mobile-nav-open'));
     return controller;
   }
 
   const boot=()=>{controller=mount()||controller};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   addEventListener('resize',()=>controller?.reconcile?.());
-  addEventListener('pageshow',()=>{boot();controller?.close?.()});
+  addEventListener('pageshow',event=>{
+    // Only a back-forward cache restore should reset an already-open drawer.
+    // A delayed initial pageshow must never cancel a user's first menu tap.
+    if(event.persisted){boot();controller?.close?.();}
+    else if(!controller)boot();
+  });
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)controller?.reconcile?.()});
 
   window.EDUNIZAM_MOBILE_NAV_CORE={
