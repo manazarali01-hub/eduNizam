@@ -199,6 +199,9 @@
    if(switchIcon){switchIcon.classList.add('edu-search-icon');paint(switchIcon,'arrows','teal');}
    const backTop=document.getElementById('eduBackTop');
    if(backTop)paint(backTop,'up','teal');
+   document.querySelectorAll('#dashboard .campus-hero-actions [data-jump],#dashboard .quick-actions [data-jump]').forEach(btn=>{
+     const [key,tone]=getView(btn.dataset.jump);actionIcon(btn,key,tone);
+   });
  }
  function authentication(){
    if(!document.body?.classList.contains('auth-page'))return;
@@ -234,11 +237,32 @@
    });
    const search=document.querySelector('.searchbox>span:first-child');
    if(search){search.classList.add('edu-search-icon');paint(search,'search','sky');}
+   document.querySelectorAll('.hero-actions a[href]').forEach(btn=>{
+     const href=btn.getAttribute('href')||'';
+     const [key,tone]=href.includes('#vu')?['laptop','violet']:
+       href.includes('#practice')?['pencil','rose']:['paper','sky'];
+     actionIcon(btn,key,tone);
+   });
  }
+ // Decorative SVGs live inside existing links/buttons, preserving every click handler.
+ const actionIcon=(el,key,tone)=>{
+   if(!el||el.querySelector(':scope > .edu-button-icon'))return;
+   const mark=document.createElement('span');
+   mark.className='edu-button-icon';mark.dataset.eduTone=tone;
+   mark.setAttribute('aria-hidden','true');mark.innerHTML=svg(key);
+   el.prepend(mark);
+ };
  function home(){
    if(!document.body?.classList.contains('page-home'))return;
    const icons=[['attendance','green'],['banknote','amber'],['results','sky'],['diary','violet'],['pencil','rose'],['study','teal']];
    document.querySelectorAll('.experience-strip article .feature-icon').forEach((el,i)=>paint(el,...icons[i%icons.length]));
+   const quick=[
+     ['.quick-access-card .quick-main','school','blue'],
+     ['.quick-access-card .quick-actions a[href="learn.html"]','study','green'],
+     ['.quick-access-card .quick-actions a[href="app.html"]','home','violet'],
+     ['.quick-access-card .quick-actions button[data-pwa-install]','laptop','amber']
+   ];
+   quick.forEach(([selector,key,tone])=>actionIcon(document.querySelector(selector),key,tone));
  }
  function run(){workspace();authentication();learning();home();}
  let scheduled=false;
