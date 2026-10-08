@@ -156,7 +156,7 @@
      grad('accent','#fff7e3',mix('ei-second',78,'white'),v('ei-second'),mix('ei-second',76,v('ei-ink')))+
      grad('paper','#fff',v('ei-light'),mix('ei-bright',58,v('ei-light')),mix('ei-bright',70,v('ei-ink')))+
      grad('gold','#fff9c2','#ffe376','#ffcd48','#e7a729')+
-     '<filter id="'+uid+'-depth" x="-35%" y="-35%" width="170%" height="185%"><feDropShadow dx=".2" dy=".7" stdDeviation=".45" flood-color="#14334a" flood-opacity=".24"/></filter>'+
+
      '</defs>';
    const enriched=art.replace(/class="ei-(primary|secondary|light|yellow)"/g,(_,kind)=>{
      const suffix={primary:'main',secondary:'accent',light:'paper',yellow:'gold'}[kind];
@@ -164,7 +164,7 @@
    });
    return '<svg class="edu-vector-icon edu-illustrated-icon" viewBox="0 0 24 24" fill="none" xmlns="'+NS+'" aria-hidden="true" focusable="false">'+defs+
      '<circle cx="12" cy="12" r="10.85" class="ei-disc"/>'+
-     '<g filter="url(#'+uid+'-depth)">'+enriched+'</g>'+
+     '<g>'+enriched+'</g>'+
      '<path d="M4 6.6c1.25-2.4 3.15-3.65 5.8-4.3" class="ei-glass-arc"/>'+
      '<circle cx="6.3" cy="5.1" r=".74" class="ei-glimmer"/></svg>';
  };
