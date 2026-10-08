@@ -1,0 +1,247 @@
+/* ==============================================================
+   EduNizam | Premium Form Fields — starter v1.0
+   Reusable, mobile-first, natural mint / aqua / sky glass styling.
+   Import AFTER existing theme stylesheets. No JavaScript required.
+   Styling only: does not modify form validation, handlers or routes.
+   ============================================================== */
+
+:root {
+  --en-field-bg: rgba(255, 255, 255, .96);
+  --en-field-bg-end: rgba(243, 252, 250, .96);
+  --en-field-text: #173f45;
+  --en-field-placeholder: #52777a;
+  --en-field-label: #163f40;
+  --en-field-border: #88c8b9;
+  --en-field-hover: #4aaeb2;
+  --en-field-focus: #238eae;
+  --en-field-ring: rgba(35, 142, 174, .19);
+  --en-field-shadow: 0 7px 19px rgba(22, 90, 99, .09);
+  --en-field-radius: 18px;
+  --en-field-height: 58px;
+}
+
+/* A different accent by section, without making every box identical. */
+:where(.auth-page, .page-login, .page-admission) {
+  --en-field-border: #8bc8cf;
+  --en-field-focus: #2b92ba;
+  --en-field-ring: rgba(43, 146, 186, .19);
+}
+:where(.learning-sky, .page-learning) {
+  --en-field-border: #86cbb5;
+  --en-field-focus: #168c82;
+  --en-field-ring: rgba(22, 140, 130, .18);
+}
+:where(.app-page, .page-app) {
+  --en-field-border: #91c6cf;
+  --en-field-focus: #278aa1;
+  --en-field-ring: rgba(39, 138, 161, .18);
+}
+
+/* Explicit exclusions avoid breaking switches, checkboxes and uploads.
+   Specificity exceeds the existing `.field input` login rules. */
+:is(body, .auth-page, .app-page, .learning-sky) :is(form, .field, .form-field, .form-grid, .searchbox, .search-wrap, .input-group) :is(
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])
+       :not([type="range"]):not([type="file"]):not([type="color"])
+       :not([type="button"]):not([type="submit"]):not([type="reset"])
+       :not([type="image"]),
+  select,
+  textarea
+) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--en-field-height);
+  padding: 14px 18px;
+  border: 1.75px solid var(--en-field-border);
+  border-radius: var(--en-field-radius);
+  outline: none;
+  background-color: var(--en-field-bg);
+  background-image: linear-gradient(160deg, var(--en-field-bg), var(--en-field-bg-end));
+  color: var(--en-field-text);
+  -webkit-text-fill-color: var(--en-field-text);
+  box-shadow: var(--en-field-shadow);
+  font: inherit;
+  font-size: max(16px, 1rem);
+  font-weight: 600;
+  line-height: 1.45;
+  opacity: 1;
+  transition: border-color .2s ease, box-shadow .2s ease,
+              background-color .2s ease;
+}
+
+:where(body) :is(input, textarea)::placeholder {
+  color: var(--en-field-placeholder);
+  -webkit-text-fill-color: var(--en-field-placeholder);
+  opacity: 1;
+  font-weight: 500;
+}
+
+:is(body, .auth-page, .app-page, .learning-sky) :is(form, .field, .form-field, .form-grid, .searchbox, .search-wrap, .input-group) :is(
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])
+       :not([type="range"]):not([type="file"]):not([type="color"]),
+  select,
+  textarea
+):hover:not(:disabled) {
+  border-color: var(--en-field-hover);
+}
+
+:is(body, .auth-page, .app-page, .learning-sky) :is(form, .field, .form-field, .form-grid, .searchbox, .search-wrap, .input-group) :is(
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])
+       :not([type="range"]):not([type="file"]):not([type="color"]),
+  select,
+  textarea
+):focus {
+  border-color: var(--en-field-focus);
+  box-shadow: 0 0 0 4px var(--en-field-ring),
+              0 10px 24px rgba(15, 81, 92, .13);
+}
+
+/* Native dropdown stays accessible and reliable; custom arrow is visual only. */
+:where(body) select:not([multiple]):not([size]) {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 48px;
+  cursor: pointer;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='m4.5 7 5.5 5.5L15.5 7' fill='none' stroke='%231d7488' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
+    linear-gradient(160deg, var(--en-field-bg), var(--en-field-bg-end));
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 17px center, center;
+  background-size: 18px 18px, 100% 100%;
+}
+
+:where(body) select[multiple],
+:where(body) select[size] {
+  min-height: 115px;
+  background-image: none;
+}
+:where(body) select option {
+  color: #163f45;
+  background: #fff;
+}
+:where(body) textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+:where(body) input[type="date"],
+:where(body) input[type="time"],
+:where(body) input[type="datetime-local"] {
+  color-scheme: light;
+}
+
+/* Login.html already uses .field, .password-wrap and .password-toggle. */
+:where(body) :is(.field, .form-field, .auth-field) > label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--en-field-label);
+  font-size: max(.94rem, 15px);
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: .005em;
+}
+:where(body) :is(.field, .form-field, .auth-field):focus-within > label {
+  color: #12657c;
+}
+
+:where(body) .password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+:where(body) .password-wrap > :is(input[type="password"], input[type="text"]) {
+  padding-right: 110px;
+}
+:where(body) .password-wrap > :is(.password-toggle, .show-password-btn) {
+  position: absolute;
+  z-index: 2;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 83px;
+  min-height: 42px;
+  padding: 7px 12px;
+  border: 1.5px solid #a7cddc;
+  border-radius: 13px;
+  background: linear-gradient(160deg, #fff, #e8f7fc);
+  color: #185371;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  box-shadow: 0 3px 9px rgba(26, 98, 132, .1);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+:where(body) .password-wrap > :is(.password-toggle, .show-password-btn):focus-visible {
+  outline: 3px solid rgba(35, 142, 174, .32);
+  outline-offset: 2px;
+}
+
+/* Keep search and OTP layouts responsive. */
+:where(body) :is(.field, .form-field, .password-wrap,
+                 .input-group, .school-search-row, .grid2, .form-grid) {
+  min-width: 0;
+}
+:where(body) :is(.school-search-row, .search-wrap, .searchbox) input {
+  min-width: 0;
+}
+:where(body) :is(#otpCode, input[autocomplete="one-time-code"]) {
+  letter-spacing: .12em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Explicit semantic feedback, never rely on colour alone for validation. */
+:where(body) :is(input, select, textarea)[aria-invalid="true"],
+:where(body) :is(.field-error, .is-invalid) :is(input, select, textarea) {
+  border-color: #ce6473;
+  box-shadow: 0 0 0 4px rgba(206, 100, 115, .14);
+}
+:where(body) :is(.field-success, .is-valid) :is(input, select, textarea) {
+  border-color: #2ca179;
+  box-shadow: 0 0 0 4px rgba(44, 161, 121, .12);
+}
+:where(body) :is(input, select, textarea):disabled {
+  color: #617879;
+  -webkit-text-fill-color: #617879;
+  border-color: #c5d9d7;
+  background: #eaf2f0;
+  box-shadow: none;
+  opacity: .8;
+  cursor: not-allowed;
+}
+:where(body) :is(input, select, textarea):read-only:not(select) {
+  cursor: default;
+}
+
+/* Prevent yellow autofill blocks, while preserving browser autofill itself. */
+:where(body) input:-webkit-autofill,
+:where(body) input:-webkit-autofill:hover,
+:where(body) input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--en-field-text);
+  -webkit-box-shadow: 0 0 0 1000px #f1faf8 inset;
+  caret-color: var(--en-field-text);
+}
+
+@media (max-width: 640px) {
+  :root { --en-field-height: 56px; --en-field-radius: 17px; }
+  :where(body) :is(input, select, textarea) { font-size: 16px; }
+  :where(body) .password-wrap > :is(input[type="password"], input[type="text"]) {
+    padding-right: 98px;
+  }
+  :where(body) .password-wrap > :is(.password-toggle, .show-password-btn) {
+    right: 7px;
+    min-width: 76px;
+    min-height: 40px;
+    padding: 7px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(body) :is(input, select, textarea) {
+    transition: none;
+  }
+}

@@ -540,6 +540,24 @@ if(/linear-gradient\(/.test(storyRule) && /edunizam-login-children\.webp/.test(s
   bad("ui:children-image-overlay","children login image must not have a gradient overlay");
 }else ok("ui:children-image-overlay");
 
+
+/* Premium forms release gate — shared CSS, stylesheet order and intact native controls. */
+const enFormCss=read("premium-form-fields.css");
+for(const target of ["index.html","login.html","app.html","learn.html","admission.html"]){
+  const source=read(target);
+  const link='premium-form-fields.css?v=20261008-premium-forms-v1';
+  if(!source.includes(link)||source.indexOf(link)>source.indexOf("</head>"))bad("forms:linked-"+target,"Shared premium fields not linked before closing head");
+  else ok("forms:linked-"+target);
+}
+for(const marker of [".password-wrap","--en-field-focus",":focus","select:not([multiple])","input[type=\"date\"]","textarea"]){
+  if(!enFormCss.includes(marker))bad("forms:style-"+marker,"Premium form styling marker missing");
+  else ok("forms:style-"+marker);
+}
+if(/input:not\(\[type="hidden"\]\):not\(\[type="checkbox"\]\):not\(\[type="radio"\]\)/.test(enFormCss))ok("forms:control-exclusions");
+else bad("forms:control-exclusions","Unsafe blanket input styles");
+if(read("sw.js").includes("'./premium-form-fields.css'"))ok("forms:pwa-precache");
+else bad("forms:pwa-precache","Premium fields missing from offline shell");
+
 console.log("EduNizam smoke checks:",pass.length,"passed,",fail.length,"failed");
 for(const x of fail)console.error("FAIL",x.name,"-",x.msg);
 if(fail.length)process.exit(1);

@@ -1,4 +1,4 @@
-const CACHE='edunizam-v264-licensed-photo-audit-v1'
+const CACHE='edunizam-v265-premium-form-fields-v1'
 const CORE=[
   './',
   './index.html',
@@ -27,6 +27,7 @@ const CORE=[
   './system-auto-update.js',
   './audit-activity-center.js',
   './premium-ui.css',
+  './premium-form-fields.css',
   './edunizam-colorful-icons.css',
   './edunizam-colorful-icons.js',
   './app.js',
