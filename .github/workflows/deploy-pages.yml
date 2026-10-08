@@ -180,6 +180,7 @@ jobs:
           verify_exact_file "premium-ui.js"
           verify_exact_file "edunizam-colorful-icons.js"
           verify_exact_file "edunizam-colorful-icons.css"
+          verify_exact_file "premium-form-fields.css"
           verify_exact_file "sw.js"
           verify_exact_file "pwa-install.js"
           verify_exact_file "system-auto-update.js"

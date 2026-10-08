@@ -543,9 +543,11 @@ if(/linear-gradient\(/.test(storyRule) && /edunizam-login-children\.webp/.test(s
 
 /* Premium forms release gate — shared CSS, stylesheet order and intact native controls. */
 const enFormCss=read("premium-form-fields.css");
+if(enFormCss.includes('VISIBLE_FIELD_REVAMP_V2') && enFormCss.includes('border:3px solid transparent!important') && enFormCss.includes('linear-gradient(117deg,var(--en-v2-edge-a),var(--en-v2-edge-b)) border-box'))ok('forms:visible-gradient-contract');
+else bad('forms:visible-gradient-contract','Missing clearly colored 3px gradient field border');
 for(const target of ["index.html","login.html","app.html","learn.html","admission.html"]){
   const source=read(target);
-  const link='premium-form-fields.css?v=20261008-premium-forms-v1';
+  const link='premium-form-fields.css?v=20261008-visible-forms-v2';
   if(!source.includes(link)||source.indexOf(link)>source.indexOf("</head>"))bad("forms:linked-"+target,"Shared premium fields not linked before closing head");
   else ok("forms:linked-"+target);
 }

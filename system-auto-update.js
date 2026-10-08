@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
-const BUILD='20261008-premium-forms-v33', KEY='edunizam_system_build';
-const ACTIVE_CACHE='edunizam-v265-premium-form-fields-v1';
+const BUILD='20261008-visible-forms-v34', KEY='edunizam_system_build';
+const ACTIVE_CACHE='edunizam-v266-visible-colorful-forms-v2';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}

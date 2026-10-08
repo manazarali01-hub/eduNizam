@@ -245,3 +245,214 @@
     transition: none;
   }
 }
+
+/* === VISIBLE_FIELD_REVAMP_V2 — 2026-10-08 ===========================
+   Root cause: previously-shipped subtle rules were overridden by later
+   high-specificity !important field rules in the existing visual system.
+   This intentionally out-specifies those rules without altering JS/events.
+   Two genuinely visible gradient layers provide a colored 3px outline;
+   individual fields have different restrained pastel colorways.
+   ================================================================== */
+:root{
+  --en-v2-face-a:#ffffff;
+  --en-v2-face-b:#e8fff5;
+  --en-v2-edge-a:#21bf9a;
+  --en-v2-edge-b:#238fda;
+  --en-v2-surface:#e9f9ef;
+  --en-v2-label:#0a645a;
+  --en-v2-ink:#113b47;
+  --en-v2-glow:rgba(23,154,142,.23);
+}
+:is(body.auth-page.page-login,body.admission-premium.page-admission,
+    body.app-page.page-app,body.learning-sky.page-learning,
+    body.gold-home.page-home,body.premium-public-page) 
+:is(form,.view.active,.field,.form-field,.auth-field,.form-grid,.search-wrap,
+    .searchbox,.school-search-row,.input-group,.nav-search-wrap,.paper-search-row,
+    .filter-bar,.filters,.filter-control,.search-bar) 
+:is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])
+           :not([type="range"]):not([type="file"]):not([type="color"])
+           :not([type="button"]):not([type="submit"]):not([type="reset"])
+           :not([type="image"]),select,textarea){
+  box-sizing:border-box!important;
+  min-width:0;max-width:100%;
+  min-height:58px!important;
+  padding:14px 18px!important;
+  border:3px solid transparent!important;
+  border-radius:20px!important;
+  background:linear-gradient(142deg,var(--en-v2-face-a),var(--en-v2-face-b)) padding-box,
+             linear-gradient(117deg,var(--en-v2-edge-a),var(--en-v2-edge-b)) border-box!important;
+  color:var(--en-v2-ink)!important;
+  -webkit-text-fill-color:var(--en-v2-ink)!important;
+  caret-color:#0c8b89!important;
+  box-shadow:0 0 0 1px rgba(39,137,134,.13),
+             0 11px 20px rgba(20,100,111,.13),
+             inset 0 2px 0 rgba(255,255,255,.94)!important;
+  font-weight:650!important;
+  font-size:16px!important;
+  line-height:1.42!important;
+  text-shadow:none!important;
+  outline:none!important;
+  opacity:1!important;
+  transition:box-shadow .18s ease,background .18s ease!important;
+}
+/* Distinct pastel variants for neighboring fields, not identical blue boxes. */
+:is(body.auth-page,body.admission-premium,body.app-page,body.learning-sky)
+  :is(.field,.form-field,.auth-field):nth-child(4n+2){
+  --en-v2-face-b:#e8f6ff;
+  --en-v2-edge-a:#4c9ff4;--en-v2-edge-b:#6d8fe7;
+  --en-v2-surface:#e8f6ff;--en-v2-label:#225da1;
+  --en-v2-glow:rgba(60,135,224,.23);
+}
+:is(body.auth-page,body.admission-premium,body.app-page,body.learning-sky)
+  :is(.field,.form-field,.auth-field):nth-child(4n+3){
+  --en-v2-face-b:#f3edff;
+  --en-v2-edge-a:#a481e5;--en-v2-edge-b:#6e9fe5;
+  --en-v2-surface:#f5eeff;--en-v2-label:#704cae;
+  --en-v2-glow:rgba(143,106,215,.22);
+}
+:is(body.auth-page,body.admission-premium,body.app-page,body.learning-sky)
+  :is(.field,.form-field,.auth-field):nth-child(4n+4){
+  --en-v2-face-b:#fff5dd;
+  --en-v2-edge-a:#e9b65c;--en-v2-edge-b:#e89984;
+  --en-v2-surface:#fff5df;--en-v2-label:#9e6a28;
+  --en-v2-glow:rgba(210,147,54,.20);
+}
+/* Admin forms can render bare fields directly inside CSS grids. */
+body.app-page.page-app .view.active .form-grid>
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,textarea):nth-child(4n+2){
+  --en-v2-face-b:#e9f6ff;
+  --en-v2-edge-a:#399fd9;--en-v2-edge-b:#667de5;
+}
+body.app-page.page-app .view.active .form-grid>
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,textarea):nth-child(4n+3){
+  --en-v2-face-b:#f3edff;
+  --en-v2-edge-a:#a583e5;--en-v2-edge-b:#679bd1;
+}
+body.app-page.page-app .view.active .form-grid>
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,textarea):nth-child(4n+4){
+  --en-v2-face-b:#fff5df;
+  --en-v2-edge-a:#edba6b;--en-v2-edge-b:#e4957c;
+}
+:is(body.auth-page.page-login,body.admission-premium.page-admission,
+    body.app-page.page-app,body.learning-sky.page-learning,
+    body.gold-home.page-home,body.premium-public-page) 
+:is(form,.view.active,.field,.form-field,.form-grid,.school-search-row,
+    .search-wrap,.searchbox,.input-group,.nav-search-wrap,.filter-bar)
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])
+         :not([type="range"]):not([type="file"]):not([type="color"]),select,textarea):hover:not(:disabled){
+  --en-v2-edge-a:#119d81;
+  --en-v2-edge-b:#278cde;
+  box-shadow:0 0 0 2px rgba(27,162,169,.11),
+             0 12px 23px rgba(23,100,119,.16)!important;
+}
+:is(body.auth-page.page-login,body.admission-premium.page-admission,
+    body.app-page.page-app,body.learning-sky.page-learning,
+    body.gold-home.page-home,body.premium-public-page)
+:is(form,.view.active,.field,.form-field,.form-grid,.school-search-row,
+    .search-wrap,.searchbox,.input-group,.nav-search-wrap,.filter-bar)
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])
+         :not([type="range"]):not([type="file"]):not([type="color"]),select,textarea):focus{
+  --en-v2-edge-a:#078c76;--en-v2-edge-b:#288bd5;
+  box-shadow:0 0 0 5px var(--en-v2-glow),
+             0 13px 24px rgba(20,105,124,.18)!important;
+  outline:none!important;
+}
+/* Native dropdown stays native for touch and screen readers, with an
+   obvious contrasting arrow plus the same vivid border/colored interior. */
+:is(body.auth-page.page-login,body.admission-premium.page-admission,
+    body.app-page.page-app,body.learning-sky.page-learning,
+    body.gold-home.page-home,body.premium-public-page)
+:is(form,.view.active,.field,.form-field,.form-grid,.school-search-row,.search-wrap,
+    .searchbox,.input-group,.nav-search-wrap,.filter-bar,.filters)
+select:not([multiple]):not([size]){
+  appearance:none!important;-webkit-appearance:none!important;
+  padding-right:54px!important;cursor:pointer;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='m5 9 7 7 7-7' stroke='%2318768b' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+       right 17px center / 23px 23px no-repeat padding-box,
+    linear-gradient(142deg,var(--en-v2-face-a),var(--en-v2-face-b)) padding-box,
+    linear-gradient(117deg,var(--en-v2-edge-a),var(--en-v2-edge-b)) border-box!important;
+}
+:is(body.auth-page.page-login,body.admission-premium.page-admission,
+    body.app-page.page-app,body.learning-sky.page-learning,
+    body.gold-home.page-home) :is(.field,.form-field,.auth-field)>label{
+  display:inline-flex!important;
+  width:fit-content;max-width:100%;
+  align-items:center;
+  justify-self:start;
+  border-left:4px solid var(--en-v2-edge-a)!important;
+  padding:7px 12px!important;
+  margin:1px 0 7px!important;
+  border-radius:5px 12px 12px 5px!important;
+  background:linear-gradient(110deg,var(--en-v2-surface),rgba(255,255,255,.64))!important;
+  color:var(--en-v2-label)!important;
+  -webkit-text-fill-color:var(--en-v2-label)!important;
+  font-weight:800!important;font-size:15px!important;
+  line-height:1.4!important;text-shadow:none!important;
+  box-shadow:0 2px 8px rgba(32,92,112,.07)!important;
+}
+:is(body.auth-page.page-login,body.admission-premium.page-admission,
+    body.app-page.page-app,body.learning-sky.page-learning)
+ :is(.field,.form-field,.auth-field):focus-within>label{
+  color:#136d70!important;-webkit-text-fill-color:#136d70!important;
+}
+body.auth-page.page-login :is(#loginForm,#signupForm,#resetForm,#otpForm)>.field{
+  min-width:0;
+  padding:6px 8px 9px!important;
+  border-radius:21px!important;
+  background:linear-gradient(135deg,rgba(233,250,247,.35),rgba(235,245,255,.40))!important;
+}
+/* Do not let the old !important padding shrink active Dashboard controls. */
+@media(max-width:950px){
+ body.app-page.page-app .view.active :is(input:not([type="hidden"]):not([type="checkbox"])
+ :not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea){
+   min-height:56px!important;
+   padding:12px 15px!important;
+   border-radius:18px!important;
+ }
+}
+/* Style the existing reveal control, while leaving its click handler alone. */
+body.auth-page.page-login .password-wrap> :is(.password-toggle,.show-password-btn),
+body.admission-premium.page-admission .password-wrap> :is(.password-toggle,.show-password-btn){
+  min-height:42px!important;right:9px!important;
+  padding:8px 15px!important;
+  border:2px solid #60b7d4!important;border-radius:14px!important;
+  background:linear-gradient(145deg,#ebfaff,#e8fff4)!important;
+  box-shadow:0 3px 12px rgba(14,121,148,.16)!important;
+  color:#116483!important;-webkit-text-fill-color:#116483!important;
+  text-shadow:none!important;font-weight:800!important;
+  z-index:3!important;
+}
+body.auth-page.page-login .password-wrap>input,
+body.admission-premium.page-admission .password-wrap>input{
+  padding-right:113px!important;
+}
+:is(body.auth-page.page-login,body.admission-premium.page-admission,
+    body.app-page.page-app,body.learning-sky.page-learning)
+ :is(form,.view.active,.field,.form-field)
+ :is(input,select,textarea)[aria-invalid="true"]{
+  --en-v2-face-b:#fff1f4;--en-v2-edge-a:#d34f73;--en-v2-edge-b:#e393a5;
+  box-shadow:0 0 0 4px rgba(211,79,115,.15)!important;
+}
+:is(body.auth-page.page-login,body.admission-premium.page-admission,
+    body.app-page.page-app,body.learning-sky.page-learning)
+ :is(form,.view.active,.field,.form-field)
+ :is(input,select,textarea):disabled{
+  --en-v2-face-b:#edf0ef;--en-v2-edge-a:#c1d1cf;--en-v2-edge-b:#c1d1cf;
+  color:#637776!important;-webkit-text-fill-color:#637776!important;
+  cursor:not-allowed;box-shadow:none!important;
+}
+@media(max-width:640px){
+ body.auth-page.page-login .password-wrap>input,
+ body.admission-premium.page-admission .password-wrap>input{
+   padding-right:108px!important;
+ }
+ body.auth-page.page-login :is(#loginForm,#signupForm,#resetForm,#otpForm)>.field{
+   padding:4px 4px 7px!important;
+ }
+}
+/* Present focus motion only when user's device permits it. */
+@media(prefers-reduced-motion:reduce){
+ :is(body.auth-page,body.app-page,body.learning-sky,body.admission-premium)
+ :is(input,select,textarea){transition:none!important}
+}

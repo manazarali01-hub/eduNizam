@@ -193,6 +193,49 @@ async function inspectPage(page,url,width){
 }
 
 try{
+  // REAL browser rendering gate: protects against a deployed but invisible
+  // field CSS pass being overridden by the legacy !important style layers.
+  const premiumFormPage=await browser.newPage({
+    viewport:{width:390,height:844},javaScriptEnabled:false,serviceWorkers:'block'
+  });
+  await premiumFormPage.route('**/*',route=>{
+    const u=new URL(route.request().url());
+    if(u.hostname==='127.0.0.1')route.continue();
+    else route.abort();
+  });
+  await premiumFormPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:20000});
+  const colorfulForms=await premiumFormPage.evaluate(()=>{
+    const fields=['loginSchoolName','loginEmail','loginPassword','memberSchoolDropdown'];
+    const computed=fields.map(id=>{
+      const el=document.getElementById(id);
+      if(!el)return {id,missing:true};
+      const cs=getComputedStyle(el);
+      return {id,border:parseFloat(cs.borderTopWidth),
+        gradientLayers:(cs.backgroundImage.match(/linear-gradient/g)||[]).length,
+        radius:parseFloat(cs.borderTopLeftRadius),background:cs.backgroundImage.slice(0,90),
+        text:cs.color,shadow:cs.boxShadow};
+    });
+    const label=document.querySelector('label[for="loginEmail"]');
+    const toggle=document.querySelector('#loginPassword')?.parentElement?.querySelector('.password-toggle');
+    const ls=label?getComputedStyle(label):null;
+    const ts=toggle?getComputedStyle(toggle):null;
+    return {fields:computed,
+      label:ls?{left:parseFloat(ls.borderLeftWidth),bg:ls.backgroundImage,color:ls.color}:null,
+      toggle:ts?{border:parseFloat(ts.borderTopWidth),bg:ts.backgroundImage}:null,
+      cssLinked:!!document.querySelector('link[href*="premium-form-fields.css?v=20261008-visible-forms-v2"]')};
+  });
+  console.log('Visible premium form rendering:',JSON.stringify(colorfulForms));
+  if(!colorfulForms.cssLinked)pushFailure('premium forms','v2 stylesheet not loaded in login document');
+  for(const item of colorfulForms.fields){
+    if(item.missing)pushFailure('premium forms','Expected live form element missing',item.id);
+    else if(item.border<2.8||item.gradientLayers<2||item.radius<16)
+      pushFailure('premium forms','Still appears plain: visible 3px gradient border missing',JSON.stringify(item));
+  }
+  if(!colorfulForms.label||colorfulForms.label.left<3.8||!colorfulForms.label.bg.includes('gradient'))
+    pushFailure('premium forms','Colorful field label pill not rendered',JSON.stringify(colorfulForms.label));
+  if(!colorfulForms.toggle||colorfulForms.toggle.border<1.8)
+    pushFailure('premium forms','Premium Show/Hide password button styling absent');
+  await premiumFormPage.close();
   for(const route of pages){
     console.log('Layout QA route:',route);
     const page=await browser.newPage({

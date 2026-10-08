@@ -1,4 +1,4 @@
-const CACHE='edunizam-v265-premium-form-fields-v1'
+const CACHE='edunizam-v266-visible-colorful-forms-v2'
 const CORE=[
   './',
   './index.html',
