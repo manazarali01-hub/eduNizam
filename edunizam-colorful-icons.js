@@ -129,7 +129,7 @@
    check:()=>iC(12,12,9.7,'primary')+iP('m6.8 12 3.4 3.5 6.8-7','shine-line')
  };
  const svg=key=>{
-   const art=A[key]?A[key]():iP(P[key]||P.grid,'ink')+iC(18.9,5.1,1.6,'yellow');
+   const art=A[key]?A[key]():'<g class="ei-fallback">'+(P[key]||P.grid)+'</g>'+iC(18.9,5.1,1.6,'yellow');
    return '<svg class="edu-vector-icon edu-illustrated-icon" viewBox="0 0 24 24" fill="none" xmlns="'+NS+'" aria-hidden="true" focusable="false">'+
      '<circle cx="12" cy="12" r="10.85" class="ei-disc"/>'+art+
      '<circle cx="6.3" cy="5.1" r=".8" class="ei-glimmer"/></svg>';
