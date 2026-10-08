@@ -326,6 +326,30 @@ try{
     }
   }
 
+  // Simulate an installed PWA on the legacy login launch URL, then test
+  // the intentional Login button; this must not cause a redirect loop.
+  const launchPage=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+  try{
+    await launchPage.route('**/*',route=>{
+      const u=new URL(route.request().url());
+      if(u.hostname==='127.0.0.1')route.continue();else route.abort();
+    });
+    await launchPage.addInitScript(()=>{
+      const baseMatch=window.matchMedia.bind(window);
+      window.matchMedia=query=>String(query).includes('display-mode: standalone')
+        ? {matches:true,media:query,addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}}
+        : baseMatch(query);
+    });
+    await launchPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'commit',timeout:12000}).catch(()=>{});
+    await launchPage.waitForURL(url=>url.pathname==='/'&&url.searchParams.get('pwa_launch')==='1',{timeout:12000});
+    await launchPage.locator('.page-home .hero-copy h1').waitFor({state:'visible',timeout:7000});
+    await launchPage.locator('.page-home .hero-actions a[href="login.html"]').first().click({timeout:5000});
+    await launchPage.waitForURL(url=>url.pathname==='/login.html',{timeout:8000});
+    await launchPage.locator('#roleView').waitFor({state:'visible',timeout:6000});
+    console.log('Installed PWA legacy launch -> Home -> deliberate Login: PASS');
+  }catch(e){pushFailure('installed PWA launch','Legacy installed app launch/home/login interaction failed',String(e.message||e));}
+  finally{await launchPage.close();}
+
   // Guest/public learning runtime: no login, school selection, or private workspace may be required.
   const guestPage=await browser.newPage({
     javaScriptEnabled:true,
