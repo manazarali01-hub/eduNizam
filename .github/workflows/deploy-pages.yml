@@ -132,13 +132,24 @@ jobs:
           verify_exact_file() {
             local rel="$1"
             local out="/tmp/live-$(basename "${rel}")"
-            curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}${rel}?verify=${GITHUB_SHA}" -o "${out}"
-            if ! cmp -s "${rel}" "${out}"; then
-              echo "Live file mismatch: ${rel}"
-              sha256sum "${rel}" "${out}" || true
-              return 1
-            fi
-            echo "Exact live file verified: ${rel}"
+            for attempt in 1 2 3 4 5 6; do
+              if curl --fail --silent --show-error --location \
+                --retry 2 --retry-delay 1 \
+                -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+                "${BASE}${rel}?verify=${GITHUB_SHA}-${attempt}" -o "${out}"; then
+                if cmp -s "${rel}" "${out}"; then
+                  echo "Exact live file verified: ${rel}"
+                  return 0
+                fi
+                echo "Attempt ${attempt}: live content differs: ${rel}"
+              else
+                echo "Attempt ${attempt}: live file temporarily unavailable: ${rel}"
+              fi
+              sleep 2
+            done
+            echo "Live file could not be verified: ${rel}"
+            sha256sum "${rel}" "${out}" || true
+            return 1
           }
 
           for rel in *.html; do
