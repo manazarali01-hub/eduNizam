@@ -626,3 +626,167 @@ body:is(.page-home,.premium-public-page,.auth-page,.learning-sky,.admission-prem
 @media(prefers-reduced-motion:reduce){
  body.gold-home.page-home .hero-copy h1{scroll-behavior:auto}
 }
+
+
+/* ===== V5.3 · NATURAL VARIETY, NOT ALL GREEN · 2026-10-08 =====
+   Contextual real licensed scenes: campus, classroom, stationery, wood, forest.
+   Forest-green sidebar remains as before. Presentation only; no JS/layout changes.
+   All image sources already in assets/IMAGE-CREDITS.md. */
+:root{
+ --v53-sky:linear-gradient(135deg,rgba(251,254,255,.83),rgba(221,240,250,.68));
+ --v53-ivory:linear-gradient(135deg,rgba(255,254,250,.84),rgba(246,236,222,.70));
+ --v53-sage:linear-gradient(135deg,rgba(250,255,251,.81),rgba(224,245,234,.68));
+ --v53-cloud:linear-gradient(135deg,rgba(255,255,255,.83),rgba(236,244,248,.70));
+ --v53-copy:#34514d;
+ --v5-glass:linear-gradient(135deg,rgba(254,255,254,.76),rgba(238,247,246,.64));
+ --v5-glass-light:var(--v53-cloud);
+ --v5-blue:rgba(80,151,198,.76);
+ --v5-gold:rgba(199,159,91,.79);
+ --v5-lilac:rgba(151,129,190,.68);
+ --v52-copy:var(--v53-copy);
+}
+/* Home: real campus, classroom, forest, wood and digital learning all feature. */
+body.gold-home.page-home{
+ background:linear-gradient(130deg,rgba(239,248,248,.29),rgba(255,251,243,.42)),var(--ng-paper) center top/cover scroll no-repeat!important;
+}
+body.gold-home.page-home .premium-public-hero{
+ background:linear-gradient(125deg,rgba(232,248,244,.27),rgba(248,252,247,.15)),var(--ng-campus) center/cover no-repeat!important;
+ border-color:rgba(63,155,147,.67)!important;
+}
+body.gold-home.page-home .hero-copy{
+ background:var(--v53-ivory)!important;
+ border-color:rgba(253,250,229,.87)!important;
+}
+body.gold-home.page-home .quick-access-card{
+ background:linear-gradient(130deg,rgba(251,255,255,.79),rgba(231,245,252,.70)),var(--ng-class) center/cover no-repeat!important;
+ border-color:rgba(66,147,181,.63)!important;
+}
+body.gold-home.page-home .experience-strip{
+ background:linear-gradient(125deg,rgba(247,253,250,.20),rgba(247,248,239,.14)),var(--ng-class) center/cover no-repeat!important;
+}
+body.gold-home.page-home .experience-strip article:nth-child(3n+1)>div{background:var(--v53-ivory)!important}
+body.gold-home.page-home .experience-strip article:nth-child(3n+2)>div{background:var(--v53-sky)!important}
+body.gold-home.page-home .experience-strip article:nth-child(3n)>div{background:var(--v53-sage)!important}
+body.gold-home.page-home .role-showcase{
+ background:linear-gradient(130deg,rgba(239,249,242,.20),rgba(242,248,247,.16)),var(--v52-mist) center/cover no-repeat!important;
+}
+body.gold-home.page-home .role-demo{background:var(--v53-sky)!important;border-color:rgba(67,143,189,.70)!important}
+body.gold-home.page-home .preview-window{background:var(--v53-cloud)!important}
+body.gold-home.page-home .value-section{
+ background:linear-gradient(130deg,rgba(254,249,240,.22),rgba(255,253,247,.15)),var(--ng-wood) center/cover no-repeat!important;
+}
+body.gold-home.page-home .value-section>.section-heading{
+ background:var(--v53-ivory)!important;border-color:rgba(236,218,185,.88)!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]{
+ background:linear-gradient(135deg,rgba(232,245,249,.22),rgba(240,250,247,.15)),var(--ng-digital) center/cover no-repeat!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading{
+ background:var(--v53-cloud)!important;border-color:rgba(208,230,241,.88)!important;
+}
+body.gold-home.page-home .public-grid>.public-card:nth-child(3n+1),
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-grid>.public-card:nth-child(3n+1){
+ background:var(--v53-ivory)!important;border-color:rgba(192,154,103,.60)!important;
+}
+body.gold-home.page-home .public-grid>.public-card:nth-child(3n+2),
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-grid>.public-card:nth-child(3n+2){
+ background:var(--v53-sky)!important;border-color:rgba(82,151,190,.64)!important;
+}
+body.gold-home.page-home .public-grid>.public-card:nth-child(3n),
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-grid>.public-card:nth-child(3n){
+ background:var(--v53-sage)!important;border-color:rgba(52,146,111,.60)!important;
+}
+/* Public guides: contextual pictures and light ivory, blue, sage reading panes. */
+body.premium-public-page{
+ background:linear-gradient(135deg,rgba(238,248,249,.39),rgba(252,252,247,.43)),var(--ng-campus) center top/cover scroll no-repeat!important;
+}
+body.premium-public-page .public-main>.public-hero{
+ background:linear-gradient(135deg,rgba(232,247,255,.30),rgba(245,252,253,.25)),var(--ng-class) center/cover no-repeat!important;
+}
+body.premium-public-page .public-main>.public-section:nth-of-type(3n+1){
+ background:linear-gradient(135deg,rgba(249,248,239,.22),rgba(247,252,251,.17)),var(--ng-wood) center/cover no-repeat!important;
+}
+body.premium-public-page .public-main>.public-section:nth-of-type(3n+2){
+ background:linear-gradient(135deg,rgba(240,251,247,.20),rgba(241,249,247,.17)),var(--v52-mist) center/cover no-repeat!important;
+}
+body.premium-public-page .public-main>.public-section:nth-of-type(3n){
+ background:linear-gradient(135deg,rgba(241,248,255,.24),rgba(246,251,252,.19)),var(--ng-digital) center/cover no-repeat!important;
+}
+body.premium-public-page .public-grid>.public-card:nth-child(3n+1),
+body.premium-public-page .public-list li:nth-child(3n+1){background:var(--v53-ivory)!important;border-color:rgba(190,154,99,.59)!important}
+body.premium-public-page .public-grid>.public-card:nth-child(3n+2),
+body.premium-public-page .public-list li:nth-child(3n+2){background:var(--v53-sky)!important;border-color:rgba(73,146,192,.59)!important}
+body.premium-public-page .public-grid>.public-card:nth-child(3n),
+body.premium-public-page .public-list li:nth-child(3n){background:var(--v53-sage)!important;border-color:rgba(54,153,120,.59)!important}
+/* Auth: student imagery untouched; natural campus atmosphere and calm blue glass. */
+body.auth-page .main{
+ background:linear-gradient(135deg,rgba(248,250,244,.32),rgba(234,248,254,.28)),var(--ng-campus) center/cover scroll no-repeat!important;
+}
+body.auth-page .main #authCard{background:var(--v53-cloud)!important;border-color:rgba(84,151,180,.66)!important}
+body.auth-page #roleView .roles .role:nth-child(4n+1){background:var(--v53-sky)!important}
+body.auth-page #roleView .roles .role:nth-child(4n+2){background:var(--v53-sage)!important}
+body.auth-page #roleView .roles .role:nth-child(4n+3){background:var(--v53-ivory)!important}
+body.auth-page #roleView .roles .role:nth-child(4n){background:var(--v53-cloud)!important}
+/* Workspace: alternate eight authentic photos, retain original green side menu. */
+body.app-page.page-app .main .view.active:nth-of-type(8n+1){--ng-scene:var(--ng-class)!important}
+body.app-page.page-app .main .view.active:nth-of-type(8n+2){--ng-scene:var(--v52-mist)!important}
+body.app-page.page-app .main .view.active:nth-of-type(8n+3){--ng-scene:var(--ng-paper)!important}
+body.app-page.page-app .main .view.active:nth-of-type(8n+4){--ng-scene:var(--ng-campus)!important}
+body.app-page.page-app .main .view.active:nth-of-type(8n+5){--ng-scene:var(--ng-wood)!important}
+body.app-page.page-app .main .view.active:nth-of-type(8n+6){--ng-scene:var(--ng-digital)!important}
+body.app-page.page-app .main .view.active:nth-of-type(8n+7){--ng-scene:var(--v52-sun)!important}
+body.app-page.page-app .main .view.active:nth-of-type(8n){--ng-scene:var(--ng-tools)!important}
+body.app-page.page-app .main #dashboard.view.active{--ng-scene:var(--ng-campus)!important}
+body.app-page.page-app .main .view.active :is(.card,.section-head,.paper-card,.premium-paper-card,.dashboard-panel,.request-panel,.feature-panel,.dashboard-quick-card,.dashboard-activity-card,.role-action-card,.premium-family-card,.training-card,.function-card,.study-viewer-card,.admission-review-card,.attachment-card,.highlight-card){
+ background:var(--v53-cloud)!important;border-color:rgba(69,134,144,.59)!important;
+}
+body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(3n+1),
+body.app-page.page-app .main .view.active>.cards>.card:nth-child(3n+1),
+body.app-page.page-app .main .view.active>.grid-2>.card:nth-child(3n+1){background:var(--v53-ivory)!important;border-color:rgba(188,154,113,.65)!important}
+body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(3n+2),
+body.app-page.page-app .main .view.active>.cards>.card:nth-child(3n+2),
+body.app-page.page-app .main .view.active>.grid-2>.card:nth-child(3n+2){background:var(--v53-sky)!important;border-color:rgba(89,156,195,.66)!important}
+body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(3n),
+body.app-page.page-app .main .view.active>.cards>.card:nth-child(3n),
+body.app-page.page-app .main .view.active>.grid-2>.card:nth-child(3n){background:var(--v53-sage)!important;border-color:rgba(65,148,122,.64)!important}
+/* Learning and admissions: school materials, campus and landscapes as relevant. */
+body.learning-sky{
+ background:linear-gradient(140deg,rgba(243,250,255,.37),rgba(251,248,239,.38)),var(--ng-class) center top/cover scroll no-repeat!important;
+}
+body.learning-sky #home{--ng-learn-photo:var(--ng-class)!important}
+body.learning-sky #past,body.learning-sky #study{--ng-learn-photo:var(--ng-paper)!important}
+body.learning-sky #grade,body.learning-sky #practice{--ng-learn-photo:var(--ng-tools)!important}
+body.learning-sky #universities,body.learning-sky #pathways{--ng-learn-photo:var(--ng-campus)!important}
+body.learning-sky #competitive,body.learning-sky #ecosystem{--ng-learn-photo:var(--v52-mist)!important}
+body.learning-sky #vu{--ng-learn-photo:var(--ng-digital)!important}
+body.learning-sky .section.active :is(.card,.paper-card,.resource-card,.practice-box,.quick-card):nth-of-type(3n+1){background:var(--v53-sky)!important}
+body.learning-sky .section.active :is(.card,.paper-card,.resource-card,.practice-box,.quick-card):nth-of-type(3n+2){background:var(--v53-ivory)!important}
+body.learning-sky .section.active :is(.card,.paper-card,.resource-card,.practice-box,.quick-card):nth-of-type(3n){background:var(--v53-sage)!important}
+body.admission-premium{
+ background:linear-gradient(135deg,rgba(238,247,255,.36),rgba(250,248,242,.44)),var(--ng-campus) center top/cover scroll no-repeat!important;
+}
+body.admission-premium .card:nth-of-type(3n+1){background:var(--v53-sky)!important}
+body.admission-premium .card:nth-of-type(3n+2){background:var(--v53-ivory)!important}
+body.admission-premium .card:nth-of-type(3n){background:var(--v53-sage)!important}
+/* Consistent contrast regardless of whether a section is blue, ivory or sage. */
+body.gold-home.page-home :is(.hero-copy,.public-card,.experience-strip article>div,.quick-access-card,.role-demo,.preview-window) :is(p,small),
+body.premium-public-page .public-main :is(.public-card,.public-list li) :is(p,small),
+body.app-page.page-app .main .view.active :is(.card,.paper-card,.section-head,.role-action-card) :is(p,small,.muted),
+body.learning-sky .section.active :is(.card,.paper-card,.resource-card) :is(p,small){
+ color:var(--v53-copy)!important;-webkit-text-fill-color:var(--v53-copy)!important;opacity:1!important;
+}
+body.app-page.page-app .sidebar :is(.nav-item,.sidebar-wordmark strong,.sidebar-institute-copy strong,.nav-group summary),
+body.gold-home.page-home .learning-band .learning-copy :is(h2,p){
+ color:#f7fff9!important;-webkit-text-fill-color:#f7fff9!important;opacity:1!important;
+}
+@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
+ body:is(.page-home,.premium-public-page,.auth-page,.learning-sky,.admission-premium){background-attachment:scroll!important}
+ body.gold-home.page-home :is(.experience-strip article>div,.public-grid>.public-card),
+ body.premium-public-page :is(.public-grid>.public-card,.public-list li),
+ body.auth-page .main #authCard,
+ body.app-page.page-app .main .view.active :is(.card,.paper-card,.role-action-card,.section-head),
+ body.learning-sky .section.active :is(.card,.paper-card,.resource-card){
+  -webkit-backdrop-filter:blur(5px) saturate(115%)!important;
+  backdrop-filter:blur(5px) saturate(115%)!important;
+ }
+}
