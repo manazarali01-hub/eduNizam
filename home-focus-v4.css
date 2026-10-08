@@ -371,3 +371,254 @@
   border:1px solid rgba(8,97,65,.50)!important;
  }
 }
+
+
+/* ===== EduNizam Home Focus V4.2 · screenshot-based mobile refinement · 2026-10-08 =====
+   Fixes tiny captions, half-width resource tiles and washed-out guides/footer.
+   Completely homepage-scoped: neither auth nor authenticated school CSS changes. */
+
+/* Hero student caption: high-contrast white, keep decorative accent small. */
+body.gold-home.page-home .portrait-caption{
+ background:linear-gradient(110deg,rgba(4,51,43,.94),rgba(6,83,65,.89))!important;
+ border:1px solid rgba(181,229,204,.55)!important;
+ box-shadow:0 7px 24px rgba(1,39,32,.28)!important;
+}
+body.gold-home.page-home .portrait-caption :is(strong,span){
+ color:#fff!important;
+ opacity:1!important;
+ -webkit-text-fill-color:#fff!important;
+ text-shadow:0 1px 2px rgba(0,30,20,.68)!important;
+}
+body.gold-home.page-home .portrait-caption strong{
+ font-family:inherit!important;
+ font-size:clamp(14px,1.3vw,17px)!important;
+ font-style:normal!important;
+ font-weight:800!important;
+ line-height:1.32!important;
+}
+
+/* Readable feature names live in a frosted text tray; photo above stays visible. */
+body.gold-home.page-home .experience-strip article{
+ position:relative!important;
+ overflow:hidden!important;
+ min-width:0!important;
+ isolation:isolate;
+}
+body.gold-home.page-home .experience-strip article > div{
+ width:100%!important;
+ min-width:0!important;
+ padding:9px 11px!important;
+ border:1px solid rgba(25,114,84,.24)!important;
+ border-radius:12px!important;
+ background:linear-gradient(130deg,rgba(253,255,252,.96),rgba(240,253,247,.91))!important;
+ box-shadow:0 3px 12px rgba(10,58,43,.10)!important;
+ position:relative!important;
+ z-index:2!important;
+}
+body.gold-home.page-home .experience-strip article strong{
+ color:#0d3c34!important;
+ font-weight:850!important;
+ letter-spacing:-.012em!important;
+ font-size:clamp(16px,1.65vw,20px)!important;
+ line-height:1.24!important;
+ overflow-wrap:normal!important;
+ word-break:normal!important;
+}
+body.gold-home.page-home .experience-strip article small{
+ color:#34584f!important;
+ font-size:clamp(13px,1.15vw,15px)!important;
+ font-weight:600!important;
+ line-height:1.38!important;
+ text-shadow:none!important;
+}
+body.gold-home.page-home .experience-strip article .feature-icon{
+ position:relative!important;
+ z-index:2!important;
+ background:rgba(251,255,250,.91)!important;
+}
+
+/* Role preview: screen-reader friendly real sized text, without changing tabs JS. */
+body.gold-home.page-home .role-showcase .section-heading>p,
+body.gold-home.page-home .value-section .section-heading>p{
+ color:#35574d!important;
+ font-size:clamp(14px,1.2vw,17px)!important;
+ line-height:1.54!important;
+ opacity:1!important;
+}
+body.gold-home.page-home .preview-content :is(h3,p),
+body.gold-home.page-home .preview-note,
+body.gold-home.page-home .preview-cards span{
+ opacity:1!important;
+ text-shadow:none!important;
+}
+body.gold-home.page-home .preview-welcome h3{color:#123d34!important;font-size:clamp(20px,2vw,26px)!important;line-height:1.25!important}
+body.gold-home.page-home .preview-welcome p{color:#3e5d55!important;font-size:clamp(14px,1.15vw,16px)!important;line-height:1.5!important}
+body.gold-home.page-home .preview-cards span{color:#254e41!important;font-weight:760!important;font-size:clamp(14px,1.15vw,16px)!important}
+body.gold-home.page-home .preview-note{color:#3b5c52!important;font-size:13px!important}
+
+/* The old 'absolute; width:min(300px,88%)' card rule caused a dead right column
+   even after cards were made position:static. Force a real full-width tile grid. */
+body.gold-home.page-home .learning-band .learning-visual{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ align-items:stretch!important;
+ justify-items:stretch!important;
+ gap:11px!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:none!important;
+ min-height:0!important;
+ height:auto!important;
+ position:relative!important;
+}
+body.gold-home.page-home .learning-band .learning-visual .resource-card,
+body.gold-home.page-home .learning-band .resource-card:is(.r1,.r2,.r3){
+ display:flex!important;
+ flex-direction:column!important;
+ justify-content:center!important;
+ position:relative!important;
+ inset:auto!important;
+ transform:none!important;
+ width:100%!important;
+ max-width:none!important;
+ min-width:0!important;
+ margin:0!important;
+ box-sizing:border-box!important;
+ text-align:left!important;
+}
+body.gold-home.page-home .learning-band .resource-card:is(.r1,.r2,.r3) small{color:#195548!important;font-size:13px!important;font-weight:850!important}
+body.gold-home.page-home .learning-band .resource-card:is(.r1,.r2,.r3) strong{color:#123f35!important;font-size:clamp(19px,1.75vw,22px)!important}
+body.gold-home.page-home .learning-band .resource-card:is(.r1,.r2,.r3) span{color:#355a51!important;font-size:14px!important;line-height:1.4!important}
+body.gold-home.page-home .learning-copy p{color:#f1faf5!important;font-size:clamp(14px,1.3vw,17px)!important;line-height:1.55!important}
+body.gold-home.page-home .learning-links a:not(.public-cta){color:#f4fff8!important;text-decoration:underline!important;text-underline-offset:3px}
+
+/* Guides remain indexable and fully visible, but turn six opaque slabs into
+   shorter translucent reading surfaces with meaningful link contrast. */
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-grid{
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:13px!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-card{
+ min-width:0!important;
+ min-height:0!important;
+ height:auto!important;
+ padding:20px!important;
+ background:linear-gradient(135deg,rgba(255,255,255,.87),rgba(235,251,245,.76))!important;
+ border:1.5px solid rgba(49,140,111,.48)!important;
+ border-radius:17px!important;
+ box-shadow:0 9px 22px rgba(5,62,45,.10)!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-card h3{
+ margin:0 0 9px!important;
+ font-size:clamp(17px,1.55vw,20px)!important;
+ line-height:1.3!important;
+ color:#123e34!important;
+ text-shadow:none!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-card p{
+ margin:0 0 9px!important;
+ color:#39584d!important;
+ font-size:clamp(13.5px,1.1vw,15.5px)!important;
+ line-height:1.52!important;
+ text-shadow:none!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-card a{
+ color:#055d5a!important;
+ font-size:clamp(13px,1vw,14.5px)!important;
+ font-weight:800!important;
+ line-height:1.7!important;
+ text-decoration:underline!important;
+ text-underline-offset:2px!important;
+}
+
+/* Readable footer, independent of the legacy white glass footer inheritance. */
+body.gold-home.page-home footer.public-footer{
+ color:#f7fff9!important;
+ background:linear-gradient(130deg,rgba(4,58,44,.96),rgba(7,72,57,.94)),var(--ng-wood) center/cover no-repeat!important;
+ border:1.5px solid rgba(42,143,113,.73)!important;
+ box-shadow:0 15px 36px rgba(3,49,37,.25)!important;
+}
+body.gold-home.page-home footer.public-footer :is(strong,span,small),
+body.gold-home.page-home footer.public-footer nav a{
+ opacity:1!important;
+ filter:none!important;
+ text-shadow:none!important;
+}
+body.gold-home.page-home footer.public-footer strong{color:#fff!important;font-size:21px!important;font-weight:850!important}
+body.gold-home.page-home footer.public-footer :is(span,small){color:#e4f6ed!important;font-size:13px!important}
+body.gold-home.page-home footer.public-footer nav a{
+ color:#f8fffa!important;
+ font-size:14px!important;
+ font-weight:760!important;
+ background:rgba(246,255,250,.14)!important;
+ border:1px solid rgba(234,255,239,.36)!important;
+ padding:10px 12px!important;
+ min-height:42px!important;
+ border-radius:10px!important;
+}
+body.gold-home.page-home footer.public-footer nav a:hover{background:rgba(255,255,255,.25)!important}
+
+/* The hero paragraph and small captions must not be microscopic on Android. */
+@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
+ body.gold-home.page-home .experience-strip article{
+  min-height:155px!important;
+  padding:11px!important;
+  gap:6px!important;
+  justify-content:flex-end!important;
+ }
+ body.gold-home.page-home .experience-strip article > div{padding:8px 9px!important}
+ body.gold-home.page-home .experience-strip article strong{font-size:16.5px!important;line-height:1.2!important}
+ body.gold-home.page-home .experience-strip article small{font-size:13px!important;line-height:1.34!important}
+ body.gold-home.page-home .experience-strip article .feature-icon{width:37px!important;height:37px!important;flex:0 0 37px!important}
+ body.gold-home.page-home .learning-band{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:16px!important;
+ }
+ body.gold-home.page-home .learning-band .learning-visual{width:100%!important;gap:9px!important}
+ body.gold-home.page-home .learning-band .resource-card:is(.r1,.r2,.r3){
+  min-height:112px!important;
+  padding:15px 17px!important;
+ }
+ body.gold-home.page-home .learning-copy h2{font-size:clamp(26px,7.2vw,34px)!important;line-height:1.16!important}
+ body.gold-home.page-home .learning-copy p{font-size:15px!important}
+ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-grid{
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:10px!important;
+ }
+ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-card{
+  min-height:0!important;padding:17px 16px!important;
+ }
+ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-card h3{font-size:18px!important}
+ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-card p{font-size:14px!important}
+ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-card a{font-size:13.5px!important}
+ body.gold-home.page-home .value-section .public-grid>.public-card{
+  padding:17px 16px!important;
+  min-height:0!important;
+  background:linear-gradient(140deg,rgba(252,255,252,.83),rgba(238,252,245,.73))!important;
+ }
+ body.gold-home.page-home .value-section .public-grid>.public-card h3{font-size:18px!important}
+ body.gold-home.page-home .value-section .public-grid>.public-card p{font-size:14px!important;line-height:1.5!important;color:#3b5c52!important}
+ body.gold-home.page-home .value-section .public-grid>.public-card a{font-size:13.5px!important;color:#075e57!important}
+ body.gold-home.page-home .role-showcase .role-tab{font-size:14px!important;min-height:44px!important}
+ body.gold-home.page-home .preview-cards span{font-size:14px!important}
+ body.gold-home.page-home footer.public-footer{
+  width:calc(100% - 16px)!important;
+  margin:16px auto 18px!important;
+  padding:18px 15px!important;
+ }
+ body.gold-home.page-home footer.public-footer nav{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+ }
+ body.gold-home.page-home footer.public-footer nav a{
+  display:flex!important;justify-content:center!important;text-align:center!important;
+  min-height:44px!important;
+ }
+}
+@media(max-width:340px){
+ body.gold-home.page-home .experience-strip{grid-template-columns:1fr!important}
+ body.gold-home.page-home footer.public-footer nav{grid-template-columns:1fr!important}
+}

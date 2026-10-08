@@ -142,7 +142,12 @@ async function inspectPage(page,url,width){
         linksDisplay:getComputedStyle(document.querySelector('.page-home .public-links')||document.body).display,
         navHeight:box('.page-home .public-nav')?.height||0,
         learningColors:[...document.querySelectorAll('.page-home .learning-band .resource-card :is(small,strong,span)')].slice(0,9).map(el=>({color:getComputedStyle(el).color,text:(el.textContent||'').trim().slice(0,30)})),
-        experienceColumns:getComputedStyle(document.querySelector('.page-home .experience-strip')||document.body).gridTemplateColumns
+        experienceColumns:getComputedStyle(document.querySelector('.page-home .experience-strip')||document.body).gridTemplateColumns,
+        learningVisualWidth:box('.page-home .learning-band .learning-visual')?.width||0,
+        resourceCardWidths:[...document.querySelectorAll('.page-home .learning-band .resource-card')].map(el=>Math.round(el.getBoundingClientRect().width)),
+        featureSizes:[...document.querySelectorAll('.page-home .experience-strip article strong')].map(el=>parseFloat(getComputedStyle(el).fontSize)),
+        footer:{background:getComputedStyle(document.querySelector('footer.public-footer')||document.body).backgroundImage,linkColors:[...document.querySelectorAll('footer.public-footer nav a')].map(el=>getComputedStyle(el).color)}
+
       }
     };
   });
@@ -174,6 +179,10 @@ try{
           // Learning Hub labels must never slip through the layout-only gates.
           if(result.home.linksDisplay!=='flex')pushFailure(scope,'Homepage mobile navigation is not a compact flex strip',result.home.linksDisplay);
           if(result.home.navHeight>175)pushFailure(scope,'Homepage mobile navigation consumes too much vertical space',Math.round(result.home.navHeight)+'px');
+          if(result.home.learningVisualWidth<1||result.home.resourceCardWidths.length!==3||result.home.resourceCardWidths.some(w=>w<result.home.learningVisualWidth*.90))pushFailure(scope,'Homepage featured learning resource card fails to fill its column',JSON.stringify({visual:result.home.learningVisualWidth,cards:result.home.resourceCardWidths}));
+          if(result.home.featureSizes.length!==6||result.home.featureSizes.some(x=>x<15))pushFailure(scope,'Homepage feature card labels are too small',JSON.stringify(result.home.featureSizes));
+          if(result.home.footer.linkColors.length<5||result.home.footer.linkColors.some(c=>{const v=(c.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);return v.length===3&&(v[0]*.2126+v[1]*.7152+v[2]*.0722)<185}))pushFailure(scope,'Homepage footer links fail light-on-dark visual contrast policy',JSON.stringify(result.home.footer));
+
           if((result.home.learningColors||[]).length<9)pushFailure(scope,'Homepage featured learning card labels are missing');
           for(const item of result.home.learningColors||[]){
             const channels=(item.color.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
