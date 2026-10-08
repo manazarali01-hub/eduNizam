@@ -45,7 +45,7 @@ if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZA
 const browser=await chromium.launch(launchOptions);
 const failures=[];
 const widths=[360,375,390,412,430,768,1366];
-const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html'];
+const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html','/pakistan-degree-accreditation-recognition.html','/pakistan-entry-tests-scholarships.html'];
 
 function pushFailure(scope,message,detail=''){
   failures.push({scope,message,detail});
@@ -138,6 +138,19 @@ async function inspectPage(page,url,width){
         feature:(()=>{const el=document.querySelector('.premium-public-page .public-list li');if(!el)return null;const cs=getComputedStyle(el);return {bg:cs.backgroundImage,blur:cs.backdropFilter,alpha:cs.opacity};})(),
         app:(()=>{const el=document.querySelector('.page-app .main .view.active .card');if(!el)return null;const cs=getComputedStyle(el);return {bg:cs.backgroundImage,blur:cs.backdropFilter,alpha:cs.opacity};})()
       },
+      publicGuideHero:(()=>{
+        const hero=document.querySelector('.premium-public-page .public-main>.public-hero');
+        if(!hero)return null;
+        const heading=hero.querySelector('h1'),paragraph=hero.querySelector('p');
+        if(!heading||!paragraph)return {missing:true};
+        const hs=getComputedStyle(heading),ps=getComputedStyle(paragraph),bs=getComputedStyle(hero);
+        const hb=heading.getBoundingClientRect(),pb=paragraph.getBoundingClientRect(),er=hero.getBoundingClientRect();
+        const pAlpha=Number((ps.backgroundColor.match(/rgba\([^)]*,\s*([0-9.]+)\)/)||[])[1]||0);
+        return {fontSize:parseFloat(hs.fontSize),lineHeight:parseFloat(hs.lineHeight),copyColor:ps.color,
+          copyBackground:ps.backgroundColor,pAlpha,copyOpacity:ps.opacity,
+          photo:bs.backgroundImage,headingRight:hb.right,copyRight:pb.right,
+          heroRight:er.right,height:er.height};
+      })(),
       home:{
         nav:box('.page-home .public-nav'),
         main:box('.page-home .public-main'),
@@ -193,6 +206,20 @@ try{
         const scope=route+' @ '+width+'px';
         if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px '+JSON.stringify(result.wideElements));
         if(result.clipped.length)pushFailure(scope,'Interactive controls escape the viewport',JSON.stringify(result.clipped));
+        if(result.publicGuideHero&&width<=430){
+          const h=result.publicGuideHero;
+          if(h.missing)pushFailure(scope,'Public guide hero heading or description missing');
+          else{
+            if(h.fontSize>39)pushFailure(scope,'Public guide heading oversized on phone',JSON.stringify(h));
+            if(h.pAlpha<.77)pushFailure(scope,'Public guide description has no opaque-enough glass reading plate',JSON.stringify(h));
+            const rgb=(h.copyColor.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
+            if(rgb.length!==3||rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>125)pushFailure(scope,'Public guide description contrast too pale',JSON.stringify(h));
+            if(h.copyOpacity!=='1')pushFailure(scope,'Public guide description is faded',JSON.stringify(h));
+            if(!h.photo.includes('url('))pushFailure(scope,'Public guide photo disappeared behind glass',JSON.stringify(h));
+            if(h.headingRight>width+2||h.copyRight>width+2)pushFailure(scope,'Public guide hero text escapes viewport',JSON.stringify(h));
+            if(route==='/pakistan-degree-accreditation-recognition.html'&&h.height>740)pushFailure(scope,'Recognition hero still consumes almost entire mobile screen',JSON.stringify(h));
+          }
+        }
         // Inspect actual computed surfaces, not merely CSS selector presence.
         if(width<=430){
           const selectors=route==='/'?['home']:route==='/login.html'?['login','role']:route==='/features.html'?['feature']:route==='/app.html'?['app']:[];
