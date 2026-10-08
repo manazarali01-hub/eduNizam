@@ -7,6 +7,7 @@
  const NS='http://www.w3.org/2000/svg';
  const P={
    home:'<path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/>',
+   up:'<path d="M12 20V4m-7 7 7-7 7 7"/>',
    users:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2z"/><path d="M17 5a3 3 0 0 1 0 6m1 3a5 5 0 0 1 3 5"/>',
    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2z"/>',
    school:'<path d="M3 21V8l9-5 9 5v13M3 21h18M9 21v-6h6v6M7 10h.01M12 10h.01M17 10h.01"/>',
@@ -132,6 +133,8 @@
    if(searchIcon){searchIcon.classList.add('edu-search-icon');paint(searchIcon,'search','sky');}
    const switchIcon=document.querySelector('#premiumWorkspaceSwitch>span:first-child');
    if(switchIcon){switchIcon.classList.add('edu-search-icon');paint(switchIcon,'arrows','teal');}
+   const backTop=document.getElementById('eduBackTop');
+   if(backTop)paint(backTop,'up','teal');
  }
  function authentication(){
    if(!document.body?.classList.contains('auth-page'))return;
