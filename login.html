@@ -11,6 +11,22 @@
   <link rel="icon" href="icon-192.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <!-- Earlier PWA installs may still launch this login route.
+       Redirect only a fresh standalone app launch; preserve deliberate login,
+       password-reset/auth callbacks and browser navigation. -->
+  <script>
+  (() => {
+    try {
+      const standalone=window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone===true;
+      if(!standalone || location.search || location.hash ||
+         !location.pathname.endsWith('/login.html'))return;
+      const ref=document.referrer;
+      if(ref && new URL(ref).origin===location.origin)return;
+      location.replace('./?edu_visual=200v2&pwa_launch=1');
+    }catch(_){}
+  })();
+  </script>
   <script src="pwa-install.js?v=20261008-natural-glass-v31" defer></script>
   <style>
     :root{--teal:var(--en-blue-600,#1769aa);--teal2:var(--en-blue-700,#145f9c);--ink:var(--en-text,#17324d);--muted:var(--en-text-muted,#667d91);--line:var(--en-border,#d9e7f1);--bg:var(--en-bg,#f4f9fd);--white:#fff;--danger:var(--en-danger,#b23a35);--ok:var(--en-success,#157a5a)}
@@ -67,6 +83,7 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
   <link rel="stylesheet" href="reference-reconstruction.css?v=20261008-natural-glass-v31">
   <link rel="stylesheet" href="true-photo-glass-v5.css?v=20261008-balanced-natural-v53">
   <link rel="stylesheet" href="typography-harmony-oct08.css?v=20261008-type1">
+  <style>.auth-page .pwa-home-entry{display:flex;align-items:center;justify-content:center;min-height:48px;margin:0 0 13px;padding:11px 15px;border:1.5px solid #257c63;border-radius:12px;background:linear-gradient(120deg,#effbf4,#f8fff9);color:#11553e!important;font-size:16px;font-weight:850;text-decoration:none;box-shadow:0 5px 16px rgba(10,93,64,.09)}.auth-page .pwa-home-entry:focus-visible{outline:3px solid #bc8a35;outline-offset:2px}</style>
 </head>
 <body class="auth-page page-login">
 <a class="skip" href="#authCard">Skip to login</a>
@@ -80,6 +97,7 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
   <main class="main">
     <section class="card" id="authCard">
       <div class="mobile-brand"><img src="assets/edunizam-premium-mark.svg" alt=""><strong><span class="brand-edu">Edu</span><span class="brand-nizam">N<span class="brand-i">ı</span>zam</span></strong></div>
+      <a class="pwa-home-entry" href="./?edu_visual=200v2">← View EduNizam Home</a>
       <button id="loginInstallBtn" data-pwa-install class="secondary pwa-install-login" type="button" hidden>Install EduNizam App</button>
 
       <div id="roleView" class="view">
