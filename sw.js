@@ -1,4 +1,4 @@
-const CACHE='edunizam-v257-natural-glass-v3'
+const CACHE='edunizam-v258-natural-glass-v31'
 const CORE=[
   './',
   './index.html',

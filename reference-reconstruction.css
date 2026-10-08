@@ -2939,3 +2939,124 @@ body.page-app .view.active :is(button,a):focus-visible,body:is(.page-home,.learn
 @media(max-width:340px){body.page-app .cards,body.page-home .experience-strip{grid-template-columns:1fr!important}}
 @media(prefers-reduced-motion:reduce){body.page-app,body.page-home,body.learning-sky,body.auth-page{scroll-behavior:auto!important}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){body.page-app .view.active .card,body.learning-sky .section.active,body.page-home .hero-copy{background-color:rgba(250,255,252,.93)!important}}
+
+
+/* ===== NATURAL GLASS V3.1 · MOBILE VISUAL LEGIBILITY & COMPOSITION · 2026-10-08 =====
+   Screenshot-specific fixes; all changes are presentation-only. The established
+   admin/teacher/student/parent role control, app navigation and auth logic remain intact. */
+/* Past Papers/VU/Practice: never white shadow lettering on pale frosted glass. */
+body.page-home .learning-band .resource-card.r1{
+ background:linear-gradient(120deg,rgba(250,255,252,.92),rgba(235,252,246,.80)),var(--ng-paper) center/cover no-repeat!important;
+}
+body.page-home .learning-band .resource-card.r2{
+ background:linear-gradient(120deg,rgba(250,255,253,.93),rgba(234,249,250,.81)),var(--ng-digital) center/cover no-repeat!important;
+}
+body.page-home .learning-band .resource-card.r3{
+ background:linear-gradient(120deg,rgba(255,255,253,.93),rgba(242,251,243,.81)),var(--ng-tools) center/cover no-repeat!important;
+}
+body.page-home .learning-band .resource-card:is(.r1,.r2,.r3) :is(small,strong,span){
+ color:#123d35!important;
+ opacity:1!important;
+ filter:none!important;
+ text-shadow:none!important;
+}
+body.page-home .learning-band .resource-card:is(.r1,.r2,.r3) small{
+ color:#19584d!important;
+ font-weight:850!important;
+ letter-spacing:.075em!important;
+}
+body.page-home .learning-band .resource-card:is(.r1,.r2,.r3) strong{
+ color:#0d3840!important;
+ font-size:clamp(18px,2vw,23px)!important;
+ line-height:1.27!important;
+ letter-spacing:-.025em!important;
+}
+body.page-home .learning-band .resource-card:is(.r1,.r2,.r3) span{
+ color:#385f5c!important;
+ font-size:clamp(13px,1.4vw,16px)!important;
+ line-height:1.4!important;
+}
+/* Replace visually dominant monochrome poster patterns with gentle photographic
+   backgrounds and an opaque-enough reading zone on each feature card. */
+body.page-home .experience-strip article{
+ --ng-tile-photo:var(--ng-paper);
+ background:linear-gradient(135deg,rgba(254,255,253,.91),rgba(240,251,247,.76)),var(--ng-tile-photo) center/cover no-repeat!important;
+}
+body.page-home .experience-strip article:nth-child(6n+1){--ng-tile-photo:var(--ng-class)}
+body.page-home .experience-strip article:nth-child(6n+2){--ng-tile-photo:var(--ng-wood)}
+body.page-home .experience-strip article:nth-child(6n+3){--ng-tile-photo:var(--ng-tools)}
+body.page-home .experience-strip article:nth-child(6n+4){--ng-tile-photo:var(--ng-paper)}
+body.page-home .experience-strip article:nth-child(6n+5){--ng-tile-photo:var(--ng-study)}
+body.page-home .experience-strip article:nth-child(6n){--ng-tile-photo:var(--ng-digital)}
+body.page-home .experience-strip article :is(strong,small){
+ color:#123f38!important;
+ text-shadow:0 1px 0 rgba(255,255,255,.9)!important;
+ opacity:1!important;
+}
+body.page-home .experience-strip article strong{font-weight:800!important}
+body.page-home .experience-strip article small{color:#45645d!important}
+body.page-home .experience-strip article .feature-icon{
+ background:rgba(242,254,248,.85)!important;
+ border:1px solid rgba(43,143,120,.26)!important;
+}
+/* Preserve admired four role cards. Make admission and guest descriptions crisp. */
+body.auth-page #roleView .roles :is(#admissionApplicantRole,.guest-role){
+ background:linear-gradient(135deg,rgba(252,255,252,.90),rgba(231,248,239,.79))!important;
+}
+body.auth-page #roleView .roles :is(#admissionApplicantRole,.guest-role) :is(strong,small){
+ color:#133c34!important;text-shadow:none!important;opacity:1!important;
+}
+body.auth-page #roleView .roles :is(#admissionApplicantRole,.guest-role) small{
+ color:#395a51!important;line-height:1.4!important;
+}
+@media (max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
+ body.page-home .public-nav{
+  padding:11px 12px!important;
+  gap:10px!important;
+  background:rgba(252,255,252,.85)!important;
+ }
+ body.page-home .public-links{gap:7px!important}
+ body.page-home .public-links a{min-height:43px!important;padding:9px 7px!important;font-size:12.5px!important}
+ body.page-home .premium-public-hero{gap:13px!important;padding:12px!important}
+ body.page-home .hero-copy{
+  padding:20px 17px!important;
+  background:linear-gradient(125deg,rgba(251,255,252,.85),rgba(239,252,245,.73))!important;
+ }
+ body.page-home .public-hero h1{
+  font-size:clamp(31px,8.4vw,41px)!important;
+  line-height:1.095!important;
+  letter-spacing:-.035em!important;
+  overflow-wrap:normal!important;
+  text-wrap:balance;
+ }
+ body.page-home .public-hero p{font-size:15.5px!important;line-height:1.53!important}
+ body.page-home .experience-strip{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+ }
+ body.page-home .experience-strip article{
+  display:flex!important;flex-direction:column!important;
+  align-items:flex-start!important;justify-content:flex-end!important;
+  min-width:0!important;
+  min-height:143px!important;
+  padding:13px 12px!important;
+  gap:6px!important;
+ }
+ body.page-home .experience-strip article strong{font-size:16px!important;line-height:1.23!important;word-break:normal!important}
+ body.page-home .experience-strip article small{font-size:12.5px!important;line-height:1.32!important}
+ body.page-home .experience-strip article .feature-icon{width:42px!important;height:42px!important}
+ body.page-home .learning-band{padding:21px 14px!important;gap:14px!important}
+ body.page-home .learning-visual{gap:11px!important}
+ body.page-home .learning-band .resource-card{
+  min-height:124px!important;
+  padding:16px 18px!important;
+  border-radius:20px!important;
+ }
+ body.page-home .learning-band .resource-card:is(.r1,.r2,.r3) strong{font-size:19px!important}
+ body.page-home .learning-band .resource-card:is(.r1,.r2,.r3) span{font-size:13.5px!important}
+ body.page-home .public-section{margin-top:14px!important}
+}
+@media(max-width:330px){
+ body.page-home .experience-strip{grid-template-columns:minmax(0,1fr)!important}
+}

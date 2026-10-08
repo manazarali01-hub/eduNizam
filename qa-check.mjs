@@ -188,7 +188,7 @@ if(loginHtml.includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.pu
 if(read('admissions-cloud.js').includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.push('Admission auth redirects still leave the production custom domain.');
 const admissionHtml=read('admission.html');
 if(admissionHtml.includes("body+'<script src=\"system-auto-update.js")) fail.push('Admission printable markup still embeds a literal script closing tag inside inline JavaScript.');
-if(!admissionHtml.includes('system-auto-update.js?v=20261008-natural-glass-v3')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
+if(!admissionHtml.includes('system-auto-update.js?v=20261008-natural-glass-v31')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
 const aiEdge=read('supabase/functions/ai-assistant/index.ts');
 if(!aiEdge.includes('https://edunizam.online')) fail.push('AI Edge Function does not allow the production custom domain.');
 if(!aiEdge.includes('supabaseUser.auth.getUser()')) fail.push('AI Edge Function does not verify the authenticated user.');
@@ -210,7 +210,7 @@ if(/querySelectorAll\(['"]button\[disabled\]['"]\)/.test(reliabilitySafety)) fai
 for(const page of ['index.html','login.html','app.html','learn.html','admission.html','about.html','features.html','learning-resources-pakistan.html','online-school-admissions.html','privacy.html','school-management-system-pakistan.html']){
   const html=read(page);
   for(const ref of [...html.matchAll(/(?:pwa-install|system-auto-update)\.js\?v=([A-Za-z0-9._-]+)/g)].map(m=>m[1])){
-    if(ref!=='20261008-natural-glass-v3') fail.push('Stale runtime cache-busting token on '+page+': '+ref);
+    if(ref!=='20261008-natural-glass-v31') fail.push('Stale runtime cache-busting token on '+page+': '+ref);
   }
 }
 const appExternalScriptTags=[...index.matchAll(/<script[^>]+src=["'][^"']+["'][^>]*>/g)].map(m=>m[0]);
@@ -1018,7 +1018,7 @@ for(const marker of [
 }
 if(/body\\.page-app\\s+\\.sidebar\\s*\\{[^}]*\\b(?:position|transform|width|display|pointer-events)\\s*:/s.test(workspaceAtmosphere)) fail.push('Workspace atmosphere must not change sidebar structural layout.');
 if(!workspaceAtmosphere.includes('body.page-app .sidebar .nav-item')) fail.push('Natural Glass V3 sidebar text contrast marker missing.');
-if(!read('app.html').includes('workspace-atmosphere.css?v=20261008-natural-glass-v3')) fail.push('Workspace atmosphere stylesheet is not loaded by app.html.');
+if(!read('app.html').includes('workspace-atmosphere.css?v=20261008-natural-glass-v31')) fail.push('Workspace atmosphere stylesheet is not loaded by app.html.');
 
 const referenceVisual=read('reference-reconstruction.css');
 for(const marker of [
@@ -1032,7 +1032,7 @@ for(const marker of [
   if(!referenceVisual.includes(marker)) fail.push('Reference reconstruction marker missing: '+marker);
 }
 for(const page of ['index.html','login.html','learn.html','app.html','about.html','features.html']){
-  if(!read(page).includes('reference-reconstruction.css?v=20261008-natural-glass-v3')) fail.push('Reference reconstruction stylesheet missing from '+page);
+  if(!read(page).includes('reference-reconstruction.css?v=20261008-natural-glass-v31')) fail.push('Reference reconstruction stylesheet missing from '+page);
 }
 
 const mobileRef4=read('reference-reconstruction.css');
@@ -1085,7 +1085,7 @@ for(const marker of [
 ]){
   if(!colorfulRef7.includes(marker)) fail.push('Colorful ref7 marker missing: '+marker);
 }
-if(!read('app.html').includes('reference-reconstruction.css?v=20261008-natural-glass-v3')) fail.push('Natural Glass V3 stylesheet cache token missing from app.html.');
+if(!read('app.html').includes('reference-reconstruction.css?v=20261008-natural-glass-v31')) fail.push('Natural Glass V3 stylesheet cache token missing from app.html.');
 
 /* Indexing recovery crawl-path guard · 2026-10-07 */
 const crawlHub=read('index.html');
