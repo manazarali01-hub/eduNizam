@@ -174,6 +174,12 @@ jobs:
           verify_exact_file "system-auto-update.js"
           verify_exact_file "guest-learning-premium.js"
           verify_exact_file "guest-learning-nav.js"
+          # Verify actual clay renders, not only the loader script.
+          test "$(find assets/icons -name 'clay-*.webp' -type f | wc -l)" -eq 48
+          for rel in assets/icons/clay-*.webp; do
+            verify_exact_file "$rel"
+          done
+          verify_exact_file "assets/icons/LICENSE.txt"
 
           curl --fail --silent --show-error --location "${BASE}icon-192.png?verify=${GITHUB_SHA}" -o /tmp/icon-192.png
           curl --fail --silent --show-error --location "${BASE}icon-512.png?verify=${GITHUB_SHA}" -o /tmp/icon-512.png
