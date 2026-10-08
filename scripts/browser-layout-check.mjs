@@ -355,7 +355,7 @@ try{
   const iconPage=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
   try{
     const source=fs.readFileSync(path.join(root,'app.html'),'utf8');
-    const nav=source.match(/<nav id="nav"[\\s\\S]*?<\\/nav>/)?.[0]||'';
+    const nav=source.match(/<nav id="nav"[\s\S]*?<\/nav>/)?.[0]||'';
     if(!nav)pushFailure('color icon contract','Sidebar navigation markup missing from app.html');
     else {
       const stats=['statStudents','statPresent','statFees','statPending'].map(id=>'<article class="stat"><strong id="'+id+'">0</strong></article>').join('');
