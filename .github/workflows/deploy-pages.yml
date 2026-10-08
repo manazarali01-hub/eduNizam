@@ -141,6 +141,7 @@ jobs:
           done
           verify_exact_file "app.js"
           verify_exact_file "mobile-nav-core.js"
+          verify_exact_file "navigation-enhancements.js"
           verify_exact_file "data-runtime.js"
           verify_exact_file "auth-bridge.js"
           verify_exact_file "admissions-cloud.js"
