@@ -387,9 +387,9 @@ for(const page of ['index.html','login.html','app.html','learn.html','admission.
 }
 if(!read('home-gold.css').includes('EduNizam homepage · premium product showcase')) fail.push('Canonical premium homepage layer missing.');
 if(!read('home-gold.css').includes('.gold-home .public-hero.premium-public-hero')) fail.push('Premium homepage hero styling missing.');
-if(!read('index.html').includes('photo-1509062522246-3755977927d7') ||
-    !read('assets/IMAGE-CREDITS.md').includes('students-in-classroom-with-teacher-presenting'))
-  fail.push('Homepage licensed classroom visual missing or provenance undocumented.');
+if(!read('index.html').includes('pexels-photo-5088012.jpeg') ||
+    !read('docs/ASSET_PROVENANCE.md').includes('https://www.pexels.com/photo/back-to-school-flatlay-5088012/'))
+  fail.push('Homepage approved education visual missing or source provenance undocumented.');
 
 const premiumUi=read('premium-ui.css');
 if(!premiumUi.includes('Canonical Premium Workspace')) fail.push('Canonical premium workspace layer missing.');
