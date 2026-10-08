@@ -1,4 +1,4 @@
-const CACHE='edunizam-v260-pwa-home-v32'
+const CACHE='edunizam-v261-colorful-icons-v1'
 const CORE=[
   './',
   './index.html',
@@ -27,6 +27,8 @@ const CORE=[
   './system-auto-update.js',
   './audit-activity-center.js',
   './premium-ui.css',
+  './edunizam-colorful-icons.css',
+  './edunizam-colorful-icons.js',
   './app.js',
   './feature-loader.js',
   './navigation-enhancements.js',
