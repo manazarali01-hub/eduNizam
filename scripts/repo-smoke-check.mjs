@@ -543,6 +543,8 @@ if(/linear-gradient\(/.test(storyRule) && /edunizam-login-children\.webp/.test(s
 
 /* Premium forms release gate — shared CSS, stylesheet order and intact native controls. */
 const enFormCss=read("premium-form-fields.css");
+if(/\)\s+:not\(/.test(enFormCss))bad("forms:no-broken-input-selector-chains","Whitespace between :not() clauses breaks field input selectors");
+else ok("forms:no-broken-input-selector-chains");
 if(enFormCss.includes('VISIBLE_FIELD_REVAMP_V2') && enFormCss.includes('border:3px solid transparent!important') && enFormCss.includes('linear-gradient(117deg,var(--en-v2-edge-a),var(--en-v2-edge-b)) border-box'))ok('forms:visible-gradient-contract');
 else bad('forms:visible-gradient-contract','Missing clearly colored 3px gradient field border');
 for(const target of ["index.html","login.html","app.html","learn.html","admission.html"]){

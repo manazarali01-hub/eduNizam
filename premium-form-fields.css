@@ -40,10 +40,7 @@
 /* Explicit exclusions avoid breaking switches, checkboxes and uploads.
    Specificity exceeds the existing `.field input` login rules. */
 :is(body, .auth-page, .app-page, .learning-sky) :is(form, .field, .form-field, .form-grid, .searchbox, .search-wrap, .input-group) :is(
-  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])
-       :not([type="range"]):not([type="file"]):not([type="color"])
-       :not([type="button"]):not([type="submit"]):not([type="reset"])
-       :not([type="image"]),
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]),
   select,
   textarea
 ) {
@@ -77,8 +74,7 @@
 }
 
 :is(body, .auth-page, .app-page, .learning-sky) :is(form, .field, .form-field, .form-grid, .searchbox, .search-wrap, .input-group) :is(
-  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])
-       :not([type="range"]):not([type="file"]):not([type="color"]),
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
   select,
   textarea
 ):hover:not(:disabled) {
@@ -86,8 +82,7 @@
 }
 
 :is(body, .auth-page, .app-page, .learning-sky) :is(form, .field, .form-field, .form-grid, .searchbox, .search-wrap, .input-group) :is(
-  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])
-       :not([type="range"]):not([type="file"]):not([type="color"]),
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
   select,
   textarea
 ):focus {
@@ -269,10 +264,7 @@
 :is(form,.view.active,.field,.form-field,.auth-field,.form-grid,.search-wrap,
     .searchbox,.school-search-row,.input-group,.nav-search-wrap,.paper-search-row,
     .filter-bar,.filters,.filter-control,.search-bar) 
-:is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])
-           :not([type="range"]):not([type="file"]):not([type="color"])
-           :not([type="button"]):not([type="submit"]):not([type="reset"])
-           :not([type="image"]),select,textarea){
+:is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]),select,textarea){
   box-sizing:border-box!important;
   min-width:0;max-width:100%;
   min-height:58px!important;
@@ -338,8 +330,7 @@ body.app-page.page-app .view.active .form-grid>
     body.gold-home.page-home,body.premium-public-page) 
 :is(form,.view.active,.field,.form-field,.form-grid,.school-search-row,
     .search-wrap,.searchbox,.input-group,.nav-search-wrap,.filter-bar)
-:is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])
-         :not([type="range"]):not([type="file"]):not([type="color"]),select,textarea):hover:not(:disabled){
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="file"]):not([type="color"]),select,textarea):hover:not(:disabled){
   --en-v2-edge-a:#119d81;
   --en-v2-edge-b:#278cde;
   box-shadow:0 0 0 2px rgba(27,162,169,.11),
@@ -350,8 +341,7 @@ body.app-page.page-app .view.active .form-grid>
     body.gold-home.page-home,body.premium-public-page)
 :is(form,.view.active,.field,.form-field,.form-grid,.school-search-row,
     .search-wrap,.searchbox,.input-group,.nav-search-wrap,.filter-bar)
-:is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])
-         :not([type="range"]):not([type="file"]):not([type="color"]),select,textarea):focus{
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="file"]):not([type="color"]),select,textarea):focus{
   --en-v2-edge-a:#078c76;--en-v2-edge-b:#288bd5;
   box-shadow:0 0 0 5px var(--en-v2-glow),
              0 13px 24px rgba(20,105,124,.18)!important;
@@ -404,8 +394,7 @@ body.auth-page.page-login :is(#loginForm,#signupForm,#resetForm,#otpForm)>.field
 }
 /* Do not let the old !important padding shrink active Dashboard controls. */
 @media(max-width:950px){
- body.app-page.page-app .view.active :is(input:not([type="hidden"]):not([type="checkbox"])
- :not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea){
+ body.app-page.page-app .view.active :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea){
    min-height:56px!important;
    padding:12px 15px!important;
    border-radius:18px!important;
