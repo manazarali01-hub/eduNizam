@@ -109,8 +109,16 @@
     });
     observer.observe(nav,{childList:true,subtree:true});
     window.addEventListener('edunizam:auth',()=>setTimeout(filter,50));
-    window.addEventListener('edunizam:workspace-ready',scheduleWarm);
-    setTimeout(()=>{nav.querySelectorAll('.nav-item').forEach(b=>placeButton(nav,b));filter()},900);
+    window.addEventListener('edunizam:workspace-ready',()=>{
+      // A settled role may change which groups are visible, but never move
+      // navigation targets beneath a finger during the first mobile tap.
+      filter();scheduleWarm();
+    });
+    // Initial grouping is already complete above; the old 900ms re-parenting
+    // sweep caused an intermittent moving/vanishing mobile Help tap target.
+    // New buttons are handled by the MutationObserver instead.
+    nav.querySelectorAll('.nav-item').forEach(b=>placeButton(nav,b));
+    filter();
   }
   setTimeout(mount,0);setTimeout(mount,800);window.EDUNIZAM_NAVIGATION={mount};
 })();
