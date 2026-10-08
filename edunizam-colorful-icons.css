@@ -442,3 +442,62 @@ body.app-page.page-app #premiumMobileDock button.active .premium-dock-icon{
    transform:translateY(-1px) scale(1.035)!important;
  }
 }
+
+
+/* v9 premium vector illustrations: detailed 64-unit art without shrinking
+   tap targets or changing event handlers; prevent old global 24px glyph
+   strokes from flattening the self-contained multicolour artwork. */
+.edu-vector-icon.edu-icon-premium-3d{
+ display:block!important;
+ width:84%!important;height:84%!important;
+ overflow:visible!important;
+ fill:initial!important;
+ stroke:none!important;
+ filter:drop-shadow(0 2px 1px rgba(20,54,84,.16))
+        drop-shadow(0 2.5px 2px rgba(18,56,86,.12))!important;
+}
+.edu-vector-icon.edu-icon-premium-3d :is(path,rect,circle,ellipse){
+ vector-effect:non-scaling-stroke;
+}
+/* Entry icons deserve visual presence, while the school/learning copy
+   retains high contrast and gets more width than the decorative art. */
+body.page-home .quick-access-card .quick-actions .edu-button-icon{
+ width:43px!important;height:43px!important;
+ min-width:43px!important;flex:0 0 43px!important;
+ border-radius:14px!important;padding:2px!important;
+}
+body.page-home .quick-access-card .quick-actions .edu-button-icon .edu-icon-premium-3d{
+ width:39px!important;height:39px!important;
+}
+body.page-home .quick-access-card .quick-actions :is(a,button)>b{
+ font-family:Arial,"DejaVu Sans",sans-serif!important;
+ font-variant-emoji:text!important;
+ font-size:clamp(20px,4vw,25px)!important;
+ color:#e0f9ed!important;
+ -webkit-text-fill-color:#e0f9ed!important;
+}
+body.page-home .quick-access-card .quick-actions :is(a,button):not(.quick-main)>b{
+ color:#156f63!important;
+ -webkit-text-fill-color:#156f63!important;
+}
+body.app-page.page-app .premium-nav-icon .edu-icon-premium-3d,
+body.app-page.page-app #premiumMobileDock .premium-dock-icon .edu-icon-premium-3d{
+ width:33px!important;height:33px!important;
+}
+body.app-page.page-app .premium-stat-icon .edu-icon-premium-3d{
+ width:47px!important;height:47px!important;
+}
+body.auth-page #roleView .role .edu-auth-role-icon .edu-icon-premium-3d{
+ width:53px!important;height:53px!important;
+}
+body.learning-sky .edu-learning-card-icon .edu-icon-premium-3d{
+ width:48px!important;height:48px!important;
+}
+@media(max-width:440px){
+ body.page-home .quick-access-card .quick-actions .edu-button-icon{
+  width:38px!important;height:38px!important;min-width:38px!important;flex-basis:38px!important;
+ }
+ body.page-home .quick-access-card .quick-actions .edu-button-icon .edu-icon-premium-3d{
+  width:35px!important;height:35px!important;
+ }
+}

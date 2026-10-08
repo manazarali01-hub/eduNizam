@@ -1,4 +1,4 @@
-const CACHE='edunizam-v261-colorful-icons-v1'
+const CACHE='edunizam-v262-premium-illustrated-v9'
 const CORE=[
   './',
   './index.html',

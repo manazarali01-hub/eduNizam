@@ -1,4 +1,4 @@
-/* EduNizam colorful icon system — 2026-10-08.
+/* EduNizam premium illustrated icon system — 2026-10-08.
  * Self-contained vector icons: no icon font, CDN, external image, or dependency.
  * Replaces visual symbols only. Original text, handlers, routes, role rules,
  * accessibility labels and underlying buttons are preserved. */
@@ -140,7 +140,162 @@
   * are inherited by SVG gradient stops; distinct local IDs avoid collisions
   * between menu, dock, dashboard, guest, and login instances. */
  let iconSequence=0;
+
+ /* Premium illustrated icon family (v9). Self-hosted SVG objects instead of
+    monochrome 24px glyphs. All shapes remain aria-hidden and pointer-safe. */
+ const shape=(d,c='main',stroke='#2f5471',sw=1.45)=>
+  '<path d="'+d+'" fill="url(#G-'+c+')" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linejoin="round" stroke-linecap="round"/>';
+ const rect=(x,y,w,h,r,c='main',stroke='#2f5471',sw=1.2)=>
+  '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+r+'" fill="url(#G-'+c+')" stroke="'+stroke+'" stroke-width="'+sw+'"/>';
+ const circ=(x,y,r,c='main',stroke='#2f5471',sw=1.15)=>
+  '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="url(#G-'+c+')" stroke="'+stroke+'" stroke-width="'+sw+'"/>';
+ const wire=(d,color='#365775',w=2)=>
+  '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+w+'" stroke-linejoin="round" stroke-linecap="round"/>';
+ const glint=(d)=>'<path d="'+d+'" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".85"/>';
+ const scenes={
+  school:()=>shape('M7 25 31 9l26 16-2 4-24-13L9 29Z','gold')+
+    rect(11,27,42,27,3,'paper')+rect(15,29,34,6,1.5,'blue')+
+    rect(18,38,8,9,1,'sky')+rect(37,38,8,9,1,'sky')+
+    shape('M28 54V41h8v13Z','purple')+
+    wire('M9 54h46M31 15v-6h12v8','#29577b',1.8)+
+    shape('M32 9h12l-3 4 3 3H32Z','green','#19866e',.8)+
+    glint('M16 30h27'),
+  study:()=>shape('M7 20q12-6 25 2v30Q20 45 8 50Z','green')+
+    shape('M32 22q12-8 24-3v30q-13-4-24 3Z','gold')+
+    shape('M11 16q13-3 21 5v26q-10-7-21-4Z','paper')+
+    shape('M32 21q11-9 21-6v28q-11-3-21 4Z','paper')+
+    wire('M32 21v28M16 24q6-1 11 3m-11 5q6 0 11 3m10-9q5-3 11-3m-11 9q5-3 11-3','#3d899d',1.55)+
+    shape('M41 35 51 9l5 2-10 27-8 5Z','gold','#aa6a23',1.1)+
+    shape('m51 9 2-6 3 8Z','rose','#9a5a3a',.9),
+  home:()=>rect(7,11,50,43,7,'purple')+
+    rect(12,17,40,31,3,'paper')+shape('M12 20h40v9H12Z','blue')+
+    circ(17,24,1.7,'gold','#fff',.5)+circ(23,24,1.7,'rose','#fff',.5)+
+    rect(18,36,7,8,1,'green')+rect(29,32,7,12,1,'gold')+
+    rect(40,34,7,10,1,'sky')+glint('M13 14h33'),
+  laptop:()=>rect(10,11,44,34,3.5,'blue')+
+    rect(14,15,36,26,1.5,'sky')+shape('M6 46h52l4 7-5 4H7l-5-4Z','silver')+
+    shape('M23 48h18l3 4H20Z','paper','#6e8fa3',.8)+
+    wire('m20 33 8-9 7 4 9-10','#fff',2.8)+glint('M15 16h29'),
+  cap:()=>shape('M4 25 31 11l29 14-29 15Z','purple')+
+    shape('M14 34v12q17 14 34 0V34L31 44Z','blue')+
+    wire('M57 26v21','#9d692c',2.7)+circ(57,49,3.5,'gold','#b17c23',.9)+
+    glint('m16 23 15-8 14 8'),
+  attendance:()=>rect(9,8,46,47,6,'blue')+
+    rect(12,21,40,31,3,'paper')+shape('M9 14q0-6 6-6h34q6 0 6 6v11H9Z','purple')+
+    wire('M21 6v11m22-11v11','#42587d',3.1)+
+    circ(32,37,11,'green','#1d8469',1.1)+wire('m26 37 4.5 4.5 8-9','#fff',3.6)+
+    glint('M14 15h33'),
+  calendar:()=>rect(9,9,46,45,6,'blue')+
+    rect(12,22,40,29,3,'paper')+shape('M9 16q0-7 7-7h32q7 0 7 7v10H9Z','purple')+
+    wire('M21 7v11M43 7v11','#38597c',3)+
+    rect(18,32,10,9,2,'green')+rect(35,32,10,9,2,'gold')+
+    wire('m34 46 4 3 7-9','#158169',2.9),
+  teacher:()=>rect(6,13,52,36,4,'green')+
+    rect(10,17,44,28,2,'dark')+
+    wire('M21 53h22M32 49v4','#a16d35',2.5)+
+    wire('M17 26h18M17 32h13','#dffdf4',2.3)+
+    circ(44,27,4,'gold','#dfbf59',.6)+
+    shape('M41 33 32 44l-3-3 9-11Z','rose')+glint('M11 17h35'),
+  users:()=>circ(24,23,9,'gold')+circ(44,24,7,'purple')+
+    shape('M9 50q1-16 16-16t16 16v4H9Z','blue')+
+    shape('M37 40q13-11 21 6v7H44v-4q0-6-7-9Z','green')+
+    glint('M20 19q3-3 7-1'),
+  results:()=>shape('M7 13q0-5 5-5h40q5 0 5 5v40H7Z','paper')+
+    rect(14,33,9,15,2,'sky')+rect(28,25,9,23,2,'green')+
+    rect(42,17,9,31,2,'gold')+
+    wire('M12 50h43','#41677d',2)+glint('M10 13h36'),
+  banknote:()=>rect(6,17,52,33,6,'green')+
+    rect(10,21,44,25,4,'paper')+circ(32,34,9,'gold','#c38c2e',1)+
+    wire('M30 28h5m-5 6h5m-2-7v14','#9c752a',1.8)+
+    circ(15,34,2,'blue','#fff',.4)+circ(49,34,2,'blue','#fff',.4)+glint('M11 22h33'),
+  wallet:()=>rect(7,15,50,36,7,'purple')+
+    shape('M8 21V13q0-4 5-4h35v8Z','gold')+
+    rect(37,27,23,17,5,'blue')+circ(47,35,3.2,'gold','#d7a53d',.6)+
+    glint('M13 18h35'),
+  paper:()=>shape('M12 7h29l11 11v38H12Z','paper')+
+    shape('M41 7v12h11Z','blue')+wire('M20 29h25M20 36h25M20 43h17','#5796a7',2)+
+    rect(6,26,13,18,3,'gold','#a97c31',1.1)+glint('M15 11h22'),
+  exam:()=>shape('M13 7h28l10 10v39H13Z','paper')+
+    shape('M41 7v11h10Z','purple')+
+    circ(31,36,12,'green','#168669',1.1)+wire('m25 37 5 5 9-11','#fff',3.3)+
+    glint('M16 11h22'),
+  pencil:()=>shape('M10 42 45 7q3-3 6 0l7 7q3 3 0 6L23 55 7 58Z','gold')+
+    shape('m10 42 13 13-16 3Z','paper')+
+    shape('m45 7 13 13-7 7-13-13Z','purple')+
+    wire('m14 42 31-31','#fff',2.3)+circ(48,8,2,'rose','#fff',.5),
+  diary:()=>rect(12,7,43,49,4,'purple')+
+    rect(16,9,36,43,2,'paper')+shape('M12 7h10v49H12Z','blue')+
+    wire('M28 23h17M28 31h17M28 39h12','#65a0b5',2)+
+    rect(37,6,9,17,2,'gold')+glint('M18 12h29'),
+  chat:()=>shape('M8 13q0-5 5-5h36q7 0 7 7v25q0 6-6 6H24l-13 10V45q-3-2-3-5Z','blue')+
+    rect(15,18,34,20,5,'paper','#5b849c',.7)+circ(22,28,3,'green')+
+    circ(32,28,3,'gold')+circ(42,28,3,'rose')+glint('M12 12h31'),
+  library:()=>rect(9,12,11,40,3,'blue')+rect(22,8,12,44,3,'green')+
+    rect(36,14,11,38,3,'gold')+shape('M49 11h8v41h-8Z','purple')+
+    wire('M12 44h5m8-26h6m8 16h5m7 12h4','#fff',2)+glint('M12 14v16'),
+  grid:()=>rect(8,8,21,21,5,'blue')+rect(35,8,21,21,5,'green')+
+    rect(8,35,21,21,5,'gold')+rect(35,35,21,21,5,'purple')+
+    glint('M12 12h12M39 12h12M12 39h12'),
+  award:()=>circ(31,26,17,'gold','#a86e22',1.3)+circ(31,26,10,'paper','#cf9031',1)+
+    shape('m16 39-5 18 20-8 20 8-5-18Z','purple')+
+    wire('m26 26 4 4 7-9','#cb9b31',2.8)+glint('M23 14q7-4 14 0'),
+  bus:()=>rect(8,11,48,42,8,'gold')+rect(13,17,38,19,3,'sky')+
+    wire('M32 17v19','#55798b',1.6)+rect(16,41,10,5,2,'paper')+
+    rect(39,41,10,5,2,'paper')+circ(20,53,5,'dark','#344b69',.8)+
+    circ(44,53,5,'dark','#344b69',.8)+glint('M13 13h35'),
+  receipt:()=>shape('M15 7h34v49l-7-4-6 4-5-4-7 4-9-4Z','paper')+
+    rect(21,14,22,8,2,'green')+wire('M22 30h20M22 36h20M22 42h12','#6498aa',2)+
+    circ(45,45,7,'gold','#bd8d3c',1)+glint('M19 10h26'),
+  support:()=>circ(32,32,24,'blue','#285c7e',1)+circ(32,32,17,'paper','#528d9d',1)+
+    circ(32,32,9,'green','#1a866c',.8)+
+    shape('M19 15 13 9 8 14l6 7Z','gold')+
+    shape('M45 15 51 9l5 5-6 7Z','gold')+
+    glint('M19 26q3-8 11-9'),
+  sparkle:()=>shape('M31 3 39 24 61 32 40 39 32 61 24 40 3 32 24 24Z','gold')+
+    circ(49,14,5,'purple','#7043a9',.75)+
+    glint('m28 13 4 10 4-10'),
+  upload:()=>rect(8,39,48,16,4,'paper')+
+    shape('M32 6 18 25h9v19h10V25h9Z','blue')+
+    circ(49,47,3,'green','#fff',.6)+glint('M30 14v24'),
+  search:()=>circ(26,26,16,'sky','#256d9a',1.9)+
+    circ(26,26,10,'paper','#91bcd1',1.1)+
+    shape('M38 39 44 34l16 17q3 4-1 8-4 3-8-1Z','gold')+
+    glint('M18 23q3-6 9-7'),
+  settings:()=>circ(32,32,23,'purple')+circ(32,32,13,'paper')+circ(32,32,6,'blue')+
+    wire('M32 6v8M32 50v8M6 32h8m36 0h8M14 14l6 6m24 24 6 6m0-36-6 6M20 44l-6 6','#fff',2.5),
+  gears:()=>circ(32,32,23,'purple')+circ(32,32,13,'paper')+circ(32,32,6,'blue')+
+    wire('M32 6v8M32 50v8M6 32h8m36 0h8M14 14l6 6m24 24 6 6m0-36-6 6M20 44l-6 6','#fff',2.5),
+  clock:()=>circ(32,32,25,'sky')+circ(32,32,20,'paper')+
+    wire('M32 19v14l10 7','#2d698f',3.4)+circ(32,32,3,'gold','#be8e38',.7)+glint('M18 15q10-7 20-3')
+ };
+ const premiumIllustratedSvg=(key)=>{
+   if(!Object.prototype.hasOwnProperty.call(scenes,key))return null;
+   const seq=++iconSequence;
+   const prefix='en3d-'+seq+'-';
+   const raw=scenes[key]().replace(/url\(#G-([a-z]+)\)/g,(_,color)=>'url(#'+prefix+color+')');
+   const gradients=[
+    ['blue','#d8f5ff','#60b7ff','#335ad1'],
+    ['sky','#eafaff','#87dbfb','#238fdb'],
+    ['green','#eafff5','#55e5bb','#069473'],
+    ['purple','#faf2ff','#bc96f6','#7650ce'],
+    ['gold','#fff9dc','#ffd16b','#e7a12c'],
+    ['rose','#fff1f4','#fb98b3','#ce5888'],
+    ['paper','#fff','#f1f8ff','#bad4e7'],
+    ['silver','#f7fbff','#cad9e6','#829bb1'],
+    ['dark','#7996ac','#325879','#243d5f']
+   ].map(([name,light,mid,deep])=>
+     '<linearGradient id="'+prefix+name+'" x1=".03" y1=".01" x2=".94" y2=".95">'+
+     '<stop offset="0" stop-color="'+light+'"/><stop offset=".49" stop-color="'+mid+'"/>'+
+     '<stop offset="1" stop-color="'+deep+'"/></linearGradient>').join('');
+   return '<svg class="edu-vector-icon edu-illustrated-icon edu-icon-premium-3d" viewBox="0 0 64 64" xmlns="'+NS+
+     '" aria-hidden="true" focusable="false"><defs>'+gradients+'</defs>'+
+     '<ellipse cx="32" cy="59" rx="24" ry="3.4" fill="#22435c" opacity=".17"/>'+
+     raw+'</svg>';
+ };
+
  const svg=key=>{
+   const premium=premiumIllustratedSvg(key);
+   if(premium)return premium;
    const art=A[key]?A[key]():'<g class="ei-fallback">'+(P[key]||P.grid)+'</g>'+iC(18.9,5.1,1.6,'yellow');
    const uid='enicon-'+(++iconSequence);
    const grad=(suffix,top,mid,base,deep)=>
