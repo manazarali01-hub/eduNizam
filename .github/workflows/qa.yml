@@ -49,6 +49,11 @@ jobs:
             node /tmp/edunizam-pw/node_modules/playwright/cli.js install --with-deps chromium
           fi
           echo "PLAYWRIGHT_MODULE=file:///tmp/edunizam-pw/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+      - name: Build optimized CC0 clay icon assets
+        shell: bash
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 scripts/build-clay-icons.py
       - name: Run rendered mobile/layout regression checks
         run: node scripts/browser-layout-check.mjs
       - name: Run Teacher Student Parent workflow regressions

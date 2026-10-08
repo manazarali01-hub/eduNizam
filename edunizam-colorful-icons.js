@@ -325,10 +325,63 @@
      '<circle cx="6.3" cy="5.1" r=".74" class="ei-glimmer"/></svg>';
  };
 
+
+ /* Actual 192px rendered soft clay art. SVG remains as a dependable fallback. */
+ const clayMarkup=key=>svg(key)+
+  '<img class="edu-clay-raster" src="assets/icons/clay-'+encodeURIComponent(key)+
+  '.webp" alt="" role="presentation" aria-hidden="true" draggable="false" decoding="async" loading="lazy">';
+ function syncClayRenders(){
+  document.querySelectorAll('img.edu-clay-raster:not([data-clay-bound])').forEach(img=>{
+   img.dataset.clayBound='1';
+   const onLoad=()=>{if(img.naturalWidth>0)img.classList.add('edu-clay-ready')};
+   if(img.complete)onLoad();
+   img.addEventListener('load',onLoad,{once:true});
+  });
+ }
+ const clayCss=String.raw`
+ :is(.premium-nav-icon,.premium-dock-icon,.premium-stat-icon,.role-quick-icon,
+ .edu-action-icon,.edu-search-icon,.edu-group-icon,.edu-chip-icon,
+ .edu-auth-role-icon,.edu-guest-tab-icon,.edu-learning-card-icon,
+ .edu-campus-icon,.feature-icon,.edu-button-icon,[data-edu-icon-key]){
+ position:relative!important;isolation:isolate}
+ .edu-clay-raster{
+ position:absolute!important;inset:0!important;margin:auto!important;z-index:5!important;
+ display:block!important;width:97%!important;height:97%!important;max-width:none!important;
+ max-height:none!important;object-fit:contain!important;opacity:0!important;
+ pointer-events:none!important;user-select:none!important;background:none!important;
+ box-shadow:none!important;border:0!important;transition:opacity .16s ease!important}
+ .edu-clay-raster.edu-clay-ready{opacity:1!important}
+ :is(.premium-nav-icon,.premium-dock-icon,.premium-stat-icon,.role-quick-icon,
+ .edu-action-icon,.edu-search-icon,.edu-group-icon,.edu-chip-icon,
+ .edu-auth-role-icon,.edu-guest-tab-icon,.edu-learning-card-icon,
+ .edu-campus-icon,.feature-icon,.edu-button-icon,[data-edu-icon-key]):has(>.edu-clay-ready)>.edu-vector-icon{
+ opacity:0!important}
+ body.page-home .quick-access-card .edu-button-icon,
+ body.app-page.page-app :is(.premium-nav-icon,.premium-dock-icon,.premium-stat-icon,.edu-group-icon),
+ body.auth-page .edu-auth-role-icon,
+ body.learning-sky :is(.edu-learning-card-icon,.edu-guest-tab-icon){
+ overflow:visible!important;
+ background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(222,249,239,.06))!important;
+ box-shadow:none!important;border-color:transparent!important}
+ body.page-home .quick-access-card .quick-actions .edu-button-icon{
+ width:55px!important;height:55px!important;min-width:55px!important;flex:0 0 55px!important;padding:0!important}
+ body.app-page.page-app .premium-nav-icon,
+ body.app-page.page-app .nav-group>summary .edu-group-icon{
+ width:43px!important;height:43px!important;min-width:43px!important;flex-basis:43px!important}
+ @media(max-width:440px){
+ body.page-home .quick-access-card .quick-actions .edu-button-icon{
+ width:48px!important;height:48px!important;min-width:48px!important;flex-basis:48px!important}}
+ `;
+ function installClayStyle(){
+  if(document.getElementById('edunizam-real-clay-style'))return;
+  const style=document.createElement('style');style.id='edunizam-real-clay-style';
+  style.textContent=clayCss;document.head.appendChild(style);
+ }
+
  const paint=(el,key,tone)=>{
    if(!el||!P[key]||el.dataset.eduIconKey===key&&el.dataset.eduTone===tone)return;
    el.dataset.eduIconKey=key;el.dataset.eduTone=tone;
-   el.innerHTML=svg(key);
+   el.innerHTML=clayMarkup(key);
  };
  const getView=(v)=>views[v]||['grid','teal'];
  function workspace(){
@@ -372,7 +425,7 @@
      const item=document.querySelector(sel);if(!item||item.querySelector('.edu-chip-icon'))return;
      const first=item.firstChild;
      if(first?.nodeType===Node.TEXT_NODE)first.textContent=first.textContent.replace(/^[✦🏫📅]+\s*/u,'');
-     const chip=document.createElement('span');chip.className='edu-chip-icon';chip.dataset.eduTone=tone;chip.innerHTML=svg(key);
+     const chip=document.createElement('span');chip.className='edu-chip-icon';chip.dataset.eduTone=tone;chip.innerHTML=clayMarkup(key);
      item.prepend(chip);
    });
    const searchIcon=document.querySelector('#premiumSearchTrigger>span:first-child');
@@ -408,13 +461,13 @@
    document.querySelectorAll('.tabs .tab[data-tab]').forEach(a=>{
      if(a.querySelector('.edu-guest-tab-icon'))return;
      const [key,tone]=tabs[a.dataset.tab]||['grid','blue'];
-     const span=document.createElement('span');span.className='edu-guest-tab-icon';span.dataset.eduTone=tone;span.innerHTML=svg(key);a.prepend(span);
+     const span=document.createElement('span');span.className='edu-guest-tab-icon';span.dataset.eduTone=tone;span.innerHTML=clayMarkup(key);a.prepend(span);
    });
    document.querySelectorAll('#homeCards [data-home-open]').forEach(a=>{
      if(a.querySelector('.edu-learning-card-icon'))return;
      const tab=a.dataset.homeOpen;
      const [key,tone]=tabs[tab]||['study','teal'];
-     const b=document.createElement('span');b.className='edu-learning-card-icon';b.dataset.eduTone=tone;b.innerHTML=svg(key);
+     const b=document.createElement('span');b.className='edu-learning-card-icon';b.dataset.eduTone=tone;b.innerHTML=clayMarkup(key);
      const title=a.querySelector('h3');if(title)title.before(b);
    });
    const search=document.querySelector('.searchbox>span:first-child');
@@ -431,7 +484,7 @@
    if(!el||el.querySelector(':scope > .edu-button-icon'))return;
    const mark=document.createElement('span');
    mark.className='edu-button-icon';mark.dataset.eduTone=tone;
-   mark.setAttribute('aria-hidden','true');mark.innerHTML=svg(key);
+   mark.setAttribute('aria-hidden','true');mark.innerHTML=clayMarkup(key);
    el.prepend(mark);
  };
  function home(){
@@ -446,10 +499,11 @@
    ];
    quick.forEach(([selector,key,tone])=>actionIcon(document.querySelector(selector),key,tone));
  }
- function run(){workspace();authentication();learning();home();}
+ function run(){workspace();authentication();learning();home();syncClayRenders();}
  let scheduled=false;
  function requestRun(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;run();});}
  function boot(){
+   installClayStyle();
    run();
    const observer=new MutationObserver(mutations=>{
      if(mutations.some(m=>m.type==='childList'&&Array.from(m.addedNodes).some(n=>n.nodeType===1 && !n.classList?.contains('edu-vector-icon'))))requestRun();
