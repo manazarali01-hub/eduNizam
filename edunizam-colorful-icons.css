@@ -343,3 +343,34 @@ body.app-page.page-app #dashboard .edu-button-icon{width:32px!important;height:3
 
 /* Preserve the native hidden state of the optional install control. */
 body.page-home .quick-access-card .quick-actions button[hidden]{display:none!important}
+
+/* Mobile drawer tap stability v6.
+   Long expanded groups must remain in their own flow boxes: previously a
+   neighbouring <summary> could paint over a Help & Support tap target after
+   scrollIntoView on a narrow touchscreen.  This is scoped to the drawer;
+   summary buttons remain clickable for normal expand/collapse. */
+@media(max-width:950px){
+ body.app-page.page-app .sidebar #nav{
+   scroll-behavior:auto!important;
+   overflow-anchor:none;
+ }
+ body.app-page.page-app .sidebar #nav>details.nav-group{
+   position:relative!important;
+   display:block!important;
+   isolation:isolate!important;
+   overflow:hidden!important;
+   contain:layout!important;
+ }
+ body.app-page.page-app .sidebar #nav>details.nav-group>summary{
+   position:relative!important;
+   z-index:1!important;
+ }
+ body.app-page.page-app .sidebar #nav>details.nav-group[open]>.nav-group-items{
+   position:relative!important;
+   z-index:2!important;
+ }
+ body.app-page.page-app .sidebar #nav .nav-item{
+   position:relative!important;
+   scroll-margin-block:12px!important;
+ }
+}
