@@ -350,6 +350,48 @@ try{
   }catch(e){pushFailure('installed PWA launch','Legacy installed app launch/home/login interaction failed',String(e.message||e));}
   finally{await launchPage.close();}
 
+  // Color icon rendered contract: the original 48 route controls remain intact
+  // and get distinct, colorful SVGs, while click handlers still fire normally.
+  const iconPage=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+  try{
+    const source=fs.readFileSync(path.join(root,'app.html'),'utf8');
+    const nav=source.match(/<nav id="nav"[\\s\\S]*?<\\/nav>/)?.[0]||'';
+    if(!nav)pushFailure('color icon contract','Sidebar navigation markup missing from app.html');
+    else {
+      const stats=['statStudents','statPresent','statFees','statPending'].map(id=>'<article class="stat"><strong id="'+id+'">0</strong></article>').join('');
+      await iconPage.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="app-page page-app"><aside class="sidebar"><div id="sidebarInstitute"></div>'+nav+'</aside><header class="topbar"><div class="topbar-actions"></div></header><div id="dashboard">'+stats+'</div></body></html>',{waitUntil:'domcontentloaded'});
+      await iconPage.addStyleTag({path:path.join(root,'premium-ui.css')});
+      await iconPage.addStyleTag({path:path.join(root,'edunizam-colorful-icons.css')});
+      await iconPage.addScriptTag({path:path.join(root,'premium-ui.js')});
+      await iconPage.addScriptTag({path:path.join(root,'edunizam-colorful-icons.js')});
+      await iconPage.waitForFunction(()=>document.querySelectorAll('#nav .premium-nav-icon[data-edu-icon-key] svg').length>=45,{timeout:7000});
+      const icons=await iconPage.evaluate(()=>{
+        const nodes=[...document.querySelectorAll('#nav .nav-item[data-view]')];
+        const symbols=nodes.map(x=>x.querySelector('.premium-nav-icon .edu-vector-icon')?.innerHTML||'');
+        const tones=nodes.map(x=>x.querySelector('.premium-nav-icon')?.dataset.eduTone||'');
+        const colors=nodes.map(x=>getComputedStyle(x.querySelector('.premium-nav-icon')).color);
+        const gradient=getComputedStyle(nodes[0].querySelector('.premium-nav-icon')).backgroundImage;
+        const groupCount=document.querySelectorAll('#nav .edu-group-icon svg').length;
+        const dockCount=document.querySelectorAll('#premiumMobileDock .premium-dock-icon svg').length;
+        const statCount=document.querySelectorAll('.premium-stat-icon svg').length;
+        let clicks=0;
+        const button=document.querySelector('#nav .nav-item[data-view="paperbuilder"]');
+        button.addEventListener('click',()=>{clicks++},{once:true});
+        button.click();
+        return {count:nodes.length,svgCount:symbols.filter(Boolean).length,uniqueIcons:new Set(symbols).size,
+          uniqueTones:new Set(tones).size,uniqueColors:new Set(colors).size,
+          groupCount,dockCount,statCount,clicks,gradient,
+          labelsPreserved:nodes.every(x=>!!x.querySelector('.premium-nav-label')?.textContent.trim()&&!!x.dataset.view)};
+      });
+      if(icons.count!==48||icons.svgCount!==48||icons.uniqueIcons<32||icons.uniqueTones<6||
+         icons.uniqueColors<6||icons.groupCount<7||icons.dockCount<3||icons.statCount<4||
+         icons.clicks!==1||!icons.labelsPreserved||!icons.gradient.includes('gradient'))
+        pushFailure('color icon contract','48 colorful semantic icons, group badges, dock icons or click handlers regressed',JSON.stringify(icons));
+      else console.log('Color icon contract PASS: '+JSON.stringify(icons));
+    }
+  }catch(e){pushFailure('color icon contract','Rendered color icon regression',String(e.message||e));}
+  finally{await iconPage.close();}
+
   // Guest/public learning runtime: no login, school selection, or private workspace may be required.
   const guestPage=await browser.newPage({
     javaScriptEnabled:true,
