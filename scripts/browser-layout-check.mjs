@@ -176,7 +176,7 @@ try{
           if(result.home.navHeight>175)pushFailure(scope,'Homepage mobile navigation consumes too much vertical space',Math.round(result.home.navHeight)+'px');
           if((result.home.learningColors||[]).length<9)pushFailure(scope,'Homepage featured learning card labels are missing');
           for(const item of result.home.learningColors||[]){
-            const channels=(item.color.match(/[\\d.]+/g)||[]).slice(0,3).map(Number);
+            const channels=(item.color.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
             if(channels.length===3&&channels[0]*.2126+channels[1]*.7152+channels[2]*.0722>145){
               pushFailure(scope,'Homepage Learning Hub text is too pale to read',JSON.stringify(item));
             }
