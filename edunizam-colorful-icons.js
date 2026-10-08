@@ -136,11 +136,37 @@
    compass:()=>iC(12,12,9.8,'light')+iP('m15.7 8.3-2.1 5.3-5.3 2.1 2.1-5.3Z','primary'),
    check:()=>iC(12,12,9.7,'primary')+iP('m6.8 12 3.4 3.5 6.8-7','shine-line')
  };
+ /* v7: Each semantic illustration has its own paint definitions. Tone variables
+  * are inherited by SVG gradient stops; distinct local IDs avoid collisions
+  * between menu, dock, dashboard, guest, and login instances. */
+ let iconSequence=0;
  const svg=key=>{
    const art=A[key]?A[key]():'<g class="ei-fallback">'+(P[key]||P.grid)+'</g>'+iC(18.9,5.1,1.6,'yellow');
-   return '<svg class="edu-vector-icon edu-illustrated-icon" viewBox="0 0 24 24" fill="none" xmlns="'+NS+'" aria-hidden="true" focusable="false">'+
-     '<circle cx="12" cy="12" r="10.85" class="ei-disc"/>'+art+
-     '<circle cx="6.3" cy="5.1" r=".8" class="ei-glimmer"/></svg>';
+   const uid='enicon-'+(++iconSequence);
+   const grad=(suffix,top,mid,base,deep)=>
+     '<linearGradient id="'+uid+'-'+suffix+'" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">'+
+     '<stop offset="0" style="stop-color:'+top+'"/>'+
+     '<stop offset=".28" style="stop-color:'+mid+'"/>'+
+     '<stop offset=".67" style="stop-color:'+base+'"/>'+
+     '<stop offset="1" style="stop-color:'+deep+'"/></linearGradient>';
+   const v=(name)=>'var(--'+name+')';
+   const mix=(color,pct,withColor)=>'color-mix(in srgb,'+v(color)+' '+pct+'%,'+withColor+')';
+   const defs='<defs>'+
+     grad('main','#fff',mix('ei-primary',69,'white'),v('ei-primary'),mix('ei-primary',72,v('ei-ink')))+
+     grad('accent','#fff7e3',mix('ei-second',78,'white'),v('ei-second'),mix('ei-second',76,v('ei-ink')))+
+     grad('paper','#fff',v('ei-light'),mix('ei-bright',58,v('ei-light')),mix('ei-bright',70,v('ei-ink')))+
+     grad('gold','#fff9c2','#ffe376','#ffcd48','#e7a729')+
+     '<filter id="'+uid+'-depth" x="-35%" y="-35%" width="170%" height="185%"><feDropShadow dx=".2" dy=".7" stdDeviation=".45" flood-color="#14334a" flood-opacity=".24"/></filter>'+
+     '</defs>';
+   const enriched=art.replace(/class="ei-(primary|secondary|light|yellow)"/g,(_,kind)=>{
+     const suffix={primary:'main',secondary:'accent',light:'paper',yellow:'gold'}[kind];
+     return 'class="ei-'+kind+'" style="fill:url(#'+uid+'-'+suffix+')!important"';
+   });
+   return '<svg class="edu-vector-icon edu-illustrated-icon" viewBox="0 0 24 24" fill="none" xmlns="'+NS+'" aria-hidden="true" focusable="false">'+defs+
+     '<circle cx="12" cy="12" r="10.85" class="ei-disc"/>'+
+     '<g filter="url(#'+uid+'-depth)">'+enriched+'</g>'+
+     '<path d="M4 6.6c1.25-2.4 3.15-3.65 5.8-4.3" class="ei-glass-arc"/>'+
+     '<circle cx="6.3" cy="5.1" r=".74" class="ei-glimmer"/></svg>';
  };
 
  const paint=(el,key,tone)=>{
