@@ -291,3 +291,31 @@ body.app-page.page-app .sidebar :is(.nav-item,.sidebar-wordmark strong,.sidebar-
   background-color:rgba(247,255,250,.80)!important;
  }
 }
+
+
+/* Browser-QA confirmed legacy #dashboard .cards .stat:nth-child rules still
+   won the cascade. Match ID/child specificity and remove every opaque gradient
+   on dashboard counters, direct feature cards and two-column cards. */
+body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(n),
+body.app-page.page-app .main .view.active>.card:nth-of-type(n),
+body.app-page.page-app .main .view.active>.cards>.card:nth-child(n),
+body.app-page.page-app .main .view.active>.grid-2>.card:nth-child(n){
+ background:linear-gradient(130deg,rgba(255,255,255,.63),rgba(237,252,246,.48))!important;
+ background-color:rgba(250,255,252,.19)!important;
+ border:1.5px solid rgba(48,144,113,.62)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+ box-shadow:var(--v5-shine)!important;
+}
+body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(4n+2){border-color:var(--v5-green)!important}
+body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(4n+3){border-color:var(--v5-gold)!important}
+body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(4n){border-color:var(--v5-lilac)!important}
+@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
+ body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(n),
+ body.app-page.page-app .main .view.active>.card:nth-of-type(n),
+ body.app-page.page-app .main .view.active>.cards>.card:nth-child(n),
+ body.app-page.page-app .main .view.active>.grid-2>.card:nth-child(n){
+  -webkit-backdrop-filter:blur(6px) saturate(122%)!important;
+  backdrop-filter:blur(6px) saturate(122%)!important;
+ }
+}
