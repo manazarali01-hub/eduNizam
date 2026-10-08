@@ -210,7 +210,8 @@ if(/querySelectorAll\(['"]button\[disabled\]['"]\)/.test(reliabilitySafety)) fai
 for(const page of ['index.html','login.html','app.html','learn.html','admission.html','about.html','features.html','learning-resources-pakistan.html','online-school-admissions.html','privacy.html','school-management-system-pakistan.html']){
   const html=read(page);
   for(const ref of [...html.matchAll(/(?:pwa-install|system-auto-update)\.js\?v=([A-Za-z0-9._-]+)/g)].map(m=>m[1])){
-    if(ref!=='20261008-natural-glass-v31') fail.push('Stale runtime cache-busting token on '+page+': '+ref);
+    if(!['20261008-natural-glass-v31','20261008-coldstart-v36'].includes(ref)) fail.push('Unknown runtime cache-busting token on '+page+': '+ref);
+    if(page==='index.html' && ref!=='20261008-coldstart-v36') fail.push('Homepage must load current PWA cold-start controllers: '+ref);
   }
 }
 const appExternalScriptTags=[...index.matchAll(/<script[^>]+src=["'][^"']+["'][^>]*>/g)].map(m=>m[0]);
@@ -386,7 +387,9 @@ for(const page of ['index.html','login.html','app.html','learn.html','admission.
 }
 if(!read('home-gold.css').includes('EduNizam homepage · premium product showcase')) fail.push('Canonical premium homepage layer missing.');
 if(!read('home-gold.css').includes('.gold-home .public-hero.premium-public-hero')) fail.push('Premium homepage hero styling missing.');
-if(!read('index.html').includes('pexels-photo-36159720.jpeg')) fail.push('Homepage licensed student visual missing.');
+if(!read('index.html').includes('photo-1509062522246-3755977927d7') ||
+    !read('assets/IMAGE-CREDITS.md').includes('students-in-classroom-with-teacher-presenting'))
+  fail.push('Homepage licensed classroom visual missing or provenance undocumented.');
 
 const premiumUi=read('premium-ui.css');
 if(!premiumUi.includes('Canonical Premium Workspace')) fail.push('Canonical premium workspace layer missing.');
