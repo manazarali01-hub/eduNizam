@@ -115,7 +115,7 @@
    receipt:()=>iP('M5 2.7h14v18.5l-3.5-2-3.5 2-3.5-2-3.5 2Z','light')+iP('M9 7.5h6m-6 3.8h6m-6 3.9h3','ink')+iC(17,16,2,'yellow'),
    laptop:()=>iR(4,3.8,16,12.6,1.5,'primary')+iR(6,5.9,12,8.4,.5,'light')+iP('M2 20h20l-2-3.6H4Z','secondary')+iP('M10 18.5h4','ink'),
    pin:()=>iP('M12 22s8.5-8.4 8.5-14a8.5 8.5 0 0 0-17 0c0 5.6 8.5 14 8.5 14Z','primary')+iC(12,8.6,3.1,'yellow'),
-   upload:()=>iP('M4 15v5h16v-5','ink')+iP('M12 17V3m-5 5 5-5 5 5','accentline')+iR(8.2,12.3,7.6,8.2,1,'light'),
+   upload:()=>iR(4,15,16,5,1,'light')+iP('M4 15v5h16v-5','ink')+iP('M12 17V3m-5 5 5-5 5 5','accentline'),
    search:()=>iC(10.5,10.5,6.4,'light')+iP('m15.3 15.3 5.4 5.4','accentline')+iC(10.5,10.5,2.4,'yellow'),
    up:()=>iP('M12 20V3M5.7 9.5 12 3l6.3 6.5','shine-line')+iC(12,14.5,1.2,'yellow'),
    shield:()=>iP('M12 2.2 21 6v6c0 5.6-3.6 8.3-9 10-5.4-1.7-9-4.4-9-10V6Z','primary')+iP('m7.7 11.9 3.1 3.2 5.7-6','shine-line'),
@@ -124,6 +124,14 @@
    door:()=>iP('M5 21V4L19 2v19Z','light')+iP('M5 4 19 2v19H5Z','primary')+iC(15,12,1.2,'yellow'),
    diary:()=>iR(4,2.3,16.4,19.3,2,'light')+iR(4,2.3,4.5,19.3,1,'primary')+iP('M11 8h6m-6 4h6m-6 4h4','ink'),
    gears:()=>iC(12,12,8.7,'secondary')+iC(12,12,4.8,'light')+iC(12,12,1.8,'primary')+iP('M12 1v3m0 16v3M1 12h3m16 0h3M4.4 4.4l2.2 2.2m10.8 10.8 2.2 2.2m0-15.2-2.2 2.2M6.6 17.4l-2.2 2.2','ink'),
+
+   lesson:()=>iR(2.5,4,19,13.7,2,'primary')+iR(4.7,6.1,14.6,9.4,1,'light')+iP('M9 21l3-3.3 3 3.3M7.5 9h9m-9 3h6','ink')+iC(18,12,1.7,'secondary'),
+   package:()=>iP('M12 2 21 7.1v10L12 22l-9-4.9v-10Z','primary')+iP('m3 7.1 9 5.3 9-5.3','secondary')+iP('M12 12.4V22M7.3 4.5l9.4 5.2','ink')+iP('m14.3 3.3 4.2 2.4-9 5.1-4.2-2.4','light'),
+   megaphone:()=>iP('M3 10h4.6L19 4.5v15L7.6 14H3Z','primary')+iP('M6.2 14.4 8 21h3l-1.5-5.8','secondary')+iP('M19.2 8.3a4.4 4.4 0 0 1 0 7.4','ink')+iC(20.9,5.5,1.4,'yellow'),
+   study:()=>iP('M12 6C10.1 4 6.3 3 3 4.2V20c3.9-1 6.9-.2 9 2Z','primary')+iP('M12 6c2-2 5.6-3 9-1.8V20c-4-1-7-.2-9 2Z','secondary')+iP('M12 6v16M5.7 8h3.6m-3.6 3h3.6m5.3-3h3.4m-3.4 3h3.4','ink'),
+   landmark:()=>iP('m2 8.2 10-5.6 10 5.6Z','primary')+iP('M4 9.5h16M2 21h20','ink')+iR(4.7,10,3,9.4,.6,'light')+iR(10.5,10,3,9.4,.6,'secondary')+iR(16.3,10,3,9.4,.6,'light'),
+   route:()=>iC(5.3,5,2.7,'primary')+iC(18.8,19,2.7,'secondary')+iP('M8.1 5H16a4.2 4.2 0 0 1 0 8.4H9a4.2 4.2 0 0 0 0 8.4h6.6','accentline'),
+   wrench:()=>iP('M19 3.3a6.2 6.2 0 0 0-7.7 7.5l-7 6.4a3.2 3.2 0 0 0 4.5 4.5l6.5-7a6.2 6.2 0 0 0 7.4-7.7l-4.4 4.2-4.2-4.2Z','primary')+iC(6.4,18.1,1.1,'yellow'),
    arrows:()=>iP('M4 8h16m0 0-5-5m5 5-5 5M20 16H4m0 0 5-5m-5 5 5 5','accentline'),
    compass:()=>iC(12,12,9.8,'light')+iP('m15.7 8.3-2.1 5.3-5.3 2.1 2.1-5.3Z','primary'),
    check:()=>iC(12,12,9.7,'primary')+iP('m6.8 12 3.4 3.5 6.8-7','shine-line')

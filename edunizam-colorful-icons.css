@@ -304,3 +304,9 @@ body.app-page.page-app #dashboard>.cards>.stat>.premium-stat-meta{
   transform:translateY(-2px) scale(1.04);
  }
 }
+
+/* KPI numbers retain distinct semantic colours; decorative text is never faded. */
+body.app-page.page-app #dashboard>.cards>.stat:nth-child(1)>strong{color:#176cb1!important;-webkit-text-fill-color:#176cb1!important}
+body.app-page.page-app #dashboard>.cards>.stat:nth-child(2)>strong{color:#087f5d!important;-webkit-text-fill-color:#087f5d!important}
+body.app-page.page-app #dashboard>.cards>.stat:nth-child(3)>strong{color:#a66a14!important;-webkit-text-fill-color:#a66a14!important}
+body.app-page.page-app #dashboard>.cards>.stat:nth-child(4)>strong{color:#7751a9!important;-webkit-text-fill-color:#7751a9!important}
