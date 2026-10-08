@@ -1,4 +1,4 @@
-const CACHE='edunizam-v266-visible-colorful-forms-v2'
+const CACHE='edunizam-v267-mobile-layout-repair-v1'
 const CORE=[
   './',
   './index.html',
@@ -55,6 +55,7 @@ const CORE=[
   './learning-sky.css',
   './home-gold.css',
   './home-mobile-200-clarity-oct08.css',
+  './mobile-layout-repair-oct08.css',
   './home-premium.js',
   './learn.html',
   './past-papers-data.js',
@@ -142,8 +143,8 @@ self.addEventListener('activate',event=>{
       try{
         const url=new URL(client.url);
         if(url.origin!==self.location.origin || !['/','/index.html'].includes(url.pathname))return;
-        if(url.searchParams.get('edu_visual')==='200v2')return;
-        url.searchParams.set('edu_visual','200v2');
+        if(url.searchParams.get('edu_visual')==='mobilefix-v1')return;
+        url.searchParams.set('edu_visual','mobilefix-v1');
         await client.navigate(url.href);
       }catch(_){}
     }));
