@@ -1126,7 +1126,7 @@ for(const token of ['.page-home .public-links{','.page-home .hero-copy h1','.pag
 const realGlass=read('true-photo-glass-v5.css');
 for(const page of htmlFiles){
  const source=read(page);
- const tag=page==='index.html'?'true-photo-glass-v5.css?v=20261008-trueglass-v51':'true-photo-glass-v5.css?v=20261008-trueglass5';
+ const tag='true-photo-glass-v5.css?v=20261008-cool-nature-v52';
  if(!source.includes(tag))fail.push('True glass V5 is missing from '+page);
  const linkAt=source.lastIndexOf('true-photo-glass-v5.css');
  const previous=source.lastIndexOf('reference-reconstruction.css');
@@ -1151,7 +1151,12 @@ for(const sel of [
 ]){
  if(!realGlass.includes(sel))fail.push('V5.1 photo-readable heading plate missing: '+sel);
 }
-if(!read('index.html').includes('true-photo-glass-v5.css?v=20261008-trueglass-v51'))fail.push('Homepage V5.1 cache refresh is missing.');
+// V5.2 natural palette + shared version are now the final release contract.
+if(!read('index.html').includes('true-photo-glass-v5.css?v=20261008-cool-nature-v52'))fail.push('Homepage V5.2 cache refresh is missing.');
+for(const marker of ['V5.2 · COOL NATURE','--v52-mist:','--v52-sun:','--v52-forest:','--v5-glass:linear-gradient(135deg','body.app-page.page-app .sidebar .sidebar-wordmark strong']){
+ if(!realGlass.includes(marker))fail.push('Cool Nature V5.2 token or styling missing: '+marker);
+}
+if(!read('assets/IMAGE-CREDITS.md').includes('Cool Nature Glass V5.2'))fail.push('Cool Nature V5.2 image provenance missing.');
 
 
 if(fail.length){
