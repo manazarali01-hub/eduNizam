@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='20261008-coldstart-launch-v36', KEY='edunizam_system_build';
+const BUILD='20261008-coldstart-v36', KEY='edunizam_system_build';
 const ACTIVE_CACHE='edunizam-v268-coldstart-launch-v36';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
