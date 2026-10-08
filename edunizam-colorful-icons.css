@@ -197,3 +197,110 @@ body.gold-home.page-home .experience-strip article .feature-icon .edu-vector-ico
    width:23px!important;height:23px!important;
  }
 }
+
+
+/* 2026-10-08 v2 — illustrated multicolour icon system.
+   High-chroma artwork, not pale single-stroke glyphs. Text contrast, tap targets
+   and route/role event listeners are unchanged. */
+[data-edu-tone="green"]{--ei-primary:#22c675;--ei-second:#ffbd38;--ei-ink:#155542;--ei-light:#e8fff2;--ei-bright:#d9fff0;--ei-halo:#58d79f}
+[data-edu-tone="teal"]{--ei-primary:#17b9ae;--ei-second:#ffbf50;--ei-ink:#144d57;--ei-light:#e5fffb;--ei-bright:#c6fff5;--ei-halo:#68e3cc}
+[data-edu-tone="sky"]{--ei-primary:#42aff6;--ei-second:#ffb23f;--ei-ink:#184d70;--ei-light:#f0faff;--ei-bright:#b4eaff;--ei-halo:#74c6f9}
+[data-edu-tone="blue"]{--ei-primary:#5279f0;--ei-second:#ffd05c;--ei-ink:#273b76;--ei-light:#f0f4ff;--ei-bright:#ccd7ff;--ei-halo:#94a9ff}
+[data-edu-tone="violet"]{--ei-primary:#aa78ed;--ei-second:#ffbd5e;--ei-ink:#50357d;--ei-light:#faf2ff;--ei-bright:#e7caff;--ei-halo:#c8a5f6}
+[data-edu-tone="amber"]{--ei-primary:#ffb12c;--ei-second:#57c7e3;--ei-ink:#725020;--ei-light:#fff8e8;--ei-bright:#ffe6ae;--ei-halo:#ffd16b}
+[data-edu-tone="rose"]{--ei-primary:#f77ca5;--ei-second:#65c9cf;--ei-ink:#793750;--ei-light:#fff0f4;--ei-bright:#ffd4e0;--ei-halo:#ffadc4}
+.edu-illustrated-icon{display:block!important;overflow:visible!important;pointer-events:none!important;filter:drop-shadow(0 1px 1px rgba(9,52,62,.16))}
+.edu-illustrated-icon :is(.ei-primary,.ei-secondary,.ei-light,.ei-yellow,.ei-shine,.ei-disc,.ei-glimmer){stroke-linejoin:round;stroke-linecap:round}
+.edu-illustrated-icon .ei-disc{fill:rgba(255,255,255,.33)!important;stroke:rgba(255,255,255,.66)!important;stroke-width:.65}
+.edu-illustrated-icon .ei-primary{fill:var(--ei-primary,#30b99b)!important;stroke:var(--ei-ink,#244e55)!important;stroke-width:1.2}
+.edu-illustrated-icon .ei-secondary{fill:var(--ei-second,#ffbf50)!important;stroke:var(--ei-ink,#244e55)!important;stroke-width:1.15}
+.edu-illustrated-icon .ei-light{fill:var(--ei-light,#fff)!important;stroke:var(--ei-ink,#244e55)!important;stroke-width:1.15}
+.edu-illustrated-icon .ei-yellow{fill:#ffdc60!important;stroke:var(--ei-ink,#244e55)!important;stroke-width:.95}
+.edu-illustrated-icon .ei-shine{fill:#fff!important;stroke:none!important}
+.edu-illustrated-icon .ei-ink{fill:none!important;stroke:var(--ei-ink,#244e55)!important;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.edu-illustrated-icon .ei-accentline{fill:none!important;stroke:var(--ei-ink,#244e55)!important;stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round}
+.edu-illustrated-icon .ei-check{fill:none!important;stroke:#087c50!important;stroke-width:2.65;stroke-linecap:round;stroke-linejoin:round}
+.edu-illustrated-icon .ei-shine-line{fill:none!important;stroke:white!important;stroke-width:2.45;stroke-linecap:round;stroke-linejoin:round}
+.edu-illustrated-icon .ei-glimmer{fill:white!important;stroke:none!important;opacity:.94}
+.edu-illustrated-icon .ei-fallback{stroke:var(--ei-ink,#244e55)!important;stroke-width:2.3;stroke-linejoin:round;stroke-linecap:round;fill:none!important}
+
+/* Strong, lustrous multi-pigment icons instead of washed-out tiles.
+   Border/shadows intentionally remain modest to avoid clutter. */
+body.app-page.page-app :is(.premium-nav-icon,.premium-stat-icon,.premium-dock-icon,.role-quick-icon,.edu-action-icon,.edu-search-icon),
+body.app-page.page-app .nav-group>summary .edu-group-icon,
+body.auth-page .edu-auth-role-icon,
+body.learning-sky :is(.edu-guest-tab-icon,.edu-learning-card-icon),
+body.page-home .experience-strip .feature-icon{
+ background:linear-gradient(145deg,#fff 0%,var(--ei-bright,#d8fff2) 30%,var(--edu-icon-mid,#b7ecdc) 75%,var(--ei-halo,#76dbb4) 155%)!important;
+ border:1.5px solid var(--edu-icon-ring,#49bfa6)!important;
+ box-shadow:inset 0 2px 1px rgba(255,255,255,.85),inset 0 -2px 2px rgba(21,74,80,.09),0 6px 15px rgba(17,68,73,.18)!important;
+ color:var(--ei-ink,#244e55)!important;
+ -webkit-text-fill-color:var(--ei-ink,#244e55)!important;
+}
+body.app-page.page-app .premium-stat-icon{
+ width:54px!important;height:54px!important;min-width:54px!important;
+ border-radius:17px!important;
+}
+body.app-page.page-app .premium-stat-icon .edu-illustrated-icon{
+ width:40px!important;height:40px!important;
+}
+body.app-page.page-app .premium-nav-icon{width:38px!important;height:38px!important;min-width:38px!important;flex-basis:38px!important;border-radius:12px!important}
+body.app-page.page-app .premium-nav-icon .edu-illustrated-icon{width:28px!important;height:28px!important}
+body.app-page.page-app .nav-group>summary .edu-group-icon{width:38px!important;height:38px!important;min-width:38px!important;border-radius:12px!important}
+body.app-page.page-app .nav-group>summary .edu-group-icon .edu-illustrated-icon{width:28px!important;height:28px!important}
+body.app-page.page-app #premiumMobileDock .premium-dock-icon{width:35px!important;height:35px!important;min-width:35px!important;border-radius:12px!important}
+body.app-page.page-app #premiumMobileDock .premium-dock-icon .edu-illustrated-icon{width:27px!important;height:27px!important}
+body.app-page.page-app .role-quick-icon,body.app-page.page-app #adminDailyDesk .edu-action-icon{width:48px!important;height:48px!important;min-width:48px!important}
+body.app-page.page-app .role-quick-icon .edu-illustrated-icon,body.app-page.page-app #adminDailyDesk .edu-action-icon .edu-illustrated-icon{width:35px!important;height:35px!important}
+body.auth-page #roleView .role .edu-auth-role-icon{width:62px!important;height:62px!important;min-width:62px!important}
+body.auth-page #roleView .role .edu-auth-role-icon .edu-illustrated-icon{width:45px!important;height:45px!important}
+body.learning-sky .edu-learning-card-icon{width:54px!important;height:54px!important}
+body.learning-sky .edu-learning-card-icon .edu-illustrated-icon{width:40px!important;height:40px!important}
+body.learning-sky .edu-guest-tab-icon .edu-illustrated-icon{width:22px!important;height:22px!important}
+body.page-home .experience-strip .feature-icon .edu-illustrated-icon{width:37px!important;height:37px!important}
+
+/* Fix screenshot: KPI heading should never share the icon's line or wrap around
+   it.  Preserve all numbers and existing data bindings. */
+body.app-page.page-app #dashboard>.cards>.stat{
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+ justify-content:flex-start!important;gap:6px!important;min-width:0!important;
+}
+body.app-page.page-app #dashboard>.cards>.stat>.premium-stat-icon{
+ order:0;flex:0 0 54px!important;margin:0 0 3px!important;
+}
+body.app-page.page-app #dashboard>.cards>.stat>span:not(.premium-stat-icon){
+ order:1;display:block!important;width:100%!important;margin:0!important;
+ color:#274e56!important;-webkit-text-fill-color:#274e56!important;
+ font-size:clamp(12px,2.7vw,15px)!important;line-height:1.28!important;
+ font-weight:850!important;letter-spacing:.025em!important;
+ white-space:normal!important;overflow-wrap:normal!important;word-break:normal!important;
+}
+body.app-page.page-app #dashboard>.cards>.stat>strong{
+ order:2;display:block!important;margin:5px 0 0!important;
+ color:#1c5349!important;-webkit-text-fill-color:#1c5349!important;
+}
+body.app-page.page-app #dashboard>.cards>.stat>.premium-stat-meta{
+ order:3;display:block!important;margin:0!important;
+ color:#356259!important;-webkit-text-fill-color:#356259!important;
+ font-size:clamp(12px,2.5vw,14px)!important;
+}
+@media(max-width:950px){
+ body.app-page.page-app #premiumMobileDock .premium-dock-icon{width:33px!important;height:33px!important;min-width:33px!important}
+ body.app-page.page-app #premiumMobileDock .premium-dock-icon .edu-illustrated-icon{width:25px!important;height:25px!important}
+ body.app-page.page-app #dashboard>.cards>.stat{padding:15px!important}
+ body.app-page.page-app #dashboard>.cards>.stat>.premium-stat-icon{width:50px!important;height:50px!important;min-width:50px!important;flex-basis:50px!important}
+ body.app-page.page-app #dashboard>.cards>.stat>.premium-stat-icon .edu-illustrated-icon{width:37px!important;height:37px!important}
+}
+@media(max-width:360px){
+ body.app-page.page-app #premiumMobileDock .premium-dock-icon{width:29px!important;height:29px!important;min-width:29px!important}
+ body.app-page.page-app #premiumMobileDock .premium-dock-icon .edu-illustrated-icon{width:22px!important;height:22px!important}
+ body.app-page.page-app #dashboard>.cards>.stat>span:not(.premium-stat-icon){font-size:12px!important}
+}
+@media(prefers-reduced-motion:no-preference){
+ body.app-page.page-app .premium-nav-icon,body.app-page.page-app #premiumMobileDock .premium-dock-icon{
+  transition:transform .17s ease,box-shadow .17s ease!important;
+ }
+ body.app-page.page-app .nav-item:hover .premium-nav-icon{
+  transform:translateY(-2px) scale(1.04);
+ }
+}
