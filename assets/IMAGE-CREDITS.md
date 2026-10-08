@@ -28,3 +28,7 @@ License reference: https://unsplash.com/license
 Notes:
 - EduNizam also uses its existing local project imagery, including `assets/edunizam-login-children.webp` and `assets/edunizam-girl-hero.webp`.
 - This file is kept as a provenance record even where attribution is not required by the applicable license.
+
+## Natural Glass V3 (2026-10-08)
+
+Additional free-to-use Pexels images: Katerina Holmes stationery/geometry (https://www.pexels.com/photo/pencils-and-rulers-near-sheet-of-paper-5905620/), Katerina Holmes notebook/compass (https://www.pexels.com/photo/notepad-and-school-supplies-on-table-5905611/), Tanha Tamanna Syed desk supplies (https://www.pexels.com/photo/organized-office-supplies-on-wooden-desk-38840590/). License: https://www.pexels.com/license/. The user-uploaded wooden reference was not copied to production, as its source license was not provided.

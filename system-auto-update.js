@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
-const BUILD='20261008-photo-glass-v24', KEY='edunizam_system_build';
-const ACTIVE_CACHE='edunizam-v256-photo-glass-v24';
+const BUILD='20261008-natural-glass-v3', KEY='edunizam_system_build';
+const ACTIVE_CACHE='edunizam-v257-natural-glass-v3';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}
