@@ -145,7 +145,7 @@ async function inspectPage(page,url,width){
         if(!heading||!paragraph)return {missing:true};
         const hs=getComputedStyle(heading),ps=getComputedStyle(paragraph),bs=getComputedStyle(hero);
         const hb=heading.getBoundingClientRect(),pb=paragraph.getBoundingClientRect(),er=hero.getBoundingClientRect();
-        const pAlpha=Number((ps.backgroundColor.match(/rgba\\([^)]*,\\s*([0-9.]+)\\)/)||[])[1]||0);
+        const pAlpha=Number((ps.backgroundColor.match(/rgba\([^)]*,\s*([0-9.]+)\)/)||[])[1]||0);
         return {fontSize:parseFloat(hs.fontSize),lineHeight:parseFloat(hs.lineHeight),copyColor:ps.color,
           copyBackground:ps.backgroundColor,pAlpha,copyOpacity:ps.opacity,
           photo:bs.backgroundImage,headingRight:hb.right,copyRight:pb.right,
