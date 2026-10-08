@@ -367,7 +367,15 @@ try{
       await iconPage.waitForFunction(()=>document.querySelectorAll('#nav .premium-nav-icon[data-edu-icon-key] svg').length>=45,{timeout:7000});
       const icons=await iconPage.evaluate(()=>{
         const nodes=[...document.querySelectorAll('#nav .nav-item[data-view]')];
-        const symbols=nodes.map(x=>x.querySelector('.premium-nav-icon .edu-vector-icon')?.innerHTML||'');
+        // Normalize per-instance gradient IDs before counting distinct artwork.
+        // Without this, identical drawings with different SVG paint IDs look unique.
+        const symbols=nodes.map(x=>(x.querySelector('.premium-nav-icon .edu-vector-icon')?.innerHTML||'').replace(/enicon-\\d+/g,'enicon-N'));
+        const enamelCount=nodes.filter(x=>{
+          const svg=x.querySelector('.premium-nav-icon .edu-illustrated-icon');
+          if(!svg||svg.querySelectorAll('linearGradient').length<4)return false;
+          const coated=[...svg.querySelectorAll('[style*="fill:url("]')];
+          return coated.length>0&&coated.some(shape=>getComputedStyle(shape).fill.includes('url('));
+        }).length;
         const tones=nodes.map(x=>x.querySelector('.premium-nav-icon')?.dataset.eduTone||'');
         const colors=nodes.map(x=>getComputedStyle(x.querySelector('.premium-nav-icon')).color);
         const gradient=getComputedStyle(nodes[0].querySelector('.premium-nav-icon')).backgroundImage;
@@ -380,10 +388,10 @@ try{
         button.click();
         return {count:nodes.length,svgCount:symbols.filter(Boolean).length,uniqueIcons:new Set(symbols).size,
           uniqueTones:new Set(tones).size,uniqueColors:new Set(colors).size,
-          groupCount,dockCount,statCount,clicks,gradient,
+          groupCount,dockCount,statCount,clicks,gradient,enamelCount,
           labelsPreserved:nodes.every(x=>!!x.querySelector('.premium-nav-label')?.textContent.trim()&&!!x.dataset.view)};
       });
-      if(icons.count!==48||icons.svgCount!==48||icons.uniqueIcons<32||icons.uniqueTones<6||
+      if(icons.count!==48||icons.svgCount!==48||icons.uniqueIcons<32||icons.enamelCount!==48||icons.uniqueTones<6||
          icons.uniqueColors<6||icons.groupCount<7||icons.dockCount<3||icons.statCount<4||
          icons.clicks!==1||!icons.labelsPreserved||!icons.gradient.includes('gradient'))
         pushFailure('color icon contract','48 colorful semantic icons, group badges, dock icons or click handlers regressed',JSON.stringify(icons));
