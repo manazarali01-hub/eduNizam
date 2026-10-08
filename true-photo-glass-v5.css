@@ -414,9 +414,9 @@ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"
    No auth, click, scrolling, sidebar sizing, navigation or element geometry changes.
    Photograph belongs on the backdrop; text belongs on a readable reading pane. */
 :root{
- --v52-mist:url("https://images.unsplash.com/photo-1682812585139-6a99c868fbe9?auto=format&fit=crop&w=1500&q=75");
- --v52-sun:url("https://images.unsplash.com/photo-1647900771577-6906a948762f?auto=format&fit=crop&w=1500&q=75");
- --v52-forest:url("https://images.unsplash.com/photo-1749485837871-ea013034cc56?auto=format&fit=crop&w=1500&q=72");
+ --v52-mist:url("https://images.pexels.com/photos/36728536/pexels-photo-36728536.jpeg?auto=compress&cs=tinysrgb&w=1400");
+ --v52-sun:url("https://images.pexels.com/photos/5607884/pexels-photo-5607884.jpeg?auto=compress&cs=tinysrgb&w=1400");
+ --v52-forest:url("https://images.pexels.com/photos/33252555/pexels-photo-33252555.jpeg?auto=compress&cs=tinysrgb&w=1400");
  --v52-ink:#103d32;
  --v52-copy:#244b40;
  --v52-line:rgba(35,131,103,.62);

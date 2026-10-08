@@ -1,6 +1,6 @@
 /* EduNizam final workspace atmosphere · 2026-10-07
    Dedicated appearance layer. Sidebar/navigation intentionally untouched. */
-:root{--en-workspace-photo:url("assets/edunizam-login-children.webp");--en-workspace-detail:url("assets/edunizam-girl-hero.webp")}
+:root{--en-workspace-photo:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400");--en-workspace-detail:url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1400")}
 .page-app .main{
   background:
     linear-gradient(180deg,rgba(241,248,252,.91) 0%,rgba(247,251,253,.95) 52%,rgba(244,249,252,.96) 100%),
@@ -237,9 +237,9 @@
    Additional image credits: assets/IMAGE-CREDITS.md */
 :root{
  --ng-ink:#103b33;--ng-quiet:#365b54;
- --ng-paper:url("https://images.pexels.com/photos/5905620/pexels-photo-5905620.jpeg?auto=compress&cs=tinysrgb&w=1400");
- --ng-tools:url("https://images.pexels.com/photos/5905611/pexels-photo-5905611.jpeg?auto=compress&cs=tinysrgb&w=1400");
- --ng-wood:url("https://images.pexels.com/photos/38840590/pexels-photo-38840590.jpeg?auto=compress&cs=tinysrgb&w=1400");
+ --ng-paper:url("https://images.pexels.com/photos/30744638/pexels-photo-30744638.jpeg?auto=compress&cs=tinysrgb&w=1400");
+ --ng-tools:url("https://images.pexels.com/photos/36728536/pexels-photo-36728536.jpeg?auto=compress&cs=tinysrgb&w=1400");
+ --ng-wood:url("https://images.pexels.com/photos/5607884/pexels-photo-5607884.jpeg?auto=compress&cs=tinysrgb&w=1400");
  --ng-campus:var(--en-photo-campus);--ng-study:var(--en-photo-math);
  --ng-class:var(--en-photo-classroom);--ng-digital:var(--en-photo-digital);
  --ng-team:var(--en-photo-collab);

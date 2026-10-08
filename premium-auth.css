@@ -20,7 +20,7 @@
   overflow:hidden;
   background-image:
     linear-gradient(90deg,rgba(8,47,79,.58) 0%,rgba(10,64,105,.27) 42%,rgba(10,64,105,.06) 72%,rgba(255,255,255,.02) 100%),
-    url("https://images.pexels.com/photos/8926544/pexels-photo-8926544.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1100&fit=crop");
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1100&fit=crop");
   background-position:center;
   background-size:cover;
 }
@@ -263,7 +263,7 @@ body.admission-premium{
   color:var(--en-text);
   background:
     linear-gradient(90deg,rgba(249,252,255,.98) 0%,rgba(249,252,255,.96) 56%,rgba(240,249,255,.84) 100%),
-    url("assets/edunizam-girl-hero.webp") right center/cover fixed no-repeat;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") right center/cover fixed no-repeat;
 }
 .admission-premium .shell{position:relative;z-index:1}
 .admission-premium .top{padding:9px 2px 4px}
@@ -343,7 +343,7 @@ body.admission-premium{
   .auth-page .main{
     background:
       linear-gradient(180deg,rgba(249,253,255,.95),rgba(242,249,254,.97)),
-      url("https://images.pexels.com/photos/8926544/pexels-photo-8926544.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1100&fit=crop") center/cover fixed no-repeat;
+      url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1100&fit=crop") center/cover fixed no-repeat;
   }
   .auth-page .card{
     border-radius:22px;
@@ -361,7 +361,7 @@ body.admission-premium{
   body.admission-premium{
     background:
       linear-gradient(rgba(249,252,255,.95),rgba(244,250,254,.97)),
-      url("assets/edunizam-girl-hero.webp") center/cover fixed no-repeat;
+      url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") center/cover fixed no-repeat;
   }
   .admission-premium .card{border-radius:18px}
 }

@@ -921,7 +921,7 @@ body.admission-premium{
 .page-admissions-info .public-hero{
   background:
     linear-gradient(90deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.96) 48%,rgba(246,251,255,.72) 66%,rgba(8,35,58,.18) 100%),
-    url("assets/edunizam-login-children.webp") 82% 42%/cover no-repeat!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") 82% 42%/cover no-repeat!important;
 }
 .page-learning-resources .public-hero,
 .page-aiou .public-hero,
@@ -931,7 +931,7 @@ body.admission-premium{
 .page-skills .public-hero{
   background:
     linear-gradient(90deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.96) 50%,rgba(246,251,255,.73) 68%,rgba(15,49,80,.15) 100%),
-    url("assets/edunizam-girl-hero.webp") 88% center/cover no-repeat!important;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") 88% center/cover no-repeat!important;
 }
 .page-competitive .public-hero,
 .page-entry-scholarships .public-hero,
@@ -940,7 +940,7 @@ body.admission-premium{
 .page-education-services .public-hero{
   background:
     linear-gradient(100deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.95) 51%,rgba(255,248,231,.72) 69%,rgba(6,26,43,.15) 100%),
-    url("assets/edunizam-login-children.webp") 78% 38%/cover no-repeat!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") 78% 38%/cover no-repeat!important;
 }
 .page-privacy .public-hero{
   background:
@@ -978,7 +978,7 @@ body.admission-premium{
 .page-learning .hero-card{
   background:
     linear-gradient(92deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.96) 58%,rgba(246,251,255,.62) 76%,rgba(8,35,58,.18) 100%),
-    url("assets/edunizam-girl-hero.webp") 96% center/auto 118% no-repeat!important;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") 96% center/auto 118% no-repeat!important;
 }
 .page-learning .quick-card{
   background:linear-gradient(180deg,#ffffff,#f7fbff)!important;
@@ -1005,7 +1005,7 @@ body.admission-premium{
 .page-login .story{
   background-image:
     linear-gradient(105deg,rgba(6,26,43,.18),rgba(6,26,43,.08)),
-    url("assets/edunizam-login-children.webp")!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400")!important;
   background-size:cover!important;
   background-position:center 38%!important;
 }
@@ -1023,7 +1023,7 @@ body.admission-premium{
   padding-right:min(42%,430px)!important;
   background:
     linear-gradient(90deg,#fff 0%,#fff 61%,rgba(255,255,255,.70) 74%,rgba(255,255,255,.12) 100%),
-    url("assets/edunizam-girl-hero.webp") right center/46% 100% no-repeat!important;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") right center/46% 100% no-repeat!important;
 }
 .page-admission .shell>section.card:first-of-type:after{
   content:"Admissions";
@@ -1041,7 +1041,7 @@ body.admission-premium{
   min-height:100dvh;
   background:
     linear-gradient(100deg,rgba(255,255,255,.97),rgba(246,251,255,.88)),
-    url("assets/edunizam-girl-hero.webp") right center/cover no-repeat!important;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") right center/cover no-repeat!important;
 }
 
 /* ---------- Protected app: individual view polish ---------- */
@@ -1120,7 +1120,7 @@ body.admission-premium{
 .page-app #dashboard .campus-hero{
   background:
     linear-gradient(105deg,rgba(6,26,43,.96) 0%,rgba(8,35,58,.91) 52%,rgba(15,49,80,.68) 75%,rgba(15,49,80,.38) 100%),
-    url("assets/edunizam-login-children.webp") right 40%/cover no-repeat!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") right 40%/cover no-repeat!important;
 }
 
 /* Screen-specific responsive corrections for photo-backed surfaces. */
@@ -1135,13 +1135,13 @@ body.admission-premium{
   .page-learning .hero-card{
     background:
       linear-gradient(90deg,rgba(255,255,255,.98),rgba(255,255,255,.91)),
-      url("assets/edunizam-girl-hero.webp") right center/cover no-repeat!important;
+      url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") right center/cover no-repeat!important;
   }
   .page-admission .shell>section.card:first-of-type{
     padding-right:24px!important;
     background:
       linear-gradient(90deg,rgba(255,255,255,.98),rgba(255,255,255,.92)),
-      url("assets/edunizam-girl-hero.webp") right center/cover no-repeat!important;
+      url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") right center/cover no-repeat!important;
   }
   .page-admission .shell>section.card:first-of-type:after{display:none}
 }
@@ -1151,7 +1151,7 @@ body.admission-premium{
   .page-app #dashboard .campus-hero{
     background:
       linear-gradient(120deg,rgba(6,26,43,.97),rgba(15,49,80,.90)),
-      url("assets/edunizam-login-children.webp") center/cover no-repeat!important;
+      url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center/cover no-repeat!important;
   }
 }
 
@@ -1232,7 +1232,7 @@ img{image-rendering:auto}
     align-items:flex-end!important;
     background:
       linear-gradient(180deg,rgba(6,26,43,.15),rgba(6,26,43,.78)),
-      url("assets/edunizam-login-children.webp") center 36%/cover no-repeat!important;
+      url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center 36%/cover no-repeat!important;
     box-shadow:var(--en-shadow-md);
   }
   .page-login .mobile-brand:after{
@@ -1264,7 +1264,7 @@ img{image-rendering:auto}
   .premium-public-page .public-hero{
     background:
       linear-gradient(100deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.94) 66%,rgba(255,255,255,.78) 100%),
-      url("assets/edunizam-login-children.webp") center 36%/cover no-repeat!important;
+      url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center 36%/cover no-repeat!important;
   }
   .premium-public-page .public-hero>p{max-width:62ch}
 }
@@ -1624,18 +1624,18 @@ img{image-rendering:auto}
 /*
   Phase A-E final appearance layer.
   Photography sources are Pexels pages marked "Free to use":
-  - https://www.pexels.com/photo/students-in-school-uniform-holding-books-8926544/
-  - https://www.pexels.com/photo/a-student-reading-a-book-while-inside-a-classroom-8419199/
-  - https://www.pexels.com/photo/student-studying-with-laptop-in-sunny-classroom-37831090/
+  - https://www.pexels.com/photo/empty-classroom-with-blackboard-and-desks-36159720/
+  - https://www.pexels.com/photo/book-on-the-grass-5833/
+  - https://www.pexels.com/photo/back-to-school-flatlay-5088012/
   - https://www.pexels.com/photo/back-to-school-flatlay-5088012/
   - https://www.pexels.com/photo/neatly-arranged-school-supplies-on-desk-28503364/
   - https://www.pexels.com/photo/empty-classroom-with-blackboard-and-desks-36159720/
   No generated imagery is used by this layer.
 */
 :root{
-  --en-photo-kids:url("https://images.pexels.com/photos/8926544/pexels-photo-8926544.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1100&fit=crop");
-  --en-photo-students:url("https://images.pexels.com/photos/8419199/pexels-photo-8419199.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1100&fit=crop");
-  --en-photo-study:url("https://images.pexels.com/photos/37831090/pexels-photo-37831090.jpeg?auto=compress&cs=tinysrgb&w=1500&h=1100&fit=crop");
+  --en-photo-kids:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1600&h=1100&fit=crop");
+  --en-photo-students:url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1100&fit=crop");
+  --en-photo-study:url("https://images.pexels.com/photos/5088012/pexels-photo-5088012.jpeg?auto=compress&cs=tinysrgb&w=1500&h=1100&fit=crop");
   --en-photo-flatlay:url("https://images.pexels.com/photos/5088012/pexels-photo-5088012.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1100&fit=crop");
   --en-photo-stationery:url("https://images.pexels.com/photos/28503364/pexels-photo-28503364.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1050&fit=crop");
   --en-photo-classroom:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1100&fit=crop");
@@ -3101,9 +3101,9 @@ body.admission-premium{
 /* Phones receive smaller variants of the same licensed photographs. */
 @media(max-width:720px){
   :root{
-    --en-photo-kids:url("https://images.pexels.com/photos/8926544/pexels-photo-8926544.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop");
-    --en-photo-students:url("https://images.pexels.com/photos/8419199/pexels-photo-8419199.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop");
-    --en-photo-study:url("https://images.pexels.com/photos/37831090/pexels-photo-37831090.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop");
+    --en-photo-kids:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop");
+    --en-photo-students:url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop");
+    --en-photo-study:url("https://images.pexels.com/photos/5088012/pexels-photo-5088012.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop");
     --en-photo-flatlay:url("https://images.pexels.com/photos/5088012/pexels-photo-5088012.jpeg?auto=compress&cs=tinysrgb&w=900&h=760&fit=crop");
     --en-photo-stationery:url("https://images.pexels.com/photos/28503364/pexels-photo-28503364.jpeg?auto=compress&cs=tinysrgb&w=900&h=760&fit=crop");
     --en-photo-classroom:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=900&h=760&fit=crop");
@@ -3147,28 +3147,28 @@ body.admission-premium{
 body.app-page{
   background:
     linear-gradient(180deg,rgba(239,248,252,.82),rgba(247,251,253,.90)),
-    url("assets/edunizam-login-children.webp") center top / cover fixed no-repeat!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center top / cover fixed no-repeat!important;
 }
 
 /* Default + category-specific local education photography. */
-.page-app .view{--view-photo:url("assets/edunizam-login-children.webp")}
+.page-app .view{--view-photo:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400")}
 .page-app :is(#staffcenter,#stafftime,#staffpayroll,#training,#ourstudents,#behaviorcenter,#gatecenter,#studentdocs,#leavecenter){
-  --view-photo:url("assets/edunizam-login-children.webp");
+  --view-photo:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400");
 }
 .page-app :is(#attendance,#attendanceanalytics,#results,#schoolwork,#lessoncenter,#examcenter,#paperbuilder,#dailydiary,#schedulecenter,#calendarcenter){
-  --view-photo:url("assets/edunizam-girl-hero.webp");
+  --view-photo:url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100");
 }
 .page-app :is(#fees,#financecenter,#inventorycenter,#librarycenter,#transportcenter){
-  --view-photo:url("assets/edunizam-login-children.webp");
+  --view-photo:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400");
 }
 .page-app :is(#noticeboard,#functionscenter,#inboxcenter,#parentcomplaints,#helpdeskcenter){
-  --view-photo:url("assets/edunizam-login-children.webp");
+  --view-photo:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400");
 }
 .page-app :is(#pastpapers,#practice,#study,#schoolassessments,#universities,#competitive,#ecosystem,#pathways,#vu,#admissions){
-  --view-photo:url("assets/edunizam-girl-hero.webp");
+  --view-photo:url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100");
 }
 .page-app :is(#assistant,#settings,#troubleshoot,#help){
-  --view-photo:url("assets/edunizam-girl-hero.webp");
+  --view-photo:url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100");
 }
 
 /* The page canvas now keeps a visible photo zone at the right/top. */
@@ -3206,14 +3206,14 @@ body.app-page{
 .page-app #dashboard .campus-hero{
   background:
     linear-gradient(105deg,rgba(6,26,43,.91) 0%,rgba(8,35,58,.80) 48%,rgba(15,49,80,.48) 72%,rgba(15,49,80,.22) 100%),
-    url("assets/edunizam-login-children.webp") center 38% / cover no-repeat!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center 38% / cover no-repeat!important;
 }
 
 @media(max-width:720px){
   body.app-page{
     background:
       linear-gradient(180deg,rgba(241,249,252,.86),rgba(248,252,253,.92)),
-      url("assets/edunizam-login-children.webp") center top / cover scroll no-repeat!important;
+      url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center top / cover scroll no-repeat!important;
   }
   .page-app .view.active{
     background:
@@ -3229,7 +3229,7 @@ body.app-page{
   .page-app #dashboard .campus-hero{
     background:
       linear-gradient(115deg,rgba(6,26,43,.88),rgba(15,49,80,.66)),
-      url("assets/edunizam-login-children.webp") center 36% / cover no-repeat!important;
+      url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center 36% / cover no-repeat!important;
   }
 }
 @media(max-width:430px){
@@ -3254,24 +3254,24 @@ body.app-page{
 body.gold-home{
   background:
     linear-gradient(180deg,rgba(239,248,252,.72) 0%,rgba(247,251,253,.78) 52%,rgba(250,247,239,.76) 100%),
-    url("assets/edunizam-login-children.webp") center top / cover fixed no-repeat!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center top / cover fixed no-repeat!important;
 }
 body.premium-public-page{
   background:
     linear-gradient(180deg,rgba(241,249,252,.74),rgba(248,251,253,.82)),
-    url("assets/edunizam-girl-hero.webp") center top / cover fixed no-repeat!important;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") center top / cover fixed no-repeat!important;
 }
 body.learning-sky{
   background:
     linear-gradient(180deg,rgba(240,248,252,.72),rgba(247,251,253,.82)),
-    url("assets/edunizam-girl-hero.webp") center top / cover fixed no-repeat!important;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") center top / cover fixed no-repeat!important;
 }
 
 /* Homepage sections keep the photo clearly visible through controlled glass. */
 .page-home .premium-public-hero{
   background:
     linear-gradient(102deg,rgba(255,255,255,.94) 0%,rgba(247,252,255,.86) 47%,rgba(239,248,252,.56) 100%),
-    url("assets/edunizam-login-children.webp") center 38% / cover no-repeat!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center 38% / cover no-repeat!important;
 }
 .page-home .experience-strip{
   background:rgba(255,255,255,.70)!important;
@@ -3280,26 +3280,26 @@ body.learning-sky{
 .page-home .role-showcase{
   background:
     linear-gradient(110deg,rgba(230,247,240,.86) 0%,rgba(237,248,252,.72) 58%,rgba(237,248,252,.48) 100%),
-    url("assets/edunizam-login-children.webp") center 36% / cover no-repeat!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center 36% / cover no-repeat!important;
   box-shadow:0 18px 46px rgba(18,72,105,.10)!important;
 }
 .page-home .value-section{
   background:
     linear-gradient(110deg,rgba(255,245,219,.88) 0%,rgba(255,251,242,.76) 58%,rgba(250,247,239,.50) 100%),
-    url("assets/edunizam-girl-hero.webp") center 40% / cover no-repeat!important;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") center 40% / cover no-repeat!important;
   box-shadow:0 18px 46px rgba(18,72,105,.09)!important;
 }
 .page-home .learning-band{
   background:
     linear-gradient(105deg,rgba(7,35,59,.91) 0%,rgba(20,66,107,.80) 47%,rgba(63,77,145,.58) 100%),
-    url("assets/edunizam-login-children.webp") center 36% / cover no-repeat!important;
+    url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center 36% / cover no-repeat!important;
 }
 
 /* Public informational pages: local photos with a readable but visible overlay. */
 .premium-public-page .public-hero{
   background:
     linear-gradient(102deg,rgba(255,255,255,.94) 0%,rgba(248,252,255,.86) 53%,rgba(232,245,250,.56) 100%),
-    url("assets/edunizam-girl-hero.webp") center 40% / cover no-repeat!important;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") center 40% / cover no-repeat!important;
 }
 .premium-public-page .public-card{
   background-color:rgba(255,255,255,.88)!important;
@@ -3314,7 +3314,7 @@ body.learning-sky{
 .learning-sky .hero-card{
   background:
     linear-gradient(100deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.86) 52%,rgba(239,247,252,.54) 100%),
-    url("assets/edunizam-girl-hero.webp") center 38% / cover no-repeat!important;
+    url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") center 38% / cover no-repeat!important;
 }
 .learning-sky .quick-card,
 .learning-sky .card{
@@ -3326,35 +3326,35 @@ body.learning-sky{
   body.gold-home{
     background:
       linear-gradient(180deg,rgba(239,248,252,.70),rgba(247,251,253,.78)),
-      url("assets/edunizam-login-children.webp") center top / cover scroll no-repeat!important;
+      url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center top / cover scroll no-repeat!important;
   }
   body.premium-public-page,
   body.learning-sky{
     background:
       linear-gradient(180deg,rgba(241,249,252,.72),rgba(248,251,253,.80)),
-      url("assets/edunizam-girl-hero.webp") center top / cover scroll no-repeat!important;
+      url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") center top / cover scroll no-repeat!important;
   }
   .page-home .premium-public-hero{
     background:
       linear-gradient(180deg,rgba(255,255,255,.90) 0%,rgba(247,252,255,.76) 56%,rgba(235,247,251,.46) 100%),
-      url("assets/edunizam-login-children.webp") center 34% / cover no-repeat!important;
+      url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center 34% / cover no-repeat!important;
   }
   .page-home .role-showcase{
     background:
       linear-gradient(180deg,rgba(231,248,241,.84),rgba(239,249,252,.66)),
-      url("assets/edunizam-login-children.webp") center 34% / cover no-repeat!important;
+      url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400") center 34% / cover no-repeat!important;
   }
   .page-home .value-section{
     background:
       linear-gradient(180deg,rgba(255,247,225,.86),rgba(255,252,244,.68)),
-      url("assets/edunizam-girl-hero.webp") center 36% / cover no-repeat!important;
+      url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") center 36% / cover no-repeat!important;
   }
   .premium-public-page .public-hero,
   .page-learning .hero-card,
   .learning-sky .hero-card{
     background:
       linear-gradient(180deg,rgba(255,255,255,.90),rgba(245,251,253,.68)),
-      url("assets/edunizam-girl-hero.webp") center 34% / cover no-repeat!important;
+      url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100") center 34% / cover no-repeat!important;
   }
   .page-home .experience-strip{background:rgba(255,255,255,.64)!important}
 }

@@ -59,8 +59,8 @@ for(const file of htmlFiles){
 }
 for(const marker of [
   'Individual page polish / background imagery',
-  'url("assets/edunizam-login-children.webp")',
-  'url("assets/edunizam-girl-hero.webp")',
+  'pexels-photo-36159720.jpeg',
+  'pexels-photo-5833.jpeg',
   '.page-app #dashboard .campus-hero',
   '.page-learning .hero-card',
   '.page-admission .shell>section.card:first-of-type'
@@ -386,7 +386,7 @@ for(const page of ['index.html','login.html','app.html','learn.html','admission.
 }
 if(!read('home-gold.css').includes('EduNizam homepage · premium product showcase')) fail.push('Canonical premium homepage layer missing.');
 if(!read('home-gold.css').includes('.gold-home .public-hero.premium-public-hero')) fail.push('Premium homepage hero styling missing.');
-if(!read('index.html').includes('pexels-photo-8926544.jpeg')) fail.push('Homepage licensed student visual missing.');
+if(!read('index.html').includes('pexels-photo-36159720.jpeg')) fail.push('Homepage licensed student visual missing.');
 
 const premiumUi=read('premium-ui.css');
 if(!premiumUi.includes('Canonical Premium Workspace')) fail.push('Canonical premium workspace layer missing.');
@@ -402,7 +402,7 @@ if(premiumImportantCount>20) fail.push('Premium workspace override debt is too h
 const premiumAuth=read('premium-auth.css');
 if(!premiumAuth.includes('EduNizam authentication + admission visual layer')) fail.push('Canonical premium auth layer missing.');
 if(!premiumAuth.includes('.auth-page .story')) fail.push('Premium login split-story treatment missing.');
-if(!premiumAuth.includes('pexels-photo-8926544.jpeg')) fail.push('Login licensed education background image missing.');
+if(!premiumAuth.includes('pexels-photo-36159720.jpeg')) fail.push('Login licensed education background image missing.');
 if(!premiumAuth.includes('.auth-page .brand-i:after')) fail.push('Golden EduNizam i-dot treatment missing.');
 if(!premiumAuth.includes('body.admission-premium')) fail.push('Admission portal is not covered by the premium auth design system.');
 
@@ -677,13 +677,13 @@ if(!index.includes('id="troubleshoot"')) fail.push('Troubleshoot section missing
 if(!index.includes('data-view="help"')) fail.push('Help & Support navigation item missing.');
 const visualSystem=read('edunizam-visual-system.css');
 if(!visualSystem.includes('APP BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push('Visible authenticated app background fix is missing.');
-if(!visualSystem.includes('url("assets/edunizam-login-children.webp")')||!visualSystem.includes('url("assets/edunizam-girl-hero.webp")')) fail.push('Authenticated app backgrounds are not using bundled local education images.');
+if(!visualSystem.includes('pexels-photo-36159720.jpeg')||!visualSystem.includes('pexels-photo-5833.jpeg')) fail.push('Authenticated app backgrounds are not using bundled local education images.');
 if(!visualSystem.includes('.page-app .view.active > .section-head:first-child')||!visualSystem.includes('min-height:132px')) fail.push('Authenticated view opening banners are not visibly image-backed.');
 if(!read('app.html').includes('edunizam-visual-system.css?v=20261007-premium1')) fail.push('App visual-system cache token was not bumped for premium appearance deployment.');
 if(!visualSystem.includes('HOME + PUBLIC BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push('Visible home/public background fix is missing.');
 if(!read('index.html').includes('edunizam-visual-system.css?v=20261007-premium1')) fail.push('Homepage visual-system cache token was not bumped for premium appearance deployment.');
-if(!visualSystem.includes('body.gold-home')||!visualSystem.includes('url("assets/edunizam-login-children.webp") center top / cover fixed no-repeat!important')) fail.push('Homepage page-wide local background image is missing.');
-if(!visualSystem.includes('body.premium-public-page')||!visualSystem.includes('url("assets/edunizam-girl-hero.webp") center top / cover fixed no-repeat!important')) fail.push('Public pages do not retain a visible bundled local background image.');
+if(!visualSystem.includes('body.gold-home')||!visualSystem.includes('pexels-photo-36159720.jpeg')) fail.push('Homepage page-wide local background image is missing.');
+if(!visualSystem.includes('body.premium-public-page')||!visualSystem.includes('pexels-photo-5833.jpeg')) fail.push('Public pages do not retain a visible bundled local background image.');
 if(!visualSystem.includes('PREMIUM CALLIGRAPHIC POLISH 2026-10-07')) fail.push('Premium calligraphic appearance layer is missing.');
 const premiumVisual=visualSystem.split('PREMIUM CALLIGRAPHIC POLISH 2026-10-07')[1]||'';
 if(!premiumVisual.includes('--en-font-display:')||!premiumVisual.includes('--en-font-calligraphy:')) fail.push('Premium display/calligraphic typography tokens are missing.');
@@ -988,7 +988,7 @@ const seoRobots=read('robots.txt');
 if(!seoPublic.includes('index,follow,max-image-preview:large')) fail.push('Public EduNizam landing is not indexable.');
 if(!seoPublic.includes('href="https://edunizam.online/"')) fail.push('Public EduNizam canonical URL missing.');
 if(!seoPublic.includes('"@type":"SoftwareApplication"')) fail.push('Public EduNizam SoftwareApplication schema missing.');
-if(!seoPublic.includes('pexels-photo-8926544.jpeg')) fail.push('Public landing licensed preferred image signal missing.');
+if(!seoPublic.includes('pexels-photo-36159720.jpeg')) fail.push('Public landing licensed preferred image signal missing.');
 if(!index.includes('noindex,follow,noarchive')) fail.push('Private app.html must remain noindex.');
 if(!read('login.html').includes('noindex,follow,noarchive')) fail.push('Login page must remain noindex.');
 if(!read('admission.html').includes('noindex,follow,noarchive')) fail.push('Admission application page must remain noindex.');
@@ -1012,7 +1012,7 @@ for(const page of ['features.html','school-management-system-pakistan.html','onl
 const workspaceAtmosphere=read('workspace-atmosphere.css');
 for(const marker of [
   'EduNizam final workspace atmosphere · 2026-10-07',
-  '--en-workspace-photo:url("assets/edunizam-login-children.webp")',
+  '--en-workspace-photo:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg',
   '.page-app .view:not(#dashboard).active>.card:first-child',
   '@media(max-width:600px)'
 ]){

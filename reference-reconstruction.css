@@ -13,8 +13,8 @@
   --ref-ink:#0d2f29;
   --ref-line:rgba(1,65,28,.22);
   --ref-script:"Segoe Script","Lucida Handwriting","URW Chancery L","Apple Chancery","Brush Script MT",cursive;
-  --ref-students:url("assets/edunizam-login-children.webp");
-  --ref-student:url("assets/edunizam-girl-hero.webp");
+  --ref-students:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400");
+  --ref-student:url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100");
 }
 
 /* ---------------- BRAND / CALLIGRAPHIC LANGUAGE ---------------- */
@@ -2464,13 +2464,13 @@ body.app-page.page-app .view.active :is(.warning,.pending){
   Photo provenance is documented in assets/IMAGE-CREDITS.md.
 */
 :root{
-  --en-photo-classroom:url("https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1600&q=72");
-  --en-photo-collab:url("https://images.unsplash.com/photo-1758270705290-62b6294dd044?auto=format&fit=crop&w=1600&q=72");
-  --en-photo-digital:url("https://images.unsplash.com/photo-1753613648191-4771cf76f034?auto=format&fit=crop&w=1600&q=72");
-  --en-photo-math:url("https://images.unsplash.com/photo-1560785477-d43d2b34e0df?auto=format&fit=crop&w=1600&q=72");
-  --en-photo-campus:url("https://images.unsplash.com/photo-1741637335289-c99652d3155f?auto=format&fit=crop&w=1600&q=72");
-  --en-photo-children:url("assets/edunizam-login-children.webp");
-  --en-photo-student:url("assets/edunizam-girl-hero.webp");
+  --en-photo-classroom:url("https://images.pexels.com/photos/30744638/pexels-photo-30744638.jpeg?auto=compress&cs=tinysrgb&w=1500&q=75");
+  --en-photo-collab:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1500&q=75");
+  --en-photo-digital:url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1500&q=75");
+  --en-photo-math:url("https://images.pexels.com/photos/35821614/pexels-photo-35821614.jpeg?auto=compress&cs=tinysrgb&w=1500&q=75");
+  --en-photo-campus:url("https://images.pexels.com/photos/28503364/pexels-photo-28503364.jpeg?auto=compress&cs=tinysrgb&w=1500&q=75");
+  --en-photo-children:url("https://images.pexels.com/photos/36159720/pexels-photo-36159720.jpeg?auto=compress&cs=tinysrgb&w=1400");
+  --en-photo-student:url("https://images.pexels.com/photos/5833/pexels-photo-5833.jpeg?auto=compress&cs=tinysrgb&w=1100");
 
   --en-glass-white:rgba(255,255,255,.34);
   --en-glass-white-strong:rgba(255,255,255,.50);
@@ -2776,9 +2776,9 @@ body.app-page.page-app .view.active :is(.warning,.pending){
    Additional image credits: assets/IMAGE-CREDITS.md */
 :root{
  --ng-ink:#103b33;--ng-quiet:#365b54;
- --ng-paper:url("https://images.pexels.com/photos/5905620/pexels-photo-5905620.jpeg?auto=compress&cs=tinysrgb&w=1400");
- --ng-tools:url("https://images.pexels.com/photos/5905611/pexels-photo-5905611.jpeg?auto=compress&cs=tinysrgb&w=1400");
- --ng-wood:url("https://images.pexels.com/photos/38840590/pexels-photo-38840590.jpeg?auto=compress&cs=tinysrgb&w=1400");
+ --ng-paper:url("https://images.pexels.com/photos/30744638/pexels-photo-30744638.jpeg?auto=compress&cs=tinysrgb&w=1400");
+ --ng-tools:url("https://images.pexels.com/photos/36728536/pexels-photo-36728536.jpeg?auto=compress&cs=tinysrgb&w=1400");
+ --ng-wood:url("https://images.pexels.com/photos/5607884/pexels-photo-5607884.jpeg?auto=compress&cs=tinysrgb&w=1400");
  --ng-campus:var(--en-photo-campus);--ng-study:var(--en-photo-math);
  --ng-class:var(--en-photo-classroom);--ng-digital:var(--en-photo-digital);
  --ng-team:var(--en-photo-collab);

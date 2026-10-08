@@ -1,4 +1,4 @@
-const CACHE='edunizam-v262-premium-illustrated-v9'
+const CACHE='edunizam-v264-licensed-photo-audit-v1'
 const CORE=[
   './',
   './index.html',
@@ -35,8 +35,6 @@ const CORE=[
   './ui-polish.js',
   './manifest.webmanifest',
   './assets/edunizam-premium-mark.svg',
-  './assets/edunizam-login-children.webp',
-  './assets/edunizam-girl-hero.webp',
   './assets/themes/science-lab.svg',
   './assets/themes/mathematics.svg',
   './assets/themes/digital-learning.svg',
