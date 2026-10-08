@@ -1,0 +1,373 @@
+/* EduNizam Home Focus V4 · 2026-10-08
+   Dedicated final homepage composition layer. Loaded after reference-reconstruction.
+   Scoped to .page-home: no admin, login, or Learning Hub side effects.
+   Photo assets are those already documented in assets/IMAGE-CREDITS.md. */
+.page-home{
+ --home-focus-ink:#103a32;
+ --home-focus-muted:#3d5e58;
+ --home-focus-outline:rgba(23,126,99,.49);
+ --home-focus-glass:rgba(248,255,250,.78);
+}
+/* Hero and navigation are ONE visual language, rather than competing posters. */
+.page-home .public-nav{
+ border:1.5px solid rgba(35,143,110,.54)!important;
+ background:linear-gradient(125deg,rgba(252,255,253,.89),rgba(239,250,246,.79))!important;
+ box-shadow:0 12px 32px rgba(10,62,47,.11),inset 0 1px 0 rgba(255,255,255,.94)!important;
+}
+.page-home .public-links a{
+ color:#17483e!important;
+ text-shadow:none!important;
+ font-weight:750!important;
+}
+.page-home .public-links .nav-primary{
+ color:#fff!important;
+ background:linear-gradient(125deg,#04583d,#108465)!important;
+ border-color:rgba(8,97,65,.5)!important;
+ text-shadow:none!important;
+}
+.page-home .premium-public-hero{
+ background:linear-gradient(130deg,rgba(230,249,239,.35),rgba(232,250,246,.35)),var(--ng-campus) center/cover no-repeat!important;
+ border:1.5px solid rgba(48,157,122,.59)!important;
+ box-shadow:0 18px 44px rgba(10,59,47,.15)!important;
+}
+.page-home .hero-copy{
+ background:linear-gradient(130deg,rgba(252,255,252,.86),rgba(235,250,243,.72))!important;
+ border:1.5px solid rgba(31,154,111,.54)!important;
+ box-shadow:0 10px 26px rgba(7,63,48,.11),inset 0 1px 0 rgba(255,255,255,.94)!important;
+}
+.page-home .hero-copy h1{
+ color:var(--home-focus-ink)!important;
+ text-shadow:0 1px 0 rgba(255,255,255,.84)!important;
+ letter-spacing:-.038em!important;
+ overflow-wrap:normal!important;
+}
+.page-home .hero-copy .hero-gold{
+ color:#08754f!important;
+ -webkit-text-fill-color:#08754f!important;
+ background:none!important;
+ text-shadow:none!important;
+}
+.page-home .hero-copy>p{
+ color:#38594e!important;
+ text-shadow:none!important;
+ line-height:1.55!important;
+}
+.page-home .hero-copy .public-kicker{
+ color:#0f6954!important;
+ background:rgba(248,255,250,.74)!important;
+ border-color:rgba(43,143,112,.39)!important;
+}
+.page-home .public-proof span{
+ color:#245d4b!important;
+ background:rgba(248,255,251,.79)!important;
+ border-color:rgba(35,144,108,.33)!important;
+ text-shadow:none!important;
+}
+.page-home .hero-image-wrap{
+ border:3px solid rgba(252,255,252,.90)!important;
+ box-shadow:0 14px 32px rgba(0,50,36,.19)!important;
+}
+.page-home .hero-image-wrap img{
+ transform:scale(1.04)!important;
+ object-position:center 34%!important;
+}
+.page-home .quick-access-card{
+ background:linear-gradient(130deg,rgba(254,255,254,.86),rgba(235,251,244,.76)),var(--ng-paper) center/cover no-repeat!important;
+ border:1.5px solid rgba(28,137,104,.53)!important;
+ box-shadow:0 12px 30px rgba(4,60,49,.13)!important;
+}
+.page-home .quick-card-top :is(strong,small),.page-home .quick-access-card>p{
+ color:#17473b!important;
+ text-shadow:none!important;
+}
+.page-home .quick-actions :is(a,button):not(.quick-main){
+ color:#194e41!important;
+ background:rgba(248,255,252,.87)!important;
+ border:1px solid rgba(46,144,109,.34)!important;
+ text-shadow:none!important;
+}
+.page-home .hero-role-badge span{
+ color:#144b3d!important;
+ background:rgba(248,255,251,.80)!important;
+ border-color:rgba(34,135,102,.36)!important;
+}
+/* Stop the illustrated tile image competing with the name. Photo remains visible. */
+.page-home .experience-strip{
+ background:linear-gradient(125deg,rgba(252,255,252,.38),rgba(242,252,247,.30)),var(--ng-paper) center/cover no-repeat!important;
+ border:1.5px solid rgba(37,143,114,.48)!important;
+ border-radius:21px!important;
+ box-shadow:0 12px 32px rgba(5,58,44,.11)!important;
+}
+.page-home .experience-strip article{
+ background:linear-gradient(125deg,rgba(255,255,253,.85),rgba(240,253,247,.72)),var(--ng-tile-photo,var(--ng-paper)) center/cover no-repeat!important;
+ border-width:1.5px!important;
+ border-radius:17px!important;
+ box-shadow:0 6px 18px rgba(15,69,54,.11),inset 0 1px 0 rgba(255,255,255,.87)!important;
+ min-width:0;
+}
+.page-home .experience-strip article :is(strong,small){
+ color:#133f35!important;
+ text-shadow:none!important;
+ opacity:1!important;
+}
+.page-home .experience-strip article small{color:#45655e!important}
+.page-home .experience-strip article .feature-icon{
+ background:rgba(244,255,249,.91)!important;
+ border:1px solid rgba(30,131,102,.27)!important;
+}
+/* Landing sections share consistent spacing; stronger foreground over imagery. */
+.page-home :is(.role-showcase,.value-section,.learning-band){
+ margin-top:clamp(18px,2.6vw,34px)!important;
+}
+.page-home :is(.role-showcase,.value-section) .section-heading h2{
+ color:#103a32!important;
+ text-shadow:0 1px 0 rgba(255,255,255,.89)!important;
+}
+.page-home :is(.role-showcase,.value-section) .section-heading p{
+ color:#35574e!important;
+ text-shadow:none!important;
+}
+.page-home .learning-band{
+ background:linear-gradient(130deg,rgba(2,57,46,.82),rgba(4,69,58,.73)),var(--ng-digital) center/cover no-repeat!important;
+ border-color:rgba(29,137,107,.58)!important;
+}
+.page-home .learning-band .learning-copy :is(h2,p){color:#f9fff9!important;text-shadow:0 2px 8px rgba(0,30,24,.52)!important}
+.page-home .learning-band .resource-card:is(.r1,.r2,.r3){
+ background:linear-gradient(120deg,rgba(252,255,253,.87),rgba(235,251,245,.70)),var(--ng-paper) center/cover no-repeat!important;
+ border:1.5px solid rgba(60,158,123,.46)!important;
+ box-shadow:0 11px 28px rgba(2,46,40,.15),inset 0 1px 0 rgba(255,255,255,.88)!important;
+}
+.page-home .learning-band .resource-card.r2{
+ background:linear-gradient(120deg,rgba(252,255,253,.87),rgba(235,247,250,.73)),var(--ng-digital) center/cover no-repeat!important;
+}
+.page-home .learning-band .resource-card.r3{
+ background:linear-gradient(120deg,rgba(252,255,253,.87),rgba(244,252,246,.73)),var(--ng-tools) center/cover no-repeat!important;
+}
+.page-home .learning-band .resource-card:is(.r1,.r2,.r3) :is(small,strong,span){
+ color:#153e35!important;
+ font-weight:700!important;
+ opacity:1!important;
+ filter:none!important;
+ text-shadow:none!important;
+}
+.page-home .learning-band .resource-card:is(.r1,.r2,.r3) small{
+ color:#195345!important;font-size:12.5px!important;font-weight:800!important;letter-spacing:.04em!important;
+}
+.page-home .learning-band .resource-card:is(.r1,.r2,.r3) strong{
+ color:#0d3737!important;font-size:clamp(18px,2.4vw,22px)!important;line-height:1.25!important;
+}
+.page-home .learning-band .resource-card:is(.r1,.r2,.r3) span{
+ color:#385a50!important;font-size:14px!important;line-height:1.36!important;
+}
+/* Product-grade mobile rhythm: one hero, one compact nav, clear action hierarchy. */
+@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
+ .page-home .public-nav,
+ .page-home .public-nav.is-scrolled{
+  width:calc(100% - 16px)!important;
+  margin:8px auto 0!important;
+  padding:10px 11px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  row-gap:9px!important;
+  position:relative!important;
+  border-radius:19px!important;
+  backdrop-filter:blur(10px) saturate(1.12)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(1.12)!important;
+ }
+ .page-home .public-brand{width:auto!important;min-width:0!important;gap:10px!important}
+ .page-home .public-mark{width:41px!important;height:41px!important;flex:0 0 41px!important}
+ .page-home .brand-name{font-size:20px!important}
+ .page-home .brand-copy small{font-size:9px!important;letter-spacing:.06em!important;margin-top:3px!important}
+ /* Scrollable chips keep all six routes accessible without a 3-row header. */
+ .page-home .public-links{
+  width:100%!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  gap:7px!important;
+  padding:0 0 3px!important;
+  scroll-snap-type:x proximity;
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch;
+ }
+ .page-home .public-links a,
+ .page-home .public-links .nav-primary{
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  min-height:44px!important;
+  padding:10px 13px!important;
+  font-size:12.5px!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+  line-height:1.2!important;
+  scroll-snap-align:start;
+  border-radius:12px!important;
+  box-shadow:none!important;
+ }
+ .page-home .public-links a:not(.nav-primary){
+  background:rgba(248,255,251,.82)!important;
+  border:1px solid rgba(45,146,108,.37)!important;
+ }
+ .page-home .public-main{width:calc(100% - 16px)!important;padding-top:8px!important}
+ .page-home .public-hero.premium-public-hero{
+  gap:12px!important;
+  min-height:0!important;
+  padding:12px!important;
+  margin-top:2px!important;
+  border-radius:22px!important;
+ }
+ .page-home .hero-copy{
+  padding:17px 15px 16px!important;
+  border-radius:18px!important;
+ }
+ .page-home .hero-copy .public-kicker{
+  max-width:100%!important;
+  padding:6px 10px!important;
+  margin-bottom:9px!important;
+  font-size:11.5px!important;
+  line-height:1.35!important;
+  white-space:normal!important;
+ }
+ .page-home .hero-copy h1,.page-home .public-hero h1{
+  font-size:clamp(30px,8.25vw,40px)!important;
+  line-height:1.11!important;
+  margin:12px 0 12px!important;
+  max-width:none!important;
+  letter-spacing:-.038em!important;
+  text-wrap:balance!important;
+ }
+ .page-home .hero-copy>p,.page-home .public-hero p{
+  font-size:15px!important;line-height:1.5!important;
+ }
+ .page-home .hero-actions{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin-top:17px!important;
+ }
+ .page-home .hero-actions .public-cta{
+  margin:0!important;width:100%!important;
+  min-width:0!important;min-height:46px!important;
+  padding:11px 7px!important;
+  font-size:clamp(12px,3.3vw,14px)!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  text-align:center!important;
+ }
+ .page-home .hero-actions .hero-text-link{
+  grid-column:1/-1!important;
+  justify-content:center!important;
+  margin:0!important;
+  min-height:38px!important;
+  padding:7px 8px!important;
+  font-size:13px!important;
+ }
+ .page-home .public-proof{
+  margin-top:14px!important;
+  gap:6px!important;
+ }
+ .page-home .public-proof span{
+  font-size:11px!important;
+  padding:6px 9px!important;
+ }
+ .page-home .hero-image-wrap{
+  width:100%!important;
+  min-height:225px!important;
+  height:clamp(225px,64vw,315px)!important;
+  border-radius:18px!important;
+ }
+ .page-home .hero-image-wrap img{transform:scale(1.03)!important}
+ .page-home .quick-access-card{
+  position:static!important;
+  transform:none!important;
+  width:100%!important;
+  margin:0!important;
+  padding:13px!important;
+  border-radius:18px!important;
+ }
+ .page-home .quick-card-top{margin-bottom:8px!important}
+ .page-home .quick-actions{gap:7px!important}
+ .page-home .quick-actions :is(a,button){min-height:43px!important;padding:10px 12px!important;font-size:13.5px!important}
+ .page-home .hero-role-badge{gap:6px!important}
+ .page-home .hero-role-badge span{min-height:32px!important;padding:6px 7px!important;font-size:11px!important}
+ .page-home .experience-strip{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:9px!important;
+  padding:10px!important;
+  margin:15px 0!important;
+ }
+ .page-home .experience-strip article{
+  min-width:0!important;
+  min-height:135px!important;
+  padding:12px!important;
+  gap:7px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:flex-end!important;
+ }
+ .page-home .experience-strip article .feature-icon{width:40px!important;height:40px!important}
+ .page-home .experience-strip article strong{font-size:16px!important;line-height:1.22!important}
+ .page-home .experience-strip article small{font-size:12.5px!important;line-height:1.35!important}
+ .page-home :is(.role-showcase,.value-section,.learning-band){margin-top:18px!important;padding:20px 13px!important}
+ .page-home .learning-band .learning-visual{gap:10px!important}
+ .page-home .learning-band .resource-card:is(.r1,.r2,.r3){
+  min-height:120px!important;
+  padding:15px 17px!important;
+  border-radius:18px!important;
+ }
+ .page-home .learning-band .resource-card:is(.r1,.r2,.r3) small{font-size:12px!important}
+ .page-home .learning-band .resource-card:is(.r1,.r2,.r3) strong{font-size:19px!important}
+ .page-home .learning-band .resource-card:is(.r1,.r2,.r3) span{font-size:13.5px!important}
+}
+@media(max-width:330px){
+ .page-home .experience-strip{grid-template-columns:1fr!important}
+ .page-home .hero-actions{grid-template-columns:1fr!important}
+ .page-home .hero-actions .hero-text-link{grid-column:auto!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .page-home .public-links{scroll-behavior:auto!important;scroll-snap-type:none}
+}
+
+
+/* Legacy ref6 navigation has a deliberately higher-specificity grid rule.
+   Explicitly retire THAT mobile rule, rather than only overriding generic nav. */
+@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
+ body.gold-home.page-home header.public-nav .public-links{
+  display:flex!important;
+  grid-template-columns:none!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  gap:7px!important;
+  padding:0 0 3px!important;
+  width:100%!important;
+  -webkit-overflow-scrolling:touch;
+ }
+ body.gold-home.page-home header.public-nav .public-links a,
+ body.gold-home.page-home header.public-nav .public-links a.nav-primary{
+  display:inline-flex!important;
+  width:auto!important;
+  min-width:max-content!important;
+  max-width:none!important;
+  flex:0 0 auto!important;
+  min-height:44px!important;
+  padding:10px 13px!important;
+  font-size:12.5px!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+  border-radius:12px!important;
+ }
+ body.gold-home.page-home header.public-nav .public-links a:not(.nav-primary){
+  color:#17483e!important;
+  background:rgba(248,255,251,.85)!important;
+  border:1px solid rgba(45,146,108,.36)!important;
+ }
+ body.gold-home.page-home header.public-nav .public-links a.nav-primary{
+  color:#fff!important;
+  background:linear-gradient(125deg,#04583d,#108465)!important;
+  border:1px solid rgba(8,97,65,.50)!important;
+ }
+}

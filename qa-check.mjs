@@ -1105,6 +1105,17 @@ if(!legacyLanding.includes('noindex,follow,noarchive')) fail.push('Legacy eduniz
 if(!legacyLanding.includes('http-equiv="refresh"')) fail.push('Legacy edunizam.html redirect signal missing.');
 if(!read('index.html').includes("pathname.endsWith('/index.html')")) fail.push('index.html canonical-root redirect guard missing.');
 
+
+/* Home Focus V4: ensure the dedicated stylesheet is linked last and includes
+   the audited mobile nav / content-legibility fixes. */
+const homeV4=read('home-focus-v4.css');
+const homeHtmlV4=read('index.html');
+if(!homeHtmlV4.includes('home-focus-v4.css?v=20261008-home-focus-v4')) fail.push('Home Focus V4 stylesheet not linked on homepage.');
+if(homeHtmlV4.lastIndexOf('home-focus-v4.css')<homeHtmlV4.lastIndexOf('reference-reconstruction.css')) fail.push('Home Focus V4 must load after reference reconstruction.');
+for(const token of ['.page-home .public-links{','.page-home .hero-copy h1','.page-home .experience-strip article','.page-home .learning-band .resource-card:is(.r1,.r2,.r3)']){
+ if(!homeV4.includes(token)) fail.push('Home Focus V4 required styling missing: '+token);
+}
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
