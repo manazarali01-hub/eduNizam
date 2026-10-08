@@ -141,7 +141,7 @@ try{
   const manifest=JSON.parse(read("manifest.webmanifest"));
   if(!manifest.name||!manifest.short_name||!manifest.start_url)bad("manifest:required-fields","name/short_name/start_url required");
   else ok("manifest:required-fields");
-  manifest.start_url==="./login.html"?ok("manifest:secure-entry"):bad("manifest:secure-entry","installed app must start at login.html");
+  manifest.start_url==="./"?ok("manifest:public-home-entry"):bad("manifest:public-home-entry","installed app must start at responsive Home; secure Login remains reachable");
   const icons=Array.isArray(manifest.icons)?manifest.icons:[];
   for(const icon of icons){if(!exists(icon.src))bad("manifest:icon",icon.src+" missing")}
   if(icons.length)ok("manifest:icons");else bad("manifest:icons","no icons declared");
