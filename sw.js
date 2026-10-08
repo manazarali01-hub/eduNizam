@@ -1,4 +1,4 @@
-const CACHE='edunizam-v259-home-clarity-200-v2'
+const CACHE='edunizam-v260-pwa-home-v32'
 const CORE=[
   './',
   './index.html',
