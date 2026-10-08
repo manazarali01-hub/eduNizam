@@ -232,6 +232,24 @@ try{
           }
         }
         if(route==='/'&&width<=430){
+          // Measured homepage visual contract: CI must fail if legacy rules
+          // squeeze Quick Access to a left strip or feature labels stay tiny.
+          const h=result.home;
+          if(!h.quick||!h.image||!h.roles||!h.main)pushFailure(scope,'Homepage hero sections missing');
+          else {
+            if(h.quick.width<h.main.width*.90)
+              pushFailure(scope,'Quick Access is not full-width (old screenshot gap remains)',JSON.stringify({main:h.main.width,quick:h.quick.width}));
+            if(h.roles.width<h.main.width*.90)
+              pushFailure(scope,'Homepage role badges are too narrow',JSON.stringify({main:h.main.width,roles:h.roles.width}));
+            if(h.quick.top<h.image.bottom-2)
+              pushFailure(scope,'Quick Access overlays the hero image',JSON.stringify({image:h.image,quick:h.quick}));
+            if(h.roles.top<h.quick.bottom-2)
+              pushFailure(scope,'Role badges overlap Quick Access',JSON.stringify({quick:h.quick,roles:h.roles}));
+          }
+          if(h.featureSizes.some(x=>x<22))
+            pushFailure(scope,'Homepage feature labels are below the enlarged mobile typography target',JSON.stringify(h.featureSizes));
+          if(h.experienceColumns.trim().split(/\s+/).length!==1)
+            pushFailure(scope,'Homepage features are still squeezed into two tiny mobile columns',h.experienceColumns);
           if(result.home.imageQuickOverlap)pushFailure(scope,'Homepage hero image and Quick Access overlap');
           if(result.home.quickRoleOverlap)pushFailure(scope,'Homepage Quick Access and role badge overlap');
           if(result.home.nav&&result.home.main&&result.home.main.top<result.home.nav.bottom-2){
