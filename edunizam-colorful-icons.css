@@ -374,3 +374,71 @@ body.page-home .quick-access-card .quick-actions button[hidden]{display:none!imp
    scroll-margin-block:12px!important;
  }
 }
+
+/* v7 · Premium enamel icons.
+   Real four-stop SVG paint is handled in JS; this keeps a sculpted outer tile,
+   cool natural-green coordination, readable labels and unchanged hit targets. */
+.edu-illustrated-icon .ei-glass-arc{
+ fill:none!important;stroke:#fff!important;stroke-width:.9!important;
+ stroke-linecap:round!important;opacity:.85!important;
+}
+.edu-illustrated-icon{
+ position:relative!important;z-index:1!important;
+ filter:drop-shadow(0 1px 0 rgba(255,255,255,.84))
+        drop-shadow(0 1.1px 1.25px rgba(12,40,62,.22))!important;
+}
+body.app-page.page-app :is(.premium-nav-icon,.premium-stat-icon,.premium-dock-icon,.role-quick-icon,.edu-action-icon,.edu-search-icon),
+body.app-page.page-app .nav-group>summary .edu-group-icon,
+body.auth-page .edu-auth-role-icon,
+body.learning-sky :is(.edu-guest-tab-icon,.edu-learning-card-icon),
+body.page-home .experience-strip .feature-icon,
+.edu-button-icon{
+ position:relative!important;
+ isolation:isolate!important;
+ overflow:hidden!important;
+ background:
+   radial-gradient(ellipse at 15% 4%,rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 48%),
+   linear-gradient(154deg,#fff 0%,var(--ei-bright,#e4fff5) 28%,
+     var(--edu-icon-mid,#b6eadb) 78%,var(--ei-halo,#6bd2b3) 120%)!important;
+ border:1.5px solid color-mix(in srgb,var(--ei-halo,#6bd2b3) 80%,var(--ei-ink,#1c4c57))!important;
+ box-shadow:
+   inset 0 2px 1px rgba(255,255,255,.95),
+   inset 0 -3px 3px rgba(18,58,78,.11),
+   0 2px 0 color-mix(in srgb,var(--ei-halo,#6bd2b3) 50%,transparent),
+   0 7px 16px rgba(10,48,65,.17)!important;
+}
+body.app-page.page-app :is(.premium-nav-icon,.premium-stat-icon,.premium-dock-icon,.role-quick-icon,.edu-action-icon,.edu-search-icon)::before,
+body.app-page.page-app .nav-group>summary .edu-group-icon::before,
+body.auth-page .edu-auth-role-icon::before,
+body.learning-sky :is(.edu-guest-tab-icon,.edu-learning-card-icon)::before,
+body.page-home .experience-strip .feature-icon::before,
+.edu-button-icon::before{
+ content:"";position:absolute;z-index:0;pointer-events:none;
+ top:1px;left:3px;right:3px;height:42%;
+ border-radius:40% 40% 48% 48%;
+ background:linear-gradient(180deg,rgba(255,255,255,.74),rgba(255,255,255,0));
+}
+body.app-page.page-app :is(.premium-stat-icon,.role-quick-icon,.edu-action-icon)::after,
+body.auth-page .edu-auth-role-icon::after,
+body.learning-sky .edu-learning-card-icon::after,
+body.page-home .experience-strip .feature-icon::after{
+ content:"";position:absolute;pointer-events:none;z-index:2;
+ top:5px;right:5px;width:5px;height:5px;border-radius:50%;
+ background:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.48),0 0 5px var(--ei-halo,#6bd2b3);
+ opacity:.88;
+}
+/* More visual distinction without increasing sidebar width or shrinking words. */
+body.app-page.page-app .nav-item.active .premium-nav-icon,
+body.app-page.page-app #premiumMobileDock button.active .premium-dock-icon{
+ border-color:var(--ei-halo,#62d8bc)!important;
+ box-shadow:inset 0 2px 1px rgba(255,255,255,.95),
+            inset 0 -3px 3px rgba(18,58,78,.1),
+            0 0 0 2px rgba(255,255,255,.55),
+            0 7px 15px rgba(5,43,62,.22)!important;
+}
+@media(prefers-reduced-motion:no-preference){
+ body.app-page.page-app .nav-item:hover .premium-nav-icon,
+ body.auth-page #roleView .role:hover .edu-auth-role-icon{
+   transform:translateY(-1px) scale(1.035)!important;
+ }
+}
