@@ -388,7 +388,18 @@ body.gold-home.page-home .public-card p {
     line-height:1.43!important;
   }
   body.gold-home.page-home .preview-note {font-size:16px!important;line-height:1.45!important;}
-  body.gold-home.page-home .learning-copy p {font-size:18px!important;line-height:1.55!important;}
+  body.gold-home.page-home .learning-copy h2 {
+    color:#f9fff6!important;
+    -webkit-text-fill-color:#f9fff6!important;
+    text-shadow:0 2px 8px rgba(0,40,27,.67)!important;
+  }
+  body.gold-home.page-home .learning-copy p {
+    font-size:18px!important;
+    line-height:1.55!important;
+    color:#f2fff6!important;
+    -webkit-text-fill-color:#f2fff6!important;
+    text-shadow:0 1px 4px rgba(0,32,23,.6)!important;
+  }
   body.gold-home.page-home .learning-band .resource-card small {font-size:15px!important;}
   body.gold-home.page-home .learning-band .resource-card strong {font-size:23px!important;}
   body.gold-home.page-home .learning-band .resource-card span {font-size:17px!important;}
