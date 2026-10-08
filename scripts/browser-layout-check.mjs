@@ -369,7 +369,7 @@ try{
         const nodes=[...document.querySelectorAll('#nav .nav-item[data-view]')];
         // Normalize per-instance gradient IDs before counting distinct artwork.
         // Without this, identical drawings with different SVG paint IDs look unique.
-        const symbols=nodes.map(x=>(x.querySelector('.premium-nav-icon .edu-vector-icon')?.innerHTML||'').replace(/enicon-\\d+/g,'enicon-N'));
+        const symbols=nodes.map(x=>(x.querySelector('.premium-nav-icon .edu-vector-icon')?.innerHTML||'').replace(/enicon-\d+/g,'enicon-N'));
         const enamelCount=nodes.filter(x=>{
           const svg=x.querySelector('.premium-nav-icon .edu-illustrated-icon');
           if(!svg||svg.querySelectorAll('linearGradient').length<4)return false;
