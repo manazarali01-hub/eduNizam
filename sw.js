@@ -1,4 +1,4 @@
-const CACHE='edunizam-v259-readable-hero-v1'
+const CACHE='edunizam-v258-natural-glass-v31'
 const CORE=[
   './',
   './index.html',
@@ -53,7 +53,6 @@ const CORE=[
   './public-premium.css',
   './learning-sky.css',
   './home-gold.css',
-  './home-hero-readable-oct08.css',
   './home-premium.js',
   './learn.html',
   './past-papers-data.js',
