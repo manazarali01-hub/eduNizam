@@ -45,7 +45,7 @@ if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZA
 const browser=await chromium.launch(launchOptions);
 const failures=[];
 const widths=[360,375,390,412,430,768,1366];
-const pages=['/','/login.html','/learn.html','/admission.html','/app.html'];
+const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html'];
 
 function pushFailure(scope,message,detail=''){
   failures.push({scope,message,detail});
@@ -131,6 +131,13 @@ async function inspectPage(page,url,width){
       overflow,
       clipped:clipped.slice(0,12),
       wideElements:wideElements.sort((a,b)=>(b.right-viewport)-(a.right-viewport)).slice(0,12),
+      glass:{
+        home:(()=>{const el=document.querySelector('.page-home .experience-strip article');if(!el)return null;const cs=getComputedStyle(el);return {bg:cs.backgroundImage,blur:cs.backdropFilter,alpha:cs.opacity};})(),
+        login:(()=>{const el=document.querySelector('.auth-page #authCard');if(!el)return null;const cs=getComputedStyle(el);return {bg:cs.backgroundImage,blur:cs.backdropFilter,alpha:cs.opacity};})(),
+        role:(()=>{const el=document.querySelector('.auth-page #roleView .roles .role');if(!el)return null;const cs=getComputedStyle(el);return {bg:cs.backgroundImage,blur:cs.backdropFilter,alpha:cs.opacity};})(),
+        feature:(()=>{const el=document.querySelector('.premium-public-page .public-list li');if(!el)return null;const cs=getComputedStyle(el);return {bg:cs.backgroundImage,blur:cs.backdropFilter,alpha:cs.opacity};})(),
+        app:(()=>{const el=document.querySelector('.page-app .main .view.active .card');if(!el)return null;const cs=getComputedStyle(el);return {bg:cs.backgroundImage,blur:cs.backdropFilter,alpha:cs.opacity};})()
+      },
       home:{
         nav:box('.page-home .public-nav'),
         main:box('.page-home .public-main'),
@@ -169,6 +176,17 @@ try{
         const scope=route+' @ '+width+'px';
         if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px '+JSON.stringify(result.wideElements));
         if(result.clipped.length)pushFailure(scope,'Interactive controls escape the viewport',JSON.stringify(result.clipped));
+        // Inspect actual computed surfaces, not merely CSS selector presence.
+        if(width<=430){
+          const selectors=route==='/'?['home']:route==='/login.html'?['login','role']:route==='/features.html'?['feature']:route==='/app.html'?['app']:[];
+          for(const surface of selectors){
+            const detail=result.glass?.[surface];
+            if(!detail){pushFailure(scope,'True photo glass sample missing: '+surface);continue;}
+            if(!detail.bg.includes('gradient')||!detail.bg.includes('rgba('))pushFailure(scope,'True photo glass has no translucent gradient: '+surface,JSON.stringify(detail));
+            if(!detail.blur.includes('blur('))pushFailure(scope,'True photo glass has no rendered frosted blur: '+surface,JSON.stringify(detail));
+            if(detail.alpha!=='1')pushFailure(scope,'Text/panel opacity was reduced instead of using frosted glass: '+surface,JSON.stringify(detail));
+          }
+        }
         if(route==='/'&&width<=430){
           if(result.home.imageQuickOverlap)pushFailure(scope,'Homepage hero image and Quick Access overlap');
           if(result.home.quickRoleOverlap)pushFailure(scope,'Homepage Quick Access and role badge overlap');
