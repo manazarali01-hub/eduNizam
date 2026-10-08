@@ -1,0 +1,164 @@
+/* EduNizam — Colorful, natural, premium vector icon palette · 2026-10-08
+   Non-invasive: icons only, not the surrounding application's layout or
+   clickable elements. No third-party libraries, generated art or remote assets. */
+:root{
+ --edu-icon-shadow:0 4px 12px rgba(9,50,53,.12),inset 0 1px 0 rgba(255,255,255,.67);
+}
+[data-edu-tone="green"]{--edu-icon-fg:#0b8057;--edu-icon-soft:#d4f7e6;--edu-icon-mid:#a2ecc8;--edu-icon-ring:#4fd39d}
+[data-edu-tone="teal"]{--edu-icon-fg:#087d78;--edu-icon-soft:#d5f7f0;--edu-icon-mid:#a1e9df;--edu-icon-ring:#3ccbc0}
+[data-edu-tone="sky"]{--edu-icon-fg:#1875bc;--edu-icon-soft:#e1f5ff;--edu-icon-mid:#a8defa;--edu-icon-ring:#67c1f7}
+[data-edu-tone="blue"]{--edu-icon-fg:#365fca;--edu-icon-soft:#e6eaff;--edu-icon-mid:#bfcfff;--edu-icon-ring:#849def}
+[data-edu-tone="violet"]{--edu-icon-fg:#7851bf;--edu-icon-soft:#f1e6ff;--edu-icon-mid:#ddc2fa;--edu-icon-ring:#b18cec}
+[data-edu-tone="amber"]{--edu-icon-fg:#986012;--edu-icon-soft:#fff4d8;--edu-icon-mid:#fce1a3;--edu-icon-ring:#eeba53}
+[data-edu-tone="rose"]{--edu-icon-fg:#bf4b6f;--edu-icon-soft:#ffe8ee;--edu-icon-mid:#fbc4d0;--edu-icon-ring:#ea8ea6}
+.edu-vector-icon{
+ display:block!important;flex:0 0 auto!important;
+ width:65%!important;height:65%!important;
+ fill:none!important;stroke:currentColor!important;
+ stroke-width:1.9!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+ overflow:visible!important;pointer-events:none!important;
+}
+.app-page .premium-nav-icon,
+.app-page .premium-dock-icon,
+.app-page .premium-stat-icon,
+.app-page .role-quick-icon,
+.app-page #adminDailyDesk .edu-action-icon,
+.app-page .edu-search-icon,
+.auth-page .edu-auth-role-icon,
+.learning-sky .edu-guest-tab-icon,
+.learning-sky .edu-learning-card-icon,
+.page-home .experience-strip .feature-icon{
+ color:var(--edu-icon-fg,#087d78)!important;
+ -webkit-text-fill-color:var(--edu-icon-fg,#087d78)!important;
+ background:linear-gradient(145deg,var(--edu-icon-soft,#e1f7f0),var(--edu-icon-mid,#bbefdf))!important;
+ border:1px solid color-mix(in srgb,var(--edu-icon-ring,#4fd39d) 68%,white)!important;
+ box-shadow:var(--edu-icon-shadow)!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ border-radius:12px!important;
+ vertical-align:middle;
+ opacity:1!important;
+ text-shadow:none!important;
+}
+.app-page .premium-nav-icon{
+ width:34px!important;height:34px!important;min-width:34px!important;flex:0 0 34px!important;
+ border-radius:11px!important;box-sizing:border-box!important;
+}
+.app-page .premium-nav-icon .edu-vector-icon{width:21px!important;height:21px!important}
+.app-page .nav-item:hover .premium-nav-icon,
+.app-page .nav-item.active .premium-nav-icon{
+ color:var(--edu-icon-fg,#176d77)!important;
+ background:linear-gradient(145deg,var(--edu-icon-soft,#e4f9ee),var(--edu-icon-mid,#a6ebd6))!important;
+ border-color:var(--edu-icon-ring,#6fceb3)!important;
+ box-shadow:0 0 0 1px rgba(255,255,255,.16),0 5px 14px rgba(0,27,36,.18)!important;
+}
+.app-page .nav-group>summary .edu-group-icon{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:34px!important;height:34px!important;min-width:34px!important;
+ color:var(--edu-icon-fg,#0e775c)!important;
+ border:1px solid color-mix(in srgb,var(--edu-icon-ring,#4fd39d) 62%,white)!important;
+ border-radius:11px!important;
+ background:linear-gradient(140deg,var(--edu-icon-soft,#e4f9ee),var(--edu-icon-mid,#a6ebd6))!important;
+ box-shadow:0 4px 13px rgba(0,28,37,.16),inset 0 1px rgba(255,255,255,.68)!important;
+ filter:none!important;
+}
+.app-page .nav-group>summary .edu-group-icon .edu-vector-icon{width:20px!important;height:20px!important}
+.app-page .nav-group>summary strong{min-width:0}
+.app-page #premiumMobileDock .premium-dock-icon{
+ width:31px!important;height:31px!important;min-width:31px!important;
+ border-radius:11px!important;
+}
+.app-page #premiumMobileDock .premium-dock-icon .edu-vector-icon{width:19px!important;height:19px!important}
+.app-page #premiumMobileDock button.active .premium-dock-icon{
+ box-shadow:0 0 0 2px rgba(255,255,255,.78),0 4px 13px rgba(10,75,72,.23)!important;
+ border-color:var(--edu-icon-ring,#4fd39d)!important;
+}
+.app-page #premiumMobileDock button{touch-action:manipulation}
+.app-page .premium-stat-icon,
+.app-page .role-quick-icon,
+.app-page #adminDailyDesk .edu-action-icon{
+ width:45px!important;height:45px!important;min-width:45px!important;
+ border-radius:14px!important;
+}
+.app-page .premium-stat-icon .edu-vector-icon,
+.app-page .role-quick-icon .edu-vector-icon,
+.app-page #adminDailyDesk .edu-action-icon .edu-vector-icon{width:26px!important;height:26px!important}
+.app-page #dashboardInstituteFallback.edu-campus-icon{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ color:#087d78!important;
+ background:linear-gradient(130deg,rgba(219,255,246,.94),rgba(173,236,217,.85))!important;
+ border:2px solid rgba(51,166,138,.62)!important;
+ border-radius:22px!important;
+}
+.app-page #dashboardInstituteFallback.edu-campus-icon .edu-vector-icon{width:55%!important;height:55%!important}
+.app-page .edu-chip-icon{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:24px!important;height:24px!important;flex:0 0 24px!important;
+ border-radius:8px!important;margin-right:5px!important;
+ color:var(--edu-icon-fg,#0e775c)!important;
+ background:var(--edu-icon-soft,#e4f9ee)!important;
+ border:1px solid var(--edu-icon-ring,#7dceb3)!important;
+}
+.app-page .edu-chip-icon .edu-vector-icon{width:15px!important;height:15px!important}
+.app-page .edu-search-icon{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:27px!important;height:27px!important;min-width:27px!important;
+ border-radius:8px!important;
+}
+.app-page .edu-search-icon .edu-vector-icon{width:17px!important;height:17px!important}
+.auth-page #roleView .role .edu-auth-role-icon{
+ width:55px!important;height:55px!important;min-width:55px!important;
+ border-radius:16px!important;margin-bottom:12px!important;
+}
+.auth-page #roleView .role .edu-auth-role-icon .edu-vector-icon{
+ width:32px!important;height:32px!important;
+}
+.auth-page #roleView .role:hover .edu-auth-role-icon{
+ box-shadow:0 8px 17px rgba(23,89,81,.2),inset 0 1px 0 white!important;
+}
+.learning-sky .tabs .tab{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ gap:7px!important;
+}
+.learning-sky .edu-guest-tab-icon{
+ width:27px!important;height:27px!important;min-width:27px!important;
+ border-radius:9px!important;
+}
+.learning-sky .edu-guest-tab-icon .edu-vector-icon{width:17px!important;height:17px!important}
+.learning-sky .edu-learning-card-icon{
+ width:48px!important;height:48px!important;min-width:48px!important;
+ border-radius:14px!important;margin:9px 0!important;
+}
+.learning-sky .edu-learning-card-icon .edu-vector-icon{width:28px!important;height:28px!important}
+.learning-sky .searchbox .edu-search-icon{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:29px!important;height:29px!important;
+ color:#146b9b!important;
+ background:rgba(221,248,255,.95)!important;
+ border:1px solid rgba(67,178,218,.65)!important;
+ border-radius:9px!important;
+}
+.learning-sky .searchbox .edu-search-icon .edu-vector-icon{width:19px!important;height:19px!important}
+.page-home .experience-strip .feature-icon{
+ width:53px!important;height:53px!important;min-width:53px!important;
+ border-radius:15px!important;
+}
+.page-home .experience-strip .feature-icon .edu-vector-icon{width:29px!important;height:29px!important}
+@media(max-width:950px){
+ .app-page .nav-group>summary .edu-group-icon{width:32px!important;height:32px!important;min-width:32px!important}
+ .app-page .premium-nav-icon{width:32px!important;height:32px!important;min-width:32px!important;flex-basis:32px!important}
+ .app-page #premiumMobileDock .premium-dock-icon{width:29px!important;height:29px!important;min-width:29px!important}
+ .app-page #premiumMobileDock button{min-height:54px!important}
+ .learning-sky .tabs .tab{gap:5px!important}
+}
+@media(max-width:360px){
+ .app-page #premiumMobileDock .premium-dock-icon{width:27px!important;height:27px!important;min-width:27px!important}
+ .app-page #premiumMobileDock .premium-dock-icon .edu-vector-icon{width:16px!important;height:16px!important}
+}
+@media(prefers-reduced-motion:no-preference){
+ .app-page .premium-nav-icon,.app-page .premium-dock-icon,
+ .auth-page .edu-auth-role-icon,.learning-sky .edu-learning-card-icon{
+   transition:background-color .18s ease,box-shadow .18s ease,transform .18s ease;
+ }
+ .app-page .nav-item:hover .premium-nav-icon,
+ .auth-page #roleView .role:hover .edu-auth-role-icon{transform:translateY(-1px)}
+}
