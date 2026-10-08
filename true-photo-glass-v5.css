@@ -1,0 +1,293 @@
+/* EduNizam · TRUE PHOTO GLASS V5 · 2026-10-08
+   Shared LAST-LOADED presentation layer for every public/authenticated route.
+   Corrects solid white surfaces seen in user's 10:41–10:42 Android screenshots.
+   No JavaScript, login state, geometry of sidebar/dock, or role controls altered.
+   Sources already credited in assets/IMAGE-CREDITS.md.
+   Rule: PHOTO on SECTION, FROSTED TRANSLUCENT SURFACE on CARD,
+   dark high-contrast ink for reading. No translucent text/opacity on content. */
+:root{
+ --v5-ink:#113c34;
+ --v5-muted:#355c52;
+ --v5-green:rgba(22,159,115,.78);
+ --v5-blue:rgba(64,161,205,.75);
+ --v5-gold:rgba(207,165,62,.76);
+ --v5-lilac:rgba(143,112,193,.73);
+ --v5-glass:linear-gradient(130deg,rgba(255,255,255,.67),rgba(235,251,245,.52));
+ --v5-glass-light:linear-gradient(125deg,rgba(255,255,255,.75),rgba(241,252,246,.61));
+ --v5-shine:inset 0 1px 0 rgba(255,255,255,.92),0 12px 28px rgba(9,65,48,.13);
+ --v5-frost:blur(11px) saturate(135%);
+ --v5-wood:var(--ng-wood);
+ --v5-paper:var(--ng-paper);
+ --v5-class:var(--ng-class);
+ --v5-study:var(--ng-tools);
+}
+/* 1 — HOME: photographic section with visibly translucent glass tiles */
+body.gold-home.page-home .experience-strip{
+ background:linear-gradient(135deg,rgba(244,253,249,.14),rgba(239,252,249,.11)),var(--v5-wood) center/cover no-repeat!important;
+ border:1.5px solid rgba(55,163,125,.70)!important;
+}
+body.gold-home.page-home .experience-strip article{
+ --v5-photo:var(--ng-tile-photo,var(--v5-paper));
+ background:linear-gradient(135deg,rgba(255,255,255,.27),rgba(237,254,248,.19)),var(--v5-photo) center/cover no-repeat!important;
+ border:1.5px solid rgba(37,146,119,.76)!important;
+ box-shadow:var(--v5-shine)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+body.gold-home.page-home .experience-strip article:nth-child(6n+2),
+body.gold-home.page-home .experience-strip article:nth-child(6n+5){border-color:var(--v5-blue)!important}
+body.gold-home.page-home .experience-strip article:nth-child(6n+3){border-color:var(--v5-gold)!important}
+body.gold-home.page-home .experience-strip article:nth-child(6n+4){border-color:var(--v5-lilac)!important}
+/* Frosted reading tray, not a white sticker. */
+body.gold-home.page-home .experience-strip article>div{
+ background:linear-gradient(125deg,rgba(255,255,255,.78),rgba(239,253,246,.68))!important;
+ border:1px solid rgba(255,255,255,.87)!important;
+ box-shadow:0 4px 14px rgba(7,61,47,.12),inset 0 1px 0 rgba(255,255,255,.92)!important;
+ -webkit-backdrop-filter:blur(8px) saturate(130%)!important;
+ backdrop-filter:blur(8px) saturate(130%)!important;
+}
+body.gold-home.page-home .experience-strip article :is(strong,small){
+ color:#123d35!important;opacity:1!important;text-shadow:none!important;
+}
+/* Hero and quick access: photo behind their semi-transparent glass. */
+body.gold-home.page-home .hero-copy{
+ background:linear-gradient(130deg,rgba(255,255,255,.67),rgba(242,252,247,.55))!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+body.gold-home.page-home .quick-access-card{
+ background:linear-gradient(130deg,rgba(248,255,251,.49),rgba(225,249,241,.37)),var(--v5-paper) center/cover no-repeat!important;
+ border:1.5px solid rgba(30,147,108,.79)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+body.gold-home.page-home .quick-actions :is(a,button):not(.quick-main),
+body.gold-home.page-home .public-proof span,
+body.gold-home.page-home .hero-role-badge span{
+ background:rgba(247,255,250,.67)!important;
+ color:#124738!important;
+ -webkit-backdrop-filter:blur(7px)!important;
+ backdrop-filter:blur(7px)!important;
+}
+body.gold-home.page-home :is(.role-showcase,.value-section){
+ background:linear-gradient(138deg,rgba(243,253,249,.22),rgba(233,249,243,.14)),var(--ng-public-photo,var(--v5-wood)) center/cover no-repeat!important;
+}
+body.gold-home.page-home :is(.role-demo,.preview-window,.public-grid>.public-card){
+ background:var(--v5-glass)!important;
+ border:1.5px solid rgba(36,143,111,.55)!important;
+ box-shadow:var(--v5-shine)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+body.gold-home.page-home .role-showcase .role-demo :is(.role-tab,.role-preview){
+ background-color:rgba(255,255,255,.53)!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]{
+ background:linear-gradient(135deg,rgba(244,252,248,.24),rgba(235,248,242,.16)),var(--ng-public-photo,var(--v5-wood)) center/cover no-repeat!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-grid>.public-card{
+ background:linear-gradient(130deg,rgba(255,255,255,.71),rgba(237,251,245,.55))!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+/* Learning callout is dark photo glass, its RESOURCE tiles are pale photo glass. */
+body.gold-home.page-home .learning-band{
+ background:linear-gradient(125deg,rgba(3,60,46,.71),rgba(3,68,57,.67)),var(--ng-digital) center/cover no-repeat!important;
+}
+body.gold-home.page-home .learning-band .resource-card:is(.r1,.r2,.r3){
+ background:linear-gradient(125deg,rgba(255,255,255,.75),rgba(226,251,244,.60)),var(--v5-paper) center/cover no-repeat!important;
+ border:1.5px solid rgba(255,255,255,.90)!important;
+ box-shadow:var(--v5-shine)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+body.gold-home.page-home .learning-band .resource-card.r2{
+ background:linear-gradient(125deg,rgba(255,255,255,.76),rgba(229,251,245,.58)),var(--ng-digital) center/cover no-repeat!important;
+ border-color:var(--v5-blue)!important;
+}
+body.gold-home.page-home .learning-band .resource-card.r3{border-color:var(--v5-gold)!important}
+
+/* 2 — LOGIN: keep admired colorful role cards, turn opaque form surrounding
+   into translucent glass. White inputs themselves remain fully legible. */
+body.auth-page .main{
+ background:linear-gradient(125deg,rgba(244,253,247,.15),rgba(231,250,244,.17)),var(--v5-paper) center/cover scroll no-repeat!important;
+}
+body.auth-page .main #authCard{
+ background:linear-gradient(130deg,rgba(255,255,255,.60),rgba(237,251,244,.46))!important;
+ border:1.5px solid rgba(45,154,113,.69)!important;
+ box-shadow:var(--v5-shine)!important;
+ -webkit-backdrop-filter:blur(13px) saturate(135%)!important;
+ backdrop-filter:blur(13px) saturate(135%)!important;
+}
+body.auth-page #roleView .roles .role{
+ background:linear-gradient(135deg,rgba(255,255,255,.66),rgba(237,251,246,.52))!important;
+ box-shadow:0 9px 22px rgba(4,68,45,.13),inset 0 1px 0 rgba(255,255,255,.83)!important;
+ -webkit-backdrop-filter:blur(8px) saturate(128%)!important;
+ backdrop-filter:blur(8px) saturate(128%)!important;
+}
+body.auth-page #roleView .roles .role:nth-child(1){border-color:var(--v5-blue)!important}
+body.auth-page #roleView .roles .role:nth-child(2){border-color:var(--v5-green)!important}
+body.auth-page #roleView .roles .role:nth-child(3){border-color:var(--v5-gold)!important}
+body.auth-page #roleView .roles .role:nth-child(4){border-color:var(--v5-lilac)!important}
+body.auth-page #roleView .roles .role:is(#admissionApplicantRole,.guest-role){
+ background:linear-gradient(120deg,rgba(248,255,249,.67),rgba(224,250,238,.52))!important;
+}
+body.auth-page #roleView .roles .role :is(strong,small),
+body.auth-page #authView :is(label,.role-guidance,.help,.subtitle){
+ color:#174339!important;text-shadow:none!important;opacity:1!important;
+}
+body.auth-page #authView .field{
+ background:rgba(247,255,251,.32)!important;
+ border-radius:14px;
+}
+body.auth-page :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+ background:rgba(255,255,255,.91)!important;
+ color:#103d33!important;
+}
+/* 3 — PUBLIC FEATURES / GUIDES: solid white feature-list rows replaced with
+   actual translucent glass over an image-backed section. */
+body.premium-public-page .public-main>.public-section{
+ background:linear-gradient(135deg,rgba(240,253,246,.20),rgba(236,250,248,.16)),var(--ng-public-photo,var(--v5-class)) center/cover no-repeat!important;
+ border:1.5px solid rgba(52,155,122,.68)!important;
+}
+body.premium-public-page .public-main>.public-hero{
+ background:linear-gradient(130deg,rgba(236,251,244,.30),rgba(233,250,246,.23)),var(--ng-campus) center/cover no-repeat!important;
+}
+body.premium-public-page .public-list li,
+body.premium-public-page .public-grid>.public-card{
+ background:linear-gradient(130deg,rgba(255,255,255,.65),rgba(235,250,245,.49))!important;
+ border:1.5px solid rgba(41,148,112,.61)!important;
+ box-shadow:var(--v5-shine)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+ color:#285147!important;
+}
+body.premium-public-page .public-list li:nth-child(4n+2),
+body.premium-public-page .public-grid>.public-card:nth-child(4n+2){border-color:var(--v5-blue)!important}
+body.premium-public-page .public-list li:nth-child(4n+3),
+body.premium-public-page .public-grid>.public-card:nth-child(4n+3){border-color:var(--v5-gold)!important}
+body.premium-public-page .public-list li:nth-child(4n),
+body.premium-public-page .public-grid>.public-card:nth-child(4n){border-color:var(--v5-lilac)!important}
+body.premium-public-page :is(.public-list li,.public-card) :is(h2,h3,strong,p,li){
+ color:#153f35!important;
+ text-shadow:none!important;
+ opacity:1!important;
+}
+/* 4 — AUTHENTICATED WORKSPACE: retain original green sidebar, no geometry
+   changes. The view is photo-backed; the inner cards are frosted reading panes. */
+body.app-page.page-app .main{
+ background:linear-gradient(125deg,rgba(230,249,244,.13),rgba(230,246,241,.15)),var(--v5-wood) center top/cover scroll no-repeat!important;
+}
+body.app-page.page-app .main .view.active{
+ background:linear-gradient(135deg,rgba(240,253,247,.16),rgba(239,250,245,.12)),var(--ng-scene,var(--v5-wood)) center/cover no-repeat!important;
+ border-color:rgba(55,155,120,.66)!important;
+}
+body.app-page.page-app .main .view.active :is(.card,.section-head,.paper-card,.premium-paper-card,.dashboard-panel,.request-panel,.feature-panel,.dashboard-quick-card,.dashboard-activity-card,.role-action-card,.premium-family-card,.training-card,.function-card,.study-viewer-card,.admission-review-card,.attachment-card,.highlight-card){
+ background:var(--v5-glass)!important;
+ border:1.5px solid rgba(42,141,110,.57)!important;
+ box-shadow:var(--v5-shine)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+ color:var(--v5-ink)!important;
+}
+body.app-page.page-app .main .view.active :is(.cards,.grid-2,.role-action-grid,.attendance-grid,.analytics-grid)>.card:nth-child(4n+2){border-color:var(--v5-blue)!important}
+body.app-page.page-app .main .view.active :is(.cards,.grid-2,.role-action-grid,.attendance-grid,.analytics-grid)>.card:nth-child(4n+3){border-color:var(--v5-gold)!important}
+body.app-page.page-app .main .view.active :is(.cards,.grid-2,.role-action-grid,.attendance-grid,.analytics-grid)>.card:nth-child(4n){border-color:var(--v5-lilac)!important}
+/* Exact "Absent Students / Absent Staff / Staff Not Marked" screenshot cards. */
+body.app-page.page-app .main .view.active .admin-attendance-alerts{
+ background:linear-gradient(140deg,rgba(255,250,249,.58),rgba(240,252,247,.43))!important;
+ border:1.5px solid rgba(183,89,68,.61)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+body.app-page.page-app .main .view.active .attendance-alert-counts>div,
+body.app-page.page-app .main .view.active .attendance-alert-columns>div{
+ background:linear-gradient(130deg,rgba(255,255,255,.57),rgba(236,250,244,.43))!important;
+ border:1.5px solid rgba(38,137,106,.62)!important;
+ box-shadow:var(--v5-shine)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+body.app-page.page-app .main .view.active .attendance-alert-counts>div:nth-child(2){border-color:var(--v5-blue)!important}
+body.app-page.page-app .main .view.active .attendance-alert-counts>div:nth-child(3){border-color:var(--v5-gold)!important}
+body.app-page.page-app .main .view.active :is(.attendance-alert-counts,.attendance-alert-columns) :is(strong,span,h3,p){
+ color:#163e35!important;text-shadow:none!important;opacity:1!important;
+}
+body.app-page.page-app .main .view.active :is(.card,.section-head,.attendance-alert-columns>div) :is(h2,h3,h4,p,.muted){
+ opacity:1!important;text-shadow:none!important;
+}
+body.app-page.page-app .main .view.active :is(.card,.section-head,.attendance-alert-columns>div) :is(h2,h3,h4){color:#103e35!important}
+body.app-page.page-app .main .view.active :is(.card,.section-head,.attendance-alert-columns>div) :is(p,.muted){color:#36584e!important}
+/* Input fields/menus are accessible, deliberate opaque functional elements. */
+body.app-page.page-app .main :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+ background:rgba(255,255,255,.94)!important;color:#113d35!important;
+}
+body.app-page.page-app .main :is(table,.table-wrap,.data-table-wrap){
+ background-color:rgba(255,255,255,.70)!important;
+}
+body.app-page.page-app .sidebar{filter:none!important;opacity:1!important}
+/* 5 — Learning & admissions: a real glass surface, not a white sheet. */
+body.learning-sky .section.active{
+ background:linear-gradient(130deg,rgba(247,255,251,.50),rgba(235,251,244,.36)),var(--ng-learn-photo,var(--v5-paper)) center/cover no-repeat!important;
+}
+body.learning-sky .section.active :is(.card,.paper-card,.resource-card,.practice-box,.quick-card){
+ background:var(--v5-glass)!important;
+ border:1.5px solid rgba(52,147,115,.60)!important;
+ box-shadow:var(--v5-shine)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+body.admission-premium .card,
+body.admission-premium :is(.result,.app,.doc,.payment-box){
+ background:var(--v5-glass)!important;
+ border:1.5px solid rgba(50,144,110,.59)!important;
+ box-shadow:var(--v5-shine)!important;
+ -webkit-backdrop-filter:var(--v5-frost)!important;
+ backdrop-filter:var(--v5-frost)!important;
+}
+/* All crucial labels use ink, never a faded semi-transparent foreground. */
+body:is(.page-home,.premium-public-page,.auth-page,.admission-premium,.learning-sky,.page-app)
+ :is(.public-card,.public-list li,.role,.card,.resource-card,.feature-panel,.paper-card) :is(h2,h3,h4,strong,label){
+ color:#153f36!important;
+ opacity:1!important;
+ text-shadow:0 1px 0 rgba(255,255,255,.65)!important;
+}
+/* Selected dark hero and green sidebar MUST keep light ink. */
+body.gold-home.page-home .learning-band .learning-copy :is(h2,p),
+body.app-page.page-app .sidebar :is(.nav-item,.sidebar-wordmark strong,.sidebar-institute-copy strong){
+ color:#f7fff8!important;
+}
+/* Smaller mobile blur => scrolling stays practical; photos remain visible. */
+@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
+ body:is(.page-home,.premium-public-page,.auth-page,.admission-premium,.learning-sky){
+  background-attachment:scroll!important;
+ }
+ body.gold-home.page-home .experience-strip article,
+ body.gold-home.page-home .experience-strip article>div,
+ body.auth-page .main #authCard,
+ body.auth-page #roleView .roles .role,
+ body.premium-public-page .public-list li,
+ body.premium-public-page .public-grid>.public-card,
+ body.app-page.page-app .main .view.active :is(.card,.section-head,.attendance-alert-counts>div,.attendance-alert-columns>div),
+ body.learning-sky .section.active :is(.card,.paper-card),
+ body.admission-premium .card{
+  -webkit-backdrop-filter:blur(6px) saturate(122%)!important;
+  backdrop-filter:blur(6px) saturate(122%)!important;
+ }
+ body.app-page.page-app .main .view.active .attendance-alert-counts>div{
+  min-height:108px!important;
+ }
+ body.premium-public-page .public-list li{
+  font-size:clamp(15px,3.7vw,18px)!important;
+  line-height:1.55!important;
+ }
+ body.auth-page .main #authCard{
+  background:linear-gradient(125deg,rgba(255,255,255,.62),rgba(234,251,245,.47))!important;
+ }
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+ body:is(.page-home,.premium-public-page,.auth-page,.admission-premium,.learning-sky,.page-app)
+ :is(.card,.role,.public-card,.resource-card,.public-list li){
+  background-color:rgba(247,255,250,.80)!important;
+ }
+}
