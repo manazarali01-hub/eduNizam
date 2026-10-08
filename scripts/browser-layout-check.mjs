@@ -138,7 +138,11 @@ async function inspectPage(page,url,width){
         quick:box('.page-home .quick-access-card'),
         roles:box('.page-home .hero-role-badge'),
         imageQuickOverlap:intersects(box('.page-home .hero-image-wrap'),box('.page-home .quick-access-card')),
-        quickRoleOverlap:intersects(box('.page-home .quick-access-card'),box('.page-home .hero-role-badge'))
+        quickRoleOverlap:intersects(box('.page-home .quick-access-card'),box('.page-home .hero-role-badge')),
+        linksDisplay:getComputedStyle(document.querySelector('.page-home .public-links')||document.body).display,
+        navHeight:box('.page-home .public-nav')?.height||0,
+        learningColors:[...document.querySelectorAll('.page-home .learning-band .resource-card :is(small,strong,span)')].slice(0,9).map(el=>({color:getComputedStyle(el).color,text:(el.textContent||'').trim().slice(0,30)})),
+        experienceColumns:getComputedStyle(document.querySelector('.page-home .experience-strip')||document.body).gridTemplateColumns
       }
     };
   });
@@ -165,6 +169,17 @@ try{
           if(result.home.quickRoleOverlap)pushFailure(scope,'Homepage Quick Access and role badge overlap');
           if(result.home.nav&&result.home.main&&result.home.main.top<result.home.nav.bottom-2){
             pushFailure(scope,'Homepage navigation covers main content',JSON.stringify({nav:result.home.nav,main:result.home.main}));
+          }
+          // Visual regression guard: an oversized 3-row header or pale-on-pale
+          // Learning Hub labels must never slip through the layout-only gates.
+          if(result.home.linksDisplay!=='flex')pushFailure(scope,'Homepage mobile navigation is not a compact flex strip',result.home.linksDisplay);
+          if(result.home.navHeight>175)pushFailure(scope,'Homepage mobile navigation consumes too much vertical space',Math.round(result.home.navHeight)+'px');
+          if((result.home.learningColors||[]).length<9)pushFailure(scope,'Homepage featured learning card labels are missing');
+          for(const item of result.home.learningColors||[]){
+            const channels=(item.color.match(/[\\d.]+/g)||[]).slice(0,3).map(Number);
+            if(channels.length===3&&channels[0]*.2126+channels[1]*.7152+channels[2]*.0722>145){
+              pushFailure(scope,'Homepage Learning Hub text is too pale to read',JSON.stringify(item));
+            }
           }
         }
         if(route==='/app.html'&&width<=768){
