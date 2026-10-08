@@ -2,15 +2,15 @@
   "name": "EduNizam – AI School Assistant",
   "short_name": "EduNizam",
   "id": "./",
-  "start_url": "./",
+  "start_url": "./?edu_pwa_launch=20261008-v36",
   "scope": "./",
   "display": "standalone",
   "display_override": [
     "window-controls-overlay",
     "standalone"
   ],
-  "background_color": "#F4F9FD",
-  "theme_color": "#1769AA",
+  "background_color": "#f2faf5",
+  "theme_color": "#0b5948",
   "description": "Premium role-based education management, admissions, communication, learning and academic operations.",
   "categories": [
     "education",
