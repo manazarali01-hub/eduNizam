@@ -109,11 +109,10 @@
     });
     observer.observe(nav,{childList:true,subtree:true});
     window.addEventListener('edunizam:auth',()=>setTimeout(filter,50));
-    window.addEventListener('edunizam:workspace-ready',()=>{
-      // A settled role may change which groups are visible, but never move
-      // navigation targets beneath a finger during the first mobile tap.
-      filter();scheduleWarm();
-    });
+    // Preserve the background feature-warming contract: warm only after
+    // workspace readiness, and independently refresh role-filtered groups.
+    window.addEventListener('edunizam:workspace-ready',scheduleWarm);
+    window.addEventListener('edunizam:workspace-ready',filter);
     // Initial grouping is already complete above; the old 900ms re-parenting
     // sweep caused an intermittent moving/vanishing mobile Help tap target.
     // New buttons are handled by the MutationObserver instead.
