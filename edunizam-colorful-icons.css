@@ -310,3 +310,34 @@ body.app-page.page-app #dashboard>.cards>.stat:nth-child(1)>strong{color:#176cb1
 body.app-page.page-app #dashboard>.cards>.stat:nth-child(2)>strong{color:#087f5d!important;-webkit-text-fill-color:#087f5d!important}
 body.app-page.page-app #dashboard>.cards>.stat:nth-child(3)>strong{color:#a66a14!important;-webkit-text-fill-color:#a66a14!important}
 body.app-page.page-app #dashboard>.cards>.stat:nth-child(4)>strong{color:#7751a9!important;-webkit-text-fill-color:#7751a9!important}
+
+/* EduNizam action icon polish v5: rich, readable, unified controls. */
+.edu-button-icon{
+ --ei-primary:var(--ei-primary,#20bd95);
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:30px!important;height:30px!important;min-width:30px!important;flex:0 0 30px!important;
+ padding:3px!important;box-sizing:border-box!important;border-radius:10px!important;
+ border:1.5px solid var(--ei-halo,#69d9bd)!important;
+ background:linear-gradient(145deg,#fff,var(--ei-bright,#d8fff2) 58%,var(--ei-halo,#69d9bd))!important;
+ box-shadow:inset 0 1px 0 #fff,0 4px 11px rgba(12,65,77,.17)!important;
+ pointer-events:none!important;line-height:1!important;opacity:1!important;
+}
+.edu-button-icon .edu-illustrated-icon{width:23px!important;height:23px!important;flex:none!important;display:block!important}
+body.app-page.page-app #dashboard :is(.campus-hero-actions,.quick-actions) button,
+body.page-home .quick-access-card .quick-actions :is(a,button),
+body.learning-sky .hero-actions a{
+ display:inline-flex!important;align-items:center!important;gap:9px!important;
+}
+body.page-home .quick-access-card .quick-actions a>b,
+body.page-home .quick-access-card .quick-actions button>b{margin-left:auto!important}
+body.page-home .quick-access-card .quick-actions .edu-button-icon{
+ width:35px!important;height:35px!important;min-width:35px!important;flex-basis:35px!important;
+ border-radius:11px!important;
+}
+body.page-home .quick-access-card .quick-actions .edu-button-icon .edu-illustrated-icon{width:27px!important;height:27px!important}
+body.app-page.page-app #dashboard .edu-button-icon{width:32px!important;height:32px!important;min-width:32px!important;flex-basis:32px!important}
+@media(max-width:440px){
+ body.page-home .quick-access-card .quick-actions :is(a,button){gap:8px!important}
+ body.page-home .quick-access-card .quick-actions .edu-button-icon{width:31px!important;height:31px!important;min-width:31px!important;flex-basis:31px!important}
+ body.page-home .quick-access-card .quick-actions .edu-button-icon .edu-illustrated-icon{width:24px!important;height:24px!important}
+}
