@@ -319,3 +319,90 @@ body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(
   backdrop-filter:blur(6px) saturate(122%)!important;
  }
 }
+
+
+/* ===== V5.1 · PHOTO CONTRAST HOTFIX · Android screenshots 11:07–11:08 =====
+   Dark serif and body copy was rendered directly on busy/dark photographs.
+   Preserve real translucent glass everywhere else. ONLY introduce frosted
+   reading plates behind these two headings; never dim the actual letters. */
+body.gold-home.page-home .value-section>.section-heading,
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading{
+ display:flex!important;
+ flex-direction:column!important;
+ align-items:flex-start!important;
+ justify-content:flex-start!important;
+ gap:10px!important;
+ width:100%!important;
+ max-width:100%!important;
+ min-width:0!important;
+ padding:clamp(17px,3vw,28px)!important;
+ border:1.5px solid rgba(240,255,246,.94)!important;
+ border-radius:clamp(18px,2.2vw,26px)!important;
+ background:linear-gradient(128deg,rgba(255,255,255,.87),rgba(237,251,244,.81))!important;
+ box-shadow:0 13px 36px rgba(6,54,40,.20),inset 0 1px 0 rgba(255,255,255,.95)!important;
+ -webkit-backdrop-filter:blur(13px) saturate(125%)!important;
+ backdrop-filter:blur(13px) saturate(125%)!important;
+ isolation:isolate!important;
+}
+body.gold-home.page-home .value-section>.section-heading>div,
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading>div{
+ max-width:100%!important;
+ min-width:0!important;
+}
+body.gold-home.page-home .value-section>.section-heading h2,
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading h2{
+ color:#103b33!important;
+ -webkit-text-fill-color:#103b33!important;
+ text-shadow:none!important;
+ opacity:1!important;
+ filter:none!important;
+ line-height:1.13!important;
+ max-width:24ch!important;
+}
+body.gold-home.page-home .value-section>.section-heading>p,
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading>p{
+ display:block!important;
+ max-width:65ch!important;
+ margin:0!important;
+ color:#2b5146!important;
+ -webkit-text-fill-color:#2b5146!important;
+ text-shadow:none!important;
+ font-weight:570!important;
+ font-size:clamp(15px,1.36vw,18px)!important;
+ line-height:1.62!important;
+ opacity:1!important;
+ filter:none!important;
+}
+body.gold-home.page-home .value-section>.section-heading .eyebrow,
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading .eyebrow{
+ color:#076447!important;
+ -webkit-text-fill-color:#076447!important;
+ text-shadow:none!important;
+ opacity:1!important;
+ background:rgba(248,255,250,.76)!important;
+ border:1px solid rgba(31,141,104,.59)!important;
+}
+@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
+ body.gold-home.page-home .value-section>.section-heading,
+ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading{
+  padding:18px 16px!important;
+  margin-bottom:15px!important;
+  gap:11px!important;
+  -webkit-backdrop-filter:blur(8px) saturate(117%)!important;
+  backdrop-filter:blur(8px) saturate(117%)!important;
+ }
+ body.gold-home.page-home .value-section>.section-heading h2,
+ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading h2{
+  font-size:clamp(28px,7.3vw,37px)!important;
+  line-height:1.15!important;
+  letter-spacing:-.027em!important;
+  max-width:100%!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+ }
+ body.gold-home.page-home .value-section>.section-heading>p,
+ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading>p{
+  font-size:clamp(15px,3.75vw,17px)!important;
+  line-height:1.55!important;
+ }
+}

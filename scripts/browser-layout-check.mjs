@@ -153,6 +153,23 @@ async function inspectPage(page,url,width){
         learningVisualWidth:box('.page-home .learning-band .learning-visual')?.width||0,
         resourceCardWidths:[...document.querySelectorAll('.page-home .learning-band .resource-card')].map(el=>Math.round(el.getBoundingClientRect().width)),
         featureSizes:[...document.querySelectorAll('.page-home .experience-strip article strong')].map(el=>parseFloat(getComputedStyle(el).fontSize)),
+
+        contrastPanels:[
+          '.page-home .value-section>.section-heading',
+          '.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading'
+        ].map(sel=>{
+          const el=document.querySelector(sel);
+          if(!el)return {sel,missing:true};
+          const head=el.querySelector('h2'),copy=el.querySelector('p');
+          const cs=getComputedStyle(el);
+          return {sel,
+            background:cs.backgroundImage,
+            blur:cs.backdropFilter,
+            head:head?getComputedStyle(head).color:'',
+            copy:copy?getComputedStyle(copy).color:'',
+            opacity:copy?getComputedStyle(copy).opacity:'',
+            width:el.getBoundingClientRect().width};
+        }),
         footer:{background:getComputedStyle(document.querySelector('footer.public-footer')||document.body).backgroundImage,linkColors:[...document.querySelectorAll('footer.public-footer nav a')].map(el=>getComputedStyle(el).color)}
 
       }
@@ -197,6 +214,21 @@ try{
           // Learning Hub labels must never slip through the layout-only gates.
           if(result.home.linksDisplay!=='flex')pushFailure(scope,'Homepage mobile navigation is not a compact flex strip',result.home.linksDisplay);
           if(result.home.navHeight>175)pushFailure(scope,'Homepage mobile navigation consumes too much vertical space',Math.round(result.home.navHeight)+'px');
+          for(const panel of result.home.contrastPanels||[]){
+            if(panel.missing||!panel.background.includes('rgba(')||!panel.blur.includes('blur(')){
+              pushFailure(scope,'Homepage heading has no real frosted glass reading plate',JSON.stringify(panel));
+              continue;
+            }
+            const channels=value=>(value.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
+            for(const kind of ['head','copy']){
+              const vals=channels(panel[kind]);
+              if(vals.length!==3||vals[0]*.2126+vals[1]*.7152+vals[2]*.0722>120){
+                pushFailure(scope,'Homepage heading/description is too pale over photography',JSON.stringify({panel:panel.sel,kind,color:panel[kind]}));
+              }
+            }
+            if(panel.opacity!=='1')pushFailure(scope,'Homepage description text is faded',JSON.stringify(panel));
+          }
+
           if(result.home.learningVisualWidth<1||result.home.resourceCardWidths.length!==3||result.home.resourceCardWidths.some(w=>w<result.home.learningVisualWidth*.90))pushFailure(scope,'Homepage featured learning resource card fails to fill its column',JSON.stringify({visual:result.home.learningVisualWidth,cards:result.home.resourceCardWidths}));
           if(result.home.featureSizes.length!==6||result.home.featureSizes.some(x=>x<15))pushFailure(scope,'Homepage feature card labels are too small',JSON.stringify(result.home.featureSizes));
           if(result.home.footer.linkColors.length<5||result.home.footer.linkColors.some(c=>{const v=(c.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);return v.length===3&&(v[0]*.2126+v[1]*.7152+v[2]*.0722)<185}))pushFailure(scope,'Homepage footer links fail light-on-dark visual contrast policy',JSON.stringify(result.home.footer));
