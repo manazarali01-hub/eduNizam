@@ -1126,8 +1126,9 @@ for(const token of ['.page-home .public-links{','.page-home .hero-copy h1','.pag
 const realGlass=read('true-photo-glass-v5.css');
 for(const page of htmlFiles){
  const source=read(page);
- const tag='true-photo-glass-v5.css?v=20261008-cool-nature-v52';
- if(!source.includes(tag))fail.push('True glass V5 is missing from '+page);
+ const tag='true-photo-glass-v5.css?v=20261008-balanced-natural-v53';
+ const legacyTag='true-photo-glass-v5.css?v=20261008-cool-nature-v52';
+ if(!source.includes(tag)&&!source.includes(legacyTag))fail.push('True glass V5 is missing from '+page);
  const linkAt=source.lastIndexOf('true-photo-glass-v5.css');
  const previous=source.lastIndexOf('reference-reconstruction.css');
  if(previous>=0&&linkAt<previous)fail.push('True glass V5 must load after legacy CSS on '+page);
@@ -1152,11 +1153,12 @@ for(const sel of [
  if(!realGlass.includes(sel))fail.push('V5.1 photo-readable heading plate missing: '+sel);
 }
 // V5.2 natural palette + shared version are now the final release contract.
-if(!read('index.html').includes('true-photo-glass-v5.css?v=20261008-cool-nature-v52'))fail.push('Homepage V5.2 cache refresh is missing.');
+if(!read('index.html').includes('true-photo-glass-v5.css?v=20261008-cool-nature-v52')&&!read('index.html').includes('true-photo-glass-v5.css?v=20261008-balanced-natural-v53'))fail.push('Homepage natural-glass cache refresh is missing.');
 for(const marker of ['V5.2 · COOL NATURE','--v52-mist:','--v52-sun:','--v52-forest:','--v5-glass:linear-gradient(135deg','body.app-page.page-app .sidebar .sidebar-wordmark strong']){
  if(!realGlass.includes(marker))fail.push('Cool Nature V5.2 token or styling missing: '+marker);
 }
 if(!read('assets/IMAGE-CREDITS.md').includes('Cool Nature Glass V5.2'))fail.push('Cool Nature V5.2 image provenance missing.');
+for(const token of ['V5.3 · NATURAL VARIETY','--v53-sky:','--v53-ivory:','--v53-sage:','--v53-cloud:'])if(!realGlass.includes(token))fail.push('Natural Variety V5.3 missing CSS: '+token);
 
 
 if(fail.length){
