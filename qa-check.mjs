@@ -1120,6 +1120,32 @@ for(const token of ['.page-home .public-links{','.page-home .hero-copy h1','.pag
  if(!homeV4.includes(token)) fail.push('Home Focus V4 required styling missing: '+token);
 }
 
+
+// V5 real glass release gate: all HTML routes must include the LAST-loaded
+// shared photographic glass stylesheet; verify required screenshot repairs.
+const realGlass=read('true-photo-glass-v5.css');
+for(const page of htmlFiles){
+ const source=read(page);
+ const tag='true-photo-glass-v5.css?v=20261008-trueglass5';
+ if(!source.includes(tag))fail.push('True glass V5 is missing from '+page);
+ const linkAt=source.lastIndexOf('true-photo-glass-v5.css');
+ const previous=source.lastIndexOf('reference-reconstruction.css');
+ if(previous>=0&&linkAt<previous)fail.push('True glass V5 must load after legacy CSS on '+page);
+}
+for(const marker of [
+ 'body.gold-home.page-home .experience-strip article',
+ 'body.auth-page .main #authCard',
+ 'body.auth-page #roleView .roles .role',
+ 'body.premium-public-page .public-list li',
+ 'body.app-page.page-app .main .view.active .attendance-alert-counts>div',
+ 'body.app-page.page-app .main .view.active',
+ 'body.learning-sky .section.active',
+ 'body.admission-premium .card'
+]){
+ if(!realGlass.includes(marker))fail.push('True glass V5 screenshot surface not addressed: '+marker);
+}
+if(!realGlass.includes('--v5-frost:blur(11px)'))fail.push('True glass V5 frosted photo glass token missing.');
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
