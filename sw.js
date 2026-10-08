@@ -1,7 +1,8 @@
-const CACHE='edunizam-v267-mobile-layout-repair-v1'
+const CACHE='edunizam-v268-coldstart-launch-v36'
 const CORE=[
   './',
   './index.html',
+  './?edu_pwa_launch=20261008-v36',
   './app.html',
   './login.html',
   './admission.html',
@@ -143,8 +144,8 @@ self.addEventListener('activate',event=>{
       try{
         const url=new URL(client.url);
         if(url.origin!==self.location.origin || !['/','/index.html'].includes(url.pathname))return;
-        if(url.searchParams.get('edu_visual')==='mobilefix-v1')return;
-        url.searchParams.set('edu_visual','mobilefix-v1');
+        if(url.searchParams.get('edu_pwa_launch')==='20261008-v36')return;
+        url.searchParams.set('edu_pwa_launch','20261008-v36');
         await client.navigate(url.href);
       }catch(_){}
     }));
@@ -164,10 +165,18 @@ self.addEventListener('fetch',event=>{
       const cache=await caches.open(CACHE);
       try{
         const response=await fetch(event.request,{cache:'no-store'});
-        if(response?.ok)cache.put(event.request,response.clone());
+        if(response?.ok){
+          // Never let an old launch-query variant become the offline homepage.
+          // Canonicalise any successful homepage navigation to one fresh cache key.
+          if(url.pathname==='/' || url.pathname==='/index.html'){
+            await cache.put('./',response.clone());
+          }else{
+            await cache.put(event.request,response.clone());
+          }
+        }
         return response;
       }catch(_){
-        return (await cache.match(event.request,{ignoreSearch:true})) || (await cache.match('./index.html'));
+        return (await cache.match('./')) || (await cache.match('./index.html'));
       }
     })());
     return;
