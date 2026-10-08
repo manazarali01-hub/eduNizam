@@ -1,0 +1,415 @@
+/* EduNizam • 08 Oct 2026 • mobile homepage high-visibility / 200%-style reflow.
+   Zoom is delivered by larger legible elements and full-width reflow, NOT
+   browser viewport zoom, which would create sideways scrolling.
+   Loaded after all previous homepage CSS; scoped to homepage only. */
+
+body.gold-home.page-home {
+  --home-clarity-ink:#123c31;
+  --home-clarity-text:#244c40;
+  --home-clarity-accent:#076047;
+}
+body.gold-home.page-home :is(.hero-copy,.quick-access-card,.experience-strip article>div,.section-heading,.public-card) {
+  -webkit-font-smoothing:auto!important;
+  text-rendering:optimizeLegibility;
+}
+body.gold-home.page-home :is(.hero-copy p,.quick-access-card p,.section-heading p,.public-card p) {
+  opacity:1!important;
+  text-shadow:none!important;
+}
+body.gold-home.page-home .public-section .section-heading .eyebrow {
+  color:#0f604b!important;
+  -webkit-text-fill-color:#0f604b!important;
+  opacity:1!important;
+  font-weight:850!important;
+}
+body.gold-home.page-home .public-section .section-heading>p,
+body.gold-home.page-home .public-card p {
+  color:#294e42!important;
+  -webkit-text-fill-color:#294e42!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+
+@media (max-width:760px) {
+  html:has(body.gold-home.page-home) { overflow-x:clip!important; }
+  body.gold-home.page-home { overflow-x:clip!important; }
+
+  /* Large, readable first screen: normal document flow, no pinch or layout transform. */
+  body.gold-home.page-home .public-main {
+    width:calc(100% - 16px)!important;
+    max-width:100%!important;
+    padding-top:9px!important;
+  }
+  body.gold-home.page-home .public-hero.premium-public-hero {
+    display:flex!important;
+    flex-direction:column!important;
+    grid-template-columns:none!important;
+    gap:14px!important;
+    min-height:0!important;
+    padding:10px!important;
+    align-items:stretch!important;
+    overflow:visible!important;
+  }
+  body.gold-home.page-home .hero-copy {
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    padding:23px 18px!important;
+    align-self:stretch!important;
+    box-sizing:border-box!important;
+    background:linear-gradient(135deg,rgba(255,255,252,.96),rgba(237,251,243,.94))!important;
+  }
+  body.gold-home.page-home .hero-copy .public-kicker {
+    font-size:16px!important;
+    line-height:1.45!important;
+    letter-spacing:.015em!important;
+    margin-bottom:13px!important;
+    font-weight:850!important;
+    color:#0e624b!important;
+    -webkit-text-fill-color:#0e624b!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy h1 {
+    font-size:clamp(43px,11.6vw,53px)!important;
+    line-height:1.1!important;
+    font-weight:800!important;
+    letter-spacing:-.025em!important;
+    max-width:100%!important;
+    overflow-wrap:break-word!important;
+    margin:0 0 18px!important;
+    color:#113d32!important;
+    -webkit-text-fill-color:#113d32!important;
+    text-shadow:0 1px 0 rgba(255,255,255,.95)!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy h1 .hero-gold {
+    color:#076849!important;
+    -webkit-text-fill-color:#076849!important;
+    font-style:italic!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy>p {
+    font-size:20px!important;
+    line-height:1.55!important;
+    font-weight:650!important;
+    color:var(--home-clarity-text)!important;
+    -webkit-text-fill-color:var(--home-clarity-text)!important;
+  }
+  body.gold-home.page-home .hero-actions {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:10px!important;
+    margin-top:20px!important;
+  }
+  body.gold-home.page-home .hero-actions .public-cta {
+    min-height:60px!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:14px 15px!important;
+    font-size:20px!important;
+    line-height:1.3!important;
+    font-weight:850!important;
+    text-align:center!important;
+    overflow-wrap:normal!important;
+  }
+  body.gold-home.page-home .hero-actions .hero-text-link {
+    grid-column:1!important;
+    justify-self:stretch!important;
+    min-height:48px!important;
+    font-size:18px!important;
+    line-height:1.35!important;
+    background:rgba(252,255,251,.92)!important;
+    padding:12px!important;
+  }
+  body.gold-home.page-home .public-proof {
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:8px!important;
+    margin-top:17px!important;
+  }
+  body.gold-home.page-home .public-proof span {
+    font-size:15px!important;
+    padding:8px 10px!important;
+    line-height:1.35!important;
+    background:rgba(248,255,251,.92)!important;
+    color:#15543f!important;
+    -webkit-text-fill-color:#15543f!important;
+  }
+
+  /* Fix the actual screenshot defect: a narrow floating quick card leaves
+     an apparent empty picture-sized block before role pills. */
+  body.gold-home.page-home .hero-visual {
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    grid-template-columns:none!important;
+    grid-template-rows:none!important;
+    gap:11px!important;
+    width:100%!important;
+    max-width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    align-self:stretch!important;
+  }
+  body.gold-home.page-home .hero-image-wrap {
+    position:relative!important;
+    display:block!important;
+    width:100%!important;
+    height:clamp(335px,100vw,475px)!important;
+    min-height:335px!important;
+    max-height:475px!important;
+    flex:0 0 auto!important;
+    margin:0!important;
+    overflow:hidden!important;
+  }
+  body.gold-home.page-home .hero-image-wrap img {
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    object-position:center 34%!important;
+    transform:scale(1.045)!important;
+  }
+  body.gold-home.page-home .portrait-caption {
+    max-width:calc(100% - 35px)!important;
+    left:17px!important;
+    right:17px!important;
+    bottom:17px!important;
+  }
+  body.gold-home.page-home .portrait-caption span {
+    font-size:14px!important;
+    line-height:1.3!important;
+    letter-spacing:.11em!important;
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+  }
+  body.gold-home.page-home .portrait-caption strong {
+    font-size:23px!important;
+    line-height:1.25!important;
+    font-weight:800!important;
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    text-shadow:0 2px 8px rgba(0,30,24,.9)!important;
+  }
+  body.gold-home.page-home .quick-access-card {
+    position:static!important;
+    inset:auto!important;
+    display:block!important;
+    transform:none!important;
+    grid-column:1/-1!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:20px 17px!important;
+    flex:0 0 auto!important;
+    align-self:stretch!important;
+    box-sizing:border-box!important;
+    background:linear-gradient(135deg,rgba(255,255,252,.94),rgba(236,250,242,.89))!important;
+    border:2px solid rgba(32,133,92,.68)!important;
+  }
+  body.gold-home.page-home .quick-card-top {
+    margin-bottom:15px!important;
+    gap:12px!important;
+    align-items:center!important;
+  }
+  body.gold-home.page-home .quick-dot {
+    width:11px!important;
+    height:11px!important;
+    flex:0 0 11px!important;
+  }
+  body.gold-home.page-home .quick-card-top strong {
+    font-size:24px!important;
+    line-height:1.2!important;
+    font-weight:850!important;
+    color:#123d32!important;
+    -webkit-text-fill-color:#123d32!important;
+  }
+  body.gold-home.page-home .quick-card-top small {
+    font-size:17px!important;
+    line-height:1.4!important;
+    margin-top:5px!important;
+    font-weight:650!important;
+    color:#365449!important;
+    -webkit-text-fill-color:#365449!important;
+  }
+  body.gold-home.page-home .quick-actions {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:10px!important;
+  }
+  body.gold-home.page-home .quick-actions :is(a,button) {
+    min-width:0!important;
+    min-height:61px!important;
+    padding:13px 15px!important;
+    font-size:19px!important;
+    line-height:1.35!important;
+    font-weight:800!important;
+    color:#123f33!important;
+    -webkit-text-fill-color:#123f33!important;
+    border:1.5px solid rgba(25,124,91,.48)!important;
+    background:rgba(255,255,251,.95)!important;
+    text-shadow:none!important;
+  }
+  body.gold-home.page-home .quick-actions .quick-main {
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    background:linear-gradient(120deg,#09674e,#107d64)!important;
+  }
+  body.gold-home.page-home .quick-access-card>p {
+    font-size:17px!important;
+    line-height:1.5!important;
+    margin-top:13px!important;
+    font-weight:650!important;
+    color:#365449!important;
+    -webkit-text-fill-color:#365449!important;
+  }
+  body.gold-home.page-home .hero-role-badge {
+    position:static!important;
+    inset:auto!important;
+    transform:none!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:8px!important;
+    flex:0 0 auto!important;
+    align-self:stretch!important;
+    box-sizing:border-box!important;
+    border-radius:17px!important;
+    background:rgba(14,78,57,.76)!important;
+  }
+  body.gold-home.page-home .hero-role-badge span {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:0!important;
+    min-height:46px!important;
+    font-size:16px!important;
+    line-height:1.2!important;
+    font-weight:850!important;
+    letter-spacing:.045em!important;
+    border-radius:11px!important;
+    color:#143f35!important;
+    -webkit-text-fill-color:#143f35!important;
+    background:rgba(250,255,250,.94)!important;
+  }
+
+  /* Single-column features: double card width, large readable titles,
+     non-faded white text trays while keeping each distinct photo. */
+  body.gold-home.page-home .experience-strip {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:12px!important;
+    padding:11px!important;
+    margin:15px 0!important;
+    width:100%!important;
+  }
+  body.gold-home.page-home .experience-strip article {
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:flex-end!important;
+    min-height:172px!important;
+    padding:12px!important;
+    gap:9px!important;
+  }
+  body.gold-home.page-home .experience-strip article .feature-icon {
+    width:48px!important;
+    height:48px!important;
+    flex:0 0 48px!important;
+  }
+  body.gold-home.page-home .experience-strip article>div {
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    padding:12px 14px!important;
+    border-radius:13px!important;
+    background:rgba(249,255,251,.94)!important;
+    -webkit-backdrop-filter:blur(7px)!important;
+    backdrop-filter:blur(7px)!important;
+  }
+  body.gold-home.page-home .experience-strip article strong {
+    font-size:24px!important;
+    line-height:1.24!important;
+    font-weight:850!important;
+    color:#123e32!important;
+    -webkit-text-fill-color:#123e32!important;
+    text-shadow:none!important;
+  }
+  body.gold-home.page-home .experience-strip article small {
+    font-size:18px!important;
+    line-height:1.4!important;
+    font-weight:650!important;
+    color:#315649!important;
+    -webkit-text-fill-color:#315649!important;
+    text-shadow:none!important;
+  }
+
+  body.gold-home.page-home .public-section .section-heading h2,
+  body.gold-home.page-home .learning-copy h2 {
+    font-size:clamp(34px,8.5vw,43px)!important;
+    line-height:1.17!important;
+    color:#123d32!important;
+    -webkit-text-fill-color:#123d32!important;
+    text-shadow:0 1px 0 rgba(255,255,255,.75)!important;
+  }
+  body.gold-home.page-home .public-section .section-heading .eyebrow {
+    font-size:16px!important;
+    line-height:1.4!important;
+  }
+  body.gold-home.page-home .public-section .section-heading>p,
+  body.gold-home.page-home .public-card p {
+    font-size:18px!important;
+    line-height:1.55!important;
+    font-weight:600!important;
+  }
+  body.gold-home.page-home .public-card h3 {
+    font-size:24px!important;
+    line-height:1.26!important;
+  }
+  body.gold-home.page-home .public-card a {
+    font-size:17px!important;
+    line-height:1.4!important;
+  }
+  body.gold-home.page-home .role-showcase .role-tab {
+    min-height:52px!important;
+    font-size:17px!important;
+    font-weight:800!important;
+  }
+  body.gold-home.page-home .preview-welcome h3 {
+    font-size:27px!important;
+    line-height:1.3!important;
+  }
+  body.gold-home.page-home .preview-welcome p,
+  body.gold-home.page-home .preview-cards span {
+    font-size:18px!important;
+    line-height:1.43!important;
+  }
+  body.gold-home.page-home .preview-note {font-size:16px!important;line-height:1.45!important;}
+  body.gold-home.page-home .learning-copy p {font-size:18px!important;line-height:1.55!important;}
+  body.gold-home.page-home .learning-band .resource-card small {font-size:15px!important;}
+  body.gold-home.page-home .learning-band .resource-card strong {font-size:23px!important;}
+  body.gold-home.page-home .learning-band .resource-card span {font-size:17px!important;}
+  body.gold-home.page-home .public-disclaimer .public-note {font-size:16px!important;line-height:1.5!important;}
+  body.gold-home.page-home footer.public-footer :is(span,small) {font-size:15px!important;line-height:1.45!important;}
+  body.gold-home.page-home footer.public-footer nav a {font-size:16px!important;}
+  body.gold-home.page-home .public-links a {
+    font-size:16px!important;
+    line-height:1.3!important;
+    min-height:44px!important;
+  }
+  body.gold-home.page-home :is(.quick-access-card,.experience-strip article,.role-demo,.public-card) {
+    overflow-wrap:break-word!important;
+  }
+}
+
+@media(max-width:359px) {
+  body.gold-home.page-home .hero-copy{padding:18px 13px!important;}
+  body.gold-home.page-home .public-hero .hero-copy h1{font-size:40px!important;line-height:1.1!important;}
+  body.gold-home.page-home .hero-actions .public-cta{font-size:18px!important;}
+  body.gold-home.page-home .quick-actions :is(a,button){font-size:18px!important;}
+  body.gold-home.page-home .quick-card-top strong{font-size:22px!important;}
+  body.gold-home.page-home .experience-strip article strong{font-size:22px!important;}
+}
