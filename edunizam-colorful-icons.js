@@ -272,7 +272,8 @@
    if(!Object.prototype.hasOwnProperty.call(scenes,key))return null;
    const seq=++iconSequence;
    const prefix='en3d-'+seq+'-';
-   const raw=scenes[key]().replace(/url\(#G-([a-z]+)\)/g,(_,color)=>'url(#'+prefix+color+')');
+   const raw=scenes[key]().replace(/url\(#G-([a-z]+)\)/g,(_,color)=>'url(#'+prefix+color+')')
+    .replace(/fill="url\(#([a-zA-Z0-9-]+)\)"/g,(_,id)=>'style="fill:url(#'+id+')!important"');
    const gradients=[
     ['blue','#d8f5ff','#60b7ff','#335ad1'],
     ['sky','#eafaff','#87dbfb','#238fdb'],
