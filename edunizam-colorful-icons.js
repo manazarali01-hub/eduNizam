@@ -78,7 +78,63 @@
    Communication:['chat','rose'],'Pakistan Learning':['cap','blue'],
    System:['gears','teal'],'Daily Work':['attendance','green'],
    Overview:['home','sky'],More:['grid','violet']};
- const svg=key=>'<svg class="edu-vector-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(P[key]||P.grid)+'</svg>';
+
+ // Illustrated dual-tone SVG library: recognisable filled objects, vibrant accents,
+ // and dark crisp outlines (rather than thin one-colour line glyphs).
+ const iR=(x,y,w,h,rad,c)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+rad+'" class="ei-'+c+'"/>';
+ const iC=(x,y,r,c)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" class="ei-'+c+'"/>';
+ const iP=(d,c='ink')=>'<path d="'+d+'" class="ei-'+c+'"/>';
+ const A={
+   home:()=>iP('M2.8 10.8 12 3.2l9.2 7.6-1.8 2.1-1.4-1.1V21H6v-9.2l-1.4 1.1Z','primary')+iR(10,14,4,7,1.1,'secondary')+iP('M2.5 11.1 12 3l9.5 8.1','ink')+iC(17,7,1.2,'yellow'),
+   users:()=>iC(9,8,3.8,'primary')+iC(18,9,2.8,'secondary')+iP('M2.5 20v-2.1c0-3.3 2.9-5.8 6.5-5.8 3.7 0 6.6 2.5 6.6 5.8V20Z','light')+iP('M16.7 14c3.1-.1 4.8 2.2 4.8 4.6V20','ink')+iC(10,6.7,.9,'shine'),
+   user:()=>iC(12,7.8,4,'secondary')+iP('M4 20c0-5 3.4-7.8 8-7.8s8 2.8 8 7.8v1H4Z','primary')+iC(13.3,6.5,1,'shine'),
+   attendance:()=>iR(3,4.2,18,17,2.5,'light')+iP('M3 9.7h18V6.8a2.6 2.6 0 0 0-2.6-2.6H5.6A2.6 2.6 0 0 0 3 6.8Z','secondary')+iP('M7 2.5v4.4m10-4.4v4.4','ink')+iP('m7.7 15 2.7 2.7 5.6-6','check'),
+   banknote:()=>iR(2.4,5.7,19.2,13.1,2.4,'primary')+iR(5,8,14,8.6,1.1,'light')+iC(12,12.3,3,'secondary')+iP('M11 10.7h2m-2 3h2m-1-4v5.3','ink')+iC(5.5,11.9,.8,'shine')+iC(18.6,12.3,.8,'shine'),
+   clock:()=>iC(12,12,9.4,'light')+iP('M12 5.6v6.6l4.3 2.7','accentline')+iC(12,12,1.5,'secondary')+iP('M8 4.5 5.8 2.7M16 4.5l2.2-1.8','ink'),
+   grid:()=>iR(2.3,2.3,8.7,8.7,2.2,'primary')+iR(13,2.3,8.7,8.7,2.2,'secondary')+iR(2.3,13,8.7,8.7,2.2,'yellow')+iR(13,13,8.7,8.7,2.2,'light'),
+   chat:()=>iP('M4 3.5h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H10l-6 3V5.5a2 2 0 0 1 2-2Z','primary')+iR(7,7.9,10,1.8,.9,'shine')+iR(7,11.6,7,1.8,.9,'shine')+iC(18,14,1.4,'yellow'),
+   school:()=>iP('M3 20V8l9-5 9 5v12Z','light')+iP('M3 8l9-5 9 5','secondary')+iR(9.2,13,5.6,7,1,'primary')+iR(5.1,10,2.4,2.4,.4,'yellow')+iR(16.5,10,2.4,2.4,.4,'yellow')+iP('M2 21h20','ink'),
+   cap:()=>iP('M1.5 9 12 4l10.5 5L12 14Z','primary')+iP('M5.7 12v5.1c3.7 3.1 9.1 3.1 12.6 0V12','light')+iP('M21 10v6.5','ink')+iC(21,18.4,1.7,'yellow'),
+   book:()=>iP('M12 6c-2.2-2-5.7-2.8-9-2.1v14.9c3.6-.7 6.7.1 9 2.2Z','primary')+iP('M12 6c2.3-2 5.4-2.8 9-2.1v14.9c-3.5-.7-6.8.1-9 2.2Z','light')+iP('M7 9h2m-2 3h2m6-3h2m-2 3h2','ink'),
+   pencil:()=>iP('m4 16 12.7-12.7 4 4L8 20l-5 1Z','primary')+iP('m4 16 4 4-5 1Z','secondary')+iP('M14.7 5.3l4 4','ink')+iC(19.3,4.8,1.3,'yellow'),
+   wallet:()=>iR(2.3,5.1,19.4,15.6,3,'primary')+iP('M3 8V5.6a2 2 0 0 1 2-2h13','ink')+iR(13.6,11,9,6,2,'secondary')+iC(17.2,14,1.1,'shine'),
+   teacher:()=>iR(2.8,4,18.4,13.7,2,'primary')+iR(5.4,6.5,13.2,8.6,1,'light')+iP('M7 10h6m-6 3h4M9 21l3-3.3 3 3.3','ink')+iC(17,11,1.6,'secondary'),
+   award:()=>iC(12,8.1,5.3,'yellow')+iC(12,8.1,2.5,'primary')+iP('m8.4 12.3-2.3 9 5.9-3.3 5.9 3.3-2.3-9','secondary')+iP('m10.5 8 1.2 1.3 2.1-2.4','shine-line'),
+   sparkle:()=>iP('M12 1.5 15 9l7.5 3-7.5 3-3 7.5L9 15l-7.5-3L9 9Z','primary')+iP('m18 1.5 1.2 2.7 2.7 1.2-2.7 1.2L18 9l-1.2-2.4-2.7-1.2 2.7-1.2Z','yellow'),
+   paper:()=>iP('M5 2.5h9.6L20 8v13.4H5Z','light')+iP('M14.6 2.5V8H20','secondary')+iP('M8 12h8M8 15.2h8M8 18.3h5','ink')+iC(6.7,6.4,1.2,'yellow'),
+   exam:()=>iP('M5 2.5h9.5L20 8v13.5H5Z','light')+iP('M14.5 2.5V8H20','secondary')+iP('m8.1 14 2.4 2.4 5-5.3','check')+iP('M8 19h8','ink'),
+   calendar:()=>iR(2.8,4.7,18.4,16,2.4,'light')+iP('M2.8 10.1h18.4V7.2c0-1.5-1-2.5-2.5-2.5H5.3c-1.5 0-2.5 1-2.5 2.5Z','secondary')+iP('M7.5 2.7v4.4m9-4.4v4.4','ink')+iR(6.4,13,4.1,4.1,.9,'primary')+iR(13,13,4.1,4.1,.9,'yellow'),
+   schedule:()=>iR(3,4.7,18,16,2,'light')+iP('M3 10h18V7a2.3 2.3 0 0 0-2.3-2.3H5.3A2.3 2.3 0 0 0 3 7Z','primary')+iP('M8 2.7v4m8-4v4M7.6 14h3m-3 4h8','ink')+iC(17,14.6,1.6,'yellow'),
+   chart:()=>iP('M3 3v18h19','ink')+iR(6,13.5,3.6,5.6,.7,'yellow')+iR(11,9.5,3.6,9.6,.7,'primary')+iR(16.2,5.4,3.6,13.7,.7,'secondary')+iP('m6 8 4-3 3 2 6-4','accentline'),
+   results:()=>iR(3.8,13,4.4,7,1,'yellow')+iR(10,8.5,4.4,11.5,1,'primary')+iR(16.2,4,4.4,16,1,'secondary')+iP('M2.8 21h19','ink')+iC(18.4,3,1.3,'shine'),
+   id:()=>iR(2,4.3,20,15.3,2.3,'light')+iR(4.2,6.5,8.2,10.9,1.7,'primary')+iC(8.2,9.9,2,'secondary')+iP('M5.6 15.3c.3-2.1 4.8-2.1 5.2 0M15 9h4M15 13h4M15 16h2.9','ink'),
+   library:()=>iR(3,4,5.1,17,1,'primary')+iR(9.1,6,5.1,15,1,'secondary')+iP('m16.5 4 4.2-.8 2.4 17-4.2.8Z','yellow')+iP('M4.5 8.4h2m3.6 2h2m5.9-.4 2-.3','ink'),
+   bus:()=>iR(3,3.6,18,16.6,3,'primary')+iR(5.2,6.7,13.6,6.2,1,'light')+iR(6.1,15.3,3.6,1.9,.7,'yellow')+iR(14.4,15.3,3.6,1.9,.7,'yellow')+iP('M7 20v2m10-2v2','ink'),
+   support:()=>iC(12,12,9.7,'secondary')+iP('M8.3 9a4 4 0 1 1 6.7 3l-3 2v1.5','shine-line')+iC(12,19,1.25,'yellow'),
+   target:()=>iC(12,12,9.6,'light')+iC(12,12,6.3,'primary')+iC(12,12,3.2,'secondary')+iC(12,12,1.1,'shine'),
+   receipt:()=>iP('M5 2.7h14v18.5l-3.5-2-3.5 2-3.5-2-3.5 2Z','light')+iP('M9 7.5h6m-6 3.8h6m-6 3.9h3','ink')+iC(17,16,2,'yellow'),
+   laptop:()=>iR(4,3.8,16,12.6,1.5,'primary')+iR(6,5.9,12,8.4,.5,'light')+iP('M2 20h20l-2-3.6H4Z','secondary')+iP('M10 18.5h4','ink'),
+   pin:()=>iP('M12 22s8.5-8.4 8.5-14a8.5 8.5 0 0 0-17 0c0 5.6 8.5 14 8.5 14Z','primary')+iC(12,8.6,3.1,'yellow'),
+   upload:()=>iP('M4 15v5h16v-5','ink')+iP('M12 17V3m-5 5 5-5 5 5','accentline')+iR(8.2,12.3,7.6,8.2,1,'light'),
+   search:()=>iC(10.5,10.5,6.4,'light')+iP('m15.3 15.3 5.4 5.4','accentline')+iC(10.5,10.5,2.4,'yellow'),
+   up:()=>iP('M12 20V3M5.7 9.5 12 3l6.3 6.5','shine-line')+iC(12,14.5,1.2,'yellow'),
+   shield:()=>iP('M12 2.2 21 6v6c0 5.6-3.6 8.3-9 10-5.4-1.7-9-4.4-9-10V6Z','primary')+iP('m7.7 11.9 3.1 3.2 5.7-6','shine-line'),
+   leave:()=>iR(3.3,4.2,17.4,17,2,'light')+iP('M3.3 9.6h17.4V6.5a2.3 2.3 0 0 0-2.3-2.3H5.6a2.3 2.3 0 0 0-2.3 2.3Z','secondary')+iP('m7.6 15.2 2.6 2.6 5.9-6.3','check'),
+   party:()=>iP('M4 20 10 4l10 10Z','primary')+iP('m7 13 5 5m1.5-12 1.4-2m3.4 4 2.6-.5M18 18l2 2','ink')+iC(19,4.2,1.5,'yellow')+iC(21,11,1,'secondary'),
+   door:()=>iP('M5 21V4L19 2v19Z','light')+iP('M5 4 19 2v19H5Z','primary')+iC(15,12,1.2,'yellow'),
+   diary:()=>iR(4,2.3,16.4,19.3,2,'light')+iR(4,2.3,4.5,19.3,1,'primary')+iP('M11 8h6m-6 4h6m-6 4h4','ink'),
+   gears:()=>iC(12,12,8.7,'secondary')+iC(12,12,4.8,'light')+iC(12,12,1.8,'primary')+iP('M12 1v3m0 16v3M1 12h3m16 0h3M4.4 4.4l2.2 2.2m10.8 10.8 2.2 2.2m0-15.2-2.2 2.2M6.6 17.4l-2.2 2.2','ink'),
+   arrows:()=>iP('M4 8h16m0 0-5-5m5 5-5 5M20 16H4m0 0 5-5m-5 5 5 5','accentline'),
+   compass:()=>iC(12,12,9.8,'light')+iP('m15.7 8.3-2.1 5.3-5.3 2.1 2.1-5.3Z','primary'),
+   check:()=>iC(12,12,9.7,'primary')+iP('m6.8 12 3.4 3.5 6.8-7','shine-line')
+ };
+ const svg=key=>{
+   const art=A[key]?A[key]():iP(P[key]||P.grid,'ink')+iC(18.9,5.1,1.6,'yellow');
+   return '<svg class="edu-vector-icon edu-illustrated-icon" viewBox="0 0 24 24" fill="none" xmlns="'+NS+'" aria-hidden="true" focusable="false">'+
+     '<circle cx="12" cy="12" r="10.85" class="ei-disc"/>'+art+
+     '<circle cx="6.3" cy="5.1" r=".8" class="ei-glimmer"/></svg>';
+ };
+
  const paint=(el,key,tone)=>{
    if(!el||!P[key]||el.dataset.eduIconKey===key&&el.dataset.eduTone===tone)return;
    el.dataset.eduIconKey=key;el.dataset.eduTone=tone;
