@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0c5947">
+<title>EduNizam | Installed App Repair</title>
+<style>
+  :root{color-scheme:light;--ink:#153f35;--green:#0d7455;--line:#89bfaa}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100svh;font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;
+    color:var(--ink);background:linear-gradient(145deg,#ecfaf1,#d9f1ef 60%,#ecf8fc);padding:28px 14px}
+  main{width:min(100%,580px);margin:0 auto;padding:24px 21px 28px;
+    border-radius:23px;border:2px solid rgba(13,116,85,.26);
+    background:rgba(255,255,255,.95);box-shadow:0 19px 50px #134d3b20}
+  h1{font-size:clamp(1.65rem,6vw,2.1rem);line-height:1.2;margin:8px 0 12px}
+  p{margin:12px 0;color:#38594e}small{font-size:14px}
+  .eyebrow{font-weight:800;color:var(--green);letter-spacing:.075em}
+  .detail{padding:15px;border-radius:14px;background:#f2faf6;border:1px solid #bcddcf;overflow-wrap:anywhere}
+  dl{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;font-size:14px;margin:0}
+  dt{font-weight:750}dd{margin:0}
+  button,.link{display:flex;justify-content:center;align-items:center;min-height:55px;width:100%;border-radius:13px;
+    font:800 17px/1.3 inherit;text-decoration:none;cursor:pointer;padding:13px 16px;margin:12px 0;border:2px solid var(--green)}
+  button{color:#fff;background:linear-gradient(125deg,#095f45,#128369)}
+  button:disabled{opacity:.65;cursor:wait}
+  .link{color:var(--green);background:#fff}
+  .notice{padding:12px 14px;border-radius:12px;background:#fff9e9;border:1px solid #dfc88c}
+  .status{margin-top:14px;padding:14px 16px;min-height:52px;border-radius:12px;background:#e5f8ef;font-weight:750;
+    overflow-wrap:anywhere}
+  :focus-visible{outline:3px solid #3699d0;outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">EDUNIZAM · INSTALLED APP SUPPORT</div>
+  <h1>Fix the old screen at app startup</h1>
+  <p>If EduNizam looks correct after Refresh but old when opened from its home-screen icon, this repair clears old <strong>EduNizam web page caches only</strong>.</p>
+  <div class="detail" aria-label="App diagnostics">
+    <dl>
+      <dt>Opening mode</dt><dd id="mode">Checking…</dd>
+      <dt>Screen width</dt><dd id="width">Checking…</dd>
+      <dt>Saved app cache</dt><dd id="cache">Checking…</dd>
+      <dt>Service Worker</dt><dd id="worker">Checking…</dd>
+    </dl>
+  </div>
+  <p class="notice"><strong>Important:</strong> This does not delete your school records, browser cookies, localStorage or IndexedDB. Offline-only assets may need an internet connection to download again.</p>
+  <button type="button" id="repair">Repair my EduNizam app cache</button>
+  <div class="status" id="status" role="status" aria-live="polite">Ready. Keep your internet connection on.</div>
+  <a class="link" href="./?edu_pwa_launch=20261008-v36&amp;repair_open=1">Open EduNizam after repair</a>
+  <p><small>After a successful repair, fully close every EduNizam window, then launch it again from the home-screen icon without pressing Refresh. If the shortcut still opens an old page, remove the shortcut and install a fresh one using Chrome; do not clear App Data.</small></p>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const state=$('status');
+const displayMode=['standalone','fullscreen','minimal-ui'].find(name=>window.matchMedia('(display-mode: '+name+')').matches)||'browser/tab';
+$('mode').textContent=displayMode;
+$('width').textContent=document.documentElement.clientWidth+'px';
+async function inspect(){
+  try{
+    const names=('caches' in window)?await caches.keys():[];
+    const matching=names.filter(name=>name.startsWith('edunizam-'));
+    $('cache').textContent=matching.length+' EduNizam cache version(s)';
+    const reg=('serviceWorker' in navigator)?await navigator.serviceWorker.getRegistration('./'):null;
+    $('worker').textContent=reg?.active?'Registered':reg?.waiting?'Waiting':reg?.installing?'Installing':'None';
+  }catch(_){
+    $('cache').textContent='Unavailable';
+    $('worker').textContent='Unavailable';
+  }
+}
+$('repair').addEventListener('click',async()=>{
+  if(!navigator.onLine){state.textContent='Internet is offline. Connect first and try again.';return;}
+  const btn=$('repair');btn.disabled=true;
+  state.textContent='Clearing old EduNizam page caches…';
+  try{
+    let unregistered=0, deleted=0;
+    if('serviceWorker' in navigator){
+      const registrations=await navigator.serviceWorker.getRegistrations();
+      for(const reg of registrations){
+        const scope=new URL(reg.scope);
+        // This page operates solely on its own origin and its root app worker.
+        if(scope.origin===location.origin&&scope.pathname==='/'){
+          if(await reg.unregister())unregistered++;
+        }
+      }
+    }
+    if('caches' in window){
+      const names=await caches.keys();
+      for(const name of names){
+        if(name.startsWith('edunizam-') && await caches.delete(name)) deleted++;
+      }
+    }
+    state.textContent='Repair prepared: '+deleted+' old EduNizam cache(s) cleared, '+unregistered+
+      ' app worker(s) unregistered. Now close all EduNizam windows, then open your installed icon again while online.';
+    await inspect();
+  }catch(err){
+    state.textContent='Could not finish repair: '+(err?.message||'Unknown error')+
+      '. No school data was intentionally deleted. Try again online.';
+  }finally{btn.disabled=false;}
+});
+inspect();
+})();
+</script>
+</body>
+</html>
