@@ -2,7 +2,7 @@
   "name": "EduNizam – AI School Assistant",
   "short_name": "EduNizam",
   "id": "./",
-  "start_url": "./?edu_pwa_launch=20261008-v36",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "display_override": [
