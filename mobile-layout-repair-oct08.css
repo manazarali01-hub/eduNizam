@@ -1,0 +1,342 @@
+/* EduNizam mobile homepage repair — 2026-10-08.
+   Last-in-cascade, HOME-ONLY rules. Corrects the narrow floating quick panel,
+   tiny navigation and low-contrast controls when mobile browsers use a wider
+   layout viewport. Desktop >1024px remains unchanged. */
+@media screen and (max-width:1024px) {
+  html:has(body.gold-home.page-home){overflow-x:clip!important}
+  body.gold-home.page-home{
+    overflow-x:clip!important;
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+  }
+  body.gold-home.page-home header.public-nav{
+    position:relative!important;
+    width:calc(100% - 20px)!important;
+    max-width:none!important;
+    min-width:0!important;
+    margin:10px auto 0!important;
+    padding:13px 14px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:12px!important;
+    height:auto!important;
+    min-height:0!important;
+    border-radius:18px!important;
+    background:linear-gradient(125deg,rgba(255,255,253,.94),rgba(235,252,242,.91))!important;
+  }
+  body.gold-home.page-home header.public-nav .public-brand{
+    min-height:42px!important;
+    align-self:flex-start!important;
+  }
+  body.gold-home.page-home header.public-nav .public-mark{
+    flex:0 0 44px!important;
+    width:44px!important;
+    height:44px!important;
+  }
+  body.gold-home.page-home header.public-nav .public-links{
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    gap:8px!important;
+    margin:0!important;
+    padding:2px 0 8px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    scroll-snap-type:x proximity;
+  }
+  body.gold-home.page-home header.public-nav .public-links::-webkit-scrollbar{display:none}
+  body.gold-home.page-home header.public-nav .public-links a{
+    display:inline-flex!important;
+    flex:0 0 auto!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:max-content!important;
+    min-height:46px!important;
+    width:auto!important;
+    padding:10px 16px!important;
+    font-size:17px!important;
+    font-weight:800!important;
+    line-height:1.25!important;
+    white-space:nowrap!important;
+    scroll-snap-align:start;
+    color:#154b3c!important;
+    -webkit-text-fill-color:#154b3c!important;
+    border:1px solid rgba(45,130,98,.36)!important;
+    background:rgba(255,255,255,.94)!important;
+    border-radius:12px!important;
+  }
+  body.gold-home.page-home header.public-nav .public-links a.nav-primary{
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    background:linear-gradient(120deg,#07563f,#11826a)!important;
+  }
+  body.gold-home.page-home .public-main{
+    display:block!important;
+    width:calc(100% - 16px)!important;
+    max-width:none!important;
+    margin:0 auto!important;
+    padding-top:10px!important;
+  }
+  body.gold-home.page-home .public-hero.premium-public-hero{
+    display:flex!important;
+    flex-direction:column!important;
+    grid-template-columns:none!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    gap:12px!important;
+    padding:12px!important;
+    overflow:visible!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy{
+    display:block!important;
+    flex:0 0 auto!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    align-self:stretch!important;
+    padding:clamp(19px,3.1vw,31px)!important;
+    margin:0!important;
+    border-radius:20px!important;
+    background:linear-gradient(130deg,rgba(255,255,252,.97),rgba(234,251,244,.94))!important;
+    box-shadow:0 9px 25px rgba(8,74,54,.10)!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy .public-kicker{
+    font-size:clamp(14px,2vw,18px)!important;
+    line-height:1.35!important;
+    font-weight:850!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy h1{
+    font-size:clamp(40px,6.5vw,64px)!important;
+    line-height:1.13!important;
+    margin:10px 0 18px!important;
+    font-weight:800!important;
+    letter-spacing:-.025em!important;
+    overflow-wrap:break-word!important;
+    color:#123c31!important;
+    -webkit-text-fill-color:#123c31!important;
+    text-shadow:none!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy h1 .hero-gold{
+    color:#096c50!important;
+    -webkit-text-fill-color:#096c50!important;
+    text-decoration:none!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy>p{
+    max-width:100%!important;
+    font-size:clamp(18px,2.2vw,22px)!important;
+    font-weight:650!important;
+    line-height:1.5!important;
+    opacity:1!important;
+    color:#254d3f!important;
+    -webkit-text-fill-color:#254d3f!important;
+    text-shadow:none!important;
+  }
+  body.gold-home.page-home .public-hero .hero-actions{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:10px!important;
+    margin-top:20px!important;
+  }
+  body.gold-home.page-home .public-hero .hero-actions .public-cta,
+  body.gold-home.page-home .public-hero .hero-actions .hero-text-link{
+    grid-column:1!important;
+    justify-self:stretch!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:55px!important;
+    padding:13px 17px!important;
+    font-size:clamp(17px,2.2vw,21px)!important;
+    font-weight:800!important;
+    line-height:1.3!important;
+    border-radius:13px!important;
+    text-align:center!important;
+    opacity:1!important;
+  }
+  body.gold-home.page-home .public-hero .hero-actions .hero-text-link{
+    min-height:45px!important;
+    color:#095a46!important;
+    -webkit-text-fill-color:#095a46!important;
+    border:1px solid rgba(30,132,99,.38)!important;
+    background:rgba(255,255,252,.96)!important;
+  }
+  body.gold-home.page-home .public-hero .public-proof{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:8px!important;
+    margin-top:14px!important;
+  }
+  body.gold-home.page-home .public-hero .public-proof span{
+    font-size:clamp(14px,1.75vw,17px)!important;
+    line-height:1.3!important;
+    color:#164e3d!important;
+    -webkit-text-fill-color:#164e3d!important;
+    background:rgba(248,255,250,.96)!important;
+  }
+  body.gold-home.page-home .public-hero .hero-visual{
+    display:flex!important;
+    flex-direction:column!important;
+    grid-template-columns:none!important;
+    grid-template-rows:none!important;
+    justify-content:flex-start!important;
+    align-items:stretch!important;
+    gap:12px!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    min-height:0!important;
+    height:auto!important;
+    align-self:stretch!important;
+    overflow:visible!important;
+  }
+  body.gold-home.page-home .public-hero .hero-image-wrap{
+    position:relative!important;
+    display:block!important;
+    flex:0 0 auto!important;
+    order:0!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:clamp(305px,58vw,450px)!important;
+    min-height:305px!important;
+    max-height:450px!important;
+    margin:0!important;
+    overflow:hidden!important;
+    border-radius:19px!important;
+  }
+  body.gold-home.page-home .public-hero .hero-image-wrap>img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    object-position:center 48%!important;
+    transform:none!important;
+  }
+  body.gold-home.page-home .public-hero .quick-access-card{
+    position:relative!important;
+    inset:auto!important;
+    display:block!important;
+    flex:0 0 auto!important;
+    order:1!important;
+    transform:none!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:auto!important;
+    min-height:0!important;
+    align-self:stretch!important;
+    margin:0!important;
+    padding:18px!important;
+    border-radius:18px!important;
+    background:linear-gradient(130deg,rgba(255,255,253,.96),rgba(233,250,245,.93))!important;
+    border:1.5px solid rgba(34,145,105,.56)!important;
+  }
+  body.gold-home.page-home .public-hero .quick-card-top strong{
+    font-size:clamp(21px,2.6vw,25px)!important;
+    line-height:1.3!important;
+    color:#104335!important;
+    -webkit-text-fill-color:#104335!important;
+  }
+  body.gold-home.page-home .public-hero .quick-card-top small,
+  body.gold-home.page-home .public-hero .quick-access-card>p{
+    font-size:clamp(15px,1.9vw,18px)!important;
+    color:#33594b!important;
+    -webkit-text-fill-color:#33594b!important;
+    opacity:1!important;
+  }
+  body.gold-home.page-home .public-hero .quick-actions{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:10px!important;
+    width:100%!important;
+  }
+  body.gold-home.page-home .public-hero .quick-actions :is(a,button){
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:59px!important;
+    padding:13px 17px!important;
+    font-size:clamp(17px,2.2vw,21px)!important;
+    line-height:1.35!important;
+    font-weight:800!important;
+    text-align:left!important;
+    border-radius:13px!important;
+    color:#124638!important;
+    -webkit-text-fill-color:#124638!important;
+    background:rgba(255,255,253,.94)!important;
+  }
+  body.gold-home.page-home .public-hero .quick-actions .quick-main{
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    background:linear-gradient(120deg,#086448,#138368)!important;
+  }
+  body.gold-home.page-home .public-hero .hero-role-badge{
+    position:relative!important;
+    inset:auto!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    flex:0 0 auto!important;
+    order:2!important;
+    transform:none!important;
+    width:100%!important;
+    max-width:none!important;
+    gap:8px!important;
+    margin:0!important;
+    padding:9px!important;
+    border-radius:16px!important;
+  }
+  body.gold-home.page-home .public-hero .hero-role-badge span{
+    min-width:0!important;
+    min-height:46px!important;
+    font-size:clamp(15px,1.8vw,18px)!important;
+    font-weight:800!important;
+    border-radius:11px!important;
+  }
+  body.gold-home.page-home .experience-strip{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    width:100%!important;
+    gap:12px!important;
+  }
+  body.gold-home.page-home .experience-strip article{
+    min-width:0!important;
+    min-height:160px!important;
+  }
+  body.gold-home.page-home .experience-strip article strong{
+    font-size:clamp(22px,2.6vw,26px)!important;
+  }
+  body.gold-home.page-home .experience-strip article small{
+    font-size:clamp(16px,2vw,19px)!important;
+  }
+  body.gold-home.page-home :is(.public-grid,.role-preview,.preview-content,.learning-visual){
+    min-width:0!important;
+  }
+}
+@media screen and (max-width:420px){
+  body.gold-home.page-home header.public-nav .public-links a{
+    font-size:16px!important;
+    padding:10px 14px!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy{
+    padding:22px 17px!important;
+  }
+  body.gold-home.page-home .public-hero .hero-copy h1{
+    font-size:clamp(39px,10.5vw,48px)!important;
+  }
+  body.gold-home.page-home .public-hero .hero-image-wrap{
+    height:clamp(300px,88vw,395px)!important;
+    min-height:300px!important;
+  }
+}
