@@ -796,6 +796,26 @@ try{
       const critical=shellErrors.filter(x=>!/supabase|Failed to fetch|ERR_FAILED|cdn\.jsdelivr|MathJax/i.test(x));
       if(critical.length)pushFailure('app shell '+roleCase.role,'Authenticated shell produced browser errors',critical.slice(0,6).join(' | '));
     }catch(error){
+      // Capture the actual hit-testing and expansion state when a mobile tap
+      // loses its target, instead of hiding a race behind a forced click.
+      const tapDiagnosis=await page.evaluate(()=>{
+        const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
+        const group=help?.closest('details.nav-group');
+        const rect=help?.getBoundingClientRect();
+        const x=rect?Math.max(1,Math.min(innerWidth-2,rect.left+rect.width/2)):0;
+        const y=rect?Math.max(1,Math.min(innerHeight-2,rect.top+rect.height/2)):0;
+        const hit=document.elementFromPoint(x,y);
+        const nav=document.querySelector('.sidebar #nav');
+        return {groupOpen:group?.open,groupHidden:group?.hidden,
+          groupName:group?.dataset?.groupTitle,helpHidden:help?.hidden,
+          helpDisplay:help?getComputedStyle(help).display:'missing',
+          helpRect:rect?{top:Math.round(rect.top),bottom:Math.round(rect.bottom),left:Math.round(rect.left)}:null,
+          navTop:nav?.scrollTop,navHeight:nav?.clientHeight,
+          hitTag:hit?.tagName,hitText:(hit?.textContent||'').slice(0,50),
+          hitGroup:hit?.closest?.('details')?.dataset?.groupTitle,
+          drawerOpen:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')};
+      }).catch(e=>({unavailable:String(e)}));
+      console.log('Mobile nav tap diagnosis '+roleCase.role+': '+JSON.stringify(tapDiagnosis));
       pushFailure('app shell '+roleCase.role,'Authenticated mobile app-shell regression failed',error?.message||String(error));
     }finally{
       await context.close();
