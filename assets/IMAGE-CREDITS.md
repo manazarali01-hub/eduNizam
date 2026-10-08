@@ -32,3 +32,14 @@ Notes:
 ## Natural Glass V3 (2026-10-08)
 
 Additional free-to-use Pexels images: Katerina Holmes stationery/geometry (https://www.pexels.com/photo/pencils-and-rulers-near-sheet-of-paper-5905620/), Katerina Holmes notebook/compass (https://www.pexels.com/photo/notepad-and-school-supplies-on-table-5905611/), Tanha Tamanna Syed desk supplies (https://www.pexels.com/photo/organized-office-supplies-on-wooden-desk-38840590/). License: https://www.pexels.com/license/. The user-uploaded wooden reference was not copied to production, as its source license was not provided.
+
+
+## Cool Nature Glass V5.2 (2026-10-08)
+
+The following *landscape-only* green-forest photographs are sourced from individual free Unsplash photo pages. They are used as atmosphere behind legible translucent reading panels, not as replacements for the existing student hero portrait:
+
+- **Misty forest valley** — https://unsplash.com/photos/a-lush-green-forest-filled-with-lots-of-trees-w1Avh5dEwdE — https://images.unsplash.com/photo-1682812585139-6a99c868fbe9
+- **Sunlit forest** — https://unsplash.com/photos/a-lush-green-forest-filled-with-lots-of-trees-DexCSSN1Lts — https://images.unsplash.com/photo-1647900771577-6906a948762f
+- **Cool canopy** — https://unsplash.com/es/fotos/exuberantes-arboles-verdes-llenan-densamente-el-paisaje-6XcjfHw91fA — https://images.unsplash.com/photo-1749485837871-ea013034cc56
+
+License: https://unsplash.com/license (free for commercial/non-commercial use subject to license restrictions). Attribution retained here for provenance.

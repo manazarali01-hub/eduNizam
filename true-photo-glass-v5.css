@@ -406,3 +406,223 @@ body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"
   line-height:1.55!important;
  }
 }
+
+
+/* ===== V5.2 · COOL NATURE / SIDEBAR HARMONY · 2026-10-08 =====
+   Forest-green ambient photography + measured mint frosted glass.
+   Uses only official Unsplash free-license landscape photographs (see credits).
+   No auth, click, scrolling, sidebar sizing, navigation or element geometry changes.
+   Photograph belongs on the backdrop; text belongs on a readable reading pane. */
+:root{
+ --v52-mist:url("https://images.unsplash.com/photo-1682812585139-6a99c868fbe9?auto=format&fit=crop&w=1500&q=75");
+ --v52-sun:url("https://images.unsplash.com/photo-1647900771577-6906a948762f?auto=format&fit=crop&w=1500&q=75");
+ --v52-forest:url("https://images.unsplash.com/photo-1749485837871-ea013034cc56?auto=format&fit=crop&w=1500&q=72");
+ --v52-ink:#103d32;
+ --v52-copy:#244b40;
+ --v52-line:rgba(35,131,103,.62);
+ --v5-green:rgba(28,139,103,.76);
+ --v5-blue:rgba(64,150,145,.77);
+ --v5-gold:rgba(159,145,75,.73);
+ --v5-lilac:rgba(103,149,129,.75);
+ --v5-glass:linear-gradient(135deg,rgba(251,255,252,.78),rgba(221,244,233,.63));
+ --v5-glass-light:linear-gradient(130deg,rgba(253,255,253,.86),rgba(230,248,237,.74));
+ --v5-shine:inset 0 1px 0 rgba(255,255,255,.96),0 10px 28px rgba(8,58,43,.17);
+ --v5-frost:blur(10px) saturate(122%);
+}
+/* Natural colour, not a solid dark-green paint over every photograph. */
+body.gold-home.page-home{
+ background:linear-gradient(125deg,rgba(219,243,230,.34),rgba(242,251,246,.45)),var(--v52-mist) center top/cover scroll no-repeat!important;
+}
+body.gold-home.page-home .premium-public-hero{
+ background:linear-gradient(125deg,rgba(214,244,229,.28),rgba(225,246,239,.20)),var(--v52-forest) center/cover no-repeat!important;
+ border-color:rgba(43,151,115,.70)!important;
+}
+body.gold-home.page-home .hero-copy{
+ background:linear-gradient(130deg,rgba(250,255,251,.83),rgba(234,249,239,.73))!important;
+ border:1.5px solid rgba(227,255,238,.84)!important;
+ box-shadow:0 12px 34px rgba(7,56,40,.16),inset 0 1px 0 rgba(255,255,255,.97)!important;
+}
+body.gold-home.page-home .experience-strip{
+ background:linear-gradient(125deg,rgba(221,245,232,.16),rgba(234,252,242,.14)),var(--v52-sun) center/cover no-repeat!important;
+}
+body.gold-home.page-home .experience-strip article>div{
+ background:linear-gradient(130deg,rgba(250,255,250,.85),rgba(228,248,236,.75))!important;
+}
+body.gold-home.page-home .role-showcase{
+ background:linear-gradient(130deg,rgba(232,251,238,.23),rgba(232,249,240,.18)),var(--v52-mist) center/cover no-repeat!important;
+}
+body.gold-home.page-home .value-section{
+ background:linear-gradient(130deg,rgba(232,250,238,.20),rgba(229,249,238,.14)),var(--v52-sun) center/cover no-repeat!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]{
+ background:linear-gradient(135deg,rgba(232,250,240,.22),rgba(241,252,244,.18)),var(--v52-forest) center/cover no-repeat!important;
+}
+body.gold-home.page-home .quick-access-card{
+ background:linear-gradient(135deg,rgba(249,255,250,.78),rgba(225,244,230,.66)),var(--v52-sun) center/cover no-repeat!important;
+}
+body.gold-home.page-home :is(.role-demo,.preview-window,.public-grid>.public-card){
+ background:var(--v5-glass-light)!important;
+ border-color:var(--v52-line)!important;
+}
+body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"] .public-grid>.public-card{
+ background:var(--v5-glass-light)!important;
+}
+/* Misty gardens, education photography and leafy woodland rotate by section.
+   Existing teacher/student hero portrait remains untouched. */
+body.premium-public-page{
+ background:linear-gradient(135deg,rgba(233,249,239,.41),rgba(239,252,244,.50)),var(--v52-mist) center top/cover scroll no-repeat!important;
+}
+body.premium-public-page .public-main>.public-hero{
+ background:linear-gradient(135deg,rgba(234,251,240,.40),rgba(243,253,247,.36)),var(--v52-forest) center/cover no-repeat!important;
+}
+body.premium-public-page .public-main>.public-section:nth-of-type(3n+1){
+ background:linear-gradient(135deg,rgba(233,251,238,.23),rgba(240,252,243,.22)),var(--v52-sun) center/cover no-repeat!important;
+}
+body.premium-public-page .public-main>.public-section:nth-of-type(3n+2){
+ background:linear-gradient(135deg,rgba(233,251,238,.25),rgba(240,252,243,.19)),var(--v52-mist) center/cover no-repeat!important;
+}
+body.premium-public-page .public-main>.public-section:nth-of-type(3n){
+ background:linear-gradient(135deg,rgba(233,251,238,.27),rgba(240,252,243,.19)),var(--ng-class) center/cover no-repeat!important;
+}
+body.premium-public-page :is(.public-list li,.public-grid>.public-card){
+ background:var(--v5-glass-light)!important;
+ border-color:var(--v52-line)!important;
+}
+/* Photo in login's outer pane; opaque form input inside, never low-contrast text. */
+body.auth-page .main{
+ background:linear-gradient(130deg,rgba(227,251,237,.26),rgba(233,250,238,.22)),var(--v52-mist) center/cover scroll no-repeat!important;
+}
+body.auth-page .main #authCard{
+ background:var(--v5-glass-light)!important;
+}
+body.auth-page #roleView .roles .role{
+ background:var(--v5-glass-light)!important;
+}
+/* Workspace preserves the beloved green sidebar and small-screen behaviour. */
+body.app-page.page-app .main{
+ background:linear-gradient(135deg,rgba(228,249,235,.22),rgba(235,250,242,.29)),var(--v52-mist) center top/cover scroll no-repeat!important;
+}
+body.app-page.page-app .main .view.active:nth-of-type(8n+1),
+body.app-page.page-app .main #dashboard.view.active{--ng-scene:var(--v52-mist)!important}
+body.app-page.page-app .main .view.active:nth-of-type(8n+5){--ng-scene:var(--v52-sun)!important}
+body.app-page.page-app .main .view.active:nth-of-type(8n){--ng-scene:var(--v52-forest)!important}
+body.app-page.page-app .main .view.active :is(.card,.section-head,.paper-card,.premium-paper-card,.dashboard-panel,.request-panel,.feature-panel,.dashboard-quick-card,.dashboard-activity-card,.role-action-card,.premium-family-card,.training-card,.function-card,.study-viewer-card,.admission-review-card,.attachment-card,.highlight-card){
+ background:var(--v5-glass-light)!important;
+ border-color:var(--v52-line)!important;
+}
+body.app-page.page-app .main #dashboard.view.active>.cards>.card.stat:nth-child(n),
+body.app-page.page-app .main .view.active>.card:nth-of-type(n),
+body.app-page.page-app .main .view.active>.cards>.card:nth-child(n),
+body.app-page.page-app .main .view.active>.grid-2>.card:nth-child(n){
+ background:var(--v5-glass-light)!important;
+ border-color:var(--v52-line)!important;
+}
+body.learning-sky{
+ background:linear-gradient(140deg,rgba(230,248,239,.36),rgba(241,253,247,.49)),var(--v52-sun) center top/cover scroll no-repeat!important;
+}
+body.learning-sky #home{--ng-learn-photo:var(--v52-mist)!important}
+body.learning-sky #study,
+body.learning-sky #pathways{--ng-learn-photo:var(--v52-sun)!important}
+body.learning-sky #practice{--ng-learn-photo:var(--v52-forest)!important}
+body.learning-sky .section.active :is(.card,.paper-card,.resource-card,.practice-box,.quick-card),
+body.admission-premium :is(.card,.result,.app,.doc,.payment-box){
+ background:var(--v5-glass-light)!important;
+ border-color:var(--v52-line)!important;
+}
+body.admission-premium{
+ background:linear-gradient(135deg,rgba(235,251,242,.32),rgba(248,255,250,.48)),var(--v52-mist) center top/cover scroll no-repeat!important;
+}
+/* Quiet calligraphic touch: display headings only; working labels stay sans-serif. */
+body.gold-home.page-home :is(.hero-copy h1,.section-heading h2,.learning-copy h2,.preview-welcome h3),
+body.premium-public-page :is(.public-hero h1,.section-heading h2),
+body.auth-page .story h1,
+body.app-page.page-app .main :is(.campus-hero h1,.section-head h2),
+body.learning-sky .section.active :is(h1,h2){
+ font-family:"Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif!important;
+ font-weight:700!important;
+ font-style:normal!important;
+ letter-spacing:-.025em!important;
+ line-height:1.17!important;
+ text-wrap:balance;
+}
+body.gold-home.page-home .hero-copy h1 .hero-gold{
+ font-style:italic!important;
+ color:#0c6650!important;
+ -webkit-text-fill-color:#0c6650!important;
+}
+body.app-page.page-app .sidebar .sidebar-wordmark strong{
+ font-family:"Palatino Linotype",Palatino,Georgia,serif!important;
+ font-weight:750!important;
+ letter-spacing:.015em!important;
+}
+/* Readable, never faded copy on mint glass. Do not style button text as dark ink. */
+body.gold-home.page-home :is(.hero-copy,.experience-strip article>div,.quick-access-card,.role-demo,.preview-window,.public-grid>.public-card,.section-heading)
+ :is(h1,h2,h3,h4,p,small,strong,label),
+body.premium-public-page :is(.public-list li,.public-grid>.public-card) :is(h2,h3,p,small,strong,label),
+body.app-page.page-app .main .view.active :is(.card,.section-head,.paper-card,.dashboard-panel,.dashboard-quick-card,.role-action-card)
+ :is(h2,h3,h4,p,small,strong,label),
+body.auth-page #authCard :is(h2,h3,p,small,strong,label){
+ opacity:1!important;
+ filter:none!important;
+ text-shadow:none!important;
+}
+body.gold-home.page-home :is(.hero-copy,.quick-access-card,.role-demo,.preview-window,.public-grid>.public-card,.section-heading) :is(p,small),
+body.premium-public-page :is(.public-list li,.public-grid>.public-card) :is(p,small),
+body.app-page.page-app .main .view.active :is(.card,.section-head,.paper-card,.dashboard-panel,.role-action-card) :is(p,small,.muted),
+body.auth-page #authCard :is(p,small,.subtitle,.help){
+ color:var(--v52-copy)!important;
+ -webkit-text-fill-color:var(--v52-copy)!important;
+}
+body.gold-home.page-home .hero-copy h1,
+body.gold-home.page-home :is(.role-showcase,.value-section) .section-heading h2,
+body.premium-public-page .public-hero h1,
+body.auth-page #authCard h2{
+ color:var(--v52-ink)!important;
+ -webkit-text-fill-color:var(--v52-ink)!important;
+ opacity:1!important;
+ text-shadow:none!important;
+}
+/* The dark learning scene and green sidebar always keep white lettering. */
+body.gold-home.page-home .learning-band .learning-copy :is(h2,h3,p,small),
+body.app-page.page-app .sidebar :is(.sidebar-wordmark strong,.sidebar-wordmark small,.sidebar-institute-copy strong,.sidebar-institute-copy span,.nav-item,.nav-group summary,.nav-group summary strong){
+ color:#f7fff9!important;
+ -webkit-text-fill-color:#f7fff9!important;
+ opacity:1!important;
+ filter:none!important;
+ text-shadow:0 1px 2px rgba(0,39,25,.49)!important;
+}
+body.gold-home.page-home :is(.public-cta,.quick-main),
+body.auth-page .primary{
+ background:linear-gradient(125deg,#075f48,#148065)!important;
+ color:#fff!important;
+ -webkit-text-fill-color:#fff!important;
+ text-shadow:0 1px 1px rgba(0,32,21,.24)!important;
+}
+body:is(.page-home,.premium-public-page,.auth-page,.learning-sky,.admission-premium,.page-app)
+ :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+ background-color:rgba(253,255,253,.96)!important;
+ color:#123d32!important;
+ -webkit-text-fill-color:#123d32!important;
+}
+/* Low-power Android: light blur and ordinary scrolling rather than fixed backdrops. */
+@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
+ body:is(.page-home,.premium-public-page,.auth-page,.learning-sky,.admission-premium){background-attachment:scroll!important}
+ body.gold-home.page-home :is(.hero-copy,.role-demo,.preview-window,.public-grid>.public-card),
+ body.premium-public-page .public-main :is(.public-list li,.public-grid>.public-card),
+ body.app-page.page-app .main .view.active :is(.card,.section-head,.dashboard-quick-card,.role-action-card),
+ body.auth-page .main #authCard,
+ body.learning-sky .section.active :is(.card,.paper-card){
+  -webkit-backdrop-filter:blur(6px) saturate(112%)!important;
+  backdrop-filter:blur(6px) saturate(112%)!important;
+ }
+ body.gold-home.page-home .hero-copy h1{
+  font-size:clamp(30px,8.4vw,40px)!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+ }
+ body.gold-home.page-home .hero-copy,
+ body.premium-public-page .public-main>.public-hero{min-width:0!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body.gold-home.page-home .hero-copy h1{scroll-behavior:auto}
+}
