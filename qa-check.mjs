@@ -1126,7 +1126,7 @@ for(const token of ['.page-home .public-links{','.page-home .hero-copy h1','.pag
 const realGlass=read('true-photo-glass-v5.css');
 for(const page of htmlFiles){
  const source=read(page);
- const tag='true-photo-glass-v5.css?v=20261008-trueglass5';
+ const tag=page==='index.html'?'true-photo-glass-v5.css?v=20261008-trueglass-v51':'true-photo-glass-v5.css?v=20261008-trueglass5';
  if(!source.includes(tag))fail.push('True glass V5 is missing from '+page);
  const linkAt=source.lastIndexOf('true-photo-glass-v5.css');
  const previous=source.lastIndexOf('reference-reconstruction.css');
@@ -1145,6 +1145,14 @@ for(const marker of [
  if(!realGlass.includes(marker))fail.push('True glass V5 screenshot surface not addressed: '+marker);
 }
 if(!realGlass.includes('--v5-frost:blur(11px)'))fail.push('True glass V5 frosted photo glass token missing.');
+for(const sel of [
+ 'body.gold-home.page-home .value-section>.section-heading',
+ 'body.gold-home.page-home .public-section[aria-labelledby="explore-public-guides"]>.section-heading'
+]){
+ if(!realGlass.includes(sel))fail.push('V5.1 photo-readable heading plate missing: '+sel);
+}
+if(!read('index.html').includes('true-photo-glass-v5.css?v=20261008-trueglass-v51'))fail.push('Homepage V5.1 cache refresh is missing.');
+
 
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
