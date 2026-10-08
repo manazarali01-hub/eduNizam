@@ -313,7 +313,6 @@ body.app-page.page-app #dashboard>.cards>.stat:nth-child(4)>strong{color:#7751a9
 
 /* EduNizam action icon polish v5: rich, readable, unified controls. */
 .edu-button-icon{
- --ei-primary:var(--ei-primary,#20bd95);
  display:inline-flex!important;align-items:center!important;justify-content:center!important;
  width:30px!important;height:30px!important;min-width:30px!important;flex:0 0 30px!important;
  padding:3px!important;box-sizing:border-box!important;border-radius:10px!important;
