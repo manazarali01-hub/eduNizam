@@ -63,22 +63,38 @@ ICONS={
   "arrows": "forward",
   "shield": "sheild"
 }
-BASE="https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/premium"
+# Wikimedia Commons mirrors the same 3dicons.co V1 CC0 artwork.
+# The vivid "color" renders better match the reference pastel clay house.
+import hashlib
+from urllib.parse import quote
+BASE="https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color"
 def download(slug):
-  url=f"{BASE}/{slug}-dynamic-premium.png"
-  last=None
-  for i in range(4):
-    try:
-      with urlopen(Request(url,headers={"User-Agent":"Mozilla/5.0 (EduNizam V1 CC0 icon build)"}),timeout=25) as r:
-        if "image" not in r.headers.get("Content-Type",""): raise ValueError("Not an image")
-        b=r.read(11000000)
-      im=Image.open(BytesIO(b)).convert("RGBA")
-      im.load()
-      if im.width<100 or im.height<100: raise ValueError("Tiny source")
-      return im
-    except Exception as e:
-      last=e;time.sleep(i+1)
-  raise RuntimeError(f"Could not fetch CC0 icon {slug}: {last}")
+  title=slug[0].upper()+slug[1:]
+  filename=f"{title}-dynamic-color.png"
+  safe=quote(filename)
+  digest=hashlib.md5(filename.replace(" ","_").encode()).hexdigest()
+  urls=[
+    f"https://upload.wikimedia.org/wikipedia/commons/thumb/{digest[0]}/{digest[:2]}/{safe}/500px-{safe}",
+    f"https://commons.wikimedia.org/wiki/Special:Redirect/file/{safe}?width=500",
+    f"https://upload.wikimedia.org/wikipedia/commons/{digest[0]}/{digest[:2]}/{safe}",
+    f"{BASE}/{slug}-dynamic-color.png"
+  ]
+  errors=[]
+  for url in urls:
+    for attempt in range(2):
+      try:
+        req=Request(url,headers={"User-Agent":"EduNizam-Clay3D/1.0 (educational app; hello@edunizam.online)","Accept":"image/png,image/webp,*/*"})
+        with urlopen(req,timeout=24) as r:
+          if "image" not in r.headers.get("Content-Type",""): raise ValueError("response not an image")
+          b=r.read(11000000)
+        im=Image.open(BytesIO(b)).convert("RGBA")
+        im.load()
+        if im.width<100 or im.height<100: raise ValueError("source too small")
+        return im
+      except Exception as e:
+        errors.append(type(e).__name__+": "+str(e)[:100])
+        time.sleep(attempt*.5)
+  raise RuntimeError("Cannot fetch CC0 asset "+slug+": "+"; ".join(errors[-4:]))
 
 def render_house():
   S=4;N=192;im=Image.new("RGBA",(N*S,N*S),(0,0,0,0))
@@ -138,6 +154,6 @@ if __name__=="__main__":
     image.save(file,format="WEBP",quality=85,method=5)
     if file.stat().st_size<500: raise RuntimeError("Small image: "+str(file))
   (OUT/"LICENSE.txt").write_text(
-    "Clay icon assets: 3dicons V1 by Vijay Verma, CC0 1.0, https://3dicons.co/ .\n"+
+    "Clay icon assets: 3dicons V1 by Vijay Verma, CC0 1.0, https://3dicons.co/ . Wikimedia Commons mirrors, style color.\n"+
     "Schoolhouse is original custom rendering drawn by EduNizam's build script.\n")
   print(f"PASS: {len(ICONS)} 192px transparent WebP files",flush=True)
