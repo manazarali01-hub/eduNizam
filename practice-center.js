@@ -4,12 +4,21 @@
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
   let current=[],timer=null,secondsLeft=0,lastConfig=null,cursor=0,answers=[],poolNotice='';
 
+  const schoolStudents=()=>{try{const rows=JSON.parse(localStorage.getItem('edunizam_students')||'[]');return Array.isArray(rows)?rows:[]}catch{return[]}};
+  // A student selector must honor the active school/role visibility rules.
+  // Missing authorization scope fails closed; public guest practice is separate.
+  const visibleStudents=()=>{
+    const scope=window.EDUNIZAM_ROLE_SCOPE;
+    if(typeof scope?.getVisibleStudents!=='function')return[];
+    const rows=scope.getVisibleStudents(schoolStudents());
+    return Array.isArray(rows)?rows.filter(s=>s&&s.id!==null&&s.id!==undefined&&String(s.id).trim()&&s.name):[];
+  };
   const history=()=>JSON.parse(localStorage.getItem('edunizam_practice_history')||'[]');
   const saveHistory=v=>localStorage.setItem('edunizam_practice_history',JSON.stringify(v.slice(-100)));
 
   function fill(){
-    const students=JSON.parse(localStorage.getItem('edunizam_students')||'[]');
-    if($('practiceStudent'))$('practiceStudent').innerHTML='<option value="">Student (optional)</option>'+students.map(s=>'<option value="'+s.id+'">'+esc(s.name)+' · '+esc(s.className||'')+'</option>').join('');
+    const students=visibleStudents();
+    if($('practiceStudent'))$('practiceStudent').innerHTML='<option value="">Student (optional)</option>'+students.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' · '+esc(s.className||'')+'</option>').join('');
     $('practiceBoard').innerHTML='<option value="">Board context (optional)</option>'+D.boards.map(x=>'<option>'+esc(x)+'</option>').join('');
     fillSubjects();fillChapters();
     $('practiceBankBadge').textContent=D.questions.length+' Questions';
@@ -28,10 +37,11 @@
     $('practiceChapter').innerHTML='<option value="">All Chapters</option>'+chapters.map(x=>'<option>'+esc(x)+'</option>').join('');
   }
   function getConfig(){
-    const studentId=Number($('practiceStudent')?.value||0);
-    const student=JSON.parse(localStorage.getItem('edunizam_students')||'[]').find(s=>Number(s.id)===studentId);
+    const selectedId=String($('practiceStudent')?.value||'').trim();
+    const student=selectedId?visibleStudents().find(s=>String(s.id)===selectedId):null;
+    const studentId=student?String(student.id):null;
     return{
-    studentId:studentId||null,studentName:student?.name||'',
+    studentId,studentName:student?.name||'',
     board:$('practiceBoard').value,cls:Number($('practiceClass').value||0),subject:$('practiceSubject').value,
     chapter:$('practiceChapter').value,type:$('practiceType').value,difficulty:$('practiceDifficulty').value,
     count:Number($('practiceCount').value),minutes:Number($('practiceMinutes').value)
