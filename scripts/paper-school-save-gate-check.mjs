@@ -8,13 +8,13 @@ const cfg={institutionId:'school-A',enabled:true};
 const records={
  'school-A':{
   class_sections:[{class_name:'Grade 5',section_name:'A',active:true},{class_name:'Grade 6',section_name:'X',active:false}],
-  syllabus_progress_units:[{class_name:'5',subject:'Mathematics',unit_title:'Prescribed Unit: Fractions'}],
+  syllabus_progress_units:[{class_name:'5',subject:'Mathematics',unit_title:'Prescribed Unit: Fractions',textbook_title:'School Maths Book',curriculum_board:'punjab-pectaa'}],
   teacher_question_bank:[{id:'A-Q1',creator_user_id:'head-A',class_name:'5',subject:'Mathematics',
    chapter:'Confidential School A Topic',question_type:'short',question_text:'Private A question?',answer_text:'Private A answer',difficulty:'Balanced',active:true}]
  },
  'school-B':{
   class_sections:[{class_name:'Class 8',section_name:'B',active:true}],
-  syllabus_progress_units:[{class_name:'Grade 8',subject:'Physics',unit_title:'School B: Motion'}],
+  syllabus_progress_units:[{class_name:'Grade 8',subject:'Physics',unit_title:'School B: Motion',textbook_title:'School Physics Book',curriculum_board:'federal-fbise'}],
   teacher_question_bank:[{id:'B-Q1',creator_user_id:'head-B',class_name:'8',subject:'Physics',
    chapter:'Confidential School B Topic',question_type:'short',question_text:'Private B question?',answer_text:'Private B answer',difficulty:'Balanced',active:true}]
  }
@@ -54,7 +54,13 @@ let g=api.schoolPaperReadiness('5','Mathematics',['Prescribed Unit: Fractions'])
 assert(!g.allowed&&g.reason.includes('not verified'),'Unloaded school syllabus allowed paper publication');
 await api.loadSchoolCatalog();
 g=api.schoolPaperReadiness('5','Mathematics',['Prescribed Unit: Fractions']);
-assert(g.allowed&&g.mode==='school-recorded'&&g.verified===false,'Actual saved school chapter failed guarded draft mode');
+assert(g.allowed&&g.mode==='school-recorded'&&g.verified===false,'Actual book-mapped school chapter failed guarded draft mode');
+const priorTitle=records['school-A'].syllabus_progress_units[0].textbook_title;
+delete records['school-A'].syllabus_progress_units[0].textbook_title;
+api.getSchoolCatalog().units[0].textbook_title='';
+assert(!api.schoolPaperReadiness('5','Mathematics',['Prescribed Unit: Fractions']).allowed,'Legacy chapter without a prescribed textbook mapping was incorrectly accepted');
+records['school-A'].syllabus_progress_units[0].textbook_title=priorTitle;
+api.getSchoolCatalog().units[0].textbook_title=priorTitle;
 assert(!api.schoolPaperReadiness('5','Mathematics',['Prescribed Unit: Fractions','Unapproved School Topic']).allowed,
  'School paper mixed prescribed and generic chapters');
 assert(!api.schoolPaperReadiness('6','Mathematics',['Prescribed Unit: Fractions'],{conceptDraft:true}).allowed,
