@@ -393,7 +393,7 @@ try{
   }catch(e){pushFailure('installed PWA launch','Legacy installed app launch/home/login interaction failed',String(e.message||e));}
   finally{await launchPage.close();}
 
-  // Color icon rendered contract: the original 48 route controls remain intact
+  // Color icon rendered contract: every current route (48 original plus additions) remains intact
   // and get distinct, colorful SVGs, while click handlers still fire normally.
   const iconPage=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
   try{
@@ -434,10 +434,10 @@ try{
           groupCount,dockCount,statCount,clicks,gradient,enamelCount,
           labelsPreserved:nodes.every(x=>!!x.querySelector('.premium-nav-label')?.textContent.trim()&&!!x.dataset.view)};
       });
-      if(icons.count!==48||icons.svgCount!==48||icons.uniqueIcons<32||icons.enamelCount!==48||icons.uniqueTones<6||
+      if(icons.count<48||icons.svgCount!==icons.count||icons.uniqueIcons<32||icons.enamelCount!==icons.count||icons.uniqueTones<6||
          icons.uniqueColors<6||icons.groupCount<7||icons.dockCount<3||icons.statCount<4||
          icons.clicks!==1||!icons.labelsPreserved||!icons.gradient.includes('gradient'))
-        pushFailure('color icon contract','48 colorful semantic icons, group badges, dock icons or click handlers regressed',JSON.stringify(icons));
+        pushFailure('color icon contract','Sidebar semantic icon count, group badges, dock icons or click handlers regressed',JSON.stringify(icons));
       else console.log('Color icon contract PASS: '+JSON.stringify(icons));
     }
   }catch(e){pushFailure('color icon contract','Rendered color icon regression',String(e.message||e));}
