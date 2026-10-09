@@ -66,7 +66,7 @@
     return visibleIds.has(String(r.studentLocalId));
   }
   function statusClass(s){return s==='Approved'?'good':s==='Rejected'?'high':'medium'}
-  function eligibleSubmitStudents(){return visibleStudents()}
+  function eligibleSubmitStudents(){return window.EDUNIZAM_STUDENT_PICKER?.eligible?.(visibleStudents())||[]}
 
   async function currentProfileName(){
     if(!cloudReady())return identity()||'User';
@@ -234,7 +234,7 @@
     const list=eligibleSubmitStudents();
     if(!list.length)return '<div class="empty-state">Aap ke login se koi approved linked student record nahi mila. School Admin se student link verify karwayen.</div>';
     return '<article class="card leave-request-form"><div class="section-head"><div><h3>New Student Leave Request</h3><p class="muted">Student leave relevant Teacher ko review ke liye aur School Admin ko final decision ke liye nazar ayegi.</p></div></div><div class="form-grid">'+
-      '<label>Student<select id="leaveStudent">'+list.map(s=>'<option value="'+esc(s.id)+'">'+esc(studentLabel(s))+'</option>').join('')+'</select></label>'+
+      '<label>Student<select id="leaveStudent">'+window.EDUNIZAM_STUDENT_PICKER.options(list,'Select approved linked student')+'</select></label>'+
       '<label>From Date<input id="leaveFrom" type="date" value="'+today()+'"></label>'+
       '<label>To Date<input id="leaveTo" type="date" value="'+today()+'"></label>'+
       '<label>Number of Days<input id="leaveDays" type="number" min="1" value="1" readonly></label>'+
@@ -285,7 +285,8 @@
       item={id:String(Date.now()),cloudSynced:false,leaveFor:'staff',studentLocalId:'',studentUserId:null,studentName:'',personName:identity()||'Teacher',className:'',sectionName:'',fromDate:from,toDate:to,numberOfDays,reason,guardianNote,status:'Pending',teacherResponse:'',teacherNote:'',decisionNote:'',submittedBy:identity(),submittedIdentity:identity(),submittedRole:'teacher',createdAt:new Date().toISOString()};
     }else{
       const sid=$('leaveStudent')?.value;if(!sid)return alert('Student select karein.');
-      const s=students().find(x=>String(x.id)===String(sid));if(!s)return alert('Student record not found.');
+      if(!window.EDUNIZAM_STUDENT_PICKER?.has(eligibleSubmitStudents(),sid))return alert('Selected student is not accessible for your current account/school. Refresh the page.');
+       const s=eligibleSubmitStudents().find(x=>String(x.id)===String(sid));if(!s)return alert('Student record not found.');
       item={id:String(Date.now()),cloudSynced:false,leaveFor:'student',studentLocalId:s.id,studentUserId:s.authUserId||null,studentName:s.name,personName:s.name,className:s.className||'',sectionName:s.sectionName||'',fromDate:from,toDate:to,numberOfDays,reason,guardianNote,status:'Pending',teacherResponse:'',teacherNote:'',decisionNote:'',submittedBy:identity(),submittedIdentity:identity(),submittedRole:role(),createdAt:new Date().toISOString()};
     }
     leaveSubmitInFlight=true;if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');btn.dataset.busyLabel=btn.textContent||'';btn.textContent='Submitting...'}
