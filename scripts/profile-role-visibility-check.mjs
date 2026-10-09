@@ -39,4 +39,9 @@ currentRole='head';uid='head-a';cloud.state.user.id=uid;
 ok((await profile.visibleStudents()).length===3,'Authorized head must access complete school profile list');
 const profileSource=read('student-performance.js');
 for(const mark of ['Only authorized school staff may save','scopedStudents().find','renderToken','EDUNIZAM_STUDENT_PROFILE_SCOPE','school!==String(window.EDUNIZAM_CLOUD_CONFIG?.institutionId'])ok(profileSource.includes(mark),'Missing profile role/tenant guard '+mark);
+for(const moduleName of ['student-documents.js','student-behavior.js','parent-complaint-center.js','leave-center.js','daily-class-diary.js']){
+ const script=read(moduleName);
+ ok(script.includes('EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]'),'Unscoped student visibility fallback in '+moduleName);
+ ok(!script.includes('EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()'),'Unauthorized all-student fallback in '+moduleName);
+}
 console.log('EduNizam profile visibility PASS: parent, student, teacher and head; fail-closed cloud scope; school/account switch; assigned class and student options.');
