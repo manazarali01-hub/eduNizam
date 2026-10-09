@@ -72,6 +72,21 @@ assert(!api.schoolPaperReadiness('5','English',['Grammar']).allowed,
 g=api.schoolPaperReadiness('5','English',['Grammar'],{conceptDraft:true});
 assert(g.allowed&&g.mode==='concept-only-draft'&&!g.verified,
  'Explicitly private concept draft not distinguished from a verified exam');
+Object.assign(elements,{
+ '#qbClass':{value:'5'},'#qbSubject':{value:'Mathematics'},'#qbChapter':{value:'Unapproved School Topic'},
+ '#qbType':{value:'short'},'#qbDifficulty':{value:'Balanced'},'#qbQuestion':{value:'Private question'},
+ '#qbAnswer':{value:'Answer key'},'#qbOptions':{value:''},'#qbCorrect':{value:'1'},'#qbAdmin':{checked:false}
+});
+const lastAlertCount=alerts.length;
+await api.saveCustomQuestion();
+assert(alerts.length>lastAlertCount&&alerts.at(-1).includes('book-mapped'),
+ 'Teacher Question Bank allowed an unmapped concept as prescribed-school content');
+assert(sourceHasQuestionImportGuard(),'CSV question import does not enforce book-mapped school syllabus');
+function sourceHasQuestionImportGuard(){
+ const src=read('teacher-paper-builder.js');
+ return src.includes('pendingImportRows.map((q,i)=>({index:i+1,gate:schoolPaperReadiness(')&&
+ src.includes('importScope!==currentSchoolScope()');
+}
 elements['#pbConceptDraft'].checked=true;
 await api.savePaper(); // The class is registered but a DIFFERENT subject has recorded units.
 assert(alerts.some(x=>x.includes('not recorded')),'Generate button bypassed saved school chapter guard');
