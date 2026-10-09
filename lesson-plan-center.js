@@ -48,9 +48,9 @@
   }
   function sectionList(prefix){
     const cls=$('lp'+prefix+'Class')?.value||'';
-    const rows=registeredClasses().filter(x=>x.className===cls);
+    const sections=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.sections(cls,registeredClasses())||[];
     const list=$('lp'+prefix+'Sections');
-    if(list)list.innerHTML=[...new Set(rows.map(x=>x.sectionName).filter(Boolean))].map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    if(list)list.innerHTML=sections.map(x=>'<option value="'+esc(x)+'"></option>').join('');
   }
   function relevantToFamily(x){
     if(isStaff())return true;
