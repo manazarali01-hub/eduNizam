@@ -68,7 +68,7 @@ async function deleteCustomQuestion(id){
 function downloadQuestionTemplate(){
  const template=window.EDUNIZAM_QUESTION_IMPORT?.template;
  if(!template)return alert('Question import template is unavailable. Reload the Paper Builder.');
- const data=new Blob(['\\uFEFF'+template],{type:'text/csv;charset=utf-8'});
+ const data=new Blob([String.fromCharCode(0xFEFF)+template],{type:'text/csv;charset=utf-8'});
  const url=URL.createObjectURL(data),a=document.createElement('a');
  a.href=url;a.download='edunizam-question-bank-template.csv';a.style.display='none';
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
