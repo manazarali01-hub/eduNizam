@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-secondary-book-data-v26';
+  const VERSION='20261009-paper-builder-wizard-v27';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
