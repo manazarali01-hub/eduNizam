@@ -38,7 +38,7 @@ window.pdfjsLib={
  })})
 };
 const textPdf=await src.extract([samplePdf]);
-assert(textPdf.text.includes('\\nA) Gas')&&textPdf.text.includes('\\nAnswer: C'),
+assert(textPdf.text.includes('\nA) Gas')&&textPdf.text.includes('\nAnswer: C'),
  'PDF text-extraction flattened Q/A lines rather than preserving their positions');
 assert(src.parseExplicitQuestions(textPdf.text).length===2,
  'Text PDF content cannot be converted into 2 human-reviewable answered questions');
@@ -46,7 +46,7 @@ let ocrWorkers=0,ocrStops=0;
 window.Tesseract={createWorker:async language=>{
  ocrWorkers++;
  assert(language==='eng','Default image OCR should use English language pack');
- return{recognize:async()=>({data:{text:'Q1: Define energy.\\nAnswer: Energy is the capacity for doing work.'}}),terminate:async()=>{ocrStops++}};
+ return{recognize:async()=>({data:{text:'Q1: Define energy.\nAnswer: Energy is the capacity for doing work.'}}),terminate:async()=>{ocrStops++}};
 }};
 const imageBatch=await src.extract([
  {name:'page1.png',size:1100,type:'image/png'},
