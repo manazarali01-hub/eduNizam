@@ -124,6 +124,51 @@
       cloudReady()&&homeworkAcademic.unitStatus==='error'?'School syllabus unavailable; subjects are unverified reference suggestions.':
       'Saved school subjects plus unverified reference subjects. Check prescribed textbook.';
   }
+
+  function syncTimetableOptions(){
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS,cls=$('swTtClass')?.value?.trim()||'';
+    const rows=registeredHomeworkClasses();
+    const classList=$('swTtClassOptions');
+    if(classList)classList.innerHTML=(api?.distinct?.(rows.map(x=>x.className))||[])
+      .map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const sectionList=$('swTtSectionOptions');
+    if(sectionList)sectionList.innerHTML=(api?.sections?.(cls,rows)||[])
+      .map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const units=cloudReady()?(homeworkAcademic.scope===homeworkScope()?homeworkAcademic.units:[]):
+      (()=>{try{return JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch{return[]}})();
+    const subjects=$('swTtSubjectOptions');
+    if(subjects)subjects.innerHTML=(api?.subjects?.(cls,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},units)||[])
+      .map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const note=$('swTtOptionNote');
+    if(note)note.textContent=!cls?'Select a registered class to load real sections and subject suggestions.':
+      cloudReady()&&homeworkAcademic.scope!==homeworkScope()?'Loading school academic records; other school choices hidden.':
+      cloudReady()&&homeworkAcademic.status==='error'?'School class directory unavailable; refresh before saving.':
+      cloudReady()&&homeworkAcademic.unitStatus==='error'?'School syllabus unavailable; reference subjects are unverified suggestions.':
+      'School-recorded subjects and reference suggestions. Verify your allocated teacher/subject.';
+  }
+  async function refreshTimetableOptions(){
+    const button=$('swTtRefresh');if(button){button.disabled=true;button.textContent='Refreshing...'}
+    try{await loadHomeworkOptions(true);syncTimetableOptions()}
+    finally{if(button?.isConnected){button.disabled=false;button.textContent='Refresh Classes & Subjects'}}
+  }
+  const periodMinutes=v=>{
+    if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(String(v||'')))return NaN;
+    return Number(v.slice(0,2))*60+Number(v.slice(3,5));
+  };
+  function timetableConflict(rows,item){
+    const a=periodMinutes(item.time),b=periodMinutes(item.endTime);
+    return rows.some(x=>{
+      if(x.day!==item.day)return false;
+      const first=periodMinutes(x.time),last=periodMinutes(x.endTime);
+      const overlaps=Number.isFinite(first)&&Number.isFinite(last)&&first<b&&a<last;
+      const sameClass=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.sameClass?.(x.className,item.className)&&
+        String(x.sectionName||'').trim().toLowerCase()===String(item.sectionName||'').trim().toLowerCase();
+      return sameClass&&(Number(x.periodNumber)===item.periodNumber||overlaps)||
+        overlaps&&item.teacherName&&x.teacherName&&x.teacherName.trim().toLowerCase()===item.teacherName.trim().toLowerCase()||
+        overlaps&&item.roomLabel&&x.roomLabel&&x.roomLabel.trim().toLowerCase()===item.roomLabel.trim().toLowerCase();
+    });
+  }
+  let swTimetableSaving=false;
   async function refreshHomeworkOptions(){
     const button=$('swHwRefresh');if(button){button.disabled=true;button.textContent='Refreshing...'}
     try{await loadHomeworkOptions(true);syncHomeworkOptions()}
@@ -317,13 +362,20 @@
       return `<article class="card"><div class="section-head"><div><span class="academic-pill">Submission Desk</span><h3>Assignment Progress</h3><p class="muted">Submitted work, late attempts, grading and revision status.</p></div></div><div class="cards"><div class="stat"><span>Visible submissions</span><strong>${rows.length}</strong></div><div class="stat"><span>Graded</span><strong>${graded}</strong></div><div class="stat"><span>Returned</span><strong>${returned}</strong></div></div></article>`;
     }
     return `
-      <article class="card"><h3>New Timetable Entry</h3>
+      <article class="card"><h3>New Timetable Period</h3>
+      <p class="muted">Choose your actual registered class and section. Period, start and end time are required.</p>
       <div class="form-grid">
-        <input id="swTtClass" placeholder="Class e.g. 5">
+        <input id="swTtClass" list="swTtClassOptions" placeholder="Registered class *"><datalist id="swTtClassOptions"></datalist>
+        <input id="swTtSection" list="swTtSectionOptions" placeholder="Registered section *"><datalist id="swTtSectionOptions"></datalist>
         <select id="swTtDay"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select>
-        <input id="swTtTime" type="time">
-        <input id="swTtSubject" placeholder="Subject">
-        <input id="swTtTeacher" placeholder="Teacher name">
+        <input id="swTtPeriod" type="number" min="1" max="15" step="1" placeholder="Period number (1-15) *">
+        <input id="swTtTime" type="time" aria-label="Period start time">
+        <input id="swTtEnd" type="time" aria-label="Period end time">
+        <input id="swTtSubject" list="swTtSubjectOptions" placeholder="Subject *"><datalist id="swTtSubjectOptions"></datalist>
+        <input id="swTtTeacher" placeholder="Assigned teacher name">
+        <input id="swTtRoom" placeholder="Room / lab">
+        <p id="swTtOptionNote" class="coverage-note">Select class to load current-school sections and subjects.</p>
+        <button type="button" id="swTtRefresh" class="secondary">Refresh Classes & Subjects</button>
         <button id="swSaveTimetable">Add Period</button>
       </div></article>`;
   }
@@ -354,7 +406,7 @@
       const grading=(role()==='head'||role()==='teacher')&&mine(hw)?`<div class="form-grid"><input data-sw-grade-marks="${esc(x.id)}" type="number" min="0" step="0.5" max="${esc(hw.maxMarks||1000)}" placeholder="Marks" value="${x.marks!==''&&x.marks!=null?esc(x.marks):''}"><textarea data-sw-grade-feedback="${esc(x.id)}" rows="2" placeholder="Teacher feedback">${esc(x.feedback||'')}</textarea><button data-sw-grade="${esc(x.id)}">Save Grade</button><button class="secondary" data-sw-return="${esc(x.id)}">Return for Revision</button></div>`:'';
       return `<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">${esc(x.status)}</span><span class="mini-badge">${esc(x.studentName||'Student')}</span></div><h3>${esc(hw.title||'Assignment')}</h3><p class="muted">${esc(hw.subject||'')} · ${x.submittedAt?new Date(x.submittedAt).toLocaleString():''}</p>${x.text?'<p>'+esc(x.text)+'</p>':''}${x.url?'<p><a href="'+esc(x.url)+'" target="_blank" rel="noopener">Open submission link</a></p>':''}${x.status==='graded'?'<div class="coverage-note"><strong>Marks:</strong> '+esc(x.marks)+'/'+esc(hw.maxMarks||'')+(x.feedback?'<br><strong>Feedback:</strong> '+esc(x.feedback):'')+'</div>':''}${x.status==='returned'&&x.feedback?'<div class="coverage-note"><strong>Revision requested:</strong> '+esc(x.feedback)+'</div>':''}${grading}</article>`;
     }
-    return `<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">Class ${esc(x.className)}</span><span class="mini-badge">${esc(x.day)}</span></div><h3>${esc(x.subject)}</h3><p class="muted">${esc(x.time||'')} · ${esc(x.teacherName||'Teacher')}</p><div class="paper-actions">${del}</div></article>`;
+    return `<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">Class ${esc(x.className)}${x.sectionName?' · '+esc(x.sectionName):''}</span><span class="mini-badge">${esc(x.day)} · Period ${esc(x.periodNumber||'-')}</span></div><h3>${esc(x.subject)}</h3><p class="muted">${esc(x.time||'')} – ${esc(x.endTime||'')} · ${esc(x.teacherName||'Unassigned teacher')}${x.roomLabel?' · '+esc(x.roomLabel):''}</p><div class="paper-actions">${del}</div></article>`;
   }
   function bind(tab){
     if(tab==='announcements'&&$('swSaveAnnouncement'))$('swSaveAnnouncement').onclick=async()=>{
@@ -382,14 +434,41 @@
       }catch(e){return alert('Assignment could not be published: '+(e.message||e))}
       const d=read();d.homework.unshift(item);write(d);render();
     };
+    if(tab==='timetable'){
+      $('swTtClass')?.addEventListener('input',syncTimetableOptions);
+      $('swTtRefresh')?.addEventListener('click',refreshTimetableOptions);
+      syncTimetableOptions();
+    }
     if(tab==='timetable'&&$('swSaveTimetable'))$('swSaveTimetable').onclick=async()=>{
-      const className=$('swTtClass').value.trim(),subject=$('swTtSubject').value.trim();if(!className||!subject)return alert('Class aur subject required hain.');
-      const item={id:String(Date.now()),className,day:$('swTtDay').value,time:$('swTtTime').value,subject,teacherName:$('swTtTeacher').value.trim(),createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()};
+      const button=$('swSaveTimetable');
+      if(swTimetableSaving||button.disabled)return;
+      const item={
+        id:String(Date.now()),className:$('swTtClass').value.trim(),sectionName:$('swTtSection').value.trim(),
+        day:$('swTtDay').value,periodNumber:Number($('swTtPeriod').value),
+        time:$('swTtTime').value,endTime:$('swTtEnd').value,subject:$('swTtSubject').value.trim(),
+        teacherName:$('swTtTeacher').value.trim(),roomLabel:$('swTtRoom').value.trim(),
+        createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()
+      };
+      const start=periodMinutes(item.time),end=periodMinutes(item.endTime);
+      if(!item.className||!item.subject||!item.day||!Number.isInteger(item.periodNumber)||
+         item.periodNumber<1||item.periodNumber>15||!Number.isFinite(start)||!Number.isFinite(end)||end<=start)
+        return alert('Registered class, subject, day, period 1-15 and valid start/end times required.');
+      if(!canEdit()||!knownHomeworkClass(item.className,item.sectionName))
+        return alert('Select a registered and assigned class/section before adding a period.');
+      if(cloudReady()&&!cloudLoadedScopes.has('timetable'))
+        return alert('School timetable not loaded yet. Reload this view before saving.');
+      const d=read();
+      if(timetableConflict(d.timetable,item))return alert('Period clashes with class/section, teacher or room. Adjust timetable before saving.');
+      swTimetableSaving=true;button.disabled=true;
       try{
-        const row=await insertCloud('timetable',item);
-        if(row)item.id=row.id,item.createdBy=row.creator_user_id,item.createdAt=row.created_at;
-      }catch(e){alert('Cloud sync failed; timetable local mode mein save hoga. '+(e.message||e))}
-      const d=read();d.timetable.push(item);write(d);render();
+        if(cloudReady()){
+          const row=await insertCloud('timetable',item);
+          if(!row?.id)throw new Error('Server did not confirm a saved timetable period.');
+          item.id=row.id;item.createdBy=row.creator_user_id;item.createdAt=row.created_at||item.createdAt;
+        }
+        const latest=read();latest.timetable.push(item);write(latest);render();
+      }catch(error){alert('Timetable period was not saved: '+(error.message||error))}
+      finally{swTimetableSaving=false;if(button.isConnected)button.disabled=false}
     };
     document.querySelectorAll('[data-sw-submit]').forEach(b=>b.onclick=async()=>{
       const homeworkId=b.dataset.swSubmit,text=document.querySelector('[data-sw-submit-text="'+homeworkId+'"]')?.value.trim()||'',url=document.querySelector('[data-sw-submit-url="'+homeworkId+'"]')?.value.trim()||'';
@@ -461,9 +540,12 @@
     paint(root,read(),tab);
     if(!cloudReady())return;
     ensureCloudKey();
-    if(tab==='homework'&&canEdit()){
+    if((tab==='homework'||tab==='timetable')&&canEdit()){
       await loadHomeworkOptions();
-      if((root.dataset.tab||'announcements')===tab)syncHomeworkOptions();
+      if((root.dataset.tab||'announcements')===tab){
+        if(tab==='homework')syncHomeworkOptions();
+        else syncTimetableOptions();
+      }
     }
     const scope=tab==='submissions'?'submissions':tab;
     if(!force&&cloudLoadedScopes.has(scope))return;
@@ -479,5 +561,6 @@
   window.addEventListener('edunizam:auth',()=>{resetCloudScopes();render(true)});
   setTimeout(mount,0);setTimeout(mount,600);
   window.EDUNIZAM_SCHOOL_WORK={mount,render,read,pullCloud,cloudReady,loadHomeworkOptions,
-    registeredHomeworkClasses,knownHomeworkClass,syncHomeworkOptions,refreshHomeworkOptions,getHomeworkAcademic:()=>homeworkAcademic};
+    registeredHomeworkClasses,knownHomeworkClass,syncHomeworkOptions,refreshHomeworkOptions,
+    syncTimetableOptions,refreshTimetableOptions,timetableConflict,periodMinutes,getHomeworkAcademic:()=>homeworkAcademic};
 })();
