@@ -7,7 +7,7 @@ const failures=[];
 const requireOK=(ok,message)=>{if(!ok)failures.push(message)};
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const names=[
- 'past-papers-data.js','practice-data.js','study-data.js','senior-curriculum-2026.js',
+ 'past-papers-data.js','practice-data.js','study-data.js','pectaa-core-textbooks.js','senior-curriculum-2026.js',
  'learning-premium-data.js','learning-complete-data.js','learning-required-data.js',
  'practice-foundation-data.js','practice-curriculum-expansion.js',
  'practice-depth-data.js','punjab-quran-subjects-pack.js','practice-complete-data.js','practice-session-core.js'
@@ -69,6 +69,16 @@ if(expansion){
 const foundation=win.EDUNIZAM_FOUNDATION_PRACTICE||{};
 requireOK(foundation.topicGroups>=100&&foundation.curatedMcqsAdded===foundation.topicGroups,'Not all foundation topics have an authored question');
 const books=win.EDUNIZAM_STUDY_DATA?.materials||[];
+const directCore=win.EDUNIZAM_PECTAA_CORE_BOOKS;
+requireOK(directCore?.rows?.length===32,'32 PECTAA-linked Grades 1–8 core textbooks absent');
+for(const [grade,subject,driveId] of directCore?.rows||[]){
+ const key='pectaa-direct-core-g'+grade+'-'+subject.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+ const book=books.find(x=>x.id===key);
+ requireOK(book?.source==='official'&&book.classLevels?.[0]===grade&&book.subject===subject&&book.url==='https://drive.google.com/file/d/'+driveId+'/view?usp=sharing','Invalid PECTAA-listed book link: '+key);
+ requireOK(book?.directoryUrl===directCore.sourceUrl&&book.curriculumStatus==='needs-verification','Official listing/edition status missing: '+key);
+}
+const explicitCounts=Object.fromEntries(Array.from({length:8},(_,i)=>[i+1,(directCore?.rows||[]).filter(r=>r[0]===i+1).length]));
+requireOK(Object.values(explicitCounts).every(x=>x>=3),'Core textbook directory is missing Mathematics, Urdu or English for some Grades 1–8');
 const bookLinks=books.filter(x=>String(x.id||'').startsWith('pectaa-book-search-'));
 requireOK(bookLinks.length>=100,'Missing subject-wise official eBook directory links');
 for(const grade of grades)requireOK(bookLinks.some(x=>x.classLevels?.includes(grade)),'No source-specific book links for Grade '+grade);
@@ -131,13 +141,14 @@ for(const [grade,subject,topics] of qp?.rows||[]){
 }
 // Regression: opening a school lesson plan first must not leave Practice/Study empty later.
 const early={window:{},console};
-for(const file of ['punjab-quran-subjects-pack.js','practice-data.js','study-data.js','practice-complete-data.js']){
+for(const file of ['punjab-quran-subjects-pack.js','practice-data.js','study-data.js','pectaa-core-textbooks.js','practice-complete-data.js']){
  try{runInNewContext(read(file),early,{filename:file,timeout:5000})}
  catch(error){failures.push('Academic-first load failed: '+file+' '+error.message)}
 }
 const delayedPractice=early.window.EDUNIZAM_PRACTICE_DATA||{},delayedStudy=early.window.EDUNIZAM_STUDY_DATA||{};
 requireOK(delayedPractice.punjabQuranExpansion?.authoredItemsAdded===72,'Pack not reactivated after Academic-first navigation');
 requireOK((delayedStudy.materials||[]).filter(m=>/^pectaa-quran-textbook-directory-/.test(m.id)).length===8,'Study directory missing after Academic-first navigation');
+requireOK((delayedStudy.materials||[]).filter(m=>/^pectaa-direct-core-g/.test(m.id)).length===32,'Core textbook links missing after Academic-first navigation');
 const app=read('app.html'),learn=read('learn.html'),features=read('feature-loader.js'),guest=read('guest-learning-premium.js'),lesson=read('lesson-plan-center.js');
 requireOK(features.includes("lessonCatalog:['punjab-quran-subjects-pack.js','academic-option-catalog.js']"),'Lesson Planner not using source-enriched subject-topic catalog');
 requireOK(lesson.includes('EDUNIZAM_ACADEMIC_OPTION_CATALOG'),'Lesson Planner not reading lightweight options');
