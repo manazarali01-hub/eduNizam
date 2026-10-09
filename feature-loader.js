@@ -101,7 +101,7 @@
     help:['help-knowledge-center.js'],
     leavecenter:['school-student-picker.js','leave-center.js'],
     examcenter:['exam-center.js','academic-operations-deep.js'],
-    paperbuilder:['paper-syllabus-audit.js','teacher-question-import.js','teacher-paper-builder.js','academic-workflow-deep.js'],
+    paperbuilder:['paper-syllabus-audit.js','teacher-question-import.js','paper-source-import.js','teacher-paper-builder.js','academic-workflow-deep.js'],
     dailydiary:['academic-form-options.js','daily-class-diary.js','academic-workflow-deep.js'],
     staffcenter:['school-form-options.js','staff-center.js'],
     stafftime:['staff-time-attendance.js'],
