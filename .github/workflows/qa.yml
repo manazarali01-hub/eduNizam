@@ -30,6 +30,9 @@ jobs:
       - name: Validate paper-builder marks and dynamic school data
         run: node scripts/paper-builder-data-check.mjs
 
+      - name: Validate OCR source PDFs and photos, reviewed question staging and opt-in AI boundaries
+        run: node scripts/paper-source-import-check.mjs
+
       - name: Reproduce Class 5 Science dropdowns, marks, pattern, and concept-only preview
         run: node scripts/paper-builder-class5-form-check.mjs
 
