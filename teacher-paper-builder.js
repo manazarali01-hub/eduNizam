@@ -557,5 +557,5 @@ async function render(){
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog,schoolPaperReadiness,getQuestionScope:()=>questionScope};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
