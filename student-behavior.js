@@ -66,7 +66,7 @@
   function editor(){
     if(!isStaff())return '<div class="coverage-note">Aap ko sirf family-shared behavior records dikhaye ja rahe hain.</div>';
     return '<article class="card"><h3>Add Student Development Record</h3><div class="form-grid">'+
-      '<select id="bhStudent"><option value="">Select student</option>'+visibleStudents().map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' · '+esc((s.className||'-')+(s.sectionName?' - '+s.sectionName:''))+'</option>').join('')+'</select>'+
+      '<select id="bhStudent">'+window.EDUNIZAM_STUDENT_PICKER.options(visibleStudents())+'</select>'+
       '<select id="bhType"><option>Positive Note</option><option>Concern</option><option>Warning</option><option>Incident</option></select>'+
       '<select id="bhSeverity"><option>Low</option><option>Medium</option><option>High</option></select>'+
       '<input id="bhDate" type="date" value="'+today()+'">'+
@@ -74,7 +74,7 @@
       '<textarea id="bhDetails" rows="3" placeholder="Details"></textarea>'+
       '<textarea id="bhAction" rows="2" placeholder="Action taken / follow-up (optional)"></textarea>'+
       '<label><input id="bhFamilyVisible" type="checkbox" checked> Share with family</label>'+
-      '<button id="bhSave">Save Record</button></div></article>';
+      '<button id="bhSave"'+(visibleStudents().length?'':' disabled')+'>Save Record</button>'+(visibleStudents().length?'':'<p class="coverage-note">No authorized students found. Ask the Head to add students or approve teacher assignments.</p>')+'</div></article>';
   }
   function metrics(rows){
     const positive=rows.filter(x=>x.recordType==='Positive Note').length,open=rows.filter(x=>x.status!=='Resolved').length,high=rows.filter(x=>x.severity==='High'&&x.status!=='Resolved').length,shared=rows.filter(x=>x.familyVisible).length;
@@ -95,7 +95,8 @@
   }
   async function save(){
     const studentId=$('bhStudent')?.value,title=$('bhTitle')?.value.trim(),recordDate=$('bhDate')?.value;if(!studentId||!title||!recordDate)return alert('Student, title aur date required hain.');
-    const s=students().find(x=>String(x.id)===String(studentId));if(!s)return;
+    if(!isStaff()||!window.EDUNIZAM_STUDENT_PICKER?.has(visibleStudents(),studentId))return alert('Student is not accessible for your school role. Refresh linked students.');
+    const s=visibleStudents().find(x=>String(x.id)===String(studentId));if(!s)return;
     let item={id:String(Date.now()),studentId:String(s.id),studentName:s.name,className:s.className||'',sectionName:s.sectionName||'',recordType:$('bhType')?.value||'Concern',severity:$('bhSeverity')?.value||'Low',recordDate,title,details:$('bhDetails')?.value.trim()||'',actionTaken:$('bhAction')?.value.trim()||'',familyVisible:!!$('bhFamilyVisible')?.checked,status:'Open',acknowledgedAt:'',acknowledgedBy:'',createdBy:cloud()?.state?.user?.id||'',createdAt:new Date().toISOString()};
     try{if(cloudReady()){await createCloud(item);await pullCloud();render();return}}catch(e){return alert('Cloud behavior record failed: '+(e.message||e))}
     const rows=read();rows.unshift(item);write(rows);render();
