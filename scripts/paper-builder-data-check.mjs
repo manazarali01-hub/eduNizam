@@ -11,7 +11,7 @@ const files=[
  'practice-complete-data.js','practice-session-core.js'
 ];
 const window={},document={readyState:'loading',addEventListener(){}};
-const context={window,document,console,TextEncoder,localStorage:{getItem:()=>null}};
+const context={window,document,console,TextEncoder,setTimeout,clearTimeout,AbortController,localStorage:{getItem:()=>null}};
 for(const file of files)runInNewContext(read(file),context,{filename:file,timeout:7000});
 runInNewContext(read('paper-syllabus-audit.js'),context,{filename:'paper-syllabus-audit.js',timeout:7000});
 runInNewContext(read('teacher-question-import.js'),context,{filename:'teacher-question-import.js',timeout:7000});
