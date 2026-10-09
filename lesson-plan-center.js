@@ -56,6 +56,27 @@
   function syllabusOptionData(cls,subject){
     return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.chapters(cls,subject,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},savedUnits())||{saved:[],concepts:[]};
   }
+  const textNorm=x=>String(x||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();
+  function recordedSchoolTopic(cls,section,subject,topic){
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    return savedUnits().some(unit=>api?.sameClass?.(unit.className,cls)&&
+      api?.subjectKey?.(unit.subject)===api?.subjectKey?.(subject)&&
+      textNorm(unit.unitTitle)===textNorm(topic)&&
+      (!unit.sectionName||textNorm(unit.sectionName)===textNorm(section)));
+  }
+  function unitBookValidation(data){
+    if(!data.textbookTitle||!data.curriculumBoard)
+      return 'Enter the actual prescribed textbook title and curriculum board before registering this school unit.';
+    if(data.editionYear!==''&&(!/^\d{4}$/.test(String(data.editionYear))||Number(data.editionYear)<1900||Number(data.editionYear)>2100))
+      return 'Edition year must be 1900–2100, or blank.';
+    if(data.sourceUrl&&!/^https:\/\/[^\s]+$/i.test(data.sourceUrl))
+      return 'Source URL must be a valid https:// link, or blank for a physical textbook.';
+    if(!Number.isInteger(data.completion)||data.completion<0||data.completion>100)
+      return 'Completion must be a whole number between 0 and 100.';
+    if(data.status==='Completed'&&data.completion!==100)
+      return 'Completed status requires 100% completion.';
+    return '';
+  }
   function sectionList(prefix){
     const cls=$('lp'+prefix+'Class')?.value||'';
     const sections=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.sections(cls,registeredClasses())||[];
@@ -217,25 +238,43 @@
     const id=$('lpPlanEditId')?.value||'',className=$('lpPlanClass')?.value,subject=$('lpPlanSubject')?.value.trim(),topic=$('lpTopic')?.value.trim(),weekStart=$('lpWeekStart')?.value;
     if(!className||!subject||!topic||!weekStart)return alert('Class, subject, topic aur week start required hain.');
     if(!classOptions().includes(className)||!window.EDUNIZAM_ACADEMIC_FORM_OPTIONS.sectionMatches(className,$('lpPlanSection')?.value,registeredClasses()))return alert('Choose an accessible registered class / section. Configure it in Academic Groups first.');
+    if(cloudReady()&&cloudLessonScope!==currentSchoolScope())return alert('Current school lesson data not loaded. Refresh this section.');
+    if(($('lpPlanStatus')?.value||'Draft')!=='Draft'&&!recordedSchoolTopic(className,$('lpPlanSection')?.value||'',subject,topic))
+      return alert('To publish/complete, select a school-recorded chapter for this class/section/subject. Unverified topics can be saved as Draft only.');
     const rows=read(PLAN_KEY),old=rows.find(x=>String(x.id)===String(id));
     lessonPlanSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
+    const saveScope=currentSchoolScope();
     try{
       let item={id:id||String(Date.now()),className,sectionName:$('lpPlanSection')?.value.trim()||'',subject,weekStart,topic,objectives:$('lpObjectives')?.value.trim()||'',activities:$('lpActivities')?.value.trim()||'',homeworkNote:$('lpHomework')?.value.trim()||'',status:$('lpPlanStatus')?.value||'Draft',createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
       try{if(cloudReady())item=await savePlanCloud(item)}catch(e){return alert('Cloud lesson-plan save failed: '+(e.message||e))}
+      if(cloudReady()&&currentSchoolScope()!==saveScope)return;
       write(PLAN_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
     }finally{lessonPlanSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function saveUnit(){
     const btn=$('lpSaveUnit');if(syllabusUnitSaveInFlight||btn?.disabled)return;
-    const id=$('lpUnitEditId')?.value||'',className=$('lpUnitClass')?.value,subject=$('lpUnitSubject')?.value.trim(),unitTitle=$('lpUnitTitle')?.value.trim(),completion=Math.max(0,Math.min(100,Number($('lpCompletion')?.value||0)));
+    const id=$('lpUnitEditId')?.value||'',className=$('lpUnitClass')?.value,subject=$('lpUnitSubject')?.value.trim(),unitTitle=$('lpUnitTitle')?.value.trim(),
+      completion=Number(String($('lpCompletion')?.value??'0').trim()),textbookTitle=$('lpTextbookTitle')?.value?.trim()||'',
+      curriculumBoard=$('lpCurriculumBoard')?.value||'',editionYear=String($('lpEditionYear')?.value||'').trim(),sourceUrl=$('lpSourceUrl')?.value?.trim()||'';
     if(!className||!subject||!unitTitle)return alert('Class, subject aur unit title required hain.');
     if(!classOptions().includes(className)||!window.EDUNIZAM_ACADEMIC_FORM_OPTIONS.sectionMatches(className,$('lpUnitSection')?.value,registeredClasses()))return alert('Choose an accessible registered class / section. Configure it in Academic Groups first.');
-    let status=$('lpUnitStatus')?.value||'Planned';if(completion>=100)status='Completed';else if(completion>0&&status==='Planned')status='In Progress';
-    const rows=read(UNIT_KEY),old=rows.find(x=>String(x.id)===String(id));
+    if(cloudReady()&&cloudLessonScope!==currentSchoolScope())return alert('Current school syllabus has not loaded. Refresh this section.');
+    let status=$('lpUnitStatus')?.value||'Planned';
+    if(completion===100)status='Completed';else if(completion>0&&status==='Planned')status='In Progress';
+    const message=unitBookValidation({textbookTitle,curriculumBoard,editionYear,sourceUrl,completion,status});
+    if(message)return alert(message);
+    const rows=savedUnits(),old=rows.find(x=>String(x.id)===String(id));
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    if(rows.some(x=>String(x.id)!==String(id)&&api?.sameClass?.(x.className,className)&&
+        textNorm(x.sectionName)===textNorm($('lpUnitSection')?.value||'')&&api?.subjectKey?.(x.subject)===api?.subjectKey?.(subject)&&
+        textNorm(x.unitTitle)===textNorm(unitTitle)))
+      return alert('This class/section/subject already has this chapter. Edit the existing unit instead of duplicating it.');
     syllabusUnitSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
+    const saveScope=currentSchoolScope();
     try{
-      let item={id:id||String(Date.now()),className,sectionName:$('lpUnitSection')?.value.trim()||'',subject,unitTitle,targetEnd:$('lpTargetEnd')?.value||'',completion,status,familyVisible:!!$('lpFamilyVisible')?.checked,createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
+      let item={id:id||String(Date.now()),className,sectionName:$('lpUnitSection')?.value.trim()||'',subject,unitTitle,textbookTitle,curriculumBoard,editionYear,sourceUrl,targetEnd:$('lpTargetEnd')?.value||'',completion,status,familyVisible:!!$('lpFamilyVisible')?.checked,createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
       try{if(cloudReady())item=await saveUnitCloud(item)}catch(e){return alert('Cloud syllabus progress save failed: '+(e.message||e))}
+      if(cloudReady()&&currentSchoolScope()!==saveScope)return;
       write(UNIT_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
     }finally{syllabusUnitSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
@@ -285,7 +324,10 @@
   }
   async function render(){
     const root=$('lessonCenterApp');if(!root)return;
-    if(cloudReady()&&!root.dataset.cloudLoaded){root.dataset.cloudLoaded='1';try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Lesson/syllabus cloud sync:',e.message)}}
+    if(cloudReady()&&(!root.dataset.cloudLoaded||root.dataset.cloudScope!==currentSchoolScope())){
+      root.dataset.cloudLoaded='1';root.dataset.cloudScope=currentSchoolScope();
+      try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Lesson/syllabus cloud sync:',e.message)}
+    }
     const scoped=cloudReady()&&cloudLessonScope!==currentSchoolScope();
     const plans=visiblePlans(scoped?[]:read(PLAN_KEY)).sort((a,b)=>String(b.weekStart).localeCompare(String(a.weekStart)));
     const units=visibleUnits(scoped?[]:read(UNIT_KEY)).sort((a,b)=>String(a.subject).localeCompare(String(b.subject))||String(a.unitTitle).localeCompare(String(b.unitTitle)));
@@ -297,5 +339,5 @@
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('lessonCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_LESSON_CENTER={render,pullCloud,cloudReady,registeredClasses,classOptions};
+  window.EDUNIZAM_LESSON_CENTER={render,pullCloud,cloudReady,registeredClasses,classOptions,savedUnits,recordedSchoolTopic,unitBookValidation,savePlan,saveUnit};
 })();
