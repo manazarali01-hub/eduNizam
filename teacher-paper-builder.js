@@ -319,12 +319,20 @@ function build(subject,topics,total,diff,mode,cls='',options={}){
  });
  return {subject,topics,totalMarks:total,difficulty:diff,distribution:mode,className:cls,teacherOnly,sections,answers,sourceStats:{teacherBank:customUsed,practiceBank:bankUsed,templateFallback:templateUsed,total:customUsed+bankUsed+templateUsed}};
 }
-function header(p,row){const st=settings(),logo=st.schoolLogo?'<img src="'+esc(st.schoolLogo)+'" class="pb-print-logo" alt="">':'';return '<div class="pb-paper-head">'+logo+'<div><h1>'+esc(st.schoolName||'EduNizam Institute')+'</h1><p>'+esc(st.schoolType||'Educational Institute')+(st.session?' · '+esc(st.session):'')+'</p></div></div><div class="pb-meta"><span><b>Paper:</b> '+esc(row?.title||$('#pbTitle')?.value||p.subject+' Paper')+'</span><span><b>Class:</b> '+esc(row?.class_name||$('#pbClass')?.value||'')+'</span><span><b>Subject:</b> '+esc(p.subject)+'</span><span><b>Marks:</b> '+p.totalMarks+'</span><span><b>Difficulty:</b> '+esc(p.difficulty)+'</span></div><div class="pb-student-line">Name: ____________________ &nbsp; Roll No: __________ &nbsp; Date: __________</div>'}
+function header(p,row){const st=settings(),logo=st.schoolLogo?'<img src="'+esc(st.schoolLogo)+'" class="pb-print-logo" alt="">':'';return (p.curriculumMode==='school-recorded'?'':'<p class="coverage-note"><strong>CONCEPT PRACTICE DRAFT — NOT A VERIFIED SCHOOL EXAM</strong></p>')+'<div class="pb-paper-head">'+logo+'<div><h1>'+esc(st.schoolName||'EduNizam Institute')+'</h1><p>'+esc(st.schoolType||'Educational Institute')+(st.session?' · '+esc(st.session):'')+'</p></div></div><div class="pb-meta"><span><b>Paper:</b> '+esc(row?.title||$('#pbTitle')?.value||p.subject+' Paper')+'</span><span><b>Class:</b> '+esc(row?.class_name||$('#pbClass')?.value||'')+'</span><span><b>Subject:</b> '+esc(p.subject)+'</span><span><b>Marks:</b> '+p.totalMarks+'</span><span><b>Difficulty:</b> '+esc(p.difficulty)+'</span></div><div class="pb-student-line">Name: ____________________ &nbsp; Roll No: __________ &nbsp; Date: __________</div>'}
 function paperHtml(p,row,editable=false){return '<div class="pb-print-sheet">'+header(p,row)+p.sections.map((s,si)=>'<section class="pb-section"><h3>'+esc(s.title)+' <span>'+s.marks+' Marks</span></h3>'+s.questions.map((q,qi)=>'<div class="pb-question"><b>Q'+q.no+'.</b> '+(Number(q.marks)>0?'<small>('+Number(q.marks)+' mark'+(Number(q.marks)===1?'':'s')+')</small> ':'')+(editable?'<textarea data-q="'+si+':'+qi+'">'+esc(q.text)+'</textarea>':esc(q.text))+'</div>').join('')+'</section>').join('')+'</div>'}
 function keyHtml(p){return '<div class="pb-answer-key"><h2>Teacher Answer Key / Marking Guide</h2>'+p.answers.map(a=>'<p><b>Q'+a.no+'.</b> '+esc(a.answer)+'</p>').join('')+'</div>'}
 function syncEdits(){if(!current)return;all('[data-q]').forEach(x=>{const [s,q]=x.dataset.q.split(':').map(Number);current.sections[s].questions[q].text=x.value})}
 function applyPreset(v){const p={quiz:[20,'Easy','Objective Heavy'],monthly:[50,'Balanced','Balanced'],term:[100,'Balanced','Subjective Heavy']}[v];if(!p)return;$('#pbMarks').value=p[0];$('#pbDifficulty').value=p[1];$('#pbDistribution').value=p[2]}
-async function clonePaper(row){$('#pbTitle').value=(row.title||row.subject+' Paper')+' — Copy';$('#pbClass').value=row.class_name;$('#pbSubject').value=row.subject;$('#pbChapters').value=(row.chapters||[]).join(', ');$('#pbMarks').value=row.total_marks;$('#pbDifficulty').value=row.difficulty||'Balanced';current=JSON.parse(JSON.stringify(row.paper_json||{}));currentRow=null;showEditor();window.scrollTo({top:0,behavior:'smooth'})}
+async function clonePaper(row){
+ $('#pbTitle').value=(row.title||row.subject+' Paper')+' — Copy';
+ $('#pbClass').value=row.class_name;refreshPaperCatalog();
+ $('#pbSubject').value=normalizedSubject(row.subject);refreshPaperCatalog();
+ $('#pbChapters').value=(row.chapters||[]).join(', ');renderSelectedChapters();
+ $('#pbMarks').value=row.total_marks;$('#pbDifficulty').value=row.difficulty||'Balanced';
+ current=JSON.parse(JSON.stringify(row.paper_json||{}));currentRow=null;showEditor();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
 async function savePaper(){
  if(!ready())return alert('Cloud login required.');
  const subject=$('#pbSubject')?.value?.trim()||'',cls=$('#pbClass')?.value?.trim()||'',
@@ -398,10 +406,15 @@ function showEditor(){
  const ss=current.sourceStats||{},uid=String(cloud()?.state?.user?.id||''),ownRow=!!currentRow&&String(currentRow.creator_user_id||'')===uid;
  const syllabusNote='<div class="coverage-note"><strong>Curriculum status:</strong> '+(current.curriculumMode==='school-recorded'?'School-recorded chapter names — textbook edition and answer keys NOT verified.':'Unverified concept-only or legacy draft. Check textbook alignment before using in a school examination.')+'</div>';
   const sourceNote=ss.total?'<div class="coverage-note"><strong>Question source:</strong> '+(ss.teacherBank||0)+' teacher-bank · '+(ss.practiceBank||0)+' EduNizam curriculum-bank · '+(ss.templateFallback||0)+' template fallback. Teacher verification remains required.</div>':'';
- const saveAction=currentRow?(ownRow?'<button id="pbSaveEdits">Save Changes</button>':''):'<button id="pbSaveAsNew">Save as New</button>';
+ const saveGate=!currentRow?schoolPaperReadiness(current.className,current.subject,current.topics||[],{conceptDraft:current.curriculumMode==='concept-only-draft'}):null;
+ const saveAllowed=!!saveGate?.allowed;
+ const saveAction=currentRow?(ownRow?'<button id="pbSaveEdits">Save Changes</button>':''):
+  (saveAllowed?'<button id="pbSaveAsNew">Save to School (Draft)</button>':
+   '<span class="coverage-note">Preview/print only. School saving requires an active registered class, prescribed syllabus and verified cloud login.</span><button type="button" class="secondary" id="pbSetupClasses">Set Up Classes</button>');
  const readOnly=currentRow&&!ownRow?'<div class="coverage-note"><strong>Admin review:</strong> This paper is shared by its creator. You can review, print, view the answer key or clone it; the original remains read-only.</div>':'';
  el.innerHTML='<div class="section-head no-print"><div><h3>Paper Preview & Editor</h3><p class="muted">'+(currentRow&&!ownRow?'Shared paper review mode.':'Question text edit karein, then save or print.')+'</p></div><div class="paper-actions">'+saveAction+'<button id="pbPrint" class="secondary">Print A4</button><button id="pbKey" class="secondary">Answer Key</button></div></div>'+readOnly+syllabusNote+sourceNote+paperHtml(current,currentRow,!(currentRow&&!ownRow))+'<div id="pbKeyWrap" class="hidden">'+keyHtml(current)+'</div>';
  if($('#pbSaveEdits'))$('#pbSaveEdits').onclick=updatePaper;if($('#pbSaveAsNew'))$('#pbSaveAsNew').onclick=saveCurrentAsNew;
+ if($('#pbSetupClasses'))$('#pbSetupClasses').onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('classcenter');
  $('#pbPrint').onclick=()=>{syncEdits();el.innerHTML='<div class="no-print"><button id="pbBack">← Back to editor</button></div>'+paperHtml(current,currentRow,false);$('#pbBack').onclick=showEditor;window.print()};
  $('#pbKey').onclick=()=>$('#pbKeyWrap').classList.toggle('hidden');
 }
@@ -462,7 +475,7 @@ function refreshPaperCatalog(){
   if(classList)classList.innerHTML=allClasses.map(x=>'<option value="'+esc(x)+'"></option>').join('');
   if(classSelect){
    const previous=classSelect.value;
-   classSelect.innerHTML='<option value="">Select Class / Grade</option>'+allClasses.map(x=>'<option value="'+esc(x)+'">'+esc(/^(?:(?:class|grade)\\s*)?\\d+$/i.test(x)?'Class '+classLevelFrom(x):x)+'</option>').join('');
+   classSelect.innerHTML='<option value="">Select Class / Grade</option>'+allClasses.map(x=>'<option value="'+esc(x)+'">'+esc(/^(?:(?:class|grade)\s*)?\d+$/i.test(x)?'Class '+classLevelFrom(x):x)+'</option>').join('');
    classSelect.value=allClasses.includes(previous)?previous:(allClasses.includes(String(classLevelFrom(previous)))?String(classLevelFrom(previous)):'');
   }
   const subjectSelect=$('#pbSubject'),previousSubject=String(subjectSelect?.value||''),baseSubjects=D.subjects?.[lv]||[];
