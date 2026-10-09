@@ -97,4 +97,11 @@ cloud.state.user.id='head-two';
 ok(api.editorClassOptions().length===0,'Previous user's class options survived account switch');
 await api.loadClassDirectory();
 ok(api.editorClassOptions().join('|')==='8','Fresh user could not reload current school classes');
-console.log('EduNizam Exam Center PASS: scoped report cards, UUIDs, authorized head class directory, real sections, school/user isolation.');
+const scheduleSource=src;
+for(const safeguard of [
+ 'loadedScheduleScope!==currentDirectoryScope()',
+ 'root.dataset.cloudScope!==scope',
+ 'Promise.all([pullCloud(),classJob])',
+ 'schedule=[]'
+])ok(scheduleSource.includes(safeguard),'Exam schedule cache/scope safeguard missing: '+safeguard);
+console.log('EduNizam Exam Center PASS: scoped report cards, UUIDs, authorized class directory, school/user isolation and stale schedule guards.');
