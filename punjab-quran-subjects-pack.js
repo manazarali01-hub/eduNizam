@@ -116,6 +116,7 @@ if(Array.isArray(materials)){
   ids.add(id);
  }
 }
+}
 S.applyToStudy=applyToStudy;
 applyToStudy();
 })();
