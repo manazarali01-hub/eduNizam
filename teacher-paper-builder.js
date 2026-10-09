@@ -379,6 +379,36 @@ function refreshPaperCatalog(){
   for(const x of ranked.slice(0,4)){const u=x.fileUrl||x.url;if(urlAllowed(u))links.push('<a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+esc(x.title)+'</a>')}
   holder.innerHTML='<strong>Official syllabus / textbook sources (verify applicable board and current book):</strong> '+(links.length?links.join(' · '):'No official source mapped')+'<br>Check the latest edition, board scheme and actually taught chapters before publishing. Topic names in EduNizam are study references, not a certified copy of an entire textbook.';
 }
+/* Recommend only question-covered chapters. If this school has saved syllabus
+ * units, never silently substitute reference chapters outside those units.
+ * Structural draft readiness is NOT current-textbook certification. */
+function recommendPaperChapters(cls,subject,total,difficulty='Balanced',distribution='Balanced',options={}){
+ const school=schoolChapters(cls,subject);
+ const source=school.length?'school':'reference';
+ const candidates=(school.length?school:chapterChoices(cls,subject))
+  .filter((name,i,list)=>list.indexOf(name)===i).slice(0,60);
+ const audit=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
+ if(!cls||!subject||!audit||!Number.isInteger(total)||total<10||total>200)
+  return{ready:false,topics:[],source,eligible:0,reason:'Choose class, subject, and a whole-number paper total between 10 and 200.'};
+ const optionsForAudit={className:cls,subject,teacherQuestions:customQuestions,practiceQuestions:window.EDUNIZAM_PRACTICE_DATA?.questions||[],difficulty,teacherOnly:!!options.teacherOnly};
+ const supported=candidates.filter(chapter=>{
+  const row=audit.audit({...optionsForAudit,chapters:[chapter]}).chapters[0];
+  return !!row&&['mcq','short','long'].every(t=>row.types[t].total>0);
+ });
+ if(!supported.length)return{ready:false,topics:[],source,eligible:0,
+  reason:school.length?'No saved school syllabus unit has usable MCQ, short AND long answers for this class and subject. Import reviewed questions for these chapters.':
+  'No reference chapter has all three question types for this class and subject. Add reviewed questions.'};
+ const picked=[];let lastError='';
+ for(const chapter of supported){
+  picked.push(chapter);
+  try{
+   const draft=build(subject,picked,total,difficulty,distribution,cls,{teacherOnly:!!options.teacherOnly});
+   if(draft?.sourceStats?.templateFallback===0)return{ready:true,topics:picked,source,eligible:supported.length,reason:''};
+  }catch(error){lastError=String(error?.message||error)}
+ }
+ return{ready:false,topics:[],source,eligible:supported.length,
+  reason:'Existing indexed questions do not have enough unique items for this marks distribution. '+(lastError||'Reduce marks, add chapters, or import verified questions.')};
+}
 function updateBankInsight(){
  const el=$('#pbBankInsight');if(!el)return;
  const cls=$('#pbClass')?.value||'',subject=$('#pbSubject')?.value||'',
@@ -413,6 +443,22 @@ async function render(){
   $('#pbOpenLessonSetup').onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('lessoncenter');
   renderSchoolStatus();
  }
+ const insight=$('#pbBankInsight');
+ if(insight){
+  insight.insertAdjacentHTML('beforebegin','<div class="coverage-note"><strong>Find questions for a draft paper</strong><p>Find chapters with enough genuine indexed MCQ, short and long questions. Saved school syllabus units take priority; concept topics are NOT a certified textbook syllabus.</p><div class="paper-actions"><button type="button" class="secondary" id="pbFindReady">Find Ready Chapters</button><button type="button" class="secondary" id="pbOpenQuestionManager">Add / Import Reviewed Questions</button></div><p role="status" id="pbCoverageHint" aria-live="polite">This only suggests chapters. You must verify the current textbooks and answer keys before printing.</p></div>');
+  $('#pbFindReady').onclick=()=>{
+   const result=recommendPaperChapters($('#pbClass')?.value||'',$('#pbSubject')?.value||'',Number($('#pbMarks')?.value),$('#pbDifficulty')?.value||'Balanced',$('#pbDistribution')?.value||'Balanced',{teacherOnly:!!$('#pbTeacherOnly')?.checked});
+   const status=$('#pbCoverageHint');
+   if(!result.ready){
+    if(status)status.textContent='Cannot recommend a paper yet: '+result.reason;
+    return;
+   }
+   $('#pbChapters').value=result.topics.join(', ');
+   if(status)status.textContent=result.topics.length+' '+(result.source==='school'?'school-recorded syllabus unit(s)':'concept-topic suggestion(s)')+' structurally support the selected paper marks. Question coverage checked; textbook / chapter alignment and answer correctness still require teacher verification.';
+   updateBankInsight();
+  };
+  $('#pbOpenQuestionManager').onclick=()=>$('#questionBankManager')?.scrollIntoView?.({behavior:'smooth',block:'start'});
+ }
  $('#pbGenerate').onclick=savePaper;all('[data-preset]').forEach(b=>b.onclick=()=>{applyPreset(b.dataset.preset);updateBankInsight()});
   ['#pbClass','#pbSubject'].forEach(s=>$(s)?.addEventListener('input',()=>{refreshPaperCatalog();updateBankInsight()}));
   $('#pbChapters')?.addEventListener('input',updateBankInsight);
@@ -429,5 +475,5 @@ async function render(){
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,chapterChoices,schoolChapters,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,chapterChoices,schoolChapters,recommendPaperChapters,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
