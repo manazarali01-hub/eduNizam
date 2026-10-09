@@ -84,7 +84,8 @@
    suggested.innerHTML=!counts?'<p class="muted">Run Check School Data to identify the next real setup steps. Reference topics alone do not prove textbook readiness.</p>':
      actions.length?'<h4>Next setup actions (in dependency order)</h4><ol>'+actions.slice(0,9).map(a=>{
       const item=spec.find(x=>x.key===a.key);
-      return '<li><strong>'+esc(item?.name||a.key)+'</strong>: '+esc(a.text)+'</li>';
+      return '<li><strong>'+esc(item?.name||a.key)+'</strong>: '+esc(a.text)+
+       (item?.view?'<button type="button" class="secondary" data-readiness-action="'+esc(item.view)+'" style="margin:4px 8px">Open '+esc(item.name)+'</button>':'')+'</li>';
      }).join('')+'</ol><p class="muted">These are record-availability suggestions, not an academic completion percentage.</p>':
      '<p class="coverage-note">All checked categories have accessible records. Content quality and prescribed textbook alignment still require review; this is not 100% verified.</p>';
   }
@@ -105,6 +106,12 @@
    const button=document.getElementById('readinessUnitQualityFix');
    if(button)button.onclick=()=>{if(window.EDUNIZAM_ROLE_SCOPE?.canView?.('lessoncenter'))window.EDUNIZAM_APP_NAV?.setView?.('lessoncenter')};
   }
+  suggested?.querySelectorAll('[data-readiness-action]').forEach(button=>{
+   button.onclick=()=>{
+    const view=button.dataset.readinessAction;
+    if(view&&window.EDUNIZAM_ROLE_SCOPE?.canView?.(view))window.EDUNIZAM_APP_NAV?.setView?.(view);
+   };
+  });
   const card=x=>{
    const state=counts?.[x.key],value=countWord(state);
    const status=state?.status==='unknown'?'Check access/connection':
