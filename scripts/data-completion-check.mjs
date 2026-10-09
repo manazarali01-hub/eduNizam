@@ -125,7 +125,7 @@ for(const [grade,subject,topics] of qp?.rows||[]){
  requireOK(subjects[String(grade)]?.includes(subject),'Grade '+grade+' missing '+subject);
  requireOK(lightweight.subjects?.[String(grade)]?.includes(subject),'Lesson catalog missing Quran subject for Grade '+grade);
  requireOK(topics.length===3,'Expected three original concepts per Grade '+grade);
- requireOK(books.some(b=>b.id==='pectaa-quran-textbook-directory-'+grade&&b.url===qp.sourceUrl&&b.source==='official'&&b.curriculumStatus==='needs-verification'),'PECTAA textbook directory missing for Grade '+grade);
+ requireOK(books.some(b=>b.id==='pectaa-quran-textbook-directory-'+grade&&b.url===qp.bookUrls[grade]&&b.directoryUrl===qp.sourceUrl&&b.source==='official'&&b.curriculumStatus==='needs-verification'),'PECTAA textbook directory missing for Grade '+grade);
  const authored=bank.filter(x=>x.classLevel===grade&&x.subject===subject&&String(x.id).startsWith('pq-'));
  requireOK(authored.length===9,'Grade '+grade+' missing nine original MCQ and written practice items');
 }
