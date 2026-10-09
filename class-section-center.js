@@ -91,7 +91,7 @@
   }
   async function assignCloud(studentLocalId,className,sectionName){
     if(!cloudReady())throw new Error('Verified school connection required to assign students.');
-    const s=students().find(x=>String(x.id)===String(studentLocalId));if(!s)return;
+    const s=students().find(x=>String(x.id)===String(studentLocalId));if(!s)throw new Error('Selected student is not in the loaded school student directory.');
     const inst=cfg().institutionId,lookup=s.studentId?('code:'+s.studentId):('local:'+Number(s.id));
     return runCloud('class-section-assign:'+inst+':'+lookup,'Assign student section',async({signal}={})=>{
       let q=cloud().state.client.from('core_students').update({class_name:className,section_name:sectionName,updated_at:new Date().toISOString()}).eq('institution_id',inst);
