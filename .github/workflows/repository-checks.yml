@@ -76,5 +76,8 @@ jobs:
       - name: Verify school data readiness audit and grade catalog
         run: node scripts/school-data-readiness-check.mjs
 
+      - name: Verify production Timetable schema and form column contract
+        run: node scripts/timetable-production-schema-check.mjs
+
       - name: Verify cloud-first student staff and class bulk imports
         run: node scripts/bulk-import-cloud-check.mjs
