@@ -52,6 +52,16 @@ function syncSection(){
   const opt=sel.selectedOptions[0];
   sec.value=opt?.dataset?.section||'';
 }
+function syncDiaryCatalog(){
+  const cls=$('#diaryClass')?.value||'',subject=$('#diarySubject')?.value||'';
+  const m=String(cls).match(/\\b(1[0-2]|[1-9])\\b/),grade=m?String(Number(m[1])):'';
+  const D=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{};
+  const subjects=D.subjects?.[grade]||[];
+  const defaults=['Mathematics','English','Urdu','General Science','Islamiat / Ethics','Nazra Quran','Social Studies'];
+  const subjectList=$('#diarySubjects'),topicList=$('#diaryTopics');
+  if(subjectList)subjectList.innerHTML=[...new Set(subjects.length?subjects:defaults)].map(x=>'<option value="'+esc(x)+'"></option>').join('');
+  if(topicList)topicList.innerHTML=(D.chapters?.[grade+'|'+subject]||[]).map(x=>'<option value="'+esc(x)+'"></option>').join('');
+}
 function formValues(){
   return{
     cls:$('#diaryClass')?.value||'',
@@ -222,14 +232,14 @@ async function render(){
   if(role()==='teacher'){
     try{teacherClasses=await myClasses()}catch(e){teacherClasses=[]}
     form='<article class="card"><div class="section-head"><div><h3>✍ Daily Class Diary</h3><p class="muted">Assigned class ke liye topic, homework aur instructions. Entries can be edited later.</p></div><span class="academic-pill">Teacher</span></div>'+
-      '<div class="form-grid"><input id="diaryDate" type="date" value="'+dateStr()+'"><select id="diaryClass"><option value="">Select assigned class</option>'+teacherClasses.map(x=>'<option value="'+esc(x.class_name)+'" data-section="'+esc(x.section_name||'')+'">'+esc(x.class_name)+(x.section_name?' · '+esc(x.section_name):'')+'</option>').join('')+'</select><input id="diarySection" placeholder="Section" readonly><input id="diarySubject" placeholder="Subject"><input id="diaryTopic" placeholder="Today topic / class work"><textarea id="diaryHomework" placeholder="Homework"></textarea><textarea id="diaryInstructions" placeholder="Instructions / reminder"></textarea><button id="saveDiary">Save Today Diary</button><button id="reuseDiary" type="button" class="secondary">Reuse Previous Diary</button><button id="cancelDiaryEdit" type="button" class="secondary hidden">Cancel Edit</button></div></article>';
+      '<div class="form-grid"><input id="diaryDate" type="date" value="'+dateStr()+'"><select id="diaryClass"><option value="">Select assigned class</option>'+teacherClasses.map(x=>'<option value="'+esc(x.class_name)+'" data-section="'+esc(x.section_name||'')+'">'+esc(x.class_name)+(x.section_name?' · '+esc(x.section_name):'')+'</option>').join('')+'</select><input id="diarySection" placeholder="Section" readonly><input id="diarySubject" list="diarySubjects" placeholder="Subject (choose or type)"><datalist id="diarySubjects"></datalist><input id="diaryTopic" list="diaryTopics" placeholder="Today topic / class work"><datalist id="diaryTopics"></datalist><textarea id="diaryHomework" placeholder="Homework"></textarea><textarea id="diaryInstructions" placeholder="Instructions / reminder"></textarea>'+(teacherClasses.length?'':'<p class="coverage-note" style="grid-column:1/-1">No assigned class available. Ask the Head to assign a class/section before creating diary entries.</p>')+'<button id="saveDiary">Save Today Diary</button><button id="reuseDiary" type="button" class="secondary">Reuse Previous Diary</button><button id="cancelDiaryEdit" type="button" class="secondary hidden">Cancel Edit</button></div></article>';
   }
   const scopeNote=['student','parent'].includes(role())?'Only diary entries for your linked student class/section are shown. Mark each current diary version as Seen after reading.':'Institution diary with filters, plus student/parent Seen acknowledgement counts.';
   root.innerHTML=form+
     '<div class="section-head" style="margin-top:16px"><div><h3>Daily Diary History</h3><p class="muted">'+esc(scopeNote)+'</p></div><span class="badge" id="diaryCount">0 entries</span></div>'+
     '<div class="form-grid"><input id="diaryFilterDate" type="date" value="'+dateStr()+'"><select id="diaryRange"><option value="day">Selected Day</option><option value="week">Last 7 Days</option><option value="month">Last 30 Days</option></select><input id="diaryViewClass" placeholder="Filter class (optional)"><input id="diaryViewSubject" placeholder="Filter subject"><input id="diarySearch" type="search" placeholder="Search topic, homework or instruction"></div><div id="diaryList" class="paper-grid" style="margin-top:14px"></div>';
   if($('#saveDiary')){
-    $('#saveDiary').onclick=save;$('#diaryClass').onchange=syncSection;syncSection();
+    $('#saveDiary').onclick=save;$('#diaryClass').onchange=()=>{syncSection();syncDiaryCatalog()};$('#diarySubject')?.addEventListener('input',syncDiaryCatalog);syncSection();syncDiaryCatalog();
     $('#reuseDiary').onclick=reuseLast;$('#cancelDiaryEdit').onclick=clearForm;
   }
   ['#diaryFilterDate','#diaryRange','#diaryViewClass','#diaryViewSubject'].forEach(s=>$(s)?.addEventListener('change',load));
