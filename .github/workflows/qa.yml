@@ -30,6 +30,9 @@ jobs:
       - name: Validate paper-builder marks and dynamic school data
         run: node scripts/paper-builder-data-check.mjs
 
+      - name: Verify school data readiness audit and grade catalog
+        run: node scripts/school-data-readiness-check.mjs
+
   browser-layout:
     runs-on: ubuntu-latest
     needs: static-qa
