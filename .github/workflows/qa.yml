@@ -30,6 +30,9 @@ jobs:
       - name: Validate paper-builder marks and dynamic school data
         run: node scripts/paper-builder-data-check.mjs
 
+      - name: Reproduce Class 5 Science dropdowns, marks, pattern, and concept-only preview
+        run: node scripts/paper-builder-class5-form-check.mjs
+
       - name: Verify Paper Builder exact school syllabus save and private draft isolation
         run: node scripts/paper-school-save-gate-check.mjs
 
