@@ -56,7 +56,7 @@ ok(setup.slice(0,4).map(x=>x.key).join(',')==='classes,staff,students,units','Sc
 ok(setup.at(-1).key==='library'&&setup.at(-1).status==='unknown','Connection errors must not be treated as missing books');
 ok(app.nextSteps(Object.fromEntries(app.definitions.map(x=>[x.key,{status:'ok',count:3}]))).length===0,'A nonzero record count must not create fake missing actions');
 ok(app.scope()==='test-school|test-head','Readiness school/user cache scope not correctly separated');
-ok(source.includes('forgetOtherSchool()')&&source.includes('auditScope=scope()'),'Previous school readiness results not cleared on institution switch');
+ok(source.includes('forgetOtherSchool()')&&source.includes('auditScope=requestScope')&&source.includes('scope()!==requestScope'),'Previous school readiness results not cleared on institution switch');
 
 const nav=read('app.html'),loader=read('feature-loader.js'),scope=read('role-scope.js'),main=read('app.js');
 ok(nav.includes('id="dataReadinessApp"')&&nav.includes('data-view="datareadiness"'),'Missing readiness navigation/view');
