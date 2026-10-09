@@ -30,6 +30,9 @@ jobs:
       - name: Validate paper-builder marks and dynamic school data
         run: node scripts/paper-builder-data-check.mjs
 
+      - name: Verify Study Library subject options and official-resource filtering
+        run: node scripts/study-library-dropdown-check.mjs
+
       - name: Verify Practice Next Previous navigation and answer persistence
         run: node scripts/practice-navigation-check.mjs
 
