@@ -34,6 +34,9 @@ jobs:
       - name: Verify Practice Next Previous navigation and answer persistence
         run: node scripts/practice-navigation-check.mjs
 
+      - name: Verify institution dependent class student and staff dropdown options
+        run: node scripts/school-dependent-dropdown-check.mjs
+
       - name: Verify school data readiness audit and grade catalog
         run: node scripts/school-data-readiness-check.mjs
 
