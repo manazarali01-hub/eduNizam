@@ -204,6 +204,17 @@ try{
     else route.abort();
   });
   await premiumFormPage.goto('http://127.0.0.1:'+port+'/login.html',{waitUntil:'domcontentloaded',timeout:20000});
+  // DOMContentLoaded can precede downloading external CSS; wait for the
+  // premium stylesheet to influence computed styles before making assertions.
+  await premiumFormPage.waitForFunction(()=>{
+    const el=document.getElementById('loginSchoolName');
+    if(!el)return false;
+    const cs=getComputedStyle(el);
+    return parseFloat(cs.borderTopWidth)>=2.8&&
+      (cs.backgroundImage.match(/linear-gradient/g)||[]).length>=2&&
+      parseFloat(cs.borderTopLeftRadius)>=16;
+  },null,{timeout:15000,polling:200}).catch(()=>{});
+
   const colorfulForms=await premiumFormPage.evaluate(()=>{
     const fields=['loginSchoolName','loginEmail','loginPassword','memberSchoolDropdown'];
     const computed=fields.map(id=>{
