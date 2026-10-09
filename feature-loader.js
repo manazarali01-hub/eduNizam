@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-school-dependent-options-v16';
+  const VERSION='20261009-profile-scope-v17';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
