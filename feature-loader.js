@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-foundation-data-v2';
+  const VERSION='20261009-foundation-data-v3';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -54,6 +54,7 @@
     practice:['learningCore','practiceDeep'],
     paperbuilder:['learningCore','practiceDeep','studyDeep'],
     study:['learningCore','studyDeep'],
+    lessoncenter:['learningCore','practiceDeep','studyDeep'],
     schoolassessments:['learningCore'],
     universities:['learningCore','universityDeep'],
     competitive:['competitiveDeep'],
