@@ -13,7 +13,7 @@
   function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
   function write(v){localStorage.setItem(KEY,JSON.stringify(v))}
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
-  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
+  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]}
   function settings(){try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}}
   function visibleRows(rows){
     const ids=new Set(visibleStudents().map(s=>String(s.id)));
