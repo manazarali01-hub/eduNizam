@@ -70,16 +70,36 @@
     const msg=document.getElementById('bulkAssignmentMsg');
     if(msg)msg.textContent=matches?matches+' linked student(s) match the selected class / section.':'Select a class with approved, linked students before assignment.';
   }
+  function clearAssignmentOptions(){
+    linkedStudentsCache=[];
+    for(const [id,option] of [
+      ['assignmentTeacher','Select approved teacher'],['bulkAssignmentTeacher','Select approved teacher'],
+      ['assignmentStudent','Select linked student'],['assignmentClassFilter','All linked classes'],
+      ['assignmentSectionFilter','All linked sections'],['bulkAssignmentClass','Select class with linked students'],
+      ['bulkAssignmentSection','All sections']
+    ]){
+      const select=document.getElementById(id);
+      if(select)select.innerHTML='<option value="">'+option+'</option>';
+    }
+    for(const id of ['saveAssignmentBtn','assignWholeClassBtn']){
+      const button=document.getElementById(id);if(button)button.disabled=true;
+    }
+    const list=document.getElementById('assignmentList');
+    if(list)list.textContent='';
+    const msg=document.getElementById('assignmentStudentHelp');
+    if(msg)msg.textContent='No linked students loaded for this school.';
+  }
   async function loadAssignments(){
     const teacherSel=document.getElementById('assignmentTeacher'),
       studentSel=document.getElementById('assignmentStudent'),
       box=document.getElementById('assignmentList');
     if(!teacherSel||!studentSel||!box||role()!=='head'||!ready())return;
     const scope=String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||''),token=++assignmentLoadToken;
-    if(assignmentScope!==scope){linkedStudentsCache=[];assignmentScope=scope;}
-    const prev={teacher:teacherSel.value,student:studentSel.value,bulkTeacher:document.getElementById('bulkAssignmentTeacher')?.value,
-      bulkClass:document.getElementById('bulkAssignmentClass')?.value,
-      cls:document.getElementById('assignmentClassFilter')?.value};
+    const schoolChanged=assignmentScope!==scope;
+    if(schoolChanged){clearAssignmentOptions();assignmentScope=scope;}
+    const prev={teacher:schoolChanged?'':teacherSel.value,student:schoolChanged?'':studentSel.value,bulkTeacher:schoolChanged?'':document.getElementById('bulkAssignmentTeacher')?.value,
+      bulkClass:schoolChanged?'':document.getElementById('bulkAssignmentClass')?.value,
+      cls:schoolChanged?'':document.getElementById('assignmentClassFilter')?.value};
     box.textContent='Loading current institute teacher and student links…';
     try{
       const [teachers,students,links]=await Promise.all([cloud().listInstitutionTeachers(),cloud().listLinkedCoreStudents(),cloud().listTeacherStudentLinks()]);
@@ -111,7 +131,7 @@
       const rows=links||[];
       box.innerHTML=rows.length?rows.map(x=>'<div class="assignment-row"><span>'+esc(x.teacher_name||x.teacher_user_id)+'</span><span>'+esc(x.student_name||x.student_user_id)+'</span><button class="secondary" data-remove-assignment="'+esc(x.teacher_user_id)+'" data-student="'+esc(x.student_user_id)+'">Remove</button></div>').join(''):'<div class="muted">No existing approved teacher–student assignments.</div>';
       box.querySelectorAll('[data-remove-assignment]').forEach(b=>b.onclick=async()=>{try{await cloud().removeTeacherStudentLink(b.dataset.removeAssignment,b.dataset.student);loadAssignments()}catch(e){alert(e.message||e)}});
-    }catch(e){if(token===assignmentLoadToken){box.textContent='Could not load this school’s linked records: '+(e.message||String(e));}}
+    }catch(e){if(token===assignmentLoadToken){clearAssignmentOptions();box.textContent='Could not load this school’s linked records: '+(e.message||String(e));}}
   }
   async function assignWholeClass(){
     if(role()!=='head'||!ready())return;
@@ -180,7 +200,7 @@
   }
   function boot(){
     injectStyle();mountStudentLink();mountAssignments();injectNotifications();render();
-    window.addEventListener('edunizam:workspace-ready',()=>{linkedStudentsCache=[];assignmentScope='';assignmentLoadToken++;render()});
+    window.addEventListener('edunizam:workspace-ready',()=>{assignmentScope='';assignmentLoadToken++;clearAssignmentOptions();render()});
     window.addEventListener('edunizam:view-open',event=>{
       if(event.detail?.view==='access'&&role()==='head')loadAssignments();
     });
