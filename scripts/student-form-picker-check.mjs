@@ -43,6 +43,6 @@ const academic=read('class-section-center.js');
 ok(academic.includes('&&x.active!==false'),'Cannot allocate to inactive section');
 const loader=read('feature-loader.js');
 for(const v of ['leavecenter','studentdocs','behaviorcenter','parentcomplaints','classcenter']){
- ok(loader.includes(v+':['school-student-picker.js' ),'Missing picker script dependency for '+v);
+ ok(loader.includes(v+":['school-student-picker.js'"),'Missing picker script dependency for '+v);
 }
 console.log('EduNizam student-form picker PASS: actual class/section grouping, sorted duplicate-free options, XSS escaping, scoped save guards, inactive section and cloud certificate safeguards.');
