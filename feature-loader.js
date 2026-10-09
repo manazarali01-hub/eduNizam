@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-family-profile-guard-v18';
+  const VERSION='20261009-student-pickers-v20';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -82,8 +82,8 @@
     vu:['education-hubs.js','vu-workspace.js'],
     admissions:['admissions-data.js','admissions-selection.js','admissions-portal.js'],
     studentprofile:['student-performance.js','academic-operations-deep.js'],
-    behaviorcenter:['student-behavior.js'],
-    parentcomplaints:['parent-complaint-center.js'],
+    behaviorcenter:['school-student-picker.js','student-behavior.js'],
+    parentcomplaints:['school-student-picker.js','parent-complaint-center.js'],
     gatecenter:['gate-pass-center.js'],
     schoolwork:['school-work.js','academic-workflow-deep.js'],
     noticeboard:['notice-board-center.js'],
@@ -96,7 +96,7 @@
     inboxcenter:['messaging-center.js','academic-workflow-deep.js'],
     helpdeskcenter:['helpdesk-center.js'],
     help:['help-knowledge-center.js'],
-    leavecenter:['leave-center.js'],
+    leavecenter:['school-student-picker.js','leave-center.js'],
     examcenter:['exam-center.js','academic-operations-deep.js'],
     paperbuilder:['paper-syllabus-audit.js','teacher-question-import.js','teacher-paper-builder.js','academic-workflow-deep.js'],
     dailydiary:['daily-class-diary.js','academic-workflow-deep.js'],
@@ -105,12 +105,12 @@
     staffpayroll:['staff-payroll.js'],
     training:['teacher-training-center.js'],
     bulkimport:['bulk-import-center.js'],
-    studentdocs:['student-documents.js'],
+    studentdocs:['school-student-picker.js','student-documents.js'],
     financecenter:['finance-center.js'],
     inventorycenter:['inventory-center.js'],
     librarycenter:['library-center.js'],
     transportcenter:['transport-center.js'],
-    classcenter:['class-section-center.js'],
+    classcenter:['school-student-picker.js','class-section-center.js'],
     fees:['fee-center.js','academic-operations-deep.js'],
     results:['result-center-deep.js','promotion-center.js'],
     communication:['communication-center.js'],
