@@ -20,6 +20,7 @@ const directory={
  schoolB:[{class_name:'6',section_name:'C',active:true}]
 };
 const calls=[];
+let failLessonTables=false;
 function query(table){
  const filters={};
  const q={
@@ -32,7 +33,9 @@ function query(table){
    calls.push({table,filters:{...filters}});
    const rows=(table==='class_sections'?directory[filters.institution_id]||[]:[])
      .filter(x=>!Object.hasOwn(filters,'active')||x.active===filters.active);
-   return Promise.resolve({data:rows,error:null}).then(resolve,reject);
+   return Promise.resolve(failLessonTables&&table==='lesson_plans'
+     ?{data:null,error:{message:'Lesson table unavailable'}}
+     :{data:rows,error:null}).then(resolve,reject);
   }
  };
  return q;
@@ -67,4 +70,16 @@ cloud.state.user.id='head2';
 check(api.classOptions().length===0,'Previous user class options survived account switch');
 await api.pullCloud();
 check(api.classOptions().length===1&&api.classOptions()[0]==='6','Current user did not load fresh school class options');
-console.log('EduNizam Lesson Planner cloud class dropdown PASS: direct-open active directory, school/user isolation, inactive exclusion and no stale local fallback.');
+// Access to the lesson table can fail while the school class directory still
+// succeeds. Users must still get genuine class options and never other schools.
+directory.schoolC=[{class_name:'8',section_name:'D',active:true}];
+cfg.institutionId='schoolC';
+failLessonTables=true;
+let failed=false;
+try{await api.pullCloud()}catch(_){failed=true}
+check(failed,'Test fixture did not simulate failed lesson table access');
+check(api.classOptions().join('|')==='8','Failed lesson table hid available school C class dropdown');
+check(!api.registeredClasses().some(x=>x.className==='6'||x.className==='9'),'Failed fetch fell back to stale unrelated school classes');
+const lessonCode=read('lesson-plan-center.js');
+check(lessonCode.includes('cloudLessonScope!==currentSchoolScope()')&&lessonCode.includes('scoped?[]:read(PLAN_KEY)')&&lessonCode.includes('scoped?[]:read(UNIT_KEY)'),'Lesson/syllabus cards can leak stale cached records on a school switch');
+console.log('EduNizam Lesson Planner cloud class dropdown PASS: direct-open active directory, school/user isolation, inaccessible lesson tables, no stale local fallback.');
