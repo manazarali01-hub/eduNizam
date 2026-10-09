@@ -10,6 +10,7 @@
       'university-data.js',
       'vu-course-catalog.js',
       'study-data.js',
+      'pectaa-core-textbooks.js',
       'senior-curriculum-2026.js',
       'learning-premium-data.js',
       'learning-complete-data.js',
