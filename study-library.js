@@ -25,9 +25,10 @@
     return hit?REG.authorities?.find(a=>a.id===hit[1]):null;
   }
 
+  const boardKey=x=>String(x??'').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
   function materialMatchesBoard(x,name){
     if(!name)return true;
-    if(x.board===name)return true;
+    if(x.board===name||boardKey(x.board)===boardKey(name))return true;
     const b=boardByName(name);if(!b)return false;
     const region=String(b.region||'').toLowerCase(),label=String(x.board||'').toLowerCase();
     if(region.includes('punjab')&&label.includes('punjab'))return true;
@@ -52,11 +53,47 @@
     fillSubjects();updateStats();render();
   }
 
+  const subjectKey=value=>{
+    const key=String(value??'').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ');
+    const aliases={
+      'math':'mathematics','maths':'mathematics',
+      'science':'general science',
+      'computer':'computer science',
+      'islamiyat':'islamiat / ethics','islamic studies':'islamiat / ethics',
+      'pak studies':'pakistan studies'
+    };
+    return aliases[key]||key;
+  };
+  function materialSubjects(label){
+    const text=String(label??'').trim();
+    if(!text||subjectKey(text)==='all subjects')return[];
+    // A few official board schemes cover several explicitly named subjects.
+    if(text.includes(' / ')&&subjectKey(text)!=='islamiat / ethics')
+      return text.split(/\s+\/\s+/).map(x=>x.trim()).filter(Boolean);
+    return [text];
+  }
+  function materialSubjectMatches(requested,listed){
+    if(!requested)return true;
+    if(subjectKey(listed)==='all subjects')return true;
+    return materialSubjects(listed).some(x=>subjectKey(x)===subjectKey(requested));
+  }
+  function subjectOptions(cls,board){
+    const seen=new Map();
+    for(const item of D.materials){
+      if((cls&&!item.classLevels?.includes(Number(cls)))||!materialMatchesBoard(item,board))continue;
+      for(const subject of materialSubjects(item.subject)){
+        const key=subjectKey(subject);
+        if(key&&!seen.has(key))seen.set(key,subject);
+      }
+    }
+    return [...seen.values()].sort((a,b)=>a.localeCompare(b));
+  }
   function fillSubjects(){
     const cls=$('studyClass').value,board=$('studyBoard').value,current=$('studySubject').value;
-    const subs=[...new Set(D.materials.filter(x=>(!cls||x.classLevels.includes(Number(cls)))&&materialMatchesBoard(x,board)).map(x=>x.subject))].sort();
+    const subs=subjectOptions(cls,board);
     $('studySubject').innerHTML='<option value="">All Subjects</option>'+subs.map(x=>'<option>'+esc(x)+'</option>').join('');
-    if(subs.includes(current))$('studySubject').value=current;
+    const selected=subs.find(x=>subjectKey(x)===subjectKey(current));
+    if(selected&&current)$('studySubject').value=selected;
   }
 
   function filters(){
@@ -74,7 +111,7 @@
     const hay=[x.title,x.board,x.subject,x.type,x.chapter,x.note,x.content].join(' ').toLowerCase();
     const terms=f.q.split(/\s+/).filter(Boolean);
     const textMatch=!terms.length||terms.every(term=>hay.includes(term));
-    return textMatch&&materialMatchesBoard(x,f.board)&&(!f.cls||x.classLevels.includes(Number(f.cls)))&&(!f.subject||x.subject===f.subject||x.subject==='All Subjects')&&(!f.type||x.type===f.type)&&(!f.status||(x.curriculumStatus||'needs-verification')===f.status);
+    return textMatch&&materialMatchesBoard(x,f.board)&&(!f.cls||x.classLevels.includes(Number(f.cls)))&&materialSubjectMatches(f.subject,x.subject)&&(!f.type||x.type===f.type)&&(!f.status||(x.curriculumStatus||'needs-verification')===f.status);
   }
 
   function card(x){
@@ -170,6 +207,7 @@
   $('clearStudyFiltersBtn')?.addEventListener('click',clearFilters);
   document.querySelectorAll('[data-study-tab]').forEach(b=>b.onclick=()=>{activeTab=b.dataset.studyTab;render()});
   $('closeStudyViewerBtn').onclick=close;$('printStudyBtn').onclick=printCurrent;$('studyAiSummaryBtn').onclick=()=>viewerPrompt('summary');$('studyAiQuizBtn').onclick=()=>viewerPrompt('quiz');$('studyPracticeBtn').onclick=practice;
+  window.EDUNIZAM_STUDY_FILTERS={materialMatchesBoard,materialSubjectMatches,subjectOptions};
   window.renderStudyLibrary=()=>{updateStats();render()};
   fill();
 })();
