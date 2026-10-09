@@ -72,8 +72,9 @@ const S=window.EDUNIZAM_PUNJAB_SUBJECT_PACK={
  }
 };
 if(window.EDUNIZAM_ACADEMIC_OPTION_CATALOG)S.applyToCatalog(window.EDUNIZAM_ACADEMIC_OPTION_CATALOG);
+function applyToPractice(){
 const PD=window.EDUNIZAM_PRACTICE_DATA;
-if(PD){
+if(!PD)return;
  PD.subjects=PD.subjects||{};PD.chapters=PD.chapters||{};PD.questions=PD.questions||[];
  const have=new Set(PD.questions.map(q=>String(q.id)));
  const blueprint=window.EDUNIZAM_PRACTICE_EXTRA_BLUEPRINTS||{};
@@ -99,6 +100,9 @@ if(PD){
  window.EDUNIZAM_PRACTICE_EXTRA_BLUEPRINTS=blueprint;
  PD.punjabQuranExpansion={updatedAt:'2026-10-09',topicGroups:topicCount,authoredItemsAdded:added,sourceUrl:URL,verifiedTextbookChapters:false,oralRecitationNotAssessedByMCQ:true};
 }
+S.applyToPractice=applyToPractice;
+applyToPractice();
+function applyToStudy(){
 const materials=window.EDUNIZAM_STUDY_DATA?.materials;
 if(Array.isArray(materials)){
  const ids=new Set(materials.map(m=>m.id));
@@ -112,4 +116,6 @@ if(Array.isArray(materials)){
   ids.add(id);
  }
 }
+S.applyToStudy=applyToStudy;
+applyToStudy();
 })();
