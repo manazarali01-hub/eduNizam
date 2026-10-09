@@ -17,7 +17,7 @@ function el(id){
 }
 const ids=['swEditor','swList','swCloudStatus','schoolWorkApp','swSaveTimetable',
  'swTtClass','swTtClassOptions','swTtSection','swTtSectionOptions','swTtDay','swTtPeriod',
- 'swTtTime','swTtEnd','swTtSubject','swTtSubjectOptions','swTtTeacher','swTtRoom','swTtRefresh','swTtOptionNote'];
+ 'swTtTime','swTtEnd','swTtSubject','swTtSubjectOptions','swTtTeacher','swTtTeacherOptions','swTtTeacherNote','swTtRoom','swTtRefresh','swTtOptionNote'];
 for(const id of ids)el(id);
 el('schoolWorkApp').dataset.tab='timetable';
 const document={getElementById:id=>nodes.get(id)||null,querySelectorAll:()=>[]};
@@ -26,11 +26,18 @@ const data={
  'school-A':{
   class_sections:[{class_name:'Grade 5',section_name:'A',active:true},{class_name:'5',section_name:'B',active:true}],
   syllabus_progress_units:[{class_name:'5',subject:'English',unit_title:'Reading School Book'}],
+  staff_profiles:[
+   {full_name:'Ms Teacher',classes:['5|A'],subjects:['English'],employment_status:'active',designation:'Teacher'},
+   {full_name:'Other Section',classes:['Class 5|B'],subjects:['English'],employment_status:'active',designation:'Teacher'},
+   {full_name:'Grade Teacher',classes:['Grade 5'],subjects:['Mathematics'],employment_status:'active',designation:'Teacher'},
+   {full_name:'Inactive Teacher',classes:['5|A'],subjects:['English'],employment_status:'inactive',designation:'Teacher'}
+  ],
   timetable_entries:[],school_announcements:[],homework_items:[],homework_submissions:[]
  },
  'school-B':{
   class_sections:[{class_name:'8',section_name:'C',active:true}],
   syllabus_progress_units:[{class_name:'8',subject:'Chemistry',unit_title:'Chemical Bonds'}],
+  staff_profiles:[{full_name:'B Chemistry Teacher',classes:['8|C'],subjects:['Chemistry'],employment_status:'active',designation:'Teacher'}],
   timetable_entries:[],school_announcements:[],homework_items:[],homework_submissions:[]
  }
 };
@@ -78,6 +85,12 @@ el('swTtClass').value='Class 5';api.syncTimetableOptions();
 check(el('swTtSectionOptions').innerHTML.includes('value="A"'),'Registered section missing');
 check(el('swTtSubjectOptions').innerHTML.includes('English'),'School syllabus subject missing');
 check(api.knownHomeworkClass('5','A')&&!api.knownHomeworkClass('5','Not registered'),'Class/section validation bypassed');
+check(api.staffAssignedClass('Class 5','5','A')&&api.staffAssignedClass('5|A','Grade 5','A')&&!api.staffAssignedClass('5|A','5','B'),'Grade-wide/section staff allocations are mismatched');
+check(api.availableTimetableTeachers('5','A','English').join('|')==='Ms Teacher','Teacher list did not filter active staff by class subject and section');
+check(!api.availableTimetableTeachers('5','B','English').includes('Ms Teacher'),'Staff A exposed to another class section');
+el('swTtClass').value='5';el('swTtSection').value='A';el('swTtSubject').value='English';
+api.syncTimetableOptions();
+check(el('swTtTeacherOptions').innerHTML.includes('Ms Teacher')&&!el('swTtTeacherOptions').innerHTML.includes('Inactive Teacher'),'Verified teacher selector missing or includes inactive staff');
 const source=read('school-work.js');
 for(const id of ['swTtSection','swTtPeriod','swTtTime','swTtEnd','swTtSubject','swTtRoom'])
  check(source.includes('id="'+id+'"'),'Timetable required form field missing: '+id);
@@ -102,17 +115,23 @@ check(api.read().timetable.length===count&&alerts.some(x=>x.includes('start/end'
 alerts.length=0;
 fill({...setup,swTtSection:'C',swTtPeriod:'3',swTtTime:'10:30',swTtEnd:'11:00'});await save();
 check(api.read().timetable.length===count&&alerts.some(x=>x.includes('registered')),'Unregistered section was saved');
+alerts.length=0;
+fill({...setup,swTtTeacher:'Other Section',swTtPeriod:'3',swTtTime:'10:30',swTtEnd:'11:00'});await save();
+check(api.read().timetable.length===count&&alerts.some(x=>x.includes('assigned')),'Teacher assigned to different section accepted');
 alerts.length=0;failWrite=true;
 fill({...setup,swTtPeriod:'3',swTtTime:'10:30',swTtEnd:'11:00'});await save();
 check(api.read().timetable.length===count&&alerts.some(x=>x.includes('not saved')),'Failed cloud save falsely published period');
 failWrite=false;alerts.length=0;
 cfg.institutionId='school-B';cloud.state.user.id='head2';
 check(api.registeredHomeworkClasses().length===0&&api.read().timetable.length===0,'Old school timetable/classes leaked on change');
+check(api.availableTimetableTeachers('5','A','English').length===0,'Prior school staff allocation leaked after account/school switch');
 await api.loadHomeworkOptions();
 api.syncTimetableOptions();
 check(!el('swTtSubjectOptions').innerHTML.includes('English'),'School A subject showed after switch');
 el('swTtClass').value='8';api.syncTimetableOptions();
 check(el('swTtSectionOptions').innerHTML.includes('value="C"')&&el('swTtSubjectOptions').innerHTML.includes('Chemistry'),'School B options unavailable');
+check(api.availableTimetableTeachers('8','C','Chemistry').join('|')==='B Chemistry Teacher','School B active staff missing');
+check(!api.availableTimetableTeachers('8','C','Chemistry').includes('Ms Teacher'),'Old institution staff leaked to School B');
 await api.pullCloud('timetable');
 check(api.read().timetable.length===0,'School B timetable unexpectedly has school A periods');
 state.set('edunizam_session',JSON.stringify({role:'teacher',identity:'teacher1'}));
@@ -121,4 +140,4 @@ await api.loadHomeworkOptions();
 check(api.knownHomeworkClass('8','C'),'Teacher assigned section absent');
 window.EDUNIZAM_ROLE_SCOPE.teacherClassKeys=()=>new Set();
 check(!api.knownHomeworkClass('8','C'),'Teacher with no assignment could publish timetable');
-console.log('EduNizam School Work Timetable PASS: real class section subject dropdowns, full cloud period fields, time/clash validation, failed save isolation, teacher scope.');
+console.log('EduNizam School Work Timetable PASS: real school class subject/staff options, staff class-section allocation, cloud period fields, time/clash validation, failed save isolation.');
