@@ -33,7 +33,12 @@
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
   function results(){try{return JSON.parse(localStorage.getItem('edunizam_results')||'[]')}catch{return[]}}
   function settings(){try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}}
-  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
+  // A report-card selector may only display authorized school/role students.
+  // Missing scope must never mean "all students", even in cached local mode.
+  function visibleStudents(){
+    const rows=window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students());
+    return Array.isArray(rows)?rows.filter(x=>x&&x.id!==null&&x.id!==undefined&&String(x.id).trim()&&String(x.name||'').trim()):[];
+  }
   function visibleClasses(){
     if(role()==='head')return null;
     return new Set(visibleStudents().map(s=>String(s.className||'').trim()).filter(Boolean));
@@ -141,7 +146,8 @@
   function reportControls(){
     const list=visibleStudents();
     if(!list.length)return '<div class="empty-state">Aap ke role ke liye koi accessible student record nahi mila.</div>';
-    const types=[...new Set(results().map(r=>r.type||'Result').filter(Boolean))];
+    const allowed=new Set(list.map(s=>String(s.id)));
+    const types=[...new Set(results().filter(r=>allowed.has(String(r.studentId))).map(r=>r.type||'Result').filter(Boolean))];
     return '<article class="card"><h3>Generate Report Card</h3><div class="form-grid">'+
       '<select id="rcStudent">'+list.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' · Class '+esc(s.className||'-')+'</option>').join('')+'</select>'+
       '<select id="rcType"><option value="">All Results</option>'+types.map(t=>'<option>'+esc(t)+'</option>').join('')+'</select>'+
@@ -150,10 +156,12 @@
   }
 
   function buildReport(){
-    const sid=Number($('rcStudent')?.value),type=$('rcType')?.value||'';
-    const s=students().find(x=>Number(x.id)===sid);if(!s)return;
-    const rows=results().filter(r=>Number(r.studentId)===sid&&(!type||(r.type||'Result')===type));
-    const out=$('reportCardOutput');if(!out)return;
+    const sid=String($('rcStudent')?.value||'').trim(),type=$('rcType')?.value||'';
+    const s=sid?visibleStudents().find(x=>String(x.id)===sid):null;
+    const out=$('reportCardOutput');
+    if(!s){if(out)out.innerHTML='<div class="empty-state">Select an accessible student to generate a report card.</div>';return}
+    const rows=results().filter(r=>String(r.studentId)===sid&&(!type||(r.type||'Result')===type));
+    if(!out)return;
     if(!rows.length){out.innerHTML='<div class="empty-state">Is selection ke liye result records available nahi hain.</div>';return}
     const obt=rows.reduce((a,r)=>a+Number(r.marks||0),0),tot=rows.reduce((a,r)=>a+Number(r.total||0),0),pct=tot?Math.round(obt/tot*100):0;
     const st=settings();
