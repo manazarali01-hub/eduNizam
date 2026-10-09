@@ -61,6 +61,48 @@ pass(!choices('9','Chemistry',[teacherChapter]).includes(teacherChapter.chapter)
 pass(!choices('9','Physics',[{...teacherChapter,answer_text:''}]).includes(teacherChapter.chapter),'Invalid teacher questions should not supply empty chapter dropdown values');
 pass(choices('Grade 1','Mathematics',[]).length>=4,'The existing built-in grade chapter choices must remain available');
 
+// Institutional syllabus records are scoped before they populate the Paper Builder.
+// Actual school textbook titles are NEVER generated from this reference fixture.
+const schoolUnits=[
+ {class_name:'Grade 9',subject:'Mathematics',unit_title:'Real textbook Unit 01'},
+ {class_name:'9',subject:'Mathematics',unit_title:'Real textbook Unit 02'},
+ {class_name:'Grade 9',subject:'Mathematics',unit_title:' Real textbook Unit 01 '},
+ {class_name:'Grade 10',subject:'Mathematics',unit_title:'Other grade private unit'},
+ {class_name:'Grade 9',subject:'English',unit_title:'English private unit'},
+ {class_name:'Grade 9',subject:'Physics',unit_title:'Physics private unit'}
+];
+const schoolChoice=window.EDUNIZAM_PAPER_BUILDER.schoolChapters;
+pass(typeof schoolChoice==='function','Paper Builder has no school-record syllabus mapper');
+pass(schoolChoice('9','Mathematics',schoolUnits).length===2,'School syllabus should exclude duplicates and other grade/subjects');
+pass(schoolChoice('10','Mathematics',schoolUnits).length===1,'School syllabus grade isolation failed');
+pass(schoolChoice('9','Chemistry',schoolUnits).length===0,'School syllabus subject isolation failed');
+const joined=choices('9','Mathematics',[],schoolUnits);
+pass(joined[0]==='Real textbook Unit 01'&&joined[1]==='Real textbook Unit 02','School records must be listed ahead of concept suggestions');
+pass(joined.includes('Real and Complex Numbers'),'Existing concept topics must remain as separate, unverified suggestions');
+const calls=[];
+window.EDUNIZAM_CLOUD_CONFIG={institutionId:'test-school-1'};
+window.EDUNIZAM_CLOUD={state:{user:{id:'teacher-test'},client:{
+ from:table=>({select:columns=>({eq:(key,id)=>({limit:n=>{
+   calls.push({table,columns,key,id,max:n});
+   return Promise.resolve({data:table==='class_sections'?
+     [{class_name:'9',section_name:'A',active:true},{class_name:'10',section_name:'A',active:false}]:
+     [{class_name:'9',subject:'Mathematics',unit_title:'School Algebra Unit'}]});
+ }})})})
+}}};
+document.querySelector=()=>null;
+await window.EDUNIZAM_PAPER_BUILDER.loadSchoolCatalog();
+const state=window.EDUNIZAM_PAPER_BUILDER.getSchoolCatalog();
+pass(state.classState==='loaded'&&state.unitState==='loaded','School directory and units were not loaded');
+pass(state.classes.length===1&&state.units.length===1,'Inactive school classes were not filtered');
+pass(schoolChoice('9','Mathematics').includes('School Algebra Unit'),'Cloud syllabus is not connected to chapter options');
+pass(calls.length===2&&calls.every(c=>c.key==='institution_id'&&c.id==='test-school-1'),'School syllabus fetch may access other institutes');
+pass(calls.some(c=>c.table==='class_sections')&&calls.some(c=>c.table==='syllabus_progress_units'),'Missing school class or unit lookup');
+window.EDUNIZAM_CLOUD.state.client.from=table=>({select:()=>({eq:()=>({limit:()=>Promise.resolve({error:{message:'Denied'}})})})});
+await window.EDUNIZAM_PAPER_BUILDER.loadSchoolCatalog();
+const denied=window.EDUNIZAM_PAPER_BUILDER.getSchoolCatalog();
+pass(denied.unitState==='error'&&denied.classState==='error','Network/permission failures must not be called empty data');
+
+
 pass(auditAPI.chapterMatches(' Fractions ','fractions'),'Exact match whitespace or case normalization failed');
 pass(!auditAPI.chapterMatches('Fractions','Fractions and Decimals'),'Partial chapter names must not match');
 const coverage=auditAPI.audit({className:'1',subject:'Mathematics',chapters:topics.slice(0,2),teacherQuestions:[],practiceQuestions:window.EDUNIZAM_PRACTICE_DATA.questions});
