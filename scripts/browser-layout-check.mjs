@@ -1916,7 +1916,7 @@ try{
     if(!settingsAction)pushFailure('admin primary actions','Settings save did not persist the updated tagline');
 
     // High-value school workflow sections: mobile click + lazy-loader + unlocked UI contract.
-    for(const view of ['noticeboard','schedulecenter','dailydiary','paperbuilder','leavecenter','parentcomplaints']){
+    for(const view of ['noticeboard','schedulecenter','dailydiary','paperbuilder','practice','leavecenter','parentcomplaints']){
       await loginStep('open workflow '+view,async()=>{
         await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
         await loginFlowPage.evaluate(view=>{
@@ -1946,6 +1946,40 @@ try{
         pushFailure('admin workflow navigation',view+' did not settle to a usable rendered state',JSON.stringify(workflowState));
       }
       await inspectActiveTemporalControls('workflow '+view);
+      if(view==='practice'){
+        await loginStep('Practice reviewed photo PDF questions and Next Previous on mobile',async()=>{
+          await loginFlowPage.waitForSelector('#practiceSourceCard',{state:'attached',timeout:7000});
+          await loginFlowPage.locator('#practiceClass').selectOption('5');
+          await loginFlowPage.locator('#practiceSubject').selectOption('General Science');
+          await loginFlowPage.locator('#practiceSourceCard summary').click();
+          await loginFlowPage.locator('#practiceSourceChapter').fill('Matter');
+          await loginFlowPage.locator('#practiceSourceText').fill(
+            'Q1: What state is ice?\\nA) Gas\\nB) Solid\\nC) Liquid\\nD) Plasma\\nAnswer: B\\n\\nQ2: Explain matter.\\nAnswer: Matter has mass and occupies space.'
+          );
+          await loginFlowPage.locator('#practiceSourceDetect').click();
+          const draft=await loginFlowPage.locator('#practiceSourceQuestions').inputValue();
+          if(!draft.includes('What state is ice?')||!draft.includes('Explain matter.'))
+            pushFailure('practice source upload','Uploaded-source questions did not appear for review');
+          await loginFlowPage.locator('#practiceSourceReviewed').check();
+          await loginFlowPage.locator('#practiceSourceStage').click();
+          const state=await loginFlowPage.evaluate(()=>window.EDUNIZAM_PRACTICE_NAV?.status?.());
+          const uploaded=await loginFlowPage.locator('#practiceSourceOnly').isChecked();
+          if(state?.total!==2||!uploaded)
+            pushFailure('practice source upload','Teacher-reviewed uploaded questions did not start an isolated practice session',JSON.stringify(state));
+          const header=await loginFlowPage.locator('#practiceTestTitle').innerText();
+          if(!header.includes('Uploaded-document practice'))
+            pushFailure('practice source upload','Uploaded-source session mislabeled as ordinary concept bank');
+          await loginFlowPage.locator('#practiceNextBtn').click();
+          const next=await loginFlowPage.locator('#practiceProgress').innerText();
+          if(!next.includes('Question 2 of 2'))
+            pushFailure('practice source upload','Next Question button failed for uploaded-document session');
+          await loginFlowPage.locator('#practicePrevBtn').click();
+          const prev=await loginFlowPage.locator('#practiceProgress').innerText();
+          if(!prev.includes('Question 1 of 2'))
+            pushFailure('practice source upload','Previous Question button failed for uploaded-document session');
+          await loginFlowPage.locator('#cancelPracticeBtn').click();
+        });
+      }
       if(view==='paperbuilder'){
         await loginStep('Class 5 Science paper dropdowns and 50-mark preview',async()=>{
           await loginFlowPage.waitForSelector('#pbClass',{state:'visible',timeout:7000});
