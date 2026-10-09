@@ -110,10 +110,10 @@
     if(!canEdit())return '<div class="coverage-note">Read-only exam schedule. Teacher/Head schedule create karte hain.</div>';
     const arr=readSchedule(),x=arr.find(r=>String(r.id)===String(editingScheduleId))||{};
     return '<article class="card"><div class="section-head"><div><h3>'+(editingScheduleId?'Edit Exam Schedule':'Add Exam Schedule')+'</h3><p class="muted">Class, section, timings, room and notes complete karein.</p></div>'+(editingScheduleId?'<button id="cancelExamEdit" class="secondary">Cancel Edit</button>':'')+'</div><div class="form-grid">'+
-      '<input id="exClass" value="'+esc(x.className||'')+'" placeholder="Class e.g. 5">'+
+      '<input id="exClass" list="exClassOptions" value="'+esc(x.className||'')+'" placeholder="Class / Grade"><datalist id="exClassOptions">'+(role()==='head'?['Play Group','Nursery','Prep',...Array.from({length:12},(_,i)=>String(i+1))]:[...visibleClasses()]).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>'+
       '<input id="exSection" value="'+esc(x.sectionName||'')+'" placeholder="Section (optional)">'+
       '<select id="exName">'+['Monthly Test','Midterm','Final','Quiz','Other'].map(v=>'<option '+(x.examName===v?'selected':'')+'>'+v+'</option>').join('')+'</select>'+
-      '<input id="exSubject" value="'+esc(x.subject||'')+'" placeholder="Subject">'+
+      '<input id="exSubject" list="exSubjectOptions" value="'+esc(x.subject||'')+'" placeholder="Subject (choose / type)"><datalist id="exSubjectOptions"></datalist>'+
       '<input id="exDate" type="date" value="'+esc(x.examDate||today())+'">'+
       '<input id="exTime" type="time" value="'+esc(x.startTime||'')+'" aria-label="Start time">'+
       '<input id="exEndTime" type="time" value="'+esc(x.endTime||'')+'" aria-label="End time">'+
@@ -121,6 +121,14 @@
       '<input id="exRoom" value="'+esc(x.roomLabel||'')+'" placeholder="Room / Hall (optional)">'+
       '<textarea id="exNotes" rows="2" placeholder="Instructions / notes">'+esc(x.notes||'')+'</textarea>'+
       '<button id="saveExamSchedule">'+(editingScheduleId?'Update Schedule':'Add Schedule')+'</button></div></article>';
+  }
+  function syncExamSubjects(){
+    const cls=$('exClass')?.value||'',hit=String(cls).match(/\\b(1[0-2]|[1-9])\\b/);
+    const grade=hit?String(Number(hit[1])):'';
+    const data=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects?.[grade]||[];
+    const defaults=['Mathematics','English','Urdu','General Science','Islamiat / Ethics','Nazra Quran','Social Studies'];
+    const list=$('exSubjectOptions');
+    if(list)list.innerHTML=[...new Set(data.length?data:defaults)].map(x=>'<option value="'+esc(x)+'"></option>').join('');
   }
   function scheduleCard(x){
     const actions=canEdit()&&mine(x)?'<button class="secondary" data-ex-edit="'+esc(x.id)+'">Edit</button><button class="secondary" data-ex-delete="'+esc(x.id)+'">Delete</button>':'';
@@ -207,6 +215,8 @@
   }
 
   function bind(){
+    $('exClass')?.addEventListener('input',syncExamSubjects);
+    syncExamSubjects();
     if($('saveExamSchedule'))$('saveExamSchedule').onclick=saveSchedule;
     if($('cancelExamEdit'))$('cancelExamEdit').onclick=cancelEdit;
     if($('buildReportCard'))$('buildReportCard').onclick=buildReport;
