@@ -12,6 +12,45 @@
   const actorId=()=>String(cloud()?.state?.user?.id||identity());
   let examScheduleSaveInFlight=false;
   const examScheduleDeleteInFlight=new Set();
+  let directoryRows=[],directoryScope='',directoryLoaded=false;
+  const currentDirectoryScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
+  const registeredSections=()=>{
+    let rows=[];
+    if(cloudReady()){
+      if(directoryLoaded&&directoryScope===currentDirectoryScope())rows=directoryRows;
+    }else{
+      try{rows=JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')}catch(_){}
+    }
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    return api?.registeredSections?.(rows)||[];
+  };
+  function editorClassOptions(){
+    if(role()!=='head')return [...(visibleClasses()||[])].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    return api?.distinct?.(registeredSections().map(x=>x.className))||[];
+  }
+  function headKnownClass(cls,section){
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    const rows=registeredSections();
+    return rows.some(x=>api?.sameClass?.(x.className,cls))&&(!String(section||'').trim()||api?.sectionMatches?.(cls,section,rows));
+  }
+  async function loadClassDirectory(){
+    if(!cloudReady()||role()!=='head')return;
+    const scope=currentDirectoryScope(),inst=cfg().institutionId,client=cloud().state.client;
+    if(directoryLoaded&&directoryScope===scope)return;
+    directoryRows=[];directoryLoaded=false;directoryScope='';
+    try{
+      const data=await runCloud('exam:class-directory:'+scope,'Exam class directory',async({signal}={})=>{
+        let q=client.from('class_sections').select('class_name,section_name,active')
+          .eq('institution_id',inst).eq('active',true).limit(1200);
+        q=withSignal(q,signal);
+        const {data,error}=await q;if(error)throw error;return data||[];
+      },{timeout:6500,retries:0});
+      if(currentDirectoryScope()!==scope||!cloudReady())return;
+      directoryRows=data.map(x=>({className:x.class_name,sectionName:x.section_name,active:x.active!==false}));
+      directoryScope=scope;directoryLoaded=true;
+    }catch(error){console.warn('Exam class directory unavailable:',error?.message||error)}
+  }
   function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
   async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
     const runtime=window.EDUNIZAM_DATA_RUNTIME;
@@ -115,8 +154,8 @@
     if(!canEdit())return '<div class="coverage-note">Read-only exam schedule. Teacher/Head schedule create karte hain.</div>';
     const arr=readSchedule(),x=arr.find(r=>String(r.id)===String(editingScheduleId))||{};
     return '<article class="card"><div class="section-head"><div><h3>'+(editingScheduleId?'Edit Exam Schedule':'Add Exam Schedule')+'</h3><p class="muted">Class, section, timings, room and notes complete karein.</p></div>'+(editingScheduleId?'<button id="cancelExamEdit" class="secondary">Cancel Edit</button>':'')+'</div><div class="form-grid">'+
-      '<input id="exClass" list="exClassOptions" value="'+esc(x.className||'')+'" placeholder="Class / Grade"><datalist id="exClassOptions">'+(role()==='head'?['Play Group','Nursery','Prep',...Array.from({length:12},(_,i)=>String(i+1))]:[...visibleClasses()]).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>'+
-      '<input id="exSection" value="'+esc(x.sectionName||'')+'" placeholder="Section (optional)">'+
+      '<input id="exClass" list="exClassOptions" value="'+esc(x.className||'')+'" placeholder="Registered Class / Grade"><datalist id="exClassOptions">'+editorClassOptions().map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>'+
+      '<input id="exSection" list="exSectionOptions" value="'+esc(x.sectionName||'')+'" placeholder="Section (optional)"><datalist id="exSectionOptions"></datalist>'+
       '<select id="exName">'+['Monthly Test','Midterm','Final','Quiz','Other'].map(v=>'<option '+(x.examName===v?'selected':'')+'>'+v+'</option>').join('')+'</select>'+
       '<input id="exSubject" list="exSubjectOptions" value="'+esc(x.subject||'')+'" placeholder="Subject (choose / type)"><datalist id="exSubjectOptions"></datalist>'+
       '<input id="exDate" type="date" value="'+esc(x.examDate||today())+'">'+
@@ -128,12 +167,15 @@
       '<button id="saveExamSchedule">'+(editingScheduleId?'Update Schedule':'Add Schedule')+'</button></div></article>';
   }
   function syncExamSubjects(){
-    const cls=$('exClass')?.value||'',hit=String(cls).match(/\b(1[0-2]|[1-9])\b/);
-    const grade=hit?String(Number(hit[1])):'';
-    const data=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects?.[grade]||[];
-    const defaults=['Mathematics','English','Urdu','General Science','Islamiat / Ethics','Nazra Quran','Social Studies'];
+    const cls=$('exClass')?.value||'',api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    const savedUnits=cloudReady()?[]:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch{return[]}})();
+    const data=api?.subjects?.(cls,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},savedUnits)||[];
     const list=$('exSubjectOptions');
-    if(list)list.innerHTML=[...new Set(data.length?data:defaults)].map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    if(list)list.innerHTML=data.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const sectionList=$('exSectionOptions');
+    if(sectionList) sectionList.innerHTML=(role()==='head'?api?.sections?.(cls,registeredSections())||[]:
+      [...new Set(visibleStudents().filter(x=>api?.sameClass?.(x.className,cls)).map(x=>x.sectionName).filter(Boolean))])
+      .map(x=>'<option value="'+esc(x)+'"></option>').join('');
   }
   function scheduleCard(x){
     const actions=canEdit()&&mine(x)?'<button class="secondary" data-ex-edit="'+esc(x.id)+'">Edit</button><button class="secondary" data-ex-delete="'+esc(x.id)+'">Delete</button>':'';
@@ -187,6 +229,7 @@
     if(!className||!subject||!examDate||totalMarks<=0)return alert('Class, subject, date aur total marks complete karein.');
     if(startTime&&endTime&&endTime<=startTime)return alert('End time start time ke baad honi chahiye.');
     if(role()==='teacher'&&!teacherCanManageClassSection(className,sectionName))return alert('Teacher sirf apni assigned class/section ka exam schedule manage kar sakta hai.');
+    if(role()==='head'&&!headKnownClass(className,sectionName))return alert('Choose a real registered school class / section. Configure Academic Groups first.');
     const arr=readSchedule(),existing=arr.find(x=>String(x.id)===String(editingScheduleId));
     const duplicate=arr.some(x=>
       String(x.id)!==String(editingScheduleId)&&
@@ -237,6 +280,7 @@
 
   async function render(){
     const root=$('examCenterApp');if(!root)return;
+    if(role()==='head'&&cloudReady())await loadClassDirectory();
     let schedule=readSchedule();
     if(cloudReady()&&!root.dataset.cloudLoaded){
       root.dataset.cloudLoaded='1';
@@ -266,5 +310,5 @@
 
   window.addEventListener('edunizam:auth',()=>{const root=$('examCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,800);
-  window.EDUNIZAM_EXAM_CENTER={render,pullCloud,readSchedule,cloudReady,reportControls,buildReport};
+  window.EDUNIZAM_EXAM_CENTER={render,pullCloud,readSchedule,cloudReady,reportControls,buildReport,registeredSections,editorClassOptions,headKnownClass,loadClassDirectory};
 })();
