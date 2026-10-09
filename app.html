@@ -751,6 +751,40 @@
               <button id="printPracticeBtn" class="secondary">Print / Save PDF</button>
               <button id="aiGenerateTestBtn" class="secondary">AI Generate Test</button>
             </div>
+            <label class="coverage-note"><input id="practiceSourceOnly" type="checkbox"> Practice only the reviewed questions from my PDF/photos (do not mix built-in questions)</label>
+            <details id="practiceSourceCard" class="card" style="margin-top:14px">
+              <summary style="cursor:pointer;font-weight:800">Upload PDF / Photos → Create Practice Questions</summary>
+              <p class="coverage-note">Upload textbook pages, worksheets or previous papers. PDF text and photo OCR run on your device; review the extracted text and answers before a practice test. Not a certified official syllabus.</p>
+              <div class="form-grid">
+                <label>PDF or Photos (up to 6)
+                  <input id="practiceSourceFiles" type="file" accept=".pdf,application/pdf,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
+                </label>
+                <label>Text recognition
+                  <select id="practiceSourceLanguage"><option value="eng">English</option><option value="eng+urd">English + Urdu (slower)</option></select>
+                </label>
+                <label>Topic / Chapter (optional if selected above)
+                  <input id="practiceSourceChapter" placeholder="Chapter from the textbook/photo">
+                </label>
+              </div>
+              <div class="quick-actions"><button id="practiceSourceRead" type="button">1. Read PDF / Photos</button></div>
+              <label>Review / correct extracted text
+                <textarea id="practiceSourceText" rows="5" placeholder="Text from documents appears here, or paste source text directly."></textarea>
+              </label>
+              <div class="quick-actions">
+                <button id="practiceSourceDetect" type="button" class="secondary">2. Detect Existing Questions &amp; Answers</button>
+                <button id="practiceSourceAi" type="button" class="secondary">2. Optional AI Practice Questions</button>
+              </div>
+              <label class="coverage-note"><input id="practiceSourceAiConsent" type="checkbox"> I agree to send the extracted TEXT (not original files) to the configured AI provider. I have removed private details.</label>
+              <label>Edit proposed questions and answer keys (JSON)
+                <textarea id="practiceSourceQuestions" rows="6" spellcheck="false" placeholder="Review every question, MCQ option and answer."></textarea>
+              </label>
+              <label class="coverage-note"><input id="practiceSourceReviewed" type="checkbox"> I checked the questions, correct answers, chapter and my permission to use these materials.</label>
+              <div class="quick-actions">
+                <button id="practiceSourceStage" type="button">3. Validate &amp; Start Practice</button>
+                <button id="practiceSourceClear" type="button" class="secondary">Clear Uploaded Questions</button>
+              </div>
+              <p id="practiceSourceStatus" class="coverage-note" role="status" aria-live="polite">Nothing uploaded. Files are not saved to the school or public question bank. Maximum 15 MB per PDF or 8 MB per image; the reader limits pages for device performance.</p>
+            </details>
           </div>
 
           <div id="practiceTestPanel" class="hidden">
