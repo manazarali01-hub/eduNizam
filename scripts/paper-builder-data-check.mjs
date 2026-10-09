@@ -52,6 +52,15 @@ for(const [subject,selected,total,mode,grade] of [
 }
 const auditAPI=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
 pass(!!auditAPI,'Paper syllabus audit missing');
+const choices=window.EDUNIZAM_PAPER_BUILDER.chapterChoices;
+pass(typeof choices==='function','Paper Builder grade/subject chapter options API missing');
+const teacherChapter={class_name:'Grade 9',subject:'Physics',chapter:'Verified Unit: Motion in a Straight Line',question_type:'short',question_text:'Define constant velocity.',answer_text:'Velocity remains unchanged with time.',active:true};
+pass(choices('9','Physics',[teacherChapter]).includes(teacherChapter.chapter),'Teacher-imported valid chapters must appear in the paper dropdown');
+pass(!choices('10','Physics',[teacherChapter]).includes(teacherChapter.chapter),'Teacher chapters must not leak to another class');
+pass(!choices('9','Chemistry',[teacherChapter]).includes(teacherChapter.chapter),'Teacher chapters must not leak to another subject');
+pass(!choices('9','Physics',[{...teacherChapter,answer_text:''}]).includes(teacherChapter.chapter),'Invalid teacher questions should not supply empty chapter dropdown values');
+pass(choices('Grade 1','Mathematics',[]).length>=4,'The existing built-in grade chapter choices must remain available');
+
 pass(auditAPI.chapterMatches(' Fractions ','fractions'),'Exact match whitespace or case normalization failed');
 pass(!auditAPI.chapterMatches('Fractions','Fractions and Decimals'),'Partial chapter names must not match');
 const coverage=auditAPI.audit({className:'1',subject:'Mathematics',chapters:topics.slice(0,2),teacherQuestions:[],practiceQuestions:window.EDUNIZAM_PRACTICE_DATA.questions});
