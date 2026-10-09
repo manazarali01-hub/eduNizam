@@ -93,7 +93,7 @@ node('practiceStudent').value='b7296d64-594a-47a4-8a9f-2bbb8b24585a';
 api.start();api.submit();
 const uuidHistory=JSON.parse(values.get('edunizam_practice_history'));
 check(uuidHistory.at(-1).studentId==='b7296d64-594a-47a4-8a9f-2bbb8b24585a','UUID student ID was lost during practice');
-check(uuidHistory.at(-1).studentName==='Authorized Student','Scoped student's display name is missing');
+check(uuidHistory.at(-1).studentName==='Authorized Student',"Scoped student display name is missing");
 node('practiceStudent').value='other-school-2';
 api.start();api.submit();
 const tampered=JSON.parse(values.get('edunizam_practice_history')).at(-1);
