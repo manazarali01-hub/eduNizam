@@ -37,3 +37,47 @@ window.EDUNIZAM_STUDY_DATA={
     note:'Official PEF download hub for 2026–27 primary, middle and secondary content lists and assessment model papers; confirm applicability to your school.'
   });
 })();
+
+/* EDUNIZAM_TEXTBOOK_CATALOG_2026: subject- and grade-specific official lookups.
+   Each entry is a directory link, not an asserted direct textbook PDF.
+   Subjects below are search categories; check the latest official prescribed
+   grade-specific book on the publisher's website before assigning chapters. */
+(function(){
+  const D=window.EDUNIZAM_STUDY_DATA;
+  if(!Array.isArray(D?.materials))return;
+  const byGrade={
+    1:['Mathematics','English','Urdu','General Knowledge','Waqfiyat e Aama','Islamiat / Ethics','Nazra Quran'],
+    2:['Mathematics','English','Urdu','General Knowledge','Waqfiyat e Aama','Islamiat / Ethics','Nazra Quran'],
+    3:['Mathematics','English','Urdu','General Knowledge','Waqfiyat e Aama','Islamiat / Ethics','Nazra Quran'],
+    4:['Mathematics','English','Urdu','General Science','Social Studies','Islamiat / Ethics','Nazra Quran'],
+    5:['Mathematics','English','Urdu','General Science','Social Studies','Islamiat / Ethics','Nazra Quran'],
+    6:['Mathematics','English','Urdu','General Science','History','Geography','Computer Science','Islamiat / Ethics','Tarjuma-tul-Quran'],
+    7:['Mathematics','English','Urdu','General Science','History','Geography','Computer Science','Islamiat / Ethics','Tarjuma-tul-Quran'],
+    8:['Mathematics','English','Urdu','General Science','History','Geography','Computer Science','Islamiat / Ethics','Tarjuma-tul-Quran'],
+    9:['Mathematics','English','Urdu','Physics','Chemistry','Biology','Computer Science','Islamiat / Ethics','Pakistan Studies','Tarjuma-tul-Quran'],
+    10:['Mathematics','English','Urdu','Physics','Chemistry','Biology','Computer Science','Islamiat / Ethics','Pakistan Studies','Tarjuma-tul-Quran'],
+    11:['Mathematics','English','Urdu','Physics','Chemistry','Biology','Computer Science','Statistics','Economics','Islamiat / Ethics','Tarjuma-tul-Quran'],
+    12:['Mathematics','English','Urdu','Physics','Chemistry','Biology','Computer Science','Statistics','Economics','Pakistan Studies','Tarjuma-tul-Quran']
+  };
+  const seen=new Set(D.materials.map(x=>x.id));
+  let added=0;
+  for(const [grade,subjects] of Object.entries(byGrade)){
+    for(const subject of subjects){
+      const id='pectaa-book-search-'+grade+'-'+subject.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+      if(seen.has(id))continue;
+      D.materials.push({
+        id,board:'Punjab · PECTAA',classLevels:[Number(grade)],subject,type:'Textbook',
+        title:'Class '+grade+' '+subject+' — official eBook lookup',
+        source:'official',authorityId:'punjab-pectaa',curriculumStatus:'needs-verification',
+        url:'https://pectaa.edu.pk/books-and-publications/',
+        note:'Subject-specific lookup shortcut to the PECTAA official eBook directory, not a direct PDF. Check the grade, the exact textbook title, medium, edition and approved session on the portal.'
+      });
+      seen.add(id);added++;
+    }
+  }
+  window.EDUNIZAM_TEXTBOOK_CATALOG_2026={
+    updatedAt:'2026-10-09',sourceUrl:'https://pectaa.edu.pk/books-and-publications/',
+    sourceType:'official publisher directory, NOT downloadable book copies',
+    grades:Object.keys(byGrade).map(Number),entries:added
+  };
+})();
