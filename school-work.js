@@ -115,7 +115,8 @@
     const units=cloudReady()?(homeworkAcademic.scope===homeworkScope()?homeworkAcademic.units:[]):
       (()=>{try{return JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch{return[]}})();
     const list=$('swHwSubjectOptions');
-    if(list)list.innerHTML=(api?.subjects?.(cls,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},units)||[])
+    const hasClass=registeredHomeworkClasses().some(x=>api?.sameClass?.(x.className,cls));
+    if(list)list.innerHTML=(hasClass?api?.subjects?.(cls,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},units)||[]:[])
       .map(x=>'<option value="'+esc(x)+'"></option>').join('');
     const note=$('swHwOptionNote');
     if(note)note.textContent=!cls?'Choose a registered class to see sections and subject suggestions.':
@@ -137,7 +138,8 @@
     const units=cloudReady()?(homeworkAcademic.scope===homeworkScope()?homeworkAcademic.units:[]):
       (()=>{try{return JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch{return[]}})();
     const subjects=$('swTtSubjectOptions');
-    if(subjects)subjects.innerHTML=(api?.subjects?.(cls,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},units)||[])
+    const hasClass=rows.some(x=>api?.sameClass?.(x.className,cls));
+    if(subjects)subjects.innerHTML=(hasClass?api?.subjects?.(cls,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},units)||[]:[])
       .map(x=>'<option value="'+esc(x)+'"></option>').join('');
     const note=$('swTtOptionNote');
     if(note)note.textContent=!cls?'Select a registered class to load real sections and subject suggestions.':
