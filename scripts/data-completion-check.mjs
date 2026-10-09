@@ -129,6 +129,15 @@ for(const [grade,subject,topics] of qp?.rows||[]){
  const authored=bank.filter(x=>x.classLevel===grade&&x.subject===subject&&String(x.id).startsWith('pq-'));
  requireOK(authored.length===9,'Grade '+grade+' missing nine original MCQ and written practice items');
 }
+// Regression: opening a school lesson plan first must not leave Practice/Study empty later.
+const early={window:{},console};
+for(const file of ['punjab-quran-subjects-pack.js','practice-data.js','study-data.js','practice-complete-data.js']){
+ try{runInNewContext(read(file),early,{filename:file,timeout:5000})}
+ catch(error){failures.push('Academic-first load failed: '+file+' '+error.message)}
+}
+const delayedPractice=early.window.EDUNIZAM_PRACTICE_DATA||{},delayedStudy=early.window.EDUNIZAM_STUDY_DATA||{};
+requireOK(delayedPractice.punjabQuranExpansion?.authoredItemsAdded===72,'Pack not reactivated after Academic-first navigation');
+requireOK((delayedStudy.materials||[]).filter(m=>/^pectaa-quran-textbook-directory-/.test(m.id)).length===8,'Study directory missing after Academic-first navigation');
 const app=read('app.html'),learn=read('learn.html'),features=read('feature-loader.js'),guest=read('guest-learning-premium.js'),lesson=read('lesson-plan-center.js');
 requireOK(features.includes("lessonCatalog:['punjab-quran-subjects-pack.js','academic-option-catalog.js']"),'Lesson Planner not using source-enriched subject-topic catalog');
 requireOK(lesson.includes('EDUNIZAM_ACADEMIC_OPTION_CATALOG'),'Lesson Planner not reading lightweight options');
