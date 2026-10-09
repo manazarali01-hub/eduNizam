@@ -42,7 +42,7 @@
   {key:'helpdesk',name:'Helpdesk Tickets',table:'school_helpdesk_tickets',view:'helpdeskcenter',why:'Support requests submitted to the school',activity:true},
   {key:'complaints',name:'Private Parent Complaints',table:'parent_admin_complaints',view:'parentcomplaints',why:'Private complaint counts, not confidential complaint text',activity:true}
  ];
- let counts=null,busy=false,auditScope='';
+ let counts=null,busy=false,auditScope='',unitQuality=null;
  const scope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
  const order=['classes','staff','students','units','questions','lessons','timetable','datesheets','library'];
  const prerequisites={
@@ -65,7 +65,7 @@
  }
  const forgetOtherSchool=()=>{
   const current=scope();
-  if(auditScope&&auditScope!==current){counts=null;auditScope='';}
+  if(auditScope&&auditScope!==current){counts=null;unitQuality=null;auditScope='';}
  };
  const getSubjects=grade=>catalog().subjects?.[String(grade)]||[];
  const getTopics=(grade,subject)=>catalog().chapters?.[String(grade)+'|'+subject]||[];
@@ -78,6 +78,7 @@
   forgetOtherSchool();
   const r=document.getElementById('readinessCloudRows');if(!r)return;
   const suggested=document.getElementById('readinessNextSteps');
+  const unitStatus=document.getElementById('readinessUnitQuality');
   if(suggested){
    const actions=nextSteps();
    suggested.innerHTML=!counts?'<p class="muted">Run Check School Data to identify the next real setup steps. Reference topics alone do not prove textbook readiness.</p>':
@@ -86,6 +87,23 @@
       return '<li><strong>'+esc(item?.name||a.key)+'</strong>: '+esc(a.text)+'</li>';
      }).join('')+'</ol><p class="muted">These are record-availability suggestions, not an academic completion percentage.</p>':
      '<p class="coverage-note">All checked categories have accessible records. Content quality and prescribed textbook alignment still require review; this is not 100% verified.</p>';
+  }
+  if(unitStatus){
+   const units=counts?.units;
+   if(!counts||!units)unitStatus.textContent='Textbook traceability: not checked.';
+   else if(units.status==='unknown'||unitQuality?.status==='unknown')
+    unitStatus.textContent='Textbook traceability: unable to verify current-school records. Check session, access and connection.';
+   else if(units.count===0)
+    unitStatus.innerHTML='<strong>Required setup:</strong> No saved school syllabus chapters. Add actual textbook, board and chapter in Lesson Center. <button type="button" class="secondary" id="readinessUnitQualityFix">Open Lesson Center</button>';
+   else if(unitQuality&&(unitQuality.status==='ok'||unitQuality.status==='sample')){
+    const q=unitQuality;
+    unitStatus.innerHTML='<strong>Textbook metadata check:</strong> '+q.reviewed+' of '+q.total+' syllabus units reviewed; '+q.incomplete+' missing required chapter/book/board or with invalid optional edition/source fields.'+
+     (q.status==='sample'?' This is a limited sample, not a complete quality audit.':'')+
+     ' School-entered metadata is not official textbook certification.'+
+     (q.incomplete?'<button type="button" class="secondary" id="readinessUnitQualityFix">Review Lesson Center</button>':'');
+   }else unitStatus.textContent='Textbook traceability: pending current-school metadata check.';
+   const button=document.getElementById('readinessUnitQualityFix');
+   if(button)button.onclick=()=>{if(window.EDUNIZAM_ROLE_SCOPE?.canView?.('lessoncenter'))window.EDUNIZAM_APP_NAV?.setView?.('lessoncenter')};
   }
   const card=x=>{
    const state=counts?.[x.key],value=countWord(state);
@@ -135,12 +153,49 @@
    return{status:'ok',count:result.count};
   }catch(_){return{status:'unknown'}}finally{clearTimeout(timer)}
  }
+
+ // Reports metadata completeness only, not correctness of actual textbooks.
+ function evaluateUnitMetadata(rows,total){
+  const records=Array.isArray(rows)?rows:[],reviewed=records.length;
+  const summary={status:Number(total)>reviewed?'sample':'ok',total:Number(total)||0,reviewed,
+   incomplete:0,missingChapter:0,missingTextbook:0,missingBoard:0,invalidEdition:0,invalidSource:0};
+  const value=v=>String(v??'').trim();
+  for(const row of records){
+   const chapter=!value(row?.unit_title),book=!value(row?.textbook_title),
+    board=!value(row?.curriculum_board),year=value(row?.edition_year),source=value(row?.source_url);
+   const edition=!!year&&(!/^\\d{4}$/.test(year)||Number(year)<1900||Number(year)>2100);
+   const unsafe=!!source&&!/^https:\/\/[^\s/]+/i.test(source);
+   summary.missingChapter+=Number(chapter);summary.missingTextbook+=Number(book);
+   summary.missingBoard+=Number(board);summary.invalidEdition+=Number(edition);
+   summary.invalidSource+=Number(unsafe);
+   if(chapter||book||board||edition||unsafe)summary.incomplete++;
+  }
+  return summary;
+ }
+ async function readUnitQuality(id,total){
+  if(!Number.isInteger(total)||total<0)return{status:'unknown'};
+  if(total===0)return{status:'empty',total:0,reviewed:0,incomplete:0};
+  const client=cloud()?.state?.client;
+  if(!client)return{status:'unknown'};
+  const controller=typeof AbortController!=='undefined'?new AbortController():null;
+  let request=client.from('syllabus_progress_units')
+   .select('unit_title,textbook_title,curriculum_board,edition_year,source_url')
+   .eq('institution_id',id).limit(1000);
+  if(controller&&typeof request.abortSignal==='function')request=request.abortSignal(controller.signal);
+  let timer;
+  const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller?.abort();reject(new Error('quality timeout'))},5800)});
+  try{
+   const {data,error}=await Promise.race([request,timeout]);
+   if(error||!Array.isArray(data))return{status:'unknown'};
+   return evaluateUnitMetadata(data,total);
+  }catch(_){return{status:'unknown'}}finally{clearTimeout(timer)}
+ }
  async function audit(){
   if(busy)return;
   const output=document.getElementById('readinessCloudStatus'),button=document.getElementById('readinessAuditBtn');
   if(!ready()){if(output)output.textContent='A verified school cloud session is required for record counts. No data has been changed.';return}
   if(role()!=='head'){if(output)output.textContent='Only the Head of Institute may audit school-wide record counts.';return}
-  busy=true;if(button){button.disabled=true;button.textContent='Checking school records…'}
+  busy=true;unitQuality=null;if(button){button.disabled=true;button.textContent='Checking school records…'}
   if(output)output.textContent='Reading counts for this school only. Unknown access results will not be treated as empty data.';
   const institution=cfg().institutionId,requestScope=scope();
   try{
@@ -157,6 +212,9 @@
      counts={...results};auditScope=requestScope;countRows();
      if(output)output.textContent=Object.keys(results).length+' / '+spec.length+' school data areas checked. All checks are read-only.';
    }
+   unitQuality=await readUnitQuality(institution,counts?.units?.status==='ok'?counts.units.count:null);
+   if(scope()!==requestScope){unitQuality=null;return}
+   countRows();
    const setupMissing=spec.filter(s=>!s.activity&&counts[s.key]?.status==='ok'&&counts[s.key].count===0).length;
    const activityZero=spec.filter(s=>s.activity&&counts[s.key]?.status==='ok'&&counts[s.key].count===0).length;
    const uncertain=spec.filter(s=>counts[s.key]?.status==='unknown').length;
@@ -170,14 +228,14 @@
   el.innerHTML='<article class="card"><div class="section-head"><div><h3>Reference Curriculum Data</h3><p class="muted">Indexed categories and concept topics are available for planning; they are not a certified exact textbook contents list.</p></div><span class="academic-pill">Grade 1–12</span></div>'+
    '<div class="form-grid"><label>Class / Grade<select id="readinessGrade">'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">Class '+(i+1)+'</option>').join('')+'</select></label><label>Subject<select id="readinessSubject"><option value="">All subjects</option></select></label></div><p id="readinessReferenceSummary" role="status" class="coverage-note"></p><div id="readinessTopicList"></div>'+
    '<p class="coverage-note">Verify your actual prescribed textbook edition, school subject allocation and chapter sequence. The topic index is a starting point, not a promise that a published exam is syllabus-correct.</p></article>'+
-   '<article class="card" style="margin-top:18px"><div class="section-head"><div><h3>School Data Availability</h3><p class="muted">28 school data areas: required setup first, optional activity in a collapsed section. Read-only current-school counts; no fake students, books or scores.</p></div><button id="readinessAuditBtn" type="button">Check School Data</button></div><p id="readinessCloudStatus" class="coverage-note" role="status">Not checked. Select Check School Data when you want to audit record availability.</p><div id="readinessNextSteps" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessCloudRows" class="paper-grid"></div>'+
+   '<article class="card" style="margin-top:18px"><div class="section-head"><div><h3>School Data Availability</h3><p class="muted">28 school data areas: required setup first, optional activity in a collapsed section. Read-only current-school counts; no fake students, books or scores.</p></div><button id="readinessAuditBtn" type="button">Check School Data</button></div><p id="readinessCloudStatus" class="coverage-note" role="status">Not checked. Select Check School Data when you want to audit record availability.</p><div id="readinessNextSteps" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessUnitQuality" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessCloudRows" class="paper-grid"></div>'+
    '<p class="coverage-note">Zero means no records were accessible to this account at audit time; it is not proof none exist. “Unknown” may mean RLS restrictions, unavailable access or a slow connection. Bank visibility depends on author sharing, and library inventory may not apply to every school. Nonzero counts do not verify accuracy, curriculum alignment or completion.</p></article>';
   document.getElementById('readinessGrade')?.addEventListener('change',refreshReference);
   document.getElementById('readinessSubject')?.addEventListener('change',renderTopics);
   document.getElementById('readinessAuditBtn')?.addEventListener('click',audit);
   refreshReference();countRows();
  }
- window.EDUNIZAM_DATA_READINESS={render,referenceSubjects:getSubjects,referenceTopics:getTopics,definitions:spec.map(x=>({key:x.key,table:x.table,view:x.view,activity:!!x.activity})),countOne,nextSteps,scope};
+ window.EDUNIZAM_DATA_READINESS={render,referenceSubjects:getSubjects,referenceTopics:getTopics,definitions:spec.map(x=>({key:x.key,table:x.table,view:x.view,activity:!!x.activity})),countOne,nextSteps,scope,evaluateUnitMetadata,readUnitQuality};
  if(document.readyState!=='loading')render();
  else document.addEventListener('DOMContentLoaded',render);
 })();
