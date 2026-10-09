@@ -51,7 +51,7 @@ ok(json.includes('What state is ice?')&&json.includes('Explain matter.'),
  'Practice OCR extraction failed to offer human-reviewable questions');
 node('practiceSourceReviewed').checked=true;
 const result=window.EDUNIZAM_PRACTICE_SOURCE.validateAndStart();
-ok(result?.valid===2,'Reviewed Grade 5 science OCR questions were not staged');
+ok(result?.valid===2,'Reviewed Grade 5 science OCR questions were not staged: '+node('practiceSourceStatus').textContent);
 const api=window.EDUNIZAM_PRACTICE_NAV;
 ok(api.status().total===2&&api.status().cursor===0,'Uploaded source did not start a two-question test');
 ok(node('practiceSourceOnly').checked,'Uploaded-question-only filter is not enabled');
