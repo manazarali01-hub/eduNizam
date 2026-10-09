@@ -96,7 +96,9 @@ function clearQuestionForm(){
  $('#qbCancelEdit')?.classList.add('hidden');
 }
 function questionFormValues(){
- const type=$('#qbType')?.value||'short',options=String($('#qbOptions')?.value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean),correct=Math.max(0,Number($('#qbCorrect')?.value||1)-1);
+ const type=$('#qbType')?.value||'short',options=String($('#qbOptions')?.value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean),rawCorrect=String($('#qbCorrect')?.value??'').trim();
+ // An empty, zero, fractional or out-of-range answer must not default to A.
+ const correct=/^[1-4]$/.test(rawCorrect)?Number(rawCorrect)-1:-1;
  return{className:$('#qbClass')?.value.trim()||'',subject:$('#qbSubject')?.value.trim()||'',chapter:$('#qbChapter')?.value.trim()||'',type,difficulty:$('#qbDifficulty')?.value||'Balanced',question:$('#qbQuestion')?.value.trim()||'',answer:$('#qbAnswer')?.value.trim()||'',options,correct,visibility:$('#qbAdmin')?.checked?'admin':'private'};
 }
 async function saveCustomQuestion(){
