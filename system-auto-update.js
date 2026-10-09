@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
-const BUILD='20261009-paper-builder-wizard-v42', KEY='edunizam_system_build';
-const ACTIVE_CACHE='edunizam-v274-paper-builder-wizard-v42';
+const BUILD='20261009-paper-source-ocr-v43', KEY='edunizam_system_build';
+const ACTIVE_CACHE='edunizam-v275-paper-source-ocr-v43';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
 function safeGet(k){try{return localStorage.getItem(k)}catch(_){return null}}
