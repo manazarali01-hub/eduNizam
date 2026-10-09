@@ -199,7 +199,7 @@ async function aiDraft(){
   if(source.length<50)throw Error('Readable source text (at least 50 characters) required.');
   if(!window.EDUNIZAM_AI?.ready?.())throw Error('AI unavailable without cloud login/provider; local OCR and manual question extraction remain usable.');
   status('Requesting source-grounded question draft. Only extracted text is sent, not the original file.');
-  const result=await window.EDUNIZAM_AI.ask(questionPrompt(source,cls,subject,chapter),{mode:'paper-source-draft',context:''});
+  const result=await window.EDUNIZAM_AI.ask(questionPrompt(source,cls,subject,chapter),{mode:'paper-source-draft',context:' '});
   displayDraft(normalizeDraft(stripJson(result?.answer||''),cls,subject,chapter));
  }catch(e){status('AI draft not available: '+String(e.message||e))}
  finally{asking=false;if(btn?.isConnected)btn.disabled=false}
