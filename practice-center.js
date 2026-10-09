@@ -2,7 +2,7 @@
   const D=window.EDUNIZAM_PRACTICE_DATA;if(!D)return;
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-  let current=[],timer=null,secondsLeft=0,lastConfig=null;
+  let current=[],timer=null,secondsLeft=0,lastConfig=null,cursor=0,answers=[];
 
   const history=()=>JSON.parse(localStorage.getItem('edunizam_practice_history')||'[]');
   const saveHistory=v=>localStorage.setItem('edunizam_practice_history',JSON.stringify(v.slice(-100)));
@@ -46,35 +46,64 @@
     const pool=shuffle(poolFor(c));
     if(!pool.length)return alert('No questions available for these filters yet.');
     current=pool.slice(0,Math.min(c.count,pool.length));
+    cursor=0;answers=current.map(()=>null);
     secondsLeft=c.minutes*60;
     $('practiceBuildPanel').classList.add('hidden');$('practiceResultPanel').classList.add('hidden');$('practiceTestPanel').classList.remove('hidden');
     const levelLabel=Number(c.cls)<=8?'Grade '+c.cls:'Class '+c.cls;
     $('practiceTestTitle').textContent='EduNizam concept practice · '+levelLabel+' · '+c.subject+(c.chapter?' · '+c.chapter:'')+(c.board?' · Target board: '+c.board:'');
     renderQuestions();tick();clearInterval(timer);timer=setInterval(()=>{secondsLeft--;tick();if(secondsLeft<=0){clearInterval(timer);submit()}},1000);
   }
+  function saveVisibleAnswer(){
+    const q=current[cursor];if(!q)return;
+    if(q.type==='mcq'){
+      const checked=document.querySelector('input[name="pq_'+cursor+'"]:checked');
+      answers[cursor]=checked?Number(checked.value):null;
+    }else{
+      answers[cursor]=document.querySelector('[data-text-answer="'+cursor+'"]')?.value||'';
+    }
+  }
+  function answeredCount(){return answers.filter((answer,i)=>current[i]?.type==='mcq'?Number.isInteger(answer):!!String(answer??'').trim()).length}
   function renderQuestions(){
-    $('practiceProgress').textContent=current.length+' questions';
-    $('practiceQuestions').innerHTML=current.map((q,i)=>{
-      let body='';
-      if(q.type==='mcq') body='<div class="practice-options">'+q.options.map((o,ix)=>'<label><input type="radio" name="pq_'+i+'" value="'+ix+'"> '+esc(o)+'</label>').join('')+'</div>';
-      else body='<textarea rows="'+(q.type==='long'?6:3)+'" data-text-answer="'+i+'" placeholder="Write your answer"></textarea>';
-      return '<article class="practice-question"><div class="practice-q-meta"><span>Q'+(i+1)+'</span><span class="mini-badge">'+esc(q.type.toUpperCase())+'</span><span class="mini-badge">'+esc(q.difficulty)+'</span></div><h3>'+esc(q.question)+'</h3>'+body+'</article>';
-    }).join('');
+    const q=current[cursor],area=$('practiceQuestions');if(!q||!area)return;
+    $('practiceProgress').textContent='Question '+(cursor+1)+' of '+current.length+' · '+answeredCount()+' answered';
+    let body='';
+    if(q.type==='mcq'){
+      body='<div class="practice-options">'+(q.options||[]).map((option,index)=>
+        '<label><input type="radio" name="pq_'+cursor+'" value="'+index+'" '+(answers[cursor]===index?'checked':'')+'> '+esc(option)+'</label>'
+      ).join('')+'</div>';
+    }else{
+      body='<textarea rows="'+(q.type==='long'?6:3)+'" data-text-answer="'+cursor+'" placeholder="Write your answer">'+esc(answers[cursor]||'')+'</textarea>';
+    }
+    area.innerHTML='<article class="practice-question"><div class="practice-q-meta"><span>Q'+(cursor+1)+' / '+current.length+'</span><span class="mini-badge">'+esc(q.type.toUpperCase())+'</span><span class="mini-badge">'+esc(q.difficulty)+'</span></div><h3>'+esc(q.question)+'</h3>'+body+'</article>';
+    const prev=$('practicePrevBtn'),next=$('practiceNextBtn');
+    if(prev)prev.disabled=cursor===0;
+    if(next){next.disabled=cursor===current.length-1;next.textContent=cursor===current.length-1?'Last Question':'Next Question →'}
+    area.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('change',()=>{
+      saveVisibleAnswer();$('practiceProgress').textContent='Question '+(cursor+1)+' of '+current.length+' · '+answeredCount()+' answered';
+    }));
+  }
+  function navigate(delta){
+    if(!current.length)return;
+    saveVisibleAnswer();
+    const target=Math.max(0,Math.min(current.length-1,cursor+delta));
+    if(target===cursor)return;
+    cursor=target;renderQuestions();
+    $('practiceTestPanel')?.scrollIntoView?.({behavior:'smooth',block:'start'});
   }
   function tick(){const m=Math.floor(secondsLeft/60),s=secondsLeft%60;$('practiceTimer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
   function submit(){
     if(!current.length)return;
     clearInterval(timer);
+    saveVisibleAnswer();
     let autoTotal=0,autoCorrect=0,weak=[];
     const details=current.map((q,i)=>{
       if(q.type==='mcq'){
         autoTotal++;
-        const el=document.querySelector('input[name="pq_'+i+'"]:checked');
-        const chosen=el?Number(el.value):null,correct=chosen===q.answer;
+        const chosen=Number.isInteger(answers[i])?answers[i]:null,correct=chosen===q.answer;
         if(correct)autoCorrect++;else weak.push({classLevel:q.classLevel,subject:q.subject,chapter:q.chapter});
         return {id:q.id,type:q.type,correct,chosen};
       }else{
-        const ans=document.querySelector('[data-text-answer="'+i+'"]')?.value.trim()||'';
+        const ans=String(answers[i]??'').trim();
         return {id:q.id,type:q.type,textAnswer:ans,manual:true};
       }
     });
@@ -88,7 +117,7 @@
   function renderReview(details){
     return '<div class="list">'+details.map((d,i)=>{const q=current[i];if(q.type==='mcq')return '<div class="practice-review '+(d.correct?'correct':'wrong')+'"><strong>Q'+(i+1)+': '+esc(q.question)+'</strong><div>'+ (d.correct?'Correct':'Correct answer: '+esc(q.options[q.answer]))+'</div><small>'+esc(q.explanation||'')+'</small></div>';return '<div class="practice-review"><strong>Q'+(i+1)+': '+esc(q.question)+'</strong><div class="muted">Suggested answer: '+esc(q.answerText||'Review with AI/teacher')+'</div></div>'}).join('')+'</div>';
   }
-  function cancel(){clearInterval(timer);current=[];$('practiceTestPanel').classList.add('hidden');$('practiceBuildPanel').classList.remove('hidden')}
+  function cancel(){clearInterval(timer);current=[];cursor=0;answers=[];$('practiceTestPanel').classList.add('hidden');$('practiceBuildPanel').classList.remove('hidden')}
   function retry(){cancel();if(lastConfig)start()}
   function updateStats(){
     const h=history(),best=h.length?Math.max(...h.map(x=>x.pct||0)):0,weakMap={};
@@ -129,9 +158,10 @@
   }
 
   $('practiceClass').addEventListener('change',fillSubjects);$('practiceSubject').addEventListener('change',fillChapters);
-  $('startPracticeBtn').onclick=start;$('submitPracticeBtn').onclick=submit;$('cancelPracticeBtn').onclick=cancel;$('retryPracticeBtn').onclick=retry;
+  $('startPracticeBtn').onclick=start;$('practicePrevBtn').onclick=()=>navigate(-1);$('practiceNextBtn').onclick=()=>navigate(1);$('submitPracticeBtn').onclick=submit;$('cancelPracticeBtn').onclick=cancel;$('retryPracticeBtn').onclick=retry;
   $('printPracticeBtn').onclick=printBuild;$('printResultBtn').onclick=()=>window.print();$('aiGenerateTestBtn').onclick=aiGenerate;
   document.querySelectorAll('[data-practice-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.practiceTab));
   window.renderPracticeCenter=()=>{fill();updateStats()};
+   window.EDUNIZAM_PRACTICE_NAV={start,next:()=>navigate(1),previous:()=>navigate(-1),submit,status:()=>({cursor,total:current.length,answered:answeredCount(),answers:answers.slice()})};
   fill();
 })();
