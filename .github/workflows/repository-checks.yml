@@ -61,6 +61,9 @@ jobs:
       - name: Verify Timetable and Date Sheet scoped cloud class syllabus dropdowns
         run: node scripts/schedule-cloud-directory-check.mjs
 
+      - name: Verify Daily Diary subject and chapter options use current school syllabus
+        run: node scripts/daily-diary-syllabus-dropdown-check.mjs
+
       - name: Verify public Matric Annual Past Papers and indexed archive fallback
         run: node scripts/guest-past-paper-search-check.mjs
 
