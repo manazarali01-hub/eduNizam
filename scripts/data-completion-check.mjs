@@ -10,7 +10,7 @@ const names=[
  'past-papers-data.js','practice-data.js','study-data.js','senior-curriculum-2026.js',
  'learning-premium-data.js','learning-complete-data.js','learning-required-data.js',
  'practice-foundation-data.js','practice-curriculum-expansion.js',
- 'practice-depth-data.js','practice-complete-data.js','practice-session-core.js'
+ 'practice-depth-data.js','punjab-quran-subjects-pack.js','practice-complete-data.js','practice-session-core.js'
 ];
 const win={};
 const context={window:win,console};
@@ -110,22 +110,34 @@ for(const gr of [11,12]){
 }
 requireOK(seniorResources.some(x=>x.id==='pef-secondary-content-book-2026-27'&&x.url==='https://pef.edu.pk/ADU/Downloads'),'PEF secondary 2026-27 official book directory missing');
 const lite={window:{}};
-try{runInNewContext(read('academic-option-catalog.js'),lite,{filename:'academic-option-catalog.js',timeout:1500})}
+try{runInNewContext(read('punjab-quran-subjects-pack.js'),lite,{filename:'punjab-quran-subjects-pack.js',timeout:1500});runInNewContext(read('academic-option-catalog.js'),lite,{filename:'academic-option-catalog.js',timeout:1500})}
 catch(error){failures.push('Lightweight Academic Option Catalog could not load: '+error.message)}
 const lightweight=lite.window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{};
 for(const pair of pairs){
  const a=pair.chapters.join('||'),b=(lightweight.chapters?.[pair.grade+'|'+pair.subject]||[]).join('||');
  requireOK(a===b,'Lightweight Lesson Planner topics out of sync: '+pair.grade+' / '+pair.subject);
 }
+// Verify PECTAA subject visibility without treating topics as prescribed textbook chapters.
+const qp=win.EDUNIZAM_PUNJAB_SUBJECT_PACK;
+requireOK(qp?.rows?.length===8,'Punjab source-backed Quran subject coverage must include Grades 1–8');
+requireOK(D.punjabQuranExpansion?.topicGroups===24&&D.punjabQuranExpansion?.authoredItemsAdded===72,'Missing 24 original Quran concept topic sets / 72 authored questions');
+for(const [grade,subject,topics] of qp?.rows||[]){
+ requireOK(subjects[String(grade)]?.includes(subject),'Grade '+grade+' missing '+subject);
+ requireOK(lightweight.subjects?.[String(grade)]?.includes(subject),'Lesson catalog missing Quran subject for Grade '+grade);
+ requireOK(topics.length===3,'Expected three original concepts per Grade '+grade);
+ requireOK(books.some(b=>b.id==='pectaa-quran-textbook-directory-'+grade&&b.url===qp.sourceUrl&&b.source==='official'&&b.curriculumStatus==='needs-verification'),'PECTAA textbook directory missing for Grade '+grade);
+ const authored=bank.filter(x=>x.classLevel===grade&&x.subject===subject&&String(x.id).startsWith('pq-'));
+ requireOK(authored.length===9,'Grade '+grade+' missing nine original MCQ and written practice items');
+}
 const app=read('app.html'),learn=read('learn.html'),features=read('feature-loader.js'),guest=read('guest-learning-premium.js'),lesson=read('lesson-plan-center.js');
-requireOK(features.includes("lessonCatalog:['academic-option-catalog.js']"),'Lesson Planner not using lightweight subject-topic catalog');
+requireOK(features.includes("lessonCatalog:['punjab-quran-subjects-pack.js','academic-option-catalog.js']"),'Lesson Planner not using source-enriched subject-topic catalog');
 requireOK(lesson.includes('EDUNIZAM_ACADEMIC_OPTION_CATALOG'),'Lesson Planner not reading lightweight options');
 for(const grade of grades){
  requireOK(app.includes('<option value="'+grade+'">'+(grade<=8?'Grade':'Class')+' '+grade+'</option>'),'App practice selector omits Grade '+grade);
  requireOK(app.includes('<option value="'+grade+'">Class '+grade+'</option>'),'Study selector omits Grade '+grade);
 }
-requireOK(features.includes("'practice-foundation-data.js'"),'Authenticated feature-loader is not loading foundation catalog');
-requireOK(learn.includes('practice-foundation-data.js'),'Guest Learning Hub is not loading foundation catalog');
+requireOK(features.includes("'practice-foundation-data.js'")&&features.includes("'punjab-quran-subjects-pack.js'"),'Authenticated feature-loader is not loading source-backed practice catalog');
+requireOK(learn.includes('practice-foundation-data.js')&&learn.includes('punjab-quran-subjects-pack.js'),'Guest Learning Hub is not loading source-backed practice catalog');
 requireOK(features.includes("'senior-curriculum-2026.js'"),'Authenticated Study Library is not loading 2026 senior curriculum');
 requireOK(learn.includes('senior-curriculum-2026.js'),'Guest Study Library is not loading 2026 senior curriculum');
 for(const id of ['lpPlanSubjects','lpPlanTopics','lpUnitSubjects','lpUnitTopics'])requireOK(lesson.includes('id="'+id+'"'),'Lesson/Syllabus form is missing '+id);
