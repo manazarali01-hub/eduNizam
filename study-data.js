@@ -81,3 +81,53 @@ window.EDUNIZAM_STUDY_DATA={
     grades:Object.keys(byGrade).map(Number),entries:added
   };
 })();
+
+/* EDUNIZAM_PEF_2026_27_RESOURCES
+ * Official PEF 2026–27 content books and class-linked assessment samples.
+ * External official PDFs remain hosted by PEF; no textbook or model-question
+ * reproduction here. A QAT sample is not an official school exam paper.
+ * Direct file URLs below come from the official ADU download/model pages. */
+(function(){
+  const D=window.EDUNIZAM_STUDY_DATA;
+  if(!Array.isArray(D?.materials))return;
+  const base='https://www.pef.edu.pk';
+  const shared={board:'Punjab Education Foundation',subject:'All Subjects',source:'official',
+    authorityId:'punjab-pectaa',curriculumStatus:'needs-verification'};
+  const sources=[
+    {id:'pef-content-primary-2026-27',classLevels:[1,2,3,4,5],
+     type:'Syllabus',title:'PEF 2026–27 — Primary Content Book & SLOs (Class 1–5)',
+     url:base+'/pdf/downloads/Content-List/Content%20Book%20Primary%2020-4-2026.pdf',
+     note:'Official PEF 2026–27 primary content book. Follow class/subject SLOs; verify the precise school textbook/medium and whether PEF-QAT guidance applies.'},
+    {id:'pef-content-middle-2026-27',classLevels:[6,7,8],
+     type:'Syllabus',title:'PEF 2026–27 — Middle Content Book & SLOs (Class 6–8)',
+     url:base+'/pdf/downloads/Content-List/Content%20Book%20Middle%2020-4-2026.pdf',
+     note:'Official PEF 2026–27 middle-school SLO content book. Includes subject, month/week and topic guidance. Confirm the school syllabus and current prescribed textbooks.'}
+  ];
+  const modelPage=base+'/ADU/Model_Papers202627';
+  const verifiedGradePdfs=new Set([1,3,5,7,8]);
+  for(let grade=1;grade<=8;grade++){
+    const direct=verifiedGradePdfs.has(grade);
+    const pdf=base+'/pdf/downloads/Model-Papers/A.Y%202026-27/class%20'+grade+'.pdf';
+    sources.push({
+      id:'pef-qat-model-2026-27-grade-'+grade,
+      classLevels:[grade],type:'Model Papers',
+      title:'Class '+grade+' — Official PEF QAT Model Paper (2026–27)',
+      url:direct?pdf:modelPage,...(direct?{fileUrl:pdf}:{}),
+      note:direct?
+        'PEF official 2026–27 class-'+grade+' model PDF. Illustrates the QAT test pattern only; not a guarantee of the exact school paper or taught syllabus.':
+        'Official PEF 2026–27 class-wise model-paper page; choose Class '+grade+' to open its resource. Link deliberately points to the official listing rather than an unverified direct PDF.'
+    });
+  }
+  const ids=new Set(D.materials.map(m=>m.id));
+  for(const row of sources){
+    if(ids.has(row.id))continue;
+    D.materials.push({...shared,...row,...(/\\.pdf$/i.test(row.url)?{fileUrl:row.url}:{})});
+    ids.add(row.id);
+  }
+  window.EDUNIZAM_PEF_2026_27_RESOURCES={
+    source:'https://www.pef.edu.pk/ADU/Downloads',
+    modelPage,grades:[1,2,3,4,5,6,7,8],
+    contentBooks:2,modelPaperGrades:8,directModelPdfs:[...verifiedGradePdfs],
+    caveat:'Official PEF QAT models are assessment examples; current school textbooks and syllabus must still be confirmed.'
+  };
+})();
