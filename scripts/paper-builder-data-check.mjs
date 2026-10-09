@@ -154,6 +154,16 @@ pass(auditAPI.sameClass('Grade 1','1'),'Grade 1 class label must match numeric c
 pass(!auditAPI.sameClass('Grade 1','Grade 11'),'Grade 1 must not match Grade 11');
 pass(!auditAPI.usable({...math1,options:['same','same','different','last']},'mcq',false),'Duplicate MCQ options must be rejected');
 pass(!auditAPI.usable({...math1,answer:99},'mcq',false),'Out-of-range answer index must be rejected');
+// Missing/blank legacy answer keys used to coerce to 0 (option A).
+for(const invalidAnswer of [null,undefined,'','   ',false,'0.0','-1',4]){
+ pass(!auditAPI.usable({...math1,answer:invalidAnswer},'mcq',false),'Practice MCQ missing/invalid answer was accepted: '+String(invalidAnswer));
+ pass(!auditAPI.usable({...math1,question_text:math1.question,correct_option:invalidAnswer},'mcq',true),'Teacher MCQ missing/invalid answer was accepted: '+String(invalidAnswer));
+}
+pass(auditAPI.usable({...math1,answer:0},'mcq',false),'Valid zero-based answer A was rejected');
+pass(auditAPI.usable({...math1,question_text:math1.question,correct_option:'0'},'mcq',true),'Valid string zero-based teacher option was rejected');
+const invalidOnly=auditAPI.audit({className:'1',subject:'Mathematics',chapters:[math1.chapter],
+ teacherQuestions:[],practiceQuestions:[{...math1,id:'blank-answer-regression',answer:null}]});
+pass(invalidOnly.missingChapters.length===1&&invalidOnly.totals.mcq===0,'Incomplete answers falsely counted as ready syllabus questions');
 pass(!auditAPI.usable({question:'Explain why',type:'short',answerText:'',explanation:''},'short',false),'Missing subjective answer guide must be rejected');
 pass(!auditAPI.usable({question:'Explain why',type:'short',answer_text:''},'short',true),'Teacher written question requires a real marking guide');
 const sameQuestionTeacher={class_name:'Grade 1',subject:'Mathematics',chapter:math1.chapter,question_type:'mcq',question_text:math1.question,options:[...math1.options],correct_option:math1.answer,active:true,difficulty:'Balanced'};
