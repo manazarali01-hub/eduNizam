@@ -15,7 +15,7 @@ const storage=new Map([
 const localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,String(v))};
 const nodes=new Map();
 function el(id){
- if(!nodes.has(id))nodes.set(id,{id,value:'',innerHTML:'',textContent:'',dataset:{},classList:{add(){},remove(){}},querySelectorAll:()=>[],addEventListener(){}});
+ if(!nodes.has(id))nodes.set(id,{id,value:'',innerHTML:'',textContent:'',dataset:{},classList:{add(){},remove(){}},querySelectorAll:()=>[],addEventListener(){},setAttribute(){},removeAttribute(){},isConnected:true});
  return nodes.get(id);
 }
 const document={
@@ -51,9 +51,16 @@ const samples={
 };
 const calls=[];
 const client={from(table){
- const filters={};
+ const filters={};let insertPayload=null;
  return {
   select(){return this},eq(k,v){filters[k]=v;return this},limit(){return this},order(){return this},
+  insert(payload){insertPayload=payload;return this},
+  single(){
+    if(!insertPayload)return Promise.resolve({data:null,error:{message:'Missing insert'}});
+    const row={...insertPayload,id:'e21b8a7e-a2ee-465d-9fbe-bb16c38ee45b'};
+    samples[insertPayload.institution_id][table].push(row);
+    return Promise.resolve({data:row,error:null});
+  },
   then(resolve,reject){
    calls.push({table,filters:{...filters}});
    const rows=(samples[filters.institution_id]?.[table]||[]).filter(x=>!Object.hasOwn(filters,'active')||x.active===filters.active);
@@ -68,7 +75,8 @@ const window={
  EDUNIZAM_ACADEMIC_OPTION_CATALOG:{subjects:{5:['Mathematics','English'],8:['Mathematics']}},
  addEventListener(){},open(){return null}
 };
-const ctx={window,document,localStorage,console,setTimeout:()=>0,clearTimeout(){},Date,AbortController};
+const alerts=[];
+const ctx={window,document,localStorage,console,setTimeout:()=>0,clearTimeout(){},Date,AbortController,alert:msg=>alerts.push(String(msg)),confirm:()=>true};
 runInNewContext(read('academic-form-options.js'),ctx,{filename:'academic-form-options.js'});
 runInNewContext(read('timetable-date-sheet.js'),ctx,{filename:'timetable-date-sheet.js'});
 const api=window.EDUNIZAM_TIMETABLE_DATESHEET;
@@ -115,6 +123,16 @@ check(el('scheduleCenterApp').innerHTML.includes('Refresh Classes & Syllabus'),'
 el('scheduleCenterApp').dataset.tab='datesheet';
 await api.render();
 check(el('scheduleCenterApp').innerHTML.includes('Final')&&!el('scheduleCenterApp').innerHTML.includes('Previous School Exam'),'Date Sheet tab showed previous-school exam after refresh');
+// A successful Supabase insert must not throw "Assignment to constant
+// variable" when its returned row replaces the draft item.
+for(const [id,value] of Object.entries({
+ ttEditId:'',ttClass:'8|D',ttDay:'Thursday',ttPeriod:'4',
+ ttStart:'12:00',ttEnd:'12:40',ttSubject:'English',ttTeacher:'',ttRoom:''
+}))el(id).value=value;
+el('ttSave');
+await api.saveTimetable();
+check(!alerts.length,'Successful cloud timetable save incorrectly reported an error: '+alerts.join(' / '));
+check(api.currentTimetable().some(x=>x.subject==='English'&&x.day==='Thursday'&&x.id==='e21b8a7e-a2ee-465d-9fbe-bb16c38ee45b'),'Cloud-confirmed timetable period was not saved back to the current school');
 storage.set('edunizam_session',JSON.stringify({role:'teacher'}));
 window.EDUNIZAM_ROLE_SCOPE.teacherClassKeys=()=>new Set(['8|c']);
 check(api.classSections().length===0,'Cloud directory cache should be role-scoped after head to teacher change');
