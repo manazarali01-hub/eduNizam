@@ -18,7 +18,7 @@ async function boundedRead(key,builder,{timeout=7000,retries=1,cacheMs=0,label='
   return runtime?runtime.run(key,execute,{timeout,retries,cacheMs,label}):execute({});
 }
 const students=()=>{try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}};
-const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students();
+const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[];
 let editingId='',teacherClasses=[],diarySaveInFlight=false;
 const diaryDeleteInFlight=new Set();
 
