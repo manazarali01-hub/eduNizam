@@ -4265,3 +4265,62 @@ body.learning-sky{
   .auth-page .role small{font-size:.75rem!important}
   .page-app .main .topbar-title h1{font-size:1.65rem!important}
 }
+
+/* Data Readiness Center · real data clarity with individual natural-glass treatment */
+.page-app #datareadiness {
+  --ready-ink:#143b34;
+  --ready-edge:rgba(55,124,99,.31);
+  color:var(--ready-ink);
+}
+.page-app #datareadiness>.section-head{
+  border:1px solid var(--ready-edge);
+  border-radius:22px;
+  background:linear-gradient(122deg,rgba(221,241,227,.95),rgba(237,247,240,.89) 54%,rgba(238,247,241,.86));
+  box-shadow:0 16px 44px rgba(25,84,61,.09);
+  padding:24px 27px;
+}
+.page-app #datareadiness>.section-head h2{color:#173d35;letter-spacing:-.03em}
+.page-app #datareadiness>.section-head p{color:#31584e}
+.page-app #datareadiness #dataReadinessApp>.card{
+  border:1px solid var(--ready-edge);
+  border-radius:20px;
+  background:linear-gradient(145deg,rgba(250,255,250,.96),rgba(234,249,237,.90));
+  box-shadow:0 10px 29px rgba(38,92,65,.08);
+  color:#174238;
+}
+.page-app #datareadiness #dataReadinessApp .paper-card{
+  border:1px solid rgba(70,143,112,.26);
+  background:rgba(255,255,255,.85);
+  box-shadow:0 5px 16px rgba(26,83,62,.055);
+  border-radius:16px;
+}
+.page-app #datareadiness #dataReadinessApp select{
+  background-color:#fafffa;
+  border:1.5px solid #9dc7a9;
+  color:#15382f;
+  min-height:45px;
+}
+.page-app #datareadiness #dataReadinessApp button{
+  min-height:43px;
+  border-radius:12px;
+  font-weight:700;
+}
+.page-app #datareadiness #dataReadinessApp .coverage-note{
+  color:#31574b;
+  border:1px solid rgba(68,138,101,.16);
+  background:rgba(236,248,235,.79);
+  border-radius:14px;
+  line-height:1.55;
+}
+.page-app #datareadiness #dataReadinessApp .mini-badge{
+  color:#205746;
+  background:#e6f3e9;
+  border:1px solid #bbdec5;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+@media(max-width:720px){
+ .page-app #datareadiness>.section-head{padding:17px 15px;border-radius:18px}
+ .page-app #datareadiness #dataReadinessApp>.card{padding:16px!important}
+ .page-app #datareadiness #dataReadinessApp .paper-card{padding:13px!important}
+}
