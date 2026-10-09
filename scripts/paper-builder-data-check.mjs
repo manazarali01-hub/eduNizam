@@ -19,6 +19,19 @@ runInNewContext(read('teacher-paper-builder.js'),context,{filename:'teacher-pape
 const build=window.EDUNIZAM_PAPER_BUILDER?.build;
 if(typeof build!=='function')throw new Error('Paper Builder build API is not available');
 const pass=(ok,message)=>{if(!ok)throw new Error(message)};
+
+const recommend=window.EDUNIZAM_PAPER_BUILDER?.recommendPaperChapters;
+pass(typeof recommend==='function','Missing chapter recommendation engine');
+const readyDraft=recommend('1','Mathematics',20,'Balanced','Objective Heavy');
+pass(readyDraft.ready&&readyDraft.source==='reference'&&readyDraft.topics.length>0,'Grade 1 Mathematics should recommend indexed chapter choices');
+const readyPaper=build('Mathematics',readyDraft.topics,20,'Balanced','Objective Heavy','1');
+pass(readyPaper.totalMarks===20&&readyPaper.sourceStats.templateFallback===0,'Recommended chapters cannot build a real-question draft');
+const nothing=recommend('9','Nonexistent Study Subject',20,'Balanced','Balanced');
+pass(!nothing.ready&&!nothing.topics.length,'Absent questions falsely recommend ready paper');
+const teacherEmpty=recommend('1','Mathematics',20,'Balanced','Objective Heavy',{teacherOnly:true});
+pass(!teacherEmpty.ready,'Teacher-only mode must not suggest unapproved public questions');
+pass(!recommend('1','Mathematics',9,'Balanced','Balanced').ready,'Invalid 9-mark total was recommended');
+
 const topics=window.EDUNIZAM_PRACTICE_DATA.chapters['1|Mathematics'];
 pass(topics.length>=4,'Grade 1 Mathematics test chapters missing');
 let checked=0;
@@ -76,6 +89,13 @@ pass(typeof schoolChoice==='function','Paper Builder has no school-record syllab
 pass(schoolChoice('9','Mathematics',schoolUnits).length===2,'School syllabus should exclude duplicates and other grade/subjects');
 pass(schoolChoice('10','Mathematics',schoolUnits).length===1,'School syllabus grade isolation failed');
 pass(schoolChoice('9','Chemistry',schoolUnits).length===0,'School syllabus subject isolation failed');
+const liveCatalog=window.EDUNIZAM_PAPER_BUILDER.getSchoolCatalog();
+const originalUnits=liveCatalog.units;
+liveCatalog.units=[{class_name:'Grade 1',subject:'Mathematics',unit_title:'School unit with no available questions'}];
+const restricted=recommend('1','Mathematics',20,'Balanced','Objective Heavy');
+pass(!restricted.ready&&restricted.source==='school'&&!restricted.topics.length,'School-recorded chapters were silently replaced by unrelated concept topics');
+liveCatalog.units=originalUnits;
+
 const joined=choices('9','Mathematics',[],schoolUnits);
 pass(joined[0]==='Real textbook Unit 01'&&joined[1]==='Real textbook Unit 02','School records must be listed ahead of concept suggestions');
 pass(joined.includes('Real and Complex Numbers'),'Existing concept topics must remain as separate, unverified suggestions');
