@@ -18,6 +18,9 @@ const rows=[
 const found=A.registeredSections(rows);
 pass(found.length===3,'Inactive or duplicate class sections should not be offered');
 pass(A.sections('5',rows).join('|')==='A|B','Sections A and B of same class were merged');
+pass(A.sections('Grade 5',rows).join('|')==='A|B','Equivalent Grade 5 section choices were empty');
+pass(A.sectionMatches('Class 5','A',rows),'Class 5 could not select genuine section A');
+pass(!A.sectionMatches('Class 6','A',rows),'Class 5 section leaked into Grade 6');
 pass(A.sectionMatches('5','A',rows)&&!A.sectionMatches('5','C',rows),'Unregistered section was accepted');
 pass(A.classIsKnown('9',rows)&&!A.classIsKnown('12',rows),'Phantom classes must not be marked registered');
 const catalog={subjects:{5:['Mathematics','English'],9:['Physics']},chapters:{'5|Mathematics':['Decimals','Fractions'],'9|Physics':['Dynamics']}};
@@ -53,6 +56,7 @@ for(const x of ['function registeredClasses()','function savedUnits()','syllabus
  pass(lesson.includes(x),'Lesson Plan registered-school dropdown or save guard missing: '+x);
 pass(!lesson.includes("['Play Group','Nursery','Prep',...Array.from({length:12}"),'Lesson Plan has fake default class options');
 pass(lesson.includes('window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.registeredSections(rows)'), 'Lesson Plan scope not using actual school/role records');
+pass(lesson.includes('EDUNIZAM_ACADEMIC_FORM_OPTIONS?.sections(cls,registeredClasses())'),'Lesson Plan did not use grade-aware real sections');
 pass(lesson.includes('school-saved syllabus unit(s)')&&lesson.includes('unverified concept suggestion(s)'), 'School chapters and conceptual topics must be labeled differently');
 const diary=read('daily-class-diary.js');
 pass(diary.includes("esc(x.class_name+'|'+(x.section_name||''))"), 'Same-grade Diary class A / B section values not unique');
