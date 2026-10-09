@@ -40,6 +40,10 @@ jobs:
       - name: Block incomplete curriculum/question catalog
         run: node scripts/data-completion-check.mjs
 
+
+      - name: Gate real question paper marks and school dropdowns
+        run: node scripts/paper-builder-data-check.mjs
+
       - name: Install pinned Playwright runtime for interaction gate
         shell: bash
         run: |
