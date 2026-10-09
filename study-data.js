@@ -121,7 +121,7 @@ window.EDUNIZAM_STUDY_DATA={
   const ids=new Set(D.materials.map(m=>m.id));
   for(const row of sources){
     if(ids.has(row.id))continue;
-    D.materials.push({...shared,...row,...(/\\.pdf$/i.test(row.url)?{fileUrl:row.url}:{})});
+    D.materials.push({...shared,...row,...(String(row.url||'').toLowerCase().endsWith('.pdf')?{fileUrl:row.url}:{})});
     ids.add(row.id);
   }
   window.EDUNIZAM_PEF_2026_27_RESOURCES={
