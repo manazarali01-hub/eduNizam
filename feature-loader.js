@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-verified-pef-v7';
+  const VERSION='20261009-senior-curriculum-v8';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -10,6 +10,7 @@
       'university-data.js',
       'vu-course-catalog.js',
       'study-data.js',
+      'senior-curriculum-2026.js',
       'learning-premium-data.js',
       'learning-complete-data.js',
       'learning-required-data.js'
