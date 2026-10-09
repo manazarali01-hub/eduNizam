@@ -7,8 +7,23 @@
   const identity=()=>String(session()?.identity||'');
   const canEdit=()=>['head','teacher'].includes(role());
   const nowDate=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-  function read(){try{return Object.assign({announcements:[],homework:[],submissions:[],timetable:[]},JSON.parse(localStorage.getItem(KEY)||'{}'))}catch{return{announcements:[],homework:[],submissions:[],timetable:[]}}}
-  function write(v){localStorage.setItem(KEY,JSON.stringify(v))}
+  const emptySchoolWork=()=>({announcements:[],homework:[],submissions:[],timetable:[]});
+  const cacheScopeKey='edunizam_school_work_scope_v1';
+  const cacheScope=()=>[String(cfg().institutionId||''),String(cloud()?.state?.user?.id||''),role()].join('|');
+  function read(){
+    // The legacy shared localStorage key can contain another school's data.
+    // Until current school cloud records are loaded, show empty rather than
+    // rendering cached student submissions/assignment details.
+    if(cloudReady()&&localStorage.getItem(cacheScopeKey)!==cacheScope())return emptySchoolWork();
+    try{
+      const parsed=JSON.parse(localStorage.getItem(KEY)||'{}');
+      return Object.assign(emptySchoolWork(),parsed&&typeof parsed==='object'&&!Array.isArray(parsed)?parsed:{});
+    }catch{return emptySchoolWork()}
+  }
+  function write(v){
+    localStorage.setItem(KEY,JSON.stringify(v));
+    localStorage.setItem(cacheScopeKey,cloudReady()?cacheScope():'');
+  }
   const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
   const cloud=()=>window.EDUNIZAM_CLOUD;
   function cloudReady(){const c=cloud(),x=cfg();return !!(x.enabled&&x.institutionId&&c?.state?.client&&c?.state?.user)}
