@@ -12,7 +12,7 @@
   const actorId=()=>String(cloud()?.state?.user?.id||identity());
   let examScheduleSaveInFlight=false;
   const examScheduleDeleteInFlight=new Set();
-  let directoryRows=[],directoryScope='',directoryLoaded=false;
+  let directoryRows=[],directoryScope='',directoryLoaded=false,loadedScheduleScope='';
   const currentDirectoryScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
   const registeredSections=()=>{
     let rows=[];
@@ -98,13 +98,14 @@
 
   async function pullCloud(){
     if(!cloudReady())return readSchedule();
-    const inst=cfg().institutionId;
-    const result=await runCloud('exam-schedule-load:'+inst,'Exam schedule',async({signal}={})=>{
+    const inst=cfg().institutionId,scope=currentDirectoryScope();
+    const result=await runCloud('exam-schedule-load:'+scope,'Exam schedule',async({signal}={})=>{
       let q=cloud().state.client.from('exam_schedule_entries').select('*').eq('institution_id',inst).order('exam_date').order('start_time');
       q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
     },{timeout:7000,retries:1});
     const mapped=(result.data||[]).map(x=>({id:x.id,className:x.class_name,sectionName:x.section_name||'',examName:x.exam_name,subject:x.subject,examDate:x.exam_date,startTime:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',totalMarks:Number(x.total_marks||0),roomLabel:x.room_label||'',notes:x.notes||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}));
-    writeSchedule(mapped);return mapped;
+    if(!cloudReady()||scope!==currentDirectoryScope())return[];
+    writeSchedule(mapped);loadedScheduleScope=scope;return mapped;
   }
   async function insertCloud(x){
     if(!cloudReady())return null;
@@ -280,12 +281,24 @@
 
   async function render(){
     const root=$('examCenterApp');if(!root)return;
-    if(role()==='head'&&cloudReady())await loadClassDirectory();
     let schedule=readSchedule();
-    if(cloudReady()&&!root.dataset.cloudLoaded){
-      root.dataset.cloudLoaded='1';
-      try{schedule=await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Exam schedule cloud sync:',e.message)}
-    }
+    const scope=cloudReady()?currentDirectoryScope():'';
+    const needsSchedule=cloudReady()&&(!root.dataset.cloudLoaded||root.dataset.cloudScope!==scope);
+    const classJob=role()==='head'&&cloudReady()?loadClassDirectory():Promise.resolve();
+    if(needsSchedule){
+      root.dataset.cloudLoaded='1';root.dataset.cloudScope=scope;
+      try{
+        const [fresh]=await Promise.all([pullCloud(),classJob]);
+        schedule=fresh;
+      }catch(e){
+        root.dataset.cloudLoaded='';
+        schedule=[];
+        console.warn('Exam schedule cloud sync:',e.message);
+      }
+    }else await classJob;
+    // Current school data only. A stale local cache from a previous school
+    // must never become the head's schedule after a switch or fetch failure.
+    if(cloudReady()&&loadedScheduleScope!==currentDirectoryScope())schedule=[];
     schedule=schedule.filter(x=>classVisible(x.className)).sort((a,b)=>String(a.examDate).localeCompare(String(b.examDate))||String(a.startTime).localeCompare(String(b.startTime)));
     const classes=[...new Set(schedule.map(x=>x.className).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
     const types=[...new Set(schedule.map(x=>x.examName).filter(Boolean))].sort();
