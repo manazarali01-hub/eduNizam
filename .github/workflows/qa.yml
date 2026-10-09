@@ -61,6 +61,9 @@ jobs:
         run: node scripts/result-dashboard-scope-check.mjs
 
       - name: Verify Practice Next Previous navigation and answer persistence
+        run: node scripts/practice-document-upload-check.mjs
+
+      - name: Verify existing Practice Next Previous navigation
         run: node scripts/practice-navigation-check.mjs
 
       - name: Verify VU course selectors and catalog-only study workflows
