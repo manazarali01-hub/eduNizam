@@ -86,7 +86,7 @@
     // Registration must not wait for large background photos / advertising
     // resources. The SW's network-first navigation protects the cold launch.
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('./sw.js?v=20261009-paper-source-ocr-v43',{updateViaCache:'none'})
+      navigator.serviceWorker.register('./sw.js?v=20261009-practice-source-v44',{updateViaCache:'none'})
         .then(reg=>reg.update())
         .catch(()=>{});
     }
