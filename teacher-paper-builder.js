@@ -215,7 +215,14 @@ function refreshPaperCatalog(){
     links.push('<a href="https://pectaa.edu.pk/books-and-publications/" target="_blank" rel="noopener noreferrer">PECTAA official class-wise eBooks / textbooks</a>');
     links.push('<a href="https://pef.edu.pk/ADU/Downloads" target="_blank" rel="noopener noreferrer">PEF 2026–27 content lists & model papers</a>');
   }
-  for(const x of materials.slice(0,3)){const u=x.fileUrl||x.url;if(urlAllowed(u))links.push('<a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+esc(x.title)+'</a>')}
+  const ranked=materials.slice().sort((a,b)=>{
+    const relevance=x=>/^pef-content-(primary|middle)-2026-27$/.test(x.id||'')?5:
+      /^pef-qat-model-2026-27-grade-/.test(x.id||'')?4:
+      /^pectaa-book-search-/.test(x.id||'')?3:
+      /^pectaa-official-ebooks-grade-/.test(x.id||'')?2:1;
+    return relevance(b)-relevance(a);
+  });
+  for(const x of ranked.slice(0,4)){const u=x.fileUrl||x.url;if(urlAllowed(u))links.push('<a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+esc(x.title)+'</a>')}
   holder.innerHTML='<strong>Official syllabus / textbook sources:</strong> '+(links.length?links.join(' · '):'No official source mapped')+'<br>Check the latest edition, board scheme and actually taught chapters before publishing. Topic names in EduNizam are study references, not a certified copy of an entire textbook.';
 }
 function updateBankInsight(){
