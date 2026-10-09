@@ -71,7 +71,7 @@
    study:['study','violet'],schoolassessments:['exam','green'],universities:['landmark','blue'],
    competitive:['award','amber'],ecosystem:['target','rose'],pathways:['route','sky'],
    vu:['laptop','violet'],admissions:['receipt','teal'],assistant:['sparkle','violet'],
-   settings:['gears','blue'],troubleshoot:['wrench','amber'],help:['support','green']
+   datareadiness:['results','teal'],settings:['gears','blue'],troubleshoot:['wrench','amber'],help:['support','green']
  };
  const groupIcons={Core:['grid','sky'],'People & Campus':['users','teal'],
    Academics:['book','violet'],'Finance & Operations':['wallet','amber'],
