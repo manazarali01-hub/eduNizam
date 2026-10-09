@@ -32,6 +32,7 @@
     const set=new Set();
     visibleStudents().forEach(s=>{if(s.className)set.add(String(s.className))});
     try{JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]').forEach(x=>{if(x.className)set.add(String(x.className))})}catch(_){}
+    if(isHead()){['Play Group','Nursery','Prep',...Array.from({length:12},(_,i)=>String(i+1))].forEach(x=>set.add(x))}
     return [...set].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   }
   function relevantToFamily(x){
@@ -109,14 +110,14 @@
       '<input id="lpPlanEditId" type="hidden" value="'+esc(edit?.id||'')+'">'+
       '<select id="lpPlanClass"><option value="">Select class</option>'+classOptions().map(c=>'<option value="'+esc(c)+'" '+(edit?.className===c?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select>'+
       '<input id="lpPlanSection" placeholder="Section (optional)" value="'+esc(edit?.sectionName||'')+'">'+
-      '<input id="lpPlanSubject" placeholder="Subject" value="'+esc(edit?.subject||'')+'">'+
+      '<input id="lpPlanSubject" list="lpPlanSubjects" placeholder="Subject (choose from catalog)" value="'+esc(edit?.subject||'')+'"><datalist id="lpPlanSubjects"></datalist>'+
       '<input id="lpWeekStart" type="date" value="'+esc(edit?.weekStart||today())+'">'+
-      '<input id="lpTopic" placeholder="Main topic / chapter" value="'+esc(edit?.topic||'')+'">'+
+      '<input id="lpTopic" list="lpPlanTopics" placeholder="Main topic / chapter (or custom)" value="'+esc(edit?.topic||'')+'"><datalist id="lpPlanTopics"></datalist>'+
       '<textarea id="lpObjectives" rows="2" placeholder="Learning objectives">'+esc(edit?.objectives||'')+'</textarea>'+
       '<textarea id="lpActivities" rows="2" placeholder="Teaching activities / method">'+esc(edit?.activities||'')+'</textarea>'+
       '<input id="lpHomework" placeholder="Homework / follow-up (optional)" value="'+esc(edit?.homeworkNote||'')+'">'+
       '<select id="lpPlanStatus">'+['Draft','Published','Completed'].map(x=>'<option '+(edit?.status===x?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
-      '<button id="lpSavePlan">'+(edit?'Update Plan':'Save Plan')+'</button>'+(edit?'<button id="lpCancelPlan" class="secondary">Cancel</button>':'')+
+      '<p id="lpPlanCatalogNote" class="coverage-note" style="grid-column:1/-1">Choose class and subject to load suggested topics.</p><button id="lpSavePlan">'+(edit?'Update Plan':'Save Plan')+'</button>'+(edit?'<button id="lpCancelPlan" class="secondary">Cancel</button>':'')+
       '</div></article>';
   }
   function unitEditor(edit=null){
@@ -125,13 +126,13 @@
       '<input id="lpUnitEditId" type="hidden" value="'+esc(edit?.id||'')+'">'+
       '<select id="lpUnitClass"><option value="">Select class</option>'+classOptions().map(c=>'<option value="'+esc(c)+'" '+(edit?.className===c?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select>'+
       '<input id="lpUnitSection" placeholder="Section (optional)" value="'+esc(edit?.sectionName||'')+'">'+
-      '<input id="lpUnitSubject" placeholder="Subject" value="'+esc(edit?.subject||'')+'">'+
-      '<input id="lpUnitTitle" placeholder="Unit / chapter title" value="'+esc(edit?.unitTitle||'')+'">'+
+      '<input id="lpUnitSubject" list="lpUnitSubjects" placeholder="Subject (choose from catalog)" value="'+esc(edit?.subject||'')+'"><datalist id="lpUnitSubjects"></datalist>'+
+      '<input id="lpUnitTitle" list="lpUnitTopics" placeholder="Syllabus unit (or custom)" value="'+esc(edit?.unitTitle||'')+'"><datalist id="lpUnitTopics"></datalist>'+
       '<input id="lpTargetEnd" type="date" value="'+esc(edit?.targetEnd||'')+'">'+
       '<input id="lpCompletion" type="number" min="0" max="100" value="'+esc(edit?.completion??0)+'" placeholder="Completion %">'+
       '<select id="lpUnitStatus">'+['Planned','In Progress','Completed'].map(x=>'<option '+(edit?.status===x?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
       '<label><input id="lpFamilyVisible" type="checkbox" '+(edit?.familyVisible?'checked':'')+'> Show progress to Student/Parent</label>'+
-      '<button id="lpSaveUnit">'+(edit?'Update Unit':'Save Unit')+'</button>'+(edit?'<button id="lpCancelUnit" class="secondary">Cancel</button>':'')+
+      '<p id="lpUnitCatalogNote" class="coverage-note" style="grid-column:1/-1">A unit becomes a school record only after you save it.</p><button id="lpSaveUnit">'+(edit?'Update Unit':'Save Unit')+'</button>'+(edit?'<button id="lpCancelUnit" class="secondary">Cancel</button>':'')+
       '</div></article>';
   }
   function metrics(plans,units){
@@ -188,9 +189,28 @@
     w.document.write('<!doctype html><html><head><title>Syllabus Progress</title><style>body{font-family:Arial;padding:28px;color:#17324a}.head{text-align:center}table{width:100%;border-collapse:collapse;margin-top:22px}th,td{border:1px solid #ccd6dc;padding:7px;text-align:left}</style></head><body><div class="head"><h2>'+esc(st.schoolName||'EduNizam Institute')+'</h2><h3>Syllabus Progress Report</h3></div><table><thead><tr><th>Class</th><th>Subject</th><th>Unit / Chapter</th><th>Target</th><th>Completion</th><th>Status</th></tr></thead><tbody>'+units.map(x=>'<tr><td>'+esc(x.className+(x.sectionName?' - '+x.sectionName:''))+'</td><td>'+esc(x.subject)+'</td><td>'+esc(x.unitTitle)+'</td><td>'+esc(x.targetEnd||'-')+'</td><td>'+Number(x.completion||0)+'%</td><td>'+esc(x.status)+'</td></tr>').join('')+'</tbody></table></body></html>');
     w.document.close();w.focus();setTimeout(()=>w.print(),250);
   }
+  function refreshSyllabusLists(prefix){
+    const cl=$('lp'+prefix+'Class')?.value||'',sub=$('lp'+prefix+'Subject')?.value||'';
+    const numberMatch=String(cl).match(/(1[0-2]|[1-9])/);
+    const grade=numberMatch?String(Number(numberMatch[1])):'';
+    const D=window.EDUNIZAM_PRACTICE_DATA||{};
+    const current=D.subjects?.[grade]||[];
+    const defaults=['English','Urdu','Mathematics','General Science','General Knowledge','Islamiat / Ethics','Nazra Quran','Social Studies'];
+    const subjects=current.length?current:defaults;
+    const subjectList=$('lp'+prefix+'Subjects');
+    if(subjectList)subjectList.innerHTML=subjects.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const chapterList=$('lp'+prefix+'Topics');
+    const chapters=D.chapters?.[grade+'|'+sub]||[];
+    if(chapterList)chapterList.innerHTML=chapters.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const note=$('lp'+prefix+'CatalogNote');
+    if(note)note.textContent=chapters.length?
+      chapters.length+' EduNizam concept topic options. These are NOT confirmed official textbook chapters.':
+      (grade&&sub?'No matching concept topic. Enter the currently prescribed textbook chapter.':'Select a class and subject to see topic suggestions.');
+  }
   function bindEditors(){
     $('lpSavePlan')?.addEventListener('click',savePlan);$('lpCancelPlan')?.addEventListener('click',render);
     $('lpSaveUnit')?.addEventListener('click',saveUnit);$('lpCancelUnit')?.addEventListener('click',render);
+    for(const prefix of ['Plan','Unit']){for(const suffix of ['Class','Subject'])$('lp'+prefix+suffix)?.addEventListener('change',()=>refreshSyllabusLists(prefix));$('lp'+prefix+'Subject')?.addEventListener('input',()=>refreshSyllabusLists(prefix));refreshSyllabusLists(prefix)}
   }
   function bind(units){
     bindEditors();$('lpPrint')?.addEventListener('click',()=>printProgress(units));
