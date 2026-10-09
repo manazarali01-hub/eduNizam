@@ -12,7 +12,7 @@
   const isHead=()=>role()==='head';
   let lessonPlanSaveInFlight=false,syllabusUnitSaveInFlight=false;
   const lessonDeleteInFlight=new Set();
-  let cloudClassRows=[],cloudClassScope='';
+  let cloudClassRows=[],cloudClassScope='',cloudLessonScope='';
   const currentSchoolScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
   function setBusy(btn,busy,label='Working...'){
     if(!btn)return;
@@ -46,11 +46,13 @@
       const k=String(row.className||'').trim().toLowerCase()+'|'+String(row.sectionName||'').trim().toLowerCase();
       if(isHead()||(role()==='teacher'&&teacherKeys.has(k)))rows.push(row);
     }
-    for(const st of visibleStudents())rows.push({className:st.className,sectionName:st.sectionName});
+    // Admin class choices in cloud mode come from the real institution
+    // directory, never from unscoped legacy student rows.
+    if(!cloudReady()||!isHead())for(const st of visibleStudents())rows.push({className:st.className,sectionName:st.sectionName});
     return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.registeredSections(rows)||[];
   }
   function classOptions(){return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.distinct(registeredClasses().map(x=>x.className))||[]}
-  function savedUnits(){return read(UNIT_KEY)}
+  function savedUnits(){return cloudReady()&&cloudLessonScope!==currentSchoolScope()?[]:read(UNIT_KEY)}
   function syllabusOptionData(cls,subject){
     return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.chapters(cls,subject,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},savedUnits())||{saved:[],concepts:[]};
   }
@@ -97,16 +99,21 @@
   async function pullCloud(){
     if(!cloudReady())return;
     const c=cloud().state.client,id=cfg().institutionId,scope=currentSchoolScope();
-    const {p,u}=await runCloud('lesson-syllabus-load:'+scope,'Lesson plans and syllabus',async({signal}={})=>{
-      const [p,u]=await Promise.all([
-        withSignal(c.from('lesson_plans').select('*').eq('institution_id',id).order('week_start',{ascending:false}),signal),
-        withSignal(c.from('syllabus_progress_units').select('*').eq('institution_id',id).order('subject').order('unit_title'),signal)
-      ]);
-      if(p.error)throw p.error;if(u.error)throw u.error;return {p,u};
-    },{timeout:7000,retries:1});
-    if(!cloudReady()||currentSchoolScope()!==scope)return;
-    write(PLAN_KEY,(p.data||[]).map(mapPlan));write(UNIT_KEY,(u.data||[]).map(mapUnit));
-    await pullSchoolClasses();
+    // Class directory must remain independently loadable even if the lesson
+    // tables are unavailable. Both requests run together to avoid long waits.
+    const classesJob=pullSchoolClasses();
+    try{
+      const {p,u}=await runCloud('lesson-syllabus-load:'+scope,'Lesson plans and syllabus',async({signal}={})=>{
+        const [p,u]=await Promise.all([
+          withSignal(c.from('lesson_plans').select('*').eq('institution_id',id).order('week_start',{ascending:false}),signal),
+          withSignal(c.from('syllabus_progress_units').select('*').eq('institution_id',id).order('subject').order('unit_title'),signal)
+        ]);
+        if(p.error)throw p.error;if(u.error)throw u.error;return {p,u};
+      },{timeout:7000,retries:1});
+      if(!cloudReady()||currentSchoolScope()!==scope)return;
+      write(PLAN_KEY,(p.data||[]).map(mapPlan));write(UNIT_KEY,(u.data||[]).map(mapUnit));
+      cloudLessonScope=scope;
+    }finally{await classesJob}
   }
   async function savePlanCloud(item){
     const inst=cfg().institutionId,payload={institution_id:inst,class_name:item.className,section_name:item.sectionName||null,subject:item.subject,week_start:item.weekStart,topic:item.topic,objectives:item.objectives||null,activities:item.activities||null,homework_note:item.homeworkNote||null,status:item.status,created_by:item.createdBy||cloud().state.user.id,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
@@ -268,9 +275,10 @@
   async function render(){
     const root=$('lessonCenterApp');if(!root)return;
     if(cloudReady()&&!root.dataset.cloudLoaded){root.dataset.cloudLoaded='1';try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Lesson/syllabus cloud sync:',e.message)}}
-    const plans=visiblePlans(read(PLAN_KEY)).sort((a,b)=>String(b.weekStart).localeCompare(String(a.weekStart)));
-    const units=visibleUnits(read(UNIT_KEY)).sort((a,b)=>String(a.subject).localeCompare(String(b.subject))||String(a.unitTitle).localeCompare(String(b.unitTitle)));
-    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div><button id="lpPrint" class="secondary">Print Syllabus Progress</button></div>'+
+    const scoped=cloudReady()&&cloudLessonScope!==currentSchoolScope();
+    const plans=visiblePlans(scoped?[]:read(PLAN_KEY)).sort((a,b)=>String(b.weekStart).localeCompare(String(a.weekStart)));
+    const units=visibleUnits(scoped?[]:read(UNIT_KEY)).sort((a,b)=>String(a.subject).localeCompare(String(b.subject))||String(a.unitTitle).localeCompare(String(b.unitTitle)));
+    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?(scoped?'Cloud data unavailable':'Cloud Sync'):'Local Mode')+'</span></div><button id="lpPrint" class="secondary">Print Syllabus Progress</button></div>'+
       metrics(plans,units)+'<div id="lpPlanEditor" style="margin-top:16px">'+planEditor()+'</div><div id="lpUnitEditor">'+unitEditor()+'</div>'+
       '<div class="section-head" style="margin-top:18px"><div><h3>Weekly Lesson Plans</h3><p class="muted">Planned teaching topics and learning objectives.</p></div></div><div class="paper-grid">'+(plans.length?plans.map(planCard).join(''):'<div class="empty-state">No lesson plans available.</div>')+'</div>'+
       '<div class="section-head" style="margin-top:18px"><div><h3>Syllabus Progress</h3><p class="muted">Unit/chapter completion tracking.</p></div></div><div class="paper-grid">'+(units.length?units.map(unitCard).join(''):'<div class="empty-state">No syllabus units available.</div>')+'</div>';
