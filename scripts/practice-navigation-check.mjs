@@ -70,4 +70,32 @@ api.start();
 check(api.status().total===1&&node('practicePrevBtn').disabled&&node('practiceNextBtn').textContent==='Finish & Submit','One-question session must show Finish & Submit');
 api.next();
 check(JSON.parse(values.get('edunizam_practice_history')).length===2,'One-question Finish & Submit did not save results');
-console.log('EduNizam practice pagination PASS: 3 mixed questions, Next/Previous, retained MCQ and written answers, result scoring and single-question state.');
+// The optional student field must not expose unrelated school/role records.
+// Real student IDs may be UUID strings, not just numeric local IDs.
+values.set('edunizam_students',JSON.stringify([
+ {id:'b7296d64-594a-47a4-8a9f-2bbb8b24585a',name:'Authorized Student',className:'1'},
+ {id:'other-school-2',name:'Private Other School',className:'1'},
+ {id:'unsafe<>',name:'Student <Unsafe>',className:'1'}
+]));
+check(!node('practiceStudent').innerHTML.includes('Private Other School'),'Student picker must fail closed without a scope');
+window.EDUNIZAM_ROLE_SCOPE={getVisibleStudents:rows=>rows.filter(s=>s.id!=='other-school-2')};
+window.renderPracticeCenter();
+const picker=node('practiceStudent').innerHTML;
+check(picker.includes('Authorized Student')&&!picker.includes('Private Other School'),'Student picker ignored role/school visibility');
+check(picker.includes('Student &lt;Unsafe&gt;')&&!picker.includes('Student <Unsafe>'),'Student name not escaped');
+check(picker.includes('value="unsafe&lt;&gt;"'),'Student ID not escaped');
+node('practiceClass').value='1';
+node('practiceSubject').value='Mathematics';
+node('practiceType').value='mixed';
+node('practiceCount').value='1';
+node('practiceMinutes').value='10';
+node('practiceStudent').value='b7296d64-594a-47a4-8a9f-2bbb8b24585a';
+api.start();api.submit();
+const uuidHistory=JSON.parse(values.get('edunizam_practice_history'));
+check(uuidHistory.at(-1).studentId==='b7296d64-594a-47a4-8a9f-2bbb8b24585a','UUID student ID was lost during practice');
+check(uuidHistory.at(-1).studentName==='Authorized Student','Scoped student's display name is missing');
+node('practiceStudent').value='other-school-2';
+api.start();api.submit();
+const tampered=JSON.parse(values.get('edunizam_practice_history')).at(-1);
+check(tampered.studentId===null&&!tampered.studentName,'Out-of-scope selected ID was attached to a practice record');
+console.log('EduNizam practice pagination and scoped student dropdown PASS: Next/Previous, saved answers, UUID IDs, role visibility, HTML escaping and out-of-scope tampering.');
