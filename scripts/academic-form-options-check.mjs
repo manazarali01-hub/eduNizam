@@ -50,7 +50,7 @@ const subjectAliases={
   '6|Mathematics':['Grade Six Only']
  }
 };
-const aliasUnits=[
+const subjectAliasUnits=[
  {class_name:'Grade 5',subject:'Math',unit_title:'Fractions'},
  {class_name:'Class 5',subject:'Mathematics',unit_title:'Verified School Number Patterns'},
  {class_name:'Grade 5',subject:'Islamiyat',unit_title:'School Recorded Prayer'},
@@ -60,16 +60,16 @@ const aliasUnits=[
 pass(A.subjectKey('Math')===A.subjectKey('Mathematics'),'Mathematics aliases are not equivalent');
 pass(A.subjectKey('Islamiyat')===A.subjectKey('Islamiat / Ethics'),'Islamiat aliases are not equivalent');
 pass(A.subjectKey('Biology')!==A.subjectKey('General Science'),'Unrelated science subjects were merged');
-const aliasSubjects=A.subjects('5',subjectAliases,aliasUnits);
+const aliasSubjects=A.subjects('5',subjectAliases,subjectAliasUnits);
 pass(aliasSubjects.filter(x=>A.subjectKey(x)==='mathematics').length===1,'Math and Mathematics appeared twice in subject dropdown');
 pass(aliasSubjects.includes('Computer Science')&&aliasSubjects.includes('Pakistan Studies'),'Other class subjects disappeared');
-const aliasChapters=A.chapters('Class 5','Math',subjectAliases,aliasUnits);
+const aliasChapters=A.chapters('Class 5','Math',subjectAliases,subjectAliasUnits);
 pass(aliasChapters.saved.includes('Fractions')&&aliasChapters.saved.includes('Verified School Number Patterns'),'Saved Math chapters missing under alias label');
 pass(aliasChapters.concepts.includes('Decimals')&&!aliasChapters.concepts.includes('Fractions'),'Subject alias failed reference topics/dedup');
-pass(A.chapters('5','Islamiat / Ethics',subjectAliases,aliasUnits).saved.includes('School Recorded Prayer'),'Islamiyat school unit missing');
-pass(A.chapters('Grade 5','Islamiyat',subjectAliases,aliasUnits).concepts.includes('Cleanliness'),'Islamiat reference concepts missing');
-pass(A.chapters('5','Pakistan Studies',subjectAliases,aliasUnits).saved.includes('Pakistan History'),'Pak Studies recorded units missing');
-pass(!A.chapters('5','Mathematics',subjectAliases,aliasUnits).saved.includes('Other Grade Only'),'Grade 6 chapter leaked into Grade 5');
+pass(A.chapters('5','Islamiat / Ethics',subjectAliases,subjectAliasUnits).saved.includes('School Recorded Prayer'),'Islamiyat school unit missing');
+pass(A.chapters('Grade 5','Islamiyat',subjectAliases,subjectAliasUnits).concepts.includes('Cleanliness'),'Islamiat reference concepts missing');
+pass(A.chapters('5','Pakistan Studies',subjectAliases,subjectAliasUnits).saved.includes('Pakistan History'),'Pak Studies recorded units missing');
+pass(!A.chapters('5','Mathematics',subjectAliases,subjectAliasUnits).saved.includes('Other Grade Only'),'Grade 6 chapter leaked into Grade 5');
 // School staff can save a unit as "Grade 5" while class selectors use "5".
 // Both must resolve to one grade without exposing another class's units.
 const aliasUnits=[
