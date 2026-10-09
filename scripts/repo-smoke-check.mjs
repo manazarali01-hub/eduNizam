@@ -168,8 +168,8 @@ guestPremium.includes("No exact resource of this type is currently indexed.")?ok
 const practiceData=read("practice-data.js");
 practiceData.includes('id:"q21"')&&practiceData.includes('chapter:"Periodic Table"')&&practiceData.includes('difficulty:"Medium"')?ok("visitor:practice-periodic-table"):bad("visitor:practice-periodic-table","Grade 9 Chemistry Periodic Table medium question missing");
 guestPremium.includes("refreshPracticeOptions")?ok("visitor:practice-data-filters"):bad("visitor:practice-data-filters","practice filters must come from available questions");
-guestPremium.includes("baseActions.hidden=true")?ok("visitor:practice-nav"):bad("visitor:practice-nav","legacy duplicate practice navigation must be hidden");
-guestPremium.includes("baseActions.style.display='none'")?ok("visitor:practice-nav-force-hide"):bad("visitor:practice-nav-force-hide","legacy practice navigation must be force-hidden");
+guestPremium.includes("legacyFilters.hidden=true")?ok("visitor:practice-nav"):bad("visitor:practice-nav","obsolete duplicate practice filters must be hidden");
+guestPremium.includes("baseActions.hidden=false")&&guestPremium.includes("next.onclick=()=>{if(isLast)finishGuestPractice()")&&guestPremium.includes("prev.onclick=")?ok("visitor:practice-nav-force-hide"):bad("visitor:practice-nav-force-hide","persistent next/previous navigation must be wired");
 read('learning-sky.css').includes('.practice-actions[hidden],.practice-actions[aria-hidden="true"]{display:none!important}')?ok("visitor:practice-hidden-css"):bad("visitor:practice-hidden-css","hidden Practice navigation CSS guard missing");
 !guestPremium.includes("No practice question matches these filters. Try another class, subject, chapter or difficulty.")?ok("visitor:practice-no-dead-end"):bad("visitor:practice-no-dead-end","dead-end practice message remains");
 for(const marker of ["guestStudySubject","guestStudyType","guestUniversitySummary","refreshTypes=()=>","data-hub-filter","function applyHubShortcut"]){
@@ -286,7 +286,7 @@ if(!/request\.method|e\.request\.method/.test(sw))bad("sw:get-guard","non-GET gu
 if(sw.includes("'./practice-complete-data.js'"))ok("sw:practice-complete-cache");else bad("sw:practice-complete-cache","practice-complete-data.js missing from cache");
 if(sw.includes("'./practice-session-core.js'"))ok("sw:practice-core-cache");else bad("sw:practice-core-cache","practice-session-core.js missing from cache");
 const swAssets=[...sw.matchAll(/['"]\.\/([^'"]+)['"]/g)].map(m=>m[1]);
-const missingSw=[...new Set(swAssets.filter(p=>!exists(p)))];
+const missingSw=[...new Set(swAssets.filter(p=>!exists(p.startsWith('?')?'index.html':p)))];
 missingSw.length?bad("sw:assets",missingSw.join(", ")):ok("sw:assets");
 
 // 6) Data integrity for core catalogs
