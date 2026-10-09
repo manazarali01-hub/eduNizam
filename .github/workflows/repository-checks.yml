@@ -24,3 +24,6 @@ jobs:
 
       - name: Run EduNizam smoke checks
         run: node scripts/repo-smoke-check.mjs
+
+      - name: Validate reference-data completeness
+        run: node scripts/data-completion-check.mjs
