@@ -32,6 +32,7 @@ const scoped=q.sourceFallback({boards:pp.boards,filters:{level:'matric'},limit:8
 assert(scoped.length>0&&scoped.every(x=>x.classes.some(c=>[9,10].includes(Number(c)))),'Fallback offers irrelevant non-Matric boards');
 const base=read('learn.html'),premium=read('guest-learning-premium.js');
 assert(base.includes('guest-paper-query.js?v=20261009-facet-search-v1'),'Guest page not loading facet helper');
+assert(base.includes('past-papers-inventory.js?v=20261009-official-papers-v3'),'Guest page omitted the indexed board-paper inventory');
 assert(base.includes('api.select({papers,boards,filters:f'),'Live guest search not based on paper metadata');
 assert(base.includes('indexed paper result'),'Paper summary not distinguishing indexed paper matches');
 assert(base.includes('NOT the requested Annual or subject-specific PDF'),'Fallback must not claim exact paper');
