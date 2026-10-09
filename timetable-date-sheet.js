@@ -33,16 +33,26 @@
   function dateSheets(){try{return JSON.parse(localStorage.getItem(EXAM_KEY)||'[]')}catch{return[]}}
   function writeDateSheets(v){localStorage.setItem(EXAM_KEY,JSON.stringify(v))}
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
-  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
+  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]}
   function classSections(){
-    const map=new Map();
-    const add=(c,s='')=>{c=String(c||'').trim();s=String(s||'').trim();if(!c)return;const k=c+'\u0000'+s;if(!map.has(k))map.set(k,{className:c,sectionName:s})};
-    students().forEach(x=>add(x.className,x.sectionName));
-    try{JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]').forEach(x=>add(x.className,x.sectionName))}catch(_){ }
-    timetable().forEach(x=>add(x.className,x.sectionName));dateSheets().forEach(x=>add(x.className,x.sectionName));
-    // Suggestions only, no enrollment/section records created until saved.
-    if(!map.size&&role()==='head')['Play Group','Nursery','Prep',...Array.from({length:12},(_,i)=>String(i+1))].forEach(c=>add(c));
-    return [...map.values()].sort((a,b)=>a.className.localeCompare(b.className,undefined,{numeric:true})||a.sectionName.localeCompare(b.sectionName));
+    const allowed=window.EDUNIZAM_ROLE_SCOPE?.teacherClassKeys?.()||new Set();
+    const rows=visibleStudents().map(x=>({className:x.className,sectionName:x.sectionName}));
+    if(canManage()){
+      try{
+        for(const x of JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')){
+          const k=String(x.className||'').trim().toLowerCase()+'|'+String(x.sectionName||'').trim().toLowerCase();
+          if(x.active!==false&&(role()==='head'||allowed.has(k)))rows.push(x);
+        }
+      }catch(_){}
+      // Keep legacy saved schedule classes visible for Head when their formal
+      // class record has not yet been set up. They must be registered to save NEW entries.
+      if(role()==='head')for(const x of [...timetable(),...dateSheets()])rows.push(x);
+    }
+    return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.registeredSections(rows)||[];
+  }
+  function knownClass(item){
+    const available=classSections();
+    return !!item.className&&available.some(x=>x.className===item.className&&x.sectionName===(item.sectionName||''));
   }
   function accessible(x){
     if(role()==='head'||role()==='teacher')return true;
@@ -58,13 +68,15 @@
   function syncSubjectCatalog(prefix){
     const selected=$(prefix+'Class')?.value||'',list=$(prefix+'SubjectOptions');
     if(!list)return;
-    const cls=splitClass(selected).className,match=String(cls).match(/\b(1[0-2]|[1-9])\b/);
-    const grade=match?String(Number(match[1])):'';
-    const subjects=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects?.[grade]||[];
-    const defaults=['English','Urdu','Mathematics','General Science','Islamiat / Ethics','Nazra Quran','Social Studies','Computer Science'];
-    list.innerHTML=[...new Set(subjects.length?subjects:defaults)].map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const cls=splitClass(selected).className;
+    const catalog=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{};
+    let units=[];try{units=JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch(_){}
+    const subjects=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.subjects(cls,catalog,units)||[];
+    list.innerHTML=subjects.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const note=$(prefix+'SubjectNote');
+    if(note)note.textContent=subjects.length?subjects.length+' subject suggestion(s). Confirm your school textbook and timetable allocation.':
+      'No verified class subject data available; save school syllabus first or enter a correctly assigned subject.';
   }
-
   function mapTimetableRow(x){return{id:x.id,className:x.class_name,sectionName:x.section_name||'',day:x.weekday,periodNumber:Number(x.period_number||0),time:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',subject:x.subject,teacherName:x.teacher_name||'',roomLabel:x.room_label||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}}
   function mapExamRow(x){return{id:x.id,className:x.class_name,sectionName:x.section_name||'',examName:x.exam_name,subject:x.subject,examDate:x.exam_date,startTime:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',totalMarks:Number(x.total_marks||0),roomLabel:x.room_label||'',notes:x.notes||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}}
   async function pullCloud(){
@@ -135,7 +147,7 @@
       '<select id="ttDay">'+DAYS.map(d=>'<option '+(edit?.day===d?'selected':'')+'>'+d+'</option>').join('')+'</select>'+
       '<input id="ttPeriod" type="number" min="1" max="15" placeholder="Period number" value="'+esc(edit?.periodNumber||'')+'">'+
       '<input id="ttStart" type="time" value="'+esc(edit?.time||'')+'"><input id="ttEnd" type="time" value="'+esc(edit?.endTime||'')+'">'+
-      '<input id="ttSubject" list="ttSubjectOptions" placeholder="Subject (choose / type)" value="'+esc(edit?.subject||'')+'"><datalist id="ttSubjectOptions"></datalist><input id="ttTeacher" placeholder="Teacher name" value="'+esc(edit?.teacherName||'')+'"><input id="ttRoom" placeholder="Room / lab" value="'+esc(edit?.roomLabel||'')+'">'+
+      '<input id="ttSubject" list="ttSubjectOptions" placeholder="Subject (choose / type)" value="'+esc(edit?.subject||'')+'"><datalist id="ttSubjectOptions"></datalist><p id="ttSubjectNote" class="coverage-note">Select a registered class to load subjects.</p><input id="ttTeacher" placeholder="Teacher name" value="'+esc(edit?.teacherName||'')+'"><input id="ttRoom" placeholder="Room / lab" value="'+esc(edit?.roomLabel||'')+'">'+
       '<button id="ttSave">'+(edit?'Update Period':'Save Period')+'</button>'+(edit?'<button id="ttCancel" class="secondary">Cancel</button>':'')+'</div></article>';
   }
   function dateSheetEditor(edit=null){
@@ -143,7 +155,7 @@
     const value=edit?(edit.className+'|'+(edit.sectionName||'')):'';
     return '<article class="card"><h3>'+(edit?'Edit Paper':'Add Date Sheet Paper')+'</h3><div class="form-grid">'+
       '<input id="dsEditId" type="hidden" value="'+esc(edit?.id||'')+'"><select id="dsClass">'+optionList(value,'Select class / section')+'</select>'+
-      '<input id="dsExam" list="dsExamOptions" placeholder="Exam name e.g. Midterm" value="'+esc(edit?.examName||'')+'"><datalist id="dsExamOptions"><option value="Monthly Test"></option><option value="Midterm"></option><option value="Final"></option><option value="Quiz"></option><option value="Annual Examination"></option></datalist><input id="dsSubject" list="dsSubjectOptions" placeholder="Subject (choose / type)" value="'+esc(edit?.subject||'')+'"><datalist id="dsSubjectOptions"></datalist>'+
+      '<input id="dsExam" list="dsExamOptions" placeholder="Exam name e.g. Midterm" value="'+esc(edit?.examName||'')+'"><datalist id="dsExamOptions"><option value="Monthly Test"></option><option value="Midterm"></option><option value="Final"></option><option value="Quiz"></option><option value="Annual Examination"></option></datalist><input id="dsSubject" list="dsSubjectOptions" placeholder="Subject (choose / type)" value="'+esc(edit?.subject||'')+'"><datalist id="dsSubjectOptions"></datalist><p id="dsSubjectNote" class="coverage-note">Select a registered class to load subjects.</p>'+
       '<input id="dsDate" type="date" value="'+esc(edit?.examDate||today())+'"><input id="dsStart" type="time" value="'+esc(edit?.startTime||'')+'"><input id="dsEnd" type="time" value="'+esc(edit?.endTime||'')+'">'+
       '<input id="dsMarks" type="number" min="1" value="'+esc(edit?.totalMarks||100)+'" placeholder="Total marks"><input id="dsRoom" placeholder="Room / hall" value="'+esc(edit?.roomLabel||'')+'"><input id="dsNotes" placeholder="Instructions / notes" value="'+esc(edit?.notes||'')+'">'+
       '<button id="dsSave">'+(edit?'Update Paper':'Save Paper')+'</button>'+(edit?'<button id="dsCancel" class="secondary">Cancel</button>':'')+'</div></article>';
@@ -164,7 +176,8 @@
     const btn=$('ttSave');if(timetableSaveInFlight||btn?.disabled)return;
     const cls=splitClass($('ttClass')?.value),editId=$('ttEditId')?.value||'';
     const item={id:editId||String(Date.now()),...cls,day:$('ttDay')?.value,periodNumber:Number($('ttPeriod')?.value||0),time:$('ttStart')?.value||'',endTime:$('ttEnd')?.value||'',subject:$('ttSubject')?.value.trim()||'',teacherName:$('ttTeacher')?.value.trim()||'',roomLabel:$('ttRoom')?.value.trim()||'',createdAt:new Date().toISOString(),cloudExisting:uuid(editId)};
-    if(!item.className||!item.subject||!item.day||!item.periodNumber||!item.time||!item.endTime)return alert('Class, day, period, start/end time aur subject required hain.');
+    if(!item.className||!item.subject||!item.day||!Number.isInteger(item.periodNumber)||item.periodNumber<1||item.periodNumber>15||!item.time||!item.endTime)return alert('Valid class, day, period (1–15), start/end time aur subject required hain.');
+    if(!canManage()||!knownClass(item))return alert('Choose a registered, accessible class and section. Configure Academic Groups first.');
     if(timeValue(item.time)>=timeValue(item.endTime))return alert('End time start time ke baad honi chahiye.');
     const rows=timetable(),conflicts=timetableClashes(rows,item,editId);if(conflicts.length&&!confirm('Clash detected: '+conflicts.map(x=>label(x)+' / '+x.subject).join(', ')+'. Phir bhi save karein?'))return;
     timetableSaveInFlight=true;setBusy(btn,true,editId?'Updating...':'Saving...');
@@ -177,7 +190,8 @@
     const btn=$('dsSave');if(dateSheetSaveInFlight||btn?.disabled)return;
     const cls=splitClass($('dsClass')?.value),editId=$('dsEditId')?.value||'';
     let item={id:editId||String(Date.now()),...cls,examName:$('dsExam')?.value.trim()||'',subject:$('dsSubject')?.value.trim()||'',examDate:$('dsDate')?.value||'',startTime:$('dsStart')?.value||'',endTime:$('dsEnd')?.value||'',totalMarks:Number($('dsMarks')?.value||0),roomLabel:$('dsRoom')?.value.trim()||'',notes:$('dsNotes')?.value.trim()||'',createdAt:new Date().toISOString(),cloudExisting:uuid(editId)};
-    if(!item.className||!item.examName||!item.subject||!item.examDate||!item.startTime||!item.endTime||item.totalMarks<=0)return alert('Class, exam, subject, date, start/end time aur total marks required hain.');
+    if(!item.className||!item.examName||!item.subject||!item.examDate||!item.startTime||!item.endTime||!Number.isInteger(item.totalMarks)||item.totalMarks<=0||item.totalMarks>1000)return alert('Class, exam, subject, date, times and whole total marks (1–1000) required hain.');
+    if(!canManage()||!knownClass(item))return alert('Choose a registered, accessible class and section. Configure Academic Groups first.');
     if(timeValue(item.startTime)>=timeValue(item.endTime))return alert('End time start time ke baad honi chahiye.');
     const rows=dateSheets(),conflicts=dateClashes(rows,item,editId);if(conflicts.length&&!confirm('Date-sheet clash detected: '+conflicts.map(x=>label(x)+' / '+x.subject).join(', ')+'. Phir bhi save karein?'))return;
     dateSheetSaveInFlight=true;setBusy(btn,true,editId?'Updating...':'Saving...');
