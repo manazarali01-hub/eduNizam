@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-punjab-subject-data-v25';
+  const VERSION='20261009-secondary-book-data-v26';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -11,6 +11,7 @@
       'vu-course-catalog.js',
       'study-data.js',
       'pectaa-core-textbooks.js',
+      'pectaa-secondary-textbooks.js',
       'senior-curriculum-2026.js',
       'learning-premium-data.js',
       'learning-complete-data.js',

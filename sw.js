@@ -1,4 +1,4 @@
-const CACHE='edunizam-v272-punjab-subject-data-v40'
+const CACHE='edunizam-v273-secondary-textbooks-v41'
 const CORE=[
   './',
   './index.html',
@@ -67,6 +67,7 @@ const CORE=[
   './board-paper-regional-deep-data.js',
   './study-data.js',
   './pectaa-core-textbooks.js',
+  './pectaa-secondary-textbooks.js',
   './school-assessment-data.js',
   './university-data.js',
   './education-directory-expansion.js',

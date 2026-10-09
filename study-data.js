@@ -134,3 +134,4 @@ window.EDUNIZAM_STUDY_DATA={
 
 // Reactivate PECTAA directory entries if this library loads after school academic forms.
 window.EDUNIZAM_PUNJAB_SUBJECT_PACK?.applyToStudy?.();
+window.EDUNIZAM_PECTAA_SECONDARY_BOOKS?.apply?.();

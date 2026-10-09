@@ -7,7 +7,7 @@ const failures=[];
 const requireOK=(ok,message)=>{if(!ok)failures.push(message)};
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const names=[
- 'past-papers-data.js','practice-data.js','study-data.js','pectaa-core-textbooks.js','senior-curriculum-2026.js',
+ 'past-papers-data.js','practice-data.js','study-data.js','pectaa-core-textbooks.js','pectaa-secondary-textbooks.js','senior-curriculum-2026.js',
  'learning-premium-data.js','learning-complete-data.js','learning-required-data.js',
  'practice-foundation-data.js','practice-curriculum-expansion.js',
  'practice-depth-data.js','punjab-quran-subjects-pack.js','practice-complete-data.js','practice-session-core.js'
@@ -69,6 +69,28 @@ if(expansion){
 const foundation=win.EDUNIZAM_FOUNDATION_PRACTICE||{};
 requireOK(foundation.topicGroups>=100&&foundation.curatedMcqsAdded===foundation.topicGroups,'Not all foundation topics have an authored question');
 const books=win.EDUNIZAM_STUDY_DATA?.materials||[];
+const secondary=win.EDUNIZAM_PECTAA_SECONDARY_BOOKS;
+requireOK(secondary?.rows?.length===27,'Secondary PECTAA book selection should index 27 real direct references');
+if(secondary?.rows?.length){
+ const gradeCounts={9:0,10:0};
+ const seen=new Set();
+ for(const [grade,subject,medium,edition,driveId] of secondary.rows){
+  gradeCounts[grade]=(gradeCounts[grade]||0)+1;
+  const key=[grade,subject,medium].join('|');
+  const itemId='pectaa-direct-secondary-'+grade+'-'+subject.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+medium.toLowerCase();
+  const entry=books.find(x=>x.id===itemId);
+  requireOK(!seen.has(key),'Duplicate grade/subject/medium direct textbook record: '+key);
+  seen.add(key);
+  requireOK(grade===9||grade===10,'Unexpected secondary grade: '+grade);
+  requireOK(entry?.source==='official'&&entry.authorityId==='punjab-pectaa'&&entry.classLevels?.length===1&&entry.classLevels[0]===grade,'Publisher or class mismatch: '+key);
+  requireOK(entry?.subject===subject&&entry.medium===medium&&entry.listedEdition===edition,'Subject/medium/edition mismatch: '+key);
+  requireOK(entry?.url==='https://drive.google.com/file/d/'+driveId+'/view?usp=sharing'&&entry.directoryUrl===secondary.sourceUrl,'Missing authentic direct PECTAA-listed viewing URL: '+key);
+  requireOK(entry.curriculumStatus==='needs-verification'&&entry.sessionOfPrescribedBook==='school-must-confirm','Incorrect textbook adoption or edition verification claim: '+key);
+ }
+ requireOK(gradeCounts[9]>=14&&gradeCounts[10]>=12,'Incomplete Class 9–10 direct source coverage');
+ const before=books.length;
+ requireOK(secondary.apply()===0&&books.length===before,'Secondary catalog navigation inserted duplicate textbook records');
+}
 const directCore=win.EDUNIZAM_PECTAA_CORE_BOOKS;
 requireOK(directCore?.rows?.length===32,'32 PECTAA-linked Grades 1–8 core textbooks absent');
 for(const [grade,subject,driveId] of directCore?.rows||[]){
@@ -141,7 +163,7 @@ for(const [grade,subject,topics] of qp?.rows||[]){
 }
 // Regression: opening a school lesson plan first must not leave Practice/Study empty later.
 const early={window:{},console};
-for(const file of ['punjab-quran-subjects-pack.js','practice-data.js','study-data.js','pectaa-core-textbooks.js','practice-complete-data.js']){
+for(const file of ['punjab-quran-subjects-pack.js','practice-data.js','study-data.js','pectaa-core-textbooks.js','pectaa-secondary-textbooks.js','practice-complete-data.js']){
  try{runInNewContext(read(file),early,{filename:file,timeout:5000})}
  catch(error){failures.push('Academic-first load failed: '+file+' '+error.message)}
 }
@@ -149,6 +171,7 @@ const delayedPractice=early.window.EDUNIZAM_PRACTICE_DATA||{},delayedStudy=early
 requireOK(delayedPractice.punjabQuranExpansion?.authoredItemsAdded===72,'Pack not reactivated after Academic-first navigation');
 requireOK((delayedStudy.materials||[]).filter(m=>/^pectaa-quran-textbook-directory-/.test(m.id)).length===8,'Study directory missing after Academic-first navigation');
 requireOK((delayedStudy.materials||[]).filter(m=>/^pectaa-direct-core-g/.test(m.id)).length===32,'Core textbook links missing after Academic-first navigation');
+requireOK((delayedStudy.materials||[]).filter(m=>/^pectaa-direct-secondary-/.test(m.id)).length===27,'Secondary textbook links missing after Academic-first navigation');
 const app=read('app.html'),learn=read('learn.html'),features=read('feature-loader.js'),guest=read('guest-learning-premium.js'),lesson=read('lesson-plan-center.js');
 requireOK(features.includes("lessonCatalog:['punjab-quran-subjects-pack.js','academic-option-catalog.js']"),'Lesson Planner not using source-enriched subject-topic catalog');
 requireOK(lesson.includes('EDUNIZAM_ACADEMIC_OPTION_CATALOG'),'Lesson Planner not reading lightweight options');
@@ -158,8 +181,8 @@ for(const grade of grades){
 }
 requireOK(features.includes("'practice-foundation-data.js'")&&features.includes("'punjab-quran-subjects-pack.js'"),'Authenticated feature-loader is not loading source-backed practice catalog');
 requireOK(learn.includes('practice-foundation-data.js')&&learn.includes('punjab-quran-subjects-pack.js'),'Guest Learning Hub is not loading source-backed practice catalog');
-requireOK(features.includes("'senior-curriculum-2026.js'"),'Authenticated Study Library is not loading 2026 senior curriculum');
-requireOK(learn.includes('senior-curriculum-2026.js'),'Guest Study Library is not loading 2026 senior curriculum');
+requireOK(features.includes("'senior-curriculum-2026.js'")&&features.includes("'pectaa-secondary-textbooks.js'"),'Authenticated Study Library not loading secondary direct textbooks');
+requireOK(learn.includes('senior-curriculum-2026.js')&&learn.includes('pectaa-secondary-textbooks.js'),'Guest Study Library not loading secondary direct textbooks');
 for(const id of ['lpPlanSubjects','lpPlanTopics','lpUnitSubjects','lpUnitTopics'])requireOK(lesson.includes('id="'+id+'"'),'Lesson/Syllabus form is missing '+id);
 requireOK(guest.includes("const prev=$('prevQuestion'),next=$('nextQuestion')"),'Guest Practice static Next/Previous control binding missing');
 requireOK(guest.includes('expandQuestions')&&guest.includes('SAME class and subject'),'Guest Practice narrow-filter expansion not wired');
