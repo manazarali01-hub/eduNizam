@@ -13,6 +13,43 @@
   const canManageItem=x=>role()==='head'||(role()==='teacher'&&String(x?.createdBy||'')===String(cloud()?.state?.user?.id||''));
   let timetableSaveInFlight=false,dateSheetSaveInFlight=false;
   const scheduleDeleteInFlight=new Set();
+  let cloudCatalog={scope:'',classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
+  let scheduleDataScope='',catalogLoadInFlight=null;
+  const currentScope=()=>[String(cfg().institutionId||''),String(cloud()?.state?.user?.id||''),role()].join('|');
+  async function loadSchoolCatalog(){
+    if(!cloudReady()||!canManage())return;
+    const scope=currentScope();
+    if(cloudCatalog.scope===scope&&cloudCatalog.classState!=='unchecked'&&cloudCatalog.unitState!=='unchecked')return;
+    if(catalogLoadInFlight?.scope===scope)return catalogLoadInFlight.promise;
+    cloudCatalog={scope:'',classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
+    const client=cloud().state.client,inst=cfg().institutionId;
+    async function read(table,columns,max){
+      return runCloud('schedule-directory:'+scope+':'+table,'Schedule '+table,async({signal}={})=>{
+        let q=client.from(table).select(columns).eq('institution_id',inst).limit(max);
+        if(table==='class_sections')q=q.eq('active',true);
+        q=withSignal(q,signal);
+        const {data,error}=await q;if(error)throw error;return Array.isArray(data)?data:[];
+      },{timeout:6500,retries:0});
+    }
+    const promise=(async()=>{
+      const [classes,units]=await Promise.allSettled([
+        read('class_sections','class_name,section_name,active',1200),
+        read('syllabus_progress_units','class_name,subject,unit_title',1500)
+      ]);
+      if(!cloudReady()||currentScope()!==scope)return;
+      cloudCatalog={
+        scope,
+        classes:classes.status==='fulfilled'?classes.value.map(x=>({className:x.class_name,sectionName:x.section_name,active:x.active!==false})):[],
+        units:units.status==='fulfilled'?units.value.map(x=>({className:x.class_name,subject:x.subject,unitTitle:x.unit_title})):[],
+        classState:classes.status==='fulfilled'?'loaded':'error',
+        unitState:units.status==='fulfilled'?'loaded':'error'
+      };
+      if(classes.status==='rejected')console.warn('Schedule class directory:',classes.reason?.message||classes.reason);
+      if(units.status==='rejected')console.warn('Schedule syllabus options:',units.reason?.message||units.reason);
+    })();
+    catalogLoadInFlight={scope,promise};
+    try{await promise}finally{if(catalogLoadInFlight?.promise===promise)catalogLoadInFlight=null}
+  }
   function setBusy(btn,busy,label='Working...'){
     if(!btn)return;
     if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
@@ -36,22 +73,24 @@
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]}
   function classSections(){
     const allowed=window.EDUNIZAM_ROLE_SCOPE?.teacherClassKeys?.()||new Set();
-    const rows=visibleStudents().map(x=>({className:x.className,sectionName:x.sectionName}));
-    if(canManage()){
-      try{
-        for(const x of JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')){
-          const k=String(x.className||'').trim().toLowerCase()+'|'+String(x.sectionName||'').trim().toLowerCase();
-          if(x.active!==false&&(role()==='head'||allowed.has(k)))rows.push(x);
-        }
-      }catch(_){}
-      // Legacy schedule entries remain readable, but are NOT proof that a
-      // class is registered and available for new academic scheduling.
+    // In cloud mode, never trust the unscoped local class directory from a
+    // previous school. Family/teacher visible students remain role-filtered.
+    const rows=role()==='head'&&cloudReady()?[]:visibleStudents().map(x=>({className:x.className,sectionName:x.sectionName}));
+    let directory=[];
+    if(cloudReady()){
+      if(cloudCatalog.scope===currentScope())directory=cloudCatalog.classes;
+    }else{
+      try{directory=JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')}catch(_){}
+    }
+    if(canManage())for(const x of Array.isArray(directory)?directory:[]){
+      const k=String(x.className||'').trim().toLowerCase()+'|'+String(x.sectionName||'').trim().toLowerCase();
+      if(x.active!==false&&(role()==='head'||allowed.has(k)))rows.push(x);
     }
     return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.registeredSections(rows)||[];
   }
   function knownClass(item){
-    const available=classSections();
-    return !!item.className&&available.some(x=>x.className===item.className&&x.sectionName===(item.sectionName||''));
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS,available=classSections();
+    return !!item.className&&available.some(x=>api?.sameClass?.(x.className,item.className)&&x.sectionName===String(item.sectionName||''));
   }
   function accessible(x){
     if(role()==='head'||role()==='teacher')return true;
@@ -69,7 +108,12 @@
     if(!list)return;
     const cls=splitClass(selected).className;
     const catalog=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{};
-    let units=[];try{units=JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch(_){}
+    let units=[];
+    if(cloudReady()){
+      if(cloudCatalog.scope===currentScope())units=cloudCatalog.units;
+    }else{
+      try{units=JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch(_){}
+    }
     const subjects=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.subjects(cls,catalog,units)||[];
     list.innerHTML=subjects.map(x=>'<option value="'+esc(x)+'"></option>').join('');
     const note=$(prefix+'SubjectNote');
@@ -80,15 +124,17 @@
   function mapExamRow(x){return{id:x.id,className:x.class_name,sectionName:x.section_name||'',examName:x.exam_name,subject:x.subject,examDate:x.exam_date,startTime:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',totalMarks:Number(x.total_marks||0),roomLabel:x.room_label||'',notes:x.notes||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}}
   async function pullCloud(){
     if(!cloudReady())return;
-    const c=cloud().state.client,id=cfg().institutionId;
-    const {tt,ds}=await runCloud('schedule-load:'+id,'Timetable and date sheet',async({signal}={})=>{
+    const c=cloud().state.client,id=cfg().institutionId,scope=currentScope();
+    const {tt,ds}=await runCloud('schedule-load:'+scope,'Timetable and date sheet',async({signal}={})=>{
       const [tt,ds]=await Promise.all([
         withSignal(c.from('timetable_entries').select('*').eq('institution_id',id).order('weekday').order('start_time'),signal),
         withSignal(c.from('exam_schedule_entries').select('*').eq('institution_id',id).order('exam_date').order('start_time'),signal)
       ]);
       if(tt.error)throw tt.error;if(ds.error)throw ds.error;return {tt,ds};
     },{timeout:7000,retries:1});
+    if(!cloudReady()||currentScope()!==scope)return;
     writeTimetable((tt.data||[]).map(mapTimetableRow));writeDateSheets((ds.data||[]).map(mapExamRow));
+    scheduleDataScope=scope;
   }
   async function saveCloud(kind,item){
     if(!cloudReady())return null;
@@ -241,9 +287,20 @@
   }
   async function render(){
     const root=$('scheduleCenterApp');if(!root)return;injectStyles();
-    if(cloudReady()&&!root.dataset.cloudLoaded){root.dataset.cloudLoaded='1';try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Schedule cloud sync:',e.message)}}
+    if(cloudReady()){
+      const scope=currentScope();
+      if(!root.dataset.cloudLoaded||root.dataset.cloudScope!==scope){
+        root.dataset.cloudLoaded='1';root.dataset.cloudScope=scope;
+        const outcomes=await Promise.allSettled([pullCloud(),loadSchoolCatalog()]);
+        if(outcomes[0].status==='rejected'){
+          root.dataset.cloudLoaded='';
+          console.warn('Schedule cloud sync:',outcomes[0].reason?.message||outcomes[0].reason);
+        }
+      }
+    }
     const tab=root.dataset.tab||'timetable',filter=root.dataset.classFilter||'',examFilter=root.dataset.examFilter||'';
-    let tt=timetable().filter(accessible),ds=dateSheets().filter(accessible);if(filter){tt=tt.filter(x=>x.className+'|'+(x.sectionName||'')===filter);ds=ds.filter(x=>x.className+'|'+(x.sectionName||'')===filter)}
+    const validData=!cloudReady()||scheduleDataScope===currentScope();
+    let tt=(validData?timetable():[]).filter(accessible),ds=(validData?dateSheets():[]).filter(accessible);if(filter){tt=tt.filter(x=>x.className+'|'+(x.sectionName||'')===filter);ds=ds.filter(x=>x.className+'|'+(x.sectionName||'')===filter)}
     const exams=[...new Set(ds.map(x=>x.examName).filter(Boolean))].sort();if(examFilter)ds=ds.filter(x=>x.examName===examFilter);ds.sort((a,b)=>String(a.examDate).localeCompare(String(b.examDate))||String(a.startTime).localeCompare(String(b.startTime)));
     root.innerHTML='<div class="section-head"><div class="schedule-tabs"><button class="secondary '+(tab==='timetable'?'active':'')+'" data-schedule-tab="timetable">Weekly Timetable</button><button class="secondary '+(tab==='datesheet'?'active':'')+'" data-schedule-tab="datesheet">Date Sheets</button></div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div>'+
       '<div class="schedule-toolbar"><select id="scheduleClassFilter">'+optionList(filter,'All accessible classes')+'</select>'+(tab==='datesheet'?'<select id="dateExamFilter"><option value="">All exams</option>'+exams.map(x=>'<option '+(x===examFilter?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select>':'<span></span>')+'<button id="'+(tab==='timetable'?'printSchedule':'printDateSheet')+'" class="secondary">Print '+(tab==='timetable'?'Timetable':'Date Sheet')+'</button></div>'+
@@ -252,5 +309,5 @@
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('scheduleCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_TIMETABLE_DATESHEET={render,pullCloud,cloudReady};
+  window.EDUNIZAM_TIMETABLE_DATESHEET={render,pullCloud,cloudReady,loadSchoolCatalog,classSections,knownClass,optionList,syncSubjectCatalog,getCatalog:()=>cloudCatalog,getScheduleScope:()=>scheduleDataScope};
 })();
