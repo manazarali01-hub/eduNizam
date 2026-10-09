@@ -411,6 +411,20 @@ function chapterChoices(cls,subject,sourceQuestions=null,sourceUnits=null){
  }
  return [...results.values()];
 }
+function renderSelectedChapters(){
+ const field=$('#pbChapters'),holder=$('#pbSelectedChapters');if(!field||!holder)return;
+ const raw=[...new Set(String(field.value||'').split(',').map(x=>x.trim()).filter(Boolean))];
+ const possible=new Set(chapterChoices($('#pbClass')?.value||'',$('#pbSubject')?.value||''));
+ const selected=raw.filter(x=>possible.has(x));
+ field.value=selected.join(', ');
+ holder.innerHTML=selected.length?'<strong>Selected chapters ('+selected.length+'):</strong> '+selected.map((chapter,i)=>
+  '<button type="button" class="secondary" data-pb-remove="'+i+'" title="Remove chapter">'+esc(chapter)+' ×</button>').join(' '):
+  'No chapters selected. Choose one or more from the dropdown.';
+ holder.querySelectorAll('[data-pb-remove]').forEach(b=>b.onclick=()=>{
+  field.value=selected.filter((_,i)=>i!==Number(b.dataset.pbRemove)).join(', ');
+  renderSelectedChapters();updateBankInsight();
+ });
+}
 function refreshTeacherQuestionCatalog(){
   const cl=$('#qbClass')?.value||'',sub=$('#qbSubject')?.value||'',level=classLevelFrom(cl),
     D=window.EDUNIZAM_PRACTICE_DATA||{},chapters=chapterChoices(cl,sub);
@@ -418,15 +432,36 @@ function refreshTeacherQuestionCatalog(){
   if(el)el.innerHTML=chapters.map(x=>'<option value="'+esc(x)+'"></option>').join('');
 }
 function refreshPaperCatalog(){
-  const cl=$('#pbClass')?.value||'',sub=$('#pbSubject')?.value||'',lv=classLevelFrom(cl),D=window.EDUNIZAM_PRACTICE_DATA||{},subjects=D.subjects?.[lv]||[];
+  const classSelect=$('#pbClass'),cl=classSelect?.value||'',lv=classLevelFrom(cl),D=window.EDUNIZAM_PRACTICE_DATA||{},A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
+  const configured=schoolCatalog.classes.map(x=>String(x.class_name||'').trim());
+  const allClasses=[...new Set([...Array.from({length:12},(_,i)=>String(i+1)),...configured,...teacherDefaults.classes])].filter(Boolean);
   const classList=$('#pbClasses');
-  if(classList){
-   const configured=schoolCatalog.classes.map(x=>String(x.class_name||'').trim());
-   const allClasses=[...new Set([...configured,...teacherDefaults.classes,...Array.from({length:12},(_,i)=>String(i+1))])].filter(Boolean);
-   classList.innerHTML=allClasses.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+  if(classList)classList.innerHTML=allClasses.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+  if(classSelect){
+   const previous=classSelect.value;
+   classSelect.innerHTML='<option value="">Select Class / Grade</option>'+allClasses.map(x=>'<option value="'+esc(x)+'">'+esc(/^(?:(?:class|grade)\\s*)?\\d+$/i.test(x)?'Class '+classLevelFrom(x):x)+'</option>').join('');
+   classSelect.value=allClasses.includes(previous)?previous:(allClasses.includes(String(classLevelFrom(previous)))?String(classLevelFrom(previous)):'');
   }
-  const subjectList=$('#pbSubjects');
-  if(subjectList){const commonSubjects=['English','Urdu','Mathematics','General Science','General Knowledge','Social Studies','Islamiat / Ethics','Nazra Quran','Computer Science'];const importedSubjects=customQuestions.filter(q=>q.active!==false&&window.EDUNIZAM_PAPER_SYLLABUS_AUDIT?.sameClass(q.class_name,cl)).map(q=>q.subject).filter(Boolean);const allSubjects=[...new Set([...(subjects.length?subjects:commonSubjects),...teacherDefaults.subjects,...importedSubjects,...schoolCatalog.units.filter(x=>window.EDUNIZAM_PAPER_SYLLABUS_AUDIT?.sameClass(x.class_name,cl)).map(x=>x.subject)])];subjectList.innerHTML=allSubjects.map(x=>'<option value="'+esc(x)+'"></option>').join('')}
+  const subjectSelect=$('#pbSubject'),previousSubject=String(subjectSelect?.value||''),baseSubjects=D.subjects?.[lv]||[];
+  const catalogSubjects=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects?.[String(lv)]||[];
+  const common=['English','Urdu','Mathematics','General Science','General Knowledge','Social Studies','Islamiat / Ethics','Nazra Quran','Computer Science'];
+  const imported=customQuestions.filter(q=>q.active!==false&&A?.sameClass(q.class_name,cl)).map(q=>q.subject).filter(Boolean);
+  const savedSubjects=schoolCatalog.units.filter(x=>A?.sameClass(x.class_name,cl)).map(x=>x.subject);
+  const source=cl?[...baseSubjects,...catalogSubjects,...teacherDefaults.subjects,...imported,...savedSubjects]:[];
+  if(cl&&!source.length)source.push(...common);
+  const found=new Map();
+  for(const item of source){
+   const canonical=normalizedSubject(item),key=A?.normalizeSubject?.(canonical)||canonical.toLowerCase();
+   if(canonical&&!found.has(key))found.set(key,canonical);
+  }
+  const subjects=[...found.values()],subjectList=$('#pbSubjects');
+  if(subjectList)subjectList.innerHTML=subjects.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+  if(subjectSelect){
+   subjectSelect.innerHTML='<option value="">'+(cl?'Select Subject':'Select Class First')+'</option>'+subjects.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+   subjectSelect.disabled=!cl;
+   subjectSelect.value=subjects.includes(previousSubject)?previousSubject:'';
+  }
+  const sub=subjectSelect?.value||'';
   const chapters=chapterChoices(cl,sub);
   const picker=$('#pbChapterPicker');
   if(picker){
@@ -437,6 +472,7 @@ function refreshPaperCatalog(){
     (other.length?'<optgroup label="Concept topics / teacher bank (verify textbook)">'+other.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</optgroup>':'');
    picker.disabled=!chapters.length;
   }
+  renderSelectedChapters();
   const holder=$('#pbCurriculumSources'),id=$('#pbBookBoard')?.value||'punjab-pectaa',R=window.EDUNIZAM_CURRICULUM_REGISTRY||{};
   if(!holder)return;
   const auth=(R.authorities||[]).find(x=>x.id===id);
