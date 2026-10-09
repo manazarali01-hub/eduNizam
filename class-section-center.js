@@ -103,9 +103,9 @@
     if(!isHead())return '';
     const rows=read().filter(x=>x.active!==false);
     return '<article class="card" style="margin-top:16px"><h3>Allocate Student to Section</h3><div class="form-grid">'+
-      '<select id="csStudent"><option value="">Select student</option>'+students().map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' · '+esc((s.className||'-')+(s.sectionName?' - '+s.sectionName:''))+'</option>').join('')+'</select>'+
+      '<select id="csStudent">'+window.EDUNIZAM_STUDENT_PICKER.options(students())+'</select>'+
       '<select id="csTarget"><option value="">Select class / section</option>'+rows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.className)+' - '+esc(x.sectionName)+'</option>').join('')+'</select>'+
-      '<button id="csAssign">Assign Student</button></div></article>';
+      '<button id="csAssign"'+(students().length&&rows.length?'':' disabled')+'>Assign Student</button>'+(students().length&&rows.length?'':'<p class="coverage-note">Add real students and active class sections before allocating.</p>')+'</div></article>';
   }
   function card(x){
     const count=studentCount(x),full=x.capacity>0&&count>=x.capacity;
@@ -133,7 +133,8 @@
   async function assign(){
     const btn=$('csAssign');if(classSectionAssignInFlight||btn?.disabled)return;
     const sid=$('csStudent')?.value,targetId=$('csTarget')?.value;
-    const row=read().find(x=>String(x.id)===String(targetId));if(!sid||!row)return alert('Student aur class/section select karein.');
+    const row=read().find(x=>String(x.id)===String(targetId)&&x.active!==false);
+    if(!isHead()||!sid||!row||!window.EDUNIZAM_STUDENT_PICKER?.has(students(),sid))return alert('Select a valid student and active class/section for the current school.');
     const count=studentCount(row),already=students().find(s=>String(s.id)===String(sid)&&s.className===row.className&&s.sectionName===row.sectionName);
     if(row.capacity>0&&count>=row.capacity&&!already)return alert('Selected section capacity full hai.');
     classSectionAssignInFlight=true;setBusy(btn,true,'Assigning...');
