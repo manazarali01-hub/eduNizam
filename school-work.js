@@ -147,7 +147,7 @@
     String(value||'').split(',').map(x=>x.trim()).filter(Boolean);
   function availableTimetableTeachers(cls,sec,subject){
     if(!cloudReady()||homeworkAcademic.scope!==homeworkScope()||homeworkAcademic.staffStatus!=='loaded')return[];
-    const normalize=value=>String(value||'').trim().replace(/\\s+/g,' ').toLowerCase();
+    const normalize=value=>String(value||'').trim().replace(/\s+/g,' ').toLowerCase();
     const picked=normalize(subject);
     return homeworkAcademic.staff.filter(x=>{
       const classes=staffList(x.classes),subjects=staffList(x.subjects);
