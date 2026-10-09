@@ -149,6 +149,9 @@ async function studentSubmission(){
       localStorage.clear();sessionStorage.clear();
       localStorage.setItem('edunizam_session',JSON.stringify({role:'student',identity:'student@example.test'}));
       localStorage.setItem('edunizam_students',JSON.stringify([{id:1,name:'QA Student',className:'5',sectionName:'A'}]));
+      // Student homework must be scoped to this enrolled student; absence of
+      // role scope intentionally fails closed in production.
+      window.EDUNIZAM_ROLE_SCOPE={getVisibleStudents:list=>list.filter(s=>String(s.id)==='1')};
       localStorage.setItem('edunizam_school_work_v1',JSON.stringify({
         announcements:[],
         homework:[{id:'hw-1',className:'5',sectionName:'A',subject:'Science',title:'Plants Project',details:'Write notes',dueDate:'2099-12-31',assignmentType:'homework',maxMarks:20,allowSubmission:true,allowLateSubmission:true,createdBy:'teacher@example.test',createdRole:'teacher',createdAt:new Date().toISOString()}],
