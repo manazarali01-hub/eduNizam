@@ -11,28 +11,27 @@
   const practiceHistory=()=>read('edunizam_practice_history',[]);
   let currentStudentId=null;
 
+  const scopedStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[];
   async function visibleStudents(){
-    let list=students();
-    const cloud=window.EDUNIZAM_CLOUD;
-    if(!cloud?.ready?.()||!cloud.state?.user)return list;
-    let role='student';try{role=await cloud.getMyRole()||'student'}catch(e){}
-    if(role==='student'){
-      return list.filter(s=>s.authUserId===cloud.state.user.id);
-    }
-    if(role==='parent'){
+    // Always narrow the cached student list BEFORE displaying a dropdown.
+    // When cloud access is absent, fail closed instead of exposing every student.
+    const list=scopedStudents(),c=window.EDUNIZAM_CLOUD;
+    if(!c?.ready?.()||!c.state?.user)return list;
+    let r;try{r=await c.getMyRole()}catch(_){return[]}
+    if(r==='head'||r==='head_of_institute')return list;
+    if(r==='student')return list.filter(s=>String(s.authUserId||'')===String(c.state.user.id));
+    if(r==='parent'){
       try{
-        const links=await cloud.getLinkedStudents();
-        const ids=new Set(links.map(x=>x.student_user_id));
-        return list.filter(s=>s.authUserId&&ids.has(s.authUserId));
-      }catch(e){return[]}
+        const links=await c.getLinkedStudents(),ids=new Set((links||[]).map(x=>String(x.student_user_id)));
+        return list.filter(s=>s.authUserId&&ids.has(String(s.authUserId)));
+      }catch(_){return[]}
     }
-    if(role==='teacher'){
-      try{
-        const ids=new Set(await cloud.listMyTeacherAssignments());
-        return list.filter(s=>s.authUserId&&ids.has(s.authUserId));
-      }catch(e){return[]}
+    if(r==='teacher'){
+      // Role Scope includes teacher's assigned students and verified class-teacher
+      // sections; never substitute unscoped local rows here.
+      return list;
     }
-    return list;
+    return[];
   }
   async function fillStudents(){
     const el=$('profileStudentSelect');if(!el)return;
@@ -42,11 +41,12 @@
     if(current&&list.some(s=>String(s.id)===String(current)))el.value=current;
     if(list.length===1&&!el.value){el.value=String(list[0].id)}
     applyProfileRoleControls();
+    return list;
   }
   async function applyProfileRoleControls(){
-    const cloud=window.EDUNIZAM_CLOUD;let role='head_of_institute';
+    const cloud=window.EDUNIZAM_CLOUD;let role=window.EDUNIZAM_ROLE_SCOPE?.role?.()||'student';
     if(cloud?.ready?.()&&cloud.state?.user){try{role=await cloud.getMyRole()||'student'}catch(e){}}
-    const canRemark=['teacher','head_of_institute'].includes(role);
+    const canRemark=['teacher','head','head_of_institute'].includes(role);
     const remark=$('profileTeacherRemark'),save=$('saveProfileRemarkBtn');
     if(remark){remark.disabled=!canRemark;remark.placeholder=canRemark?'Teacher remark / progress note':'Teacher remarks are view-only for this account';}
     if(save)save.classList.toggle('hidden',!canRemark);
@@ -210,11 +210,15 @@
     return ['On Track','good'];
   }
 
+  let renderToken=0;
   async function render(){
-    await fillStudents();
+    const token=++renderToken,school=String(window.EDUNIZAM_CLOUD_CONFIG?.institutionId||''),
+      uid=String(window.EDUNIZAM_CLOUD?.state?.user?.id||'');
+    const visible=await fillStudents();
+    if(token!==renderToken||school!==String(window.EDUNIZAM_CLOUD_CONFIG?.institutionId||'')||uid!==String(window.EDUNIZAM_CLOUD?.state?.user?.id||''))return;
     const id=$('profileStudentSelect')?.value;
     currentStudentId=id?Number(id):null;
-    const s=students().find(x=>Number(x.id)===currentStudentId);
+    const s=(visible||[]).find(x=>Number(x.id)===currentStudentId);
     $('studentProfileEmpty')?.classList.toggle('hidden',!!s);
     $('studentProfileContent')?.classList.toggle('hidden',!s);
     if(!s)return;
@@ -306,13 +310,14 @@
   }
 
   function saveRemark(){
-    if(!currentStudentId)return alert('Select a student.');
+    if(!['teacher','head'].includes(window.EDUNIZAM_ROLE_SCOPE?.role?.()))return alert('Only authorized school staff may save a teacher remark.');
+    if(!currentStudentId||!scopedStudents().some(x=>Number(x.id)===currentStudentId))return alert('Select an accessible student.');
     const rm=remarks();rm[currentStudentId]=$('profileTeacherRemark').value.trim();write('edunizam_student_remarks',rm);
     alert('Teacher remark saved.');
   }
 
   function summaryText(){
-    const s=students().find(x=>Number(x.id)===Number(currentStudentId));if(!s)return'';
+    const s=scopedStudents().find(x=>Number(x.id)===Number(currentStudentId));if(!s)return'';
     const att=studentAttendancePct(s.id),rlist=studentResults(s.id),avg=averageResult(rlist),subjects=subjectStats(rlist),f=feeStats(s.id),p=practiceStats(s.id),rm=remarks()[s.id]||'';
     const best=subjects.slice().sort((a,b)=>b.avg-a.avg)[0],weak=subjects.filter(x=>x.avg<60);
     let t='Progress summary for '+s.name+' ('+(s.className||'Student')+'). ';
@@ -338,7 +343,7 @@
   }
 
   function printReport(){
-    const s=students().find(x=>Number(x.id)===Number(currentStudentId));if(!s)return alert('Select a student.');
+    const s=scopedStudents().find(x=>Number(x.id)===Number(currentStudentId));if(!s)return alert('Select an accessible student.');
     const att=studentAttendancePct(s.id),rlist=studentResults(s.id),avg=averageResult(rlist),subjects=subjectStats(rlist),f=feeStats(s.id),summary=summaryText();
     const st=read('edunizam_settings',{}),logo=st.schoolLogo?'<img class="brand-logo" src="'+esc(st.schoolLogo)+'" alt="Institute logo">':'';
     const w=window.open('','_blank');if(!w)return;
@@ -354,5 +359,7 @@
   $('saveSelfStudentProfile')?.addEventListener('click',saveMyStudentProfile);
 
   window.renderStudentPerformance=render;
+  window.EDUNIZAM_STUDENT_PROFILE_SCOPE={visibleStudents,scopedStudents};
+  window.addEventListener('edunizam:workspace-ready',()=>{currentStudentId=null;renderToken++;const selector=$('profileStudentSelect');if(selector)selector.value='';});
   fillStudents();
 })();
