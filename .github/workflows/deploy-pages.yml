@@ -53,6 +53,9 @@ jobs:
       - name: Verify Student Parent Teacher and Admin profile isolation
         run: node scripts/profile-role-visibility-check.mjs
 
+      - name: Verify class-section student pickers and authorized form submission
+        run: node scripts/student-form-picker-check.mjs
+
       - name: Verify school data readiness audit and grade catalog
         run: node scripts/school-data-readiness-check.mjs
 
