@@ -158,7 +158,7 @@
   }
   async function saveUnitCloud(item){
     const inst=cfg().institutionId,payload={institution_id:inst,class_name:item.className,section_name:item.sectionName||null,subject:item.subject,unit_title:item.unitTitle,
-       textbook_title:item.textbookTitle,curriculum_board:item.curriculumBoard,edition_year:item.editionYear||null,source_url:item.sourceUrl||null,
+       textbook_title:item.textbookTitle,curriculum_board:item.curriculumBoard,edition_year:item.editionYear?Number(item.editionYear):null,source_url:item.sourceUrl||null,
        target_end:item.targetEnd||null,completion_percent:item.completion,status:item.status,family_visible:item.familyVisible,created_by:item.createdBy||cloud().state.user.id,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
     const writeOnce=async({signal}={})=>{
       let q=item.cloudExisting?cloud().state.client.from('syllabus_progress_units').update(payload).eq('institution_id',inst).eq('id',item.id):cloud().state.client.from('syllabus_progress_units').insert(payload);
