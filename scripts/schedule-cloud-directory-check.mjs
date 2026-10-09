@@ -87,11 +87,13 @@ check(api.optionList().includes('Class 5'),'Timetable dropdown has no real regis
 check(calls.some(q=>q.table==='class_sections'&&q.filters.institution_id==='school-A'&&q.filters.active===true),'Class directory was not scoped to active rows for current institution');
 check(el('scheduleCenterApp').innerHTML.includes('English')&&!el('scheduleCenterApp').innerHTML.includes('Old School Secret')&&!el('scheduleCenterApp').innerHTML.includes('Previous School Exam'),'Current cloud schedule loaded stale old-school records');
 el('ttClass').value='5|A';api.syncSubjectCatalog('tt');
-check(el('ttSubjectOptions').innerHTML.includes('English')&&!el('ttSubjectOptions').innerHTML.includes('Fake old school subject'),'Subject suggestions use old school's syllabus records');
+check(el('ttSubjectOptions').innerHTML.includes('English')&&!el('ttSubjectOptions').innerHTML.includes('Fake old school subject'),'Subject suggestions use old school syllabus records');
+check(api.scheduleReady()&&api.currentTimetable().length===1&&api.currentDateSheets().length===1,'Current-school schedule actions unavailable');
 const before=api.getScheduleScope();
 cfg.institutionId='school-B';
 cloud.state.user.id='head2';
 check(api.classSections().length===0&&!api.knownClass({className:'5',sectionName:'A'}),'School-A class options leaked on switch');
+check(!api.scheduleReady()&&!api.currentTimetable().length&&!api.currentDateSheets().length,'Previous school schedule actions survived a switch');
 await api.render();
 classes=api.classSections();
 check(classes.length===1&&classes[0].className==='8','New institution registered class not loaded');
