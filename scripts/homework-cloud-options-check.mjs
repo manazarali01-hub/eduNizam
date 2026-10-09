@@ -8,7 +8,9 @@ const storage=new Map([
  ['edunizam_class_sections_v1',JSON.stringify([{className:'12',sectionName:'Old School',active:true}])],
  ['edunizam_syllabus_units_v1',JSON.stringify([{className:'5',subject:'Private Old School Subject'}])],
  ['edunizam_students',JSON.stringify([{id:12,name:'Old private pupil',className:'12'}])],
- ['edunizam_school_work_v1',JSON.stringify({announcements:[],homework:[],submissions:[],timetable:[]})]
+ ['edunizam_school_work_v1',JSON.stringify({announcements:[],
+  homework:[{className:'12',title:'Private prior-school assignment'}],
+  submissions:[{studentName:'Prior school child',text:'Private submission'}],timetable:[]})]
 ]);
 const localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,String(v))};
 const elements=new Map();
@@ -75,6 +77,8 @@ runInNewContext(read('academic-form-options.js'),ctx,{filename:'academic-form-op
 runInNewContext(read('school-work.js'),ctx,{filename:'school-work.js'});
 const api=window.EDUNIZAM_SCHOOL_WORK;
 check(api&&typeof api.loadHomeworkOptions==='function','School Work class loader missing');
+check(api.read().homework.length===0&&api.read().submissions.length===0,
+  'School Work rendered previous-school cached assignments/submissions before cloud sync');
 check(api.registeredHomeworkClasses().length===0,'School Work exposed stale local classes before cloud load');
 await api.loadHomeworkOptions();
 check(api.registeredHomeworkClasses().length===2,'School-A active registered classes missing');
@@ -90,6 +94,7 @@ el('swHwSection').value='Old School';
 el('swHwSave'); // inert fixture; actual save button below
 el('swHwSection').value='A';
 cfg.institutionId='school-B';cloud.state.user.id='head-2';
+check(api.read().homework.length===0&&api.read().submissions.length===0,'Previous school cached homework leaked across institution switch');
 check(api.registeredHomeworkClasses().length===0&&!api.knownHomeworkClass('5','A'),'Switch leaked school-A options');
 api.syncHomeworkOptions();
 check(!el('swHwClassOptions').innerHTML.includes('Grade 5'),'Old class remained after school switch');
