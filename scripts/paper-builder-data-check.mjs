@@ -5,7 +5,7 @@ import {runInNewContext} from 'node:vm';
 import {TextEncoder} from 'node:util';
 const read=(name)=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const files=[
- 'past-papers-data.js','practice-data.js','study-data.js',
+ 'past-papers-data.js','practice-data.js','study-data.js','pectaa-core-textbooks.js',
  'learning-premium-data.js','learning-complete-data.js','learning-required-data.js',
  'practice-foundation-data.js','practice-curriculum-expansion.js','practice-depth-data.js',
  'punjab-quran-subjects-pack.js','practice-complete-data.js','practice-session-core.js'
