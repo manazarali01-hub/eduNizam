@@ -663,9 +663,9 @@ try{
     await guestPage.waitForSelector('#guestPracticeApply',{state:'visible',timeout:5000});
     await guestPage.locator('#guestPracticeApply').tap({timeout:5000});
     await guestPage.waitForFunction(()=>String(document.getElementById('practiceQuestion')?.textContent||'').trim().length>5,null,{timeout:5000});
-    await guestPage.waitForSelector('#guestPracticeNext',{state:'visible',timeout:5000});
+    await guestPage.waitForSelector('#nextQuestion',{state:'visible',timeout:5000});
     const q1=await guestPage.locator('#practiceQuestion').textContent();
-    await guestPage.locator('#guestPracticeNext').tap({timeout:5000});
+    await guestPage.locator('#nextQuestion').tap({timeout:5000});
     await guestPage.waitForTimeout(80);
     const practiceState=await guestPage.evaluate(()=>({
       active:document.querySelector('.section.active')?.id||'',
