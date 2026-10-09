@@ -1,4 +1,4 @@
-const CACHE='edunizam-v271-chapter-readiness-v39'
+const CACHE='edunizam-v272-punjab-subject-data-v40'
 const CORE=[
   './',
   './index.html',
@@ -33,6 +33,7 @@ const CORE=[
   './edunizam-colorful-icons.js',
   './app.js',
   './feature-loader.js',
+  './punjab-quran-subjects-pack.js',
   './academic-option-catalog.js',
   './navigation-enhancements.js',
   './ui-polish.js',
