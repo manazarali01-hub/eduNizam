@@ -113,6 +113,8 @@ await app.assignCloud('studentA','6','C');
 app.students().push({id:'ghost-student',name:'Ghost'});
 await app.assignCloud('ghost-student','6','C').then(()=>{throw Error('Unmatched UUID reported as saved')},()=>{});
 ok(actions.some(x=>x[0]==='update'&&x[1]==='core_students'&&x[3].institution_id==='A'&&x[3].id==='studentA'),'Student assignment omitted institution filter or cloud UUID');
+ok(source.includes("currentPeople()?.studentStatus!=='loaded'")&&source.includes("currentPeople()?.staffStatus!=='loaded'"),'School mutations are not blocked during failed/unfinished people directory loading');
+ok(source.includes('Refresh School Records'),'There is no in-app retry for current-school pickers');
 ok(source.includes('cacheScope()!==requestScope'),'In-flight cloud result lacks identity switch guard');
 ok(!source.includes('.upsert(payload,{onConflict:'),'Class edit still uses unsafe name-based upsert');
 console.log('Class/Section cloud integrity PASS: real save required, edit by id, scoped cloud students/staff, no phantom delete/assign, account/school cache isolation.');
