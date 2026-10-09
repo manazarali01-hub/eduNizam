@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-student-pickers-v20';
+  const VERSION='20261009-academic-forms-v21';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -87,10 +87,10 @@
     gatecenter:['gate-pass-center.js'],
     schoolwork:['school-work.js','academic-workflow-deep.js'],
     noticeboard:['notice-board-center.js'],
-    lessoncenter:['lesson-plan-center.js'],
+    lessoncenter:['academic-form-options.js','lesson-plan-center.js'],
     datareadiness:['school-data-readiness.js'],
     calendarcenter:['calendar-center.js'],
-    schedulecenter:['timetable-date-sheet.js'],
+    schedulecenter:['academic-form-options.js','timetable-date-sheet.js'],
     functionscenter:['school-community.js'],
     ourstudents:['school-community.js'],
     inboxcenter:['messaging-center.js','academic-workflow-deep.js'],
@@ -99,7 +99,7 @@
     leavecenter:['school-student-picker.js','leave-center.js'],
     examcenter:['exam-center.js','academic-operations-deep.js'],
     paperbuilder:['paper-syllabus-audit.js','teacher-question-import.js','teacher-paper-builder.js','academic-workflow-deep.js'],
-    dailydiary:['daily-class-diary.js','academic-workflow-deep.js'],
+    dailydiary:['academic-form-options.js','daily-class-diary.js','academic-workflow-deep.js'],
     staffcenter:['school-form-options.js','staff-center.js'],
     stafftime:['staff-time-attendance.js'],
     staffpayroll:['staff-payroll.js'],
