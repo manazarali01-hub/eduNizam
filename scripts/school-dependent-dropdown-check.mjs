@@ -47,5 +47,16 @@ ok(calls.length===1&&calls[0].name==='assign_teacher_class_v1','Secure teacher c
 ok(calls[0].params.p_institution_id==='school1'&&calls[0].params.p_class_name==='5'&&calls[0].params.p_section_name==='A','Class assignment wrong school or section');
 el('bulkAssignmentClass').value='6';el('bulkAssignmentSection').value='B';await access.assignWholeClass();
 ok(calls.length===1,'Unlinked class/section must not submit RPC');
+win.EDUNIZAM_CLOUD_CONFIG.institutionId='school2';
+win.EDUNIZAM_CLOUD.listLinkedCoreStudents=async()=>[];
+win.EDUNIZAM_CLOUD.listInstitutionTeachers=async()=>[];
+await access.loadAssignments();
+ok(el('assignmentStudent').options.length===1&&!el('assignmentStudent').innerHTML.includes('Ali'),'School change retained previous institute student dropdown');
+ok(el('assignmentClassFilter').options.length===1&&el('bulkAssignmentClass').options.length===1,'School change retained previous classes');
+ok(el('saveAssignmentBtn').disabled&&el('assignWholeClassBtn').disabled,'Empty school assignment buttons must be disabled');
+win.EDUNIZAM_CLOUD.listLinkedCoreStudents=async()=>{throw Error('School records unavailable')};
+await access.loadAssignments();
+ok(el('assignmentStudent').options.length===1&&!el('assignmentStudent').innerHTML.includes('Noor'),'Failed school fetch retained student personal data');
+
 const previous=el('assignmentStudent').innerHTML;localStorage.getItem('edunizam_session');
 console.log('EduNizam dependent-dropdown PASS: real active class options, subject suggestions, approved linked students, class/section filters, empty-section guard, institution-scoped RPC.');
