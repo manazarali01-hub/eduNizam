@@ -200,8 +200,24 @@ function distribute(total,mode){const r=mode==='Objective Heavy'?[.4,.35,.25]:mo
 function classLevelFrom(v){const m=String(v||'').match(/\b(1[0-2]|[1-9])\b/);return m?Number(m[1]):0}
 function normalizedSubject(v){
  const x=String(v||'').trim().toLowerCase();
- const aliases={'science':'General Science','general science':'General Science','islamiyat':'Islamiat / Ethics','islamiat':'Islamiat / Ethics','islamic studies':'Islamiat / Ethics','computer':'Computer Science','computer science':'Computer Science','math':'Mathematics','mathematics':'Mathematics','pak studies':'Pakistan Studies','pakistan studies':'Pakistan Studies'};
+ const aliases={'science':'General Science','general science':'General Science','islamiyat':'Islamiat / Ethics','islamiat':'Islamiat / Ethics','islamic studies':'Islamiat / Ethics','computer':'Computer Science','computer science':'Computer Science','math':'Mathematics','maths':'Mathematics','mathematics':'Mathematics','pak studies':'Pakistan Studies','pakistan studies':'Pakistan Studies'};
  return aliases[x]||String(v||'').trim();
+}
+// Textbook providers sometimes use a canonical title while a school chooses
+// its locally familiar alias (Math/Mathematics, Islamiyat/Islamiat).
+// Slash-delimited subject bundles are supported without substring leakage.
+function materialSubjectMatches(requested,listed){
+ const choice=String(requested??'').trim();
+ if(!choice)return true;
+ const subject=String(listed??'').trim();
+ if(!subject||subject.toLowerCase()==='all subjects')return subject.toLowerCase()==='all subjects';
+ const norm=x=>String(normalizedSubject(x)||'').normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' ');
+ const target=norm(choice);
+ if(norm(subject)===target)return true;
+ if(subject.includes(' / ')&&norm(subject)!==norm('Islamiat / Ethics')){
+  return subject.split(/\s+\/\s+/).some(part=>norm(part)===target);
+ }
+ return false;
 }
 function shuffled(arr){return arr.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])}
 function bankPool(cls,subject,topics,type,diff){
@@ -359,7 +375,7 @@ function refreshPaperCatalog(){
     (id==='sindh-stbb'&&/sindh|stbb/i.test(x.board||''))||
     (id==='kp-dcte-kptbb'&&/khyber|kp |kptbb/i.test(x.board||''))||
     (id==='balochistan-btbb'&&/balochistan|btbb/i.test(x.board||''));
-  const materials=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>x.source==='official'&&authorityMatches(x)&&(!lv||(x.classLevels||[]).map(Number).includes(lv))&&(!sub||x.subject==='All Subjects'||String(x.subject).toLowerCase().includes(sub.toLowerCase())));
+  const materials=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>x.source==='official'&&authorityMatches(x)&&(!lv||(x.classLevels||[]).map(Number).includes(lv))&&materialSubjectMatches(sub,x.subject));
   const urlAllowed=u=>{try{return /^https?:$/.test(new URL(u).protocol)}catch{return false}};
   const links=[];
   if(auth&&urlAllowed(auth.officialUrl))links.push('<a href="'+esc(auth.officialUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(auth.name)+' — curriculum / textbooks</a>');
@@ -480,5 +496,5 @@ async function render(){
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,chapterChoices,schoolChapters,recommendPaperChapters,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
