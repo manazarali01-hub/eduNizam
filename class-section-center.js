@@ -29,8 +29,12 @@
     catch{return[]}
   }
   function write(v){const scope=cacheScope();if(scope)localStorage.setItem(KEY,JSON.stringify({scope,rows:v}))}
-  function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
-  function staff(){try{return JSON.parse(localStorage.getItem('edunizam_staff_profiles_v1')||'[]')}catch{return[]}}
+  // Do not use shared local student/staff caches: they can contain a
+  // different school's names until the background cloud sync finishes.
+  let people={scope:'',students:[],staff:[],studentStatus:'unchecked',staffStatus:'unchecked'};
+  const currentPeople=()=>people.scope===cacheScope()?people:null;
+  const students=()=>currentPeople()?.students||[];
+  const staff=()=>currentPeople()?.staff||[];
   function teacherName(row){
     if(row.classTeacherName)return row.classTeacherName;
     const s=staff().find(x=>String(x.id)===String(row.classTeacherStaffId));return s?.fullName||'Not assigned';
@@ -42,6 +46,32 @@
     return '<option value="">No class teacher</option>'+staff().filter(x=>x.status!=='inactive').map(x=>
       '<option value="'+esc(x.id)+'" '+(String(x.id)===String(selected)?'selected':'')+'>'+esc(x.fullName)+' · '+esc(x.designation||'Teacher')+'</option>'
     ).join('');
+  }
+  async function loadPeople(inst,requestScope){
+    const query=async(table,columns)=>{
+      const result=await runCloud('class-section-directory:'+table+':'+inst,'Current school '+table,async({signal}={})=>{
+        let q=cloud().state.client.from(table).select(columns).eq('institution_id',inst).limit(1000);
+        q=withSignal(q,signal);const out=await q;
+        if(out.error)throw out.error;return out.data||[];
+      },{timeout:8000,retries:1});
+      return result;
+    };
+    const [studentRows,staffRows]=await Promise.allSettled([
+      query('core_students','id,name,student_code,class_name,section_name'),
+      query('staff_profiles','id,user_id,full_name,designation')
+    ]);
+    if(cacheScope()!==requestScope)return;
+    people={
+      scope:requestScope,
+      students:studentRows.status==='fulfilled'?studentRows.value.map(x=>({
+        id:x.id,name:x.name||'',studentId:x.student_code||'',className:x.class_name||'',sectionName:x.section_name||''
+      })):[],
+      staff:staffRows.status==='fulfilled'?staffRows.value.map(x=>({
+        id:x.id,userId:x.user_id||'',fullName:x.full_name||'',designation:x.designation||'Teacher',status:'active'
+      })):[],
+      studentStatus:studentRows.status==='fulfilled'?'loaded':'error',
+      staffStatus:staffRows.status==='fulfilled'?'loaded':'error'
+    };
   }
   async function pullCloud(){
     if(!cloudReady())return read();
@@ -57,7 +87,9 @@
     }));
     // A response from the former school/account must never replace the new directory.
     if(cacheScope()!==requestScope)return read();
-    write(rows);return rows;
+    write(rows);
+    await loadPeople(inst,requestScope);
+    return cacheScope()===requestScope?rows:read();
   }
   async function saveCloud(item){
     if(!cloudReady())throw new Error('Sign in to a verified school workspace before saving classes.');
@@ -92,10 +124,13 @@
   async function assignCloud(studentLocalId,className,sectionName){
     if(!cloudReady())throw new Error('Verified school connection required to assign students.');
     const s=students().find(x=>String(x.id)===String(studentLocalId));if(!s)throw new Error('Selected student is not in the loaded school student directory.');
-    const inst=cfg().institutionId,lookup=s.studentId?('code:'+s.studentId):('local:'+Number(s.id));
-    return runCloud('class-section-assign:'+inst+':'+lookup,'Assign student section',async({signal}={})=>{
-      let q=cloud().state.client.from('core_students').update({class_name:className,section_name:sectionName,updated_at:new Date().toISOString()}).eq('institution_id',inst);
-      if(s.studentId)q=q.eq('student_code',s.studentId);else q=q.eq('local_id',Number(s.id));
+    const inst=cfg().institutionId;
+    return runCloud('class-section-assign:'+inst+':'+s.id,'Assign student section',async({signal}={})=>{
+      // The UUID came from a current-school filtered query, not a browser
+      // local ID or a potentially duplicated school-issued student code.
+      let q=cloud().state.client.from('core_students')
+        .update({class_name:className,section_name:sectionName,updated_at:new Date().toISOString()})
+        .eq('institution_id',inst).eq('id',s.id);
       q=q.select('id').maybeSingle();q=withSignal(q,signal);
       const {data,error}=await q;if(error)throw error;
       if(!data?.id)throw new Error('Student was not updated in the current school. Refresh enrolled students.');
@@ -118,23 +153,26 @@
   }
   function allocation(){
     if(!isHead()||!cloudReady())return '';
-    const rows=read().filter(x=>x.active!==false);
-    return '<article class="card" style="margin-top:16px"><h3>Allocate Student to Section</h3><div class="form-grid">'+
+    const rows=read().filter(x=>x.active!==false),studentStatus=currentPeople()?.studentStatus;
+    return '<article class="card" style="margin-top:16px"><h3>Allocate Student to Section</h3>'+
+      (studentStatus==='error'?'<p class="coverage-note">Current-school student directory unavailable. Check access and Refresh School Records; do not use old cached students.</p>':'')+
+      '<div class="form-grid">'+
       '<select id="csStudent">'+window.EDUNIZAM_STUDENT_PICKER.options(students())+'</select>'+
       '<select id="csTarget"><option value="">Select class / section</option>'+rows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.className)+' - '+esc(x.sectionName)+'</option>').join('')+'</select>'+
       '<button id="csAssign"'+(students().length&&rows.length?'':' disabled')+'>Assign Student</button>'+(students().length&&rows.length?'':'<p class="coverage-note">Add real students and active class sections before allocating.</p>')+'</div></article>';
   }
   function card(x){
-    const count=studentCount(x),full=x.capacity>0&&count>=x.capacity;
+    const count=currentPeople()?.studentStatus==='loaded'?studentCount(x):null,full=count!==null&&x.capacity>0&&count>=x.capacity;
     return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">Class '+esc(x.className)+' - '+esc(x.sectionName)+'</span><span id="profileRiskBadge" data-risk="'+(x.active===false?'high':full?'medium':'good')+'">'+(x.active===false?'Inactive':full?'Full':'Active')+'</span></div>'+
       '<h3>'+esc(teacherName(x))+'</h3><p class="muted">Class Teacher'+(x.roomLabel?' · '+esc(x.roomLabel):'')+'</p>'+
-      '<p><strong>Students:</strong> '+count+(x.capacity?' / '+x.capacity:'')+'</p>'+
+      '<p><strong>Students:</strong> '+(count===null?'Unavailable (retry)':count)+(x.capacity&&count!==null?' / '+x.capacity:'')+'</p>'+
       (isHead()?'<div class="paper-actions"><button data-cs-edit="'+esc(x.id)+'">Edit</button><button class="secondary" data-cs-delete="'+esc(x.id)+'">Delete</button></div>':'')+
       '</article>';
   }
   async function save(){
     const btn=$('csSave');if(classSectionSaveInFlight||btn?.disabled)return;
     if(!isHead()||!cloudReady())return alert('Please sign in as Head of Institute to your verified school before saving.');
+    if(currentPeople()?.staffStatus==='error')return alert('Teacher directory could not be verified. Refresh School Records before saving.');
     const className=$('csClass')?.value.trim(),sectionName=$('csSection')?.value.trim();
     if(!className||!sectionName)return alert('Class aur section required hain.');
     const rows=read(),editId=$('csEditId')?.value||'',staffId=$('csTeacher')?.value||'';
@@ -164,10 +202,10 @@
       const requestScope=cacheScope();
       try{await assignCloud(sid,row.className,row.sectionName)}catch(e){return alert('Cloud allocation failed: '+(e.message||e))}
       if(cacheScope()!==requestScope)return;
-      if(window.EDUNIZAM_STUDENT_BRIDGE?.update)window.EDUNIZAM_STUDENT_BRIDGE.update(sid,{className:row.className,sectionName:row.sectionName});
-      else{
-        const arr=students(),s=arr.find(x=>String(x.id)===String(sid));if(s){s.className=row.className;s.sectionName=row.sectionName;localStorage.setItem('edunizam_students',JSON.stringify(arr))}
-      }
+      // The scoped cloud student was updated successfully. Do not rewrite
+      // unscoped local student caches or mistake the cloud UUID for a local ID.
+      const person=students().find(x=>String(x.id)===String(sid));
+      if(person){person.className=row.className;person.sectionName=row.sectionName;}
       render();
     }finally{classSectionAssignInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
@@ -221,14 +259,15 @@
     }
     rows=[...rows].sort((a,b)=>String(a.className).localeCompare(String(b.className),undefined,{numeric:true})||String(a.sectionName).localeCompare(String(b.sectionName)));
     const disconnected=!cloudReady(),loadError=root.dataset.cloudError==='1';
-    root.innerHTML='<div class="section-head"><span class="academic-pill">'+(disconnected?'Cloud login required':loadError?'Cloud read unavailable':'School cloud')+'</span></div>'+
+    root.innerHTML='<div class="section-head"><span class="academic-pill">'+(disconnected?'Cloud login required':loadError?'Cloud read unavailable':'School cloud')+'</span>'+(disconnected?'':'<button class="secondary" id="csRefresh" type="button">Refresh School Records</button>')+'</div>'+
       (loadError?'<p class="coverage-note">Class directory could not be verified. Do not assume this school has zero classes. Retry after checking connection and access.</p>':'')+
       '<div id="csEditor">'+editor()+'</div>'+allocation()+
       '<div class="section-head" style="margin-top:18px"><div><h3>Class / Section Directory</h3><p class="muted">Class teacher, room aur current student strength.</p></div></div>'+
       '<div class="paper-grid">'+(rows.length?rows.map(card).join(''):loadError?'<div class="empty-state">School classes not verified (cloud read unavailable).</div>':disconnected?'<div class="empty-state">Sign in to the school workspace to load classes.</div>':'<div class="empty-state">No class / section records in this school yet. Add the actual classes to begin.</div>')+'</div>';
     bind();
+    $('csRefresh')?.addEventListener('click',()=>{root.dataset.cloudLoaded='';root.dataset.cloudError='';render()});
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('classSectionApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_CLASS_SECTION_CENTER={render,read,pullCloud,cloudReady,cacheScope,saveCloud,assignCloud,removeCloud};
+  window.EDUNIZAM_CLASS_SECTION_CENTER={render,read,pullCloud,cloudReady,cacheScope,saveCloud,assignCloud,removeCloud,students,staff};
 })();
