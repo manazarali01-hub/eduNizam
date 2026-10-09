@@ -65,6 +65,27 @@ let teacherOnlyBlocked=false;
 try{build('Mathematics',topics.slice(0,1),20,'Balanced','Objective Heavy','1',{teacherOnly:true})}
 catch(error){teacherOnlyBlocked=/teacher-bank/i.test(String(error.message))}
 pass(teacherOnlyBlocked,'Teacher-only paper must fail without teacher-supplied questions');
+const sampleRows=window.EDUNIZAM_PRACTICE_DATA.questions;
+const math1=sampleRows.find(q=>Number(q.classLevel)===1&&q.subject==='Mathematics'&&q.type==='mcq');
+pass(!!math1,'Class 1 Math question sample missing');
+pass(auditAPI.sameClass('Grade 1','1'),'Grade 1 class label must match numeric class 1');
+pass(!auditAPI.sameClass('Grade 1','Grade 11'),'Grade 1 must not match Grade 11');
+pass(!auditAPI.usable({...math1,options:['same','same','different','last']},'mcq',false),'Duplicate MCQ options must be rejected');
+pass(!auditAPI.usable({...math1,answer:99},'mcq',false),'Out-of-range answer index must be rejected');
+pass(!auditAPI.usable({question:'Explain why',type:'short',answerText:'',explanation:''},'short',false),'Missing subjective answer guide must be rejected');
+pass(!auditAPI.usable({question:'Explain why',type:'short',answer_text:''},'short',true),'Teacher written question requires a real marking guide');
+const sameQuestionTeacher={class_name:'Grade 1',subject:'Mathematics',chapter:math1.chapter,question_type:'mcq',question_text:math1.question,options:[...math1.options],correct_option:math1.answer,active:true,difficulty:'Balanced'};
+const overlap=auditAPI.audit({className:'1',subject:'Mathematics',chapters:[math1.chapter],teacherQuestions:[sameQuestionTeacher],practiceQuestions:[math1]});
+pass(overlap.totals.mcq===1&&overlap.chapters[0].types.mcq.teacher===1&&overlap.chapters[0].types.mcq.practice===0,'Overlapping teacher and practice questions must only count once');
+const matchingGrade=build('Mathematics',topics.slice(0,2),20,'Balanced','Objective Heavy','Grade 1');
+pass(matchingGrade.totalMarks===20,'Grade 1 alias should produce a valid 20-mark exam');
+const uniquePaper=build('Mathematics',topics.slice(0,3),50,'Balanced','Balanced','1');
+const keys=uniquePaper.sections.flatMap(section=>section.questions.map(q=>q.text.split(' A. ')[0].trim().toLowerCase()));
+pass(keys.length===new Set(keys).size,'Paper builder must not reuse the same question text across sections');
+for(const wrong of [NaN,14.5,0,-1,201]){
+ let failed=false;try{build('Mathematics',topics.slice(0,3),wrong,'Balanced','Balanced','1')}catch(e){failed=/whole number between 10 and 200/.test(String(e.message))}
+ pass(failed,'Invalid paper mark total was accepted: '+wrong);
+}
 const code=read('teacher-paper-builder.js');
 const importer=window.EDUNIZAM_QUESTION_IMPORT;
 pass(!!importer&&typeof importer.prepare==='function','Question CSV/JSON importer unavailable');
