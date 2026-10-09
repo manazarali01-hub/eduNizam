@@ -28,13 +28,91 @@
     cloudScopeInFlight.clear();
   }
   function ensureCloudKey(){
-    const key=cloudReady()?[cfg().institutionId,cloud()?.state?.user?.id||''].join('|'):'';
+    const key=cloudReady()?[cfg().institutionId,cloud()?.state?.user?.id||'',role()].join('|'):'';
     if(key!==cloudLoadKey){
       cloudLoadKey=key;
       cloudLoadedScopes.clear();
       cloudScopeInFlight.clear();
     }
     return key;
+  }
+
+  let homeworkAcademic={scope:'',status:'unloaded',classes:[],units:[],loadedAt:0},academicJob=null;
+  const homeworkScope=()=>[String(cfg().institutionId||''),String(cloud()?.state?.user?.id||''),role()].join('|');
+  async function loadHomeworkOptions(force=false){
+    if(!canEdit()||!cloudReady())return;
+    const scope=homeworkScope();
+    if(!force&&homeworkAcademic.scope===scope&&homeworkAcademic.status==='loaded'&&Date.now()-homeworkAcademic.loadedAt<30000)return;
+    if(academicJob?.scope===scope)return academicJob.promise;
+    homeworkAcademic={scope:'',status:'unloaded',classes:[],units:[],loadedAt:0};
+    const inst=cfg().institutionId,client=cloud().state.client;
+    const fetchRows=async(table,columns,max)=>{
+      let q=client.from(table).select(columns).eq('institution_id',inst).limit(max);
+      if(table==='class_sections')q=q.eq('active',true);
+      const {data,error}=await q;
+      if(error)throw error;return Array.isArray(data)?data:[];
+    };
+    const promise=(async()=>{
+      const results=await Promise.allSettled([
+        fetchRows('class_sections','class_name,section_name,active',1200),
+        fetchRows('syllabus_progress_units','class_name,subject,unit_title',1500)
+      ]);
+      if(!cloudReady()||homeworkScope()!==scope)return;
+      const classes=results[0].status==='fulfilled'?results[0].value.map(x=>({className:x.class_name,sectionName:x.section_name||'',active:x.active!==false})):[];
+      const units=results[1].status==='fulfilled'?results[1].value.map(x=>({className:x.class_name,subject:x.subject,unitTitle:x.unit_title||''})):[];
+      homeworkAcademic={scope,classes,units,loadedAt:Date.now(),
+        status:results[0].status==='fulfilled'?'loaded':'error',
+        unitStatus:results[1].status==='fulfilled'?'loaded':'error'};
+      if(results[0].status==='rejected')console.warn('School Work class options:',results[0].reason?.message||results[0].reason);
+      if(results[1].status==='rejected')console.warn('School Work subject options:',results[1].reason?.message||results[1].reason);
+    })();
+    academicJob={scope,promise};
+    try{await promise}finally{if(academicJob?.promise===promise)academicJob=null}
+  }
+  function registeredHomeworkClasses(){
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS,rows=[];
+    if(cloudReady()){
+      if(homeworkAcademic.scope===homeworkScope()&&homeworkAcademic.status==='loaded')rows.push(...homeworkAcademic.classes);
+    }else{
+      try{rows.push(...JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]'))}catch(_){}
+    }
+    const keys=window.EDUNIZAM_ROLE_SCOPE?.teacherClassKeys?.()||new Set();
+    return api?.registeredSections?.(rows.filter(x=>{
+      if(x.active===false)return false;
+      if(role()==='head')return true;
+      const k=String(x.className||'').trim().toLowerCase()+'|'+String(x.sectionName||'').trim().toLowerCase();
+      return role()==='teacher'&&keys.has(k);
+    }))||[];
+  }
+  function knownHomeworkClass(cls,sec){
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    return registeredHomeworkClasses().some(x=>api?.sameClass?.(x.className,cls)&&
+      String(x.sectionName||'').trim().toLowerCase()===String(sec||'').trim().toLowerCase());
+  }
+  function syncHomeworkOptions(){
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS,cls=$('swHwClass')?.value?.trim()||'';
+    const classes=$('swHwClassOptions');
+    if(classes)classes.innerHTML=(api?.distinct?.(registeredHomeworkClasses().map(x=>x.className))||[])
+      .map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const sections=$('swHwSectionOptions');
+    if(sections)sections.innerHTML=(api?.sections?.(cls,registeredHomeworkClasses())||[])
+      .map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const units=cloudReady()?(homeworkAcademic.scope===homeworkScope()?homeworkAcademic.units:[]):
+      (()=>{try{return JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch{return[]}})();
+    const list=$('swHwSubjectOptions');
+    if(list)list.innerHTML=(api?.subjects?.(cls,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},units)||[])
+      .map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const note=$('swHwOptionNote');
+    if(note)note.textContent=!cls?'Choose a registered class to see sections and subject suggestions.':
+      cloudReady()&&homeworkAcademic.scope!==homeworkScope()?'Loading current-school academic options.':
+      cloudReady()&&homeworkAcademic.status==='error'?'School directory unavailable. Refresh before publishing.':
+      cloudReady()&&homeworkAcademic.unitStatus==='error'?'School syllabus unavailable; subjects are unverified reference suggestions.':
+      'Saved school subjects plus unverified reference subjects. Check prescribed textbook.';
+  }
+  async function refreshHomeworkOptions(){
+    const button=$('swHwRefresh');if(button){button.disabled=true;button.textContent='Refreshing...'}
+    try{await loadHomeworkOptions(true);syncHomeworkOptions()}
+    finally{if(button?.isConnected){button.disabled=false;button.textContent='Refresh Classes & Subjects'}}
   }
   async function pullCloud(scope='all',force=false){
     if(!cloudReady())return read();
@@ -128,7 +206,8 @@
   }
   function visibleStudents(){
     const list=allStudents();
-    return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(list)||list;
+    const scoped=window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(list);
+    return Array.isArray(scoped)?scoped:[];
   }
   function visibleClasses(){
     if(['head','teacher'].includes(role()))return null;
@@ -204,9 +283,11 @@
     if(tab==='homework')return `
       <article class="card"><div class="section-head"><div><span class="academic-pill">Deep Assignment Workflow</span><h3>New Homework / Assignment</h3></div></div>
       <div class="form-grid">
-        <input id="swHwClass" placeholder="Class / Grade *">
-        <input id="swHwSection" placeholder="Section (optional)">
-        <input id="swHwSubject" placeholder="Subject *">
+        <input id="swHwClass" list="swHwClassOptions" placeholder="Registered class / grade *"><datalist id="swHwClassOptions"></datalist>
+        <input id="swHwSection" list="swHwSectionOptions" placeholder="Registered section *"><datalist id="swHwSectionOptions"></datalist>
+        <input id="swHwSubject" list="swHwSubjectOptions" placeholder="Subject (choose / type) *"><datalist id="swHwSubjectOptions"></datalist>
+        <p id="swHwOptionNote" class="coverage-note">Select a school class to load section and subject suggestions.</p>
+        <button type="button" id="swHwRefresh" class="secondary">Refresh Classes & Subjects</button>
         <input id="swHwTitle" placeholder="Title *">
         <select id="swHwType"><option value="homework">Homework</option><option value="assignment">Assignment</option><option value="project">Project</option><option value="reading">Reading</option><option value="quiz_prep">Quiz Prep</option></select>
         <input id="swHwDue" type="date" value="${nowDate()}">
@@ -270,13 +351,20 @@
       }catch(e){alert('Cloud sync failed; item local mode mein save hoga. '+(e.message||e))}
       const d=read();d.announcements.unshift(item);write(d);render();
     };
+    if(tab==='homework'){
+      $('swHwClass')?.addEventListener('input',syncHomeworkOptions);
+      $('swHwRefresh')?.addEventListener('click',refreshHomeworkOptions);
+      syncHomeworkOptions();
+    }
     if(tab==='homework'&&$('swSaveHomework'))$('swSaveHomework').onclick=async()=>{
       const className=$('swHwClass').value.trim(),subject=$('swHwSubject').value.trim(),title=$('swHwTitle').value.trim();if(!className||!subject||!title)return alert('Class, subject aur title required hain.');
-      const item={id:String(Date.now()),className,sectionName:$('swHwSection').value.trim(),subject,title,assignmentType:$('swHwType').value,dueDate:$('swHwDue').value,maxMarks:$('swHwMarks').value,allowSubmission:$('swHwAllowSubmit').checked,allowLateSubmission:$('swHwAllowLate').checked,details:$('swHwDetails').value.trim(),createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()};
+      const sectionName=$('swHwSection').value.trim();
+      if(!knownHomeworkClass(className,sectionName))return alert('Choose a registered accessible class/section in Academic Groups before publishing.');
+      const item={id:String(Date.now()),className,sectionName,subject,title,assignmentType:$('swHwType').value,dueDate:$('swHwDue').value,maxMarks:$('swHwMarks').value,allowSubmission:$('swHwAllowSubmit').checked,allowLateSubmission:$('swHwAllowLate').checked,details:$('swHwDetails').value.trim(),createdBy:identity(),createdRole:role(),createdAt:new Date().toISOString()};
       try{
         const row=await insertCloud('homework',item);
         if(row)item.id=row.id,item.createdBy=row.creator_user_id,item.createdAt=row.created_at;
-      }catch(e){alert('Cloud sync failed; homework local mode mein save hoga. '+(e.message||e))}
+      }catch(e){return alert('Assignment could not be published: '+(e.message||e))}
       const d=read();d.homework.unshift(item);write(d);render();
     };
     if(tab==='timetable'&&$('swSaveTimetable'))$('swSaveTimetable').onclick=async()=>{
@@ -358,6 +446,10 @@
     paint(root,read(),tab);
     if(!cloudReady())return;
     ensureCloudKey();
+    if(tab==='homework'&&canEdit()){
+      await loadHomeworkOptions();
+      if((root.dataset.tab||'announcements')===tab)syncHomeworkOptions();
+    }
     const scope=tab==='submissions'?'submissions':tab;
     if(!force&&cloudLoadedScopes.has(scope))return;
     try{
@@ -371,5 +463,6 @@
 
   window.addEventListener('edunizam:auth',()=>{resetCloudScopes();render(true)});
   setTimeout(mount,0);setTimeout(mount,600);
-  window.EDUNIZAM_SCHOOL_WORK={mount,render,read,pullCloud,cloudReady};
+  window.EDUNIZAM_SCHOOL_WORK={mount,render,read,pullCloud,cloudReady,loadHomeworkOptions,
+    registeredHomeworkClasses,knownHomeworkClass,syncHomeworkOptions,refreshHomeworkOptions,getHomeworkAcademic:()=>homeworkAcademic};
 })();
