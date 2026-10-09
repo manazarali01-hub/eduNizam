@@ -267,14 +267,14 @@
     if(!isStaff())return '<div class="coverage-note">Parent view: school se bheji hui student complaint notices yahan nazar aayengi.</div>';
     const mediaNote=cloudReady()?'Up to 3 photos/videos, max 25 MB each.':'Photo/video upload Cloud Mode mein available hoga; Local Mode mein text complaint save ho sakti hai.';
     return '<article class="card"><h3>Send Student Complaint to Parent</h3><div class="form-grid">'+
-      '<select id="pcStudent"><option value="">Select student</option>'+visibleStudents().map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' · '+esc((s.className||'-')+(s.sectionName?' - '+s.sectionName:''))+'</option>').join('')+'</select>'+
+      '<select id="pcStudent">'+window.EDUNIZAM_STUDENT_PICKER.options(visibleStudents())+'</select>'+
       '<select id="pcSeverity"><option>Concern</option><option>Serious</option><option>Information</option></select>'+
       '<input id="pcSubject" placeholder="Complaint subject">'+
       '<textarea id="pcMessage" rows="4" placeholder="Complaint details / message to parent"></textarea>'+
       '<input id="pcAction" placeholder="Requested parent action (optional)">'+
       '<input id="pcFiles" type="file" accept="image/*,video/*" multiple '+(cloudReady()?'':'disabled')+'>'+
       '<div class="muted">'+esc(mediaNote)+'</div>'+
-      '<button id="pcSend">Send Complaint to Parent</button></div></article>';
+      '<button id="pcSend"'+(visibleStudents().length?'':' disabled')+'>Send Complaint to Parent</button>'+(visibleStudents().length?'':'<p class="coverage-note">No authorized student records found. Verify teacher assignments or school enrollment.</p>')+'</div></article>';
   }
   function metrics(rows){
     const open=rows.filter(x=>x.status==='Open').length,ack=rows.filter(x=>x.acknowledgedAt).length,resolved=rows.filter(x=>x.status==='Resolved').length,media=rows.reduce((a,x)=>a+(x.attachments?.length||0),0);
@@ -307,7 +307,8 @@
       if(f.size>MAX_BYTES)return alert(f.name+' 25 MB se zyada hai.');
     }
     const btn=$('pcSend');if(btn?.disabled)return;setBusy(btn,true,'Sending...');
-    const s=students().find(x=>String(x.id)===String(studentId));if(!s){setBusy(btn,false);return}
+    if(!isStaff()||!window.EDUNIZAM_STUDENT_PICKER?.has(visibleStudents(),studentId)){setBusy(btn,false);return alert('This student is not assigned/accessible to your school role.');}
+    const s=visibleStudents().find(x=>String(x.id)===String(studentId));if(!s){setBusy(btn,false);return}
     let item={id:String(Date.now()),studentId:String(s.id),studentName:s.name,className:s.className||'',sectionName:s.sectionName||'',subject,message,severity:$('pcSeverity')?.value||'Concern',actionRequested:$('pcAction')?.value.trim()||'',status:'Open',acknowledgedAt:'',resolvedAt:'',creatorKey:meKey(),createdAt:new Date().toISOString(),attachments:[]};
     let complaintId='';
     try{
