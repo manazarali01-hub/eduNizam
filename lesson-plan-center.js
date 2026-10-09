@@ -75,7 +75,9 @@
     return rows.filter(x=>x.familyVisible&&relevantToFamily(x));
   }
   function mapPlan(x){return {id:x.id,className:x.class_name,sectionName:x.section_name||'',subject:x.subject,weekStart:x.week_start,topic:x.topic,objectives:x.objectives||'',activities:x.activities||'',homeworkNote:x.homework_note||'',status:x.status,createdBy:x.created_by||'',createdAt:x.created_at}}
-  function mapUnit(x){return {id:x.id,className:x.class_name,sectionName:x.section_name||'',subject:x.subject,unitTitle:x.unit_title,targetEnd:x.target_end||'',completion:Number(x.completion_percent||0),status:x.status,familyVisible:x.family_visible===true,createdBy:x.created_by||'',createdAt:x.created_at}}
+  function mapUnit(x){return {id:x.id,className:x.class_name,sectionName:x.section_name||'',subject:x.subject,unitTitle:x.unit_title,
+     textbookTitle:x.textbook_title||'',curriculumBoard:x.curriculum_board||'',editionYear:x.edition_year||'',sourceUrl:x.source_url||'',
+     targetEnd:x.target_end||'',completion:Number(x.completion_percent||0),status:x.status,familyVisible:x.family_visible===true,createdBy:x.created_by||'',createdAt:x.created_at,cloudExisting:true}}
   async function pullSchoolClasses(){
     if(!cloudReady())return;
     const id=cfg().institutionId,scope=currentSchoolScope(),client=cloud().state.client;
@@ -134,7 +136,9 @@
     }
   }
   async function saveUnitCloud(item){
-    const inst=cfg().institutionId,payload={institution_id:inst,class_name:item.className,section_name:item.sectionName||null,subject:item.subject,unit_title:item.unitTitle,target_end:item.targetEnd||null,completion_percent:item.completion,status:item.status,family_visible:item.familyVisible,created_by:item.createdBy||cloud().state.user.id,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
+    const inst=cfg().institutionId,payload={institution_id:inst,class_name:item.className,section_name:item.sectionName||null,subject:item.subject,unit_title:item.unitTitle,
+       textbook_title:item.textbookTitle,curriculum_board:item.curriculumBoard,edition_year:item.editionYear||null,source_url:item.sourceUrl||null,
+       target_end:item.targetEnd||null,completion_percent:item.completion,status:item.status,family_visible:item.familyVisible,created_by:item.createdBy||cloud().state.user.id,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
     const writeOnce=async({signal}={})=>{
       let q=item.cloudExisting?cloud().state.client.from('syllabus_progress_units').update(payload).eq('institution_id',inst).eq('id',item.id):cloud().state.client.from('syllabus_progress_units').insert(payload);
       q=q.select().single();q=withSignal(q,signal);const {data,error}=await q;if(error)throw error;return mapUnit(data);
@@ -181,12 +185,19 @@
       '<select id="lpUnitClass"><option value="">Select registered class</option>'+classOptions().map(c=>'<option value="'+esc(c)+'" '+(edit?.className===c?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select>'+
       '<input id="lpUnitSection" list="lpUnitSections" placeholder="Section (from school data)" value="'+esc(edit?.sectionName||'')+'"><datalist id="lpUnitSections"></datalist>'+
       '<input id="lpUnitSubject" list="lpUnitSubjects" placeholder="Subject (choose from catalog)" value="'+esc(edit?.subject||'')+'"><datalist id="lpUnitSubjects"></datalist>'+
-      '<input id="lpUnitTitle" list="lpUnitTopics" placeholder="Syllabus unit (or custom)" value="'+esc(edit?.unitTitle||'')+'"><datalist id="lpUnitTopics"></datalist>'+
+      '<input id="lpUnitTitle" list="lpUnitTopics" placeholder="Exact chapter / unit title *" value="'+esc(edit?.unitTitle||'')+'"><datalist id="lpUnitTopics"></datalist>'+
+       '<input id="lpTextbookTitle" placeholder="Prescribed textbook title *" value="'+esc(edit?.textbookTitle||'')+'">'+
+       '<select id="lpCurriculumBoard" aria-label="Textbook authority">'+
+         [['','Select school textbook board'],['punjab-pectaa','Punjab · PECTAA'],['federal-fbise','Federal · FBISE'],['sindh-stbb','Sindh · STBB'],['kp-textbook','Khyber Pakhtunkhwa'],['balochistan','Balochistan'],['other','Other / School-specific']].map(([v,t])=>'<option value="'+v+'" '+((edit?.curriculumBoard||'')===v?'selected':'')+'>'+t+'</option>').join('')+
+       '</select>'+
+       '<input id="lpEditionYear" type="number" min="1900" max="2100" step="1" placeholder="Textbook edition year (optional)" value="'+esc(edit?.editionYear||'')+'">'+
+       '<input id="lpSourceUrl" type="url" placeholder="Textbook source link (optional, https://)" value="'+esc(edit?.sourceUrl||'')+'">'+
+       '<p class="coverage-note" style="grid-column:1/-1">A teacher-entered book title is NOT official textbook verification. <a href="https://pectaa.edu.pk/books-and-publications/" target="_blank" rel="noopener noreferrer">Punjab official textbook directory</a></p>'+
       '<input id="lpTargetEnd" type="date" value="'+esc(edit?.targetEnd||'')+'">'+
       '<input id="lpCompletion" type="number" min="0" max="100" value="'+esc(edit?.completion??0)+'" placeholder="Completion %">'+
       '<select id="lpUnitStatus">'+['Planned','In Progress','Completed'].map(x=>'<option '+(edit?.status===x?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
       '<label><input id="lpFamilyVisible" type="checkbox" '+(edit?.familyVisible?'checked':'')+'> Show progress to Student/Parent</label>'+
-      '<p id="lpUnitCatalogNote" class="coverage-note" style="grid-column:1/-1">A unit becomes a school record only after you save it.</p><button id="lpSaveUnit">'+(edit?'Update Unit':'Save Unit')+'</button>'+(edit?'<button id="lpCancelUnit" class="secondary">Cancel</button>':'')+
+      '<p id="lpUnitCatalogNote" class="coverage-note" style="grid-column:1/-1">Saved book details are traceable school-entered metadata, not textbook certification.</p><button id="lpSaveUnit">'+(edit?'Update Unit':'Save Unit')+'</button>'+(edit?'<button id="lpCancelUnit" class="secondary">Cancel</button>':'')+
       '</div></article>';
   }
   function metrics(plans,units){
