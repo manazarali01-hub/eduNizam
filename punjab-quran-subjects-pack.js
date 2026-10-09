@@ -98,7 +98,7 @@ if(!PD)return;
   PD.chapters[pair].sort();
  }
  window.EDUNIZAM_PRACTICE_EXTRA_BLUEPRINTS=blueprint;
- PD.punjabQuranExpansion={updatedAt:'2026-10-09',topicGroups:topicCount,authoredItemsAdded:added,sourceUrl:URL,verifiedTextbookChapters:false,oralRecitationNotAssessedByMCQ:true};
+ PD.punjabQuranExpansion={updatedAt:'2026-10-09',topicGroups:topicCount,authoredItemsAdded:rows.reduce((n,r)=>n+r[2].length*3,0),newItemsThisLoad:added,sourceUrl:URL,verifiedTextbookChapters:false,oralRecitationNotAssessedByMCQ:true};
 }
 S.applyToPractice=applyToPractice;
 applyToPractice();
