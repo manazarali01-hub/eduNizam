@@ -57,7 +57,17 @@ for(const item of bookLinks){
  requireOK(item.source==='official'&&item.curriculumStatus==='needs-verification','Book directory source/current-status label incorrect: '+item.id);
  requireOK(item.url==='https://pectaa.edu.pk/books-and-publications/','Book directory URL differs from approved PECTAA source: '+item.id);
 }
+const lite={window:{}};
+try{runInNewContext(read('academic-option-catalog.js'),lite,{filename:'academic-option-catalog.js',timeout:1500})}
+catch(error){failures.push('Lightweight Academic Option Catalog could not load: '+error.message)}
+const lightweight=lite.window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{};
+for(const pair of pairs){
+ const a=pair.chapters.join('||'),b=(lightweight.chapters?.[pair.grade+'|'+pair.subject]||[]).join('||');
+ requireOK(a===b,'Lightweight Lesson Planner topics out of sync: '+pair.grade+' / '+pair.subject);
+}
 const app=read('app.html'),learn=read('learn.html'),features=read('feature-loader.js'),guest=read('guest-learning-premium.js'),lesson=read('lesson-plan-center.js');
+requireOK(features.includes("lessonCatalog:['academic-option-catalog.js']"),'Lesson Planner not using lightweight subject-topic catalog');
+requireOK(lesson.includes('EDUNIZAM_ACADEMIC_OPTION_CATALOG'),'Lesson Planner not reading lightweight options');
 for(const grade of grades){
  requireOK(app.includes('<option value="'+grade+'">'+(grade<=8?'Grade':'Class')+' '+grade+'</option>'),'App practice selector omits Grade '+grade);
  requireOK(app.includes('<option value="'+grade+'">Class '+grade+'</option>'),'Study selector omits Grade '+grade);
