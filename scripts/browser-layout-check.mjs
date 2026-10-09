@@ -1969,6 +1969,27 @@ try{
           const pattern=await loginFlowPage.locator('#pbPatternBreakdown').innerText();
           if(!pattern.includes('50 total marks')||!pattern.includes('MCQs'))
             pushFailure('paper builder wizard','Marks / pattern split not shown to teacher');
+          // User-uploaded PDF/photo source may be pasted for a fully local,
+          // deterministic mobile test. Never call a third-party OCR/AI service.
+          await loginFlowPage.locator('#pbSourceChapter').fill('Matter');
+          await loginFlowPage.locator('#pbSourceText').fill(
+            'Q1: Which state of matter is ice?\\nA) Solid\\nB) Liquid\\nC) Gas\\nD) Plasma\\nAnswer: A\\n\\nQ2: What is matter?\\nAnswer: Matter has mass and occupies space.'
+          );
+          await loginFlowPage.locator('#pbSourceParse').click();
+          const draft=await loginFlowPage.locator('#pbSourceQuestions').inputValue();
+          if(!draft.includes('Which state of matter is ice?')||!draft.includes('correct_option'))
+            pushFailure('paper source upload','OCR/text question detection did not provide editable answer-key drafts');
+          await loginFlowPage.locator('#pbSourceReviewed').check();
+          await loginFlowPage.locator('#pbSourceStage').click();
+          const staging=await loginFlowPage.locator('#pbSourceStatus').innerText();
+          if(!staging.includes('reviewed question(s)'))
+            pushFailure('paper source upload','Verified local staging failed: '+staging);
+          const synced=await loginFlowPage.evaluate(()=>window.EDUNIZAM_PAPER_BUILDER?.activeSourceRows?.().length||0);
+          if(synced<2)pushFailure('paper source upload','Source questions not usable in current browser-session paper bank');
+          if(!(await loginFlowPage.locator('#pbSourceFiles').count())||
+             !(await loginFlowPage.locator('#pbSourceRead').count())||
+             !(await loginFlowPage.locator('#pbSourceAiConsent').count()))
+            pushFailure('paper source upload','PDF/photo upload, OCR or explicit AI consent controls missing');
         });
       }
     }
