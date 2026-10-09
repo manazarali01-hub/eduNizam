@@ -12,6 +12,7 @@
   const currentUserId=()=>cloud()?.state?.user?.id||'';
   const isHead=()=>role()==='head';
   const staffDeleteInFlight=new Set();
+  let formSchoolClasses=[],formSchoolScope='',formSchoolError='';
   async function boundedRead(key,builder,{timeout=7000,retries=1,cacheMs=0,label='Staff Directory'}={}){
     const execute=async({signal}={})=>{
       let request=builder();
@@ -192,9 +193,60 @@
       '<div class="paper-actions">'+actions+'</div></article>';
   }
 
+  async function schoolClassChoices(){
+    const form=window.EDUNIZAM_SCHOOL_FORM_OPTIONS;
+    if(!form)return[];
+    if(!cloudReady()){
+      let local=[];try{local=JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')}catch(_){}
+      formSchoolClasses=form.classes(local);formSchoolScope='local';formSchoolError='';
+      return formSchoolClasses;
+    }
+    const scope=String(cfg().institutionId||'')+'|'+String(currentUserId());
+    if(formSchoolScope===scope)return formSchoolClasses;
+    // Never reuse a former school's class dropdown in a new institution.
+    formSchoolScope='';formSchoolClasses=[];formSchoolError='';
+    try{
+      const inst=cfg().institutionId;
+      const result=await boundedRead('staff-form-classes:'+scope,()=>cloud().state.client.from('class_sections')
+        .select('class_name,section_name,active').eq('institution_id',inst).eq('active',true),
+        {timeout:6000,retries:0,cacheMs:5000,label:'School Class Options'});
+      if(scope!==String(cfg().institutionId||'')+'|'+String(currentUserId()))return[];
+      formSchoolClasses=form.classes(result.data||[]);
+    }catch(error){
+      formSchoolError='School classes could not be fetched. Enter known class names carefully and verify your connection.';
+      formSchoolClasses=[];
+    }
+    formSchoolScope=scope;return formSchoolClasses;
+  }
+  function refreshStaffPickers(){
+    const form=window.EDUNIZAM_SCHOOL_FORM_OPTIONS;
+    if(!form)return;
+    const selector=$('staffAddClass'),subject=$('staffAddSubject');
+    if(selector){
+      const old=selector.value;
+      selector.innerHTML='<option value="">Choose registered class</option>'+formSchoolClasses.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+      if(formSchoolClasses.includes(old))selector.value=old;
+    }
+    if(subject){
+      const old=subject.value,chosen=String($('staffClasses')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);
+      const current=String($('staffSubjects')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);
+      const available=form.subjects(chosen,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects||{},current);
+      subject.innerHTML='<option value="">Choose suggested subject</option>'+available.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+      if(available.includes(old))subject.value=old;
+    }
+  }
+  function addStaffFormOption(kind){
+    const form=window.EDUNIZAM_SCHOOL_FORM_OPTIONS;
+    if(!form)return;
+    const source=kind==='class'?'staffAddClass':'staffAddSubject',target=kind==='class'?'staffClasses':'staffSubjects';
+    const value=$(source)?.value||'',input=$(target);
+    if(!input||!value)return;
+    input.value=form.append(input.value,value);
+    refreshStaffPickers();
+  }
   async function editorHtml(edit=null){
     if(!isHead())return selfEditorHtml(visibleLocal(read())[0]||null);
-    const teachers=await listTeacherAccounts();
+    const [teachers]=await Promise.all([listTeacherAccounts(),schoolClassChoices()]);
     const options='<option value="">No linked cloud account</option>'+teachers.map(t=>'<option value="'+esc(t.user_id)+'" '+(edit?.userId===t.user_id?'selected':'')+'>'+esc(t.full_name||t.user_id)+'</option>').join('');
     return '<article class="card"><div class="section-head"><div><h3>'+(edit?'Edit Staff / Teacher Profile':'Add Staff / Teacher Profile')+'</h3><p class="muted">Required: staff code, full name, designation, phone and joining date. Other professional fields are optional.</p></div></div>'+
       '<input id="staffEditId" type="hidden" value="'+esc(edit?.id||'')+'"><div class="form-grid">'+
@@ -211,8 +263,11 @@
       '<input id="staffSpecialization" placeholder="Subject specialization (optional)" value="'+esc(edit?.specialization||'')+'">'+
       '<input id="staffExperience" placeholder="Experience e.g. 7 years (optional)" value="'+esc(edit?.experience||'')+'">'+
       '<input id="staffEmployeeId" placeholder="Employee ID (optional)" value="'+esc(edit?.employeeId||'')+'">'+
-      '<input id="staffSubjects" placeholder="Subjects comma separated" value="'+esc((edit?.subjects||[]).join(', '))+'">'+
-      '<input id="staffClasses" placeholder="Classes comma separated" value="'+esc((edit?.classes||[]).join(', '))+'">'+
+      '<label>Assigned Classes (comma separated)<input id="staffClasses" placeholder="Choose registered classes below or enter carefully" value="'+esc((edit?.classes||[]).join(', '))+'"></label>'+
+      '<div class="paper-actions"><select id="staffAddClass" aria-label="Registered school class"><option value="">Choose registered class</option>'+formSchoolClasses.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select><button id="staffAddClassBtn" type="button" class="secondary">Add Class</button></div>'+
+      '<label>Assigned Subjects (comma separated)<input id="staffSubjects" placeholder="Choose subjects below or enter prescribed subject" value="'+esc((edit?.subjects||[]).join(', '))+'"></label>'+
+      '<div class="paper-actions"><select id="staffAddSubject" aria-label="Grade-wise subject suggestion"><option value="">Choose suggested subject</option></select><button id="staffAddSubjectBtn" type="button" class="secondary">Add Subject</button></div>'+
+      '<p id="staffSchoolClassNotice" class="coverage-note">'+esc(formSchoolError||(!formSchoolClasses.length?'No active school classes configured. Create real classes in Academic Groups. Subjects listed are reference suggestions, not verified textbook subjects.':formSchoolClasses.length+' active school class(es) available. Use actual teacher assignments; verify subject names against your school syllabus.'))+'</p>'+
       '<label>Joining Date *<input id="staffJoining" type="date" value="'+esc(edit?.joiningDate||'')+'"></label>'+
       '<input id="staffAddress" placeholder="Address (optional)" value="'+esc(edit?.address||'')+'">'+
       '<input id="staffCity" placeholder="City (optional)" value="'+esc(edit?.city||'')+'">'+
@@ -278,7 +333,7 @@
     }
   }
   async function edit(id){if(!isHead())return;const item=read().find(x=>String(x.id)===String(id));if(!item)return;const box=$('staffEditor');if(box)box.innerHTML=await editorHtml(item);bindEditor();window.scrollTo({top:box?.offsetTop||0,behavior:'smooth'})}
-  function bindEditor(){if($('saveStaffProfile'))$('saveStaffProfile').onclick=save;if($('saveMyStaffProfile'))$('saveMyStaffProfile').onclick=saveMyStaffProfile;if($('cancelStaffEdit'))$('cancelStaffEdit').onclick=render}
+  function bindEditor(){if($('staffAddClassBtn'))$('staffAddClassBtn').onclick=()=>addStaffFormOption('class');if($('staffAddSubjectBtn'))$('staffAddSubjectBtn').onclick=()=>addStaffFormOption('subject');$('staffClasses')?.addEventListener('input',refreshStaffPickers);refreshStaffPickers();if($('saveStaffProfile'))$('saveStaffProfile').onclick=save;if($('saveMyStaffProfile'))$('saveMyStaffProfile').onclick=saveMyStaffProfile;if($('cancelStaffEdit'))$('cancelStaffEdit').onclick=render}
   function bindCards(){document.querySelectorAll('[data-staff-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.staffEdit));document.querySelectorAll('[data-staff-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.staffDelete,b))}
   async function hydrateAvatars(){
     if(!cloudReady())return;
@@ -291,7 +346,7 @@
     root.innerHTML='<div class="section-head"><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div><div id="staffEditor">'+await editorHtml()+'</div><div class="section-head" style="margin-top:18px"><div><h3>'+(isHead()?'Staff Directory':'My Professional Profile')+'</h3><p class="muted">'+(isHead()?'Institute teacher/staff profiles, qualifications and photos.':'Aap ka linked professional profile.')+'</p></div></div><div class="paper-grid">'+(rows.length?rows.map(card).join(''):'<div class="empty-state">'+(isHead()?'Abhi koi staff profile nahi hai.':'Aap ke login se linked staff profile nahi mila.')+'</div>')+'</div>';
     bindEditor();bindCards();hydrateAvatars();
   }
-  window.addEventListener('edunizam:auth',()=>{const root=$('staffCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
+  window.addEventListener('edunizam:auth',()=>{formSchoolScope='';formSchoolClasses=[];const root=$('staffCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,800);
   window.EDUNIZAM_STAFF_CENTER={render,read,pullCloud,cloudReady};
 })();
