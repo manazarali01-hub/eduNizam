@@ -37,7 +37,7 @@ const D={
 };
 const localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v))};
 const window={EDUNIZAM_PRACTICE_DATA:D};
-runInNewContext(src,{window,document,localStorage,setInterval:()=>1,clearInterval:()=>{},console,alert:msg=>{throw Error('Unexpected alert: '+msg)}},{filename:'practice-center.js',timeout:2000});
+runInNewContext(src,{window,document,localStorage,Math:Object.assign(Object.create(Math),{random:()=>0.5}),setInterval:()=>1,clearInterval:()=>{},console,alert:msg=>{throw Error('Unexpected alert: '+msg)}},{filename:'practice-center.js',timeout:2000});
 node('practiceClass').value='1';
 node('practiceSubject').value='Mathematics';
 node('practiceType').value='mixed';
