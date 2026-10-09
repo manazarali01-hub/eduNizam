@@ -322,5 +322,5 @@
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('scheduleCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_TIMETABLE_DATESHEET={render,pullCloud,cloudReady,loadSchoolCatalog,classSections,knownClass,optionList,syncSubjectCatalog,getCatalog:()=>cloudCatalog,getScheduleScope:()=>scheduleDataScope,currentTimetable,currentDateSheets,scheduleReady,refreshSchoolOptions};
+  window.EDUNIZAM_TIMETABLE_DATESHEET={render,pullCloud,cloudReady,loadSchoolCatalog,classSections,knownClass,optionList,syncSubjectCatalog,getCatalog:()=>cloudCatalog,getScheduleScope:()=>scheduleDataScope,currentTimetable,currentDateSheets,scheduleReady,refreshSchoolOptions,saveTimetable};
 })();
