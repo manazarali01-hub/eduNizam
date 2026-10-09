@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-paper-chapter-options-v14';
+  const VERSION='20261009-practice-pager-v15';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
