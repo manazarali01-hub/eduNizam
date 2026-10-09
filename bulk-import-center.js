@@ -48,25 +48,82 @@
     if(kind==='staff')return rows.map((x,i)=>({...x,id:crypto.randomUUID?.()||'staff-'+now+'-'+i,subjects:x.subjects?x.subjects.split('|').map(v=>v.trim()).filter(Boolean):[],classes:x.classes?x.classes.split('|').map(v=>v.trim()).filter(Boolean):[],joiningDate:x.joiningDate||'',status:(x.status||'active').toLowerCase(),createdAt:new Date().toISOString()}));
     return rows.map((x,i)=>({...x,id:crypto.randomUUID?.()||'class-'+now+'-'+i,classTeacherStaffId:'',capacity:Number(x.capacity||0),active:!['false','no','0','inactive'].includes(norm(x.active)),createdAt:new Date().toISOString()}));
   }
-  async function syncCloud(kind){
-    if(!cloudReady())return;
-    if(kind==='students'){await window.EDUNIZAM_CORE_CLOUD?.pushAllLocalToCloud?.();return}
-    const client=cloud().state.client,rows=read(KEYS[kind],[]);
-    if(kind==='staff'){
-      const payload=rows.map(x=>({institution_id:cfg().institutionId,user_id:x.userId||null,staff_code:x.staffCode,full_name:x.fullName,designation:x.designation||'Teacher',phone:x.phone||null,subjects:x.subjects||[],classes:x.classes||[],joining_date:x.joiningDate||null,employment_status:x.status||'active',created_by:cloud().state.user.id,updated_at:new Date().toISOString()}));
-      const {error}=await client.from('staff_profiles').upsert(payload,{onConflict:'institution_id,staff_code'});if(error)throw error;
+  // In cloud mode, only the newly approved rows are sent to the current school.
+  // Never push ALL localStorage records: they might be old/demo/another school.
+  let importBusy=false;
+  async function syncCloud(kind,items){
+    if(!cloudReady())return false;
+    const client=cloud().state.client,inst=cfg().institutionId,user=cloud().state.user.id;
+    let payload;
+    if(kind==='students'){
+      payload=items.map(x=>({
+        institution_id:inst,local_id:Number(x.id),name:x.name,guardian_name:x.father||null,
+        class_name:x.className,section_name:x.sectionName||null,phone:x.phone||null,
+        roll_no:x.rollNo||null,student_code:x.studentId||null,created_by:user,
+        source:'bulk-import',updated_at:new Date().toISOString()
+      }));
+    }else if(kind==='staff'){
+      payload=items.map(x=>({
+        institution_id:inst,staff_code:x.staffCode,full_name:x.fullName,designation:x.designation||'Teacher',
+        phone:x.phone||null,subjects:x.subjects||[],classes:x.classes||[],
+        joining_date:x.joiningDate||null,employment_status:x.status||'active',
+        created_by:user,updated_at:new Date().toISOString()
+      }));
     }else{
-      const staffRows=read(KEYS.staff,[]),payload=rows.map(x=>{const teacher=staffRows.find(s=>norm(s.fullName)===norm(x.classTeacherName));return{institution_id:cfg().institutionId,class_name:x.className,section_name:x.sectionName,class_teacher_user_id:teacher?.userId||null,class_teacher_name:x.classTeacherName||teacher?.fullName||null,room_label:x.roomLabel||null,capacity:Number(x.capacity||0)||null,active:x.active!==false,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()}});
-      const {error}=await client.from('class_sections').upsert(payload,{onConflict:'institution_id,class_name,section_name'});if(error)throw error;
+      // A name alone is not a verified teacher identity. Assign linked staff via Academic Groups.
+      payload=items.map(x=>({
+        institution_id:inst,class_name:x.className,section_name:x.sectionName,
+        class_teacher_user_id:null,class_teacher_name:x.classTeacherName||null,
+        room_label:x.roomLabel||null,capacity:Number(x.capacity||0)||null,
+        active:x.active!==false,updated_by:user,updated_at:new Date().toISOString()
+      }));
     }
+    if(!payload.length)return false;
+    // A single PostgREST INSERT is atomic: existing remote duplicates fail rather
+    // than unexpectedly editing another row's class, teacher or student details.
+    const {error}=await client.from(kind==='students'?'core_students':kind==='staff'?'staff_profiles':'class_sections').insert(payload);
+    if(error)throw error;
+    if(inst!==cfg().institutionId||user!==cloud()?.state?.user?.id)
+      throw Error('School/session changed during cloud save. Verify the records in the new session before retrying.');
+    return true;
   }
   async function importRows(){
-    if(role()!=='head')return alert('Bulk import sirf Head manage kar sakta hai.');if(!staged.valid.length)return alert('Import ke liye valid rows nahi hain.');
-    const key=KEYS[staged.kind],old=read(key,[]);write(BACKUP,{kind:staged.kind,key,records:old,createdAt:new Date().toISOString()});write(key,old.concat(materialize(staged.kind,staged.valid)));
-    let cloudMessage='Local import complete.';try{await syncCloud(staged.kind);if(cloudReady())cloudMessage='Import aur cloud sync complete.'}catch(e){cloudMessage='Local import complete; cloud sync error: '+(e.message||e)}
-    alert(staged.valid.length+' records imported. '+cloudMessage+' App refresh ho rahi hai.');location.reload();
+    if(importBusy)return;
+    if(role()!=='head')return alert('Bulk import sirf Head manage kar sakta hai.');
+    if(!staged.valid.length)return alert('Import ke liye valid rows nahi hain.');
+    if(staged.valid.length>300)return alert('Ek import mein maximum 300 verified rows upload karein.');
+    const kind=staged.kind,key=KEYS[kind],current=read(key,[]),items=materialize(kind,staged.valid);
+    const btn=$('biImport'),online=cloudReady();
+    importBusy=true;
+    if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=online?'Saving to school cloud…':'Saving locally…'}
+    try{
+      if(online)await syncCloud(kind,items);
+      // Write locally only AFTER cloud acknowledged success. Cloud errors never
+      // leave misleading local-only "complete" data in an online school.
+      if(!online)write(BACKUP,{kind,key,records:current,mode:'local',institutionId:cfg().institutionId||'',createdAt:new Date().toISOString()});
+      const scopeKey='edunizam_bulk_import_school_v2';
+      const previousSchool=String(localStorage.getItem(scopeKey)||'');
+      const thisSchool=online?String(cfg().institutionId):'local';
+      const base=previousSchool&&previousSchool!==thisSchool?[]:current;
+      write(key,base.concat(items));
+      localStorage.setItem(scopeKey,thisSchool);
+      alert(items.length+' '+kind+' records saved '+(online?'to this school cloud and local device.':'locally on this device only.')+' App refresh ho rahi hai.');
+      location.reload();
+    }catch(error){
+      alert((online?'Cloud import FAILED. No local rows were added. ':'Local save FAILED. ')+
+        String(error?.message||error)+'. Please review the file/duplicates and retry. A network timeout may need a cloud check before retrying.');
+    }finally{
+      importBusy=false;if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy');btn.textContent='Import Valid Rows'}
+    }
   }
-  function rollback(){const b=read(BACKUP,null);if(!b?.key)return alert('Rollback snapshot available nahi hai.');if(!confirm('Last '+b.kind+' import rollback karein?'))return;write(b.key,b.records);localStorage.removeItem(BACKUP);alert('Last import rolled back.');location.reload()}
+  function rollback(){
+    const b=read(BACKUP,null);
+    if(cloudReady())return alert('Cloud records cannot be rolled back using a local snapshot. Manage imported records in their sections.');
+    if(!b?.key||b.mode!=='local')return alert('Only a local-only import snapshot can be rolled back.');
+    if(!confirm('Last local '+b.kind+' import rollback karein?'))return;
+    write(b.key,b.records);localStorage.removeItem(BACKUP);
+    alert('Last local-only import rolled back.');location.reload();
+  }
   function renderPreview(){
     const box=$('biPreview');if(!box)return;const cols=spec[staged.kind].headers.slice(0,6);
     box.innerHTML='<div class="import-summary"><strong>'+staged.valid.length+' valid</strong><span>'+staged.errors.length+' issues</span><span>'+staged.rows.length+' total rows</span></div>'+
@@ -80,6 +137,6 @@
     const drop=$('biDrop');if(drop){['dragenter','dragover'].forEach(n=>drop.addEventListener(n,e=>{e.preventDefault();drop.classList.add('dragging')}));['dragleave','drop'].forEach(n=>drop.addEventListener(n,e=>{e.preventDefault();drop.classList.remove('dragging')}));drop.addEventListener('drop',e=>chooseFile(e.dataTransfer.files[0]));}
   }
   function render(){const root=$('bulkImportApp');if(!root)return;if(role()!=='head'){root.innerHTML='<div class="empty-state">Bulk Import sirf Head of Institute ke liye available hai.</div>';return}
-    const backup=read(BACKUP,null);root.innerHTML='<div class="import-layout"><article class="card"><div class="section-head"><div><h3>1. Data Type</h3><p class="muted">Ek file mein ek hi record type import karein.</p></div><span class="academic-pill">'+(cloudReady()?'Cloud Ready':'Local Mode')+'</span></div><select id="biKind"><option value="students">Students</option><option value="staff">Staff & Teachers</option><option value="classes">Classes & Sections</option></select><div class="paper-actions"><button id="biTemplate" class="secondary">Download Template</button><button id="biExport" class="secondary">Export Current Data</button></div></article><article id="biDrop" class="card import-drop"><h3>2. Upload CSV or Excel</h3><p class="muted">File yahan drop karein ya browse karein. Import se pehle validation aur preview hoga.</p><input id="biFile" type="file" accept=".csv,.xlsx,.xls"></article></div><article class="card"><div class="section-head"><div><h3>3. Review & Import</h3><p class="muted">Duplicates skip honge; sirf valid rows import ki jayengi.</p></div><div class="paper-actions"><button id="biImport" disabled>Import Valid Rows</button>'+(backup?'<button id="biRollback" class="secondary">Rollback Last Import</button>':'')+'</div></div><div id="biPreview"></div></article>';bind();renderPreview()}
+    const backup=read(BACKUP,null);root.innerHTML='<div class="import-layout"><article class="card"><div class="section-head"><div><h3>1. Data Type</h3><p class="muted">Ek file mein ek hi record type import karein.</p></div><span class="academic-pill">'+(cloudReady()?'Cloud Ready':'Local Mode')+'</span></div><select id="biKind"><option value="students">Students</option><option value="staff">Staff & Teachers</option><option value="classes">Classes & Sections</option></select><div class="paper-actions"><button id="biTemplate" class="secondary">Download Template</button><button id="biExport" class="secondary">Export Current Data</button></div></article><article id="biDrop" class="card import-drop"><h3>2. Upload CSV or Excel</h3><p class="muted">File yahan drop karein ya browse karein. Import se pehle validation aur preview hoga.</p><input id="biFile" type="file" accept=".csv,.xlsx,.xls"></article></div><article class="card"><div class="section-head"><div><h3>3. Review & Import</h3><p class="muted">Validated rows only. In Cloud Mode, the current institute is saved first; local records update only after success. Remote duplicates block the import. Only local-only imports support snapshot rollback.</p></div><div class="paper-actions"><button id="biImport" disabled>Import Valid Rows</button>'+(backup?.mode==='local'&&!cloudReady()?'<button id="biRollback" class="secondary">Rollback Local Import</button>':'')+'</div></div><div id="biPreview"></div></article>';bind();renderPreview()}
   setTimeout(render,0);setTimeout(render,900);window.EDUNIZAM_BULK_IMPORT={render};
 })();
