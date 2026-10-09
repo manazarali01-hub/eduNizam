@@ -27,3 +27,6 @@ jobs:
 
       - name: Validate reference-data completeness
         run: node scripts/data-completion-check.mjs
+
+      - name: Validate paper-builder marks and dynamic school data
+        run: node scripts/paper-builder-data-check.mjs
