@@ -144,5 +144,102 @@ function normalizeDraft(rows,className,subject,chapter){
 function questionPrompt(text,className,subject,chapter){
  return 'Use ONLY the supplied OCR or PDF source text to transcribe explicit questions and their ANSWERS. Do not write new invented questions or infer answer keys when missing. Do not call the text official curriculum. Output ONLY a JSON ARRAY (no markdown), maximum 35 objects. Each object: {"type":"mcq"|"short"|"long","question":"...","options":["...","...","...","..."] for MCQs only,"correct_option":"1" through "4" for MCQs,"answer":"...","difficulty":"Balanced","chapter":"..."}. Exclude unreadable/unanswered questions, provide exactly four distinct choices and an explicit answer for MCQs. No institution/student personal data. Class '+className+', subject '+subject+', chapter hint '+chapter+'. Extract from this source:\n'+text.slice(0,9000);
 }
-window.EDUNIZAM_PAPER_SOURCE={validateFiles,extract,parseExplicitQuestions,stripJson,normalizeDraft,questionPrompt,MAX_FILES,MAX_PAGES,MAX_TEXT,bytes,esc};
+
+let extracting=false,asking=false;
+const status=message=>{const el=$('#pbSourceStatus');if(el)el.textContent=message};
+function context(){
+ const cls=String($('#pbClass')?.value||'').trim(),subject=String($('#pbSubject')?.value||'').trim();
+ const chapter=String($('#pbSourceChapter')?.value||$('#pbChapterPicker')?.value||'').trim();
+ if(!cls||!subject||!chapter)throw Error('Select class, subject and a source chapter / topic first.');
+ return{cls,subject,chapter};
+}
+function displayDraft(rows){
+ if($('#pbSourceQuestions'))$('#pbSourceQuestions').value=JSON.stringify(rows,null,2);
+ status(rows.length+' proposed questions. Teacher must inspect each question and answer, then validate. Nothing is saved yet.');
+}
+async function readFiles(){
+ if(extracting)return;extracting=true;
+ const btn=$('#pbSourceRead');if(btn)btn.disabled=true;
+ if($('#pbSourceQuestions'))$('#pbSourceQuestions').value='';
+ if($('#pbSourceText'))$('#pbSourceText').value='';
+ try{
+  const results=await extract($('#pbSourceFiles')?.files,{
+   language:$('#pbSourceLanguage')?.value||'eng',onProgress:status
+  });
+  if($('#pbSourceText'))$('#pbSourceText').value=results.text;
+  status('Read '+results.sources.length+' file(s) · '+results.text.length+' text characters. '+
+   (results.warnings.length?results.warnings.join(' | '):'Review text, then detect questions or request AI draft.'));
+ }catch(error){status('Could not read file: '+String(error.message||error))}
+ finally{extracting=false;if(btn?.isConnected)btn.disabled=false}
+}
+function detect(){
+ try{
+  const {cls,subject,chapter}=context();
+  const source=String($('#pbSourceText')?.value||'').trim();
+  if(!source)throw Error('Upload a file or paste the source text first.');
+  const rows=parseExplicitQuestions(source);
+  if(!rows.length)throw Error('No complete explicit Q/Answer pairs found. Check OCR or use optional AI drafting.');
+  displayDraft(normalizeDraft(rows,cls,subject,chapter));
+ }catch(e){status(String(e.message||e))}
+}
+async function aiDraft(){
+ if(asking)return;asking=true;
+ const btn=$('#pbSourceAi');if(btn)btn.disabled=true;
+ try{
+  if(!$('#pbSourceAiConsent')?.checked)throw Error('Opt in before sending extracted text to the AI provider.');
+  const {cls,subject,chapter}=context(),source=String($('#pbSourceText')?.value||'').trim();
+  if(source.length<50)throw Error('Readable source text (at least 50 characters) required.');
+  if(!window.EDUNIZAM_AI?.ready?.())throw Error('AI unavailable without cloud login/provider; local OCR and manual question extraction remain usable.');
+  status('Requesting source-grounded question draft. Only extracted text is sent, not the original file.');
+  const result=await window.EDUNIZAM_AI.ask(questionPrompt(source,cls,subject,chapter),{mode:'paper-source-draft',context:''});
+  displayDraft(normalizeDraft(stripJson(result?.answer||''),cls,subject,chapter));
+ }catch(e){status('AI draft not available: '+String(e.message||e))}
+ finally{asking=false;if(btn?.isConnected)btn.disabled=false}
+}
+function stage(){
+ try{
+  if(!$('#pbSourceReviewed')?.checked)throw Error('Confirm review of questions, answer keys, source permissions and chapter first.');
+  const {cls,subject,chapter}=context();
+  const rows=normalizeDraft(stripJson($('#pbSourceQuestions')?.value||''),cls,subject,chapter);
+  const count=window.EDUNIZAM_PAPER_BUILDER?.attachSourceQuestions?.(rows);
+  if(!count)throw Error('Paper Builder staging is unavailable.');
+  status(count.valid+' reviewed question(s) now available for THIS browser-session paper preview, '+count.duplicates+
+   ' duplicate(s) excluded. Generate Paper Preview above. Nothing saved to school.');
+ }catch(e){status('Validation: '+String(e.message||e))}
+}
+function sync(){
+ try{
+  if(!$('#pbSourceReviewed')?.checked)throw Error('Review confirmation required.');
+  const count=window.EDUNIZAM_PAPER_BUILDER?.prepareSourceSync?.();
+  status(count+' reviewed questions queued. Confirm the separate “Import Verified Questions” button in the Question Bank. Actual school chapters required.');
+ }catch(e){status('School sync blocked: '+String(e.message||e))}
+}
+function mount(){
+ const root=$('#paperBuilderApp'),manager=$('#questionBankManager');
+ if(!root||!manager||$('#pbSourceImportCard'))return;
+ const section=document.createElement('article');section.className='card no-print';section.id='pbSourceImportCard';
+ section.innerHTML='<div class="section-head"><div><h3>PDF / Photos to Paper Questions</h3>'+
+  '<p class="muted">Upload textbook photos, PDF notes, worksheets or old exam papers. Extract, verify, and add to paper preview — without manual retyping.</p></div><span class="academic-pill">Source-based · Review First</span></div>'+
+  '<div class="form-grid"><label>PDF or Photos (max 6 files)<input id="pbSourceFiles" type="file" accept=".pdf,application/pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple></label>'+
+  '<label>Photo OCR Language<select id="pbSourceLanguage"><option value="eng">English</option><option value="eng+urd">English + Urdu (slower)</option></select></label>'+
+  '<label>Source Chapter / Topic<input id="pbSourceChapter" placeholder="Chapter name shown in your PDF or photo"></label>'+
+  '<button type="button" id="pbSourceRead">1. Extract Text from PDF / Photos</button></div>'+
+  '<p class="coverage-note">File reading/OCR runs on this device. Internet required for first OCR/PDF library and language pack load. No originals are stored on school servers. Files: 15 MB/PDF, 8 MB/image, up to 20 PDF pages (5 scanned pages). Check privacy and copyright before using any document.</p>'+
+  '<label>Review or correct extracted text<textarea id="pbSourceText" rows="5" placeholder="Extracted OCR/PDF text appears here. You may also paste text."></textarea></label>'+
+  '<div class="paper-actions"><button type="button" class="secondary" id="pbSourceParse">2. Detect Existing Question/Answer Pairs</button>'+
+  '<button type="button" class="secondary" id="pbSourceAi">2. AI Question Draft (optional)</button></div>'+
+  '<label class="coverage-note"><input id="pbSourceAiConsent" type="checkbox"> I agree to send the EXTRACTED TEXT, not the original file, to the configured AI service. Remove student names/private details first.</label>'+
+  '<label>Editable questions JSON — inspect answers, MCQ options and marks<textarea id="pbSourceQuestions" rows="7" spellcheck="false" placeholder="Detected/proposed questions appear here. Every answer needs review."></textarea></label>'+
+  '<label class="coverage-note"><input id="pbSourceReviewed" type="checkbox"> I reviewed question text, correct answers, textbook chapter and have permission to use the source.</label>'+
+  '<div class="paper-actions"><button type="button" id="pbSourceStage">3. Validate & Use in Paper Preview</button>'+
+  '<button type="button" class="secondary" id="pbSourceSync">4. Prepare School Question-Bank Sync</button></div>'+
+  '<p class="coverage-note" id="pbSourceStatus" role="status" aria-live="polite">Select your class and subject above, upload a PDF or photos, then extract text.</p>';
+ manager.before(section);
+ $('#pbSourceRead')?.addEventListener('click',readFiles);
+ $('#pbSourceParse')?.addEventListener('click',detect);
+ $('#pbSourceAi')?.addEventListener('click',aiDraft);
+ $('#pbSourceStage')?.addEventListener('click',stage);
+ $('#pbSourceSync')?.addEventListener('click',sync);
+}
+window.EDUNIZAM_PAPER_SOURCE={validateFiles,extract,parseExplicitQuestions,stripJson,normalizeDraft,questionPrompt,mount,MAX_FILES,MAX_PAGES,MAX_TEXT,bytes,esc};
 })();
