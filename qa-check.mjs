@@ -682,7 +682,7 @@ const visualSystem=read('edunizam-visual-system.css');
 if(!visualSystem.includes('APP BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push('Visible authenticated app background fix is missing.');
 if(!visualSystem.includes('pexels-photo-36159720.jpeg')||!visualSystem.includes('pexels-photo-5833.jpeg')) fail.push('Authenticated app backgrounds are not using bundled local education images.');
 if(!visualSystem.includes('.page-app .view.active > .section-head:first-child')||!visualSystem.includes('min-height:132px')) fail.push('Authenticated view opening banners are not visibly image-backed.');
-if(!read('app.html').includes('edunizam-visual-system.css?v=20261007-premium1')) fail.push('App visual-system cache token was not bumped for premium appearance deployment.');
+if(!read('app.html').includes('edunizam-visual-system.css?v=20261009-readiness-v1')) fail.push('App visual-system cache token does not match the latest Data Readiness appearance release.');
 if(!visualSystem.includes('HOME + PUBLIC BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push('Visible home/public background fix is missing.');
 if(!read('index.html').includes('edunizam-visual-system.css?v=20261007-premium1')) fail.push('Homepage visual-system cache token was not bumped for premium appearance deployment.');
 if(!visualSystem.includes('body.gold-home')||!visualSystem.includes('pexels-photo-36159720.jpeg')) fail.push('Homepage page-wide local background image is missing.');
