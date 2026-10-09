@@ -19,7 +19,28 @@
   {key:'units',name:'Syllabus Progress Units',table:'syllabus_progress_units',view:'lessoncenter',why:'Add actual school textbook units'},
   {key:'timetable',name:'Timetable Periods',table:'timetable_entries',view:'schedulecenter',why:'Create real class periods'},
   {key:'datesheets',name:'Exam Date Sheets',table:'exam_schedule_entries',view:'schedulecenter',why:'Create examination dates'},
-  {key:'library',name:'Physical Library Books',table:'library_books',view:'librarycenter',why:'Catalog school-owned books (optional)'}
+  {key:'library',name:'Physical Library Books',table:'library_books',view:'librarycenter',why:'Catalog school-owned books (optional)'},
+  // Operational activity records are audited separately from initial setup.
+  // Zero activity may be legitimate; never label it a failed requirement.
+  {key:'attendance',name:'Student Attendance Records',table:'attendance_records',view:'attendance',why:'Attendance appears only after real school sessions are recorded',activity:true},
+  {key:'staffAttendance',name:'Staff Attendance Records',table:'staff_attendance_records',view:'stafftime',why:'Teacher and staff attendance activity',activity:true},
+  {key:'results',name:'Student Assessment Results',table:'result_records',view:'results',why:'Actual marked result records; no generated marks',activity:true},
+  {key:'fees',name:'Fee Records',table:'fee_records',view:'fees',why:'Recorded school fee activity if applicable',activity:true},
+  {key:'homework',name:'Homework / Assignments',table:'homework_items',view:'schoolwork',why:'Real teacher-published assignments',activity:true},
+  {key:'submissions',name:'Homework Submissions',table:'homework_submissions',view:'schoolwork',why:'Student work actually submitted',activity:true},
+  {key:'diaries',name:'Class Diaries',table:'daily_class_diaries',view:'dailydiary',why:'Class diary entries from actual teachers',activity:true},
+  {key:'announcements',name:'School Announcements',table:'school_announcements',view:'schoolwork',why:'Published notices or announcements',activity:true},
+  {key:'leaves',name:'Leave Requests',table:'leave_requests',view:'leavecenter',why:'Leave activity only when submitted',activity:true},
+  {key:'events',name:'School Calendar Events',table:'school_calendar_events',view:'calendarcenter',why:'Actual planned events',activity:true},
+  {key:'functions',name:'School Functions',table:'school_functions',view:'functionscenter',why:'Actual school functions and activities',activity:true},
+  {key:'admissions',name:'Admission Applications',table:'applications',view:'admissions',why:'Received admissions applications',activity:true},
+  {key:'teacherTraining',name:'Teacher Training Records',table:'teacher_training_records',view:'training',why:'Actual completed or recorded staff training',activity:true},
+  {key:'libraryLoans',name:'Library Borrowing Records',table:'library_loans',view:'librarycenter',why:'Loans recorded from actual library books',activity:true},
+  {key:'transport',name:'Transport Routes',table:'transport_routes',view:'transportcenter',why:'Transport routes only if the school runs transport',activity:true},
+  {key:'inventory',name:'School Inventory',table:'school_inventory_items',view:'inventorycenter',why:'Actual school-owned stock and equipment',activity:true},
+  {key:'practiceAttempts',name:'Student Practice Attempts',table:'practice_attempts',view:'practice',why:'Saved practice activity; access may be role-restricted',activity:true},
+  {key:'helpdesk',name:'Helpdesk Tickets',table:'school_helpdesk_tickets',view:'helpdeskcenter',why:'Support requests submitted to the school',activity:true},
+  {key:'complaints',name:'Private Parent Complaints',table:'parent_admin_complaints',view:'parentcomplaints',why:'Private complaint counts, not confidential complaint text',activity:true}
  ];
  let counts=null,busy=false,auditScope='';
  const scope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
@@ -66,11 +87,16 @@
      }).join('')+'</ol><p class="muted">These are record-availability suggestions, not an academic completion percentage.</p>':
      '<p class="coverage-note">All checked categories have accessible records. Content quality and prescribed textbook alignment still require review; this is not 100% verified.</p>';
   }
-  r.innerHTML=spec.map(x=>{
+  const card=x=>{
    const state=counts?.[x.key],value=countWord(state);
-   const status=state?.status==='unknown'?'Check access/connection':state?.count===0?'Add real records':state?.count>0?'Review accuracy':'Not checked';
+   const status=state?.status==='unknown'?'Check access/connection':
+     state?.count===0?(x.activity?'No activity recorded':'Setup records needed'):
+     state?.count>0?'Review accuracy':'Not checked';
    return '<article class="paper-card"><div class="paper-card-top"><strong>'+esc(x.name)+'</strong><span class="mini-badge">'+esc(status)+'</span></div><p>'+esc(value)+'</p><p class="muted">'+esc(x.why)+'</p><div class="paper-actions"><button type="button" class="secondary" data-readiness-open="'+esc(x.view)+'">Open Section</button></div></article>';
-  }).join('');
+  };
+  const setup=spec.filter(x=>!x.activity),activity=spec.filter(x=>x.activity);
+  r.innerHTML=setup.map(card).join('')+
+    '<details class="card" style="grid-column:1/-1"><summary><strong>Operational activity</strong> · '+activity.length+' additional areas (expand)</summary><p class="muted">No activity is not the same as an incomplete feature. Counts are limited by current school and account permissions.</p><div class="paper-grid">'+activity.map(card).join('')+'</div></details>';
   r.querySelectorAll('[data-readiness-open]').forEach(button=>{
    button.onclick=()=>{const view=button.dataset.readinessOpen;if(window.EDUNIZAM_ROLE_SCOPE?.canView?.(view))window.EDUNIZAM_APP_NAV?.setView?.(view)};
   });
@@ -116,16 +142,25 @@
   if(role()!=='head'){if(output)output.textContent='Only the Head of Institute may audit school-wide record counts.';return}
   busy=true;if(button){button.disabled=true;button.textContent='Checking school records…'}
   if(output)output.textContent='Reading counts for this school only. Unknown access results will not be treated as empty data.';
-  const institution=cfg().institutionId;
+  const institution=cfg().institutionId,requestScope=scope();
   try{
-   const results=await Promise.all(spec.map(async s=>[s.key,await countOne(s,institution)]));
-   if(institution!==cfg().institutionId){if(output)output.textContent='School changed during audit. Please run the audit again.';return}
-   counts=Object.fromEntries(results);
-   auditScope=scope();
-   countRows();
-   const missing=spec.filter(s=>counts[s.key]?.status==='ok'&&counts[s.key].count===0).length;
+   // Read-only aggregate queries, progressively updated to keep the page
+   // responsive and avoid issuing all 28 requests simultaneously.
+   const results={};
+   for(let i=0;i<spec.length;i+=7){
+     const batch=await Promise.all(spec.slice(i,i+7).map(async item=>[item.key,await countOne(item,institution)]));
+     if(scope()!==requestScope){
+       if(output)output.textContent='School or account changed during audit. Recheck your current school.';
+       return;
+     }
+     Object.assign(results,Object.fromEntries(batch));
+     counts={...results};auditScope=requestScope;countRows();
+     if(output)output.textContent=Object.keys(results).length+' / '+spec.length+' school data areas checked. All checks are read-only.';
+   }
+   const setupMissing=spec.filter(s=>!s.activity&&counts[s.key]?.status==='ok'&&counts[s.key].count===0).length;
+   const activityZero=spec.filter(s=>s.activity&&counts[s.key]?.status==='ok'&&counts[s.key].count===0).length;
    const uncertain=spec.filter(s=>counts[s.key]?.status==='unknown').length;
-   if(output)output.textContent=spec.length+' school data areas checked · '+missing+' without accessible records · '+uncertain+' unavailable checks. Counts are not academic content quality scores.';
+   if(output)output.textContent=spec.length+' areas checked · '+setupMissing+' setup gaps · '+activityZero+' activity areas without records · '+uncertain+' unknown. No content-quality percentage is inferred.';
   }finally{busy=false;if(button?.isConnected){button.disabled=false;button.textContent='Check School Data'}} 
  }
  function render(){
@@ -135,7 +170,7 @@
   el.innerHTML='<article class="card"><div class="section-head"><div><h3>Reference Curriculum Data</h3><p class="muted">Indexed categories and concept topics are available for planning; they are not a certified exact textbook contents list.</p></div><span class="academic-pill">Grade 1–12</span></div>'+
    '<div class="form-grid"><label>Class / Grade<select id="readinessGrade">'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">Class '+(i+1)+'</option>').join('')+'</select></label><label>Subject<select id="readinessSubject"><option value="">All subjects</option></select></label></div><p id="readinessReferenceSummary" role="status" class="coverage-note"></p><div id="readinessTopicList"></div>'+
    '<p class="coverage-note">Verify your actual prescribed textbook edition, school subject allocation and chapter sequence. The topic index is a starting point, not a promise that a published exam is syllabus-correct.</p></article>'+
-   '<article class="card" style="margin-top:18px"><div class="section-head"><div><h3>School Data Availability</h3><p class="muted">Only on-demand, read-only counts in your current school. No sample students, teachers, books or scores are fabricated.</p></div><button id="readinessAuditBtn" type="button">Check School Data</button></div><p id="readinessCloudStatus" class="coverage-note" role="status">Not checked. Select Check School Data when you want to audit record availability.</p><div id="readinessNextSteps" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessCloudRows" class="paper-grid"></div>'+
+   '<article class="card" style="margin-top:18px"><div class="section-head"><div><h3>School Data Availability</h3><p class="muted">28 school data areas: required setup first, optional activity in a collapsed section. Read-only current-school counts; no fake students, books or scores.</p></div><button id="readinessAuditBtn" type="button">Check School Data</button></div><p id="readinessCloudStatus" class="coverage-note" role="status">Not checked. Select Check School Data when you want to audit record availability.</p><div id="readinessNextSteps" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessCloudRows" class="paper-grid"></div>'+
    '<p class="coverage-note">Zero means no records were accessible to this account at audit time; it is not proof none exist. “Unknown” may mean RLS restrictions, unavailable access or a slow connection. Bank visibility depends on author sharing, and library inventory may not apply to every school. Nonzero counts do not verify accuracy, curriculum alignment or completion.</p></article>';
   document.getElementById('readinessGrade')?.addEventListener('change',refreshReference);
   document.getElementById('readinessSubject')?.addEventListener('change',renderTopics);
