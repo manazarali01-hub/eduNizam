@@ -17,7 +17,7 @@ el('diaryClass').value='5|A';
 el('diarySubject').value='Math';
 const document={
  readyState:'loading',
- querySelector:selector=>fields.get(selector.replace(/^#/,'))||null,
+ querySelector:selector=>fields.get(selector.replace(/^#/,''))||null,
  querySelectorAll:()=>[],
  addEventListener(){}
 };
