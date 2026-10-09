@@ -157,7 +157,7 @@ let extracting=false,asking=false;
 const status=message=>{const el=$('#pbSourceStatus');if(el)el.textContent=message};
 function context(){
  const cls=String($('#pbClass')?.value||'').trim(),subject=String($('#pbSubject')?.value||'').trim();
- const chapter=String($('#pbSourceChapter')?.value||$('#pbChapterPicker')?.value||'').trim();
+ const chapter=String($('#pbSourceChapter')?.value||String($('#pbChapters')?.value||'').split(',').map(x=>x.trim()).find(Boolean)||$('#pbChapterPicker')?.value||'').trim();
  if(!cls||!subject||!chapter)throw Error('Select class, subject and a source chapter / topic first.');
  return{cls,subject,chapter};
 }
@@ -230,7 +230,7 @@ function mount(){
   '<p class="muted">Upload textbook photos, PDF notes, worksheets or old exam papers. Extract, verify, and add to paper preview — without manual retyping.</p></div><span class="academic-pill">Source-based · Review First</span></div>'+
   '<div class="form-grid"><label>PDF or Photos (max 6 files)<input id="pbSourceFiles" type="file" accept=".pdf,application/pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple></label>'+
   '<label>Photo OCR Language<select id="pbSourceLanguage"><option value="eng">English</option><option value="eng+urd">English + Urdu (slower)</option></select></label>'+
-  '<label>Source Chapter / Topic<input id="pbSourceChapter" placeholder="Chapter name shown in your PDF or photo"></label>'+
+  '<label>Source Chapter (optional if selected above)<input id="pbSourceChapter" placeholder="Uses selected chapter; override only if needed"></label>'+
   '<button type="button" id="pbSourceRead">1. Extract Text from PDF / Photos</button></div>'+
   '<p class="coverage-note">File reading/OCR runs on this device. Internet required for first OCR/PDF library and language pack load. No originals are stored on school servers. Files: 15 MB/PDF, 8 MB/image, up to 20 PDF pages (5 scanned pages). Check privacy and copyright before using any document.</p>'+
   '<label>Review or correct extracted text<textarea id="pbSourceText" rows="5" placeholder="Extracted OCR/PDF text appears here. You may also paste text."></textarea></label>'+
