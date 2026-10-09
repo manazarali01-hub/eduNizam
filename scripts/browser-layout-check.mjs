@@ -2685,6 +2685,38 @@ try{
       await context.close();
     }
   }
+  // Screenshot regression: public Matric > Annual > Past Papers must render
+  // actual indexed papers, not a false 0 produced by text-of-card filtering.
+  const guestPaperPage=await browser.newPage({viewport:{width:390,height:844},serviceWorkers:'block'});
+  try{
+    await guestPaperPage.route('**/*',route=>{
+      const u=new URL(route.request().url());
+      if(u.hostname==='127.0.0.1')route.continue();else route.abort();
+    });
+    await guestPaperPage.goto('http://127.0.0.1:'+port+'/learn.html#past',{waitUntil:'domcontentloaded',timeout:20000});
+    await guestPaperPage.waitForFunction(()=>!!window.EDUNIZAM_GUEST_PAPER_QUERY&&document.getElementById('paperSession')?.options.length>1,null,{timeout:12000});
+    await guestPaperPage.locator('#paperLevel').selectOption('matric');
+    await guestPaperPage.locator('#paperSession').selectOption('Annual');
+    await guestPaperPage.locator('#paperType').selectOption('past');
+    await guestPaperPage.locator('#searchPapers').click({timeout:6000});
+    await guestPaperPage.waitForFunction(()=>document.getElementById('paperSummary')?.textContent?.includes('indexed paper result'),null,{timeout:9000});
+    await guestPaperPage.waitForTimeout(350);
+    const found=await guestPaperPage.evaluate(()=>{
+      const summary=document.getElementById('paperSummary')?.textContent||'';
+      const grid=document.getElementById('pastGrid');
+      return{summary,results:grid?.querySelectorAll('.card').length||0,
+        falseZero:/^0\\s+(?:result|indexed paper result)/i.test(summary),
+        wrongEmpty:!!grid?.textContent.includes('Exact resource not available yet.')};
+    });
+    console.log('Matric Annual Past Papers mobile screenshot regression:',JSON.stringify(found));
+    if(found.results===0||found.falseZero||found.wrongEmpty||!found.summary.includes('Annual'))
+      pushFailure('guest past papers','Matric Annual Past Papers still reports false zero on mobile',JSON.stringify(found));
+  }catch(error){
+    pushFailure('guest past papers','Mobile Annual Paper search interaction failed',error?.message||String(error));
+  }finally{
+    await guestPaperPage.close();
+  }
+
 }finally{
   await browser.close().catch(()=>{});
   server.closeAllConnections?.();
