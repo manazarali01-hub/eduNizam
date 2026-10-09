@@ -177,7 +177,7 @@
   document.getElementById('readinessAuditBtn')?.addEventListener('click',audit);
   refreshReference();countRows();
  }
- window.EDUNIZAM_DATA_READINESS={render,referenceSubjects:getSubjects,referenceTopics:getTopics,definitions:spec.map(x=>({key:x.key,table:x.table,view:x.view})),countOne,nextSteps,scope};
+ window.EDUNIZAM_DATA_READINESS={render,referenceSubjects:getSubjects,referenceTopics:getTopics,definitions:spec.map(x=>({key:x.key,table:x.table,view:x.view,activity:!!x.activity})),countOne,nextSteps,scope};
  if(document.readyState!=='loading')render();
  else document.addEventListener('DOMContentLoaded',render);
 })();
