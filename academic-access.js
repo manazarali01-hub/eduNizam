@@ -132,8 +132,8 @@
       });
       if(error)throw error;
       const row=Array.isArray(data)?data[0]:data;
-      if(msg)msg.textContent=(row?.matched_students||0)+' linked student(s) matched · '+(row?.assigned_new||0)+' newly assigned · '+(row?.already_assigned||0)+' already assigned.';
       await loadAssignments();
+      if(msg)msg.textContent=(row?.matched_students||0)+' linked student(s) matched · '+(row?.assigned_new||0)+' newly assigned · '+(row?.already_assigned||0)+' already assigned.';
     }catch(e){if(msg)msg.textContent=e.message||String(e)}
     finally{if(btn)btn.disabled=false}
   }
