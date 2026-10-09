@@ -14,8 +14,13 @@ const questionKey=q=>norm(q?.question_text??q?.question);
 const usable=(q,type,teacher)=>{
  if(!q||!questionKey(q))return false;
  if(type==='mcq'){
-  const o=q.options,index=Number(teacher?q.correct_option:q.answer);
-  return Array.isArray(o)&&o.length===4&&o.every(x=>norm(x).length>0)&&new Set(o.map(norm)).size===4&&Number.isInteger(index)&&index>=0&&index<4;
+  const o=q.options,rawIndex=teacher?q.correct_option:q.answer;
+  // Number(null), Number('') and Number(false) all produce 0. Never count
+  // unanswered/invalid MCQs as syllabus coverage or printable questions.
+  const validIndex=(typeof rawIndex==='number'&&Number.isInteger(rawIndex))||
+   (typeof rawIndex==='string'&&/^[0-3]$/.test(rawIndex.trim()));
+  const index=validIndex?Number(rawIndex):-1;
+  return Array.isArray(o)&&o.length===4&&o.every(x=>norm(x).length>0)&&new Set(o.map(norm)).size===4&&index>=0&&index<4;
  }
  return !!norm(teacher?q.answer_text:(q.answerText||q.explanation));
 };
