@@ -52,14 +52,14 @@
     return key;
   }
 
-  let homeworkAcademic={scope:'',status:'unloaded',classes:[],units:[],loadedAt:0},academicJob=null;
+  let homeworkAcademic={scope:'',status:'unloaded',classes:[],units:[],staff:[],staffStatus:'unloaded',loadedAt:0},academicJob=null;
   const homeworkScope=()=>[String(cfg().institutionId||''),String(cloud()?.state?.user?.id||''),role()].join('|');
   async function loadHomeworkOptions(force=false){
     if(!canEdit()||!cloudReady())return;
     const scope=homeworkScope();
     if(!force&&homeworkAcademic.scope===scope&&homeworkAcademic.status==='loaded'&&Date.now()-homeworkAcademic.loadedAt<30000)return;
     if(academicJob?.scope===scope)return academicJob.promise;
-    homeworkAcademic={scope:'',status:'unloaded',classes:[],units:[],loadedAt:0};
+    homeworkAcademic={scope:'',status:'unloaded',classes:[],units:[],staff:[],staffStatus:'unloaded',loadedAt:0};
     const inst=cfg().institutionId,client=cloud().state.client;
     const fetchRows=async(table,columns,max)=>{
       let q=client.from(table).select(columns).eq('institution_id',inst).limit(max);
@@ -70,16 +70,22 @@
     const promise=(async()=>{
       const results=await Promise.allSettled([
         fetchRows('class_sections','class_name,section_name,active',1200),
-        fetchRows('syllabus_progress_units','class_name,subject,unit_title',1500)
+        fetchRows('syllabus_progress_units','class_name,subject,unit_title',1500),
+        fetchRows('staff_profiles','full_name,classes,subjects,employment_status,designation',1200)
       ]);
       if(!cloudReady()||homeworkScope()!==scope)return;
       const classes=results[0].status==='fulfilled'?results[0].value.map(x=>({className:x.class_name,sectionName:x.section_name||'',active:x.active!==false})):[];
       const units=results[1].status==='fulfilled'?results[1].value.map(x=>({className:x.class_name,subject:x.subject,unitTitle:x.unit_title||''})):[];
-      homeworkAcademic={scope,classes,units,loadedAt:Date.now(),
+      const staff=results[2].status==='fulfilled'?results[2].value.filter(x=>x.employment_status==='active'&&String(x.full_name||'').trim()).map(x=>({
+        name:String(x.full_name).trim(),classes:x.classes||[],subjects:x.subjects||[],designation:x.designation||''
+      })):[];
+      homeworkAcademic={scope,classes,units,staff,loadedAt:Date.now(),
         status:results[0].status==='fulfilled'?'loaded':'error',
-        unitStatus:results[1].status==='fulfilled'?'loaded':'error'};
+        unitStatus:results[1].status==='fulfilled'?'loaded':'error',
+        staffStatus:results[2].status==='fulfilled'?'loaded':'error'};
       if(results[0].status==='rejected')console.warn('School Work class options:',results[0].reason?.message||results[0].reason);
       if(results[1].status==='rejected')console.warn('School Work subject options:',results[1].reason?.message||results[1].reason);
+      if(results[2].status==='rejected')console.warn('School Work teacher allocation lookup:',results[2].reason?.message||results[2].reason);
     })();
     academicJob={scope,promise};
     try{await promise}finally{if(academicJob?.promise===promise)academicJob=null}
@@ -126,6 +132,29 @@
       'Saved school subjects plus unverified reference subjects. Check prescribed textbook.';
   }
 
+  // Class assignments in Staff Center can be grade-wide ("Class 5") or
+  // section-specific ("5|A"). Never let 5|A imply access to 5|B.
+  function staffAssignedClass(value,cls,sec){
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    const entry=String(value||'').trim();
+    if(!entry)return false;
+    const parts=entry.split('|');
+    if(parts.length===2)return !!api?.sameClass?.(parts[0].trim(),cls)&&
+      parts[1].trim().toLowerCase()===String(sec||'').trim().toLowerCase();
+    return !!api?.sameClass?.(entry,cls);
+  }
+  const staffList=value=>Array.isArray(value)?value:
+    String(value||'').split(',').map(x=>x.trim()).filter(Boolean);
+  function availableTimetableTeachers(cls,sec,subject){
+    if(!cloudReady()||homeworkAcademic.scope!==homeworkScope()||homeworkAcademic.staffStatus!=='loaded')return[];
+    const normalize=value=>String(value||'').trim().replace(/\\s+/g,' ').toLowerCase();
+    const picked=normalize(subject);
+    return homeworkAcademic.staff.filter(x=>{
+      const classes=staffList(x.classes),subjects=staffList(x.subjects);
+      return classes.some(value=>staffAssignedClass(value,cls,sec))&&
+        (!picked||subjects.some(value=>normalize(value)===picked));
+    }).map(x=>x.name).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}));
+  }
   function syncTimetableOptions(){
     const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS,cls=$('swTtClass')?.value?.trim()||'';
     const rows=registeredHomeworkClasses();
@@ -141,6 +170,15 @@
     const hasClass=rows.some(x=>api?.sameClass?.(x.className,cls));
     if(subjects)subjects.innerHTML=(hasClass?api?.subjects?.(cls,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},units)||[]:[])
       .map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const teacherOptions=availableTimetableTeachers(cls,$('swTtSection')?.value||'',$('swTtSubject')?.value||'');
+    const teacherList=$('swTtTeacherOptions');
+    if(teacherList)teacherList.innerHTML=teacherOptions.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const teacherNote=$('swTtTeacherNote');
+    if(teacherNote)teacherNote.textContent=!cls?'Choose class, section and subject to see assigned staff.':
+      cloudReady()&&homeworkAcademic.scope!==homeworkScope()?'Current school staff directory not loaded.':
+      cloudReady()&&homeworkAcademic.staffStatus==='error'?'Cannot verify staff allocation. Refresh classes and staff; leave teacher unassigned if needed.':
+      teacherOptions.length?teacherOptions.length+' active school-assigned teacher(s) available.':
+      'No matching active staff profile with this class/subject allocation. Leave teacher blank or assign staff in Staff Center.';
     const note=$('swTtOptionNote');
     if(note)note.textContent=!cls?'Select a registered class to load real sections and subject suggestions.':
       cloudReady()&&homeworkAcademic.scope!==homeworkScope()?'Loading school academic records; other school choices hidden.':
@@ -374,7 +412,8 @@
         <input id="swTtTime" type="time" aria-label="Period start time">
         <input id="swTtEnd" type="time" aria-label="Period end time">
         <input id="swTtSubject" list="swTtSubjectOptions" placeholder="Subject *"><datalist id="swTtSubjectOptions"></datalist>
-        <input id="swTtTeacher" placeholder="Assigned teacher name">
+        <input id="swTtTeacher" list="swTtTeacherOptions" placeholder="Assigned teacher (optional)"><datalist id="swTtTeacherOptions"></datalist>
+        <p id="swTtTeacherNote" class="coverage-note">Assign real teachers in Staff Center to populate this list.</p>
         <input id="swTtRoom" placeholder="Room / lab">
         <p id="swTtOptionNote" class="coverage-note">Select class to load current-school sections and subjects.</p>
         <button type="button" id="swTtRefresh" class="secondary">Refresh Classes & Subjects</button>
@@ -438,6 +477,8 @@
     };
     if(tab==='timetable'){
       $('swTtClass')?.addEventListener('input',syncTimetableOptions);
+      $('swTtSection')?.addEventListener('input',syncTimetableOptions);
+      $('swTtSubject')?.addEventListener('input',syncTimetableOptions);
       $('swTtRefresh')?.addEventListener('click',refreshTimetableOptions);
       syncTimetableOptions();
     }
@@ -459,6 +500,12 @@
         return alert('Select a registered and assigned class/section before adding a period.');
       if(cloudReady()&&!cloudLoadedScopes.has('timetable'))
         return alert('School timetable not loaded yet. Reload this view before saving.');
+      if(item.teacherName&&cloudReady()){
+        if(homeworkAcademic.scope!==homeworkScope()||homeworkAcademic.staffStatus!=='loaded')
+          return alert('Cannot verify the current school staff directory. Refresh Classes & Subjects or leave teacher unassigned.');
+        if(!availableTimetableTeachers(item.className,item.sectionName,item.subject).some(x=>x.toLowerCase()===item.teacherName.toLowerCase()))
+          return alert('Select a real active teacher assigned to this class, section and subject in Staff Center; or leave teacher unassigned.');
+      }
       const d=read();
       if(timetableConflict(d.timetable,item))return alert('Period clashes with class/section, teacher or room. Adjust timetable before saving.');
       swTimetableSaving=true;button.disabled=true;
@@ -564,5 +611,6 @@
   setTimeout(mount,0);setTimeout(mount,600);
   window.EDUNIZAM_SCHOOL_WORK={mount,render,read,pullCloud,cloudReady,loadHomeworkOptions,
     registeredHomeworkClasses,knownHomeworkClass,syncHomeworkOptions,refreshHomeworkOptions,
-    syncTimetableOptions,refreshTimetableOptions,timetableConflict,periodMinutes,getHomeworkAcademic:()=>homeworkAcademic};
+    syncTimetableOptions,refreshTimetableOptions,timetableConflict,periodMinutes,
+    availableTimetableTeachers,staffAssignedClass,getHomeworkAcademic:()=>homeworkAcademic};
 })();
