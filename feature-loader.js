@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-paper-source-ocr-v28';
+  const VERSION='20261009-practice-source-v29';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
