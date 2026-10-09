@@ -615,11 +615,11 @@ function enhancePastResults(){
   $('paperSummary').textContent=rows.length+' Virtual University exam-preparation / past-paper result'+(rows.length===1?'':'s')+(raw?' for '+raw:'')+'.';
   return;
  }
- if(session){
-  const cards=[...grid.querySelectorAll('.card')];cards.forEach(card=>{if(!norm(card.textContent).includes(norm(session)))card.style.display='none'});
-  const visible=cards.filter(card=>card.style.display!=='none');
-  $('paperSummary').textContent=visible.length+' result'+(visible.length===1?'':'s')+' for '+session+'.';
-  if(cards.length&&!visible.length)grid.innerHTML=emptyState(session);
+ // The base paper search already matches the session metadata field.
+ // Do not re-filter rendered card text: it hides legitimate Annual papers.
+ if(session&&window.EDUNIZAM_GUEST_PAPER_QUERY){
+  const summary=$('paperSummary');
+  if(summary&&!summary.textContent.includes(session))summary.textContent+=' · '+session;
  }
 }
 
