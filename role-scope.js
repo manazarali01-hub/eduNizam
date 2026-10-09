@@ -5,8 +5,14 @@
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
   const currentUser=()=>cloud()?.state?.user?.id||localStorage.getItem('edunizam_cloud_user_id')||'';
-  const readCache=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}};
-  const writeCache=v=>localStorage.setItem(KEY,JSON.stringify(v));
+  const scopeKey=()=>[role(),String(cloud()?.state?.user?.id||localStorage.getItem('edunizam_cloud_user_id')||''),String(cfg().institutionId||session()?.institutionId||'')].join('|');
+  // Cached parent/teacher links are only valid for this exact role, cloud user and institute.
+  // Legacy unscoped caches must never grant student visibility after an account switch.
+  const readCache=()=>{try{
+    const data=JSON.parse(localStorage.getItem(KEY)||'{}');
+    return data?.__scope===scopeKey()?data:{};
+  }catch{return{}}};
+  const writeCache=v=>localStorage.setItem(KEY,JSON.stringify({...v,__scope:scopeKey()}));
   const norm=v=>String(v??'').trim().toLowerCase();
   const classKey=(c,s)=>norm(c)+'|'+norm(s);
   function readRows(key,fallback='[]'){try{const v=JSON.parse(localStorage.getItem(key)||fallback);return Array.isArray(v)?v:[]}catch{return[]}}
@@ -28,7 +34,9 @@
     const keys=new Set((cache.teacherClassSections||[]).map(x=>String(x)));
     if(role()!=='teacher')return keys;
     const uid=String(currentUser()||''),staffIds=myTeacherStaffIds();
-    classSections().forEach(row=>{
+    // In authenticated cloud mode do not re-authorize a teacher through unscoped
+    // legacy local class-section data; verified cloud class assignments are authoritative.
+    if(!cloudReady())classSections().forEach(row=>{
       const direct=uid&&String(row.classTeacherUserId||'')===uid;
       const local=staffIds.size&&staffIds.has(String(row.classTeacherStaffId||''));
       if(direct||local)keys.add(classKey(row.className,row.sectionName));
