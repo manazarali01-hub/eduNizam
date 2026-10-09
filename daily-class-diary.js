@@ -20,6 +20,23 @@ async function boundedRead(key,builder,{timeout=7000,retries=1,cacheMs=0,label='
 const students=()=>{try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}};
 const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[];
 let editingId='',teacherClasses=[],diarySaveInFlight=false;
+let diarySyllabus={scope:'',units:[],status:'unchecked'};
+const diaryScope=()=>[String(cfg().institutionId||''),String(cloud()?.state?.user?.id||'')].join('|');
+async function loadDiarySyllabus(){
+ if(!ready()||role()!=='teacher'){diarySyllabus={scope:'',units:[],status:'unchecked'};return}
+ const scope=diaryScope(),inst=cfg().institutionId;
+ diarySyllabus={scope:'',units:[],status:'loading'};
+ try{
+  const {data}=await boundedRead('daily-diary:syllabus:'+scope,()=>cloud().state.client.from('syllabus_progress_units')
+   .select('class_name,subject,unit_title').eq('institution_id',inst).limit(1500),
+   {timeout:6500,retries:0,cacheMs:10000,label:'Current school diary syllabus'});
+  if(!ready()||diaryScope()!==scope)return;
+  diarySyllabus={scope,units:(data||[]).filter(x=>x?.class_name&&x?.subject&&x?.unit_title).map(x=>({className:x.class_name,subject:x.subject,unitTitle:x.unit_title})),status:'loaded'};
+ }catch(error){
+  if(diaryScope()===scope)diarySyllabus={scope,units:[],status:'error'};
+  console.warn('Daily Diary syllabus unavailable:',error?.message||error);
+ }
+}
 const diaryDeleteInFlight=new Set();
 
 function dateStr(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -57,13 +74,18 @@ function syncSection(){
 function syncDiaryCatalog(){
  const {cls}=selectedDiaryClass(),subject=$('#diarySubject')?.value.trim()||'',D=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{};
  const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
- let units=[];try{units=JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch(_){}
+ // Cloud mode must NEVER use unscoped localStorage syllabus units. The
+ // catalog is labeled conceptual reference; saved units come from school RLS.
+ const units=diarySyllabus.scope===diaryScope()?diarySyllabus.units:[];
  const subjects=api?.subjects(cls,D,units)||[];
  const chapterSet=api?.chapters(cls,subject,D,units)||{saved:[],concepts:[]};
  if($('#diarySubjects'))$('#diarySubjects').innerHTML=subjects.map(x=>'<option value="'+esc(x)+'"></option>').join('');
  if($('#diaryTopics'))$('#diaryTopics').innerHTML=[...chapterSet.saved,...chapterSet.concepts].map(x=>'<option value="'+esc(x)+'"></option>').join('');
  const note=$('#diarySyllabusNote');
- if(note)note.textContent=!cls?'Select your assigned class/section first.':!subject?'Select subject for topic suggestions.':
+ if(note)note.textContent=diarySyllabus.scope!==diaryScope()||diarySyllabus.status==='loading'?
+  'Loading current school syllabus units. Concept topics are only reference suggestions.':
+  diarySyllabus.status==='error'?'School syllabus lookup unavailable. Reference concepts are not verified textbook chapters.':
+  !cls?'Select your assigned class/section first.':!subject?'Select subject for topic suggestions.':
   chapterSet.saved.length+' school-saved syllabus unit(s), '+chapterSet.concepts.length+' unverified concept suggestion(s). Confirm official textbook chapters before publication.';
 }
 function formValues(){
@@ -232,10 +254,11 @@ async function render(){
   let form='';
   if(role()==='teacher'){
     const inst=String(cfg().institutionId||''),uid=String(cloud()?.state?.user?.id||'');
-    try{teacherClasses=await myClasses()}catch(e){teacherClasses=[]}
+    const [assigned]=await Promise.allSettled([myClasses(),loadDiarySyllabus()]);
+    teacherClasses=assigned.status==='fulfilled'?assigned.value:[];
     if(inst!==String(cfg().institutionId||'')||uid!==String(cloud()?.state?.user?.id||''))return;
     form='<article class="card"><div class="section-head"><div><h3>✍ Daily Class Diary</h3><p class="muted">Assigned class ke liye topic, homework aur instructions. Entries can be edited later.</p></div><span class="academic-pill">Teacher</span></div>'+
-      '<div class="form-grid"><input id="diaryDate" type="date" value="'+dateStr()+'"><select id="diaryClass"><option value="">Select assigned class / section</option>'+teacherClasses.map(x=>'<option value="'+esc(x.class_name+'|'+(x.section_name||''))+'">'+esc(x.class_name)+(x.section_name?' · '+esc(x.section_name):'')+'</option>').join('')+'</select><input id="diarySection" placeholder="Section" readonly><input id="diarySubject" list="diarySubjects" placeholder="Subject (choose or type)"><datalist id="diarySubjects"></datalist><input id="diaryTopic" list="diaryTopics" placeholder="Today topic / class work"><datalist id="diaryTopics"></datalist><p id="diarySyllabusNote" class="coverage-note">Choose class and subject for real syllabus unit suggestions.</p><textarea id="diaryHomework" placeholder="Homework"></textarea><textarea id="diaryInstructions" placeholder="Instructions / reminder"></textarea>'+(teacherClasses.length?'':'<p class="coverage-note" style="grid-column:1/-1">No assigned class available. Ask the Head to assign a class/section before creating diary entries.</p>')+'<button id="saveDiary"'+(teacherClasses.length?'':' disabled')+'>Save Today Diary</button><button id="reuseDiary" type="button" class="secondary">Reuse Previous Diary</button><button id="cancelDiaryEdit" type="button" class="secondary hidden">Cancel Edit</button></div></article>';
+      '<div class="form-grid"><input id="diaryDate" type="date" value="'+dateStr()+'"><select id="diaryClass"><option value="">Select assigned class / section</option>'+teacherClasses.map(x=>'<option value="'+esc(x.class_name+'|'+(x.section_name||''))+'">'+esc(x.class_name)+(x.section_name?' · '+esc(x.section_name):'')+'</option>').join('')+'</select><input id="diarySection" placeholder="Section" readonly><input id="diarySubject" list="diarySubjects" placeholder="Subject (choose or type)"><datalist id="diarySubjects"></datalist><input id="diaryTopic" list="diaryTopics" placeholder="Today topic / class work"><datalist id="diaryTopics"></datalist><p id="diarySyllabusNote" class="coverage-note">Choose class and subject for real syllabus unit suggestions.</p><textarea id="diaryHomework" placeholder="Homework"></textarea><textarea id="diaryInstructions" placeholder="Instructions / reminder"></textarea>'+(teacherClasses.length?'':'<p class="coverage-note" style="grid-column:1/-1">No assigned class available. Ask the Head to assign a class/section before creating diary entries.</p>')+'<button id="saveDiary"'+(teacherClasses.length?'':' disabled')+'>Save Today Diary</button><button id="reuseDiary" type="button" class="secondary">Reuse Previous Diary</button><button id="diaryRefreshSyllabus" type="button" class="secondary">Refresh School Syllabus</button><button id="cancelDiaryEdit" type="button" class="secondary hidden">Cancel Edit</button></div></article>';
   }
   const scopeNote=['student','parent'].includes(role())?'Only diary entries for your linked student class/section are shown. Mark each current diary version as Seen after reading.':'Institution diary with filters, plus student/parent Seen acknowledgement counts.';
   root.innerHTML=form+
@@ -244,11 +267,16 @@ async function render(){
   if($('#saveDiary')){
     $('#saveDiary').onclick=save;$('#diaryClass').onchange=()=>{syncSection();syncDiaryCatalog()};$('#diarySubject')?.addEventListener('input',syncDiaryCatalog);syncSection();syncDiaryCatalog();
     $('#reuseDiary').onclick=reuseLast;$('#cancelDiaryEdit').onclick=clearForm;
+    $('#diaryRefreshSyllabus').onclick=async()=>{
+      const button=$('#diaryRefreshSyllabus');button.disabled=true;button.textContent='Refreshing...';
+      try{await loadDiarySyllabus();syncDiaryCatalog()}
+      finally{if(button.isConnected){button.disabled=false;button.textContent='Refresh School Syllabus'}}
+    };
   }
   ['#diaryFilterDate','#diaryRange','#diaryViewClass','#diaryViewSubject'].forEach(s=>$(s)?.addEventListener('change',load));
   let timer;$('#diarySearch')?.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(load,180)});
   await load();
 }
-window.EDUNIZAM_DAILY_DIARY={render,load,dateStr};
+window.EDUNIZAM_DAILY_DIARY={render,load,dateStr,loadDiarySyllabus,syncDiaryCatalog,getSyllabus:()=>diarySyllabus};
 if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
