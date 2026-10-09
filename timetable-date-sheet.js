@@ -69,6 +69,9 @@
   function writeTimetable(v){const d=schoolData();d.timetable=v;writeSchool(d)}
   function dateSheets(){try{return JSON.parse(localStorage.getItem(EXAM_KEY)||'[]')}catch{return[]}}
   function writeDateSheets(v){localStorage.setItem(EXAM_KEY,JSON.stringify(v))}
+  const scheduleReady=()=>!cloudReady()||scheduleDataScope===currentScope();
+  const currentTimetable=()=>scheduleReady()?timetable():[];
+  const currentDateSheets=()=>scheduleReady()?dateSheets():[];
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]}
   function classSections(){
@@ -223,8 +226,9 @@
     const item={id:editId||String(Date.now()),...cls,day:$('ttDay')?.value,periodNumber:Number($('ttPeriod')?.value||0),time:$('ttStart')?.value||'',endTime:$('ttEnd')?.value||'',subject:$('ttSubject')?.value.trim()||'',teacherName:$('ttTeacher')?.value.trim()||'',roomLabel:$('ttRoom')?.value.trim()||'',createdAt:new Date().toISOString(),cloudExisting:uuid(editId)};
     if(!item.className||!item.subject||!item.day||!Number.isInteger(item.periodNumber)||item.periodNumber<1||item.periodNumber>15||!item.time||!item.endTime)return alert('Valid class, day, period (1–15), start/end time aur subject required hain.');
     if(!canManage()||!knownClass(item))return alert('Choose a registered, accessible class and section. Configure Academic Groups first.');
+    if(!scheduleReady())return alert('Current school schedule is not loaded. Refresh this page before saving.');
     if(timeValue(item.time)>=timeValue(item.endTime))return alert('End time start time ke baad honi chahiye.');
-    const rows=timetable(),conflicts=timetableClashes(rows,item,editId);if(conflicts.length&&!confirm('Clash detected: '+conflicts.map(x=>label(x)+' / '+x.subject).join(', ')+'. Phir bhi save karein?'))return;
+    const rows=currentTimetable(),conflicts=timetableClashes(rows,item,editId);if(conflicts.length&&!confirm('Clash detected: '+conflicts.map(x=>label(x)+' / '+x.subject).join(', ')+'. Phir bhi save karein?'))return;
     timetableSaveInFlight=true;setBusy(btn,true,editId?'Updating...':'Saving...');
     try{
       try{const saved=await saveCloud('timetable',item);if(saved)item=saved}catch(e){if(cloudReady())return alert('Cloud timetable save failed: '+(e.message||e))}
@@ -237,8 +241,9 @@
     let item={id:editId||String(Date.now()),...cls,examName:$('dsExam')?.value.trim()||'',subject:$('dsSubject')?.value.trim()||'',examDate:$('dsDate')?.value||'',startTime:$('dsStart')?.value||'',endTime:$('dsEnd')?.value||'',totalMarks:Number($('dsMarks')?.value||0),roomLabel:$('dsRoom')?.value.trim()||'',notes:$('dsNotes')?.value.trim()||'',createdAt:new Date().toISOString(),cloudExisting:uuid(editId)};
     if(!item.className||!item.examName||!item.subject||!item.examDate||!item.startTime||!item.endTime||!Number.isInteger(item.totalMarks)||item.totalMarks<=0||item.totalMarks>1000)return alert('Class, exam, subject, date, times and whole total marks (1–1000) required hain.');
     if(!canManage()||!knownClass(item))return alert('Choose a registered, accessible class and section. Configure Academic Groups first.');
+    if(!scheduleReady())return alert('Current school schedule is not loaded. Refresh this page before saving.');
     if(timeValue(item.startTime)>=timeValue(item.endTime))return alert('End time start time ke baad honi chahiye.');
-    const rows=dateSheets(),conflicts=dateClashes(rows,item,editId);if(conflicts.length&&!confirm('Date-sheet clash detected: '+conflicts.map(x=>label(x)+' / '+x.subject).join(', ')+'. Phir bhi save karein?'))return;
+    const rows=currentDateSheets(),conflicts=dateClashes(rows,item,editId);if(conflicts.length&&!confirm('Date-sheet clash detected: '+conflicts.map(x=>label(x)+' / '+x.subject).join(', ')+'. Phir bhi save karein?'))return;
     dateSheetSaveInFlight=true;setBusy(btn,true,editId?'Updating...':'Saving...');
     try{
       try{const saved=await saveCloud('datesheet',item);if(saved)item=saved}catch(e){if(cloudReady())return alert('Cloud date sheet save failed: '+(e.message||e))}
@@ -246,8 +251,8 @@
     }finally{dateSheetSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function remove(kind,id,btn){
-    const key=kind+':'+String(id||'');if(!canManage()||scheduleDeleteInFlight.has(key)||btn?.disabled)return;
-    const rows=kind==='timetable'?timetable():dateSheets(),item=rows.find(x=>String(x.id)===String(id));if(!item||!canManageItem(item)||!confirm('Delete '+(item.subject||'entry')+'?'))return;
+    const key=kind+':'+String(id||'');if(!canManage()||!scheduleReady()||scheduleDeleteInFlight.has(key)||btn?.disabled)return;
+    const rows=kind==='timetable'?currentTimetable():currentDateSheets(),item=rows.find(x=>String(x.id)===String(id));if(!item||!canManageItem(item)||!confirm('Delete '+(item.subject||'entry')+'?'))return;
     scheduleDeleteInFlight.add(key);setBusy(btn,true,'Deleting...');
     try{
       try{await deleteCloud(kind,id)}catch(e){if(cloudReady())return alert('Cloud delete failed: '+(e.message||e))}
@@ -279,10 +284,10 @@
     $('ttSave')?.addEventListener('click',saveTimetable);$('dsSave')?.addEventListener('click',saveDateSheet);$('ttCancel')?.addEventListener('click',render);$('dsCancel')?.addEventListener('click',render);
     $('scheduleClassFilter')?.addEventListener('change',e=>{const root=$('scheduleCenterApp');root.dataset.classFilter=e.target.value;render()});
     $('dateExamFilter')?.addEventListener('change',e=>{const root=$('scheduleCenterApp');root.dataset.examFilter=e.target.value;render()});
-    $('printSchedule')?.addEventListener('click',()=>{const root=$('scheduleCenterApp'),f=root.dataset.classFilter||'',rows=timetable().filter(accessible).filter(x=>!f||x.className+'|'+(x.sectionName||'')===f);printView('timetable',rows,'Weekly Timetable'+(f?' — '+label(splitClass(f)):'') )});
-    $('printDateSheet')?.addEventListener('click',()=>{const root=$('scheduleCenterApp'),f=root.dataset.classFilter||'',ex=root.dataset.examFilter||'',rows=dateSheets().filter(accessible).filter(x=>(!f||x.className+'|'+(x.sectionName||'')===f)&&(!ex||x.examName===ex)).sort((a,b)=>a.examDate.localeCompare(b.examDate)||a.startTime.localeCompare(b.startTime));printView('datesheet',rows,'Date Sheet'+(ex?' — '+ex:'')+(f?' — '+label(splitClass(f)):'') )});
-    document.querySelectorAll('[data-tt-edit]').forEach(b=>b.onclick=()=>{const x=timetable().find(r=>String(r.id)===String(b.dataset.ttEdit));if(x&&canManageItem(x)){$('scheduleEditor').innerHTML=timetableEditor(x);bind()}});
-    document.querySelectorAll('[data-ds-edit]').forEach(b=>b.onclick=()=>{const x=dateSheets().find(r=>String(r.id)===String(b.dataset.dsEdit));if(x&&canManageItem(x)){$('scheduleEditor').innerHTML=dateSheetEditor(x);bind()}});
+    $('printSchedule')?.addEventListener('click',()=>{const root=$('scheduleCenterApp'),f=root.dataset.classFilter||'',rows=currentTimetable().filter(accessible).filter(x=>!f||x.className+'|'+(x.sectionName||'')===f);printView('timetable',rows,'Weekly Timetable'+(f?' — '+label(splitClass(f)):'') )});
+    $('printDateSheet')?.addEventListener('click',()=>{const root=$('scheduleCenterApp'),f=root.dataset.classFilter||'',ex=root.dataset.examFilter||'',rows=currentDateSheets().filter(accessible).filter(x=>(!f||x.className+'|'+(x.sectionName||'')===f)&&(!ex||x.examName===ex)).sort((a,b)=>a.examDate.localeCompare(b.examDate)||a.startTime.localeCompare(b.startTime));printView('datesheet',rows,'Date Sheet'+(ex?' — '+ex:'')+(f?' — '+label(splitClass(f)):'') )});
+    document.querySelectorAll('[data-tt-edit]').forEach(b=>b.onclick=()=>{const x=currentTimetable().find(r=>String(r.id)===String(b.dataset.ttEdit));if(x&&canManageItem(x)){$('scheduleEditor').innerHTML=timetableEditor(x);bind()}});
+    document.querySelectorAll('[data-ds-edit]').forEach(b=>b.onclick=()=>{const x=currentDateSheets().find(r=>String(r.id)===String(b.dataset.dsEdit));if(x&&canManageItem(x)){$('scheduleEditor').innerHTML=dateSheetEditor(x);bind()}});
     document.querySelectorAll('[data-tt-delete]').forEach(b=>b.onclick=()=>remove('timetable',b.dataset.ttDelete,b));document.querySelectorAll('[data-ds-delete]').forEach(b=>b.onclick=()=>remove('datesheet',b.dataset.dsDelete,b));
   }
   async function render(){
@@ -299,8 +304,7 @@
       }
     }
     const tab=root.dataset.tab||'timetable',filter=root.dataset.classFilter||'',examFilter=root.dataset.examFilter||'';
-    const validData=!cloudReady()||scheduleDataScope===currentScope();
-    let tt=(validData?timetable():[]).filter(accessible),ds=(validData?dateSheets():[]).filter(accessible);if(filter){tt=tt.filter(x=>x.className+'|'+(x.sectionName||'')===filter);ds=ds.filter(x=>x.className+'|'+(x.sectionName||'')===filter)}
+    let tt=currentTimetable().filter(accessible),ds=currentDateSheets().filter(accessible);if(filter){tt=tt.filter(x=>x.className+'|'+(x.sectionName||'')===filter);ds=ds.filter(x=>x.className+'|'+(x.sectionName||'')===filter)}
     const exams=[...new Set(ds.map(x=>x.examName).filter(Boolean))].sort();if(examFilter)ds=ds.filter(x=>x.examName===examFilter);ds.sort((a,b)=>String(a.examDate).localeCompare(String(b.examDate))||String(a.startTime).localeCompare(String(b.startTime)));
     root.innerHTML='<div class="section-head"><div class="schedule-tabs"><button class="secondary '+(tab==='timetable'?'active':'')+'" data-schedule-tab="timetable">Weekly Timetable</button><button class="secondary '+(tab==='datesheet'?'active':'')+'" data-schedule-tab="datesheet">Date Sheets</button></div><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div>'+
       '<div class="schedule-toolbar"><select id="scheduleClassFilter">'+optionList(filter,'All accessible classes')+'</select>'+(tab==='datesheet'?'<select id="dateExamFilter"><option value="">All exams</option>'+exams.map(x=>'<option '+(x===examFilter?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select>':'<span></span>')+'<button id="'+(tab==='timetable'?'printSchedule':'printDateSheet')+'" class="secondary">Print '+(tab==='timetable'?'Timetable':'Date Sheet')+'</button></div>'+
@@ -309,5 +313,5 @@
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('scheduleCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_TIMETABLE_DATESHEET={render,pullCloud,cloudReady,loadSchoolCatalog,classSections,knownClass,optionList,syncSubjectCatalog,getCatalog:()=>cloudCatalog,getScheduleScope:()=>scheduleDataScope};
+  window.EDUNIZAM_TIMETABLE_DATESHEET={render,pullCloud,cloudReady,loadSchoolCatalog,classSections,knownClass,optionList,syncSubjectCatalog,getCatalog:()=>cloudCatalog,getScheduleScope:()=>scheduleDataScope,currentTimetable,currentDateSheets,scheduleReady};
 })();
