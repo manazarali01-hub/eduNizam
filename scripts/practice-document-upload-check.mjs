@@ -30,7 +30,7 @@ const catalog={boards:['Punjab'],subjects:{5:['General Science']},chapters:{'5|G
 const window={EDUNIZAM_PRACTICE_DATA:catalog,EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-A'},
  EDUNIZAM_CLOUD:{state:{user:{id:'teacher-A'}}}};
 const ctx={window,document,localStorage,console,TextEncoder,setTimeout,clearTimeout,
- setInterval:()=>1,Math,alert:msg=>{throw Error('Unexpected alert: '+msg)}};
+ setInterval:()=>1,clearInterval:()=>{},Math,alert:msg=>{throw Error('Unexpected alert: '+msg)}};
 for(const file of ['practice-session-core.js','teacher-question-import.js','paper-source-import.js',
  'practice-source-import.js','practice-center.js']){
  runInNewContext(read(file),ctx,{filename:file,timeout:6000});
