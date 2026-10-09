@@ -7,7 +7,7 @@ async function loadCustomQuestions(){
  if(!ready()){customQuestions=[];return[]}
  const {data,error}=await cloud().state.client.from('teacher_question_bank').select('*').eq('institution_id',cfg().institutionId).order('created_at',{ascending:false}).limit(500);
  if(error){console.warn('Question bank:',error.message||error);customQuestions=[];return[]}
- customQuestions=data||[];renderQuestionBankList();updateBankInsight();return customQuestions;
+ customQuestions=data||[];renderQuestionBankList();refreshPaperCatalog();refreshTeacherQuestionCatalog();updateBankInsight();return customQuestions;
 }
 function sameChapter(selected,actual){
  const api=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
@@ -250,17 +250,29 @@ async function loadPapers(){
  all('[data-pb-clone]').forEach(b=>b.onclick=()=>clonePaper(data.find(y=>y.id===b.dataset.pbClone)));
  all('[data-pb-delete]').forEach(b=>b.onclick=()=>deletePaper(b.dataset.pbDelete));
 }
+function chapterChoices(cls,subject,sourceQuestions=customQuestions){
+ const grade=classLevelFrom(cls),key=normalizedSubject(subject);
+ const D=window.EDUNIZAM_PRACTICE_DATA||{},A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
+ const results=new Map();
+ const add=text=>{const value=String(text||'').trim(),n=value.normalize('NFKC').toLowerCase().replace(/\\s+/g,' ');if(value&&!results.has(n))results.set(n,value)};
+ (D.chapters?.[grade+'|'+key]||[]).forEach(add);
+ if(A){
+  (sourceQuestions||[]).filter(q=>q.active!==false&&A.sameClass(q.class_name,cls)&&A.normalizeSubject(q.subject)===A.normalizeSubject(subject)&&A.usable(q,q.question_type,true))
+   .forEach(q=>add(q.chapter));
+ }
+ return [...results.values()];
+}
 function refreshTeacherQuestionCatalog(){
   const cl=$('#qbClass')?.value||'',sub=$('#qbSubject')?.value||'',level=classLevelFrom(cl),
-    D=window.EDUNIZAM_PRACTICE_DATA||{},chapters=D.chapters?.[level+'|'+normalizedSubject(sub)]||[];
+    D=window.EDUNIZAM_PRACTICE_DATA||{},chapters=chapterChoices(cl,sub);
   const el=$('#pbTeacherChapters');
   if(el)el.innerHTML=chapters.map(x=>'<option value="'+esc(x)+'"></option>').join('');
 }
 function refreshPaperCatalog(){
   const cl=$('#pbClass')?.value||'',sub=$('#pbSubject')?.value||'',lv=classLevelFrom(cl),D=window.EDUNIZAM_PRACTICE_DATA||{},subjects=D.subjects?.[lv]||[];
   const subjectList=$('#pbSubjects');
-  if(subjectList){const commonSubjects=['English','Urdu','Mathematics','General Science','General Knowledge','Social Studies','Islamiat / Ethics','Nazra Quran','Computer Science'];const allSubjects=[...new Set([...(subjects.length?subjects:commonSubjects),...teacherDefaults.subjects])];subjectList.innerHTML=allSubjects.map(x=>'<option value="'+esc(x)+'"></option>').join('')}
-  const chapters=D.chapters?.[lv+'|'+normalizedSubject(sub)]||[];
+  if(subjectList){const commonSubjects=['English','Urdu','Mathematics','General Science','General Knowledge','Social Studies','Islamiat / Ethics','Nazra Quran','Computer Science'];const importedSubjects=customQuestions.filter(q=>q.active!==false&&window.EDUNIZAM_PAPER_SYLLABUS_AUDIT?.sameClass(q.class_name,cl)).map(q=>q.subject).filter(Boolean);const allSubjects=[...new Set([...(subjects.length?subjects:commonSubjects),...teacherDefaults.subjects,...importedSubjects])];subjectList.innerHTML=allSubjects.map(x=>'<option value="'+esc(x)+'"></option>').join('')}
+  const chapters=chapterChoices(cl,sub);
   const picker=$('#pbChapterPicker');
   if(picker){picker.innerHTML='<option value="">'+(chapters.length?'Add chapter / syllabus topic ('+chapters.length+' available)':'No mapped chapters — add verified teacher questions')+'</option>'+chapters.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');picker.disabled=!chapters.length}
   const holder=$('#pbCurriculumSources'),id=$('#pbBookBoard')?.value||'punjab-pectaa',R=window.EDUNIZAM_CURRICULUM_REGISTRY||{};
@@ -337,5 +349,5 @@ async function render(){
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,chapterChoices};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
