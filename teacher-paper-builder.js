@@ -16,7 +16,7 @@ function customPool(cls,subject,topics,type,diff){
  if(diff==='Challenging')rows=rows.filter(q=>q.difficulty==='Challenging');
  if(wanted.length){
    const chapterRows=rows.filter(q=>wanted.some(t=>String(q.chapter||'').toLowerCase().includes(t)||t.includes(String(q.chapter||'').toLowerCase())));
-   if(chapterRows.length)rows=chapterRows;
+   rows=chapterRows;
  }
  return shuffled(rows);
 }
@@ -96,7 +96,7 @@ function bankPool(cls,subject,topics,type,diff){
  const wanted=(topics||[]).map(x=>String(x).trim().toLowerCase()).filter(Boolean);
  if(wanted.length){
    const chapterRows=rows.filter(q=>wanted.some(t=>String(q.chapter||'').toLowerCase().includes(t)||t.includes(String(q.chapter||'').toLowerCase())));
-   if(chapterRows.length)rows=chapterRows;
+   rows=chapterRows;
  }
  return shuffled(rows);
 }
@@ -118,13 +118,14 @@ function build(subject,topics,total,diff,mode,cls=''){
  const specs=[['Section A — MCQs','mcq',marks[0],Math.max(5,Math.min(20,marks[0]))],['Section B — Short Questions','short',marks[1],Math.max(2,Math.min(10,Math.ceil(marks[1]/3)))],['Section C — Long Questions','long',marks[2],Math.max(1,Math.min(5,Math.ceil(marks[2]/8)))]];
  specs.forEach(([title,type,sm,n])=>{
    const ownPool=customPool(cls,subject,topics,type,diff),practicePool=bankPool(cls,subject,topics,type,diff),qs=[];
+    if(ownPool.length+practicePool.length<n)throw new Error('Insufficient real '+type.toUpperCase()+' questions for '+cls+' / '+subject+(topics.length?' / '+topics.join(', '):'')+': '+(ownPool.length+practicePool.length)+' available; '+n+' needed. Select more chapters, reduce marks, or add verified teacher-bank questions. No placeholder questions will be inserted.');
    for(let i=0;i<n;i++){
      let built;
      if(ownPool[i]){built=fromCustom(ownPool[i],type);customUsed++}
      else{
        const practiceIndex=i-ownPool.length,picked=practiceIndex>=0?practicePool[practiceIndex]:null;
        if(picked){built=fromPractice(picked,type);bankUsed++}
-       else{built=fallbackQuestion(subject,topics,type,i,no);templateUsed++}
+       else{throw new Error('No syllabus-backed question available for '+type+'. Please add verified questions.')}
      }
      const qno=no++;qs.push({no:qno,text:built.text,answer:built.answer,source:built.source,chapter:built.chapter});answers.push({no:qno,answer:built.answer});
    }
@@ -140,7 +141,7 @@ function applyPreset(v){const p={quiz:[20,'Easy','Objective Heavy'],monthly:[50,
 async function clonePaper(row){$('#pbTitle').value=(row.title||row.subject+' Paper')+' — Copy';$('#pbClass').value=row.class_name;$('#pbSubject').value=row.subject;$('#pbChapters').value=(row.chapters||[]).join(', ');$('#pbMarks').value=row.total_marks;$('#pbDifficulty').value=row.difficulty||'Balanced';current=JSON.parse(JSON.stringify(row.paper_json||{}));currentRow=null;showEditor();window.scrollTo({top:0,behavior:'smooth'})}
 async function savePaper(){
  if(!ready())return alert('Cloud login required.');const subject=$('#pbSubject').value.trim(),cls=$('#pbClass').value.trim(),topics=$('#pbChapters').value.split(',').map(x=>x.trim()).filter(Boolean),total=Number($('#pbMarks').value||50),difficulty=$('#pbDifficulty').value,mode=$('#pbDistribution').value;if(!subject||!cls)return alert('Class and subject required.');
- current=build(subject,topics,total,difficulty,mode,cls);const title=$('#pbTitle').value.trim()||subject+' Paper';const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,visibility:$('#pbAdmin').checked?'admin':'private'};
+ try{current=build(subject,topics,total,difficulty,mode,cls)}catch(error){alert(error.message||'Question bank coverage is insufficient.');return}const title=$('#pbTitle').value.trim()||subject+' Paper';const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,visibility:$('#pbAdmin').checked?'admin':'private'};
  const {data,error}=await cloud().state.client.from('teacher_papers').insert(payload).select().single();if(error)return alert(error.message);currentRow=data;showEditor();loadPapers();window.EDUNIZAM_PREMIUM?.toast?.('Exam-ready paper saved.','success')
 }
 async function saveCurrentAsNew(){
@@ -177,6 +178,23 @@ async function loadPapers(){
  all('[data-pb-clone]').forEach(b=>b.onclick=()=>clonePaper(data.find(y=>y.id===b.dataset.pbClone)));
  all('[data-pb-delete]').forEach(b=>b.onclick=()=>deletePaper(b.dataset.pbDelete));
 }
+function refreshPaperCatalog(){
+  const cl=$('#pbClass')?.value||'',sub=$('#pbSubject')?.value||'',lv=classLevelFrom(cl),D=window.EDUNIZAM_PRACTICE_DATA||{},subjects=D.subjects?.[lv]||[];
+  const subjectList=$('#pbSubjects');
+  if(subjectList){const allSubjects=[...new Set([...subjects,...teacherDefaults.subjects])];subjectList.innerHTML=allSubjects.map(x=>'<option value="'+esc(x)+'"></option>').join('')}
+  const chapters=D.chapters?.[lv+'|'+normalizedSubject(sub)]||[];
+  const picker=$('#pbChapterPicker');
+  if(picker){picker.innerHTML='<option value="">'+(chapters.length?'Add chapter / syllabus topic ('+chapters.length+' available)':'No mapped chapters — add verified teacher questions')+'</option>'+chapters.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');picker.disabled=!chapters.length}
+  const holder=$('#pbCurriculumSources'),id=$('#pbBookBoard')?.value||'punjab-pectaa',R=window.EDUNIZAM_CURRICULUM_REGISTRY||{};
+  if(!holder)return;
+  const auth=(R.authorities||[]).find(x=>x.id===id);
+  const materials=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>x.source==='official'&&(!lv||(x.classLevels||[]).map(Number).includes(lv))&&(!sub||x.subject==='All Subjects'||String(x.subject).toLowerCase().includes(sub.toLowerCase())));
+  const urlAllowed=u=>{try{return /^https?:$/.test(new URL(u).protocol)}catch{return false}};
+  const links=[];
+  if(auth&&urlAllowed(auth.officialUrl))links.push('<a href="'+esc(auth.officialUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(auth.name)+' — curriculum / textbooks</a>');
+  for(const x of materials.slice(0,3)){const u=x.fileUrl||x.url;if(urlAllowed(u))links.push('<a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+esc(x.title)+'</a>')}
+  holder.innerHTML='<strong>Official syllabus / textbook sources:</strong> '+(links.length?links.join(' · '):'No official source mapped')+'<br>Check the latest edition, board scheme and actually taught chapters before publishing. Topic names in EduNizam are study references, not a certified copy of an entire textbook.';
+}
 function updateBankInsight(){
  const el=$('#pbBankInsight');if(!el)return;const cls=$('#pbClass')?.value||'',subject=$('#pbSubject')?.value||'',topics=String($('#pbChapters')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);
  if(!cls||!subject){el.textContent='Choose class and subject to see available teacher + EduNizam question-bank depth.';return}
@@ -188,10 +206,15 @@ async function render(){
  const root=$('#paperBuilderApp');if(!root)return;
  if(!['teacher','head'].includes(role())){root.innerHTML='<div class="empty-state">Paper Builder is for teachers and Admin review.</div>';return}
  await loadTeacherDefaults();
- root.innerHTML='<article class="card no-print"><div class="section-head"><div><h3>⚡ Smart Paper Builder</h3><p class="muted">Your verified question bank is used first, then EduNizam curriculum bank, then clearly-labelled fallback only where needed.</p></div><span class="academic-pill">Exam Ready</span></div><div class="paper-presets"><button type="button" class="secondary" data-preset="quiz">Quick Quiz · 20</button><button type="button" class="secondary" data-preset="monthly">Monthly · 50</button><button type="button" class="secondary" data-preset="term">Term · 100</button></div><div class="form-grid"><input id="pbTitle" placeholder="Paper title (optional)"><input id="pbClass" list="pbClasses" placeholder="Class / Grade"><datalist id="pbClasses">'+teacherDefaults.classes.map(x=>'<option>'+esc(x)+'</option>').join('')+'<option>5</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></datalist><input id="pbSubject" list="pbSubjects" placeholder="Subject"><datalist id="pbSubjects">'+teacherDefaults.subjects.map(x=>'<option>'+esc(x)+'</option>').join('')+'<option>English</option><option>Urdu</option><option>Mathematics</option><option>General Science</option><option>Islamiat / Ethics</option><option>Computer Science</option><option>Physics</option><option>Chemistry</option><option>Biology</option><option>Pakistan Studies</option><option>Statistics</option><option>Economics</option></datalist><input id="pbChapters" placeholder="Chapters/topics, comma separated"><input id="pbMarks" type="number" min="10" value="50"><select id="pbDifficulty"><option>Easy</option><option selected>Balanced</option><option>Challenging</option></select><select id="pbDistribution"><option>Balanced</option><option>Objective Heavy</option><option>Subjective Heavy</option></select><label class="coverage-note"><input id="pbAdmin" type="checkbox"> Show to Admin</label><button id="pbGenerate">Generate Exam Paper</button></div><div id="pbBankInsight" class="coverage-note">Choose class and subject to see available teacher + EduNizam question-bank depth.</div><p class="coverage-note">Generated papers remain editable drafts. Answer keys and curriculum fit should be verified before printing.</p></article>'+
+ root.innerHTML='<article class="card no-print"><div class="section-head"><div><h3>⚡ Smart Paper Builder</h3><p class="muted">Your verified question bank is used first, then EduNizam curriculum bank, then clearly-labelled fallback only where needed.</p></div><span class="academic-pill">Exam Ready</span></div><div class="paper-presets"><button type="button" class="secondary" data-preset="quiz">Quick Quiz · 20</button><button type="button" class="secondary" data-preset="monthly">Monthly · 50</button><button type="button" class="secondary" data-preset="term">Term · 100</button></div><div class="form-grid"><input id="pbTitle" placeholder="Paper title (optional)"><input id="pbClass" list="pbClasses" placeholder="Class / Grade"><datalist id="pbClasses">'+teacherDefaults.classes.map(x=>'<option>'+esc(x)+'</option>').join('')+'<option>5</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></datalist><input id="pbSubject" list="pbSubjects" placeholder="Subject"><datalist id="pbSubjects">'+teacherDefaults.subjects.map(x=>'<option>'+esc(x)+'</option>').join('')+'<option>English</option><option>Urdu</option><option>Mathematics</option><option>General Science</option><option>Islamiat / Ethics</option><option>Computer Science</option><option>Physics</option><option>Chemistry</option><option>Biology</option><option>Pakistan Studies</option><option>Statistics</option><option>Economics</option></datalist><input id="pbChapters" placeholder="Selected chapters (comma separated)"><select id="pbChapterPicker" aria-label="Add syllabus chapter"><option value="">Choose a class + subject to load chapters</option></select><select id="pbBookBoard" aria-label="Curriculum authority"><option value="punjab-pectaa">Punjab · PECTAA</option><option value="federal-fbise">Federal · FBISE</option><option value="sindh-stbb">Sindh · STBB</option><option value="kp-dcte-kptbb">KP · Textbook Board</option><option value="balochistan-btbb">Balochistan · Textbook Board</option></select><input id="pbMarks" type="number" min="10" value="50"><select id="pbDifficulty"><option>Easy</option><option selected>Balanced</option><option>Challenging</option></select><select id="pbDistribution"><option>Balanced</option><option>Objective Heavy</option><option>Subjective Heavy</option></select><label class="coverage-note"><input id="pbAdmin" type="checkbox"> Show to Admin</label><button id="pbGenerate">Generate Exam Paper</button></div><div id="pbCurriculumSources" class="coverage-note">Select class, subject and textbook board to open official curriculum sources.</div><div id="pbBankInsight" class="coverage-note">Choose class and subject to see available teacher + EduNizam question-bank depth.</div><p class="coverage-note">Generated papers remain editable drafts. Answer keys and curriculum fit should be verified before printing.</p></article>'+
  '<article class="card no-print" id="questionBankManager"><div class="section-head"><div><h3>Reusable Teacher Question Bank</h3><p class="muted">Add verified questions once and reuse them automatically in future papers.</p></div><span id="qbCount" class="badge">0 questions</span></div><div class="form-grid"><input id="qbClass" list="pbClasses" placeholder="Class / Grade"><input id="qbSubject" list="pbSubjects" placeholder="Subject"><input id="qbChapter" placeholder="Chapter / Topic"><select id="qbType"><option value="mcq">MCQ</option><option value="short">Short</option><option value="long">Long</option></select><select id="qbDifficulty"><option>Easy</option><option selected>Balanced</option><option>Challenging</option></select><textarea id="qbQuestion" rows="3" placeholder="Question text"></textarea><textarea id="qbAnswer" rows="2" placeholder="Answer / marking guide"></textarea><textarea id="qbOptions" rows="4" placeholder="MCQ options — one per line"></textarea><input id="qbCorrect" type="number" min="1" value="1" placeholder="Correct option number"><label class="coverage-note"><input id="qbAdmin" type="checkbox"> Share this question with Admin</label><button id="qbSave">Add to Question Bank</button><button id="qbCancelEdit" class="secondary hidden" type="button">Cancel Edit</button></div><input id="qbSearch" class="no-print" type="search" placeholder="Search reusable questions" style="width:100%;margin-top:12px"><div id="qbList" class="paper-grid" style="margin-top:12px"></div></article>'+
  '<div class="section-head no-print"><div><h3>My / Shared Papers</h3><p class="muted">Search, reopen, clone or review saved papers.</p></div><span id="pbSavedCount" class="badge">0 papers</span></div><div class="form-grid no-print"><input id="pbSavedSearch" type="search" placeholder="Search saved papers"><input id="pbSavedClass" placeholder="Filter class"></div><div id="savedTeacherPapers" class="paper-grid no-print" style="margin-top:12px"></div><div id="paperPreview" style="margin-top:16px"></div>';
- $('#pbGenerate').onclick=savePaper;all('[data-preset]').forEach(b=>b.onclick=()=>{applyPreset(b.dataset.preset);updateBankInsight()});['#pbClass','#pbSubject','#pbChapters'].forEach(s=>$(s)?.addEventListener('input',updateBankInsight));
+ $('#pbGenerate').onclick=savePaper;all('[data-preset]').forEach(b=>b.onclick=()=>{applyPreset(b.dataset.preset);updateBankInsight()});
+  ['#pbClass','#pbSubject'].forEach(s=>$(s)?.addEventListener('input',()=>{refreshPaperCatalog();updateBankInsight()}));
+  $('#pbChapters')?.addEventListener('input',updateBankInsight);
+  $('#pbBookBoard')?.addEventListener('change',refreshPaperCatalog);
+  $('#pbChapterPicker')?.addEventListener('change',e=>{const value=e.target.value;if(!value)return;const el=$('#pbChapters');const chosen=el.value.split(',').map(x=>x.trim()).filter(Boolean);if(!chosen.includes(value))chosen.push(value);el.value=chosen.join(', ');e.target.value='';updateBankInsight()});
+  refreshPaperCatalog();
  $('#qbSave').onclick=saveCustomQuestion;$('#qbCancelEdit').onclick=clearQuestionForm;$('#qbSearch').addEventListener('input',renderQuestionBankList);
  $('#qbType').addEventListener('change',()=>{const mcq=$('#qbType').value==='mcq';$('#qbOptions').disabled=!mcq;$('#qbCorrect').disabled=!mcq});
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
