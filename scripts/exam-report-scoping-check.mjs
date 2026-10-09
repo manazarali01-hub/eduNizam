@@ -101,7 +101,7 @@ const scheduleSource=src;
 for(const safeguard of [
  'loadedScheduleScope!==currentDirectoryScope()',
  'root.dataset.cloudScope!==scope',
- 'Promise.all([pullCloud(),classJob])',
+ 'Promise.all([pullCloud(),classJob,subjectJob])',
  'schedule=[]'
 ])ok(scheduleSource.includes(safeguard),'Exam schedule cache/scope safeguard missing: '+safeguard);
 console.log('EduNizam Exam Center PASS: scoped report cards, UUIDs, authorized class directory, school/user isolation and stale schedule guards.');
