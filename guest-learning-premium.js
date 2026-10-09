@@ -334,7 +334,9 @@ function injectSectionExplorers(){
    '<button class="btn" id="guestPracticeRestart" type="button">Restart Session</button><button class="btn" id="guestPracticeResume" type="button" hidden>Resume Last Session</button>'+
    '</div><div id="guestPracticeCoverage" class="paper-summary"></div><div id="guestPracticeSummary" class="paper-summary" aria-live="polite"></div><div id="guestPracticeSession" class="paper-summary" aria-live="polite"></div><div id="guestPracticeHistory" class="paper-summary" aria-live="polite"></div>';
   practice.insertBefore(p,practice.firstChild.nextSibling);
-  const baseActions=practice.querySelector('.practice-actions');if(baseActions){baseActions.hidden=true;baseActions.style.display='none';baseActions.setAttribute('aria-hidden','true')}
+  const legacyFilters=$('practiceGuestClass')?.closest('.paper-filters');if(legacyFilters)legacyFilters.hidden=true;
+   if($('practiceGuestSummary'))$('practiceGuestSummary').hidden=true;
+   const baseActions=practice.querySelector('.practice-actions');if(baseActions){baseActions.hidden=false;baseActions.style.display='flex';baseActions.setAttribute('aria-hidden','false')}
   const allQuestions=()=>window.EDUNIZAM_PRACTICE_DATA?.questions||[];
   const unique=arr=>[...new Set(arr.filter(Boolean))];
   const setOptions=(el,allLabel,values,current)=>{
@@ -401,7 +403,8 @@ function finishGuestPractice(){
  $('practiceQuestion').textContent='Practice session completed.';
  $('practiceExplain').hidden=false;
  $('practiceExplain').textContent=st.mcqAttempted?'MCQ score: '+st.correct+'/'+st.mcqAttempted+' ('+pct+'%). Written answers reviewed: '+st.reviewed+'. Skipped: '+skipped+'. Review queue: '+missed.length+'.':'Written answers reviewed: '+st.reviewed+'. Skipped: '+skipped+'. Review queue: '+missed.length+'.';
- $('practiceOptions').innerHTML='<div class="guest-actions"><button class="primary-action" id="guestPracticeAgain">Practice Again</button><button id="guestPracticeReview" '+(missed.length?'':'disabled')+'>Review Missed ('+missed.length+')</button><button id="guestPracticeChange">Change Filters</button></div>';
+ ['prevQuestion','nextQuestion','randomQuestion'].forEach(id=>{const b=$(id);if(b)b.disabled=true});
+  $('practiceOptions').innerHTML='<div class="guest-actions"><button class="primary-action" id="guestPracticeAgain">Practice Again</button><button id="guestPracticeReview" '+(missed.length?'':'disabled')+'>Review Missed ('+missed.length+')</button><button id="guestPracticeChange">Change Filters</button></div>';
  $('guestPracticeAgain').onclick=()=>applyPracticeFilters();
  const review=$('guestPracticeReview');if(review&&!review.disabled)review.onclick=()=>{guestPracticeRows=missed;guestPracticeIndex=0;guestPracticeAttempts=new Map();guestPracticeFinished=false;renderGuestPractice()};
  $('guestPracticeChange').onclick=()=>{$('practiceExplorer')?.scrollIntoView({behavior:'smooth',block:'start'})};
@@ -416,7 +419,7 @@ function renderGuestPractice(){
  $('practiceMeta').innerHTML='<span class="badge">'+(Number(x.classLevel)<=8?'Grade ':'Class ')+esc(x.classLevel)+'</span><span class="badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.chapter||'General')+'</span><span class="badge">'+esc(x.type==='mcq'?'MCQ':x.type==='short'?'Short Answer':x.type==='long'?'Long Answer':x.type)+'</span><span class="badge">'+esc(x.difficulty)+'</span><span class="badge">Question '+(guestPracticeIndex+1)+' of '+guestPracticeRows.length+'</span>';
  $('practiceQuestion').textContent=x.question;$('practiceExplain').hidden=true;$('practiceExplain').textContent='';
  const isLast=guestPracticeIndex>=guestPracticeRows.length-1;
- const nav='<div class="guest-actions" style="margin-top:12px"><button class="secondary" id="guestPracticePrev" '+(guestPracticeIndex===0?'disabled':'')+'>Previous</button><button class="primary-action" id="guestPracticeNext">'+(isLast?'Finish Session':'Next Question')+'</button></div>';
+ const nav='';
  if(x.type==='mcq'){
   $('practiceOptions').innerHTML=(x.options||[]).map((o,i)=>'<button class="option" data-guest-answer="'+i+'">'+esc(o)+'</button>').join('')+nav;
   const buttons=[...document.querySelectorAll('[data-guest-answer]')];
@@ -437,9 +440,10 @@ function renderGuestPractice(){
   if(attempt&&attempt.kind==='written')show();
   else $('guestShowAnswer').onclick=()=>{if(!guestPracticeAttempts.has(x.id))guestPracticeAttempts.set(x.id,{kind:'written'});show();updatePracticeSessionStatus();savePracticeResume()};
  }
- const prev=$('guestPracticePrev'),next=$('guestPracticeNext');
- if(prev)prev.onclick=()=>{if(guestPracticeIndex>0){guestPracticeIndex--;savePracticeResume();renderGuestPractice()}};
- if(next)next.onclick=()=>{if(isLast)finishGuestPractice();else{guestPracticeIndex++;savePracticeResume();renderGuestPractice()}};
+ const prev=$('prevQuestion'),next=$('nextQuestion'),random=$('randomQuestion');
+  if(prev){prev.disabled=guestPracticeIndex===0;prev.onclick=()=>{if(guestPracticeIndex>0){guestPracticeIndex--;savePracticeResume();renderGuestPractice()}}}
+  if(next){next.disabled=false;next.textContent=isLast?'Finish Session':'Next Question →';next.onclick=()=>{if(isLast)finishGuestPractice();else{guestPracticeIndex++;savePracticeResume();renderGuestPractice()}}}
+  if(random){random.disabled=guestPracticeRows.length<2;random.onclick=()=>{if(guestPracticeRows.length<2)return;const nextIndex=(guestPracticeIndex+1+Math.floor(Math.random()*(guestPracticeRows.length-1)))%guestPracticeRows.length;guestPracticeIndex=nextIndex;savePracticeResume();renderGuestPractice()}}
  updatePracticeSessionStatus();
 }
 function applyPracticeFilters(){
