@@ -37,6 +37,9 @@ jobs:
       - name: Run EduNizam QA gate
         run: node qa-check.mjs
 
+      - name: Block incomplete curriculum/question catalog
+        run: node scripts/data-completion-check.mjs
+
       - name: Install pinned Playwright runtime for interaction gate
         shell: bash
         run: |
