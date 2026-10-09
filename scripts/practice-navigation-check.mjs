@@ -37,6 +37,7 @@ const D={
 };
 const localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v))};
 const window={EDUNIZAM_PRACTICE_DATA:D};
+runInNewContext(readFileSync(new URL('../practice-session-core.js',import.meta.url),'utf8'),{window,console},{filename:'practice-session-core.js'});
 runInNewContext(src,{window,document,localStorage,Math:Object.assign(Object.create(Math),{random:()=>0.5}),setInterval:()=>1,clearInterval:()=>{},console,alert:msg=>{throw Error('Unexpected alert: '+msg)}},{filename:'practice-center.js',timeout:2000});
 node('practiceClass').value='1';
 node('practiceSubject').value='Mathematics';
@@ -54,7 +55,7 @@ selections[0]=2;api.next();
 check(api.status().cursor===1&&api.status().answers[0]===2,'First MCQ answer lost after Next');
 writings[1]=' A written response to preserve ';api.next();
 check(api.status().cursor===2&&api.status().answers[1].trim()==='A written response to preserve','Written response lost on Next');
-check(node('practiceNextBtn').disabled,'Next should be disabled on final question');
+check(!node('practiceNextBtn').disabled&&node('practiceNextBtn').textContent==='Finish & Submit','Final question must show working Finish & Submit control');
 selections[2]=0;api.previous();
 check(api.status().answers[2]===0&&api.status().cursor===1,'Last MCQ answer lost on Previous');
 api.previous();
@@ -66,5 +67,7 @@ check(hist[0].details[1].textAnswer==='A written response to preserve','Written 
 check(hist[0].details[2].chosen===0,'Previously visited last question was not saved');
 node('practiceCount').value='1';
 api.start();
-check(api.status().total===1&&node('practicePrevBtn').disabled&&node('practiceNextBtn').disabled,'Single-question practice must remain submittable');
+check(api.status().total===1&&node('practicePrevBtn').disabled&&node('practiceNextBtn').textContent==='Finish & Submit','One-question session must show Finish & Submit');
+api.next();
+check(JSON.parse(values.get('edunizam_practice_history')).length===2,'One-question Finish & Submit did not save results');
 console.log('EduNizam practice pagination PASS: 3 mixed questions, Next/Previous, retained MCQ and written answers, result scoring and single-question state.');
