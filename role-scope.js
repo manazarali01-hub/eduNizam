@@ -117,6 +117,9 @@
         next.parentStudentUserIds=(links||[]).map(x=>String(x.student_user_id));
       }catch(e){console.warn('Parent student scope:',e.message||e)}
     }
+    // In-flight role data from another school/account must never be committed
+    // into this user's current cache after a context switch.
+    if(refreshKey!==scopeKey())return readCache();
     next.updatedAt=Date.now();writeCache(next);
     lastRefreshAt=Date.now();lastRefreshKey=refreshKey;
     window.renderAll?.();
