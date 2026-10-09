@@ -1954,7 +1954,7 @@ try{
           await loginFlowPage.locator('#practiceSourceCard summary').click();
           await loginFlowPage.locator('#practiceSourceChapter').fill('Matter');
           await loginFlowPage.locator('#practiceSourceText').fill(
-            'Q1: What state is ice?\\nA) Gas\\nB) Solid\\nC) Liquid\\nD) Plasma\\nAnswer: B\\n\\nQ2: Explain matter.\\nAnswer: Matter has mass and occupies space.'
+            'Q1: What state is ice?\nA) Gas\nB) Solid\nC) Liquid\nD) Plasma\nAnswer: B\n\nQ2: Explain matter.\nAnswer: Matter has mass and occupies space.'
           );
           await loginFlowPage.locator('#practiceSourceDetect').click();
           const draft=await loginFlowPage.locator('#practiceSourceQuestions').inputValue();
