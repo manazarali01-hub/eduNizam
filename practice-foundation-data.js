@@ -14,9 +14,9 @@ function addGrade(grade,subject,rows){
  const cl=String(grade);PD.subjects[cl]=PD.subjects[cl]||[];
  if(!PD.subjects[cl].includes(subject))PD.subjects[cl].push(subject);
  const k=cl+'|'+subject;PD.chapters[k]=PD.chapters[k]||[];
- for(const [chapter,question,options,answer,fact,example] of rows){
+ for(const [topicIndex,[chapter,question,options,answer,fact,example]] of rows.entries()){
   if(!PD.chapters[k].includes(chapter))PD.chapters[k].push(chapter);
-  const id='found-'+grade+'-'+subject.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'-'+chapter.replace(/[^a-z0-9]/gi,'-').toLowerCase();
+  const id='found-'+grade+'-'+subject.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'-topic-'+topicIndex;
   if(!seen.has(id)){
     PD.questions.push({id,classLevel:grade,subject,chapter,type:'mcq',difficulty:'Easy',question,options,answer,explanation:fact+' '+example,origin:'EduNizam authored concept practice',curriculumVerified:false});
     seen.add(id);added++;
