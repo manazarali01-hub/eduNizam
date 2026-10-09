@@ -54,7 +54,7 @@
   }
   function write(v){localStorage.setItem(KEY,JSON.stringify(v))}
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
-  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
+  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]}
   function isAdmin(){return role()==='head'}
   function isTeacher(){return role()==='teacher'}
   function canSubmit(){return ['student','parent','teacher'].includes(role())}
