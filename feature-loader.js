@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-practice-pager-v15';
+  const VERSION='20261009-school-dependent-options-v16';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -58,6 +58,7 @@
     study:['learningCore','studyDeep'],
     lessoncenter:['lessonCatalog'],
     datareadiness:['lessonCatalog'],
+    staffcenter:['lessonCatalog'],
     schedulecenter:['lessonCatalog'],
     examcenter:['lessonCatalog'],
     dailydiary:['lessonCatalog'],
@@ -99,7 +100,7 @@
     examcenter:['exam-center.js','academic-operations-deep.js'],
     paperbuilder:['paper-syllabus-audit.js','teacher-question-import.js','teacher-paper-builder.js','academic-workflow-deep.js'],
     dailydiary:['daily-class-diary.js','academic-workflow-deep.js'],
-    staffcenter:['staff-center.js'],
+    staffcenter:['school-form-options.js','staff-center.js'],
     stafftime:['staff-time-attendance.js'],
     staffpayroll:['staff-payroll.js'],
     training:['teacher-training-center.js'],
