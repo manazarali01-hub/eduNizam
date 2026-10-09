@@ -33,6 +33,9 @@ jobs:
       - name: Verify Study Library subject options and official-resource filtering
         run: node scripts/study-library-dropdown-check.mjs
 
+      - name: Verify Exam Center UUID report cards and authorized student selection
+        run: node scripts/exam-report-scoping-check.mjs
+
       - name: Verify Practice Next Previous navigation and answer persistence
         run: node scripts/practice-navigation-check.mjs
 
