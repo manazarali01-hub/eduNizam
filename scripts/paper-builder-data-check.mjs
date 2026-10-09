@@ -241,7 +241,7 @@ for(const name of ['timetable-date-sheet.js','exam-center.js','daily-class-diary
   pass(src.includes(token),'Academic subject catalog missing in '+name);
 }
 const loader=read('feature-loader.js');
-pass(loader.includes("paperbuilder:['paper-syllabus-audit.js','teacher-question-import.js','teacher-paper-builder.js'"),'Question importer does not load before Paper Builder');
+pass(loader.includes("paperbuilder:['paper-syllabus-audit.js','teacher-question-import.js','paper-source-import.js','teacher-paper-builder.js'"),'Question importer does not load before Paper Builder');
 for(const v of ['schedulecenter','examcenter','dailydiary'])
  pass(loader.includes(v+":['lessonCatalog']"),'Lightweight academic option catalog not loaded for '+v);
 console.log('EduNizam paper and dropdown data gate PASS; '+checked+' paper tests; 20/50/100 marks add correctly; unsupported inputs blocked.');
