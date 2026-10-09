@@ -60,11 +60,11 @@
   function editor(){
     if(!isHead())return '<div class="coverage-note">Issued documents read/print view. New ID card/certificate Head of Institute issue karta hai.</div>';
     return '<article class="card"><h3>Issue Student Document</h3><div class="form-grid">'+
-      '<select id="sdStudent"><option value="">Select student</option>'+students().map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' · '+esc((s.className||'-')+(s.sectionName?' - '+s.sectionName:''))+'</option>').join('')+'</select>'+
+      '<select id="sdStudent">'+window.EDUNIZAM_STUDENT_PICKER.options(visibleStudents())+'</select>'+
       '<select id="sdType"><option>ID Card</option><option>Bonafide Certificate</option><option>Enrollment Certificate</option><option>Leaving Certificate</option></select>'+
       '<input id="sdIssueDate" type="date" value="'+today()+'">'+
       '<input id="sdRemarks" placeholder="Purpose / remarks / leaving reason (optional)">'+
-      '<button id="sdIssue">Issue Document</button></div></article>';
+      '<button id="sdIssue"'+(visibleStudents().length?'':' disabled')+'>Issue Document</button>'+(visibleStudents().length?'':'<p class="coverage-note">No student records available. Enroll real students before issuing certificates.</p>')+'</div></article>';
   }
   function card(x){
     return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(x.documentType)+'</span><span class="badge">'+esc(x.issueDate)+'</span></div>'+
@@ -93,11 +93,16 @@
   }
   function printDoc(item){item.documentType==='ID Card'?printIdCard(item):printCertificate(item)}
   async function issue(){
+    if(!isHead())return alert('Only the Head may issue student certificates.');
     const sid=$('sdStudent')?.value,type=$('sdType')?.value,issueDate=$('sdIssueDate')?.value,remarks=$('sdRemarks')?.value.trim()||'';
     if(!sid||!type||!issueDate)return alert('Student, document type aur issue date required hain.');
-    const s=students().find(x=>String(x.id)===String(sid));if(!s)return;
+    if(!window.EDUNIZAM_STUDENT_PICKER?.has(visibleStudents(),sid))return alert('Student is not accessible in the current school.');
+    const s=visibleStudents().find(x=>String(x.id)===String(sid));if(!s)return;
     let item={id:String(Date.now()),studentId:s.id,studentName:s.name,className:s.className||'',sectionName:s.sectionName||'',studentCode:s.studentId||'',documentType:type,documentNo:numberFor(type),issueDate,remarks,createdAt:new Date().toISOString()};
-    try{const c=await insertCloud(item);if(c)item=c}catch(e){alert('Cloud sync unavailable; document local mode mein issue hoga. '+(e.message||e))}
+    if(cloudReady()){
+      try{const c=await insertCloud(item);if(!c)return alert('Cloud document not saved. No local certificate issued.');item=c}
+      catch(e){return alert('Cloud document issue failed. No local certificate issued: '+(e.message||e))}
+    }
     const rows=read();rows.unshift(item);write(rows);render();
   }
   async function remove(id){
