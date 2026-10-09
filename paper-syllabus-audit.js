@@ -5,7 +5,14 @@
 const norm=v=>String(v??'').normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').toLowerCase().trim().replace(/\s+/g,' ');
 const chapterMatches=(expected,actual)=>!!norm(actual)&&norm(expected)===norm(actual);
 const classLevel=v=>{const m=String(v??'').match(/\b(1[0-2]|[1-9])\b/);return m?Number(m[1]):0};
-const sameClass=(a,b)=>{const x=classLevel(a),y=classLevel(b);return x&&y?x===y:!!norm(a)&&norm(a)===norm(b)};
+// Whole-grade aliases refer to the same class, but a composite label such
+// as "5-A" or "Grade 5 - Section B" must not expose another class's
+// private question bank / school-recorded syllabus.
+const wholeGrade=v=>{const m=norm(v).match(/^(?:(?:class|grade)\s*)?(1[0-2]|[1-9])$/);return m?Number(m[1]):0};
+const sameClass=(a,b)=>{
+ const x=wholeGrade(a),y=wholeGrade(b);
+ return x&&y?x===y:!!norm(a)&&norm(a)===norm(b);
+};
 const normalizeSubject=v=>{
  const x=norm(v),aliases={'science':'general science','islamiyat':'islamiat / ethics','islamic studies':'islamiat / ethics','math':'mathematics','computer':'computer science','pak studies':'pakistan studies'};
  return aliases[x]||x;
