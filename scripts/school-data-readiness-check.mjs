@@ -68,6 +68,7 @@ ok(app.evaluateUnitMetadata([{unit_title:'1',textbook_title:'Math',curriculum_bo
 ok(source.includes("select('unit_title,textbook_title,curriculum_board,edition_year,source_url')")&&source.includes(".eq('institution_id',id).limit(1000)"),'Metadata query may fetch student/private fields or another school');
 ok(source.includes('id="readinessUnitQuality"')&&source.includes('scope()!==requestScope'),'Metadata status UI/scope isolation missing');
 ok(app.scope()==='test-school|test-head','Readiness school/user cache scope not correctly separated');
+ok(source.includes('data-readiness-action')&&source.includes('EDUNIZAM_APP_NAV?.setView?.(view)'),'No working setup navigation for real missing school data');
 ok(source.includes('forgetOtherSchool()')&&source.includes('auditScope=requestScope')&&source.includes('scope()!==requestScope'),'Previous school readiness results not cleared on institution switch');
 
 const nav=read('app.html'),loader=read('feature-loader.js'),scope=read('role-scope.js'),main=read('app.js');
