@@ -26,14 +26,31 @@
   function read(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}}
   function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
-  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
-  function settings(){try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}}
-  function classOptions(){
-    const set=new Set();
-    visibleStudents().forEach(s=>{if(s.className)set.add(String(s.className))});
-    try{JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]').forEach(x=>{if(x.className)set.add(String(x.className))})}catch(_){}
-    if(isHead()){['Play Group','Nursery','Prep',...Array.from({length:12},(_,i)=>String(i+1))].forEach(x=>set.add(x))}
-    return [...set].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]}
+  function registeredClasses(){
+    const rows=[];
+    const scope=window.EDUNIZAM_ROLE_SCOPE;
+    const teacherKeys=role()==='teacher'?scope?.teacherClassKeys?.()||new Set():new Set();
+    try{
+      for(const row of JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')){
+        if(row.active===false)continue;
+        const k=String(row.className||'').trim().toLowerCase()+'|'+String(row.sectionName||'').trim().toLowerCase();
+        if(isHead()||(role()==='teacher'&&teacherKeys.has(k)))rows.push(row);
+      }
+    }catch(_){}
+    for(const st of visibleStudents())rows.push({className:st.className,sectionName:st.sectionName});
+    return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.registeredSections(rows)||[];
+  }
+  function classOptions(){return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.distinct(registeredClasses().map(x=>x.className))||[]}
+  function savedUnits(){return read(UNIT_KEY)}
+  function syllabusOptionData(cls,subject){
+    return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.chapters(cls,subject,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},savedUnits())||{saved:[],concepts:[]};
+  }
+  function sectionList(prefix){
+    const cls=$('lp'+prefix+'Class')?.value||'';
+    const rows=registeredClasses().filter(x=>x.className===cls);
+    const list=$('lp'+prefix+'Sections');
+    if(list)list.innerHTML=[...new Set(rows.map(x=>x.sectionName).filter(Boolean))].map(x=>'<option value="'+esc(x)+'"></option>').join('');
   }
   function relevantToFamily(x){
     if(isStaff())return true;
@@ -108,8 +125,8 @@
     if(!isStaff())return '<div class="coverage-note">Aap ko sirf Published lesson plans aur family-visible syllabus progress dikhaya ja raha hai.</div>';
     return '<article class="card"><h3>'+(edit?'Edit Weekly Lesson Plan':'Create Weekly Lesson Plan')+'</h3><div class="form-grid">'+
       '<input id="lpPlanEditId" type="hidden" value="'+esc(edit?.id||'')+'">'+
-      '<select id="lpPlanClass"><option value="">Select class</option>'+classOptions().map(c=>'<option value="'+esc(c)+'" '+(edit?.className===c?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select>'+
-      '<input id="lpPlanSection" placeholder="Section (optional)" value="'+esc(edit?.sectionName||'')+'">'+
+      '<select id="lpPlanClass"><option value="">Select registered class</option>'+classOptions().map(c=>'<option value="'+esc(c)+'" '+(edit?.className===c?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select>'+
+      '<input id="lpPlanSection" list="lpPlanSections" placeholder="Section (from school data)" value="'+esc(edit?.sectionName||'')+'"><datalist id="lpPlanSections"></datalist>'+
       '<input id="lpPlanSubject" list="lpPlanSubjects" placeholder="Subject (choose from catalog)" value="'+esc(edit?.subject||'')+'"><datalist id="lpPlanSubjects"></datalist>'+
       '<input id="lpWeekStart" type="date" value="'+esc(edit?.weekStart||today())+'">'+
       '<input id="lpTopic" list="lpPlanTopics" placeholder="Main topic / chapter (or custom)" value="'+esc(edit?.topic||'')+'"><datalist id="lpPlanTopics"></datalist>'+
@@ -124,8 +141,8 @@
     if(!isStaff())return '';
     return '<article class="card" style="margin-top:16px"><h3>'+(edit?'Edit Syllabus Unit':'Add Syllabus Unit / Chapter')+'</h3><div class="form-grid">'+
       '<input id="lpUnitEditId" type="hidden" value="'+esc(edit?.id||'')+'">'+
-      '<select id="lpUnitClass"><option value="">Select class</option>'+classOptions().map(c=>'<option value="'+esc(c)+'" '+(edit?.className===c?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select>'+
-      '<input id="lpUnitSection" placeholder="Section (optional)" value="'+esc(edit?.sectionName||'')+'">'+
+      '<select id="lpUnitClass"><option value="">Select registered class</option>'+classOptions().map(c=>'<option value="'+esc(c)+'" '+(edit?.className===c?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select>'+
+      '<input id="lpUnitSection" list="lpUnitSections" placeholder="Section (from school data)" value="'+esc(edit?.sectionName||'')+'"><datalist id="lpUnitSections"></datalist>'+
       '<input id="lpUnitSubject" list="lpUnitSubjects" placeholder="Subject (choose from catalog)" value="'+esc(edit?.subject||'')+'"><datalist id="lpUnitSubjects"></datalist>'+
       '<input id="lpUnitTitle" list="lpUnitTopics" placeholder="Syllabus unit (or custom)" value="'+esc(edit?.unitTitle||'')+'"><datalist id="lpUnitTopics"></datalist>'+
       '<input id="lpTargetEnd" type="date" value="'+esc(edit?.targetEnd||'')+'">'+
@@ -151,6 +168,7 @@
     const btn=$('lpSavePlan');if(lessonPlanSaveInFlight||btn?.disabled)return;
     const id=$('lpPlanEditId')?.value||'',className=$('lpPlanClass')?.value,subject=$('lpPlanSubject')?.value.trim(),topic=$('lpTopic')?.value.trim(),weekStart=$('lpWeekStart')?.value;
     if(!className||!subject||!topic||!weekStart)return alert('Class, subject, topic aur week start required hain.');
+    if(!classOptions().includes(className)||!window.EDUNIZAM_ACADEMIC_FORM_OPTIONS.sectionMatches(className,$('lpPlanSection')?.value,registeredClasses()))return alert('Choose an accessible registered class / section. Configure it in Academic Groups first.');
     const rows=read(PLAN_KEY),old=rows.find(x=>String(x.id)===String(id));
     lessonPlanSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
     try{
@@ -163,6 +181,7 @@
     const btn=$('lpSaveUnit');if(syllabusUnitSaveInFlight||btn?.disabled)return;
     const id=$('lpUnitEditId')?.value||'',className=$('lpUnitClass')?.value,subject=$('lpUnitSubject')?.value.trim(),unitTitle=$('lpUnitTitle')?.value.trim(),completion=Math.max(0,Math.min(100,Number($('lpCompletion')?.value||0)));
     if(!className||!subject||!unitTitle)return alert('Class, subject aur unit title required hain.');
+    if(!classOptions().includes(className)||!window.EDUNIZAM_ACADEMIC_FORM_OPTIONS.sectionMatches(className,$('lpUnitSection')?.value,registeredClasses()))return alert('Choose an accessible registered class / section. Configure it in Academic Groups first.');
     let status=$('lpUnitStatus')?.value||'Planned';if(completion>=100)status='Completed';else if(completion>0&&status==='Planned')status='In Progress';
     const rows=read(UNIT_KEY),old=rows.find(x=>String(x.id)===String(id));
     syllabusUnitSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
@@ -190,22 +209,19 @@
     w.document.close();w.focus();setTimeout(()=>w.print(),250);
   }
   function refreshSyllabusLists(prefix){
-    const cl=$('lp'+prefix+'Class')?.value||'',sub=$('lp'+prefix+'Subject')?.value||'';
-    const numberMatch=String(cl).match(/(1[0-2]|[1-9])/);
-    const grade=numberMatch?String(Number(numberMatch[1])):'';
-    const D=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||window.EDUNIZAM_PRACTICE_DATA||{};
-    const current=D.subjects?.[grade]||[];
-    const defaults=['English','Urdu','Mathematics','General Science','General Knowledge','Islamiat / Ethics','Nazra Quran','Social Studies'];
-    const subjects=current.length?current:defaults;
-    const subjectList=$('lp'+prefix+'Subjects');
-    if(subjectList)subjectList.innerHTML=subjects.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const cls=$('lp'+prefix+'Class')?.value||'',subject=$('lp'+prefix+'Subject')?.value||'';
+    const catalog=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    const subjects=api?.subjects(cls,catalog,savedUnits())||[];
+    const list=$('lp'+prefix+'Subjects');
+    if(list)list.innerHTML=subjects.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const unit=syllabusOptionData(cls,subject),chapters=[...unit.saved,...unit.concepts];
     const chapterList=$('lp'+prefix+'Topics');
-    const chapters=D.chapters?.[grade+'|'+sub]||[];
     if(chapterList)chapterList.innerHTML=chapters.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    sectionList(prefix);
     const note=$('lp'+prefix+'CatalogNote');
-    if(note)note.textContent=chapters.length?
-      chapters.length+' EduNizam concept topic options. These are NOT confirmed official textbook chapters.':
-      (grade&&sub?'No matching concept topic. Enter the currently prescribed textbook chapter.':'Select a class and subject to see topic suggestions.');
+    if(note)note.textContent=!cls?'Register a real school class in Academic Groups before planning.':!subject?
+     'Select subject. The concept catalog is not an official textbook chapter list.':
+     unit.saved.length+' school-saved syllabus unit(s); '+unit.concepts.length+' unverified concept suggestion(s). Verify the prescribed textbook before publication.';
   }
   function bindEditors(){
     $('lpSavePlan')?.addEventListener('click',savePlan);$('lpCancelPlan')?.addEventListener('click',render);
