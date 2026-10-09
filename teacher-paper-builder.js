@@ -1,7 +1,7 @@
 (function(){
 const $=s=>document.querySelector(s),all=s=>[...document.querySelectorAll(s)],esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{},settings=()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}},role=()=>{let r;try{r=JSON.parse(localStorage.getItem('edunizam_session')||'{}').role}catch{}return r==='admin'?'head':r||'student'},ready=()=>!!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId);
-let current=null,currentRow=null,teacherDefaults={classes:[],subjects:[]},customQuestions=[],editingQuestionId='';
+let current=null,currentRow=null,teacherDefaults={classes:[],subjects:[]},customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
 async function loadTeacherDefaults(){if(!ready()||role()!=='teacher')return;const {data}=await cloud().state.client.from('staff_profiles').select('classes,subjects').eq('institution_id',cfg().institutionId).eq('user_id',cloud().state.user.id).maybeSingle();teacherDefaults={classes:data?.classes||[],subjects:data?.subjects||[]}}
 async function loadCustomQuestions(){
  if(!ready()){customQuestions=[];return[]}
@@ -64,6 +64,59 @@ async function deleteCustomQuestion(id){
  if(!confirm('Delete this custom question?'))return;
  const {error}=await cloud().state.client.from('teacher_question_bank').delete().eq('id',id).eq('creator_user_id',cloud().state.user.id);if(error)return alert(error.message);
  await loadCustomQuestions();
+}
+function downloadQuestionTemplate(){
+ const template=window.EDUNIZAM_QUESTION_IMPORT?.template;
+ if(!template)return alert('Question import template is unavailable. Reload the Paper Builder.');
+ const data=new Blob(['\\uFEFF'+template],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(data),a=document.createElement('a');
+ a.href=url;a.download='edunizam-question-bank-template.csv';a.style.display='none';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+async function previewQuestionImport(){
+ const file=$('#qbImportFile')?.files?.[0],report=$('#qbImportReport'),save=$('#qbImportSave');
+ pendingImportRows=[];if(save)save.disabled=true;
+ if(!file){if(report)report.textContent='Choose a CSV/JSON file first.';return}
+ if(file.size>1048576){if(report)report.textContent='File must be under 1 MB.';return}
+ try{
+  const processor=window.EDUNIZAM_QUESTION_IMPORT;
+  if(!processor)throw Error('Question import validator unavailable; reload this page.');
+  const results=processor.prepare(await file.text(),file.name,customQuestions);
+  const summary='Checked '+results.total+' rows · '+results.valid.length+' new valid · '+results.duplicates+' duplicates · '+results.errors.length+' errors.';
+  if(report)report.textContent=summary+(results.errors.length?' First errors: '+results.errors.slice(0,7).join(' | '):' Ready to import.');
+  if(results.errors.length)return;
+  pendingImportRows=results.valid;
+  if(save)save.disabled=!pendingImportRows.length;
+ }catch(error){if(report)report.textContent='Validation failed: '+(error.message||error)}
+}
+async function saveQuestionImport(){
+ const button=$('#qbImportSave'),report=$('#qbImportReport');
+ if(importBusy||!ready()||!pendingImportRows.length)return;
+ if(!confirm('Import '+pendingImportRows.length+' teacher-supplied questions into this institute? Please verify textbook/chapter alignment and answer keys first.'))return;
+ importBusy=true;if(button){button.disabled=true;button.textContent='Importing questions...'}
+ const batchSize=25,total=pendingImportRows.length;let completed=0,failed=null;
+ try{
+  while(completed<total){
+   const batch=pendingImportRows.slice(completed,completed+batchSize);
+   const owner=cloud().state.user.id,institution=cfg().institutionId;
+   const records=batch.map(q=>({...q,institution_id:institution,creator_user_id:owner,updated_at:new Date().toISOString()}));
+   const {error}=await cloud().state.client.from('teacher_question_bank').insert(records);
+   if(error){failed=error;break}
+   completed+=batch.length;
+   if(report)report.textContent='Imported '+completed+' of '+total+'...';
+  }
+  pendingImportRows=pendingImportRows.slice(completed);
+  if(report)report.textContent=completed+' question'+(completed===1?'':'s')+' saved in your institute.'+
+   (failed?' Remaining '+pendingImportRows.length+' were not imported: '+(failed.message||failed)+'. Review the problem before retrying.':' Verify the current syllabus and answer keys before using them in exams.');
+  await loadCustomQuestions();
+  updateBankInsight();
+ }catch(error){
+  pendingImportRows=pendingImportRows.slice(completed);
+  if(report)report.textContent=completed+' saved; '+pendingImportRows.length+' not saved. '+(error.message||error);
+ }finally{
+  importBusy=false;
+  if(button?.isConnected){button.textContent='Import Verified Questions';button.disabled=!pendingImportRows.length}
+ }
 }
 function renderQuestionBankList(){
  const el=$('#qbList');if(!el)return;const uid=String(cloud()?.state?.user?.id||''),q=String($('#qbSearch')?.value||'').trim().toLowerCase();
@@ -241,7 +294,7 @@ async function render(){
  if(!['teacher','head'].includes(role())){root.innerHTML='<div class="empty-state">Paper Builder is for teachers and Admin review.</div>';return}
  await loadTeacherDefaults();
  root.innerHTML='<article class="card no-print"><div class="section-head"><div><h3>⚡ Smart Paper Builder</h3><p class="muted">Your verified teacher question bank is prioritized, then EduNizam concept practice. Current textbook editions and chapter coverage must be checked; missing content blocks paper generation.</p></div><span class="academic-pill">Teacher Review Required</span></div><div class="paper-presets"><button type="button" class="secondary" data-preset="quiz">Quick Quiz · 20</button><button type="button" class="secondary" data-preset="monthly">Monthly · 50</button><button type="button" class="secondary" data-preset="term">Term · 100</button></div><div class="form-grid"><input id="pbTitle" placeholder="Paper title (optional)"><input id="pbClass" list="pbClasses" placeholder="Class / Grade"><datalist id="pbClasses">'+teacherDefaults.classes.map(x=>'<option>'+esc(x)+'</option>').join('')+'<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></datalist><input id="pbSubject" list="pbSubjects" placeholder="Subject"><datalist id="pbSubjects">'+teacherDefaults.subjects.map(x=>'<option>'+esc(x)+'</option>').join('')+'<option>English</option><option>Urdu</option><option>Mathematics</option><option>General Science</option><option>Islamiat / Ethics</option><option>Computer Science</option><option>Physics</option><option>Chemistry</option><option>Biology</option><option>Pakistan Studies</option><option>Statistics</option><option>Economics</option></datalist><input id="pbChapters" placeholder="Selected chapters (comma separated)"><select id="pbChapterPicker" aria-label="Add syllabus chapter"><option value="">Choose a class + subject to load chapters</option></select><select id="pbBookBoard" aria-label="Curriculum authority"><option value="punjab-pectaa">Punjab · PECTAA</option><option value="federal-fbise">Federal · FBISE</option><option value="sindh-stbb">Sindh · STBB</option><option value="kp-dcte-kptbb">KP · Textbook Board</option><option value="balochistan-btbb">Balochistan · Textbook Board</option></select><input id="pbMarks" type="number" min="10" value="50"><select id="pbDifficulty"><option>Easy</option><option selected>Balanced</option><option>Challenging</option></select><select id="pbDistribution"><option>Balanced</option><option>Objective Heavy</option><option>Subjective Heavy</option></select><label class="coverage-note"><input id="pbAdmin" type="checkbox"> Show to Admin</label><button id="pbGenerate">Generate Exam Paper</button></div><div id="pbCurriculumSources" class="coverage-note">Select class, subject and textbook board to open official curriculum sources.</div><div id="pbBankInsight" class="coverage-note">Choose class and subject to see available teacher + EduNizam question-bank depth.</div><p class="coverage-note">Only generate from chapters taught in the current syllabus. Built-in questions are not official board textbook extracts. Review the answer key and every question.</p></article>'+
- '<article class="card no-print" id="questionBankManager"><div class="section-head"><div><h3>Reusable Teacher Question Bank</h3><p class="muted">Add verified questions once and reuse them automatically in future papers.</p></div><span id="qbCount" class="badge">0 questions</span></div><div class="form-grid"><input id="qbClass" list="pbClasses" placeholder="Class / Grade"><input id="qbSubject" list="pbSubjects" placeholder="Subject"><input id="qbChapter" list="pbTeacherChapters" placeholder="Chapter / Topic (required)"><datalist id="pbTeacherChapters"></datalist><select id="qbType"><option value="mcq">MCQ</option><option value="short">Short</option><option value="long">Long</option></select><select id="qbDifficulty"><option>Easy</option><option selected>Balanced</option><option>Challenging</option></select><textarea id="qbQuestion" rows="3" placeholder="Question text"></textarea><textarea id="qbAnswer" rows="2" placeholder="Answer / marking guide"></textarea><textarea id="qbOptions" rows="4" placeholder="MCQ options — one per line"></textarea><input id="qbCorrect" type="number" min="1" value="1" placeholder="Correct option number"><label class="coverage-note"><input id="qbAdmin" type="checkbox"> Share this question with Admin</label><button id="qbSave">Add to Question Bank</button><button id="qbCancelEdit" class="secondary hidden" type="button">Cancel Edit</button></div><input id="qbSearch" class="no-print" type="search" placeholder="Search reusable questions" style="width:100%;margin-top:12px"><div id="qbList" class="paper-grid" style="margin-top:12px"></div></article>'+
+ '<article class="card no-print" id="questionBankManager"><div class="section-head"><div><h3>Reusable Teacher Question Bank</h3><p class="muted">Add verified questions once and reuse them automatically in future papers.</p></div><span id="qbCount" class="badge">0 questions</span></div><div class="form-grid"><input id="qbClass" list="pbClasses" placeholder="Class / Grade"><input id="qbSubject" list="pbSubjects" placeholder="Subject"><input id="qbChapter" list="pbTeacherChapters" placeholder="Chapter / Topic (required)"><datalist id="pbTeacherChapters"></datalist><select id="qbType"><option value="mcq">MCQ</option><option value="short">Short</option><option value="long">Long</option></select><select id="qbDifficulty"><option>Easy</option><option selected>Balanced</option><option>Challenging</option></select><textarea id="qbQuestion" rows="3" placeholder="Question text"></textarea><textarea id="qbAnswer" rows="2" placeholder="Answer / marking guide"></textarea><textarea id="qbOptions" rows="4" placeholder="MCQ options — one per line"></textarea><input id="qbCorrect" type="number" min="1" value="1" placeholder="Correct option number"><label class="coverage-note"><input id="qbAdmin" type="checkbox"> Share this question with Admin</label><button id="qbSave">Add to Question Bank</button><button id="qbCancelEdit" class="secondary hidden" type="button">Cancel Edit</button></div><input id="qbSearch" class="no-print" type="search" placeholder="Search reusable questions" style="width:100%;margin-top:12px"><div class="coverage-note" id="qbBulkImport" style="margin-top:16px"><strong>Bulk verified question import (CSV / JSON)</strong><p>Download the template, fill authentic subject/chapter questions and their answer keys, then validate before saving. Files stay on your device until you confirm Import; institution/user IDs always come from your secure login.</p><div class="paper-actions"><button type="button" class="secondary" id="qbImportTemplate">Download CSV Template</button><input type="file" accept=".csv,.json,text/csv,application/json" id="qbImportFile" aria-label="Select question bank CSV or JSON" style="max-width:270px"><button type="button" class="secondary" id="qbImportPreview">Validate File</button><button type="button" id="qbImportSave" disabled>Import Verified Questions</button></div><p id="qbImportReport" role="status" aria-live="polite">Up to 500 questions and 1 MB per file. Four distinct MCQ options, the correct answer and a chapter are required. Nothing imports automatically.</p></div><div id="qbList" class="paper-grid" style="margin-top:12px"></div></article>'+
  '<div class="section-head no-print"><div><h3>My / Shared Papers</h3><p class="muted">Search, reopen, clone or review saved papers.</p></div><span id="pbSavedCount" class="badge">0 papers</span></div><div class="form-grid no-print"><input id="pbSavedSearch" type="search" placeholder="Search saved papers"><input id="pbSavedClass" placeholder="Filter class"></div><div id="savedTeacherPapers" class="paper-grid no-print" style="margin-top:12px"></div><div id="paperPreview" style="margin-top:16px"></div>';
  $('#pbGenerate').onclick=savePaper;all('[data-preset]').forEach(b=>b.onclick=()=>{applyPreset(b.dataset.preset);updateBankInsight()});
   ['#pbClass','#pbSubject'].forEach(s=>$(s)?.addEventListener('input',()=>{refreshPaperCatalog();updateBankInsight()}));
@@ -251,6 +304,8 @@ async function render(){
   $('#pbChapterPicker')?.addEventListener('change',e=>{const value=e.target.value;if(!value)return;const el=$('#pbChapters');const chosen=el.value.split(',').map(x=>x.trim()).filter(Boolean);if(!chosen.includes(value))chosen.push(value);el.value=chosen.join(', ');e.target.value='';updateBankInsight()});
   refreshPaperCatalog();refreshTeacherQuestionCatalog();
  $('#qbSave').onclick=saveCustomQuestion;$('#qbCancelEdit').onclick=clearQuestionForm;$('#qbSearch').addEventListener('input',renderQuestionBankList);
+ $('#qbImportTemplate').onclick=downloadQuestionTemplate;$('#qbImportPreview').onclick=previewQuestionImport;$('#qbImportSave').onclick=saveQuestionImport;
+ $('#qbImportFile').addEventListener('change',()=>{pendingImportRows=[];$('#qbImportSave').disabled=true;$('#qbImportReport').textContent='File selected. Click Validate File before importing.'});
  $('#qbType').addEventListener('change',()=>{const mcq=$('#qbType').value==='mcq';$('#qbOptions').disabled=!mcq;$('#qbCorrect').disabled=!mcq});
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();
