@@ -94,7 +94,7 @@ ok(api.editorClassOptions().length===0,'School A class options survived school s
 await api.loadClassDirectory();
 ok(api.editorClassOptions().join('|')==='8'&&api.headKnownClass('Grade 8','B'),'School B class directory unavailable');
 cloud.state.user.id='head-two';
-ok(api.editorClassOptions().length===0,'Previous user's class options survived account switch');
+ok(api.editorClassOptions().length===0,'Previous user class options survived account switch');
 await api.loadClassDirectory();
 ok(api.editorClassOptions().join('|')==='8','Fresh user could not reload current school classes');
 const scheduleSource=src;
