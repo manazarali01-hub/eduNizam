@@ -1,4 +1,4 @@
-const CACHE='edunizam-v270-school-syllabus-v38'
+const CACHE='edunizam-v271-chapter-readiness-v39'
 const CORE=[
   './',
   './index.html',
