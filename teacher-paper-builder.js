@@ -188,7 +188,13 @@ function refreshPaperCatalog(){
   const holder=$('#pbCurriculumSources'),id=$('#pbBookBoard')?.value||'punjab-pectaa',R=window.EDUNIZAM_CURRICULUM_REGISTRY||{};
   if(!holder)return;
   const auth=(R.authorities||[]).find(x=>x.id===id);
-  const materials=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>x.source==='official'&&(!lv||(x.classLevels||[]).map(Number).includes(lv))&&(!sub||x.subject==='All Subjects'||String(x.subject).toLowerCase().includes(sub.toLowerCase())));
+  const authorityMatches=x=>x.authorityId===id||
+    (id==='punjab-pectaa'&&/punjab|pectaa|pef/i.test(x.board||''))||
+    (id==='federal-fbise'&&/fbise|federal/i.test(x.board||''))||
+    (id==='sindh-stbb'&&/sindh|stbb/i.test(x.board||''))||
+    (id==='kp-dcte-kptbb'&&/khyber|kp |kptbb/i.test(x.board||''))||
+    (id==='balochistan-btbb'&&/balochistan|btbb/i.test(x.board||''));
+  const materials=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>x.source==='official'&&authorityMatches(x)&&(!lv||(x.classLevels||[]).map(Number).includes(lv))&&(!sub||x.subject==='All Subjects'||String(x.subject).toLowerCase().includes(sub.toLowerCase())));
   const urlAllowed=u=>{try{return /^https?:$/.test(new URL(u).protocol)}catch{return false}};
   const links=[];
   if(auth&&urlAllowed(auth.officialUrl))links.push('<a href="'+esc(auth.officialUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(auth.name)+' — curriculum / textbooks</a>');
