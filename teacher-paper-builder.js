@@ -366,7 +366,9 @@ function refreshPaperCatalog(){
     links.push('<a href="https://pef.edu.pk/ADU/Downloads" target="_blank" rel="noopener noreferrer">PEF 2026–27 content lists & model papers</a>');
   }
   const ranked=materials.slice().sort((a,b)=>{
-    const relevance=x=>/^ncc-2026-rationalized-/.test(x.id||'')?9:
+    const relevance=x=>/^pectaa-direct-core-g/.test(x.id||'')?10:
+      /^pectaa-quran-textbook-directory-/.test(x.id||'')?10:
+      /^ncc-2026-rationalized-/.test(x.id||'')?9:
       /^pef-secondary-content-book-2026-27$/.test(x.id||'')?8:
       /^fbise-slo-model-/.test(x.id||'')?7:
       /^pectaa-current-books-/.test(x.id||'')?6:

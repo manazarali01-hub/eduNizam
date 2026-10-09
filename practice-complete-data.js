@@ -1,5 +1,7 @@
 (function(){
 'use strict';
+// A school form can load the pack before Practice's base bank exists.
+window.EDUNIZAM_PUNJAB_SUBJECT_PACK?.applyToPractice?.();
 const PD=window.EDUNIZAM_PRACTICE_DATA;
 if(!PD)return;
 

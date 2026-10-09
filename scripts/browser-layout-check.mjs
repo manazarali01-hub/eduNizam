@@ -64,6 +64,26 @@ async function inspectPage(page,url,width){
   page.removeAllListeners('pageerror');
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:15000});
+  // Large homepage stylesheets can finish a few frames after DOMContentLoaded.
+  // Measure the fully styled page, not the brief legacy two-column fallback.
+  // This wait retains the layout contract: a missing/incorrect stylesheet
+  // still fails the subsequent assertions instead of silently passing.
+  if(url.endsWith('/')) {
+    await page.waitForFunction(()=>{
+      const strip=document.querySelector('.page-home .experience-strip');
+      const title=strip?.querySelector('article strong');
+      const hero=document.querySelector('.page-home .hero-image-wrap');
+      const quick=document.querySelector('.page-home .quick-access-card');
+      const roles=document.querySelector('.page-home .hero-role-badge');
+      if(!strip||!title||!hero||!quick||!roles)return false;
+      const ready=Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .filter(el=>el.href.startsWith(location.origin))
+        .every(el=>!!el.sheet);
+      if(!ready)return false;
+      const cols=getComputedStyle(strip).gridTemplateColumns.trim().split(/\s+/).length;
+      return window.innerWidth>430||(cols===1&&parseFloat(getComputedStyle(title).fontSize)>=22);
+    },null,{timeout:12000,polling:100}).catch(()=>{});
+  }
   await page.waitForTimeout(140);
 
   const result=await page.evaluate(()=>{

@@ -131,3 +131,6 @@ window.EDUNIZAM_STUDY_DATA={
     caveat:'Official PEF QAT models are assessment examples; current school textbooks and syllabus must still be confirmed.'
   };
 })();
+
+// Reactivate PECTAA directory entries if this library loads after school academic forms.
+window.EDUNIZAM_PUNJAB_SUBJECT_PACK?.applyToStudy?.();

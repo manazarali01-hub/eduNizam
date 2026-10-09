@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-chapter-readiness-v24';
+  const VERSION='20261009-punjab-subject-data-v25';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -10,6 +10,7 @@
       'university-data.js',
       'vu-course-catalog.js',
       'study-data.js',
+      'pectaa-core-textbooks.js',
       'senior-curriculum-2026.js',
       'learning-premium-data.js',
       'learning-complete-data.js',
@@ -24,10 +25,11 @@
       'practice-foundation-data.js',
       'practice-curriculum-expansion.js',
       'practice-depth-data.js',
+      'punjab-quran-subjects-pack.js',
       'practice-complete-data.js',
       'practice-session-core.js'
     ],
-    lessonCatalog:['academic-option-catalog.js'],
+    lessonCatalog:['punjab-quran-subjects-pack.js','academic-option-catalog.js'],
     studyDeep:[
       'curriculum-registry.js',
       'study-inventory.js'
