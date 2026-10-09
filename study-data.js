@@ -30,7 +30,7 @@ window.EDUNIZAM_STUDY_DATA={
   }
   D.materials.push({
     id:'pef-content-list-2026-27',
-    board:'Punjab Education Foundation',classLevels:Array.from({length:12},(_,i)=>i+1),
+    board:'Punjab Education Foundation',classLevels:Array.from({length:10},(_,i)=>i+1),
     subject:'All Subjects',type:'Syllabus',title:'Punjab PEF Content Lists & Model Papers (2026–27)',
     source:'official',authorityId:'punjab-pectaa',curriculumStatus:'needs-verification',
     url:'https://pef.edu.pk/ADU/Downloads',
