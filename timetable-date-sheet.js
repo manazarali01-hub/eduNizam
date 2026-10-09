@@ -223,7 +223,7 @@
   async function saveTimetable(){
     const btn=$('ttSave');if(timetableSaveInFlight||btn?.disabled)return;
     const cls=splitClass($('ttClass')?.value),editId=$('ttEditId')?.value||'';
-    const item={id:editId||String(Date.now()),...cls,day:$('ttDay')?.value,periodNumber:Number($('ttPeriod')?.value||0),time:$('ttStart')?.value||'',endTime:$('ttEnd')?.value||'',subject:$('ttSubject')?.value.trim()||'',teacherName:$('ttTeacher')?.value.trim()||'',roomLabel:$('ttRoom')?.value.trim()||'',createdAt:new Date().toISOString(),cloudExisting:uuid(editId)};
+    let item={id:editId||String(Date.now()),...cls,day:$('ttDay')?.value,periodNumber:Number($('ttPeriod')?.value||0),time:$('ttStart')?.value||'',endTime:$('ttEnd')?.value||'',subject:$('ttSubject')?.value.trim()||'',teacherName:$('ttTeacher')?.value.trim()||'',roomLabel:$('ttRoom')?.value.trim()||'',createdAt:new Date().toISOString(),cloudExisting:uuid(editId)};
     if(!item.className||!item.subject||!item.day||!Number.isInteger(item.periodNumber)||item.periodNumber<1||item.periodNumber>15||!item.time||!item.endTime)return alert('Valid class, day, period (1–15), start/end time aur subject required hain.');
     if(!canManage()||!knownClass(item))return alert('Choose a registered, accessible class and section. Configure Academic Groups first.');
     if(!scheduleReady())return alert('Current school schedule is not loaded. Refresh this page before saving.');
