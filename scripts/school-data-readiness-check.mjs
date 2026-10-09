@@ -24,7 +24,9 @@ const localStorage={getItem:()=>JSON.stringify({role:'head'})};
 const source=read('school-data-readiness.js');
 runInNewContext(source,{window,document,localStorage,Promise,setTimeout,clearTimeout,AbortController,console},{timeout:1800});
 const app=window.EDUNIZAM_DATA_READINESS;
-ok(app&&app.definitions.length===9,'Readiness should cover nine data-dependent school areas');
+ok(app&&app.definitions.length===28,'Readiness should cover 28 school data areas');
+ok(app.definitions.filter(x=>!x.activity).length===9,'Nine initial school setup areas must stay distinct');
+ok(app.definitions.filter(x=>x.activity).length===19,'Operational activity must be checked without calling zero a setup failure');
 const grades=[1,2,3,4,5,6,7,8,9,10,11,12];
 for(const grade of grades){
  const subjects=app.referenceSubjects(grade);
@@ -35,12 +37,18 @@ for(const def of app.definitions){
  const result=await app.countOne(def,'test-school');
  ok(result.status==='ok'&&result.count===3,'Read-only count failed for '+def.table);
 }
-ok(calls.filter(x=>x[0]==='select').length===9,'Incorrect school table count calls');
+ok(calls.filter(x=>x[0]==='select').length===28,'Incorrect school table count calls');
 for(const call of calls.filter(x=>x[0]==='select')){
  ok(call[2]==='id'&&call[3].head===true&&call[3].count==='exact','Query fetched private rows instead of a head-only aggregate count');
 }
 for(const call of calls.filter(x=>x[0]==='eq'))ok(call[2]==='institution_id'&&call[3]==='test-school','Query lacked school isolation');
 ok(!/\.insert\(|\.upsert\(|\.update\(|\.delete\(/.test(source),'Readiness code should never create, change or delete school data');
+for(const table of ['attendance_records','result_records','homework_items','homework_submissions','daily_class_diaries','school_announcements','teacher_training_records','transport_routes']){
+ ok(app.definitions.some(x=>x.table===table&&x.activity),'Missing operational activity table: '+table);
+}
+ok(source.includes('x.activity?')&&source.includes('No activity recorded'),'Empty activity must not be labelled a failed setup');
+ok(source.includes('for(let i=0;i<spec.length;i+=7)'),'Audit must progressively load with bounded concurrent count requests');
+ok(source.includes('scope()!==requestScope'),'Account and school changes must invalidate an in-flight audit');
 const missing={classes:{status:'ok',count:0},staff:{status:'ok',count:0},students:{status:'ok',count:0},questions:{status:'ok',count:0},units:{status:'ok',count:0},lessons:{status:'ok',count:0},timetable:{status:'ok',count:0},datesheets:{status:'ok',count:0},library:{status:'unknown'}};
 const setup=app.nextSteps(missing);
 ok(setup.length===9,'Missing readiness actions absent');
@@ -54,4 +62,4 @@ const nav=read('app.html'),loader=read('feature-loader.js'),scope=read('role-sco
 ok(nav.includes('id="dataReadinessApp"')&&nav.includes('data-view="datareadiness"'),'Missing readiness navigation/view');
 ok(loader.includes("datareadiness:['lessonCatalog']")&&loader.includes("datareadiness:['school-data-readiness.js']"),'Readiness lightweight loader incorrectly mapped');
 ok(scope.includes("'auditcenter','datareadiness','settings'")&&main.includes("'assistant','datareadiness','settings'"),'Readiness not restricted to Head role');
-console.log('EduNizam data-readiness gate PASS: 12 grades, 9 on-demand RLS-scoped count targets, read-only counts, head-only navigation.');
+console.log('EduNizam data-readiness gate PASS: 12 grades, 28 on-demand read-only scoped count targets (9 setup, 19 activity), no fake completion score.');
