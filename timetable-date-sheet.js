@@ -58,7 +58,7 @@
   function syncSubjectCatalog(prefix){
     const selected=$(prefix+'Class')?.value||'',list=$(prefix+'SubjectOptions');
     if(!list)return;
-    const cls=splitClass(selected).className,match=String(cls).match(/\\b(1[0-2]|[1-9])\\b/);
+    const cls=splitClass(selected).className,match=String(cls).match(/\b(1[0-2]|[1-9])\b/);
     const grade=match?String(Number(match[1])):'';
     const subjects=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects?.[grade]||[];
     const defaults=['English','Urdu','Mathematics','General Science','Islamiat / Ethics','Nazra Quran','Social Studies','Computer Science'];
