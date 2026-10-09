@@ -55,6 +55,18 @@ ok(setup.length===9,'Missing readiness actions absent');
 ok(setup.slice(0,4).map(x=>x.key).join(',')==='classes,staff,students,units','School setup action prerequisites out of order');
 ok(setup.at(-1).key==='library'&&setup.at(-1).status==='unknown','Connection errors must not be treated as missing books');
 ok(app.nextSteps(Object.fromEntries(app.definitions.map(x=>[x.key,{status:'ok',count:3}]))).length===0,'A nonzero record count must not create fake missing actions');
+// School-entered book metadata must be checked independently of row counts.
+const meta=app.evaluateUnitMetadata([
+ {unit_title:'Fractions',textbook_title:'School Mathematics',curriculum_board:'Punjab',edition_year:2026,source_url:'https://pectaa.edu.pk/'},
+ {unit_title:' ',textbook_title:' ',curriculum_board:'Punjab',edition_year:null,source_url:''},
+ {unit_title:'Addition',textbook_title:'Mathematics',curriculum_board:' ',edition_year:'202A',source_url:'javascript:alert(1)'}
+],3);
+ok(meta.status==='ok'&&meta.reviewed===3&&meta.incomplete===2,'Metadata quality must reveal incomplete school syllabus units');
+ok(meta.missingChapter===1&&meta.missingTextbook===1&&meta.missingBoard===1&&meta.invalidEdition===1&&meta.invalidSource===1,'Metadata quality issue types incorrectly counted');
+ok(app.evaluateUnitMetadata([{unit_title:'1',textbook_title:'Math',curriculum_board:'Punjab'}],3).status==='sample','First 1000 records must not be falsely reported as complete coverage');
+ok(app.evaluateUnitMetadata([{unit_title:'1',textbook_title:'Math',curriculum_board:'Punjab',edition_year:2026,source_url:'https://pectaa.edu.pk/'}],1).incomplete===0,'Complete school-entered metadata rejected');
+ok(source.includes("select('unit_title,textbook_title,curriculum_board,edition_year,source_url')")&&source.includes(".eq('institution_id',id).limit(1000)"),'Metadata query may fetch student/private fields or another school');
+ok(source.includes('id="readinessUnitQuality"')&&source.includes('scope()!==requestScope'),'Metadata status UI/scope isolation missing');
 ok(app.scope()==='test-school|test-head','Readiness school/user cache scope not correctly separated');
 ok(source.includes('forgetOtherSchool()')&&source.includes('auditScope=requestScope')&&source.includes('scope()!==requestScope'),'Previous school readiness results not cleared on institution switch');
 
