@@ -25,6 +25,29 @@ for(const [cls,subject,minCount] of [[9,'Mathematics',2],[9,'Chemistry',2],[9,'B
  pass(secondaryBooks.filter(x=>x.classLevels[0]===cls&&x.subject===subject).length>=minCount,'Missing textbook source in Paper Builder for Grade '+cls+' '+subject);
 }
 pass(secondaryBooks.every(x=>x.source==='official'&&x.curriculumStatus==='needs-verification'),'Paper Builder is marking direct-linked textbooks as approved chapter catalogs');
+// Real official textbook listings must remain discoverable for locally common
+// school subject names. Do not use substring matching (Chemistry != Biochemistry).
+const textbookMatches=window.EDUNIZAM_PAPER_BUILDER.materialSubjectMatches;
+pass(typeof textbookMatches==='function','Paper Builder textbook subject matcher is unavailable');
+for(const [chosen,listed,expected] of [
+ ['Math','Mathematics',true],
+ ['Maths','Mathematics',true],
+ ['General Science','Science',true],
+ ['Islamiyat','Islamiat / Ethics',true],
+ ['Physics','Biology / Chemistry / Computer Science / Mathematics / Physics',true],
+ ['Mathematics','Biology / Chemistry / Computer Science / Mathematics / Physics',true],
+ ['Chemistry','Biochemistry',false],
+ ['Math','Physics',false],
+ ['Math','Mathematical Physics',false],
+ ['Physics','Physical Education',false],
+ ['Nazra Quran','Tarjuma-tul-Quran',false],
+ ['English','All Subjects',true],
+ ['','All Subjects',true],
+ ['Math','',false]
+])pass(textbookMatches(chosen,listed)===expected,'Official book subject matcher was wrong for '+chosen+' / '+listed);
+const grade9math=secondaryBooks.filter(x=>x.classLevels[0]===9&&textbookMatches('Math',x.subject));
+pass(grade9math.length>=2,'Grade 9 Math alias did not reveal both PECTAA Maths textbook links');
+pass(grade9math.every(x=>x.subject==='Mathematics'),'Grade 9 Math view leaked another subject textbook');
 const quranChapterChoices=window.EDUNIZAM_PAPER_BUILDER?.chapterChoices;
 pass(quranChapterChoices('1','Tajveedi Qaida',[]).length===3,'Grade 1 Tajveedi Qaida not offered in Paper Builder');
 pass(quranChapterChoices('3','Nazra Quran',[]).length===3,'Grade 3 Nazra Quran not offered in Paper Builder');
