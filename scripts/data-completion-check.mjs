@@ -57,6 +57,21 @@ for(const item of bookLinks){
  requireOK(item.source==='official'&&item.curriculumStatus==='needs-verification','Book directory source/current-status label incorrect: '+item.id);
  requireOK(item.url==='https://pectaa.edu.pk/books-and-publications/','Book directory URL differs from approved PECTAA source: '+item.id);
 }
+const pef=books.filter(x=>String(x.id||'').startsWith('pef-content-')||String(x.id||'').startsWith('pef-qat-model-2026-27-grade-'));
+const primary=pef.find(x=>x.id==='pef-content-primary-2026-27');
+const middle=pef.find(x=>x.id==='pef-content-middle-2026-27');
+requireOK(!!primary&&!!middle,'Official PEF 2026–27 content books missing');
+requireOK(primary?.classLevels?.join(',')==='1,2,3,4,5','PEF primary content has incorrect grade mapping');
+requireOK(middle?.classLevels?.join(',')==='6,7,8','PEF middle content has incorrect grade mapping');
+requireOK(pef.filter(x=>x.id.startsWith('pef-qat-model-2026-27-grade-')).length===8,'Missing PEF Class 1–8 model paper resources');
+for(let grade=1;grade<=8;grade++){
+ const model=pef.find(x=>x.id==='pef-qat-model-2026-27-grade-'+grade);
+ requireOK(model?.classLevels?.length===1&&model.classLevels[0]===grade,'Invalid PEF QAT model-paper grade '+grade);
+ requireOK(model?.source==='official'&&/^https:\/\/www\.pef\.edu\.pk\//.test(model.url||''),'Model paper link has incorrect official source '+grade);
+}
+for(const b of [primary,middle]){
+ requireOK(/\.pdf$/.test(b?.fileUrl||''),'Official PEF content-book direct PDF URL missing: '+b?.id);
+}
 const lite={window:{}};
 try{runInNewContext(read('academic-option-catalog.js'),lite,{filename:'academic-option-catalog.js',timeout:1500})}
 catch(error){failures.push('Lightweight Academic Option Catalog could not load: '+error.message)}
