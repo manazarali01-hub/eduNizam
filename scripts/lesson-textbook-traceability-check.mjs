@@ -80,7 +80,7 @@ await api.saveUnit();
 verify(data['school-A'].syllabus_progress_units.length===1,'Verified input did not save actual syllabus unit');
 const item=data['school-A'].syllabus_progress_units[0];
 verify(item.textbook_title==='School Mathematics Book'&&item.curriculum_board==='punjab-pectaa'&&
- item.edition_year==='2026'&&item.source_url.startsWith('https:'),
+ item.edition_year===2026&&item.source_url.startsWith('https:'),
  'Database write dropped textbook metadata');
 verify(api.recordedSchoolTopic('5','A','Math','Exact Textbook Chapter 1'),'Saved chapter missing in same class and subject');
 verify(!api.recordedSchoolTopic('5','B','Mathematics','Exact Textbook Chapter 1'),'Section A chapter leaked to section B');
