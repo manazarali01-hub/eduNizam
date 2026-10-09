@@ -44,9 +44,8 @@
           if(x.active!==false&&(role()==='head'||allowed.has(k)))rows.push(x);
         }
       }catch(_){}
-      // Keep legacy saved schedule classes visible for Head when their formal
-      // class record has not yet been set up. They must be registered to save NEW entries.
-      if(role()==='head')for(const x of [...timetable(),...dateSheets()])rows.push(x);
+      // Legacy schedule entries remain readable, but are NOT proof that a
+      // class is registered and available for new academic scheduling.
     }
     return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.registeredSections(rows)||[];
   }
