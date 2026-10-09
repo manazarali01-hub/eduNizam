@@ -8,7 +8,7 @@ const files=[
  'past-papers-data.js','practice-data.js','study-data.js',
  'learning-premium-data.js','learning-complete-data.js','learning-required-data.js',
  'practice-foundation-data.js','practice-curriculum-expansion.js','practice-depth-data.js',
- 'practice-complete-data.js','practice-session-core.js'
+ 'punjab-quran-subjects-pack.js','practice-complete-data.js','practice-session-core.js'
 ];
 const window={},document={readyState:'loading',addEventListener(){}};
 const context={window,document,console,TextEncoder,setTimeout,clearTimeout,AbortController,localStorage:{getItem:()=>null}};
@@ -19,6 +19,11 @@ runInNewContext(read('teacher-paper-builder.js'),context,{filename:'teacher-pape
 const build=window.EDUNIZAM_PAPER_BUILDER?.build;
 if(typeof build!=='function')throw new Error('Paper Builder build API is not available');
 const pass=(ok,message)=>{if(!ok)throw new Error(message)};
+const quranChapterChoices=window.EDUNIZAM_PAPER_BUILDER?.chapterChoices;
+pass(quranChapterChoices('1','Tajveedi Qaida',[]).length===3,'Grade 1 Tajveedi Qaida not offered in Paper Builder');
+pass(quranChapterChoices('3','Nazra Quran',[]).length===3,'Grade 3 Nazra Quran not offered in Paper Builder');
+pass(quranChapterChoices('7','Tarjuma-tul-Quran',[]).length===3,'Grade 7 Tarjuma-tul-Quran not offered in Paper Builder');
+pass(quranChapterChoices('8','Nazra Quran',[]).length===0,'Grade 8 must not show primary Nazra subject');
 
 const recommend=window.EDUNIZAM_PAPER_BUILDER?.recommendPaperChapters;
 pass(typeof recommend==='function','Missing chapter recommendation engine');
