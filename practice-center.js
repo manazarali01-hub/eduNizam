@@ -3,6 +3,39 @@
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
   let current=[],timer=null,secondsLeft=0,lastConfig=null,cursor=0,answers=[],poolNotice='';
+  // Uploaded-source questions exist in this tab only, never in the shared
+  // EduNizam practice bank or other users' schools.
+  let uploadRows=[],uploadScope='',uploadBatch=0;
+  const scope=()=>String(window.EDUNIZAM_CLOUD_CONFIG?.institutionId||'guest')+'|'+String(window.EDUNIZAM_CLOUD?.state?.user?.id||'local');
+  const reviewedSourceQuestions=()=>uploadScope===scope()?uploadRows:[];
+  function addReviewedSource(rows){
+    if(!Array.isArray(rows)||!rows.length||rows.length>100)throw Error('Select 1–100 reviewed questions.');
+    const src=window.EDUNIZAM_QUESTION_IMPORT;
+    if(!src?.prepare)throw Error('Strict question validator unavailable.');
+    const result=src.prepare(JSON.stringify(rows),'practice-reviewed-source.json');
+    if(result.errors.length)throw Error(result.errors.slice(0,5).join(' | '));
+    if(!result.valid.length)throw Error('No new valid questions; review answers/options.');
+    const batch=++uploadBatch;
+    const mapped=result.valid.map((q,i)=>({
+      id:'uploaded-source-'+batch+'-'+i,
+      classLevel:Number(String(q.class_name).match(/\\d+/)?.[0]||0),
+      subject:q.subject,chapter:q.chapter,type:q.question_type,
+      difficulty:q.difficulty==='Easy'?'Easy':q.difficulty==='Challenging'?'Hard':'Medium',
+      question:q.question_text,options:q.options||[],
+      answer:q.correct_option,answerText:q.answer_text||'',
+      explanation:q.answer_text||'',source:'user-reviewed-document'
+    }));
+    if(mapped.some(x=>x.classLevel<1||x.classLevel>12))throw Error('Select a valid grade 1–12 first.');
+    uploadScope=scope();uploadRows=mapped;
+    if($('practiceSourceOnly'))$('practiceSourceOnly').checked=true;
+    fillChapters();updateStats();
+    return{valid:mapped.length,duplicates:result.duplicates};
+  }
+  function clearReviewedSource(){
+    uploadRows=[];uploadScope='';
+    if($('practiceSourceOnly'))$('practiceSourceOnly').checked=false;
+    fillChapters();updateStats();
+  }
 
   const schoolStudents=()=>{try{const rows=JSON.parse(localStorage.getItem('edunizam_students')||'[]');return Array.isArray(rows)?rows:[]}catch{return[]}};
   // A student selector must honor the active school/role visibility rules.
@@ -33,7 +66,7 @@
   function fillChapters(){
     const cls=$('practiceClass').value,sub=$('practiceSubject').value;
     const key=cls+'|'+sub;
-    const chapters=D.chapters[key]||[];
+    const chapters=[...new Set([...(D.chapters[key]||[]),...reviewedSourceQuestions().filter(q=>String(q.classLevel)===cls&&q.subject===sub).map(q=>q.chapter)])];
     $('practiceChapter').innerHTML='<option value="">All Chapters</option>'+chapters.map(x=>'<option>'+esc(x)+'</option>').join('');
   }
   function getConfig(){
@@ -48,6 +81,11 @@
   }}
   function poolFor(c){
     const filters={classLevel:c.cls,subject:c.subject,chapter:c.chapter,type:c.type==='mixed'?'':c.type,difficulty:c.difficulty};
+    if($('practiceSourceOnly')?.checked){
+      const rows=reviewedSourceQuestions().filter(q=>(!c.cls||q.classLevel===c.cls)&&(!c.subject||q.subject===c.subject)&&(!c.chapter||q.chapter===c.chapter)&&(!c.difficulty||q.difficulty===c.difficulty)&&(c.type==='mixed'||q.type===c.type));
+      poolNotice=' · Uploaded source (teacher-reviewed, unverified textbook alignment)';
+      return rows;
+    }
     const info=window.EDUNIZAM_PRACTICE_CORE?.expandQuestions?.(D.questions,filters,{target:c.count});
     if(info){
       poolNotice=info.expanded?' · '+info.exactCount+' exact questions; added '+info.note+' in this class and subject':'';
@@ -61,13 +99,13 @@
     const c=getConfig();lastConfig=c;
     if(!c.cls||!c.subject)return alert('Select class and subject.');
     const pool=shuffle(poolFor(c));
-    if(!pool.length)return alert('No genuine questions indexed for this class and subject. Change your selection or import verified questions.');
+    if(!pool.length)return alert($('practiceSourceOnly')?.checked?'No reviewed uploaded-source questions match these filters. Import a source, choose Mixed question types, or clear difficulty.':'No genuine questions indexed for this class and subject. Change your selection or import verified questions.');
     current=pool.slice(0,Math.min(c.count,pool.length));
     cursor=0;answers=current.map(()=>null);
     secondsLeft=c.minutes*60;
     $('practiceBuildPanel').classList.add('hidden');$('practiceResultPanel').classList.add('hidden');$('practiceTestPanel').classList.remove('hidden');
     const levelLabel=Number(c.cls)<=8?'Grade '+c.cls:'Class '+c.cls;
-    $('practiceTestTitle').textContent='EduNizam concept practice · '+levelLabel+' · '+c.subject+(c.chapter?' · '+c.chapter:'')+(c.board?' · Target board: '+c.board:'')+poolNotice;
+    $('practiceTestTitle').textContent=($('practiceSourceOnly')?.checked?'Uploaded-document practice (reviewed source)':'EduNizam concept practice')+' · '+levelLabel+' · '+c.subject+(c.chapter?' · '+c.chapter:'')+(c.board?' · Target board: '+c.board:'')+poolNotice;
     renderQuestions();tick();clearInterval(timer);timer=setInterval(()=>{secondsLeft--;tick();if(secondsLeft<=0){clearInterval(timer);submit()}},1000);
   }
   function saveVisibleAnswer(){
@@ -179,7 +217,11 @@
   $('startPracticeBtn').onclick=start;$('practicePrevBtn').onclick=()=>navigate(-1);$('practiceNextBtn').onclick=forward;$('submitPracticeBtn').onclick=submit;$('cancelPracticeBtn').onclick=cancel;$('retryPracticeBtn').onclick=retry;
   $('printPracticeBtn').onclick=printBuild;$('printResultBtn').onclick=()=>window.print();$('aiGenerateTestBtn').onclick=aiGenerate;
   document.querySelectorAll('[data-practice-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.practiceTab));
-  window.renderPracticeCenter=()=>{fill();updateStats()};
-   window.EDUNIZAM_PRACTICE_NAV={start,next:forward,previous:()=>navigate(-1),submit,status:()=>({cursor,total:current.length,answered:answeredCount(),answers:answers.slice()})};
-  fill();
+  window.renderPracticeCenter=()=>{fill();updateStats();window.EDUNIZAM_PRACTICE_SOURCE?.mount?.()};
+   window.EDUNIZAM_PRACTICE_NAV={
+    start,next:forward,previous:()=>navigate(-1),submit,
+    addReviewedSource,clearReviewedSource,reviewedSourceQuestions,
+    status:()=>({cursor,total:current.length,answered:answeredCount(),answers:answers.slice()})
+   };
+  fill();window.EDUNIZAM_PRACTICE_SOURCE?.mount?.();
 })();
