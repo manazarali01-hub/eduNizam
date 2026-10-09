@@ -47,31 +47,29 @@ async function myClasses(){
     .order('class_name',{ascending:true}),{timeout:6500,retries:1,cacheMs:15000,label:'Assigned diary classes'});
   return data||[];
 }
+function selectedDiaryClass(){
+ const [cls='',sec='']=String($('#diaryClass')?.value||'').split('|');
+ return{cls,sec};
+}
 function syncSection(){
-  const sel=$('#diaryClass'),sec=$('#diarySection');if(!sel||!sec)return;
-  const opt=sel.selectedOptions[0];
-  sec.value=opt?.dataset?.section||'';
+ const el=$('#diarySection');if(el)el.value=selectedDiaryClass().sec;
 }
 function syncDiaryCatalog(){
-  const cls=$('#diaryClass')?.value||'',subject=$('#diarySubject')?.value||'';
-  const m=String(cls).match(/\b(1[0-2]|[1-9])\b/),grade=m?String(Number(m[1])):'';
-  const D=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{};
-  const subjects=D.subjects?.[grade]||[];
-  const defaults=['Mathematics','English','Urdu','General Science','Islamiat / Ethics','Nazra Quran','Social Studies'];
-  const subjectList=$('#diarySubjects'),topicList=$('#diaryTopics');
-  if(subjectList)subjectList.innerHTML=[...new Set(subjects.length?subjects:defaults)].map(x=>'<option value="'+esc(x)+'"></option>').join('');
-  if(topicList)topicList.innerHTML=(D.chapters?.[grade+'|'+subject]||[]).map(x=>'<option value="'+esc(x)+'"></option>').join('');
+ const {cls}=selectedDiaryClass(),subject=$('#diarySubject')?.value.trim()||'',D=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{};
+ const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+ let units=[];try{units=JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch(_){}
+ const subjects=api?.subjects(cls,D,units)||[];
+ const chapterSet=api?.chapters(cls,subject,D,units)||{saved:[],concepts:[]};
+ if($('#diarySubjects'))$('#diarySubjects').innerHTML=subjects.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+ if($('#diaryTopics'))$('#diaryTopics').innerHTML=[...chapterSet.saved,...chapterSet.concepts].map(x=>'<option value="'+esc(x)+'"></option>').join('');
+ const note=$('#diarySyllabusNote');
+ if(note)note.textContent=!cls?'Select your assigned class/section first.':!subject?'Select subject for topic suggestions.':
+  chapterSet.saved.length+' school-saved syllabus unit(s), '+chapterSet.concepts.length+' unverified concept suggestion(s). Confirm official textbook chapters before publication.';
 }
 function formValues(){
-  return{
-    cls:$('#diaryClass')?.value||'',
-    sec:$('#diarySection')?.value.trim()||'',
-    subject:$('#diarySubject')?.value.trim()||'',
-    topic:$('#diaryTopic')?.value.trim()||'',
-    date:$('#diaryDate')?.value||'',
-    homework:$('#diaryHomework')?.value.trim()||'',
-    instructions:$('#diaryInstructions')?.value.trim()||''
-  };
+ const {cls,sec}=selectedDiaryClass();
+ return{cls,sec,subject:$('#diarySubject')?.value.trim()||'',topic:$('#diaryTopic')?.value.trim()||'',
+  date:$('#diaryDate')?.value||'',homework:$('#diaryHomework')?.value.trim()||'',instructions:$('#diaryInstructions')?.value.trim()||''};
 }
 function clearForm(){
   editingId='';
@@ -99,6 +97,7 @@ async function save(){
   if(!ready()||role()!=='teacher')return;
   const v=formValues();
   if(!v.cls||!v.subject||!v.topic||!v.date)return alert('Date, class, subject aur topic required hain.');
+  if(!teacherClasses.some(c=>String(c.class_name)===v.cls&&String(c.section_name||'')===v.sec))return alert('This class/section is not among your assigned school classes. Refresh and ask the Head to verify assignments.');
   const btn=$('#saveDiary');if(diarySaveInFlight||btn?.disabled)return;
   diarySaveInFlight=true;if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
   try{
@@ -127,9 +126,11 @@ async function editRow(id){
   editingId=String(data.id);
   $('#diaryDate').value=data.diary_date||dateStr();
   const normalized=normalizeClass(data.class_name);
-  if([...$('#diaryClass').options].some(o=>o.value===normalized))$('#diaryClass').value=normalized;
-  $('#diarySection').value=data.section_name||'';
+  const pick=normalized+'|'+String(data.section_name||'');
+  if([...$('#diaryClass').options].some(o=>o.value===pick))$('#diaryClass').value=pick;
+  syncSection();
   $('#diarySubject').value=data.subject||'';
+  syncDiaryCatalog();
   $('#diaryTopic').value=data.topic||'';
   $('#diaryHomework').value=data.homework||'';
   $('#diaryInstructions').value=data.instructions||'';
@@ -230,9 +231,11 @@ async function render(){
   if(!ready()){root.innerHTML='<div class="empty-state">Diary cloud login ke baad available hai.</div>';return}
   let form='';
   if(role()==='teacher'){
+    const inst=String(cfg().institutionId||''),uid=String(cloud()?.state?.user?.id||'');
     try{teacherClasses=await myClasses()}catch(e){teacherClasses=[]}
+    if(inst!==String(cfg().institutionId||'')||uid!==String(cloud()?.state?.user?.id||''))return;
     form='<article class="card"><div class="section-head"><div><h3>✍ Daily Class Diary</h3><p class="muted">Assigned class ke liye topic, homework aur instructions. Entries can be edited later.</p></div><span class="academic-pill">Teacher</span></div>'+
-      '<div class="form-grid"><input id="diaryDate" type="date" value="'+dateStr()+'"><select id="diaryClass"><option value="">Select assigned class</option>'+teacherClasses.map(x=>'<option value="'+esc(x.class_name)+'" data-section="'+esc(x.section_name||'')+'">'+esc(x.class_name)+(x.section_name?' · '+esc(x.section_name):'')+'</option>').join('')+'</select><input id="diarySection" placeholder="Section" readonly><input id="diarySubject" list="diarySubjects" placeholder="Subject (choose or type)"><datalist id="diarySubjects"></datalist><input id="diaryTopic" list="diaryTopics" placeholder="Today topic / class work"><datalist id="diaryTopics"></datalist><textarea id="diaryHomework" placeholder="Homework"></textarea><textarea id="diaryInstructions" placeholder="Instructions / reminder"></textarea>'+(teacherClasses.length?'':'<p class="coverage-note" style="grid-column:1/-1">No assigned class available. Ask the Head to assign a class/section before creating diary entries.</p>')+'<button id="saveDiary">Save Today Diary</button><button id="reuseDiary" type="button" class="secondary">Reuse Previous Diary</button><button id="cancelDiaryEdit" type="button" class="secondary hidden">Cancel Edit</button></div></article>';
+      '<div class="form-grid"><input id="diaryDate" type="date" value="'+dateStr()+'"><select id="diaryClass"><option value="">Select assigned class / section</option>'+teacherClasses.map(x=>'<option value="'+esc(x.class_name+'|'+(x.section_name||''))+'">'+esc(x.class_name)+(x.section_name?' · '+esc(x.section_name):'')+'</option>').join('')+'</select><input id="diarySection" placeholder="Section" readonly><input id="diarySubject" list="diarySubjects" placeholder="Subject (choose or type)"><datalist id="diarySubjects"></datalist><input id="diaryTopic" list="diaryTopics" placeholder="Today topic / class work"><datalist id="diaryTopics"></datalist><p id="diarySyllabusNote" class="coverage-note">Choose class and subject for real syllabus unit suggestions.</p><textarea id="diaryHomework" placeholder="Homework"></textarea><textarea id="diaryInstructions" placeholder="Instructions / reminder"></textarea>'+(teacherClasses.length?'':'<p class="coverage-note" style="grid-column:1/-1">No assigned class available. Ask the Head to assign a class/section before creating diary entries.</p>')+'<button id="saveDiary"'+(teacherClasses.length?'':' disabled')+'>Save Today Diary</button><button id="reuseDiary" type="button" class="secondary">Reuse Previous Diary</button><button id="cancelDiaryEdit" type="button" class="secondary hidden">Cancel Edit</button></div></article>';
   }
   const scopeNote=['student','parent'].includes(role())?'Only diary entries for your linked student class/section are shown. Mark each current diary version as Seen after reading.':'Institution diary with filters, plus student/parent Seen acknowledgement counts.';
   root.innerHTML=form+
