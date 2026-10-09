@@ -25,6 +25,7 @@ const getElementById=id=>{if(!nodes.has(id))nodes.set(id,{value:'',innerHTML:''}
 const document={getElementById,querySelectorAll:()=>[]};
 const window={addEventListener(){}};
 const ctx={window,document,localStorage,console,setTimeout:()=>0,clearTimeout(){},Date};
+runInNewContext(readFileSync(new URL('../academic-form-options.js',import.meta.url),'utf8'),ctx,{filename:'academic-form-options.js',timeout:2000});
 runInNewContext(src,ctx,{filename:'exam-center.js',timeout:2000});
 const api=window.EDUNIZAM_EXAM_CENTER;
 ok(api&&typeof api.reportControls==='function'&&typeof api.buildReport==='function','Exam Center report helper missing');
@@ -55,4 +56,45 @@ getElementById('rcType').value='Quiz';
 api.buildReport();
 ok(getElementById('reportCardOutput').innerHTML.includes('Numeric Legacy'),'Numeric legacy student report card regressed');
 ok(!getElementById('reportCardOutput').innerHTML.includes('Accessible Pupil'),'Numeric ID reused data outside role scope');
-console.log('EduNizam Exam Center report PASS: fail-closed student list, UUID and numeric IDs, report-type isolation, tampered selection blocked.');
+// Head Exam Schedule must suggest only genuine registered classes and
+// reject phantom sections. A new school cannot borrow old-school options.
+storage.set('edunizam_session',JSON.stringify({role:'head'}));
+storage.set('edunizam_class_sections_v1',JSON.stringify([
+ {className:'Grade 5',sectionName:'A',active:true},
+ {className:'Grade 5',sectionName:'B',active:true},
+ {className:'9',sectionName:'C',active:false}
+]));
+ok(api.editorClassOptions().length===1&&api.editorClassOptions()[0]==='Grade 5','Exam class options should include only locally registered active classes');
+ok(api.headKnownClass('5','A')&&api.headKnownClass('Class 5','B'),'Grade aliases cannot resolve genuine school class section');
+ok(!api.headKnownClass('5','C')&&!api.headKnownClass('9','C')&&!api.headKnownClass('7',''),'Unknown/inactive school class or section accepted');
+const cfg={enabled:true,institutionId:'school-a'};
+const dirs={
+ 'school-a':[{class_name:'6',section_name:'A',active:true},{class_name:'6',section_name:'Old',active:false}],
+ 'school-b':[{class_name:'8',section_name:'B',active:true}]
+};
+const queries=[];
+const cloud={state:{user:{id:'head-one'},client:{from:table=>{
+ const filters={};
+ const q={
+  select(){return this},eq(k,v){filters[k]=v;return this},limit(){return this},abortSignal(){return this},
+  then(resolve,reject){
+   queries.push({table,filters:{...filters}});
+   return Promise.resolve({data:(dirs[filters.institution_id]||[]).filter(x=>!Object.hasOwn(filters,'active')||x.active===filters.active),error:null}).then(resolve,reject)
+  }
+ };return q;
+}}}};
+window.EDUNIZAM_CLOUD_CONFIG=cfg;window.EDUNIZAM_CLOUD=cloud;
+ok(api.editorClassOptions().length===0,'Exam Cloud mode offered stale cached local class');
+await api.loadClassDirectory();
+ok(api.editorClassOptions().join('|')==='6'&&api.headKnownClass('Class 6','A'),'School A active cloud sections absent from Exam dropdown');
+ok(!api.headKnownClass('6','Old'),'Inactive cloud section offered');
+ok(queries.some(q=>q.table==='class_sections'&&q.filters.institution_id==='school-a'&&q.filters.active===true),'Exam class directory query did not restrict current school and active rows');
+cfg.institutionId='school-b';
+ok(api.editorClassOptions().length===0,'School A class options survived school switch');
+await api.loadClassDirectory();
+ok(api.editorClassOptions().join('|')==='8'&&api.headKnownClass('Grade 8','B'),'School B class directory unavailable');
+cloud.state.user.id='head-two';
+ok(api.editorClassOptions().length===0,'Previous user's class options survived account switch');
+await api.loadClassDirectory();
+ok(api.editorClassOptions().join('|')==='8','Fresh user could not reload current school classes');
+console.log('EduNizam Exam Center PASS: scoped report cards, UUIDs, authorized head class directory, real sections, school/user isolation.');
