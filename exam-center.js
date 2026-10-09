@@ -13,6 +13,7 @@
   let examScheduleSaveInFlight=false;
   const examScheduleDeleteInFlight=new Set();
   let directoryRows=[],directoryScope='',directoryLoaded=false,loadedScheduleScope='';
+  let examUnits=[],examUnitsScope='',examUnitsState='unchecked',examUnitsLoadedAt=0,examUnitsJob=null;
   const currentDirectoryScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
   const registeredSections=()=>{
     let rows=[];
@@ -34,10 +35,10 @@
     const rows=registeredSections();
     return rows.some(x=>api?.sameClass?.(x.className,cls))&&(!String(section||'').trim()||api?.sectionMatches?.(cls,section,rows));
   }
-  async function loadClassDirectory(){
+  async function loadClassDirectory(force=false){
     if(!cloudReady()||role()!=='head')return;
     const scope=currentDirectoryScope(),inst=cfg().institutionId,client=cloud().state.client;
-    if(directoryLoaded&&directoryScope===scope)return;
+    if(!force&&directoryLoaded&&directoryScope===scope)return;
     directoryRows=[];directoryLoaded=false;directoryScope='';
     try{
       const data=await runCloud('exam:class-directory:'+scope,'Exam class directory',async({signal}={})=>{
@@ -50,6 +51,36 @@
       directoryRows=data.map(x=>({className:x.class_name,sectionName:x.section_name,active:x.active!==false}));
       directoryScope=scope;directoryLoaded=true;
     }catch(error){console.warn('Exam class directory unavailable:',error?.message||error)}
+  }
+  async function loadExamSubjects(force=false){
+    if(!cloudReady()||!canEdit())return;
+    const scope=currentDirectoryScope(),inst=cfg().institutionId,client=cloud().state.client;
+    if(!force&&examUnitsScope===scope&&examUnitsState==='loaded'&&Date.now()-examUnitsLoadedAt<30000)return;
+    if(examUnitsJob?.scope===scope)return examUnitsJob.promise;
+    examUnits=[];examUnitsScope='';examUnitsState='unchecked';
+    const promise=(async()=>{
+      try{
+        const data=await runCloud('exam:syllabus-subjects:'+scope,'Exam school syllabus',async({signal}={})=>{
+          let q=client.from('syllabus_progress_units').select('class_name,subject,unit_title')
+            .eq('institution_id',inst).limit(1500);
+          q=withSignal(q,signal);
+          const {data,error}=await q;
+          if(error)throw error;
+          return Array.isArray(data)?data:[];
+        },{timeout:6500,retries:0});
+        if(!cloudReady()||currentDirectoryScope()!==scope)return;
+        examUnits=data.filter(x=>String(x.class_name||'').trim()&&String(x.subject||'').trim()).map(x=>({
+          className:x.class_name,subject:x.subject,unitTitle:x.unit_title||''
+        }));
+        examUnitsScope=scope;examUnitsState='loaded';examUnitsLoadedAt=Date.now();
+      }catch(error){
+        if(currentDirectoryScope()!==scope)return;
+        examUnits=[];examUnitsScope=scope;examUnitsState='error';examUnitsLoadedAt=0;
+        console.warn('Exam syllabus subject lookup unavailable:',error?.message||error);
+      }
+    })();
+    examUnitsJob={scope,promise};
+    try{await promise}finally{if(examUnitsJob?.promise===promise)examUnitsJob=null}
   }
   function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
   async function runCloud(key,label,factory,{timeout=7000,retries=1}={}){
@@ -158,21 +189,29 @@
       '<input id="exClass" list="exClassOptions" value="'+esc(x.className||'')+'" placeholder="Registered Class / Grade"><datalist id="exClassOptions">'+editorClassOptions().map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>'+
       '<input id="exSection" list="exSectionOptions" value="'+esc(x.sectionName||'')+'" placeholder="Section (optional)"><datalist id="exSectionOptions"></datalist>'+
       '<select id="exName">'+['Monthly Test','Midterm','Final','Quiz','Other'].map(v=>'<option '+(x.examName===v?'selected':'')+'>'+v+'</option>').join('')+'</select>'+
-      '<input id="exSubject" list="exSubjectOptions" value="'+esc(x.subject||'')+'" placeholder="Subject (choose / type)"><datalist id="exSubjectOptions"></datalist>'+
+      '<input id="exSubject" list="exSubjectOptions" value="'+esc(x.subject||'')+'" placeholder="Subject (choose / type)"><datalist id="exSubjectOptions"></datalist><p id="exSubjectNote" class="coverage-note">Choose your class to load reference and school-saved subjects.</p>'+
       '<input id="exDate" type="date" value="'+esc(x.examDate||today())+'">'+
       '<input id="exTime" type="time" value="'+esc(x.startTime||'')+'" aria-label="Start time">'+
       '<input id="exEndTime" type="time" value="'+esc(x.endTime||'')+'" aria-label="End time">'+
       '<input id="exTotal" type="number" min="1" value="'+Number(x.totalMarks||100)+'" placeholder="Total marks">'+
       '<input id="exRoom" value="'+esc(x.roomLabel||'')+'" placeholder="Room / Hall (optional)">'+
       '<textarea id="exNotes" rows="2" placeholder="Instructions / notes">'+esc(x.notes||'')+'</textarea>'+
-      '<button id="saveExamSchedule">'+(editingScheduleId?'Update Schedule':'Add Schedule')+'</button></div></article>';
+      '<button id="saveExamSchedule">'+(editingScheduleId?'Update Schedule':'Add Schedule')+'</button><button type="button" id="exRefreshAcademic" class="secondary">Refresh Classes & Subjects</button></div></article>';
   }
   function syncExamSubjects(){
     const cls=$('exClass')?.value||'',api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
-    const savedUnits=cloudReady()?[]:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch{return[]}})();
+    const savedUnits=cloudReady()?(examUnitsScope===currentDirectoryScope()?examUnits:[]):
+      (()=>{try{return JSON.parse(localStorage.getItem('edunizam_syllabus_units_v1')||'[]')}catch{return[]}})();
     const data=api?.subjects?.(cls,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},savedUnits)||[];
     const list=$('exSubjectOptions');
     if(list)list.innerHTML=data.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const recorded=api?.subjects?.(cls,{},savedUnits)||[];
+    const note=$('exSubjectNote');
+    if(note)note.textContent=!cls?'Choose a registered class to see subject suggestions.':
+      cloudReady()&&examUnitsScope!==currentDirectoryScope()?'Checking current-school syllabus; reference subjects are suggestions only.':
+      cloudReady()&&examUnitsState==='error'?'School syllabus unavailable (network/access); reference subjects are not verified school allocations.':
+      recorded.length?recorded.length+' school-recorded subject(s) included; remaining suggestions are unverified reference subjects.':
+      'No saved school syllabus subject for this class. Listed subjects are reference suggestions, not verified book allocations.';
     const sectionList=$('exSectionOptions');
     if(sectionList) sectionList.innerHTML=(role()==='head'?api?.sections?.(cls,registeredSections())||[]:
       [...new Set(visibleStudents().filter(x=>api?.sameClass?.(x.className,cls)).map(x=>x.sectionName).filter(Boolean))])
@@ -266,7 +305,18 @@
     }finally{examScheduleDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
 
+  async function refreshAcademicOptions(){
+    const button=$('exRefreshAcademic');
+    if(button){button.disabled=true;button.textContent='Refreshing...'}
+    try{
+      await Promise.all([loadClassDirectory(true),loadExamSubjects(true)]);
+      const list=$('exClassOptions');
+      if(list)list.innerHTML=editorClassOptions().map(c=>'<option value="'+esc(c)+'"></option>').join('');
+      syncExamSubjects();
+    }finally{if(button?.isConnected){button.disabled=false;button.textContent='Refresh Classes & Subjects'}}
+  }
   function bind(){
+    $('exRefreshAcademic')?.addEventListener('click',refreshAcademicOptions);
     $('exClass')?.addEventListener('input',syncExamSubjects);
     syncExamSubjects();
     if($('saveExamSchedule'))$('saveExamSchedule').onclick=saveSchedule;
@@ -285,17 +335,18 @@
     const scope=cloudReady()?currentDirectoryScope():'';
     const needsSchedule=cloudReady()&&(!root.dataset.cloudLoaded||root.dataset.cloudScope!==scope);
     const classJob=role()==='head'&&cloudReady()?loadClassDirectory():Promise.resolve();
+    const subjectJob=canEdit()&&cloudReady()?loadExamSubjects():Promise.resolve();
     if(needsSchedule){
       root.dataset.cloudLoaded='1';root.dataset.cloudScope=scope;
       try{
-        const [fresh]=await Promise.all([pullCloud(),classJob]);
+        const [fresh]=await Promise.all([pullCloud(),classJob,subjectJob]);
         schedule=fresh;
       }catch(e){
         root.dataset.cloudLoaded='';
         schedule=[];
         console.warn('Exam schedule cloud sync:',e.message);
       }
-    }else await classJob;
+    }else await Promise.all([classJob,subjectJob]);
     // Current school data only. A stale local cache from a previous school
     // must never become the head's schedule after a switch or fetch failure.
     if(cloudReady()&&loadedScheduleScope!==currentDirectoryScope())schedule=[];
@@ -323,5 +374,5 @@
 
   window.addEventListener('edunizam:auth',()=>{const root=$('examCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,800);
-  window.EDUNIZAM_EXAM_CENTER={render,pullCloud,readSchedule,cloudReady,reportControls,buildReport,registeredSections,editorClassOptions,headKnownClass,loadClassDirectory};
+  window.EDUNIZAM_EXAM_CENTER={render,pullCloud,readSchedule,cloudReady,reportControls,buildReport,registeredSections,editorClassOptions,headKnownClass,loadClassDirectory,loadExamSubjects,syncExamSubjects,refreshAcademicOptions,getExamUnits:()=>examUnits,getExamUnitsScope:()=>examUnitsScope};
 })();
