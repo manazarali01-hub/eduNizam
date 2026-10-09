@@ -63,6 +63,9 @@ jobs:
       - name: Verify Timetable and Date Sheet scoped cloud class syllabus dropdowns
         run: node scripts/schedule-cloud-directory-check.mjs
 
+      - name: Verify Daily Diary subject and chapter options use current school syllabus
+        run: node scripts/daily-diary-syllabus-dropdown-check.mjs
+
       - name: Verify Lesson Planner direct-open cloud class options and school isolation
         run: node scripts/lesson-cloud-class-options-check.mjs
 
