@@ -33,6 +33,9 @@ jobs:
       - name: Verify Paper Builder exact school syllabus save and private draft isolation
         run: node scripts/paper-school-save-gate-check.mjs
 
+      - name: Verify Lesson Syllabus prescribed textbook and chapter publication data
+        run: node scripts/lesson-textbook-traceability-check.mjs
+
       - name: Verify Study Library subject options and official-resource filtering
         run: node scripts/study-library-dropdown-check.mjs
 
