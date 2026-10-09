@@ -95,8 +95,25 @@
   }
 
   function syncCourseSelects(){
-    const opts='<option value="">Select course</option>'+courses().map(c=>'<option value="'+esc(c.code)+'">'+esc(c.code+' — '+c.title)+'</option>').join('');
-    ['vuPlannerCourse','vuRecallCourse','vuPersonalCourse'].forEach(id=>$(id).innerHTML=opts);
+    // Personal course enrollment is optional. The VU course reference catalog
+    // supplies selectable suggestions without marking anyone as enrolled.
+    const saved=courses().filter(c=>c&&String(c.code||'').trim());
+    const seen=new Set(saved.map(c=>String(c.code).toUpperCase()));
+    const catalog=(Array.isArray(CATALOG.courses)?CATALOG.courses:[])
+      .filter(c=>c&&String(c.code||'').trim()&&!seen.has(String(c.code).toUpperCase()))
+      .filter((c,i,arr)=>arr.findIndex(x=>String(x.code).toUpperCase()===String(c.code).toUpperCase())===i)
+      .sort((a,b)=>String(a.code).localeCompare(String(b.code),undefined,{numeric:true}));
+    const option=c=>'<option value="'+esc(c.code)+'">'+esc(c.code+' — '+(c.title||c.code))+'</option>';
+    const opts='<option value="">Select course</option>'+
+      (saved.length?'<optgroup label="My saved courses">'+saved.map(option).join('')+'</optgroup>':'')+
+      (catalog.length?'<optgroup label="VU course reference catalog (not enrolled)">'+catalog.map(option).join('')+'</optgroup>':'');
+    const available=new Set([...saved,...catalog].map(c=>String(c.code)));
+    ['vuPlannerCourse','vuRecallCourse','vuPersonalCourse'].forEach(id=>{
+      const el=$(id);if(!el)return;
+      const prior=el.value;
+      el.innerHTML=opts;
+      if(available.has(prior))el.value=prior;
+    });
   }
 
   function savePlan(){
