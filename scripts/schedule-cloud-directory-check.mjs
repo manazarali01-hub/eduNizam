@@ -102,6 +102,19 @@ const html=el('scheduleCenterApp').innerHTML;
 check(html.includes('Chemistry')&&!html.includes('Old School Secret')&&!html.includes('Previous School Exam')&&!html.includes('English'),'New school timetable/date sheet mixed with prior school');
 el('ttClass').value='8|C';api.syncSubjectCatalog('tt');
 check(el('ttSubjectOptions').innerHTML.includes('Chemistry')&&!el('ttSubjectOptions').innerHTML.includes('English'),'New school syllabus options leaked old school');
+// Schools can add real sections/subjects while the app is open; refresh
+// must load them without a full PWA reinstall or stale hidden dropdowns.
+samples['school-B'].class_sections.push({class_name:'8',section_name:'D',active:true});
+samples['school-B'].syllabus_progress_units.push({class_name:'8',subject:'English',unit_title:'New verified school unit'});
+el('scheduleRefreshSchool');
+await api.refreshSchoolOptions();
+check(api.classSections().length===2&&api.knownClass({className:'Class 8',sectionName:'D'}),'Refresh options did not load newly registered class section');
+el('ttClass').value='8|D';api.syncSubjectCatalog('tt');
+check(el('ttSubjectOptions').innerHTML.includes('English'),'Refresh failed to offer newly recorded school subject');
+check(el('scheduleCenterApp').innerHTML.includes('Refresh Classes & Syllabus'),'Staff are missing a school-data refresh action');
+el('scheduleCenterApp').dataset.tab='datesheet';
+await api.render();
+check(el('scheduleCenterApp').innerHTML.includes('Final')&&!el('scheduleCenterApp').innerHTML.includes('Previous School Exam'),'Date Sheet tab showed previous-school exam after refresh');
 storage.set('edunizam_session',JSON.stringify({role:'teacher'}));
 window.EDUNIZAM_ROLE_SCOPE.teacherClassKeys=()=>new Set(['8|c']);
 check(api.classSections().length===0,'Cloud directory cache should be role-scoped after head to teacher change');
