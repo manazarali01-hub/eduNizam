@@ -2,7 +2,7 @@
   const D=window.EDUNIZAM_PRACTICE_DATA;if(!D)return;
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-  let current=[],timer=null,secondsLeft=0,lastConfig=null,cursor=0,answers=[];
+  let current=[],timer=null,secondsLeft=0,lastConfig=null,cursor=0,answers=[],poolNotice='';
 
   const history=()=>JSON.parse(localStorage.getItem('edunizam_practice_history')||'[]');
   const saveHistory=v=>localStorage.setItem('edunizam_practice_history',JSON.stringify(v.slice(-100)));
@@ -37,6 +37,13 @@
     count:Number($('practiceCount').value),minutes:Number($('practiceMinutes').value)
   }}
   function poolFor(c){
+    const filters={classLevel:c.cls,subject:c.subject,chapter:c.chapter,type:c.type==='mixed'?'':c.type,difficulty:c.difficulty};
+    const info=window.EDUNIZAM_PRACTICE_CORE?.expandQuestions?.(D.questions,filters,{target:c.count});
+    if(info){
+      poolNotice=info.expanded?' · '+info.exactCount+' exact questions; added '+info.note+' in this class and subject':'';
+      return info.questions;
+    }
+    poolNotice='';
     return D.questions.filter(q=>(!c.cls||q.classLevel===c.cls)&&(!c.subject||q.subject===c.subject)&&(!c.chapter||q.chapter===c.chapter)&&(!c.difficulty||q.difficulty===c.difficulty)&&(c.type==='mixed'||q.type===c.type));
   }
   function shuffle(a){return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1])}
@@ -44,13 +51,13 @@
     const c=getConfig();lastConfig=c;
     if(!c.cls||!c.subject)return alert('Select class and subject.');
     const pool=shuffle(poolFor(c));
-    if(!pool.length)return alert('No questions available for these filters yet.');
+    if(!pool.length)return alert('No genuine questions indexed for this class and subject. Change your selection or import verified questions.');
     current=pool.slice(0,Math.min(c.count,pool.length));
     cursor=0;answers=current.map(()=>null);
     secondsLeft=c.minutes*60;
     $('practiceBuildPanel').classList.add('hidden');$('practiceResultPanel').classList.add('hidden');$('practiceTestPanel').classList.remove('hidden');
     const levelLabel=Number(c.cls)<=8?'Grade '+c.cls:'Class '+c.cls;
-    $('practiceTestTitle').textContent='EduNizam concept practice · '+levelLabel+' · '+c.subject+(c.chapter?' · '+c.chapter:'')+(c.board?' · Target board: '+c.board:'');
+    $('practiceTestTitle').textContent='EduNizam concept practice · '+levelLabel+' · '+c.subject+(c.chapter?' · '+c.chapter:'')+(c.board?' · Target board: '+c.board:'')+poolNotice;
     renderQuestions();tick();clearInterval(timer);timer=setInterval(()=>{secondsLeft--;tick();if(secondsLeft<=0){clearInterval(timer);submit()}},1000);
   }
   function saveVisibleAnswer(){
@@ -74,10 +81,10 @@
     }else{
       body='<textarea rows="'+(q.type==='long'?6:3)+'" data-text-answer="'+cursor+'" placeholder="Write your answer">'+esc(answers[cursor]||'')+'</textarea>';
     }
-    area.innerHTML='<article class="practice-question"><div class="practice-q-meta"><span>Q'+(cursor+1)+' / '+current.length+'</span><span class="mini-badge">'+esc(q.type.toUpperCase())+'</span><span class="mini-badge">'+esc(q.difficulty)+'</span></div><h3>'+esc(q.question)+'</h3>'+body+'</article>';
+    area.innerHTML='<article class="practice-question"><div class="practice-q-meta"><span>Q'+(cursor+1)+' / '+current.length+'</span><span class="mini-badge">'+esc(q.type.toUpperCase())+'</span><span class="mini-badge">'+esc(q.difficulty)+'</span><span class="mini-badge">'+esc(q.chapter||'General')+'</span></div><h3>'+esc(q.question)+'</h3>'+body+'</article>';
     const prev=$('practicePrevBtn'),next=$('practiceNextBtn');
     if(prev)prev.disabled=cursor===0;
-    if(next){next.disabled=cursor===current.length-1;next.textContent=cursor===current.length-1?'Last Question':'Next Question →'}
+    if(next){next.disabled=false;next.textContent=cursor===current.length-1?'Finish & Submit':'Next Question →'}
     area.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('change',()=>{
       saveVisibleAnswer();$('practiceProgress').textContent='Question '+(cursor+1)+' of '+current.length+' · '+answeredCount()+' answered';
     }));
@@ -90,6 +97,7 @@
     cursor=target;renderQuestions();
     $('practiceTestPanel')?.scrollIntoView?.({behavior:'smooth',block:'start'});
   }
+  function forward(){if(!current.length)return;if(cursor===current.length-1)submit();else navigate(1)}
   function tick(){const m=Math.floor(secondsLeft/60),s=secondsLeft%60;$('practiceTimer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
   function submit(){
     if(!current.length)return;
@@ -158,10 +166,10 @@
   }
 
   $('practiceClass').addEventListener('change',fillSubjects);$('practiceSubject').addEventListener('change',fillChapters);
-  $('startPracticeBtn').onclick=start;$('practicePrevBtn').onclick=()=>navigate(-1);$('practiceNextBtn').onclick=()=>navigate(1);$('submitPracticeBtn').onclick=submit;$('cancelPracticeBtn').onclick=cancel;$('retryPracticeBtn').onclick=retry;
+  $('startPracticeBtn').onclick=start;$('practicePrevBtn').onclick=()=>navigate(-1);$('practiceNextBtn').onclick=forward;$('submitPracticeBtn').onclick=submit;$('cancelPracticeBtn').onclick=cancel;$('retryPracticeBtn').onclick=retry;
   $('printPracticeBtn').onclick=printBuild;$('printResultBtn').onclick=()=>window.print();$('aiGenerateTestBtn').onclick=aiGenerate;
   document.querySelectorAll('[data-practice-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.practiceTab));
   window.renderPracticeCenter=()=>{fill();updateStats()};
-   window.EDUNIZAM_PRACTICE_NAV={start,next:()=>navigate(1),previous:()=>navigate(-1),submit,status:()=>({cursor,total:current.length,answered:answeredCount(),answers:answers.slice()})};
+   window.EDUNIZAM_PRACTICE_NAV={start,next:forward,previous:()=>navigate(-1),submit,status:()=>({cursor,total:current.length,answered:answeredCount(),answers:answers.slice()})};
   fill();
 })();

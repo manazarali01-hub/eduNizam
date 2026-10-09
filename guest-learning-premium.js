@@ -449,16 +449,30 @@ function renderGuestPractice(){
 function applyPracticeFilters(){
  const cl=$('guestPracticeClass')?.value||'',sub=$('guestPracticeSubject')?.value||'',chapter=$('guestPracticeChapter')?.value||'',type=$('guestPracticeType')?.value||'',diff=$('guestPracticeDifficulty')?.value||'',q=norm($('guestPracticeQuery')?.value||'');
  const all=window.EDUNIZAM_PRACTICE_DATA?.questions||[];
- let rows=window.EDUNIZAM_PRACTICE_CORE?.filterQuestions?.(all,{classLevel:cl,subject:sub,chapter,type,difficulty:diff})||
+ const filters={classLevel:cl,subject:sub,chapter,type,difficulty:diff};
+ let rows=window.EDUNIZAM_PRACTICE_CORE?.filterQuestions?.(all,filters)||
   all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub)&&(!chapter||x.chapter===chapter)&&(!type||x.type===type)&&(!diff||x.difficulty===diff));
- if(q)rows=rows.filter(x=>norm([x.subject,x.chapter,x.question,x.explanation,x.answerText].join(' ')).includes(q));
- if(!rows.length&&q){guestPracticeRows=[];guestPracticeAttempts=new Map();guestPracticeFinished=false;$('guestPracticeSummary').textContent='No practice question matched “'+$('guestPracticeQuery').value.trim()+'” with the selected filters. Try a broader keyword or clear one filter.';$('practiceMeta').innerHTML='';$('practiceQuestion').textContent='No matching practice question.';$('practiceOptions').innerHTML='';$('practiceExplain').hidden=true;updatePracticeSessionStatus();return}
- if(!rows.length){
-  const nearest=window.EDUNIZAM_PRACTICE_CORE?.filterQuestions?.(all,{classLevel:cl,subject:sub})||all.filter(x=>(!cl||String(x.classLevel)===cl)&&(!sub||x.subject===sub));
-  rows=nearest.length?nearest:all;
-  $('guestPracticeSummary')&&($('guestPracticeSummary').textContent='That exact combination is not available. Showing the closest genuine practice questions instead.');
- }
  const order=$('guestPracticeOrder')?.value||'sequential',limit=$('guestPracticeLimit')?.value||'10';
+ const wanted=limit==='all'?10:Math.max(1,Number(limit)||10);
+ let coverageNote='';
+ if(!q&&cl&&sub&&wanted>1&&rows.length<Math.min(2,wanted)){
+  const info=window.EDUNIZAM_PRACTICE_CORE?.expandQuestions?.(all,filters,{target:wanted});
+  if(info?.expanded){
+   rows=info.questions;
+   coverageNote=info.exactCount+' exact match(es); added '+info.note+' from the SAME class and subject. Every question shows its actual chapter and difficulty.';
+  }
+ }
+ if(q)rows=rows.filter(x=>norm([x.subject,x.chapter,x.question,x.explanation,x.answerText].join(' ')).includes(q));
+ if(!rows.length){
+  guestPracticeRows=[];guestPracticeAttempts=new Map();guestPracticeFinished=false;
+  $('guestPracticeSummary').textContent=q
+    ?'No question matched “'+$('guestPracticeQuery').value.trim()+'” under these filters. Try a shorter keyword.'
+    :'No genuine questions for this class and subject. Choose another subject; unrelated classes are not substituted.';
+  $('practiceMeta').innerHTML='';$('practiceQuestion').textContent='No matching practice question.';$('practiceOptions').innerHTML='';$('practiceExplain').hidden=true;
+  ['prevQuestion','nextQuestion','randomQuestion'].forEach(id=>{const b=$(id);if(b)b.disabled=true});
+  updatePracticeSessionStatus();return;
+ }
+ $('guestPracticeSummary').textContent=coverageNote||rows.length+' genuine questions match the filters.';
  rows=window.EDUNIZAM_PRACTICE_CORE?.selectSession?.(rows,{}, {order,limit})||
   (order==='random'?shufflePractice(rows):rows).slice(0,limit==='all'?rows.length:Math.max(1,Number(limit)||10));
  guestPracticeRows=rows;guestPracticeIndex=0;guestPracticeAttempts=new Map();guestPracticeFinished=false;

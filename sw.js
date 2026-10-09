@@ -1,4 +1,4 @@
-const CACHE='edunizam-v268-coldstart-launch-v36'
+const CACHE='edunizam-v269-practice-depth-v37'
 const CORE=[
   './',
   './index.html',

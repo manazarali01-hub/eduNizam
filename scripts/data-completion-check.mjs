@@ -47,6 +47,25 @@ for(const q of bank){
 }
 const missing=win.EDUNIZAM_PRACTICE_CORE?.auditMatrix?.(D)||[{error:'Missing practice-core matrix auditor'}];
 requireOK(!missing.length,'Missing MCQ/short/long × Easy/Medium/Hard combinations: '+JSON.stringify(missing.slice(0,5)));
+const expansion=win.EDUNIZAM_PRACTICE_CORE?.expandQuestions;
+requireOK(typeof expansion==='function','Safe Practice narrow-filter expansion missing');
+if(expansion){
+ const fixtures=[
+  {id:'a',classLevel:9,subject:'Mathematics',chapter:'Algebra',type:'mcq',difficulty:'Easy'},
+  {id:'b',classLevel:9,subject:'Mathematics',chapter:'Algebra',type:'mcq',difficulty:'Medium'},
+  {id:'c',classLevel:9,subject:'Mathematics',chapter:'Algebra',type:'short',difficulty:'Easy'},
+  {id:'d',classLevel:9,subject:'Mathematics',chapter:'Geometry',type:'mcq',difficulty:'Easy'},
+  {id:'e',classLevel:10,subject:'Mathematics',chapter:'Algebra',type:'mcq',difficulty:'Easy'},
+  {id:'f',classLevel:9,subject:'English',chapter:'Grammar',type:'mcq',difficulty:'Easy'}
+ ];
+ const exact={classLevel:9,subject:'Mathematics',chapter:'Algebra',type:'mcq',difficulty:'Easy'};
+ const depth=expansion(fixtures,exact,{target:4});
+ requireOK(depth.exactCount===1&&depth.questions.length===4&&depth.expanded,'Only one question shown despite same-subject content');
+ requireOK(depth.questions.every(x=>x.classLevel===9&&x.subject==='Mathematics'),'Unrelated grade/subject included in practice');
+ requireOK(new Set(depth.questions.map(x=>x.id)).size===4,'Duplicate questions in expanded pool');
+ requireOK(expansion(fixtures,exact,{target:1}).questions.length===1,'Explicit one-question request incorrectly widened');
+ requireOK(expansion(fixtures,{classLevel:9,subject:'Physics'},{target:10}).questions.length===0,'No matching subject wrongly supplied unrelated questions');
+}
 const foundation=win.EDUNIZAM_FOUNDATION_PRACTICE||{};
 requireOK(foundation.topicGroups>=100&&foundation.curatedMcqsAdded===foundation.topicGroups,'Not all foundation topics have an authored question');
 const books=win.EDUNIZAM_STUDY_DATA?.materials||[];
@@ -111,6 +130,7 @@ requireOK(features.includes("'senior-curriculum-2026.js'"),'Authenticated Study 
 requireOK(learn.includes('senior-curriculum-2026.js'),'Guest Study Library is not loading 2026 senior curriculum');
 for(const id of ['lpPlanSubjects','lpPlanTopics','lpUnitSubjects','lpUnitTopics'])requireOK(lesson.includes('id="'+id+'"'),'Lesson/Syllabus form is missing '+id);
 requireOK(guest.includes("const prev=$('prevQuestion'),next=$('nextQuestion')"),'Guest Practice static Next/Previous control binding missing');
+requireOK(guest.includes('expandQuestions')&&guest.includes('SAME class and subject'),'Guest Practice narrow-filter expansion not wired');
 if(failures.length){
  console.error('EduNizam reference-data gate FAILED ('+failures.length+')');
  for(const failure of failures.slice(0,40))console.error('✗ '+failure);
