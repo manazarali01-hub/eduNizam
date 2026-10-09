@@ -18,7 +18,7 @@
   function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
   function write(v){localStorage.setItem(KEY,JSON.stringify(v))}
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
-  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
+  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]}
   function settings(){try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}}
   function meKey(){return role()+':'+String(session()?.identity||'').toLowerCase()}
   function safeName(name){return String(name||'file').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-90)}
