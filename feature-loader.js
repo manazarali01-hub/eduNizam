@@ -75,7 +75,7 @@
   const featureScripts={
     attendanceanalytics:['attendance-analytics.js','academic-operations-deep.js'],
     pastpapers:['past-papers-premium.js'],
-    practice:['practice-center.js'],
+    practice:['teacher-question-import.js','paper-source-import.js','practice-source-import.js','practice-center.js'],
     study:['study-library.js'],
     schoolassessments:['education-hubs.js'],
     universities:['education-hubs.js'],
