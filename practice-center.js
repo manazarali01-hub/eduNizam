@@ -7,7 +7,7 @@
   // EduNizam practice bank or other users' schools.
   let uploadRows=[],uploadScope='',uploadBatch=0;
   const scope=()=>String(window.EDUNIZAM_CLOUD_CONFIG?.institutionId||'guest')+'|'+String(window.EDUNIZAM_CLOUD?.state?.user?.id||'local');
-  const reviewedSourceQuestions=()=>uploadScope===scope()?uploadRows:[];
+  const reviewedSourceQuestions=()=>{if(uploadScope&&uploadScope!==scope()){uploadScope='';uploadRows=[];}return uploadScope&&uploadScope===scope()?uploadRows:[]};
   function addReviewedSource(rows){
     if(!Array.isArray(rows)||!rows.length||rows.length>100)throw Error('Select 1–100 reviewed questions.');
     const src=window.EDUNIZAM_QUESTION_IMPORT;
@@ -18,7 +18,7 @@
     const batch=++uploadBatch;
     const mapped=result.valid.map((q,i)=>({
       id:'uploaded-source-'+batch+'-'+i,
-      classLevel:Number(String(q.class_name).match(/\\d+/)?.[0]||0),
+      classLevel:Number(String(q.class_name).match(/[0-9]+/)?.[0]||0),
       subject:q.subject,chapter:q.chapter,type:q.question_type,
       difficulty:q.difficulty==='Easy'?'Easy':q.difficulty==='Challenging'?'Hard':'Medium',
       question:q.question_text,options:q.options||[],
