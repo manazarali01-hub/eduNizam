@@ -12,6 +12,8 @@
   const isHead=()=>role()==='head';
   let lessonPlanSaveInFlight=false,syllabusUnitSaveInFlight=false;
   const lessonDeleteInFlight=new Set();
+  let cloudClassRows=[],cloudClassScope='';
+  const currentSchoolScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
   function setBusy(btn,busy,label='Working...'){
     if(!btn)return;
     if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
@@ -31,13 +33,19 @@
     const rows=[];
     const scope=window.EDUNIZAM_ROLE_SCOPE;
     const teacherKeys=role()==='teacher'?scope?.teacherClassKeys?.()||new Set():new Set();
-    try{
-      for(const row of JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')){
-        if(row.active===false)continue;
-        const k=String(row.className||'').trim().toLowerCase()+'|'+String(row.sectionName||'').trim().toLowerCase();
-        if(isHead()||(role()==='teacher'&&teacherKeys.has(k)))rows.push(row);
-      }
-    }catch(_){}
+    // Cloud-mode forms must use this institution's freshly scoped directory,
+    // not unscoped rows left in localStorage from another school.
+    let directory=[];
+    if(cloudReady()){
+      if(cloudClassScope===currentSchoolScope())directory=cloudClassRows;
+    }else{
+      try{directory=JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')}catch(_){}
+    }
+    for(const row of Array.isArray(directory)?directory:[]){
+      if(row.active===false)continue;
+      const k=String(row.className||'').trim().toLowerCase()+'|'+String(row.sectionName||'').trim().toLowerCase();
+      if(isHead()||(role()==='teacher'&&teacherKeys.has(k)))rows.push(row);
+    }
     for(const st of visibleStudents())rows.push({className:st.className,sectionName:st.sectionName});
     return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.registeredSections(rows)||[];
   }
@@ -66,17 +74,39 @@
   }
   function mapPlan(x){return {id:x.id,className:x.class_name,sectionName:x.section_name||'',subject:x.subject,weekStart:x.week_start,topic:x.topic,objectives:x.objectives||'',activities:x.activities||'',homeworkNote:x.homework_note||'',status:x.status,createdBy:x.created_by||'',createdAt:x.created_at}}
   function mapUnit(x){return {id:x.id,className:x.class_name,sectionName:x.section_name||'',subject:x.subject,unitTitle:x.unit_title,targetEnd:x.target_end||'',completion:Number(x.completion_percent||0),status:x.status,familyVisible:x.family_visible===true,createdBy:x.created_by||'',createdAt:x.created_at}}
+  async function pullSchoolClasses(){
+    if(!cloudReady())return;
+    const id=cfg().institutionId,scope=currentSchoolScope(),client=cloud().state.client;
+    cloudClassRows=[];cloudClassScope='';
+    try{
+      const rows=await runCloud('lesson-class-directory:'+scope,'Lesson school class options',async({signal}={})=>{
+        let q=client.from('class_sections').select('class_name,section_name,active')
+          .eq('institution_id',id).eq('active',true).limit(1200);
+        q=withSignal(q,signal);
+        const {data,error}=await q;
+        if(error)throw error;
+        return data||[];
+      },{timeout:6500,retries:0});
+      if(!cloudReady()||currentSchoolScope()!==scope)return;
+      cloudClassRows=rows.map(x=>({className:x.class_name,sectionName:x.section_name,active:x.active!==false}));
+      cloudClassScope=scope;
+    }catch(error){
+      console.warn('Lesson class directory unavailable:',error?.message||error);
+    }
+  }
   async function pullCloud(){
     if(!cloudReady())return;
-    const c=cloud().state.client,id=cfg().institutionId;
-    const {p,u}=await runCloud('lesson-syllabus-load:'+id,'Lesson plans and syllabus',async({signal}={})=>{
+    const c=cloud().state.client,id=cfg().institutionId,scope=currentSchoolScope();
+    const {p,u}=await runCloud('lesson-syllabus-load:'+scope,'Lesson plans and syllabus',async({signal}={})=>{
       const [p,u]=await Promise.all([
         withSignal(c.from('lesson_plans').select('*').eq('institution_id',id).order('week_start',{ascending:false}),signal),
         withSignal(c.from('syllabus_progress_units').select('*').eq('institution_id',id).order('subject').order('unit_title'),signal)
       ]);
       if(p.error)throw p.error;if(u.error)throw u.error;return {p,u};
     },{timeout:7000,retries:1});
+    if(!cloudReady()||currentSchoolScope()!==scope)return;
     write(PLAN_KEY,(p.data||[]).map(mapPlan));write(UNIT_KEY,(u.data||[]).map(mapUnit));
+    await pullSchoolClasses();
   }
   async function savePlanCloud(item){
     const inst=cfg().institutionId,payload={institution_id:inst,class_name:item.className,section_name:item.sectionName||null,subject:item.subject,week_start:item.weekStart,topic:item.topic,objectives:item.objectives||null,activities:item.activities||null,homework_note:item.homeworkNote||null,status:item.status,created_by:item.createdBy||cloud().state.user.id,updated_by:cloud().state.user.id,updated_at:new Date().toISOString()};
@@ -248,5 +278,5 @@
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('lessonCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_LESSON_CENTER={render,pullCloud,cloudReady};
+  window.EDUNIZAM_LESSON_CENTER={render,pullCloud,cloudReady,registeredClasses,classOptions};
 })();
