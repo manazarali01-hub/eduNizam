@@ -44,4 +44,17 @@ for(const moduleName of ['student-documents.js','student-behavior.js','parent-co
  ok(script.includes('EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]'),'Unscoped student visibility fallback in '+moduleName);
  ok(!script.includes('EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()'),'Unauthorized all-student fallback in '+moduleName);
 }
+currentRole='parent';uid='parent-a';cloud.state.user.id=uid;cfg.institutionId='school-a';
+data.set('edunizam_role_scope',JSON.stringify({__scope:scopeName(),parentStudentUserIds:['child-a']}));
+let finishPriorSchool;
+cloud.getLinkedStudents=()=>new Promise(resolve=>{finishPriorSchool=resolve});
+const stale=scope.refresh(true);
+await Promise.resolve();
+ok(typeof finishPriorSchool==='function','Old-school parent links request never began');
+cfg.institutionId='school-b';
+finishPriorSchool([{student_user_id:'child-a'}]);
+await stale;
+const stored=JSON.parse(data.get('edunizam_role_scope')||'{}');
+ok(stored.__scope==='parent|parent-a|school-a','Stale parent request rewrote permissions under the new school identity');
+ok(scope.getVisibleStudents(students).length===0,'Stale parent links became visible in the new school');
 console.log('EduNizam profile visibility PASS: parent, student, teacher and head; fail-closed cloud scope; school/account switch; assigned class and student options.');
