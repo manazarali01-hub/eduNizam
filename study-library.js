@@ -25,7 +25,7 @@
     return hit?REG.authorities?.find(a=>a.id===hit[1]):null;
   }
 
-  const boardKey=x=>String(x??'').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const boardKey=x=>String(x??'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
   function materialMatchesBoard(x,name){
     if(!name)return true;
     if(x.board===name||boardKey(x.board)===boardKey(name))return true;
