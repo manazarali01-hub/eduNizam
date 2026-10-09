@@ -31,6 +31,9 @@ jobs:
       - name: Validate paper-builder marks and dynamic school data
         run: node scripts/paper-builder-data-check.mjs
 
+      - name: Verify Paper Builder exact school syllabus save and private draft isolation
+        run: node scripts/paper-school-save-gate-check.mjs
+
       - name: Verify Study Library subject options and official-resource filtering
         run: node scripts/study-library-dropdown-check.mjs
 
