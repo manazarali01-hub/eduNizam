@@ -175,6 +175,21 @@ const math1=sampleRows.find(q=>Number(q.classLevel)===1&&q.subject==='Mathematic
 pass(!!math1,'Class 1 Math question sample missing');
 pass(auditAPI.sameClass('Grade 1','1'),'Grade 1 class label must match numeric class 1');
 pass(!auditAPI.sameClass('Grade 1','Grade 11'),'Grade 1 must not match Grade 11');
+// Grade-only aliases must NEVER merge a section-like class label.
+// Otherwise teacher-bank questions from "5-A" can contaminate Grade 5.
+pass(auditAPI.sameClass('Grade 5','Class 5')&&auditAPI.sameClass('5','Grade 5'),'Equivalent whole-grade labels must match');
+pass(auditAPI.sameClass('5-A','5-A'),'An exact composite class name must remain valid');
+pass(!auditAPI.sameClass('5-A','5')&&!auditAPI.sameClass('Grade 5 - Section A','5'),'Section-specific class label leaked into whole-grade bank');
+pass(!auditAPI.sameClass('Grade 5-A','5-B'),'Distinct school section names merged');
+const isolatedRows=[
+ {class_name:'5-A',subject:'Mathematics',unit_title:'Only Section A'},
+ {class_name:'5',subject:'Mathematics',unit_title:'Whole Grade Chapter'}
+];
+const onlyGrade=window.EDUNIZAM_PAPER_BUILDER.schoolChapters('5','Mathematics',isolatedRows);
+pass(onlyGrade.includes('Whole Grade Chapter')&&!onlyGrade.includes('Only Section A'),'Paper Builder school chapters crossed into section-specific class');
+const protectedTeacherQuestion={class_name:'5-A',subject:'Mathematics',chapter:'Fractions',question_type:'short',question_text:'Section-specific teacher answer',answer_text:'Private teacher key',difficulty:'Balanced',active:true};
+pass(!auditAPI.matchesTeacher(protectedTeacherQuestion,'5','Mathematics','Fractions','short','Balanced'),'Section-specific teacher bank question counted for another class');
+pass(auditAPI.matchesTeacher(protectedTeacherQuestion,'5-A','Mathematics','Fractions','short','Balanced'),'Exact class-specific teacher question incorrectly rejected');
 pass(!auditAPI.usable({...math1,options:['same','same','different','last']},'mcq',false),'Duplicate MCQ options must be rejected');
 pass(!auditAPI.usable({...math1,answer:99},'mcq',false),'Out-of-range answer index must be rejected');
 // Missing/blank legacy answer keys used to coerce to 0 (option A).
