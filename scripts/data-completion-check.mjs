@@ -63,7 +63,7 @@ const middle=pef.find(x=>x.id==='pef-content-middle-2026-27');
 requireOK(!!primary&&!!middle,'Official PEF 2026–27 content books missing');
 requireOK(primary?.classLevels?.join(',')==='1,2,3,4,5','PEF primary content has incorrect grade mapping');
 requireOK(middle?.classLevels?.join(',')==='6,7,8','PEF middle content has incorrect grade mapping');
-requireOK(pef.filter(x=>x.id.startsWith('pef-qat-model-2026-27-grade-')).length===8,'Missing PEF Class 1–8 model paper resources');
+requireOK(pef.filter(x=>/^pef-qat-model-2026-27-grade-[1-8]$/.test(x.id)).length===8,'Missing PEF Class 1–8 model paper resources');
 for(let grade=1;grade<=8;grade++){
  const model=pef.find(x=>x.id==='pef-qat-model-2026-27-grade-'+grade);
  requireOK(model?.classLevels?.length===1&&model.classLevels[0]===grade,'Invalid PEF QAT model-paper grade '+grade);
