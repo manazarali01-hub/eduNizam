@@ -58,7 +58,15 @@ async function scanPdf(file,ocrText,onProgress,language){
   const pages=Math.min(pdf.numPages,MAX_PAGES),chunks=[];let scanned=0;
   for(let i=1;i<=pages;i++){
    const page=await pdf.getPage(i),text=await page.getTextContent();
-   let content=(text.items||[]).map(x=>x.str||'').join(' ').trim();
+   // PDF.js exposes individual text runs, not paragraphs. Preserve y-line
+   // transitions and explicit line ends so Q/A labels survive PDF extraction.
+   let previousY=null;
+   let content=(text.items||[]).map(item=>{
+    const y=Number(item?.transform?.[5]);
+    const breakLine=(previousY!==null&&Number.isFinite(y)&&Math.abs(y-previousY)>2.5);
+    if(Number.isFinite(y))previousY=y;
+    return (breakLine?'\n':' ')+String(item?.str||'')+(item?.hasEOL?'\n':'');
+   }).join('').replace(/[ \t]+\n/g,'\n').trim();
    if(content.length<60&&scanned<MAX_OCR_PAGES){
     scanned++;onProgress?.('Scanning PDF page '+i+' / '+pages+' ('+language+' OCR)');
     const viewport=page.getViewport({scale:1.35});
