@@ -266,5 +266,5 @@
 
   window.addEventListener('edunizam:auth',()=>{const root=$('examCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,800);
-  window.EDUNIZAM_EXAM_CENTER={render,pullCloud,readSchedule,cloudReady};
+  window.EDUNIZAM_EXAM_CENTER={render,pullCloud,readSchedule,cloudReady,reportControls,buildReport};
 })();
