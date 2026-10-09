@@ -42,11 +42,11 @@
   const concepts=distinct((catalog?.chapters?.[g+'|'+subject]||[]).filter(x=>!saved.some(v=>key(v)===key(x))));
   return {saved,concepts};
  }
- function sections(cls,rows){return distinct(registeredSections(rows).filter(x=>key(x.className)===key(cls)).map(x=>x.sectionName))}
+ function sections(cls,rows){return distinct(registeredSections(rows).filter(x=>sameClass(x.className,cls)).map(x=>x.sectionName))}
  function classIsKnown(cls,rows){return registeredSections(rows).some(x=>key(x.className)===key(cls))}
  function sectionMatches(cls,sec,rows){
   const v=clean(sec);
-  return !v||registeredSections(rows).some(x=>key(x.className)===key(cls)&&key(x.sectionName)===key(v));
+  return !v||registeredSections(rows).some(x=>sameClass(x.className,cls)&&key(x.sectionName)===key(v));
  }
  window.EDUNIZAM_ACADEMIC_FORM_OPTIONS={grade,sameClass,distinct,registeredSections,subjects,chapters,sections,classIsKnown,sectionMatches};
 })();
