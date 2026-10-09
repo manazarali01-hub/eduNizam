@@ -81,7 +81,7 @@ General:{mcq:['Choose the correct answer about {t}.','Select the best statement 
 };
 function bank(s){return banks[s]||banks.General} function fill(x,t){return x.replaceAll('{t}',t)}
 function distribute(total,mode){const r=mode==='Objective Heavy'?[.4,.35,.25]:mode==='Subjective Heavy'?[.15,.35,.5]:[.25,.35,.4];let a=Math.max(1,Math.round(total*r[0])),b=Math.max(1,Math.round(total*r[1]));return[a,b,total-a-b]}
-function classLevelFrom(v){const m=String(v||'').match(/\b(5|8|9|10|11|12)\b/);return m?Number(m[1]):0}
+function classLevelFrom(v){const m=String(v||'').match(/\b(1[0-2]|[1-9])\b/);return m?Number(m[1]):0}
 function normalizedSubject(v){
  const x=String(v||'').trim().toLowerCase();
  const aliases={'science':'General Science','general science':'General Science','islamiyat':'Islamiat / Ethics','islamiat':'Islamiat / Ethics','islamic studies':'Islamiat / Ethics','computer':'Computer Science','computer science':'Computer Science','math':'Mathematics','mathematics':'Mathematics','pak studies':'Pakistan Studies','pakistan studies':'Pakistan Studies'};
@@ -90,7 +90,7 @@ function normalizedSubject(v){
 function shuffled(arr){return arr.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])}
 function bankPool(cls,subject,topics,type,diff){
  const D=window.EDUNIZAM_PRACTICE_DATA||{},level=classLevelFrom(cls),target=normalizedSubject(subject).toLowerCase();
- let rows=(D.questions||[]).filter(q=>(!level||Number(q.classLevel)===level)&&String(q.subject||'').toLowerCase()===target&&q.type===type);
+ let rows=(D.questions||[]).filter(q=>level>0&&Number(q.classLevel)===level&&String(q.subject||'').toLowerCase()===target&&q.type===type);
  if(diff==='Easy')rows=rows.filter(q=>q.difficulty==='Easy');
  if(diff==='Challenging')rows=rows.filter(q=>q.difficulty==='Hard');
  const wanted=(topics||[]).map(x=>String(x).trim().toLowerCase()).filter(Boolean);
