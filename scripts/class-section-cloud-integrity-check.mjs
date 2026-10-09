@@ -92,7 +92,7 @@ ok(app.read().length===0,'School B cache visible after switching back to School 
 localStorage.setItem('edunizam_students',JSON.stringify([{id:1,studentId:'S-01',name:'Student fixture'}]));
 await app.assignCloud(1,'6','C');
 ok(database.A.core_students[0].class_name==='6','Cloud student class assignment failed');
-await app.assignCloud(2,'6','C');
+await app.assignCloud(2,'6','C').then(()=>{throw Error('Unknown student incorrectly reported as assigned')},()=>{});
 await app.assignCloud(1,'6','C');
 localStorage.setItem('edunizam_students',JSON.stringify([{id:3,studentId:'INVALID',name:'Unmatched fixture'}]));
 await app.assignCloud(3,'6','C').then(()=>{throw Error('Unmatched student reported as saved')},()=>{});
