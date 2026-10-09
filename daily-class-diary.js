@@ -22,14 +22,14 @@ const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(stude
 let editingId='',teacherClasses=[],diarySaveInFlight=false;
 let diarySyllabus={scope:'',units:[],status:'unchecked'};
 const diaryScope=()=>[String(cfg().institutionId||''),String(cloud()?.state?.user?.id||'')].join('|');
-async function loadDiarySyllabus(){
+async function loadDiarySyllabus(force=false){
  if(!ready()||role()!=='teacher'){diarySyllabus={scope:'',units:[],status:'unchecked'};return}
  const scope=diaryScope(),inst=cfg().institutionId;
  diarySyllabus={scope:'',units:[],status:'loading'};
  try{
   const {data}=await boundedRead('daily-diary:syllabus:'+scope,()=>cloud().state.client.from('syllabus_progress_units')
    .select('class_name,subject,unit_title').eq('institution_id',inst).limit(1500),
-   {timeout:6500,retries:0,cacheMs:10000,label:'Current school diary syllabus'});
+   {timeout:6500,retries:0,cacheMs:force?0:10000,label:'Current school diary syllabus'});
   if(!ready()||diaryScope()!==scope)return;
   diarySyllabus={scope,units:(data||[]).filter(x=>x?.class_name&&x?.subject&&x?.unit_title).map(x=>({className:x.class_name,subject:x.subject,unitTitle:x.unit_title})),status:'loaded'};
  }catch(error){
@@ -269,7 +269,7 @@ async function render(){
     $('#reuseDiary').onclick=reuseLast;$('#cancelDiaryEdit').onclick=clearForm;
     $('#diaryRefreshSyllabus').onclick=async()=>{
       const button=$('#diaryRefreshSyllabus');button.disabled=true;button.textContent='Refreshing...';
-      try{await loadDiarySyllabus();syncDiaryCatalog()}
+      try{await loadDiarySyllabus(true);syncDiaryCatalog()}
       finally{if(button.isConnected){button.disabled=false;button.textContent='Refresh School Syllabus'}}
     };
   }
