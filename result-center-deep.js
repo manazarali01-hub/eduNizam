@@ -8,8 +8,12 @@
   const settings=()=>read('edunizam_settings',{});
   const session=()=>read('edunizam_session',{});
   const role=()=>{const r=session()?.role||'student';return r==='admin'?'head':r};
-  const visibleStudents=()=>window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students();
-  const studentMap=()=>new Map(students().map(s=>[String(s.id),s]));
+  // Missing role/school scope is not permission to expose all local records.
+  const visibleStudents=()=>{
+    const rows=window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students());
+    return Array.isArray(rows)?rows.filter(s=>s&&s.id!==null&&s.id!==undefined&&String(s.id).trim()):[];
+  };
+  const studentMap=()=>new Map(visibleStudents().map(s=>[String(s.id),s]));
   const grade=p=>p>=80?'A+':p>=70?'A':p>=60?'B':p>=50?'C':p>=40?'D':'F';
   const pass=p=>p>=40;
   const pct=(m,t)=>t>0?Math.round((Number(m||0)/Number(t||1))*100):0;
@@ -251,5 +255,5 @@
   window.addEventListener('edunizam:auth',()=>{render();attachResultObserver();loadPublishedReports()});
   window.addEventListener('storage',e=>{if(['edunizam_results','edunizam_students','edunizam_attendance'].includes(e.key))render()});
   setTimeout(()=>{render();attachResultObserver()},0);setTimeout(()=>{render();attachResultObserver()},700);
-  window.EDUNIZAM_RESULT_CENTER={render,exportCsv,reportHtml};
+  window.EDUNIZAM_RESULT_CENTER={render,exportCsv,reportHtml,scopedResults,visibleStudents};
 })();
