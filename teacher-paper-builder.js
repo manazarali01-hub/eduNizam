@@ -16,15 +16,10 @@ function sameChapter(selected,actual){
  return !!norm(actual)&&norm(selected)===norm(actual);
 }
 function customPool(cls,subject,topics,type,diff){
- const level=String(cls||'').trim().toLowerCase(),target=normalizedSubject(subject).toLowerCase(),wanted=(topics||[]).map(x=>String(x).trim().toLowerCase()).filter(Boolean);
- let rows=customQuestions.filter(q=>q.active!==false&&String(q.class_name||'').trim().toLowerCase()===level&&String(q.subject||'').trim().toLowerCase()===target&&q.question_type===type);
- if(diff==='Easy')rows=rows.filter(q=>q.difficulty==='Easy');
- if(diff==='Challenging')rows=rows.filter(q=>q.difficulty==='Challenging');
- if(wanted.length){
-   const chapterRows=rows.filter(q=>{const chapter=String(q.chapter||'').trim().toLowerCase();return chapter&&wanted.some(t=>sameChapter(t,chapter))});
-   rows=chapterRows;
- }
- return shuffled(rows);
+ const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
+ if(!A)return[];
+ const selected=(topics||[]).map(x=>String(x).trim()).filter(Boolean);
+ return shuffled(customQuestions.filter(q=>selected.some(ch=>A.matchesTeacher(q,cls,subject,ch,type,diff))));
 }
 function fromCustom(q,type){
  if(type==='mcq'){
@@ -149,16 +144,10 @@ function normalizedSubject(v){
 }
 function shuffled(arr){return arr.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])}
 function bankPool(cls,subject,topics,type,diff){
- const D=window.EDUNIZAM_PRACTICE_DATA||{},level=classLevelFrom(cls),target=normalizedSubject(subject).toLowerCase();
- let rows=(D.questions||[]).filter(q=>level>0&&Number(q.classLevel)===level&&String(q.subject||'').toLowerCase()===target&&q.type===type);
- if(diff==='Easy')rows=rows.filter(q=>q.difficulty==='Easy');
- if(diff==='Challenging')rows=rows.filter(q=>q.difficulty==='Hard');
- const wanted=(topics||[]).map(x=>String(x).trim().toLowerCase()).filter(Boolean);
- if(wanted.length){
-   const chapterRows=rows.filter(q=>wanted.some(t=>sameChapter(t,q.chapter)));
-   rows=chapterRows;
- }
- return shuffled(rows);
+ const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
+ if(!A)return[];
+ const selected=(topics||[]).map(x=>String(x).trim()).filter(Boolean);
+ return shuffled((window.EDUNIZAM_PRACTICE_DATA?.questions||[]).filter(q=>selected.some(ch=>A.matchesPractice(q,cls,subject,ch,type,diff))));
 }
 function fallbackQuestion(subject,topics,type,i,no){
  const b=bank(subject),ts=topics.length?topics:['selected syllabus'],topic=ts[(i+no)%ts.length],arr=b[type],stem=fill(arr[i%arr.length],topic);
@@ -174,7 +163,11 @@ function fromPractice(q,type){
  return{text:q.question,answer:q.answerText||q.explanation||'Teacher marking guide required.',source:'practice-bank',chapter:q.chapter||''};
 }
 function build(subject,topics,total,diff,mode,cls='',options={}){
- const marks=distribute(total,mode),sections=[],answers=[];let no=1,customUsed=0,bankUsed=0,templateUsed=0;
+ if(!Number.isInteger(total)||total<10||total>200)throw new Error('Total paper marks must be a whole number between 10 and 200.');
+ if(!cls||!String(subject||'').trim()||!Array.isArray(topics)||!topics.length)throw new Error('Select class, subject and at least one chapter.');
+ const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
+ if(!A)throw new Error('Question quality audit unavailable. Reload the Paper Builder.');
+ const marks=distribute(total,mode),sections=[],answers=[],usedQuestionKeys=new Set();let no=1,customUsed=0,bankUsed=0,templateUsed=0;
  const teacherOnly=!!options.teacherOnly;
  const audit=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT?.audit?.({
   className:cls,subject,chapters:topics,teacherQuestions:customQuestions,
@@ -183,25 +176,32 @@ function build(subject,topics,total,diff,mode,cls='',options={}){
  if(audit?.missingChapters?.length)throw new Error('No '+(teacherOnly?'teacher-bank':'available')+' questions match the EXACT selected chapter: '+audit.missingChapters.join(', ')+'. Add verified questions or remove it.');
  const specs=[['Section A — MCQs','mcq',marks[0],Math.max(5,Math.min(20,marks[0]))],['Section B — Short Questions','short',marks[1],Math.max(2,Math.min(10,Math.ceil(marks[1]/3)))],['Section C — Long Questions','long',marks[2],Math.max(1,Math.min(5,Math.ceil(marks[2]/8)))]];
  specs.forEach(([title,type,sm,n])=>{
-   const ownPool=customPool(cls,subject,topics,type,diff),practicePool=teacherOnly?[]:bankPool(cls,subject,topics,type,diff),qs=[];
-    const available=ownPool.length+practicePool.length;
-    const required=Math.max(1,Math.ceil(n*.6));
-    n=Math.min(n,available);
-    const maxMarksPerQuestion=type==='mcq'?2:type==='short'?5:12;
-    if(n<required||!n||sm>n*maxMarksPerQuestion)
-      throw new Error('Insufficient real '+type.toUpperCase()+' questions for '+cls+' / '+subject+(topics.length?' / '+topics.join(', '):'')+': '+available+' available; at least '+Math.max(required,Math.ceil(sm/maxMarksPerQuestion))+' needed for a credible '+sm+'-mark section. Select more chapters, reduce marks or add verified teacher-bank questions.');
-    const points=Array.from({length:n},(_,i)=>Math.floor(sm/n)+(i<sm%n?1:0));
-   for(let i=0;i<n;i++){
-     let built;
-     if(ownPool[i]){built=fromCustom(ownPool[i],type);customUsed++}
-     else{
-       const practiceIndex=i-ownPool.length,picked=practiceIndex>=0?practicePool[practiceIndex]:null;
-       if(picked){built=fromPractice(picked,type);bankUsed++}
-       else{throw new Error('No syllabus-backed question available for '+type+'. Please add verified questions.')}
-     }
-     const qno=no++;qs.push({no:qno,marks:points[i],text:built.text,answer:built.answer,source:built.source,chapter:built.chapter});answers.push({no:qno,marks:points[i],answer:built.answer});
+  const ownPool=customPool(cls,subject,topics,type,diff),practicePool=teacherOnly?[]:bankPool(cls,subject,topics,type,diff);
+  const unique=new Set(usedQuestionKeys),candidates=[];
+  for(const [source,pool] of [['teacher',ownPool],['practice',practicePool]]){
+   for(const item of pool){
+    const key=A.questionKey(item);
+    if(!key||unique.has(key))continue;
+    unique.add(key);candidates.push({source,item,key});
    }
-   sections.push({title,marks:sm,questions:qs});
+  }
+  const available=candidates.length;
+  const required=Math.max(1,Math.ceil(n*.6));
+  n=Math.min(n,available);
+  const maxMarksPerQuestion=type==='mcq'?2:type==='short'?5:12;
+  if(n<required||!n||sm>n*maxMarksPerQuestion)
+    throw new Error('Insufficient real unique '+type.toUpperCase()+' questions for '+cls+' / '+subject+(topics.length?' / '+topics.join(', '):'')+': '+available+' usable unique questions; at least '+Math.max(required,Math.ceil(sm/maxMarksPerQuestion))+' needed. Select more exact chapters, reduce marks, or import teacher-verified questions.');
+  const points=Array.from({length:n},(_,i)=>Math.floor(sm/n)+(i<sm%n?1:0));
+  const qs=[];
+  for(let i=0;i<n;i++){
+   const chosen=candidates[i],built=chosen.source==='teacher'?fromCustom(chosen.item,type):fromPractice(chosen.item,type);
+   usedQuestionKeys.add(chosen.key);
+   if(chosen.source==='teacher')customUsed++;else bankUsed++;
+   const qno=no++;
+   qs.push({no:qno,marks:points[i],text:built.text,answer:built.answer,source:built.source,chapter:built.chapter});
+   answers.push({no:qno,marks:points[i],answer:built.answer});
+  }
+  sections.push({title,marks:sm,questions:qs});
  });
  return {subject,topics,totalMarks:total,difficulty:diff,distribution:mode,className:cls,teacherOnly,sections,answers,sourceStats:{teacherBank:customUsed,practiceBank:bankUsed,templateFallback:templateUsed,total:customUsed+bankUsed+templateUsed}};
 }
