@@ -80,7 +80,7 @@ async function inspectPage(page,url,width){
         .filter(el=>el.href.startsWith(location.origin))
         .every(el=>!!el.sheet);
       if(!ready)return false;
-      const cols=getComputedStyle(strip).gridTemplateColumns.trim().split(/\\s+/).length;
+      const cols=getComputedStyle(strip).gridTemplateColumns.trim().split(/\s+/).length;
       return window.innerWidth>430||(cols===1&&parseFloat(getComputedStyle(title).fontSize)>=22);
     },null,{timeout:12000,polling:100}).catch(()=>{});
   }
