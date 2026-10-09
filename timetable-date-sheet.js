@@ -40,6 +40,8 @@
     students().forEach(x=>add(x.className,x.sectionName));
     try{JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]').forEach(x=>add(x.className,x.sectionName))}catch(_){ }
     timetable().forEach(x=>add(x.className,x.sectionName));dateSheets().forEach(x=>add(x.className,x.sectionName));
+    // Suggestions only, no enrollment/section records created until saved.
+    if(!map.size&&role()==='head')['Play Group','Nursery','Prep',...Array.from({length:12},(_,i)=>String(i+1))].forEach(c=>add(c));
     return [...map.values()].sort((a,b)=>a.className.localeCompare(b.className,undefined,{numeric:true})||a.sectionName.localeCompare(b.sectionName));
   }
   function accessible(x){
@@ -53,6 +55,15 @@
     return '<option value="">'+blank+'</option>'+classSections().map(x=>{const v=x.className+'|'+x.sectionName;return '<option value="'+esc(v)+'" '+(v===selected?'selected':'')+'>'+esc(label(x))+'</option>'}).join('');
   }
   function splitClass(v){const [className='',sectionName='']=String(v||'').split('|');return{className,sectionName}}
+  function syncSubjectCatalog(prefix){
+    const selected=$(prefix+'Class')?.value||'',list=$(prefix+'SubjectOptions');
+    if(!list)return;
+    const cls=splitClass(selected).className,match=String(cls).match(/\\b(1[0-2]|[1-9])\\b/);
+    const grade=match?String(Number(match[1])):'';
+    const subjects=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects?.[grade]||[];
+    const defaults=['English','Urdu','Mathematics','General Science','Islamiat / Ethics','Nazra Quran','Social Studies','Computer Science'];
+    list.innerHTML=[...new Set(subjects.length?subjects:defaults)].map(x=>'<option value="'+esc(x)+'"></option>').join('');
+  }
 
   function mapTimetableRow(x){return{id:x.id,className:x.class_name,sectionName:x.section_name||'',day:x.weekday,periodNumber:Number(x.period_number||0),time:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',subject:x.subject,teacherName:x.teacher_name||'',roomLabel:x.room_label||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}}
   function mapExamRow(x){return{id:x.id,className:x.class_name,sectionName:x.section_name||'',examName:x.exam_name,subject:x.subject,examDate:x.exam_date,startTime:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',totalMarks:Number(x.total_marks||0),roomLabel:x.room_label||'',notes:x.notes||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}}
@@ -124,7 +135,7 @@
       '<select id="ttDay">'+DAYS.map(d=>'<option '+(edit?.day===d?'selected':'')+'>'+d+'</option>').join('')+'</select>'+
       '<input id="ttPeriod" type="number" min="1" max="15" placeholder="Period number" value="'+esc(edit?.periodNumber||'')+'">'+
       '<input id="ttStart" type="time" value="'+esc(edit?.time||'')+'"><input id="ttEnd" type="time" value="'+esc(edit?.endTime||'')+'">'+
-      '<input id="ttSubject" placeholder="Subject" value="'+esc(edit?.subject||'')+'"><input id="ttTeacher" placeholder="Teacher name" value="'+esc(edit?.teacherName||'')+'"><input id="ttRoom" placeholder="Room / lab" value="'+esc(edit?.roomLabel||'')+'">'+
+      '<input id="ttSubject" list="ttSubjectOptions" placeholder="Subject (choose / type)" value="'+esc(edit?.subject||'')+'"><datalist id="ttSubjectOptions"></datalist><input id="ttTeacher" placeholder="Teacher name" value="'+esc(edit?.teacherName||'')+'"><input id="ttRoom" placeholder="Room / lab" value="'+esc(edit?.roomLabel||'')+'">'+
       '<button id="ttSave">'+(edit?'Update Period':'Save Period')+'</button>'+(edit?'<button id="ttCancel" class="secondary">Cancel</button>':'')+'</div></article>';
   }
   function dateSheetEditor(edit=null){
@@ -132,7 +143,7 @@
     const value=edit?(edit.className+'|'+(edit.sectionName||'')):'';
     return '<article class="card"><h3>'+(edit?'Edit Paper':'Add Date Sheet Paper')+'</h3><div class="form-grid">'+
       '<input id="dsEditId" type="hidden" value="'+esc(edit?.id||'')+'"><select id="dsClass">'+optionList(value,'Select class / section')+'</select>'+
-      '<input id="dsExam" placeholder="Exam name e.g. Midterm" value="'+esc(edit?.examName||'')+'"><input id="dsSubject" placeholder="Subject" value="'+esc(edit?.subject||'')+'">'+
+      '<input id="dsExam" list="dsExamOptions" placeholder="Exam name e.g. Midterm" value="'+esc(edit?.examName||'')+'"><datalist id="dsExamOptions"><option value="Monthly Test"></option><option value="Midterm"></option><option value="Final"></option><option value="Quiz"></option><option value="Annual Examination"></option></datalist><input id="dsSubject" list="dsSubjectOptions" placeholder="Subject (choose / type)" value="'+esc(edit?.subject||'')+'"><datalist id="dsSubjectOptions"></datalist>'+
       '<input id="dsDate" type="date" value="'+esc(edit?.examDate||today())+'"><input id="dsStart" type="time" value="'+esc(edit?.startTime||'')+'"><input id="dsEnd" type="time" value="'+esc(edit?.endTime||'')+'">'+
       '<input id="dsMarks" type="number" min="1" value="'+esc(edit?.totalMarks||100)+'" placeholder="Total marks"><input id="dsRoom" placeholder="Room / hall" value="'+esc(edit?.roomLabel||'')+'"><input id="dsNotes" placeholder="Instructions / notes" value="'+esc(edit?.notes||'')+'">'+
       '<button id="dsSave">'+(edit?'Update Paper':'Save Paper')+'</button>'+(edit?'<button id="dsCancel" class="secondary">Cancel</button>':'')+'</div></article>';
@@ -202,6 +213,10 @@
     w.document.write('<!doctype html><html><head><title>'+esc(title)+'</title><style>body{font-family:Arial,sans-serif;color:#17324a;padding:26px}header{text-align:center;margin-bottom:20px}h1{margin:4px}.schedule-table{width:100%;border-collapse:collapse;margin-bottom:18px}.schedule-table th,.schedule-table td{border:1px solid #ccd8de;padding:8px;text-align:left}.paper-grid{display:grid;gap:10px}.paper-card{border:1px solid #ccd8de;border-radius:10px;padding:12px}.paper-card-top{display:flex;justify-content:space-between}.mini-badge,.badge{font-weight:bold}.paper-actions,button{display:none}.muted{color:#5f6e76}@media print{body{padding:0}}</style></head><body><header><strong>'+esc(school)+'</strong><h1>'+esc(title)+'</h1><small>Generated by EduNizam</small></header>'+body+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),250);
   }
   function bind(){
+    for(const prefix of ['tt','ds']){
+      $(prefix+'Class')?.addEventListener('change',()=>syncSubjectCatalog(prefix));
+      syncSubjectCatalog(prefix);
+    }
     $('ttSave')?.addEventListener('click',saveTimetable);$('dsSave')?.addEventListener('click',saveDateSheet);$('ttCancel')?.addEventListener('click',render);$('dsCancel')?.addEventListener('click',render);
     $('scheduleClassFilter')?.addEventListener('change',e=>{const root=$('scheduleCenterApp');root.dataset.classFilter=e.target.value;render()});
     $('dateExamFilter')?.addEventListener('change',e=>{const root=$('scheduleCenterApp');root.dataset.examFilter=e.target.value;render()});
