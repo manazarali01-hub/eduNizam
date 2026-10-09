@@ -2704,12 +2704,17 @@ try{
     const found=await guestPaperPage.evaluate(()=>{
       const summary=document.getElementById('paperSummary')?.textContent||'';
       const grid=document.getElementById('pastGrid');
-      return{summary,results:grid?.querySelectorAll('.card').length||0,
+      const catalog=window.EDUNIZAM_PAST_PAPERS||{};
+      const expected=window.EDUNIZAM_GUEST_PAPER_QUERY?.select({
+        papers:catalog.papers||[],boards:catalog.boards||[],
+        filters:{level:'matric',session:'Annual',type:'past'}
+      }).length||0;
+      return{summary,results:grid?.querySelectorAll('.card').length||0,expected,
         falseZero:/^0\\s+(?:result|indexed paper result)/i.test(summary),
         wrongEmpty:!!grid?.textContent.includes('Exact resource not available yet.')};
     });
     console.log('Matric Annual Past Papers mobile screenshot regression:',JSON.stringify(found));
-    if(found.results===0||found.falseZero||found.wrongEmpty||!found.summary.includes('Annual'))
+    if(found.expected<20||found.results!==found.expected||found.falseZero||found.wrongEmpty||!found.summary.includes('Annual'))
       pushFailure('guest past papers','Matric Annual Past Papers still reports false zero on mobile',JSON.stringify(found));
   }catch(error){
     pushFailure('guest past papers','Mobile Annual Paper search interaction failed',error?.message||String(error));
