@@ -37,6 +37,9 @@ jobs:
       - name: Verify Exam Center UUID report cards and authorized student selection
         run: node scripts/exam-report-scoping-check.mjs
 
+      - name: Verify Result Dashboard role scope and UUID report isolation
+        run: node scripts/result-dashboard-scope-check.mjs
+
       - name: Verify Practice Next Previous navigation and answer persistence
         run: node scripts/practice-navigation-check.mjs
 
