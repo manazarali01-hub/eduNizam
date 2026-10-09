@@ -152,7 +152,7 @@
     finally{if(button?.isConnected){button.disabled=false;button.textContent='Refresh Classes & Subjects'}}
   }
   const periodMinutes=v=>{
-    if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(String(v||'')))return NaN;
+    if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(String(v||'')))return NaN;
     return Number(v.slice(0,2))*60+Number(v.slice(3,5));
   };
   function timetableConflict(rows,item){
