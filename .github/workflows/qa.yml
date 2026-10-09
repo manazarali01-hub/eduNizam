@@ -36,6 +36,9 @@ jobs:
       - name: Verify Exam Center UUID report cards and authorized student selection
         run: node scripts/exam-report-scoping-check.mjs
 
+      - name: Verify Exam Center current-school syllabus subject dropdown and refresh
+        run: node scripts/exam-syllabus-dropdown-check.mjs
+
       - name: Verify Result Dashboard role scope and UUID report isolation
         run: node scripts/result-dashboard-scope-check.mjs
 
