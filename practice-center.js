@@ -2,7 +2,7 @@
   const D=window.EDUNIZAM_PRACTICE_DATA;if(!D)return;
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-  let current=[],timer=null,secondsLeft=0,lastConfig=null,cursor=0,answers=[],poolNotice='';
+  let current=[],timer=null,secondsLeft=0,lastConfig=null,cursor=0,answers=[],poolNotice='',sourceSessionScope='';
   // Uploaded-source questions exist in this tab only, never in the shared
   // EduNizam practice bank or other users' schools.
   let uploadRows=[],uploadScope='',uploadBatch=0;
@@ -101,6 +101,7 @@
     const pool=shuffle(poolFor(c));
     if(!pool.length)return alert($('practiceSourceOnly')?.checked?'No reviewed uploaded-source questions match these filters. Import a source, choose Mixed question types, or clear difficulty.':'No genuine questions indexed for this class and subject. Change your selection or import verified questions.');
     current=pool.slice(0,Math.min(c.count,pool.length));
+    sourceSessionScope=$('practiceSourceOnly')?.checked?scope():'';
     cursor=0;answers=current.map(()=>null);
     secondsLeft=c.minutes*60;
     $('practiceBuildPanel').classList.add('hidden');$('practiceResultPanel').classList.add('hidden');$('practiceTestPanel').classList.remove('hidden');
@@ -119,6 +120,7 @@
   }
   function answeredCount(){return answers.filter((answer,i)=>current[i]?.type==='mcq'?Number.isInteger(answer):!!String(answer??'').trim()).length}
   function renderQuestions(){
+    if(!activeSession())return;
     const q=current[cursor],area=$('practiceQuestions');if(!q||!area)return;
     $('practiceProgress').textContent='Question '+(cursor+1)+' of '+current.length+' · '+answeredCount()+' answered';
     let body='';
@@ -138,17 +140,17 @@
     }));
   }
   function navigate(delta){
-    if(!current.length)return;
+    if(!activeSession()||!current.length)return;
     saveVisibleAnswer();
     const target=Math.max(0,Math.min(current.length-1,cursor+delta));
     if(target===cursor)return;
     cursor=target;renderQuestions();
     $('practiceTestPanel')?.scrollIntoView?.({behavior:'smooth',block:'start'});
   }
-  function forward(){if(!current.length)return;if(cursor===current.length-1)submit();else navigate(1)}
+  function forward(){if(!activeSession()||!current.length)return;if(cursor===current.length-1)submit();else navigate(1)}
   function tick(){const m=Math.floor(secondsLeft/60),s=secondsLeft%60;$('practiceTimer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
   function submit(){
-    if(!current.length)return;
+    if(!activeSession()||!current.length)return;
     clearInterval(timer);
     saveVisibleAnswer();
     let autoTotal=0,autoCorrect=0,weak=[];
@@ -173,7 +175,8 @@
   function renderReview(details){
     return '<div class="list">'+details.map((d,i)=>{const q=current[i];if(q.type==='mcq')return '<div class="practice-review '+(d.correct?'correct':'wrong')+'"><strong>Q'+(i+1)+': '+esc(q.question)+'</strong><div>'+ (d.correct?'Correct':'Correct answer: '+esc(q.options[q.answer]))+'</div><small>'+esc(q.explanation||'')+'</small></div>';return '<div class="practice-review"><strong>Q'+(i+1)+': '+esc(q.question)+'</strong><div class="muted">Suggested answer: '+esc(q.answerText||'Review with AI/teacher')+'</div></div>'}).join('')+'</div>';
   }
-  function cancel(){clearInterval(timer);current=[];cursor=0;answers=[];$('practiceTestPanel').classList.add('hidden');$('practiceBuildPanel').classList.remove('hidden')}
+  function activeSession(){if(sourceSessionScope&&sourceSessionScope!==scope()){cancel();return false}return true}
+  function cancel(){clearInterval(timer);sourceSessionScope='';current=[];cursor=0;answers=[];$('practiceTestPanel').classList.add('hidden');$('practiceBuildPanel').classList.remove('hidden')}
   function retry(){cancel();if(lastConfig)start()}
   function updateStats(){
     const h=history(),best=h.length?Math.max(...h.map(x=>x.pct||0)):0,weakMap={};
