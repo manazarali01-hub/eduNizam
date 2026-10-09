@@ -23,7 +23,7 @@ const document={
  head:{appendChild(e){if(e.id)nodes.set(e.id,e)}},querySelectorAll:()=>[]
 };
 nodes.set('scheduleCenterApp',el('scheduleCenterApp'));
-nodes.set('ttClass',el('ttClass'));nodes.set('ttSubjectOptions',el('ttSubjectOptions'));nodes.set('ttSubjectNote',el('ttSubjectNote'));
+nodes.set('ttClass',el('ttClass'));nodes.set('ttSubjectOptions',el('ttSubjectOptions'));nodes.set('ttSubjectNote',el('ttSubjectNote'));nodes.set('ttSubject',el('ttSubject'));nodes.set('ttTeacherOptions',el('ttTeacherOptions'));nodes.set('ttTeacherNote',el('ttTeacherNote'));
 const cfg={enabled:true,institutionId:'school-A'};
 const samples={
  'school-A':{
@@ -35,6 +35,11 @@ const samples={
   syllabus_progress_units:[
    {class_name:'Grade 5',subject:'English',unit_title:'Recorded Grammar'}
   ],
+  staff_profiles:[
+   {full_name:'School A Teacher',classes:['5|A'],subjects:['English'],employment_status:'active'},
+   {full_name:'Section B Teacher',classes:['5|B'],subjects:['English'],employment_status:'active'},
+   {full_name:'Retired Teacher',classes:['5|A'],subjects:['English'],employment_status:'inactive'}
+  ],
   timetable_entries:[
    {id:'tt-a',class_name:'5',section_name:'A',subject:'English',weekday:'Monday',period_number:1,start_time:'09:00',end_time:'09:40',creator_user_id:'head1'}
   ],
@@ -45,6 +50,10 @@ const samples={
  'school-B':{
   class_sections:[{class_name:'8',section_name:'C',active:true}],
   syllabus_progress_units:[{class_name:'8',subject:'Chemistry',unit_title:'Recorded Chemistry'}],
+  staff_profiles:[
+   {full_name:'School B Chemistry',classes:['8|C'],subjects:['Chemistry'],employment_status:'active'},
+   {full_name:'School B English',classes:['8|D'],subjects:['English'],employment_status:'active'}
+  ],
   timetable_entries:[{id:'tt-b',class_name:'8',section_name:'C',subject:'Chemistry',weekday:'Tuesday',period_number:2,start_time:'10:00',end_time:'10:40',creator_user_id:'head2'}],
   exam_schedule_entries:[{id:'ds-b',class_name:'8',section_name:'C',subject:'Chemistry',exam_name:'Final',exam_date:'2026-11-13',start_time:'09:00',end_time:'10:00',creator_user_id:'head2'}]
  }
@@ -94,21 +103,28 @@ check(!api.knownClass({className:'9',sectionName:'Old'}),'Old school timetable w
 check(api.optionList().includes('Class 5'),'Timetable dropdown has no real registered class options');
 check(calls.some(q=>q.table==='class_sections'&&q.filters.institution_id==='school-A'&&q.filters.active===true),'Class directory was not scoped to active rows for current institution');
 check(el('scheduleCenterApp').innerHTML.includes('English')&&!el('scheduleCenterApp').innerHTML.includes('Old School Secret')&&!el('scheduleCenterApp').innerHTML.includes('Previous School Exam'),'Current cloud schedule loaded stale old-school records');
-el('ttClass').value='5|A';api.syncSubjectCatalog('tt');
+el('ttClass').value='5|A';el('ttSubject').value='English';api.syncSubjectCatalog('tt');
 check(el('ttSubjectOptions').innerHTML.includes('English')&&!el('ttSubjectOptions').innerHTML.includes('Fake old school subject'),'Subject suggestions use old school syllabus records');
 check(api.scheduleReady()&&api.currentTimetable().length===1&&api.currentDateSheets().length===1,'Current-school schedule actions unavailable');
+check(api.scheduleTeachers('5','A','English').join('|')==='School A Teacher','Schedule Center omitted active school-assigned teacher');
+check(api.scheduleTeachers('5','B','English').join('|')==='Section B Teacher','Teacher class section scope not enforced');
+check(el('ttTeacherOptions').innerHTML.includes('School A Teacher')&&!el('ttTeacherOptions').innerHTML.includes('Retired Teacher'),'Current school Teacher datalist missing or inactive staff leaked');
+check(calls.some(x=>x.table==='staff_profiles'&&x.filters.institution_id==='school-A'),'Teacher directory query missed institution scope');
 const before=api.getScheduleScope();
 cfg.institutionId='school-B';
 cloud.state.user.id='head2';
 check(api.classSections().length===0&&!api.knownClass({className:'5',sectionName:'A'}),'School-A class options leaked on switch');
 check(!api.scheduleReady()&&!api.currentTimetable().length&&!api.currentDateSheets().length,'Previous school schedule actions survived a switch');
+check(api.scheduleTeachers('5','A','English').length===0,'School A staff names survived a school switch');
 await api.render();
 classes=api.classSections();
 check(classes.length===1&&classes[0].className==='8','New institution registered class not loaded');
 check(api.getScheduleScope()!==before,'Schedule scope was not refreshed for school/account switch');
 const html=el('scheduleCenterApp').innerHTML;
 check(html.includes('Chemistry')&&!html.includes('Old School Secret')&&!html.includes('Previous School Exam')&&!html.includes('English'),'New school timetable/date sheet mixed with prior school');
-el('ttClass').value='8|C';api.syncSubjectCatalog('tt');
+el('ttClass').value='8|C';el('ttSubject').value='Chemistry';api.syncSubjectCatalog('tt');
+check(api.scheduleTeachers('8','C','Chemistry').join('|')==='School B Chemistry','School B assigned teacher not loaded');
+check(!api.scheduleTeachers('8','C','Chemistry').includes('School A Teacher'),'School A staff leaked into school B');
 check(el('ttSubjectOptions').innerHTML.includes('Chemistry')&&!el('ttSubjectOptions').innerHTML.includes('English'),'New school syllabus options leaked old school');
 // Schools can add real sections/subjects while the app is open; refresh
 // must load them without a full PWA reinstall or stale hidden dropdowns.
@@ -119,6 +135,7 @@ await api.refreshSchoolOptions();
 check(api.classSections().length===2&&api.knownClass({className:'Class 8',sectionName:'D'}),'Refresh options did not load newly registered class section');
 el('ttClass').value='8|D';api.syncSubjectCatalog('tt');
 check(el('ttSubjectOptions').innerHTML.includes('English'),'Refresh failed to offer newly recorded school subject');
+check(api.scheduleTeachers('8','D','English').join('|')==='School B English','Teacher selection not updated on registered section refresh');
 check(el('scheduleCenterApp').innerHTML.includes('Refresh Classes & Syllabus'),'Staff are missing a school-data refresh action');
 el('scheduleCenterApp').dataset.tab='datesheet';
 await api.render();
@@ -130,6 +147,11 @@ for(const [id,value] of Object.entries({
  ttStart:'12:00',ttEnd:'12:40',ttSubject:'English',ttTeacher:'',ttRoom:''
 }))el(id).value=value;
 el('ttSave');
+el('ttTeacher').value='School B Chemistry';
+await api.saveTimetable();
+check(alerts.some(x=>x.includes('not assigned')),'Schedule Center accepted another class teacher');
+alerts.length=0;
+el('ttTeacher').value='';
 await api.saveTimetable();
 check(!alerts.length,'Successful cloud timetable save incorrectly reported an error: '+alerts.join(' / '));
 check(api.currentTimetable().some(x=>x.subject==='English'&&x.day==='Thursday'&&x.id==='e21b8a7e-a2ee-465d-9fbe-bb16c38ee45b'),'Cloud-confirmed timetable period was not saved back to the current school');
@@ -140,4 +162,4 @@ await api.loadSchoolCatalog();
 check(api.classSections().length===1,'Assigned teacher class missing from current school');
 window.EDUNIZAM_ROLE_SCOPE.teacherClassKeys=()=>new Set(['7|a']);
 check(api.classSections().length===0,'Teacher dropdown exposed unassigned class from same institute');
-console.log('Timetable/Date Sheet cloud directory PASS: active registered classes, role/school isolation, syllabus subjects and stale schedule blocking.');
+console.log('Timetable/Date Sheet PASS: current-school active staff allocations, class/section teachers, syllabus, save guards, stale schedule blocking.');
