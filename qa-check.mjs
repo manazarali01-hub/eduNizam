@@ -421,8 +421,8 @@ if(!read('login.html').includes('<svg viewBox="0 0 24 24"')) fail.push('Login ro
 if(!read('sw.js').includes("'./assets/edunizam-premium-mark.svg'")) fail.push('PWA cache does not include premium brand mark.');
 if(!read('sw.js').includes("'./edunizam-brand-refresh.css'")) fail.push('PWA cache does not include canonical design tokens.');
 const manifest=JSON.parse(read('manifest.webmanifest'));
-if(manifest.theme_color!=='#1769AA') fail.push('PWA theme color is not canonical EduNizam blue.');
-if(manifest.background_color!=='#F4F9FD') fail.push('PWA background color is not canonical cool off-white.');
+if(manifest.theme_color!=='#0b5948') fail.push('PWA theme color is not aligned with the current natural-green EduNizam design.');
+if(manifest.background_color!=='#f2faf5') fail.push('PWA background color is not aligned with the current natural off-white design.');
 
 
 const reliability=read('reliability-guardian.js');
@@ -941,8 +941,8 @@ const practiceData=read('practice-data.js');
 const guestPractice=read('guest-learning-premium.js');
 if(!practiceData.includes('id:"q21"')||!practiceData.includes('chapter:"Periodic Table"')||!practiceData.includes('difficulty:"Medium"')) fail.push('Grade 9 Chemistry Periodic Table medium practice coverage missing.');
 if(!guestPractice.includes('refreshPracticeOptions')) fail.push('Practice Center filters are not question-backed.');
-if(!guestPractice.includes("baseActions.hidden=true")) fail.push('Duplicate legacy Practice navigation remains visible.');
-if(!guestPractice.includes("baseActions.style.display='none'")) fail.push('Legacy Practice navigation is not force-hidden against author CSS.');
+if(!guestPractice.includes("legacyFilters.hidden=true")||!guestPractice.includes("$('practiceGuestSummary').hidden=true")) fail.push('Duplicate obsolete Practice filters are not hidden.');
+if(!guestPractice.includes("baseActions.hidden=false")||!guestPractice.includes("next.onclick=()=>{if(isLast)finishGuestPractice()")||!guestPractice.includes("prev.onclick=")) fail.push('Persistent Practice next/previous navigation is not wired.');
 if(!read('learning-sky.css').includes('.practice-actions[hidden],.practice-actions[aria-hidden="true"]{display:none!important}')) fail.push('Practice hidden-state CSS guard missing.');
 if(guestPractice.includes('No practice question matches these filters. Try another class, subject, chapter or difficulty.')) fail.push('Practice Center still contains the dead-end filter message.');
 const guestPremium=read('guest-learning-premium.js');
@@ -991,7 +991,7 @@ const seoRobots=read('robots.txt');
 if(!seoPublic.includes('index,follow,max-image-preview:large')) fail.push('Public EduNizam landing is not indexable.');
 if(!seoPublic.includes('href="https://edunizam.online/"')) fail.push('Public EduNizam canonical URL missing.');
 if(!seoPublic.includes('"@type":"SoftwareApplication"')) fail.push('Public EduNizam SoftwareApplication schema missing.');
-if(!seoPublic.includes('pexels-photo-36159720.jpeg')) fail.push('Public landing licensed preferred image signal missing.');
+if(!seoPublic.includes('pexels-photo-5088012.jpeg')||!seoPublic.includes('property="og:image"')||!seoPublic.includes('alt="School supplies and study materials neatly arranged on a desk"')) fail.push('Current credited public landing image/meta/alt signal missing.');
 if(!index.includes('noindex,follow,noarchive')) fail.push('Private app.html must remain noindex.');
 if(!read('login.html').includes('noindex,follow,noarchive')) fail.push('Login page must remain noindex.');
 if(!read('admission.html').includes('noindex,follow,noarchive')) fail.push('Admission application page must remain noindex.');
