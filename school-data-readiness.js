@@ -163,7 +163,7 @@
   for(const row of records){
    const chapter=!value(row?.unit_title),book=!value(row?.textbook_title),
     board=!value(row?.curriculum_board),year=value(row?.edition_year),source=value(row?.source_url);
-   const edition=!!year&&(!/^\\d{4}$/.test(year)||Number(year)<1900||Number(year)>2100);
+   const edition=!!year&&(!/^[0-9]{4}$/.test(year)||Number(year)<1900||Number(year)>2100);
    const unsafe=!!source&&!/^https:\/\/[^\s/]+/i.test(source);
    summary.missingChapter+=Number(chapter);summary.missingTextbook+=Number(book);
    summary.missingBoard+=Number(board);summary.invalidEdition+=Number(edition);
