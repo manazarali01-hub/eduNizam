@@ -74,7 +74,7 @@
     const hay=[x.title,x.board,x.subject,x.type,x.chapter,x.note,x.content].join(' ').toLowerCase();
     const terms=f.q.split(/\s+/).filter(Boolean);
     const textMatch=!terms.length||terms.every(term=>hay.includes(term));
-    return textMatch&&materialMatchesBoard(x,f.board)&&(!f.cls||x.classLevels.includes(Number(f.cls)))&&(!f.subject||x.subject===f.subject)&&(!f.type||x.type===f.type)&&(!f.status||(x.curriculumStatus||'needs-verification')===f.status);
+    return textMatch&&materialMatchesBoard(x,f.board)&&(!f.cls||x.classLevels.includes(Number(f.cls)))&&(!f.subject||x.subject===f.subject||x.subject==='All Subjects')&&(!f.type||x.type===f.type)&&(!f.status||(x.curriculumStatus||'needs-verification')===f.status);
   }
 
   function card(x){
@@ -112,7 +112,7 @@
   function render(){
     const f=filters();
     document.querySelectorAll('[data-study-tab]').forEach(b=>b.classList.toggle('active',b.dataset.studyTab===activeTab));
-    let arr=D.materials.filter(x=>match(x,f));
+    let arr=D.materials.filter(x=>match(x,f)).sort((a,b)=>Number(b.subject===f.subject&&!!f.subject)-Number(a.subject===f.subject&&!!f.subject));
     if(activeTab==='saved')arr=saved().map(byId).filter(Boolean).filter(x=>match(x,f));
     if(activeTab==='recent')arr=recent().map(x=>byId(x.id)).filter(Boolean).filter(x=>match(x,f));
     const fallbacks=activeTab==='library'?fallbackBoards(f):[];
