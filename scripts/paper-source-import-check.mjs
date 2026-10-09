@@ -18,6 +18,42 @@ for(const bad of [
  Array(7).fill({name:'a.png',type:'image/png',size:100}),
  [{name:'empty.png',type:'image/png',size:0}]
 ]){let denied=false;try{src.validateFiles(bad)}catch{denied=true}assert(denied,'Unsupported file type, count or size was accepted')}
+// Simulate a real text-based PDF run: PDF.js items must preserve
+// original line breaks for Q/A identification; no remote PDF service.
+const samplePdf={name:'g5-science.pdf',type:'application/pdf',size:1200,arrayBuffer:async()=>new Uint8Array([37,80,68,70]).buffer};
+window.pdfjsLib={
+ GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({
+  numPages:1,
+  getPage:async()=>({getTextContent:async()=>({items:[
+   {str:'Q1: What is the state of ice?',transform:[1,0,0,1,20,700]},
+   {str:'A) Gas',transform:[1,0,0,1,20,676]},
+   {str:'B) Liquid',transform:[1,0,0,1,20,652]},
+   {str:'C) Solid',transform:[1,0,0,1,20,628]},
+   {str:'D) Plasma',transform:[1,0,0,1,20,604]},
+   {str:'Answer: C',transform:[1,0,0,1,20,580]},
+   {str:'Q2: Define matter.',transform:[1,0,0,1,20,556]},
+   {str:'Answer: Matter has mass and occupies space.',transform:[1,0,0,1,20,532]}
+  ]})}),
+  destroy:async()=>{}
+ })})
+};
+const textPdf=await src.extract([samplePdf]);
+assert(textPdf.text.includes('\\nA) Gas')&&textPdf.text.includes('\\nAnswer: C'),
+ 'PDF text-extraction flattened Q/A lines rather than preserving their positions');
+assert(src.parseExplicitQuestions(textPdf.text).length===2,
+ 'Text PDF content cannot be converted into 2 human-reviewable answered questions');
+let ocrWorkers=0,ocrStops=0;
+window.Tesseract={createWorker:async language=>{
+ ocrWorkers++;
+ assert(language==='eng','Default image OCR should use English language pack');
+ return{recognize:async()=>({data:{text:'Q1: Define energy.\\nAnswer: Energy is the capacity for doing work.'}}),terminate:async()=>{ocrStops++}};
+}};
+const imageBatch=await src.extract([
+ {name:'page1.png',size:1100,type:'image/png'},
+ {name:'page2.jpg',size:1300,type:'image/jpeg'}
+]);
+assert(imageBatch.sources.length===2&&ocrWorkers===1&&ocrStops===1&&imageBatch.text.includes('Define energy'),
+ 'Photos were not OCR processed locally with a single properly terminated worker');
 const source='Q1: What is the state of ice?\nA) Gas\nB) Liquid\nC) Solid\nD) Plasma\nAnswer: C\n\nQ2: What is matter?\nAnswer: Matter has mass and occupies space.';
 const found=src.parseExplicitQuestions(source);
 assert(found.length===2&&found[0].type==='mcq'&&found[0].correct_option==='3'&&found[1].type==='short','Unambiguous PDF/OCR question-answer parsing failed');
