@@ -172,7 +172,7 @@
   async function save(){
     const btn=$('csSave');if(classSectionSaveInFlight||btn?.disabled)return;
     if(!isHead()||!cloudReady())return alert('Please sign in as Head of Institute to your verified school before saving.');
-    if(currentPeople()?.staffStatus==='error')return alert('Teacher directory could not be verified. Refresh School Records before saving.');
+    if(currentPeople()?.staffStatus!=='loaded')return alert('Teacher directory is not verified yet. Refresh School Records before saving.');
     const className=$('csClass')?.value.trim(),sectionName=$('csSection')?.value.trim();
     if(!className||!sectionName)return alert('Class aur section required hain.');
     const rows=read(),editId=$('csEditId')?.value||'',staffId=$('csTeacher')?.value||'';
@@ -192,6 +192,7 @@
   async function assign(){
     const btn=$('csAssign');if(classSectionAssignInFlight||btn?.disabled)return;
     if(!isHead()||!cloudReady())return alert('Verified school cloud login required to assign students.');
+    if(currentPeople()?.studentStatus!=='loaded')return alert('Student directory must finish loading before assignment. Refresh School Records.');
     const sid=$('csStudent')?.value,targetId=$('csTarget')?.value;
     const row=read().find(x=>String(x.id)===String(targetId)&&x.active!==false);
     if(!isHead()||!sid||!row||!window.EDUNIZAM_STUDENT_PICKER?.has(students(),sid))return alert('Select a valid student and active class/section for the current school.');
@@ -219,6 +220,7 @@
   async function remove(id,btn){
     const key=String(id||'');if(!isHead()||classSectionDeleteInFlight.has(key)||btn?.disabled)return;
     if(!cloudReady())return alert('Verified school cloud login required to delete classes.');
+    if(currentPeople()?.studentStatus!=='loaded')return alert('Student directory could not be verified. Do not delete a section until enrollment is checked. Refresh School Records.');
     const x=read().find(r=>String(r.id)===String(id));if(!x)return;
     if(studentCount(x)>0)return alert('Pehle is section ke students kisi aur section mein move karein.');
     if(!confirm('Delete Class '+x.className+' - '+x.sectionName+'?'))return;
