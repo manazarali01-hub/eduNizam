@@ -44,6 +44,9 @@ jobs:
       - name: Gate real question paper marks and school dropdowns
         run: node scripts/paper-builder-data-check.mjs
 
+      - name: Verify school data readiness audit and grade catalog
+        run: node scripts/school-data-readiness-check.mjs
+
       - name: Install pinned Playwright runtime for interaction gate
         shell: bash
         run: |
