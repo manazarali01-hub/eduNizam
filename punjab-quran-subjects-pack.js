@@ -9,6 +9,17 @@
 (function(){
 'use strict';
 const URL='https://pectaa.edu.pk/books-and-publications/';
+
+const DIRECT_BOOKS={
+ 1:'https://drive.google.com/file/d/1ohWq-zOojLu0vPut9zBqUUqoiyY1gFGF/view?usp=sharing',
+ 2:'https://drive.google.com/file/d/12c5yKIIjnyVjiV89OOKDGtE-amxkVrfF/view?usp=sharing',
+ 3:'https://drive.google.com/file/d/125VXr4hNUS_90tLX0Vx6aASghIKBcfKI/view?usp=sharing',
+ 4:'https://drive.google.com/file/d/1Ba8QJM31iXxivUuKZLIAZZJ17PejDENB/view?usp=sharing',
+ 5:'https://drive.google.com/file/d/10seBJAaN5l1CW_sRWKto4WQZRqnKqaFz/view?usp=sharing',
+ 6:'https://drive.google.com/file/d/1U-E0-_l_ERWaoomo0KRM3xXRbMNIKheE/view?usp=sharing',
+ 7:'https://drive.google.com/file/d/123L_ClDHd6uH9Sw-83rkAIoGhuEQNomZ/view?usp=sharing',
+ 8:'https://drive.google.com/file/d/1Gs2TIBIS5TumiHy1WlCm6yDYFyQnGSeH/view?usp=sharing'
+};
 const rows=[
  [1,'Tajveedi Qaida',[
   ['Recognising Arabic Letters','Which Arabic letter is Alif?',['ا','ب','ت','ث'],0,'Alif is written ا. Recognition of letter shapes precedes connected reading.','Compare ا with ب and ت; their written shapes differ.','How can a learner recognise Alif among other letters?','Explain why recognising Arabic letter shapes correctly matters when reading aloud.'],
@@ -53,7 +64,7 @@ const rows=[
 ];
 const S=window.EDUNIZAM_PUNJAB_SUBJECT_PACK={
  updatedAt:'2026-10-09',
- sourceUrl:URL,
+ sourceUrl:URL,bookUrls:DIRECT_BOOKS,
  notes:'Subject listings verified against PECTAA; topic and question text are original concept practice, not official book chapters or exam papers. Oral assessment requires a teacher.',
  rows,
  applyToCatalog(catalog){
@@ -110,9 +121,9 @@ if(Array.isArray(materials)){
   const id='pectaa-quran-textbook-directory-'+grade;
   if(ids.has(id))continue;
   materials.push({id,board:'Punjab PECTAA',classLevels:[grade],subject,type:'Official Textbook Directory',
-   title:'Class '+grade+' '+subject+' — PECTAA textbook directory',
-   source:'official',url:URL,curriculumStatus:'needs-verification',
-   note:'Official listing for this grade/subject. Browse the current book and confirm the relevant edition; this link is a directory, not a direct downloaded textbook. Concept practice does not replace oral teaching.'});
+   title:'Class '+grade+' '+subject+' — PECTAA-linked textbook',
+   source:'official',url:DIRECT_BOOKS[grade]||URL,directoryUrl:URL,curriculumStatus:'needs-verification',
+   note:'Direct Google Drive book linked on PECTAA official book directory. Check the edition and grade before use. Concept questions are EduNizam-authored, not official end-of-chapter exercises; oral recitation requires qualified teacher assessment.'});
   ids.add(id);
  }
 }
