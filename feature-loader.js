@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-senior-curriculum-v8';
+  const VERSION='20261009-teacher-data-import-v9';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -95,7 +95,7 @@
     help:['help-knowledge-center.js'],
     leavecenter:['leave-center.js'],
     examcenter:['exam-center.js','academic-operations-deep.js'],
-    paperbuilder:['teacher-paper-builder.js','academic-workflow-deep.js'],
+    paperbuilder:['teacher-question-import.js','teacher-paper-builder.js','academic-workflow-deep.js'],
     dailydiary:['daily-class-diary.js','academic-workflow-deep.js'],
     staffcenter:['staff-center.js'],
     stafftime:['staff-time-attendance.js'],
