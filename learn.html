@@ -249,6 +249,7 @@
 <script src="practice-complete-data.js?v=20261002-deep501"></script>
 <script src="practice-session-core.js?v=20261002-deep501"></script>
 <script src="learning-search-engine.js?v=20261002-deep502"></script>
+<script src="guest-paper-query.js?v=20261009-facet-search-v1"></script>
 <script>
 (()=>{
   const $=id=>document.getElementById(id);
@@ -297,54 +298,50 @@
     $('searchPapers').addEventListener('click',renderPast);$('paperSearch').addEventListener('keydown',e=>{if(e.key==='Enter')renderPast()});
   }
   function renderPast(){
-    const d=window.EDUNIZAM_PAST_PAPERS||{},boards=d.boards||[],papers=d.papers||[],rows=[];
-    const text=norm($('paperSearch')?.value||''),boardId=$('paperBoard')?.value||'',cl=$('paperClass')?.value||'',subject=$('paperSubject')?.value||'',year=$('paperYear')?.value||'',type=$('paperType')?.value||'',level=$('paperLevel')?.value||'',session=$('paperSession')?.value||'';
-    const selectedBoard=boards.find(b=>b.id===boardId);
-    const paperMatch=x=>{
+    const d=window.EDUNIZAM_PAST_PAPERS||{},boards=d.boards||[],papers=d.papers||[],api=window.EDUNIZAM_GUEST_PAPER_QUERY;
+    const f={text:$('paperSearch')?.value.trim()||'',boardId:$('paperBoard')?.value||'',cl:$('paperClass')?.value||'',
+      subject:$('paperSubject')?.value||'',year:$('paperYear')?.value||'',type:$('paperType')?.value||'',
+      level:$('paperLevel')?.value||'',session:$('paperSession')?.value||''};
+    if(['school','university','vu'].includes(f.level)){
+      // Premium explorer displays separate school, university and VU datasets.
+      $('pastGrid').innerHTML='';$('paperSummary').textContent='Choose a resource category and search.';
+      return;
+    }
+    if(!api){
+      $('paperSummary').textContent='Past Papers search module could not load.';
+      $('pastGrid').innerHTML='<div class="empty">Please reload the Learning Hub to search indexed papers.</div>';
+      return;
+    }
+    const exact=api.select({papers,boards,filters:f,globalQuery:$('globalSearch')?.value||''});
+    const cards=exact.map(x=>{
       const b=boards.find(y=>y.id===x.boardId);
-      if(boardId&&x.boardId!==boardId)return false;
-      if(level==='matric'&&!['9','10'].includes(String(x.classLevel)))return false;
-      if(level==='intermediate'&&!['11','12'].includes(String(x.classLevel)))return false;
-      if(cl&&String(x.classLevel)!==cl)return false;
-      if(subject&&x.subject!=='All Subjects'&&!norm(x.subject).includes(norm(subject)))return false;
-      if(year&&String(x.year)!==year)return false;
-      if(type&&x.type!==type)return false;
-      if(session&&norm(x.session)!==norm(session))return false;
-      if(text&&!norm(JSON.stringify(x)+' '+(b?.name||'')).includes(text))return false;
-      return match(x,b?.name||'');
-    };
-    papers.filter(paperMatch).forEach(x=>{const b=boards.find(y=>y.id===x.boardId);rows.push(resourceCard({title:x.title,description:x.note,url:x.url,source:x.source,tags:[b?.name,'Class '+x.classLevel,x.subject,x.year,x.session,x.type],paper:true}))});
-    const showPortals=!year&&!type&&!session&&(!subject||subject==='All Subjects');
-    if(showPortals) boards.filter(b=>{
-      if(boardId&&b.id!==boardId)return false;
-      if(level==='matric'&&!(b.classes||[]).some(x=>['9','10'].includes(String(x))))return false;
-      if(level==='intermediate'&&!(b.classes||[]).some(x=>['11','12'].includes(String(x))))return false;
-      if(cl&&!(b.classes||[]).map(String).includes(cl))return false;
-      if(text&&!norm(JSON.stringify(b)).includes(text))return false;
-      return true;
-    }).forEach(b=>rows.push(resourceCard({title:b.name+' Past Paper Portal',description:(b.region||'Pakistan')+' · Classes '+(b.classes||[]).join(', ')+(b.archiveUrl?' · Past-paper archive available':' · Official board portal'),url:b.archiveUrl||b.officialUrl,source:b.archiveUrl?'verified':'official',tags:[b.region,'Classes '+(b.classes||[]).join('/')],paper:true})));
-    if(!rows.length&&selectedBoard){
-      rows.push(resourceCard({
-        title:selectedBoard.name+' Examination / Paper Portal',
-        description:'No exact indexed paper matched every selected filter. Open the board source to choose the required class, subject, year or paper type. EduNizam does not invent unavailable papers.',
-        url:selectedBoard.archiveUrl||selectedBoard.officialUrl,
-        source:selectedBoard.archiveUrl?'verified':'official',
-        tags:[selectedBoard.region,'Classes '+(selectedBoard.classes||[]).join('/'),'Portal fallback'],
-        paper:true
+      return resourceCard({title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,
+        tags:[b?.name,'Class '+x.classLevel,x.subject,x.year,x.session,x.type],paper:true});
+    });
+    const browseMode=!f.year&&!f.type&&!f.session&&(!f.subject||f.subject==='All Subjects');
+    if(browseMode){
+      api.sourceFallback({boards,filters:f,limit:10}).forEach(b=>{
+        cards.push(resourceCard({title:b.name+' Past Paper / Examination Source',
+          description:'Board archive or official examination source. Select the exact paper, class, year and subject at the provider; no particular paper is claimed available.',
+          url:b.archiveUrl||b.officialUrl,source:b.archiveUrl?'verified':'official',
+          tags:[b.region,'Classes '+(b.classes||[]).join('/'),'Source directory (not an exact paper)'],paper:true}));
+      });
+    }
+    let sourceCount=0;
+    if(!cards.length){
+      const sources=api.sourceFallback({boards,filters:f,limit:8});
+      sourceCount=sources.length;
+      for(const b of sources)cards.push(resourceCard({
+        title:b.name+' Examination / Past Papers Source',
+        description:'No exact indexed paper matches every selected filter. This is an external archive / board portal, NOT the requested Annual or subject-specific PDF. Check the provider for actual files.',
+        url:b.archiveUrl||b.officialUrl,source:b.archiveUrl?'verified':'official',
+        tags:[b.region,'Classes '+(b.classes||[]).join('/'),'Board source fallback'],paper:true
       }));
     }
-    if(!rows.length&&text){
-      boards.filter(b=>norm(JSON.stringify(b)).includes(text)).slice(0,6).forEach(b=>rows.push(resourceCard({
-        title:b.name+' Examination / Paper Portal',
-        description:'Closest genuine board resource matching your search. Choose the exact subject/year at the source.',
-        url:b.archiveUrl||b.officialUrl,
-        source:b.archiveUrl?'verified':'official',
-        tags:[b.region,'Classes '+(b.classes||[]).join('/')],
-        paper:true
-      })));
-    }
-    $('paperSummary').textContent=rows.length+' result'+(rows.length===1?'':'s')+(selectedBoard?' for '+selectedBoard.name:'')+'.';
-    $('pastGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No exact indexed paper matched these filters. Try a board name or a broader search. EduNizam will not invent a paper that is not indexed.</div>';
+    $('paperSummary').textContent=exact.length+' indexed paper result'+(exact.length===1?'':'s')+
+      (f.session?' · '+f.session:'')+(f.level==='matric'?' · Matric classes 9–10':'')+
+      (sourceCount?' · '+sourceCount+' board source option'+(sourceCount===1?'':'s'):'')+'.';
+    $('pastGrid').innerHTML=cards.length?cards.join(''):'<div class="empty">No indexed paper or matching board source found for these filters. Try clearing board, year or subject.</div>';
   }
   function renderGrade(){const rows=(window.EDUNIZAM_SCHOOL_ASSESSMENTS?.resources||[]).filter(x=>match(x)).map(x=>resourceCard({title:x.title,description:x.note,url:x.fileUrl||x.url,source:x.source,tags:['Grade '+x.grade,x.subject,x.year,x.type]}));$('gradeGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No Grade 5/8 resource matched this search.</div>'}
   function renderStudy(){const rows=(window.EDUNIZAM_STUDY_DATA?.materials||[]).filter(x=>match(x)).map(x=>resourceCard({title:x.title,description:x.note||(x.content?'Built-in quick revision sheet.':''),url:x.fileUrl||x.url,source:x.source,tags:[x.board,x.subject,x.type,(x.classLevels||[]).length?'Class '+x.classLevels.join('/'):'']}));$('studyGrid').innerHTML=rows.length?rows.join(''):'<div class="empty">No study resource matched this search.</div>'}
