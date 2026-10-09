@@ -13,3 +13,27 @@ window.EDUNIZAM_STUDY_DATA={
     {id:"math-12-formula-sheet",board:"EduNizam",classLevels:[12],subject:"Mathematics",type:"Formula Sheet",title:"Class 12 Mathematics Quick Formula Sheet",source:"built-in",content:"d/dx(xⁿ)=nxⁿ⁻¹\nd/dx(sin x)=cos x\nd/dx(cos x)=−sin x\n∫xⁿdx=xⁿ⁺¹/(n+1)+C\n∫1/x dx=ln|x|+C\nSlope of tangent = dy/dx"}
   ]
 };
+/* Official textbook directory per grade: source links, not copies or fabricated chapter text.
+   Updated 2026-10-09; actual titles/editions must be checked on the authority portal. */
+(function(){
+  const D=window.EDUNIZAM_STUDY_DATA;
+  if(!D||!Array.isArray(D.materials))return;
+  for(let grade=1;grade<=12;grade++){
+    D.materials.push({
+      id:'pectaa-official-ebooks-grade-'+grade,
+      board:'Punjab · PECTAA',classLevels:[grade],subject:'All Subjects',type:'Textbook',
+      title:'Class '+grade+' — Official PECTAA Textbook / E-Book Directory',
+      source:'official',authorityId:'punjab-pectaa',curriculumStatus:'needs-verification',
+      url:'https://pectaa.edu.pk/books-and-publications/',
+      note:'Open the official Class '+grade+' ebook listing; check subject, medium, edition and current prescribed syllabus on PECTAA. EduNizam does not reproduce copyrighted textbook pages.'
+    });
+  }
+  D.materials.push({
+    id:'pef-content-list-2026-27',
+    board:'Punjab Education Foundation',classLevels:Array.from({length:12},(_,i)=>i+1),
+    subject:'All Subjects',type:'Syllabus',title:'Punjab PEF Content Lists & Model Papers (2026–27)',
+    source:'official',authorityId:'punjab-pectaa',curriculumStatus:'needs-verification',
+    url:'https://pef.edu.pk/ADU/Downloads',
+    note:'Official PEF download hub for 2026–27 primary, middle and secondary content lists and assessment model papers; confirm applicability to your school.'
+  });
+})();
