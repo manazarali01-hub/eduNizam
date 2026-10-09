@@ -116,7 +116,7 @@ async function teacherDiary(){
     });
     await page.addScriptTag({url:'http://127.0.0.1:'+port+'/daily-class-diary.js'});
     await page.waitForFunction(()=>document.querySelectorAll('#diaryClass option').length>1);
-    await page.locator('#diaryClass').selectOption('5');
+    await page.locator('#diaryClass').selectOption('5|A');
     await page.locator('#diarySubject').fill('Mathematics');
     await page.locator('#diaryTopic').fill('Fractions');
     await page.locator('#diaryHomework').fill('Exercise 4');
