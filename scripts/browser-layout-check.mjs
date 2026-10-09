@@ -1973,7 +1973,7 @@ try{
           // deterministic mobile test. Never call a third-party OCR/AI service.
           await loginFlowPage.locator('#pbSourceChapter').fill('Matter');
           await loginFlowPage.locator('#pbSourceText').fill(
-            'Q1: Which state of matter is ice?\\nA) Solid\\nB) Liquid\\nC) Gas\\nD) Plasma\\nAnswer: A\\n\\nQ2: What is matter?\\nAnswer: Matter has mass and occupies space.'
+            'Q1: Which state of matter is ice?\nA) Solid\nB) Liquid\nC) Gas\nD) Plasma\nAnswer: A\n\nQ2: What is matter?\nAnswer: Matter has mass and occupies space.'
           );
           await loginFlowPage.locator('#pbSourceParse').click();
           const draft=await loginFlowPage.locator('#pbSourceQuestions').inputValue();
