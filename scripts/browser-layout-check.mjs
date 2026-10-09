@@ -1946,6 +1946,31 @@ try{
         pushFailure('admin workflow navigation',view+' did not settle to a usable rendered state',JSON.stringify(workflowState));
       }
       await inspectActiveTemporalControls('workflow '+view);
+      if(view==='paperbuilder'){
+        await loginStep('Class 5 Science paper dropdowns and 50-mark preview',async()=>{
+          await loginFlowPage.waitForSelector('#pbClass',{state:'visible',timeout:7000});
+          const initialType=await loginFlowPage.locator('#pbClass').evaluate(el=>el.tagName);
+          if(initialType!=='SELECT')pushFailure('paper builder wizard','Class is not a dropdown');
+          await loginFlowPage.locator('#pbClass').selectOption('5');
+          await loginFlowPage.locator('#pbSubject').selectOption('General Science');
+          const chapters=await loginFlowPage.locator('#pbChapterPicker option').count();
+          if(chapters<2)pushFailure('paper builder wizard','Grade 5 General Science chapter dropdown is empty');
+          await loginFlowPage.locator('#pbChapterPicker').selectOption({index:1});
+          const first=await loginFlowPage.locator('#pbChapters').inputValue();
+          if(!first)pushFailure('paper builder wizard','Chapter selection did not update chosen chapters');
+          await loginFlowPage.locator('#pbMarks').fill('50');
+          await loginFlowPage.locator('#pbDistribution').selectOption('Balanced');
+          await loginFlowPage.locator('#pbAutoChapters').click();
+          await loginFlowPage.locator('#pbGenerate').click();
+          const preview=await loginFlowPage.locator('#paperPreview').innerText();
+          const status=await loginFlowPage.locator('#pbGenerationStatus').innerText();
+          if(!preview.includes('CONCEPT PRACTICE DRAFT')||!status.includes('Preview generated'))
+            pushFailure('paper builder wizard','Grade 5 Science paper did not preview; '+status);
+          const pattern=await loginFlowPage.locator('#pbPatternBreakdown').innerText();
+          if(!pattern.includes('50 total marks')||!pattern.includes('MCQs'))
+            pushFailure('paper builder wizard','Marks / pattern split not shown to teacher');
+        });
+      }
     }
 
     // People + operations sections: mobile navigation, lazy-loader completion, and unlocked rendered state.
