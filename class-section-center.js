@@ -49,7 +49,7 @@
   }
   async function loadPeople(inst,requestScope){
     const query=async(table,columns)=>{
-      const result=await runCloud('class-section-directory:'+table+':'+inst,'Current school '+table,async({signal}={})=>{
+      const result=await runCloud('class-section-directory:'+table+':'+requestScope,'Current school '+table,async({signal}={})=>{
         let q=cloud().state.client.from(table).select(columns).eq('institution_id',inst).limit(1000);
         q=withSignal(q,signal);const out=await q;
         if(out.error)throw out.error;return out.data||[];
@@ -76,7 +76,7 @@
   async function pullCloud(){
     if(!cloudReady())return read();
     const inst=cfg().institutionId,requestScope=cacheScope();
-    const result=await runCloud('class-sections-load:'+inst,'Class and section directory',async({signal}={})=>{
+    const result=await runCloud('class-sections-load:'+requestScope,'Class and section directory',async({signal}={})=>{
       let q=cloud().state.client.from('class_sections').select('*').eq('institution_id',inst).order('class_name').order('section_name');
       q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
     },{timeout:7000,retries:1});
@@ -102,7 +102,7 @@
       updated_by:cloud().state.user.id,updated_at:new Date().toISOString()
     };
     const inst=cfg().institutionId;
-    return runCloud('class-section-save:'+inst+':'+item.className+':'+item.sectionName,'Save class section',async({signal}={})=>{
+    return runCloud('class-section-save:'+cacheScope()+':'+item.className+':'+item.sectionName,'Save class section',async({signal}={})=>{
       // An edited class may change its name/section. Upsert by the NAME
       // mistakenly inserts a second row, leaving the old class in production.
       let q=item.cloudExisting
@@ -115,7 +115,7 @@
   async function removeCloud(id){
     if(!cloudReady())throw new Error('Verified school connection required to delete classes.');
     const inst=cfg().institutionId;
-    return runCloud('class-section-delete:'+inst+':'+id,'Delete class section',async({signal}={})=>{
+    return runCloud('class-section-delete:'+cacheScope()+':'+id,'Delete class section',async({signal}={})=>{
       let q=cloud().state.client.from('class_sections').delete().eq('institution_id',inst).eq('id',id).select('id');q=withSignal(q,signal);
       const {data,error}=await q;if(error)throw error;
       if(!data?.length)throw new Error('Class was not deleted. Check current-school access and reload.');
@@ -125,7 +125,7 @@
     if(!cloudReady())throw new Error('Verified school connection required to assign students.');
     const s=students().find(x=>String(x.id)===String(studentLocalId));if(!s)throw new Error('Selected student is not in the loaded school student directory.');
     const inst=cfg().institutionId;
-    return runCloud('class-section-assign:'+inst+':'+s.id,'Assign student section',async({signal}={})=>{
+    return runCloud('class-section-assign:'+cacheScope()+':'+s.id,'Assign student section',async({signal}={})=>{
       // The UUID came from a current-school filtered query, not a browser
       // local ID or a potentially duplicated school-issued student code.
       let q=cloud().state.client.from('core_students')
