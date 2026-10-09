@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261007-msghelpleave1';
+  const VERSION='20261009-curriculum-content1';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -51,6 +51,7 @@
   const featureBundles={
     pastpapers:['learningCore','pastpapersDeep'],
     practice:['learningCore','practiceDeep'],
+    paperbuilder:['learningCore','practiceDeep','studyDeep'],
     study:['learningCore','studyDeep'],
     schoolassessments:['learningCore'],
     universities:['learningCore','universityDeep'],
