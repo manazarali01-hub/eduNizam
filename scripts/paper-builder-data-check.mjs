@@ -5,7 +5,7 @@ import {runInNewContext} from 'node:vm';
 import {TextEncoder} from 'node:util';
 const read=(name)=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const files=[
- 'past-papers-data.js','practice-data.js','study-data.js','pectaa-core-textbooks.js',
+ 'past-papers-data.js','practice-data.js','study-data.js','pectaa-core-textbooks.js','pectaa-secondary-textbooks.js',
  'learning-premium-data.js','learning-complete-data.js','learning-required-data.js',
  'practice-foundation-data.js','practice-curriculum-expansion.js','practice-depth-data.js',
  'punjab-quran-subjects-pack.js','practice-complete-data.js','practice-session-core.js'
@@ -19,6 +19,12 @@ runInNewContext(read('teacher-paper-builder.js'),context,{filename:'teacher-pape
 const build=window.EDUNIZAM_PAPER_BUILDER?.build;
 if(typeof build!=='function')throw new Error('Paper Builder build API is not available');
 const pass=(ok,message)=>{if(!ok)throw new Error(message)};
+const secondaryBooks=window.EDUNIZAM_STUDY_DATA.materials.filter(x=>/^pectaa-direct-secondary-/.test(x.id));
+pass(secondaryBooks.length===27,'Paper Builder has not loaded 27 new secondary textbook links');
+for(const [cls,subject,minCount] of [[9,'Mathematics',2],[9,'Chemistry',2],[9,'Biology',2],[9,'Physics',2],[10,'English',1],[10,'Computer Science',1]]){
+ pass(secondaryBooks.filter(x=>x.classLevels[0]===cls&&x.subject===subject).length>=minCount,'Missing textbook source in Paper Builder for Grade '+cls+' '+subject);
+}
+pass(secondaryBooks.every(x=>x.source==='official'&&x.curriculumStatus==='needs-verification'),'Paper Builder is marking direct-linked textbooks as approved chapter catalogs');
 const quranChapterChoices=window.EDUNIZAM_PAPER_BUILDER?.chapterChoices;
 pass(quranChapterChoices('1','Tajveedi Qaida',[]).length===3,'Grade 1 Tajveedi Qaida not offered in Paper Builder');
 pass(quranChapterChoices('3','Nazra Quran',[]).length===3,'Grade 3 Nazra Quran not offered in Paper Builder');
