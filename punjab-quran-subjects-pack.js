@@ -93,6 +93,8 @@ if(PD){
    add({...common,id:id+'-short',type:'short',difficulty:'Medium',question:shortQ,answerText:fact+' '+example});
    add({...common,id:id+'-long',type:'long',difficulty:'Hard',question:longQ,answerText:'Include: '+fact+' Example or application: '+example});
   }
+  PD.subjects[level].sort();
+  PD.chapters[pair].sort();
  }
  window.EDUNIZAM_PRACTICE_EXTRA_BLUEPRINTS=blueprint;
  PD.punjabQuranExpansion={updatedAt:'2026-10-09',topicGroups:topicCount,authoredItemsAdded:added,sourceUrl:URL,verifiedTextbookChapters:false,oralRecitationNotAssessedByMCQ:true};
