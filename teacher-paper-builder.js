@@ -109,8 +109,11 @@ function questionFormValues(){
 async function saveCustomQuestion(){
  if(!ready())return alert('Cloud login required.');
  const v=questionFormValues();if(!v.className||!v.subject||!v.chapter||!v.question)return alert('Class, subject, chapter and question required.');
+ const chapterGate=schoolPaperReadiness(v.className,v.subject,[v.chapter]);
+ if(!chapterGate.allowed)return alert('Question bank requires a recorded, book-mapped school chapter: '+chapterGate.reason);
   if(v.type!=='mcq'&&!v.answer)return alert('Written questions require a marking guide / model answer.');
  if(v.type==='mcq'&&(v.options.length!==4||new Set(v.options.map(x=>x.toLowerCase())).size!==4||v.correct<0||v.correct>=4))return alert('MCQ ke liye exactly 4 different options aur valid answer number (1–4) required hain.');
+ const questionSaveScope=currentSchoolScope();
  const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,class_name:v.className,subject:normalizedSubject(v.subject),chapter:v.chapter||null,question_type:v.type,difficulty:v.difficulty,question_text:v.question,options:v.type==='mcq'?v.options:[],correct_option:v.type==='mcq'?v.correct:null,answer_text:v.answer||null,visibility:v.visibility,active:true,updated_at:new Date().toISOString()};
  let error;
  if(editingQuestionId){
@@ -118,6 +121,7 @@ async function saveCustomQuestion(){
  }else{
    ({error}=await cloud().state.client.from('teacher_question_bank').insert(payload));
  }
+ if(questionSaveScope!==currentSchoolScope())return;
  if(error)return alert(error.message);
  window.EDUNIZAM_PREMIUM?.toast?.(editingQuestionId?'Question updated.':'Question added to reusable bank.','success');clearQuestionForm();await loadCustomQuestions();
 }
@@ -159,11 +163,17 @@ async function previewQuestionImport(){
 async function saveQuestionImport(){
  const button=$('#qbImportSave'),report=$('#qbImportReport');
  if(importBusy||!ready()||!pendingImportRows.length)return;
+ const unmapped=pendingImportRows.map((q,i)=>({index:i+1,gate:schoolPaperReadiness(q.class_name,q.subject,[q.chapter])})).filter(x=>!x.gate.allowed);
+ if(unmapped.length){
+  if(report)report.textContent='Import blocked: '+unmapped.length+' question(s) lack real school textbook-chapter mapping. Row '+unmapped[0].index+': '+unmapped[0].gate.reason;
+  return;
+ }
  if(!confirm('Import '+pendingImportRows.length+' teacher-supplied questions into this institute? Please verify textbook/chapter alignment and answer keys first.'))return;
  importBusy=true;if(button){button.disabled=true;button.textContent='Importing questions...'}
- const batchSize=25,total=pendingImportRows.length;let completed=0,failed=null;
+ const batchSize=25,total=pendingImportRows.length,importScope=currentSchoolScope();let completed=0,failed=null;
  try{
   while(completed<total){
+   if(importScope!==currentSchoolScope()){failed={message:'School/account changed during question import.'};break}
    const batch=pendingImportRows.slice(completed,completed+batchSize);
    const owner=cloud().state.user.id,institution=cfg().institutionId;
    const records=batch.map(q=>({...q,institution_id:institution,creator_user_id:owner,updated_at:new Date().toISOString()}));
@@ -172,6 +182,7 @@ async function saveQuestionImport(){
    completed+=batch.length;
    if(report)report.textContent='Imported '+completed+' of '+total+'...';
   }
+  if(importScope!==currentSchoolScope()){pendingImportRows=[];return}
   pendingImportRows=pendingImportRows.slice(completed);
   if(report)report.textContent=completed+' question'+(completed===1?'':'s')+' saved in your institute.'+
    (failed?' Remaining '+pendingImportRows.length+' were not imported: '+(failed.message||failed)+'. Review the problem before retrying.':' Verify the current syllabus and answer keys before using them in exams.');
@@ -560,5 +571,5 @@ async function render(){
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,saveQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
