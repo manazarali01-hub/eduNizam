@@ -66,6 +66,7 @@ const CORE=[
   './board-paper-deep-data.js',
   './board-paper-regional-deep-data.js',
   './study-data.js',
+  './pectaa-core-textbooks.js',
   './school-assessment-data.js',
   './university-data.js',
   './education-directory-expansion.js',
