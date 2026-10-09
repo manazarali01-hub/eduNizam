@@ -22,7 +22,7 @@ function renderSchoolStatus(){
   ?schoolCatalog.classes.length+' active class/section record(s)'+(schoolCatalog.classes.length?'':' — configure Academic Groups'):
    schoolCatalog.classState==='error'?'class lookup unavailable (network/access)':'class data not yet checked';
  const unitNote=schoolCatalog.unitState==='loaded'
-  ?schoolCatalog.units.length+' saved syllabus unit(s)'+(schoolCatalog.units.length?'':' — add genuine textbook chapters in Lesson / Syllabus'):
+  ?schoolCatalog.units.length+' saved syllabus unit(s) · '+schoolCatalog.units.filter(x=>x.textbook_title&&x.curriculum_board).length+' mapped to school-entered textbook/board'+(schoolCatalog.units.length?'':' — add genuine textbook chapters in Lesson / Syllabus'):
    schoolCatalog.unitState==='error'?'syllabus lookup unavailable (network/access)':'syllabus data not yet checked';
  el.textContent='School data: '+classNote+'; '+unitNote+'. School-saved units are separate from generic concept topics; a saved title does not certify textbook accuracy.';
 }
@@ -46,7 +46,7 @@ async function loadSchoolCatalog(){
  try{
   const [classes,units]=await Promise.all([
    read('class_sections','class_name,section_name,active',250),
-   read('syllabus_progress_units','class_name,subject,unit_title,status',750)
+   read('syllabus_progress_units','class_name,subject,unit_title,status,textbook_title,curriculum_board,edition_year,source_url',750)
   ]);
   if(currentSchoolScope()!==scope)return;
   schoolCatalog={
@@ -213,6 +213,9 @@ function schoolPaperReadiness(cls,subject,topics,{conceptDraft=false}={}){
  if(saved.length){
   const extra=topics.filter(x=>!saved.some(ch=>norm(ch)===norm(x)));
   if(extra.length)return{allowed:false,reason:'These topics are not recorded for this class/subject in the school syllabus: '+extra.join(', ')+'. Add actual syllabus units or remove reference topics.'};
+  const bookless=topics.filter(topic=>!schoolCatalog.units.some(unit=>A?.sameClass?.(unit.class_name,cls)&&A?.normalizeSubject?.(unit.subject)===A?.normalizeSubject?.(subject)&&
+    norm(unit.unit_title)===norm(topic)&&String(unit.textbook_title||'').trim()&&String(unit.curriculum_board||'').trim()));
+  if(bookless.length)return{allowed:false,reason:'Selected syllabus chapter(s) have no prescribed textbook title and board mapping: '+bookless.join(', ')+'. Add actual book details in Lesson / Syllabus first.'};
   return{allowed:true,mode:'school-recorded',verified:false};
  }
  if(!conceptDraft)return{allowed:false,reason:'No school-recorded syllabus units for this class/subject. Add genuine textbook units or explicitly select Concept-only Draft (private, not verified).'};
