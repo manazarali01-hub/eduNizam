@@ -55,6 +55,9 @@ jobs:
       - name: Verify real academic class and syllabus dropdown dependencies
         run: node scripts/academic-form-options-check.mjs
 
+      - name: Verify Timetable and Date Sheet scoped cloud class syllabus dropdowns
+        run: node scripts/schedule-cloud-directory-check.mjs
+
       - name: Verify public Matric Annual Past Papers and indexed archive fallback
         run: node scripts/guest-past-paper-search-check.mjs
 
