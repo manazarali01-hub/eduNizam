@@ -88,7 +88,7 @@
     behaviorcenter:['school-student-picker.js','student-behavior.js'],
     parentcomplaints:['school-student-picker.js','parent-complaint-center.js'],
     gatecenter:['gate-pass-center.js'],
-    schoolwork:['school-work.js','academic-workflow-deep.js'],
+    schoolwork:['academic-form-options.js','school-work.js','academic-workflow-deep.js'],
     noticeboard:['notice-board-center.js'],
     lessoncenter:['academic-form-options.js','lesson-plan-center.js'],
     datareadiness:['school-data-readiness.js'],
