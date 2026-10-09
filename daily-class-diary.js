@@ -54,7 +54,7 @@ function syncSection(){
 }
 function syncDiaryCatalog(){
   const cls=$('#diaryClass')?.value||'',subject=$('#diarySubject')?.value||'';
-  const m=String(cls).match(/\\b(1[0-2]|[1-9])\\b/),grade=m?String(Number(m[1])):'';
+  const m=String(cls).match(/\b(1[0-2]|[1-9])\b/),grade=m?String(Number(m[1])):'';
   const D=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{};
   const subjects=D.subjects?.[grade]||[];
   const defaults=['Mathematics','English','Urdu','General Science','Islamiat / Ethics','Nazra Quran','Social Studies'];
