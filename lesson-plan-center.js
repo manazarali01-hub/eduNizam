@@ -193,7 +193,7 @@
     const cl=$('lp'+prefix+'Class')?.value||'',sub=$('lp'+prefix+'Subject')?.value||'';
     const numberMatch=String(cl).match(/(1[0-2]|[1-9])/);
     const grade=numberMatch?String(Number(numberMatch[1])):'';
-    const D=window.EDUNIZAM_PRACTICE_DATA||{};
+    const D=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||window.EDUNIZAM_PRACTICE_DATA||{};
     const current=D.subjects?.[grade]||[];
     const defaults=['English','Urdu','Mathematics','General Science','General Knowledge','Islamiat / Ethics','Nazra Quran','Social Studies'];
     const subjects=current.length?current:defaults;
