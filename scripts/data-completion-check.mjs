@@ -7,7 +7,7 @@ const failures=[];
 const requireOK=(ok,message)=>{if(!ok)failures.push(message)};
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const names=[
- 'past-papers-data.js','practice-data.js','study-data.js',
+ 'past-papers-data.js','practice-data.js','study-data.js','senior-curriculum-2026.js',
  'learning-premium-data.js','learning-complete-data.js','learning-required-data.js',
  'practice-foundation-data.js','practice-curriculum-expansion.js',
  'practice-depth-data.js','practice-complete-data.js','practice-session-core.js'
@@ -72,6 +72,24 @@ for(let grade=1;grade<=8;grade++){
 for(const b of [primary,middle]){
  requireOK(/\.pdf$/.test(b?.fileUrl||''),'Official PEF content-book direct PDF URL missing: '+b?.id);
 }
+const senior=win.EDUNIZAM_SENIOR_GRADE_SOURCES||{};
+const seniorResources=books.filter(x=>/^(?:ncc-2026-rationalized-|pef-secondary-content-book-2026-27|pef-qat-model-2026-27-grade-(9|10)$|pectaa-current-books-|fbise-slo-model-)/.test(x.id||''));
+const officialNccSubjects=['Mathematics','English','Urdu','Physics','Chemistry','Biology','Computer Science','General Science','Islamiat / Ethics'];
+requireOK(seniorResources.length===20,'Senior-grade official source index incomplete (expecting 20 links)');
+for(const subject of officialNccSubjects){
+ const row=seniorResources.find(x=>x.id==='ncc-2026-rationalized-'+subject.toLowerCase().replace(/[^a-z0-9]+/g,'-'));
+ requireOK(!!row&&row.subject===subject&&row.classLevels?.join(',')==='9,10,11,12','NCC 2026 subject catalog incomplete: '+subject);
+ requireOK(row?.url===senior.nccUrl&&row?.curriculumStatus==='needs-verification','NCC 2026 URL/status unverified: '+subject);
+}
+for(const gr of [9,10]){
+ requireOK(seniorResources.some(x=>x.id==='pef-qat-model-2026-27-grade-'+gr&&x.classLevels?.[0]===gr),'PEF 2026–27 QAT model list lacks Class '+gr);
+ requireOK(seniorResources.some(x=>x.id==='fbise-slo-model-'+gr+'-2026'),'FBISE missing SSC grade '+gr);
+}
+for(const gr of [11,12]){
+ requireOK(seniorResources.some(x=>x.id==='pectaa-current-books-'+gr+'-2026'),'PECTAA missing HSSC grade '+gr);
+ requireOK(seniorResources.some(x=>x.id==='fbise-slo-model-'+gr+'-2026'),'FBISE missing HSSC grade '+gr);
+}
+requireOK(seniorResources.some(x=>x.id==='pef-secondary-content-book-2026-27'&&x.url==='https://pef.edu.pk/ADU/Downloads'),'PEF secondary 2026-27 official book directory missing');
 const lite={window:{}};
 try{runInNewContext(read('academic-option-catalog.js'),lite,{filename:'academic-option-catalog.js',timeout:1500})}
 catch(error){failures.push('Lightweight Academic Option Catalog could not load: '+error.message)}
@@ -89,6 +107,8 @@ for(const grade of grades){
 }
 requireOK(features.includes("'practice-foundation-data.js'"),'Authenticated feature-loader is not loading foundation catalog');
 requireOK(learn.includes('practice-foundation-data.js'),'Guest Learning Hub is not loading foundation catalog');
+requireOK(features.includes("'senior-curriculum-2026.js'"),'Authenticated Study Library is not loading 2026 senior curriculum');
+requireOK(learn.includes('senior-curriculum-2026.js'),'Guest Study Library is not loading 2026 senior curriculum');
 for(const id of ['lpPlanSubjects','lpPlanTopics','lpUnitSubjects','lpUnitTopics'])requireOK(lesson.includes('id="'+id+'"'),'Lesson/Syllabus form is missing '+id);
 requireOK(guest.includes("const prev=$('prevQuestion'),next=$('nextQuestion')"),'Guest Practice static Next/Previous control binding missing');
 if(failures.length){
