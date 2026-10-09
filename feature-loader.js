@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261009-teacher-data-import-v9';
+  const VERSION='20261009-data-readiness-v10';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -57,6 +57,7 @@
     paperbuilder:['learningCore','practiceDeep','studyDeep'],
     study:['learningCore','studyDeep'],
     lessoncenter:['lessonCatalog'],
+    datareadiness:['lessonCatalog'],
     schedulecenter:['lessonCatalog'],
     examcenter:['lessonCatalog'],
     dailydiary:['lessonCatalog'],
@@ -86,6 +87,7 @@
     schoolwork:['school-work.js','academic-workflow-deep.js'],
     noticeboard:['notice-board-center.js'],
     lessoncenter:['lesson-plan-center.js'],
+    datareadiness:['school-data-readiness.js'],
     calendarcenter:['calendar-center.js'],
     schedulecenter:['timetable-date-sheet.js'],
     functionscenter:['school-community.js'],
