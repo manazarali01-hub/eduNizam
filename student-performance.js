@@ -34,8 +34,10 @@
     return[];
   }
   async function fillStudents(){
-    const el=$('profileStudentSelect');if(!el)return;
+    const el=$('profileStudentSelect');if(!el)return[];
+    const inst=String(window.EDUNIZAM_CLOUD_CONFIG?.institutionId||''),uid=String(window.EDUNIZAM_CLOUD?.state?.user?.id||'');
     const list=await visibleStudents();
+    if(inst!==String(window.EDUNIZAM_CLOUD_CONFIG?.institutionId||'')||uid!==String(window.EDUNIZAM_CLOUD?.state?.user?.id||''))return[];
     const current=el.value;
     el.innerHTML='<option value="">Select student</option>'+list.map(s=>'<option value="'+s.id+'">'+esc(s.name)+' · '+esc(s.className||'')+'</option>').join('');
     if(current&&list.some(s=>String(s.id)===String(current)))el.value=current;
