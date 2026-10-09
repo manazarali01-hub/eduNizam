@@ -71,7 +71,7 @@ check(el('diaryTopics').innerHTML.includes('School Prayer')&&el('diaryTopics').i
 check(!el('diaryTopics').innerHTML.includes('Genuine School Fractions'),'Previous school syllabus leaked after new school loaded');
 cloud.state.user.id='teacher2';
 api.syncDiaryCatalog();
-check(!el('diaryTopics').innerHTML.includes('School Prayer'),'Previous user's saved syllabus persisted across account switch');
+check(!el('diaryTopics').innerHTML.includes('School Prayer'),'Previous account saved syllabus persisted across account switch');
 await api.loadDiarySyllabus();
 check(api.getSyllabus().scope==='school-B|teacher2','Teacher switch did not refresh scoped syllabus');
 db['school-B'].push({class_name:'5',subject:'Islamiyat',unit_title:'Recently Saved Unit'});
