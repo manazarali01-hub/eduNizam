@@ -1,4 +1,4 @@
-const CACHE='edunizam-v273-secondary-textbooks-v41'
+const CACHE='edunizam-v274-paper-builder-wizard-v42'
 const CORE=[
   './',
   './index.html',
