@@ -13,15 +13,15 @@
   const canManageItem=x=>role()==='head'||(role()==='teacher'&&String(x?.createdBy||'')===String(cloud()?.state?.user?.id||''));
   let timetableSaveInFlight=false,dateSheetSaveInFlight=false;
   const scheduleDeleteInFlight=new Set();
-  let cloudCatalog={scope:'',classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
+  let cloudCatalog={scope:'',classes:[],units:[],staff:[],classState:'unchecked',unitState:'unchecked',staffState:'unchecked'};
   let scheduleDataScope='',catalogLoadInFlight=null;
   const currentScope=()=>[String(cfg().institutionId||''),String(cloud()?.state?.user?.id||''),role()].join('|');
   async function loadSchoolCatalog(force=false){
     if(!cloudReady()||!canManage())return;
     const scope=currentScope();
-    if(!force&&cloudCatalog.scope===scope&&Date.now()-(cloudCatalog.loadedAt||0)<30000&&cloudCatalog.classState!=='unchecked'&&cloudCatalog.unitState!=='unchecked')return;
+    if(!force&&cloudCatalog.scope===scope&&Date.now()-(cloudCatalog.loadedAt||0)<30000&&cloudCatalog.classState!=='unchecked'&&cloudCatalog.unitState!=='unchecked'&&cloudCatalog.staffState!=='unchecked')return;
     if(catalogLoadInFlight?.scope===scope)return catalogLoadInFlight.promise;
-    cloudCatalog={scope:'',classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
+    cloudCatalog={scope:'',classes:[],units:[],staff:[],classState:'unchecked',unitState:'unchecked',staffState:'unchecked'};
     const client=cloud().state.client,inst=cfg().institutionId;
     async function read(table,columns,max){
       return runCloud('schedule-directory:'+scope+':'+table,'Schedule '+table,async({signal}={})=>{
@@ -32,20 +32,25 @@
       },{timeout:6500,retries:0});
     }
     const promise=(async()=>{
-      const [classes,units]=await Promise.allSettled([
+      const [classes,units,staff]=await Promise.allSettled([
         read('class_sections','class_name,section_name,active',1200),
-        read('syllabus_progress_units','class_name,subject,unit_title',1500)
+        read('syllabus_progress_units','class_name,subject,unit_title',1500),
+        read('staff_profiles','full_name,classes,subjects,employment_status',1200)
       ]);
       if(!cloudReady()||currentScope()!==scope)return;
       cloudCatalog={
         scope,loadedAt:Date.now(),
         classes:classes.status==='fulfilled'?classes.value.map(x=>({className:x.class_name,sectionName:x.section_name,active:x.active!==false})):[],
         units:units.status==='fulfilled'?units.value.map(x=>({className:x.class_name,subject:x.subject,unitTitle:x.unit_title})):[],
+        staff:staff.status==='fulfilled'?staff.value.filter(x=>x.employment_status==='active'&&String(x.full_name||'').trim())
+          .map(x=>({name:String(x.full_name).trim(),classes:x.classes||[],subjects:x.subjects||[]})):[],
         classState:classes.status==='fulfilled'?'loaded':'error',
-        unitState:units.status==='fulfilled'?'loaded':'error'
+        unitState:units.status==='fulfilled'?'loaded':'error',
+        staffState:staff.status==='fulfilled'?'loaded':'error'
       };
       if(classes.status==='rejected')console.warn('Schedule class directory:',classes.reason?.message||classes.reason);
       if(units.status==='rejected')console.warn('Schedule syllabus options:',units.reason?.message||units.reason);
+      if(staff.status==='rejected')console.warn('Schedule staff allocations:',staff.reason?.message||staff.reason);
     })();
     catalogLoadInFlight={scope,promise};
     try{await promise}finally{if(catalogLoadInFlight?.promise===promise)catalogLoadInFlight=null}
@@ -106,6 +111,30 @@
     return '<option value="">'+blank+'</option>'+classSections().map(x=>{const v=x.className+'|'+x.sectionName;return '<option value="'+esc(v)+'" '+(v===selected?'selected':'')+'>'+esc(label(x))+'</option>'}).join('');
   }
   function splitClass(v){const [className='',sectionName='']=String(v||'').split('|');return{className,sectionName}}
+  const staffValues=x=>Array.isArray(x)?x:String(x||'').split(',').map(v=>v.trim()).filter(Boolean);
+  function scheduleTeachers(cls,sec,subject){
+    if(!cloudReady()||cloudCatalog.scope!==currentScope()||cloudCatalog.staffState!=='loaded')return[];
+    const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS,normalize=x=>String(x||'').trim().replace(/\s+/g,' ').toLowerCase();
+    const requested=normalize(subject);
+    return cloudCatalog.staff.filter(x=>{
+      const matches=staffValues(x.classes).some(assigned=>{
+        const parts=String(assigned||'').split('|');
+        return parts.length===2?!!api?.sameClass?.(parts[0].trim(),cls)&&
+          normalize(parts[1])===normalize(sec):!!api?.sameClass?.(assigned,cls);
+      });
+      return matches&&(!requested||staffValues(x.subjects).some(y=>normalize(y)===requested));
+    }).map(x=>x.name).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}));
+  }
+  function syncTimetableTeachers(){
+    const cls=splitClass($('ttClass')?.value||''),names=scheduleTeachers(cls.className,cls.sectionName,$('ttSubject')?.value||'');
+    const list=$('ttTeacherOptions');
+    if(list)list.innerHTML=names.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+    const note=$('ttTeacherNote');
+    if(note)note.textContent=cloudReady()&&cloudCatalog.scope!==currentScope()?'Current school staff directory not loaded.':
+      cloudReady()&&cloudCatalog.staffState==='error'?'School staff lookup unavailable. Refresh School Data or leave teacher unassigned.':
+      names.length?names.length+' active, assigned school teacher(s) for this class and subject.':
+      'No verified teacher assignment for this class/section/subject. Assign in Staff Center or leave blank.';
+  }
   function syncSubjectCatalog(prefix){
     const selected=$(prefix+'Class')?.value||'',list=$(prefix+'SubjectOptions');
     if(!list)return;
@@ -122,6 +151,7 @@
     const note=$(prefix+'SubjectNote');
     if(note)note.textContent=subjects.length?subjects.length+' subject suggestion(s). Confirm your school textbook and timetable allocation.':
       'No verified class subject data available; save school syllabus first or enter a correctly assigned subject.';
+    if(prefix==='tt')syncTimetableTeachers();
   }
   function mapTimetableRow(x){return{id:x.id,className:x.class_name,sectionName:x.section_name||'',day:x.weekday,periodNumber:Number(x.period_number||0),time:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',subject:x.subject,teacherName:x.teacher_name||'',roomLabel:x.room_label||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}}
   function mapExamRow(x){return{id:x.id,className:x.class_name,sectionName:x.section_name||'',examName:x.exam_name,subject:x.subject,examDate:x.exam_date,startTime:x.start_time?String(x.start_time).slice(0,5):'',endTime:x.end_time?String(x.end_time).slice(0,5):'',totalMarks:Number(x.total_marks||0),roomLabel:x.room_label||'',notes:x.notes||'',createdBy:x.creator_user_id,createdAt:x.created_at,updatedAt:x.updated_at,cloudExisting:true}}
@@ -195,7 +225,7 @@
       '<select id="ttDay">'+DAYS.map(d=>'<option '+(edit?.day===d?'selected':'')+'>'+d+'</option>').join('')+'</select>'+
       '<input id="ttPeriod" type="number" min="1" max="15" placeholder="Period number" value="'+esc(edit?.periodNumber||'')+'">'+
       '<input id="ttStart" type="time" value="'+esc(edit?.time||'')+'"><input id="ttEnd" type="time" value="'+esc(edit?.endTime||'')+'">'+
-      '<input id="ttSubject" list="ttSubjectOptions" placeholder="Subject (choose / type)" value="'+esc(edit?.subject||'')+'"><datalist id="ttSubjectOptions"></datalist><p id="ttSubjectNote" class="coverage-note">Select a registered class to load subjects.</p><input id="ttTeacher" placeholder="Teacher name" value="'+esc(edit?.teacherName||'')+'"><input id="ttRoom" placeholder="Room / lab" value="'+esc(edit?.roomLabel||'')+'">'+
+      '<input id="ttSubject" list="ttSubjectOptions" placeholder="Subject (choose / type)" value="'+esc(edit?.subject||'')+'"><datalist id="ttSubjectOptions"></datalist><p id="ttSubjectNote" class="coverage-note">Select a registered class to load subjects.</p><input id="ttTeacher" list="ttTeacherOptions" placeholder="Assigned teacher (optional)" value="'+esc(edit?.teacherName||'')+'"><datalist id="ttTeacherOptions"></datalist><p id="ttTeacherNote" class="coverage-note">Teacher allocations are verified from the current school Staff Center.</p><input id="ttRoom" placeholder="Room / lab" value="'+esc(edit?.roomLabel||'')+'">'+
       '<button id="ttSave">'+(edit?'Update Period':'Save Period')+'</button>'+(edit?'<button id="ttCancel" class="secondary">Cancel</button>':'')+'</div></article>';
   }
   function dateSheetEditor(edit=null){
@@ -227,6 +257,12 @@
     if(!item.className||!item.subject||!item.day||!Number.isInteger(item.periodNumber)||item.periodNumber<1||item.periodNumber>15||!item.time||!item.endTime)return alert('Valid class, day, period (1–15), start/end time aur subject required hain.');
     if(!canManage()||!knownClass(item))return alert('Choose a registered, accessible class and section. Configure Academic Groups first.');
     if(!scheduleReady())return alert('Current school schedule is not loaded. Refresh this page before saving.');
+    if(item.teacherName&&cloudReady()){
+      if(cloudCatalog.scope!==currentScope()||cloudCatalog.staffState!=='loaded')
+        return alert('Current school teacher allocations unavailable. Refresh Classes & Syllabus or leave teacher unassigned.');
+      if(!scheduleTeachers(item.className,item.sectionName,item.subject).some(name=>name.toLowerCase()===item.teacherName.toLowerCase()))
+        return alert('Teacher is not assigned to this class, section and subject in Staff Center. Select a real teacher or leave blank.');
+    }
     if(timeValue(item.time)>=timeValue(item.endTime))return alert('End time start time ke baad honi chahiye.');
     const rows=currentTimetable(),conflicts=timetableClashes(rows,item,editId);if(conflicts.length&&!confirm('Clash detected: '+conflicts.map(x=>label(x)+' / '+x.subject).join(', ')+'. Phir bhi save karein?'))return;
     timetableSaveInFlight=true;setBusy(btn,true,editId?'Updating...':'Saving...');
@@ -289,6 +325,7 @@
       $(prefix+'Class')?.addEventListener('change',()=>syncSubjectCatalog(prefix));
       syncSubjectCatalog(prefix);
     }
+    $('ttSubject')?.addEventListener('input',syncTimetableTeachers);
     $('ttSave')?.addEventListener('click',saveTimetable);$('dsSave')?.addEventListener('click',saveDateSheet);$('ttCancel')?.addEventListener('click',render);$('dsCancel')?.addEventListener('click',render);
     $('scheduleClassFilter')?.addEventListener('change',e=>{const root=$('scheduleCenterApp');root.dataset.classFilter=e.target.value;render()});
     $('dateExamFilter')?.addEventListener('change',e=>{const root=$('scheduleCenterApp');root.dataset.examFilter=e.target.value;render()});
@@ -322,5 +359,5 @@
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('scheduleCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_TIMETABLE_DATESHEET={render,pullCloud,cloudReady,loadSchoolCatalog,classSections,knownClass,optionList,syncSubjectCatalog,getCatalog:()=>cloudCatalog,getScheduleScope:()=>scheduleDataScope,currentTimetable,currentDateSheets,scheduleReady,refreshSchoolOptions,saveTimetable};
+  window.EDUNIZAM_TIMETABLE_DATESHEET={render,pullCloud,cloudReady,loadSchoolCatalog,classSections,knownClass,optionList,syncSubjectCatalog,getCatalog:()=>cloudCatalog,getScheduleScope:()=>scheduleDataScope,currentTimetable,currentDateSheets,scheduleReady,refreshSchoolOptions,saveTimetable,scheduleTeachers,syncTimetableTeachers};
 })();
