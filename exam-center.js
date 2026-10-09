@@ -123,7 +123,7 @@
       '<button id="saveExamSchedule">'+(editingScheduleId?'Update Schedule':'Add Schedule')+'</button></div></article>';
   }
   function syncExamSubjects(){
-    const cls=$('exClass')?.value||'',hit=String(cls).match(/\\b(1[0-2]|[1-9])\\b/);
+    const cls=$('exClass')?.value||'',hit=String(cls).match(/\b(1[0-2]|[1-9])\b/);
     const grade=hit?String(Number(hit[1])):'';
     const data=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects?.[grade]||[];
     const defaults=['Mathematics','English','Urdu','General Science','Islamiat / Ethics','Nazra Quran','Social Studies'];
