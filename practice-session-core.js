@@ -28,6 +28,33 @@ function selectSession(all,filters={},options={}){
   if(limit!=='all')rows=rows.slice(0,Math.max(1,Number(limit)||10));
   return rows;
 }
+/* For narrow selections, supplement ONLY from the same class and subject.
+ * Each genuine question retains its actual chapter, difficulty and type. */
+function expandQuestions(all,filters={},options={}){
+ const target=Math.max(1,Math.min(100,Number(options.target)||10));
+ const exact=filterQuestions(all,filters);
+ const base={classLevel:String(filters.classLevel||''),subject:String(filters.subject||'')};
+ if(target===1||exact.length>=target||!base.classLevel||!base.subject)
+  return{questions:exact,exactCount:exact.length,expanded:false,note:''};
+ const out=exact.slice(),seen=new Set(exact.map(q=>String(q.id))),sources=[];
+ const stages=[
+  ...(filters.difficulty?[{f:{...base,chapter:filters.chapter,type:filters.type},label:'other difficulty levels'}]:[]),
+  ...(filters.type?[{f:{...base,chapter:filters.chapter},label:'other question types'}]:[]),
+  ...(filters.chapter?[{f:{...base,type:filters.type},label:'other chapters'}]:[]),
+  {f:base,label:'same-subject questions'}
+ ];
+ for(const stage of stages){
+  const start=out.length;
+  for(const q of filterQuestions(all,stage.f)){
+   if(q.id==null||seen.has(String(q.id)))continue;
+   seen.add(String(q.id));out.push(q);
+   if(out.length>=target)break;
+  }
+  if(out.length>start)sources.push(stage.label);
+  if(out.length>=target)break;
+ }
+ return{questions:out,exactCount:exact.length,expanded:out.length>exact.length,note:sources.join(', ')};
+}
 function attemptValues(attempts){
   if(attempts&&typeof attempts.values==='function'&&typeof attempts.size==='number'){
     try{return [...attempts.values()]}catch(_){}
@@ -65,5 +92,5 @@ function auditMatrix(data){
   }
   return missing;
 }
-window.EDUNIZAM_PRACTICE_CORE={filterQuestions,shuffled,selectSession,sessionStats,auditMatrix};
+window.EDUNIZAM_PRACTICE_CORE={filterQuestions,shuffled,selectSession,expandQuestions,sessionStats,auditMatrix};
 })();
