@@ -4,11 +4,19 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 const source=readFileSync(new URL('../class-section-center.js',import.meta.url),'utf8');
 const ok=(condition,message)=>{if(!condition)throw Error(message)};
-const storage=new Map([['edunizam_class_sections_v1',JSON.stringify([{id:'old-school',className:'Secret',sectionName:'A'}])]]);
+const storage=new Map([
+ ['edunizam_class_sections_v1',JSON.stringify([{id:'old-school',className:'Secret',sectionName:'A'}])],
+ ['edunizam_students',JSON.stringify([{id:55,name:'Previous school local student',studentId:'PRIVATE'}])],
+ ['edunizam_staff_profiles_v1',JSON.stringify([{id:'former-staff',fullName:'Previous school staff'}])]
+]);
 const localStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,String(value))};
 const database={
- A:{class_sections:[{id:'classA',institution_id:'A',class_name:'5',section_name:'A',active:true}],core_students:[{id:'studentA',student_code:'S-01',institution_id:'A',class_name:'5',section_name:'A'}]},
- B:{class_sections:[{id:'classB',institution_id:'B',class_name:'7',section_name:'B',active:true}],core_students:[]}
+ A:{class_sections:[{id:'classA',institution_id:'A',class_name:'5',section_name:'A',active:true}],
+ core_students:[{id:'studentA',student_code:'S-01',name:'Current school student',institution_id:'A',class_name:'5',section_name:'A'}],
+ staff_profiles:[{id:'staffA',user_id:'teacher-A',full_name:'Teacher A',designation:'Teacher',institution_id:'A'}]},
+ B:{class_sections:[{id:'classB',institution_id:'B',class_name:'7',section_name:'B',active:true}],
+ core_students:[{id:'studentB',student_code:'S-02',name:'School B student',institution_id:'B',class_name:'7',section_name:'B'}],
+ staff_profiles:[{id:'staffB',user_id:'teacher-B',full_name:'Teacher B',designation:'Teacher',institution_id:'B'}]}
 };
 const actions=[];
 let rowId=0;
@@ -18,6 +26,7 @@ const client={from(table){
   select(){return this},
   eq(k,v){state.filters[k]=v;return this},
   order(){return this},
+  limit(){return this},
   update(payload){state.action='update';state.payload=payload;return this},
   insert(payload){state.action='insert';state.payload=payload;return this},
   delete(){state.action='delete';return this},
@@ -69,6 +78,9 @@ ok(database.A.class_sections.length===1,'Offline data was inserted into school A
 config.enabled=true;
 await app.pullCloud();
 ok(app.read().length===1&&app.read()[0].className==='5','Did not load actual current-school cloud classes');
+ok(app.students().length===1&&app.students()[0].id==='studentA','Student dropdown did not load only school A verified cloud UUIDs');
+ok(app.staff().length===1&&app.staff()[0].id==='staffA','Staff dropdown did not load current school verified cloud profiles');
+ok(!app.students().some(x=>x.studentId==='PRIVATE')&&!app.staff().some(x=>x.id==='former-staff'),'Unscoped local people cache leaked into school A');
 await app.saveCloud({id:'classA',cloudExisting:true,className:'6',sectionName:'C',active:true});
 ok(database.A.class_sections.length===1&&database.A.class_sections[0].class_name==='6','Editing renamed class inserted duplicate rather than updating by id');
 ok(actions.some(x=>x[0]==='update'&&x[1]==='class_sections'&&x[3].id==='classA'&&x[3].institution_id==='A'),'Edit request not constrained by row id + institution');
@@ -83,20 +95,24 @@ await app.removeCloud('new-1');
 ok(database.A.class_sections.length===1,'Delete failed for actual class ID');
 config.institutionId='B';cloud.state.user.id='admin-B';
 ok(app.read().length===0,'School A class cache visible to School B before cloud fetch');
+ok(app.students().length===0&&app.staff().length===0,'School A student or staff list leaked to school B before fetch');
 await app.pullCloud();
 ok(app.read().length===1&&app.read()[0].id==='classB','School B cloud classes not fetched');
+ok(app.students().length===1&&app.students()[0].id==='studentB'&&app.staff()[0].id==='staffB','School B picker did not load its own cloud students and teachers');
 cloud.state.user.id='different-user-B';
 ok(app.read().length===0,'School B cached directory exposed to another user');
+ok(app.students().length===0&&app.staff().length===0,'School B people exposed to another account');
 config.institutionId='A';cloud.state.user.id='admin-A';
 ok(app.read().length===0,'School B cache visible after switching back to School A');
-localStorage.setItem('edunizam_students',JSON.stringify([{id:1,studentId:'S-01',name:'Student fixture'}]));
-await app.assignCloud(1,'6','C');
+await app.pullCloud();
+await app.assignCloud('studentA','6','C');
 ok(database.A.core_students[0].class_name==='6','Cloud student class assignment failed');
-await app.assignCloud(2,'6','C').then(()=>{throw Error('Unknown student incorrectly reported as assigned')},()=>{});
-await app.assignCloud(1,'6','C');
-localStorage.setItem('edunizam_students',JSON.stringify([{id:3,studentId:'INVALID',name:'Unmatched fixture'}]));
-await app.assignCloud(3,'6','C').then(()=>{throw Error('Unmatched student reported as saved')},()=>{});
-ok(actions.some(x=>x[0]==='update'&&x[1]==='core_students'&&x[3].institution_id==='A'),'Student assignment omitted institution filter');
+await app.assignCloud('missing-student','6','C').then(()=>{throw Error('Unknown student incorrectly reported as assigned')},()=>{});
+await app.assignCloud('studentA','6','C');
+// A maliciously stale in-memory student ID must not generate a false success.
+app.students().push({id:'ghost-student',name:'Ghost'});
+await app.assignCloud('ghost-student','6','C').then(()=>{throw Error('Unmatched UUID reported as saved')},()=>{});
+ok(actions.some(x=>x[0]==='update'&&x[1]==='core_students'&&x[3].institution_id==='A'&&x[3].id==='studentA'),'Student assignment omitted institution filter or cloud UUID');
 ok(source.includes('cacheScope()!==requestScope'),'In-flight cloud result lacks identity switch guard');
 ok(!source.includes('.upsert(payload,{onConflict:'),'Class edit still uses unsafe name-based upsert');
-console.log('Class/Section cloud integrity PASS: real save required, edit by id, no phantom delete/assign, account/school cache isolation.');
+console.log('Class/Section cloud integrity PASS: real save required, edit by id, scoped cloud students/staff, no phantom delete/assign, account/school cache isolation.');
