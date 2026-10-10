@@ -161,6 +161,11 @@
       if(!cloudReady()||currentSchoolScope()!==scope)return;
       write(PLAN_KEY,p.map(mapPlan));write(UNIT_KEY,u.map(mapUnit));
       cloudLessonScope=scope;
+    }catch(error){
+      // Do not present the previously cached data as a verified, fresh
+      // syllabus after an incomplete page, access failure or storage error.
+      if(currentSchoolScope()===scope)cloudLessonScope='';
+      throw error;
     }finally{await classesJob}
   }
   async function savePlanCloud(item){
