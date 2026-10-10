@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261010-academic-groups-v35';
+  const VERSION='20261010-question-atomic-v36';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
