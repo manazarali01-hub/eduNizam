@@ -66,7 +66,7 @@ assert(calls.some(x=>x.table==='lesson_plans'&&x.start===1000),'Lesson plans fif
 assert(calls.some(x=>x.table==='class_sections'&&x.start===250),'Class sections second page missing');
 assert(calls.every(x=>x.school==='school-A'&&x.end-x.start+1===250),'Missing institution scope or wrong page boundaries');
 denySyllabusPage=true;
-await assert.rejects(()=>api.pullCloud(),/Simulated second-page/);
+await assert.rejects(()=>api.pullCloud(),error=>/Simulated second-page/.test(String(error?.message||error)));
 assert.equal(api.syllabusVerified(),false,'Failed later syllabus page left cache marked complete');
 assert.equal(api.savedUnits().length,0,'Failed later page exposed a stale previous syllabus');
 denySyllabusPage=false;
