@@ -23,9 +23,19 @@ function csv(t){
  const header=rows.shift().map(v=>String(v).replace(/^\uFEFF/,'').trim().toLowerCase().replace(/[\s-]+/g,'_'));
  return rows.map(a=>Object.fromEntries(header.map((k,i)=>[k,a[i]??''])));
 }
-const norm=x=>String(x??'').trim(),low=x=>norm(x).toLowerCase();
-const signature=x=>[x.class_name??x.class??x.className,x.subject,x.chapter,
- x.question_type??x.type,x.question_text??x.question].map(low).join('|');
+const norm=x=>String(x??'').trim(),low=x=>norm(x).normalize('NFKC').toLowerCase().replace(/\s+/g,' ');
+const gradeKey=x=>{const s=low(x),m=s.match(/^(?:(?:class|grade)\s*)?(1[0-2]|[1-9])$/);return m?m[1]:s};
+const subjectKey=x=>{
+ const v=low(x);
+ return ({science:'general science','general science':'general science',
+  math:'mathematics',maths:'mathematics',mathematics:'mathematics',
+  islamiyat:'islamiat / ethics',islamiat:'islamiat / ethics','islamic studies':'islamiat / ethics',
+  computer:'computer science','computer science':'computer science'})[v]||v;
+};
+// Whole-grade and known subject aliases are duplicate keys, never evidence
+// that two separately named or section-specific syllabus chapters are equal.
+const signature=x=>[gradeKey(x.class_name??x.class??x.className),subjectKey(x.subject),
+ low(x.chapter),low(x.question_type??x.type),low(x.question_text??x.question)].join('|');
 function prepare(text,filename,existing=[]){
  if(!text||!String(text).trim())throw Error('Select a non-empty CSV or JSON file.');
  if(new TextEncoder().encode(text).length>MAX_BYTES)throw Error('File larger than 1MB.');
