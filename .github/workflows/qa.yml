@@ -54,6 +54,9 @@ jobs:
       - name: Verify school syllabus CSV importer validation
         run: node scripts/school-syllabus-csv-check.mjs
 
+      - name: Verify school Academic Groups reviewed CSV importer
+        run: node scripts/academic-groups-csv-check.mjs
+
       - name: Verify Lesson Syllabus prescribed textbook and chapter publication data
         run: node scripts/lesson-textbook-traceability-check.mjs
 
