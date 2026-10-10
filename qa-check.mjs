@@ -10,6 +10,12 @@ const exists=p=>fs.existsSync(path.join(root,p));
 const index=read('app.html');
 const app=read('app.js');
 const feature=read('feature-loader.js');
+// Keep the script URL in sync with the loader's internal release token.
+// The service worker caches versioned scripts as immutable resources.
+const release=feature.match(/const VERSION=['"]([^'"]+)['"]/);
+const loaderUrl=index.match(/<script\s+src=["']feature-loader\.js\?v=([^"']+)["']/);
+if(!release||!loaderUrl||release[1]!==loaderUrl[1])
+  fail.push('Feature loader URL must match feature-loader.js VERSION; otherwise installed PWAs may serve stale code.');
 const visual=read('edunizam-visual-system.css');
 const htmlFiles=fs.readdirSync(root).filter(f=>f.endsWith('.html'));
 
