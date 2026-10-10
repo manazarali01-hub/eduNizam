@@ -25,6 +25,8 @@ jobs:
           node-version: '22'
       - name: Run EduNizam QA
         run: node qa-check.mjs
+      - name: Verify navigation load races and dynamic action binding
+        run: node scripts/navigation-request-race-check.mjs
       - name: Validate public homepage feedback intake and submission safeguards
         run: node scripts/public-feedback-check.mjs
       - name: Reproduce logout/session restore races and backup isolation
