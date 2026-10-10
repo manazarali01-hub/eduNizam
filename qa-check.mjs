@@ -10,6 +10,12 @@ const exists=p=>fs.existsSync(path.join(root,p));
 const index=read('app.html');
 const app=read('app.js');
 const feature=read('feature-loader.js');
+// Keep the script URL in sync with the loader's internal release token.
+// The service worker caches versioned scripts as immutable resources.
+const release=feature.match(/const VERSION=['"]([^'"]+)['"]/);
+const loaderUrl=index.match(/<script\s+src=["']feature-loader\.js\?v=([^"']+)["']/);
+if(!release||!loaderUrl||release[1]!==loaderUrl[1])
+  fail.push('Feature loader URL must match feature-loader.js VERSION; otherwise installed PWAs may serve stale code.');
 const visual=read('edunizam-visual-system.css');
 const htmlFiles=fs.readdirSync(root).filter(f=>f.endsWith('.html'));
 
@@ -207,7 +213,6 @@ if(!read('feature-loader.js').includes("const VERSION='20261010-syllabus-csv-v34
 if(!read('sw.js').includes("const CACHE='edunizam-v277-auth-race-v45'"))fail.push('PWA release cache does not match the paper wizard release.');
 if(!read('pwa-install.js').includes('sw.js?v=20261010-auth-race-v45'))fail.push('Installed-app service worker update URL is stale.');
 if(!read('system-auto-update.js').includes("const ACTIVE_CACHE='edunizam-v277-auth-race-v45'"))fail.push('PWA system updater still clears or retains the wrong cache.');
-if(!read('app.html').includes('feature-loader.js?v=20261010-syllabus-csv-v29'))fail.push('Paper Builder lazy loader still uses the old cached URL.');
 const systemAutoUpdateSafety=read('system-auto-update.js');
 const reliabilitySafety=read('reliability-guardian.js');
 if(systemAutoUpdateSafety.includes("querySelectorAll('button[disabled]')")) fail.push('System auto-update still globally re-enables disabled controls.');

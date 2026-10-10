@@ -64,6 +64,7 @@ node('practiceSubject').value='General Science';node('practiceSubject').dispatch
 assert.match(node('practiceChapter').innerHTML,/Energy/,'New class chapter catalog not populated');
 assert.doesNotMatch(node('practiceChapter').innerHTML,/Matter/,'Old class chapter leaked into new class');
 assert.match(read('app.html'),/id="practiceCoverageStatus"/);
-assert.match(read('feature-loader.js'),/20261010-syllabus-csv-v34/);
-assert.match(read('app.html'),/feature-loader\.js\?v=20261010-syllabus-csv-v29/);
+const release=read('feature-loader.js').match(/const VERSION=['"]([^'"]+)['"]/);
+assert.ok(release,'Feature loader release token must exist');
+assert.ok(read('app.html').includes('feature-loader.js?v='+release[1]),'HTML must load current feature-loader version');
 console.log('Practice native-select regression PASS: refresh retention, real-question subjects/chapters, live coverage and dependent reset.');
