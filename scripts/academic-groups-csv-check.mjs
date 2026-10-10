@@ -37,6 +37,12 @@ assert.equal(csv.validate(fileText,rows).valid.length,2);
 assert.equal(csv.validate(fileText,rows).valid[1].roomLabel,'East, Block');
 assert.equal(csv.validate(header+'\nGrade 5,A,,\n',rows).errors.length,1,'Current school duplicate not prevented');
 assert.equal(csv.validate(header+'\n5,A,,\n',rows).errors.length,1,'Class grade alias duplicate not prevented');
+const noHelper={};
+runInNewContext(source,{window:noHelper,document:doc,
+ localStorage:{getItem:()=>JSON.stringify({role:'head'})},
+ Promise,setTimeout:()=>0,confirm:()=>true,console});
+assert.equal(noHelper.EDUNIZAM_ACADEMIC_GROUPS_CSV.validate(header+'\n5,A,,',rows).errors.length,1,
+ 'Grade alias deduplication must work before academic helper scripts load');
 assert.equal(csv.validate(header+'\n'+row1+'\n'+row1,rows).errors.length,1,'Repeated CSV row not detected');
 assert.equal(csv.validate(header+'\n5,Z,,0',rows).errors.length,1,'Zero capacity must fail');
 assert.equal(csv.validate(header+'\n5,Z,,not-a-number',rows).errors.length,1);
