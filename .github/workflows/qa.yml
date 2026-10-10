@@ -57,6 +57,9 @@ jobs:
       - name: Verify Paper Builder exact school syllabus save and private draft isolation
         run: node scripts/paper-school-save-gate-check.mjs
 
+      - name: Verify sourced Class 5 Science chapter review and book-aligned blank questions
+        run: node scripts/class5-science-reference-workflow-check.mjs
+
       - name: Verify school syllabus CSV importer validation
         run: node scripts/school-syllabus-csv-check.mjs
 
