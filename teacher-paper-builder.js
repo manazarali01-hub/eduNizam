@@ -21,6 +21,51 @@ function schoolChapters(cls,subject,sourceUnits=null){
  }
  return [...found.values()];
 }
+
+function schoolSetupReadiness(cls=$('#pbClass')?.value||'',subject=$('#pbSubject')?.value||''){
+ const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
+ const verified=ready()&&catalogScope===currentSchoolScope()&&schoolCatalog.classState==='loaded'&&schoolCatalog.unitState==='loaded';
+ const questionLoaded=ready()&&questionScope===currentSchoolScope();
+ if(!verified)return{verified:false,questionLoaded:false,classes:0,units:[],mapped:0,missing:[],questions:null,coverage:[]};
+ const units=schoolCatalog.units.filter(x=>(!cls||A?.sameClass?.(x.class_name,cls))&&
+   (!subject||A?.normalizeSubject?.(x.subject)===A?.normalizeSubject?.(subject))&&unitInSection(x));
+ const hasBook=x=>!!String(x.textbook_title||'').trim()&&!!String(x.curriculum_board||'').trim();
+ const chapters=[...new Map(units.map(x=>[String(x.unit_title||'').toLowerCase().trim(),String(x.unit_title||'').trim()]).filter(([k])=>k)).values()];
+ const questions=questionLoaded?customQuestions.filter(x=>x.active!==false&&(!cls||A?.sameClass?.(x.class_name,cls))&&
+   (!subject||A?.normalizeSubject?.(x.subject)===A?.normalizeSubject?.(subject))).length:null;
+ const coverage=cls&&subject&&A?.audit?A.audit({className:cls,subject,chapters,
+   teacherQuestions:questionLoaded?customQuestions:[],practiceQuestions:window.EDUNIZAM_PRACTICE_DATA?.questions||[]}).chapters:[];
+ return{verified,questionLoaded,classes:schoolCatalog.classes.length,units,mapped:units.filter(hasBook).length,missing:units.filter(x=>!hasBook(x)),questions,coverage};
+}
+function renderSchoolReadiness(){
+ const el=$('#pbSchoolSetupChecklist');if(!el)return;
+ if(!ready()){el.textContent='Sign in to a school workspace to check registered classes, textbooks and teacher questions.';return}
+ const report=schoolSetupReadiness(),cls=$('#pbClass')?.value||'',subject=$('#pbSubject')?.value||'';
+ if(!report.verified){el.textContent='School records have not been verified. Refresh school records; access errors are not an empty syllabus.';return}
+ const issues=[];
+ if(!report.classes)issues.push('Register active classes and sections in Academic Groups');
+ if(cls&&report.classes&&!schoolCatalog.classes.some(x=>window.EDUNIZAM_PAPER_SYLLABUS_AUDIT?.sameClass?.(x.class_name,cls)))
+  issues.push('This class is not registered in the current school');
+ if(cls&&subject&&!report.units.length)issues.push('Record prescribed textbook chapters in Lesson / Syllabus');
+ if(report.missing.length)issues.push(report.missing.length+' chapter(s) need a genuine textbook title and curriculum board');
+ if(report.questions===0)issues.push('Add teacher-reviewed MCQ, short and long questions with answer keys');
+ const missingTypes=report.coverage.filter(x=>['mcq','short','long'].some(type=>x.types[type].total===0));
+ if(missingTypes.length)issues.push(missingTypes.length+' chapter(s) lack at least one question type');
+ const rows=report.coverage.slice(0,20).map(x=>{
+  const related=report.units.filter(unit=>window.EDUNIZAM_PAPER_SYLLABUS_AUDIT?.chapterMatches?.(unit.unit_title,x.chapter));
+  const book=related.some(unit=>unit.textbook_title&&unit.curriculum_board)?'Recorded':'Missing';
+  return '<tr><td>'+esc(x.chapter)+'</td><td>'+book+'</td>'+
+   ['mcq','short','long'].map(type=>'<td>'+x.types[type].total+'</td>').join('')+'</tr>';
+ }).join('');
+ el.innerHTML='<strong>Actual school data readiness</strong><p>'+report.classes+' active classes/sections · '+
+   report.units.length+' selected syllabus chapters · '+report.mapped+' book/board mapped · '+
+   (report.questionLoaded?report.questions+' saved teacher questions':'teacher questions not yet checked')+
+   '. Reference concept questions are not official textbook extracts.</p>'+
+   (issues.length?'<p><strong>Action needed:</strong> '+issues.map(esc).join(' · ')+'</p>':
+    '<p>School data recorded. Teacher must still verify the textbook edition and answers.</p>')+
+   (rows?'<div class="schedule-table-wrap"><table class="schedule-table"><thead><tr><th>School chapter</th><th>Book</th><th>MCQ</th><th>Short</th><th>Long</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'')+
+   (report.coverage.length>20?'<p>Showing 20 of '+report.coverage.length+' chapters.</p>':'');
+}
 function renderSchoolStatus(){
  const el=$('#pbSchoolCatalogStatus');if(!el)return;
  const classNote=schoolCatalog.classState==='loaded'
@@ -30,6 +75,7 @@ function renderSchoolStatus(){
   ?schoolCatalog.units.length+' saved syllabus unit(s) · '+schoolCatalog.units.filter(x=>x.textbook_title&&x.curriculum_board).length+' mapped to school-entered textbook/board'+(schoolCatalog.units.length?'':' — add genuine textbook chapters in Lesson / Syllabus'):
    schoolCatalog.unitState==='error'?'syllabus lookup unavailable (network/access)':'syllabus data not yet checked';
  el.textContent='School data: '+classNote+'; '+unitNote+'. School-saved units are separate from generic concept topics; a saved title does not certify textbook accuracy.';
+ renderSchoolReadiness();
 }
 async function loadSchoolCatalog(){
  if(!ready())return;
@@ -80,7 +126,7 @@ async function loadCustomQuestions(){
  if(!ready()||currentSchoolScope()!==scope)return[];
  if(error){console.warn('Question bank:',error.message||error);customQuestions=[];questionScope='';return[]}
  customQuestions=Array.isArray(data)?data:[];questionScope=scope;
- renderQuestionBankList();refreshPaperCatalog();refreshTeacherQuestionCatalog();updateBankInsight();return customQuestions;
+ renderQuestionBankList();refreshPaperCatalog();refreshTeacherQuestionCatalog();updateBankInsight();renderSchoolReadiness();return customQuestions;
 }
 function sameChapter(selected,actual){
  const api=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
@@ -536,7 +582,7 @@ function refreshPaperCatalog(){
     (other.length?'<optgroup label="Concept topics / teacher bank (verify textbook)">'+other.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</optgroup>':'');
    picker.disabled=!chapters.length;
   }
-  renderSelectedChapters();
+  renderSelectedChapters();renderSchoolReadiness();
   const holder=$('#pbCurriculumSources'),id=$('#pbBookBoard')?.value||'punjab-pectaa',R=window.EDUNIZAM_CURRICULUM_REGISTRY||{};
   if(!holder)return;
   const auth=(R.authorities||[]).find(x=>x.id===id);
@@ -659,7 +705,11 @@ async function render(){
  const sourceBox=$('#pbCurriculumSources');
  if(sourceBox){
   sourceBox.insertAdjacentHTML('afterend','<div class="coverage-note"><strong>Saved School Syllabus / Class Directory</strong><p id="pbSchoolCatalogStatus" role="status" aria-live="polite">Checking school records…</p><div class="paper-actions"><button type="button" class="secondary" id="pbSchoolRefresh">Refresh school records</button><button type="button" class="secondary" id="pbOpenLessonSetup">Open Lesson / Syllabus Setup</button></div></div>');
-  $('#pbSchoolRefresh').onclick=loadSchoolCatalog;
+  const pbStatus=$('#pbSchoolCatalogStatus')?.parentElement;
+   pbStatus?.insertAdjacentHTML?.('beforeend','<div id="pbSchoolSetupChecklist" role="status" aria-live="polite">Checking current school data…</div>');
+   $('#pbOpenLessonSetup')?.insertAdjacentHTML?.('beforebegin','<button type="button" class="secondary" id="pbOpenClassSetup">Open Academic Groups</button>');
+   if($('#pbOpenClassSetup'))$('#pbOpenClassSetup').onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('classcenter');
+   $('#pbSchoolRefresh').onclick=loadSchoolCatalog;
   $('#pbOpenLessonSetup').onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('lessoncenter');
   renderSchoolStatus();
  }
@@ -701,5 +751,5 @@ async function render(){
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,saveQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,saveQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
