@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261010-syllabus-csv-v34';
+  const VERSION='20261010-academic-groups-v35';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -113,7 +113,7 @@
     inventorycenter:['inventory-center.js'],
     librarycenter:['library-center.js'],
     transportcenter:['transport-center.js'],
-    classcenter:['school-student-picker.js','class-section-center.js'],
+    classcenter:['school-student-picker.js','class-section-center.js','academic-groups-csv.js'],
     fees:['fee-center.js','academic-operations-deep.js'],
     results:['result-center-deep.js','promotion-center.js'],
     communication:['communication-center.js'],
