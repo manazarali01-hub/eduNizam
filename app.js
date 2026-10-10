@@ -40,14 +40,19 @@ function persist(){
  localStorage.setItem('edunizam_activity',JSON.stringify(state.activity.slice(-20)));
 }
 function logActivity(text){state.activity.push({text,time:new Date().toLocaleString()});persist();renderActivity();}
+let latestViewRequest=0;
 async function setView(view){
  if(window.EDUNIZAM_ROLE_SCOPE?.canView && !window.EDUNIZAM_ROLE_SCOPE.canView(view)){
    window.EDUNIZAM_RELIABILITY?.report?.('Access Guard','Blocked a role from opening a restricted section.',String(view||''),'warning');
    const fallback='dashboard';
    if(view!==fallback&&window.EDUNIZAM_ROLE_SCOPE.canView(fallback))return setView(fallback);
-   return;
+   return false;
  }
- const target=$(view);if(!target)return;
+ const target=$(view);if(!target)return false;
+ const requestId=++latestViewRequest;
+ const isCurrentView=()=>requestId===latestViewRequest &&
+   target.classList.contains('active') &&
+   (!window.EDUNIZAM_ROLE_SCOPE?.canView || window.EDUNIZAM_ROLE_SCOPE.canView(view));
  const nav=document.querySelector('[data-view="'+view+'"]');
  // Make navigation feel instant on mobile: reveal the destination before waiting for lazy feature code.
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -74,11 +79,16 @@ async function setView(view){
    target.prepend(loadingNotice);
    // Give the browser one paint so taps never look frozen while scripts are fetched.
    await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
+   if(!isCurrentView()){loadingNotice.remove();return false;}
    try{
      await loader.ensure(view);
      loadingNotice.remove();
      loadingNotice=null;
+     if(!isCurrentView())return false;
    }catch(e){
+     // A failed fetch for a view already abandoned must not display an error
+     // over the new section, toast, or revive its Retry button.
+     if(!isCurrentView()){loadingNotice.remove();return false;}
      console.error('Feature load failed:',view,e);
      loadingNotice.className='feature-loading-notice error';
      loadingNotice.innerHTML='<span>This section could not load. Check the connection and try again.</span><button type="button" class="secondary">Retry</button>';
@@ -90,9 +100,11 @@ async function setView(view){
        await setView(view);
      };
      window.EDUNIZAM_PREMIUM?.toast?.('Section load failed. Tap Retry.','error');
-     return;
+     return false;
    }
  }
+ // When two taps race, only the last active section may render/emit open events.
+ if(!isCurrentView())return false;
  if(view==='attendance')renderAttendance();
  if(view==='attendanceanalytics'&&window.EDUNIZAM_ATTENDANCE_ANALYTICS?.render)window.EDUNIZAM_ATTENDANCE_ANALYTICS.render();
  if(view==='pastpapers')renderPastPapers();
@@ -135,13 +147,20 @@ async function setView(view){
  if(view==='auditcenter'&&window.EDUNIZAM_AUDIT_CENTER?.render)window.EDUNIZAM_AUDIT_CENTER.render();
  if(view==='troubleshoot'&&window.EDUNIZAM_RELIABILITY?.render)window.EDUNIZAM_RELIABILITY.render();
  window.dispatchEvent(new CustomEvent('edunizam:view-open',{detail:{view}}));
+ return true;
 }
 window.EDUNIZAM_APP_NAV={setView};
-document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+// Delegation keeps section buttons added after initial startup clickable too.
+const navRoot=document.getElementById('nav');
+navRoot?.addEventListener('click',event=>{
+ const button=event.target.closest?.('.nav-item[data-view]');
+ if(!button||button.disabled||!navRoot.contains(button))return;
+ setView(button.dataset.view);
+});
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=async()=>{
   const targetView=b.dataset.jump;
-  await setView(targetView);
-  if(targetView==='students')openStudentForm();
+  const opened=await setView(targetView);
+  if(opened&&targetView==='students')openStudentForm();
 });
 let editingStudentId=null,studentSaveInFlight=false;
 const studentDeleteInFlight=new Set();
