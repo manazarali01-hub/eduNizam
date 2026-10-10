@@ -39,6 +39,22 @@ const context={window,document:doc,localStorage:{getItem:()=>JSON.stringify({rol
 runInNewContext(read('paper-syllabus-audit.js'),context,{filename:'paper-syllabus-audit.js'});
 runInNewContext(read('teacher-question-import.js'),context,{filename:'teacher-question-import.js'});
 runInNewContext(read('teacher-paper-builder.js'),context,{filename:'teacher-paper-builder.js'});
+const aliasImport=window.EDUNIZAM_QUESTION_IMPORT;
+const aliasRows=[
+ {class:'5',subject:'Science',chapter:'Energy',type:'short',difficulty:'Balanced',
+  question:'Name one renewable source.',answer:'Sunlight.'},
+ {class:'Grade 5',subject:'General Science',chapter:'Energy',type:'short',difficulty:'Balanced',
+  question:'Name one renewable source.',answer:'Sunlight.'}
+];
+const aliasCheck=aliasImport.prepare(JSON.stringify(aliasRows),'reviewed.json');
+assert.equal(aliasCheck.valid.length,1,'Grade 5 Science alias import inserted a duplicate');
+assert.equal(aliasCheck.duplicates,1,'A duplicate class/subject alias should be counted');
+const existingAlias=aliasImport.prepare(JSON.stringify([aliasRows[0]]),'reviewed.json',
+ [{class_name:'Class 5',subject:'General Science',chapter:'Energy',question_type:'short',question_text:'Name one renewable source.'}]);
+assert.equal(existingAlias.valid.length,0,'Saved Grade 5 Science alias was duplicated on reimport');
+assert.equal(existingAlias.duplicates,1);
+const distinctScience=aliasImport.prepare(JSON.stringify([aliasRows[0],{...aliasRows[0],subject:'Physics'}]),'reviewed.json');
+assert.equal(distinctScience.valid.length,2,'Unrelated science subjects must not be merged');
 const app=window.EDUNIZAM_PAPER_BUILDER;
 assert.ok(app.previewQuestionImport&&app.saveQuestionImport,'Question import controls unavailable');
 const csv='class,subject,chapter,type,difficulty,question,option1,option2,option3,option4,correct_option,answer,visibility\n'+
