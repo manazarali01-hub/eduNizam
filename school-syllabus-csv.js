@@ -7,6 +7,30 @@ const norm=x=>String(x??'').normalize('NFKC').trim().toLowerCase().replace(/\s+/
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const fields=['className','sectionName','subject','unitTitle','textbookTitle','curriculumBoard','editionYear','sourceUrl'];
 const boards=new Set(['punjab-pectaa','federal-fbise','sindh-stbb','kp-textbook','balochistan','other']);
+// Historic, attributed CHAPTER REFERENCE ONLY from Punjab Education Foundation's
+// 2025–26 Primary Content Book, Class 5 General Science, PDF pp. 253–263.
+// PEF partner-school planning is NOT a certification of any school's 2026–27
+// prescribed textbook/edition. Current titles must be checked with PECTAA.
+const class5ScienceReference=Object.freeze({
+ session:'2025-26',provider:'Punjab Education Foundation (PEF)',grade:'5',
+ source:'https://www.pef.edu.pk/pdf/downloads/Content-List/Content-book-Primary-01-09-25.pdf',
+ currentBooks:'https://pectaa.edu.pk/books-and-publications/',
+ chapters:Object.freeze([
+  'Classification of Living Organisms','Microorganisms','Flowers and Seeds',
+  'Environmental Pollution','Physical and Chemical Changes of Matter',
+  'Light and Sound','Electricity and Magnetism','Structure of the Earth',
+  'Space and Satellites'
+ ])
+});
+// Deliberately leave textbook title, authority, edition and book URL EMPTY.
+// CSV validation must reject this review worksheet until authorized staff
+// verify those fields from the actual textbook assigned in their school.
+function class5ScienceReviewCsv(){
+ const head=fields.join(','),quoted=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const rows=class5ScienceReference.chapters.map(title=>
+  ['5','','General Science',title,'','','',''].map(quoted).join(','));
+ return '\uFEFF'+head+'\r\n'+rows.join('\r\n')+'\r\n';
+}
 const scope=()=>String(window.EDUNIZAM_CLOUD_CONFIG?.institutionId||'')+'|'+String(window.EDUNIZAM_CLOUD?.state?.user?.id||'');
 const api=()=>window.EDUNIZAM_LESSON_CENTER;
 const client=()=>window.EDUNIZAM_CLOUD?.state?.client;
@@ -119,6 +143,13 @@ async function save(){
    :'Batch save was not confirmed: '+String(e.message||e)+'. Check existing school chapters before validating and retrying.',true);
  }finally{busy=false;if(button?.isConnected)button.disabled=true}
 }
+function downloadClass5ScienceReference(){
+ const file=new Blob([class5ScienceReviewCsv()],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(file),a=document.createElement('a');
+ a.href=url;a.download='class5-science-PEF-2025-26-REVIEW-ONLY.csv';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),500);
+ announce('Reference worksheet downloaded (PEF 2025–26). Verify the 2026–27 book, all nine chapters and authority, then complete the blank textbook fields before CSV validation. Nothing was saved.');
+}
 function template(){
  const blob=new Blob(['\uFEFF'+fields.join(',')+'\r\n'],{type:'text/csv;charset=utf-8'});
  const a=document.createElement('a'),url=URL.createObjectURL(blob);
@@ -129,15 +160,17 @@ function mount(){
  if(!target||!['head','teacher'].includes(role())||$('sbiImport'))return;
  target.insertAdjacentHTML('beforebegin','<article class="card" id="sbiImport" style="margin:16px 0"><h3>Bulk Import School Syllabus (CSV)</h3>'+
  '<p class="coverage-note">Import your real textbooks and exact chapter names. Requires registered classes, book/board details and review. Template contains no fabricated content.</p>'+
+ '<p class="coverage-note">Class 5 Science chapter reference: PEF Content Book <strong>2025–26 only</strong> (partner-school planning; not an approved 2026–27 school syllabus). <a href="https://www.pef.edu.pk/pdf/downloads/Content-List/Content-book-Primary-01-09-25.pdf" target="_blank" rel="noopener noreferrer">View PEF source</a> · <a href="https://pectaa.edu.pk/books-and-publications/" target="_blank" rel="noopener noreferrer">Check current PECTAA books</a>. Reference CSV has <strong>blank textbook title and board</strong>: no import until your school confirms them.</p>'+
  '<div class="paper-actions"><button type="button" class="secondary" id="sbiTemplate">Download blank CSV</button>'+
+ '<button type="button" class="secondary" id="sbiClass5Reference">Class 5 Science: 9 sourced chapter names (review CSV)</button>'+
  '<input id="sbiFile" type="file" accept=".csv,text/csv" aria-label="Select genuine school syllabus CSV">'+
  '<button type="button" class="secondary" id="sbiPreviewButton">Validate & Preview</button>'+
  '<button type="button" id="sbiSave" disabled>Save reviewed chapters</button></div>'+
  '<p id="sbiStatus" role="status" aria-live="polite">Up to 150 rows and 1 MB. No records are saved before confirmation.</p>'+
  '<div id="sbiPreview"></div></article>');
- $('sbiTemplate').onclick=template;$('sbiPreviewButton').onclick=preview;$('sbiSave').onclick=save;
+ $('sbiTemplate').onclick=template;$('sbiClass5Reference').onclick=downloadClass5ScienceReference;$('sbiPreviewButton').onclick=preview;$('sbiSave').onclick=save;
  $('sbiFile').onchange=()=>{staged=[];stagedScope='';$('sbiSave').disabled=true;announce('Selected file changed. Validate the new CSV.')};
 }
-window.EDUNIZAM_SYLLABUS_CSV={fields,csv,validate,mount,preview,save};
+window.EDUNIZAM_SYLLABUS_CSV={fields,csv,validate,mount,preview,save,class5ScienceReference,class5ScienceReviewCsv,downloadClass5ScienceReference};
 setTimeout(mount,0);
 })();
