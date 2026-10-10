@@ -569,7 +569,7 @@ function refreshPaperCatalog(){
   if(subjectSelect){
    subjectSelect.innerHTML='<option value="">'+(cl?'Select Subject':'Select Class First')+'</option>'+subjects.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
    subjectSelect.disabled=!cl;
-   subjectSelect.value=subjects.includes(previousSubject)?previousSubject:'';
+   subjectSelect.value=subjects.includes(previousSubject)?previousSubject:(subjects.includes(normalizedSubject(previousSubject))?normalizedSubject(previousSubject):'');
   }
   const sub=subjectSelect?.value||'';
   const chapters=chapterChoices(cl,sub);

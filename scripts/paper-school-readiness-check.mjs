@@ -23,6 +23,7 @@ vm.runInNewContext(read('teacher-paper-builder.js'),cx);
 const api=win.EDUNIZAM_PAPER_BUILDER;
 assert.equal(api.schoolSetupReadiness().verified,false);
 await api.loadSchoolCatalog();await api.loadCustomQuestions();
+assert.equal(el['#pbSubject'].value,'General Science','Science alias lost when dropdown was rebuilt');
 let r=api.schoolSetupReadiness();
 assert.equal(r.classes,2);assert.equal(r.units.length,2);assert.equal(r.mapped,1);
 assert.equal(r.missing.length,1);assert.equal(r.questions,2);

@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261010-paper-readiness-v32';
+  const VERSION='20261010-paper-readiness-v33';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.

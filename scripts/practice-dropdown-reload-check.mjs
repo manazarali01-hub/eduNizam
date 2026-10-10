@@ -64,6 +64,6 @@ node('practiceSubject').value='General Science';node('practiceSubject').dispatch
 assert.match(node('practiceChapter').innerHTML,/Energy/,'New class chapter catalog not populated');
 assert.doesNotMatch(node('practiceChapter').innerHTML,/Matter/,'Old class chapter leaked into new class');
 assert.match(read('app.html'),/id="practiceCoverageStatus"/);
-assert.match(read('feature-loader.js'),/20261010-paper-readiness-v32/);
-assert.match(read('app.html'),/feature-loader\.js\?v=20261010-paper-readiness-v27/);
+assert.match(read('feature-loader.js'),/20261010-paper-readiness-v33/);
+assert.match(read('app.html'),/feature-loader\.js\?v=20261010-paper-readiness-v28/);
 console.log('Practice native-select regression PASS: refresh retention, real-question subjects/chapters, live coverage and dependent reset.');
