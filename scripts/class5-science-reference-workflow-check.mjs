@@ -61,7 +61,7 @@ const el={
 const document={readyState:'loading',addEventListener(){},querySelector:x=>el[x]||null,querySelectorAll:()=>[]};
 const context={window:{EDUNIZAM_CLOUD:{state:{user,client}},EDUNIZAM_CLOUD_CONFIG:config},
  document,localStorage:{getItem:k=>k==='edunizam_session'?JSON.stringify({role:'head'}):null},
- console,AbortController,setTimeout,clearTimeout};
+ console,TextEncoder,AbortController,setTimeout,clearTimeout};
 runInNewContext(read('paper-syllabus-audit.js'),context);
 runInNewContext(read('teacher-question-import.js'),context);
 runInNewContext(read('teacher-paper-builder.js'),context);
