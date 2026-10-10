@@ -70,6 +70,7 @@ async function preview(){
  try{
   await api().pullCloud();
   if(!permitted()||scope()!==start)throw Error('School changed. Reopen syllabus import.');
+  if(api().classesVerified?.()===false)throw Error('School class directory could not be verified. Refresh Academic Groups before importing.');
   const classes=api().registeredClasses();
   if(!classes.length)throw Error('Register your school classes in Academic Groups first.');
   const result=validate(await f.text(),classes,api().savedUnits());
@@ -89,6 +90,7 @@ async function save(){
  try{
   await api().pullCloud();
   if(start!==scope()||!permitted())throw Error('School session changed.');
+  if(api().classesVerified?.()===false)throw Error('Current school class directory not verified; nothing was submitted.');
   const headers=fields.join(','),lines=rows.map(x=>fields.map(f=>'"'+x[f].replace(/"/g,'""')+'"').join(','));
   const current=validate(headers+'\n'+lines.join('\n'),api().registeredClasses(),api().savedUnits());
   if(current.errors.length||current.valid.length!==rows.length)throw Error('School chapters or permissions changed. Validate file again.');

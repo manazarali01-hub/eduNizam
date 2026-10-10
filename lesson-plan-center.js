@@ -24,6 +24,34 @@
     const runtime=window.EDUNIZAM_DATA_RUNTIME;
     return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
   }
+  // Page all current-school academic rows rather than accepting PostgREST's
+  // first page as a complete class directory, lesson list or syllabus.
+  // Every page shares the authorized institution filter and stable id ordering.
+  async function fetchAllSchoolRows(client,table,columns,institution,{signal,filter,pageSize=250,maxRows=5000}={}){
+    const all=[];
+    for(let offset=0;offset<=maxRows;offset+=pageSize){
+      let q=client.from(table).select(columns).eq('institution_id',institution);
+      if(typeof filter==='function')q=filter(q);
+      if(typeof q.order==='function')q=q.order('id',{ascending:true});
+      const canPage=typeof q.range==='function';
+      if(canPage)q=q.range(offset,offset+pageSize-1);
+      else if(offset===0&&typeof q.limit==='function')q=q.limit(pageSize);
+      else throw Error('School '+table+' pagination unavailable; do not use partial records.');
+      q=withSignal(q,signal);
+      const response=await q;
+      if(response?.error)throw response.error;
+      if(!Array.isArray(response?.data))throw Error('School '+table+' response is incomplete.');
+      const rows=response.data;
+      if(offset>=maxRows){
+        if(rows.length)throw Error('More than '+maxRows+' '+table+' records. Cannot verify all school records safely.');
+        return all;
+      }
+      all.push(...rows);
+      if(rows.length<pageSize)return all;
+      if(!canPage)throw Error('School '+table+' pagination unavailable for next page.');
+    }
+    throw Error('School '+table+' exceeded safe data limit.');
+  }
   const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   function read(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}}
   function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
@@ -104,14 +132,10 @@
     const id=cfg().institutionId,scope=currentSchoolScope(),client=cloud().state.client;
     cloudClassRows=[];cloudClassScope='';
     try{
-      const rows=await runCloud('lesson-class-directory:'+scope,'Lesson school class options',async({signal}={})=>{
-        let q=client.from('class_sections').select('class_name,section_name,active')
-          .eq('institution_id',id).eq('active',true).limit(1200);
-        q=withSignal(q,signal);
-        const {data,error}=await q;
-        if(error)throw error;
-        return data||[];
-      },{timeout:6500,retries:0});
+      const rows=await runCloud('lesson-class-directory:'+scope,'Lesson school class options',
+        ({signal}={})=>fetchAllSchoolRows(client,'class_sections','class_name,section_name,active',id,{
+          signal,filter:q=>q.eq('active',true),pageSize:250,maxRows:5000
+        }),{timeout:20000,retries:0});
       if(!cloudReady()||currentSchoolScope()!==scope)return;
       cloudClassRows=rows.map(x=>({className:x.class_name,sectionName:x.section_name,active:x.active!==false}));
       cloudClassScope=scope;
@@ -122,20 +146,26 @@
   async function pullCloud(){
     if(!cloudReady())return;
     const c=cloud().state.client,id=cfg().institutionId,scope=currentSchoolScope();
-    // Class directory must remain independently loadable even if the lesson
-    // tables are unavailable. Both requests run together to avoid long waits.
+    // Class directory remains independently loadable if the lesson tables fail,
+    // but the syllabus cache is refreshed only after BOTH paginated reads succeed.
     const classesJob=pullSchoolClasses();
     try{
-      const {p,u}=await runCloud('lesson-syllabus-load:'+scope,'Lesson plans and syllabus',async({signal}={})=>{
-        const [p,u]=await Promise.all([
-          withSignal(c.from('lesson_plans').select('*').eq('institution_id',id).order('week_start',{ascending:false}),signal),
-          withSignal(c.from('syllabus_progress_units').select('*').eq('institution_id',id).order('subject').order('unit_title'),signal)
-        ]);
-        if(p.error)throw p.error;if(u.error)throw u.error;return {p,u};
-      },{timeout:7000,retries:1});
+      const {p,u}=await runCloud('lesson-syllabus-load:'+scope,'Lesson plans and syllabus',
+        async({signal}={})=>{
+          const [p,u]=await Promise.all([
+            fetchAllSchoolRows(c,'lesson_plans','*',id,{signal,pageSize:250,maxRows:5000}),
+            fetchAllSchoolRows(c,'syllabus_progress_units','*',id,{signal,pageSize:250,maxRows:5000})
+          ]);
+          return{p,u};
+        },{timeout:25000,retries:1});
       if(!cloudReady()||currentSchoolScope()!==scope)return;
-      write(PLAN_KEY,(p.data||[]).map(mapPlan));write(UNIT_KEY,(u.data||[]).map(mapUnit));
+      write(PLAN_KEY,p.map(mapPlan));write(UNIT_KEY,u.map(mapUnit));
       cloudLessonScope=scope;
+    }catch(error){
+      // Do not present the previously cached data as a verified, fresh
+      // syllabus after an incomplete page, access failure or storage error.
+      if(currentSchoolScope()===scope)cloudLessonScope='';
+      throw error;
     }finally{await classesJob}
   }
   async function savePlanCloud(item){
@@ -340,5 +370,5 @@
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('lessonCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_LESSON_CENTER={render,pullCloud,cloudReady,registeredClasses,classOptions,savedUnits,recordedSchoolTopic,unitBookValidation,savePlan,saveUnit};
+  window.EDUNIZAM_LESSON_CENTER={render,pullCloud,cloudReady,registeredClasses,classOptions,savedUnits,classesVerified:()=>cloudClassScope===currentSchoolScope(),syllabusVerified:()=>cloudLessonScope===currentSchoolScope(),fetchAllSchoolRows,recordedSchoolTopic,unitBookValidation,savePlan,saveUnit};
 })();
