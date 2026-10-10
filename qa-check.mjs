@@ -474,7 +474,7 @@ if(!cloudSetup.includes("session.institutionId=inst.id")) fail.push('Manual inst
 if(!login.includes("addSchoolToExistingAdmin")) fail.push('Existing Admin email cannot add a second school during signup.');
 if(!login.includes("create_owned_institution_v2")) fail.push('Multi-school signup RPC is missing.');
 if(!app.includes("b.onclick=async()=>")) fail.push('Quick actions do not await view navigation.');
-if(!app.includes("if(targetView==='students')openStudentForm()")) fail.push('Student quick action does not reliably open the form.');
+if(!app.includes("const opened=await setView(targetView)")||!app.includes("if(opened&&targetView==='students')openStudentForm()")) fail.push('Student quick action must open its form only after successful navigation.');
 if(!login.includes('id="roleGuidance"')) fail.push('Role-specific same-school login guidance missing.');
 if(!login.includes("if(role!=='admin'&&!inst)")) fail.push('Non-Admin roles can open without a linked school.');
 if(!login.includes('chooseOwnedInstitution')) fail.push('Duplicate-name Admin schools do not have an explicit login picker.');
