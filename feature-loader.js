@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261010-paper-readiness-v33';
+  const VERSION='20261010-syllabus-csv-v34';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -90,7 +90,7 @@
     gatecenter:['gate-pass-center.js'],
     schoolwork:['academic-form-options.js','school-work.js','academic-workflow-deep.js'],
     noticeboard:['notice-board-center.js'],
-    lessoncenter:['academic-form-options.js','lesson-plan-center.js'],
+    lessoncenter:['academic-form-options.js','lesson-plan-center.js','school-syllabus-csv.js'],
     datareadiness:['school-data-readiness.js'],
     calendarcenter:['calendar-center.js'],
     schedulecenter:['academic-form-options.js','timetable-date-sheet.js'],
