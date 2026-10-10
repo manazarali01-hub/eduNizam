@@ -34,7 +34,7 @@ function validate(text,existing=[]){
  const sameClass=(a,b)=>{
   const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
   if(api?.sameClass)return api.sameClass(a,b);
-  const grade=x=>norm(x).match(/^(?:(?:class|grade)\\s*)?(1[0-2]|[1-9])$/)?.[1];
+  const grade=x=>norm(x).match(/^(?:(?:class|grade)\s*)?(1[0-2]|[1-9])$/)?.[1];
   return norm(a)===norm(b)||!!(grade(a)&&grade(a)===grade(b));
  };
  const pairs=[...(Array.isArray(existing)?existing:[])].map(x=>({className:clean(x.className??x.class_name),sectionName:clean(x.sectionName??x.section_name)}));
