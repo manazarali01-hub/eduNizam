@@ -85,30 +85,36 @@ async function save(){
  if(busy||!staged.length||stagedScope!==scope()||!permitted())return announce('Validate your CSV again for the current school.',true);
  const start=scope(),rows=staged.slice(),inst=window.EDUNIZAM_CLOUD_CONFIG.institutionId,uid=window.EDUNIZAM_CLOUD.state.user.id;
  if(!confirm('Save '+rows.length+' actual prescribed textbook chapter(s) to this school?'))return;
- busy=true;let saved=0;const button=$('sbiSave');if(button)button.disabled=true;
+ busy=true;let committed=false;const button=$('sbiSave');if(button)button.disabled=true;
  try{
   await api().pullCloud();
   if(start!==scope()||!permitted())throw Error('School session changed.');
   const headers=fields.join(','),lines=rows.map(x=>fields.map(f=>'"'+x[f].replace(/"/g,'""')+'"').join(','));
   const current=validate(headers+'\n'+lines.join('\n'),api().registeredClasses(),api().savedUnits());
   if(current.errors.length||current.valid.length!==rows.length)throw Error('School chapters or permissions changed. Validate file again.');
-  for(const x of rows){
-   if(scope()!==start||!permitted())throw Error('School session changed during save.');
-   const payload={institution_id:inst,class_name:x.className,section_name:x.sectionName||null,
-    subject:x.subject,unit_title:x.unitTitle,textbook_title:x.textbookTitle,curriculum_board:x.curriculumBoard,
-    edition_year:x.editionYear?Number(x.editionYear):null,source_url:x.sourceUrl||null,
-    status:'Planned',completion_percent:0,family_visible:false,created_by:uid,updated_by:uid,updated_at:new Date().toISOString()};
-   const response=await client().from('syllabus_progress_units').insert(payload);
-   if(response.error)throw Error('Row '+x.line+' database error: '+response.error.message);
-   saved++;
-  }
-  staged=[];stagedScope='';
-  announce(saved+' genuine chapter(s) saved to the current school. Reloading Lesson / Syllabus.');
+  if(scope()!==start||!permitted())throw Error('School session changed before save.');
+  // One PostgREST INSERT statement: every validated row commits together or
+  // a database validation/RLS error rejects the entire batch. Never write per row.
+  const payloads=rows.map(x=>({institution_id:inst,class_name:x.className,section_name:x.sectionName||null,
+   subject:x.subject,unit_title:x.unitTitle,textbook_title:x.textbookTitle,curriculum_board:x.curriculumBoard,
+   edition_year:x.editionYear?Number(x.editionYear):null,source_url:x.sourceUrl||null,
+   status:'Planned',completion_percent:0,family_visible:false,created_by:uid,updated_by:uid,updated_at:new Date().toISOString()}));
+  const response=await client().from('syllabus_progress_units').insert(payloads);
+  if(response?.error)throw Error('Database rejected the batch: '+response.error.message);
+  committed=true;staged=[];stagedScope='';
   if($('sbiFile'))$('sbiFile').value='';
-  if(scope()===start){await api().pullCloud();await api().render()}
+  announce(rows.length+' genuine chapter(s) saved together to the selected school.');
+  if(scope()===start){
+   try{await api().pullCloud();await api().render()}
+   catch(_){announce(rows.length+' chapter(s) saved, but the list could not refresh. Reopen Lesson Center to view them.',true)}
+  }
  }catch(e){
   staged=[];stagedScope='';
-  announce(saved+' saved before the error; '+String(e.message||e)+'. Refresh school records and validate the file again before retrying.',true);
+  // An interrupted network response may arrive after the database commits:
+  // check records before retrying rather than promising zero saved rows.
+  announce(committed
+   ?rows.length+' chapter(s) saved, but the view could not refresh.'
+   :'Batch save was not confirmed: '+String(e.message||e)+'. Check existing school chapters before validating and retrying.',true);
  }finally{busy=false;if(button?.isConnected)button.disabled=true}
 }
 function template(){
