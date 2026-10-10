@@ -1,0 +1,23 @@
+/* Visitor feedback: readable natural green, responsive, keyboard-accessible. */
+.edu-feedback-section{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:clamp(20px,4vw,48px);max-width:1170px;margin:clamp(30px,5vw,72px) auto;padding:clamp(24px,4vw,42px);background:linear-gradient(140deg,rgba(230,247,233,.98),rgba(249,252,243,.98));border:1px solid rgba(29,102,62,.2);border-radius:28px;box-shadow:0 18px 54px rgba(13,74,42,.09);color:#173d2b}
+.edu-feedback-intro h2{font-size:clamp(1.6rem,3vw,2.45rem);line-height:1.2;margin:.5rem 0 1rem;color:#12412a}
+.edu-feedback-intro p{line-height:1.7;color:#315544}
+.edu-feedback-section .eyebrow{color:#246747;font-weight:800;letter-spacing:.11em}
+.edu-feedback-private{border-left:4px solid #5aa87b;padding:10px 12px;background:rgba(255,255,255,.63);border-radius:4px 12px 12px 4px;font-size:.91rem}
+.edu-feedback-form{display:grid;gap:15px;padding:clamp(18px,3vw,27px);background:#fff;border:1px solid rgba(29,102,62,.18);border-radius:21px;box-shadow:0 8px 28px rgba(21,75,49,.07)}
+.edu-feedback-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.edu-feedback-form label{display:grid;gap:8px;color:#1c4933;font-size:.95rem;font-weight:700;line-height:1.4}
+.edu-feedback-form select,.edu-feedback-form textarea{width:100%;max-width:100%;min-height:48px;box-sizing:border-box;font:inherit;color:#143c2a;background:#f7fbf7;border:1.5px solid #99bc9f;border-radius:12px;padding:12px 14px;outline-offset:3px;transition:border-color .18s,box-shadow .18s}
+.edu-feedback-form textarea{min-height:122px;resize:vertical;line-height:1.6}
+.edu-feedback-form select:focus-visible,.edu-feedback-form textarea:focus-visible{outline:3px solid #4c9c75;outline-offset:2px;border-color:#216d47}
+.edu-feedback-actions{display:flex;align-items:center;flex-wrap:wrap;gap:14px}
+.edu-feedback-actions button{min-height:48px;padding:12px 22px;background:linear-gradient(110deg,#17603d,#2b8152);border:0;border-radius:12px;color:#fff;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 5px 14px rgba(29,102,62,.16)}
+.edu-feedback-actions button:hover{background:linear-gradient(110deg,#124d33,#236944)}
+.edu-feedback-actions button:focus-visible{outline:3px solid #164b31;outline-offset:3px}
+.edu-feedback-actions button:disabled{opacity:.7;cursor:wait}
+.edu-feedback-actions p{margin:0;flex:1 1 190px;font-size:.86rem;line-height:1.5;color:#496653}
+.edu-feedback-actions p[data-kind="error"]{color:#9b242c;font-weight:700}
+.edu-feedback-actions p[data-kind="success"]{color:#17603d;font-weight:700}
+.edu-feedback-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:850px){.edu-feedback-section{grid-template-columns:minmax(0,1fr);margin:26px 16px;padding:22px}.edu-feedback-form{padding:18px}}
+@media(max-width:520px){.edu-feedback-fields{grid-template-columns:1fr}.edu-feedback-section{border-radius:20px;margin:20px 12px;padding:15px}.edu-feedback-form{border-radius:15px;padding:15px}.edu-feedback-actions button{width:100%}}

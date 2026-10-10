@@ -25,6 +25,8 @@ jobs:
           node-version: '22'
       - name: Run EduNizam QA
         run: node qa-check.mjs
+      - name: Validate public homepage feedback intake and submission safeguards
+        run: node scripts/public-feedback-check.mjs
       - name: Validate reference-data completeness
         run: node scripts/data-completion-check.mjs
       - name: Validate paper-builder marks and dynamic school data

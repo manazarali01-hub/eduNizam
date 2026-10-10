@@ -49,6 +49,7 @@
   <link rel="stylesheet" href="edunizam-colorful-icons.css?v=20261008-clay-webp-v10">
   <link rel="stylesheet" href="premium-form-fields.css?v=20261008-visible-forms-v2">
   <link rel="stylesheet" href="mobile-layout-repair-oct08.css?v=20261008-responsive-guard-v1">
+  <link rel="stylesheet" href="public-feedback.css?v=20261010-feedback-v1">
 </head>
 <body class="gold-home page-home">
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -231,6 +232,46 @@
       </div>
     </section>
 
+    <section class="public-section edu-feedback-section" id="feedback" aria-labelledby="feedback-title" data-reveal>
+      <div class="edu-feedback-intro">
+        <span class="eyebrow">HELP EDU NIZAM IMPROVE</span>
+        <h2 id="feedback-title">Share your experience with EduNizam</h2>
+        <p>Found a broken button, missing curriculum data, or a useful improvement? Tell us what happened. You can submit without logging in.</p>
+        <p class="edu-feedback-private"><strong>Private feedback:</strong> Your message is visible to the EduNizam team, not published on the website. Do not include student names, passwords, phone numbers or other sensitive information.</p>
+      </div>
+      <form id="edu-public-feedback-form" class="edu-feedback-form" aria-label="Send private feedback">
+        <div class="edu-feedback-fields">
+          <label for="edu-feedback-category">What is your feedback about?
+            <select id="edu-feedback-category" name="category" required>
+              <option value="" selected disabled>Select a topic</option>
+              <option value="bug">A feature or button is not working</option>
+              <option value="missing_data">Missing books, subjects, options or questions</option>
+              <option value="suggestion">Improvement suggestion</option>
+              <option value="appreciation">Something that worked well</option>
+            </select>
+          </label>
+          <label for="edu-feedback-rating">Experience rating (optional)
+            <select id="edu-feedback-rating" name="rating">
+              <option value="">Prefer not to rate</option>
+              <option value="5">5 — Excellent</option>
+              <option value="4">4 — Good</option>
+              <option value="3">3 — Average</option>
+              <option value="2">2 — Needs work</option>
+              <option value="1">1 — Very difficult</option>
+            </select>
+          </label>
+        </div>
+        <label for="edu-feedback-message">Your feedback
+          <textarea id="edu-feedback-message" name="message" rows="4" minlength="20" maxlength="1500" required placeholder="Example: In Paper Builder, Class 5 Science has no chapter options after selecting a subject."></textarea>
+        </label>
+        <div class="edu-feedback-hidden" aria-hidden="true"><label>Leave this field blank <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+        <div class="edu-feedback-actions">
+          <button type="submit" id="edu-feedback-submit">Send feedback <span aria-hidden="true">→</span></button>
+          <p id="edu-feedback-status" role="status" aria-live="polite">Messages are sent securely. No account is required.</p>
+        </div>
+      </form>
+    </section>
+
     <section class="public-section public-disclaimer" data-reveal>
       <div class="public-note">EduNizam is an independent education-management product. References to education boards, universities or curricula describe supported categories and do not imply official affiliation.</div>
     </section>
@@ -242,6 +283,8 @@
     <small>© 2026 EduNizam</small>
   </footer>
 
+  <script src="cloud-config.js?v=20261010-feedback-v1" defer></script>
+  <script src="public-feedback.js?v=20261010-feedback-v1" defer></script>
   <script src="home-premium.js?v=20261004-deep2" defer></script>
   <script src="system-auto-update.js?v=20261009-practice-source-v44" defer></script>
   <script src="edunizam-colorful-icons.js?v=20261008-clay-webp-v10" defer></script>
