@@ -227,6 +227,36 @@ async function deleteCustomQuestion(id){
  const {error}=await cloud().state.client.from('teacher_question_bank').delete().eq('id',id).eq('creator_user_id',cloud().state.user.id);if(error)return alert(error.message);
  await loadCustomQuestions();
 }
+// One blank, teacher-authored question worksheet for each question type in
+// every book-mapped, school-recorded chapter. No sample questions or answer keys.
+function schoolQuestionWorksheet(){
+ if(!ready()||!['head','teacher'].includes(role()))throw Error('Sign in as an authorized school teacher or Head.');
+ if(catalogScope!==currentSchoolScope()||schoolCatalog.classState!=='loaded'||schoolCatalog.unitState!=='loaded')
+  throw Error('Refresh the current school class directory and syllabus first.');
+ const cls=$('#pbClass')?.value||'',subject=$('#pbSubject')?.value||'';
+ if(!cls||!subject)throw Error('Select a registered class and subject first.');
+ const selected=String($('#pbChapters')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);
+ const chapters=selected.length?selected:schoolChapters(cls,subject);
+ if(!chapters.length)throw Error('No school-recorded textbook chapters. Add genuine book chapters in Lesson / Syllabus first.');
+ if(chapters.length>150)throw Error('Select 150 or fewer school chapters for one worksheet.');
+ const gate=schoolPaperReadiness(cls,subject,chapters);
+ if(!gate.allowed)throw Error('Question worksheet blocked: '+gate.reason);
+ const fields=['class','subject','chapter','type','difficulty','question','option1','option2','option3','option4','correct_option','answer','visibility'];
+ const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const rows=chapters.flatMap(ch=>['mcq','short','long'].map(type=>
+  [cls,subject,ch,type,'Balanced','','','','','','','','private'].map(quote).join(',')));
+ return '\uFEFF'+fields.join(',')+'\r\n'+rows.join('\r\n')+'\r\n';
+}
+function downloadSchoolQuestionWorksheet(){
+ try{
+  const csv=schoolQuestionWorksheet(),url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download='edunizam-school-chapter-questions-BLANK-REVIEW.csv';
+  a.click();setTimeout(()=>URL.revokeObjectURL(url),500);
+  if($('#qbImportReport'))$('#qbImportReport').textContent='Blank chapter-aligned worksheet downloaded. Add genuine questions, four unique MCQ options, correct answers and model answers. Re-upload and Validate File. No data was saved.';
+ }catch(error){
+  if($('#qbImportReport'))$('#qbImportReport').textContent='Cannot create school question worksheet: '+String(error.message||error);
+ }
+}
 function downloadQuestionTemplate(){
  const template=window.EDUNIZAM_QUESTION_IMPORT?.template;
  if(!template)return alert('Question import template is unavailable. Reload the Paper Builder.');
@@ -795,11 +825,11 @@ async function render(){
   $('#pbChapterPicker')?.addEventListener('change',e=>{const value=e.target.value;if(!value)return;const el=$('#pbChapters');const chosen=el.value.split(',').map(x=>x.trim()).filter(Boolean);if(!chosen.includes(value))chosen.push(value);el.value=chosen.join(', ');e.target.value='';renderSelectedChapters();updateBankInsight()});
   refreshPaperCatalog();refreshTeacherQuestionCatalog();refreshPatternBreakdown();
  $('#qbSave').onclick=saveCustomQuestion;$('#qbCancelEdit').onclick=clearQuestionForm;$('#qbSearch').addEventListener('input',renderQuestionBankList);
- $('#qbImportTemplate').onclick=downloadQuestionTemplate;$('#qbImportPreview').onclick=previewQuestionImport;$('#qbImportSave').onclick=saveQuestionImport;
+ $('#qbImportTemplate').onclick=downloadQuestionTemplate;$('#qbSchoolQuestionWorksheet').onclick=downloadSchoolQuestionWorksheet;$('#qbImportPreview').onclick=previewQuestionImport;$('#qbImportSave').onclick=saveQuestionImport;
  $('#qbImportFile').addEventListener('change',()=>{pendingImportRows=[];$('#qbImportSave').disabled=true;$('#qbImportReport').textContent='File selected. Click Validate File before importing.'});
  $('#qbType').addEventListener('change',()=>{const mcq=$('#qbType').value==='mcq';$('#qbOptions').disabled=!mcq;$('#qbCorrect').disabled=!mcq});
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,previewQuestionImport,saveQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
