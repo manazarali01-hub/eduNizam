@@ -105,7 +105,7 @@ pass(schedule.includes('Number.isInteger(item.totalMarks)')&&schedule.includes('
 pass(!schedule.includes("['Play Group','Nursery','Prep',...Array.from({length:12}"),'Unregistered placeholder classes leaked into timetable');
 const loader=read('feature-loader.js');
 for(const [view,entry]of [
- ['lessoncenter',"['academic-form-options.js','lesson-plan-center.js']"],
+ ['lessoncenter',"['academic-form-options.js','lesson-plan-center.js','school-syllabus-csv.js']"],
  ['schedulecenter',"['academic-form-options.js','timetable-date-sheet.js']"],
  ['dailydiary',"['academic-form-options.js','daily-class-diary.js','academic-workflow-deep.js']"]
 ])pass(loader.includes(view+':'+entry),'Academic module loader ordering missing: '+view);

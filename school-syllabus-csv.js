@@ -12,7 +12,7 @@ const api=()=>window.EDUNIZAM_LESSON_CENTER;
 const client=()=>window.EDUNIZAM_CLOUD?.state?.client;
 const role=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role}catch{return null}};
 const permitted=()=>['head','teacher'].includes(role())&&!!api()?.cloudReady?.();
-const sameClass=(a,b)=>window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.sameClass?.(a,b)||norm(a)===norm(b);
+const sameClass=(a,b)=>{const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;if(api?.sameClass)return api.sameClass(a,b);const whole=v=>norm(v).match(/^(?:(?:class|grade)\s*)?(1[0-2]|[1-9])$/)?.[1];return norm(a)===norm(b)||!!(whole(a)&&whole(a)===whole(b))};
 const subj=v=>window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.subjectKey?.(v)||norm(v);
 const key=x=>[norm(x.className).replace(/^(class|grade)\s+/,''),norm(x.sectionName),subj(x.subject),norm(x.unitTitle)].join('|');
 let staged=[],stagedScope='',busy=false;
