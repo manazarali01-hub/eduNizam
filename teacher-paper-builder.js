@@ -77,6 +77,39 @@ function renderSchoolStatus(){
  el.textContent='School data: '+classNote+'; '+unitNote+'. School-saved units are separate from generic concept topics; a saved title does not certify textbook accuracy.';
  renderSchoolReadiness();
 }
+// Supabase PostgREST pages are 0-based, inclusive and must have a stable
+// order. Do not mistake an arbitrary first 500/750 rows for complete school data.
+async function fetchPagedSchoolRows(client,table,columns,institution,{pageSize=250,maxRows=5000}={}){
+ const rows=[];
+ for(let offset=0;offset<=maxRows;offset+=pageSize){
+  let query=client.from(table).select(columns).eq('institution_id',institution);
+  if(typeof query.order==='function')query=query.order('id',{ascending:true});
+  const supportsPages=typeof query.range==='function';
+  if(supportsPages)query=query.range(offset,offset+pageSize-1);
+  else if(offset===0&&typeof query.limit==='function')query=query.limit(pageSize);
+  else throw Error('School data pagination is unavailable. Refresh or update the app.');
+  const controller=typeof AbortController==='function'?new AbortController():null;
+  if(controller&&typeof query.abortSignal==='function')query=query.abortSignal(controller.signal);
+  let timer;
+  try{
+   const result=await Promise.race([
+    query,
+    new Promise((_,reject)=>{timer=setTimeout(()=>{controller?.abort();reject(Error('School data page timed out'))},7500)})
+   ]);
+   if(result?.error)throw result.error;
+   if(!Array.isArray(result?.data))throw Error('School data response was not a record list.');
+   const page=result.data;
+   if(offset>=maxRows){
+    if(page.length)throw Error('School has more than '+maxRows+' accessible '+table+' records; complete data cannot be verified safely.');
+    return rows;
+   }
+   rows.push(...page);
+   if(page.length<pageSize)return rows;
+   if(!supportsPages)throw Error('School data pagination is unavailable for the next page.');
+  }finally{clearTimeout(timer)}
+ }
+ throw Error('School data exceeded the safe page limit.');
+}
 async function loadSchoolCatalog(){
  if(!ready())return;
  const client=cloud().state.client,inst=cfg().institutionId,scope=currentSchoolScope();
@@ -85,21 +118,15 @@ async function loadSchoolCatalog(){
  catalogScope=scope;schoolCatalogBusy=true;
  const requestId=++catalogRequestId;
  const button=$('#pbSchoolRefresh');if(button)button.disabled=true;
- async function read(table,columns,maxRows){
-  let timer,controller=typeof AbortController==='function'?new AbortController():null;
-  try{
-   let query=client.from(table).select(columns).eq('institution_id',inst).limit(maxRows);
-   if(controller&&typeof query.abortSignal==='function')query=query.abortSignal(controller.signal);
-   const result=await Promise.race([query,new Promise((_,reject)=>{timer=setTimeout(()=>{controller?.abort();reject(Error('Data lookup timeout'))},6500)})]);
-   if(result?.error)throw result.error;
-   return{rows:Array.isArray(result.data)?result.data:[],state:'loaded'};
-  }catch(error){console.warn('Paper Builder school data:',table,error?.message||error);return{rows:[],state:'error'}}
-  finally{clearTimeout(timer)}
+ async function read(table,columns){
+  try{return{rows:await fetchPagedSchoolRows(client,table,columns,inst,{pageSize:250,maxRows:5000}),state:'loaded'}}
+  catch(error){console.warn('Paper Builder school data:',table,error?.message||error);return{rows:[],state:'error'}}
  }
+
  try{
   const [classes,units]=await Promise.all([
-   read('class_sections','class_name,section_name,active',250),
-   read('syllabus_progress_units','class_name,section_name,subject,unit_title,status,textbook_title,curriculum_board,edition_year,source_url',750)
+   read('class_sections','class_name,section_name,active'),
+   read('syllabus_progress_units','class_name,section_name,subject,unit_title,status,textbook_title,curriculum_board,edition_year,source_url')
   ]);
   if(currentSchoolScope()!==scope||requestId!==catalogRequestId)return;
   schoolCatalog={
@@ -122,12 +149,21 @@ async function loadCustomQuestions(){
  if(!ready()){customQuestions=[];questionScope='';return[]}
  const scope=currentSchoolScope(),inst=cfg().institutionId,client=cloud().state.client;
  if(questionScope!==scope){customQuestions=[];questionScope='';editingQuestionId='';pendingImportRows=[];pendingImportScope=''}
- const {data,error}=await client.from('teacher_question_bank').select('*').eq('institution_id',inst).order('created_at',{ascending:false}).limit(500);
+ let data;
+ try{data=await fetchPagedSchoolRows(client,'teacher_question_bank','*',inst,{pageSize:250,maxRows:5000})}
+ catch(error){
+  if(currentSchoolScope()!==scope)return[];
+  console.warn('Question bank:',error.message||error);
+  customQuestions=[];questionScope='';
+  const report=$('#qbImportReport');
+  if(report)report.textContent='School Question Bank could not be verified completely. Refresh and check your connection before importing or generating.';
+  renderSchoolReadiness();return[];
+ }
  if(!ready()||currentSchoolScope()!==scope)return[];
- if(error){console.warn('Question bank:',error.message||error);customQuestions=[];questionScope='';return[]}
- customQuestions=Array.isArray(data)?data:[];questionScope=scope;
+ customQuestions=data;questionScope=scope;
  renderQuestionBankList();refreshPaperCatalog();refreshTeacherQuestionCatalog();updateBankInsight();renderSchoolReadiness();return customQuestions;
 }
+
 function sameChapter(selected,actual){
  const api=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
  if(api?.chapterMatches)return api.chapterMatches(selected,actual);
@@ -765,5 +801,5 @@ async function render(){
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,previewQuestionImport,saveQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,previewQuestionImport,saveQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
