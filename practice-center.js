@@ -28,13 +28,13 @@
     if(mapped.some(x=>x.classLevel<1||x.classLevel>12))throw Error('Select a valid grade 1–12 first.');
     uploadScope=scope();uploadRows=mapped;
     if($('practiceSourceOnly'))$('practiceSourceOnly').checked=true;
-    fillChapters();updateStats();
+    fillSubjects();updateStats();
     return{valid:mapped.length,duplicates:result.duplicates};
   }
   function clearReviewedSource(){
     uploadRows=[];uploadScope='';
     if($('practiceSourceOnly'))$('practiceSourceOnly').checked=false;
-    fillChapters();updateStats();
+    fillSubjects();updateStats();
   }
 
   const schoolStudents=()=>{try{const rows=JSON.parse(localStorage.getItem('edunizam_students')||'[]');return Array.isArray(rows)?rows:[]}catch{return[]}};
@@ -49,25 +49,61 @@
   const history=()=>JSON.parse(localStorage.getItem('edunizam_practice_history')||'[]');
   const saveHistory=v=>localStorage.setItem('edunizam_practice_history',JSON.stringify(v.slice(-100)));
 
+  // Reopening Practice refreshes current-school options without destroying a
+  // legitimate user selection. Only an explicit class/subject change resets its
+  // dependent selections. Never show a subject with no source in the catalog
+  // unless a genuine authored/reviewed question uses that subject.
+  const distinct=values=>[...new Map(values.map(x=>String(x||'').trim()).filter(Boolean).map(x=>[x.normalize('NFKC').toLowerCase(),x])).values()];
+  const questionsFor=(cls,sub)=>[...(D.questions||[]),...reviewedSourceQuestions()].filter(q=>
+    (!cls||String(q.classLevel)===String(cls))&&(!sub||String(q.subject)===String(sub)));
   function fill(){
-    const students=visibleStudents();
-    if($('practiceStudent'))$('practiceStudent').innerHTML='<option value="">Student (optional)</option>'+students.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' · '+esc(s.className||'')+'</option>').join('');
-    $('practiceBoard').innerHTML='<option value="">Board context (optional)</option>'+D.boards.map(x=>'<option>'+esc(x)+'</option>').join('');
-    fillSubjects();fillChapters();
+    const students=visibleStudents(),student=$('practiceStudent'),selectedStudent=student?.value||'';
+    if(student){
+      student.innerHTML='<option value="">Student (optional)</option>'+students.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+' · '+esc(s.className||'')+'</option>').join('');
+      if(students.some(s=>String(s.id)===String(selectedStudent)))student.value=selectedStudent;
+    }
+    const board=$('practiceBoard'),selectedBoard=board?.value||'';
+    board.innerHTML='<option value="">Board context (optional)</option>'+D.boards.map(x=>'<option>'+esc(x)+'</option>').join('');
+    if(D.boards.includes(selectedBoard))board.value=selectedBoard;
+    fillSubjects();
     $('practiceBankBadge').textContent=D.questions.length+' Questions';
     updateStats();
   }
-  function fillSubjects(){
-    const cls=$('practiceClass').value;
-    const subjects=cls?(D.subjects[cls]||[]):[...new Set(Object.values(D.subjects).flat())].sort();
-    $('practiceSubject').innerHTML='<option value="">Subject</option>'+subjects.map(s=>'<option>'+esc(s)+'</option>').join('');
-    fillChapters();
+  function fillSubjects({reset=false}={}){
+    const cls=$('practiceClass').value,field=$('practiceSubject'),previous=reset?'':field.value;
+    const reference=cls?(D.subjects[cls]||[]):Object.values(D.subjects).flat();
+    const authored=questionsFor(cls,'').map(q=>q.subject);
+    const subjects=distinct([...reference,...authored]).sort((a,b)=>a.localeCompare(b));
+    field.innerHTML='<option value="">Select Subject</option>'+subjects.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');
+    if(subjects.includes(previous))field.value=previous;
+    fillChapters({reset});
   }
-  function fillChapters(){
+  function fillChapters({reset=false}={}){
+    const cls=$('practiceClass').value,sub=$('practiceSubject').value,field=$('practiceChapter');
+    const previous=reset?'':field.value,key=cls+'|'+sub;
+    const chapters=cls&&sub?distinct([...(D.chapters[key]||[]),...questionsFor(cls,sub).map(q=>q.chapter)]):[];
+    field.innerHTML='<option value="">All Chapters</option>'+chapters.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+    if(chapters.includes(previous))field.value=previous;
+    updateCoverage();
+  }
+  function updateCoverage(){
+    const out=$('practiceCoverageStatus');if(!out)return;
     const cls=$('practiceClass').value,sub=$('practiceSubject').value;
-    const key=cls+'|'+sub;
-    const chapters=[...new Set([...(D.chapters[key]||[]),...reviewedSourceQuestions().filter(q=>String(q.classLevel)===cls&&q.subject===sub).map(q=>q.chapter)])];
-    $('practiceChapter').innerHTML='<option value="">All Chapters</option>'+chapters.map(x=>'<option>'+esc(x)+'</option>').join('');
+    if(!cls||!sub){out.textContent='Select a class and subject to see available genuine questions and chapters.';return}
+    const fromUpload=!!$('practiceSourceOnly')?.checked;
+    const all=fromUpload?reviewedSourceQuestions():D.questions||[];
+    const chapters=$('practiceChapter').value,type=$('practiceType').value,
+      difficulty=$('practiceDifficulty').value;
+    const exact=all.filter(q=>String(q.classLevel)===cls&&q.subject===sub&&
+      (!chapters||q.chapter===chapters)&&(!difficulty||q.difficulty===difficulty)&&
+      (type==='mixed'||q.type===type));
+    const total=all.filter(q=>String(q.classLevel)===cls&&q.subject===sub).length;
+    out.textContent=fromUpload
+      ?exact.length+' matching reviewed uploaded question(s) · '+total+' uploaded for this class and subject.'+
+        (!exact.length?' Review your uploaded material or broaden question type/chapter/difficulty.':'')
+      :exact.length+' exact matching concept question(s) · '+total+' total for this class and subject.'+
+        (!exact.length?' No exact match: choose another topic/type or add reviewed questions.':
+        exact.length<Number($('practiceCount').value||5)?' Practice may supplement from the same class and subject with other chapters/types/difficulty.':'');
   }
   function getConfig(){
     const selectedId=String($('practiceStudent')?.value||'').trim();
@@ -216,7 +252,10 @@
     $('aiOutput').textContent='Test-generation request prepared. AI backend will generate it when connected.';
   }
 
-  $('practiceClass').addEventListener('change',fillSubjects);$('practiceSubject').addEventListener('change',fillChapters);
+  $('practiceClass').addEventListener('change',()=>fillSubjects({reset:true}));
+  $('practiceSubject').addEventListener('change',()=>fillChapters({reset:true}));
+  ['practiceChapter','practiceType','practiceDifficulty','practiceCount','practiceSourceOnly'].forEach(id=>
+    $(id)?.addEventListener('change',updateCoverage));
   $('startPracticeBtn').onclick=start;$('practicePrevBtn').onclick=()=>navigate(-1);$('practiceNextBtn').onclick=forward;$('submitPracticeBtn').onclick=submit;$('cancelPracticeBtn').onclick=cancel;$('retryPracticeBtn').onclick=retry;
   $('printPracticeBtn').onclick=printBuild;$('printResultBtn').onclick=()=>window.print();$('aiGenerateTestBtn').onclick=aiGenerate;
   document.querySelectorAll('[data-practice-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.practiceTab));

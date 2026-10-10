@@ -67,6 +67,9 @@ jobs:
       - name: Verify Practice Next Previous navigation and answer persistence
         run: node scripts/practice-document-upload-check.mjs
 
+      - name: Verify Practice dropdown refresh, real-question chapter coverage and dependent selections
+        run: node scripts/practice-dropdown-reload-check.mjs
+
       - name: Verify existing Practice Next Previous navigation
         run: node scripts/practice-navigation-check.mjs
 
