@@ -27,6 +27,8 @@ jobs:
         run: node qa-check.mjs
       - name: Validate public homepage feedback intake and submission safeguards
         run: node scripts/public-feedback-check.mjs
+      - name: Reproduce logout/session restore races and backup isolation
+        run: node scripts/auth-session-race-check.mjs
       - name: Validate reference-data completeness
         run: node scripts/data-completion-check.mjs
       - name: Validate paper-builder marks and dynamic school data

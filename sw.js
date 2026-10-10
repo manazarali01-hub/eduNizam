@@ -1,4 +1,4 @@
-const CACHE='edunizam-v276-practice-source-v44'
+const CACHE='edunizam-v277-auth-race-v45'
 const CORE=[
   './',
   './index.html',

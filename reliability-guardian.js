@@ -5,7 +5,9 @@
   const SAFE_KEY='edunizam_safe_performance_mode';
   const RELOAD_KEY='edunizam_last_auto_reload';
   const BACKUP_KEY='edunizam_reliability_backup_v1';
-  const BACKUP_KEYS=['edunizam_settings','edunizam_students','edunizam_attendance','edunizam_fees','edunizam_results','edunizam_session','edunizam_cloud_runtime_config'];
+  // Recovery must never re-create a logged-out identity or change the selected
+  // institution. School data stays in its normal scoped local/cloud storage.
+  const BACKUP_KEYS=['edunizam_settings','edunizam_students','edunizam_attendance','edunizam_fees','edunizam_results'];
   const state={
     startedAt:Date.now(),
     safeMode:false,
@@ -39,6 +41,8 @@
     if(!backup?.items)return false;
     let restored=0;
     for(const [key,value] of Object.entries(backup.items)){
+      // Older browser snapshots may still contain session/config values.
+      if(!BACKUP_KEYS.includes(key))continue;
       try{
         if(localStorage.getItem(key)==null){localStorage.setItem(key,value);restored++}
       }catch(_){}

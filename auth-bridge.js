@@ -45,6 +45,17 @@
     );
   }
 
+  // An asynchronous verification must never resurrect a session that was
+  // signed out or overwrite a newly selected school while its RPC was pending.
+  function sameLocalWorkspace(expected){
+    const current=readLocal();
+    return validLocal(current)
+      &&String(current.institutionId)===String(expected.institutionId)
+      &&String(current.role)===String(expected.role)
+      &&String(current.identity||'')===String(expected.identity||'')
+      &&String(current.loginAt||'')===String(expected.loginAt||'');
+  }
+
   function readHandoff(){
     const handoff=readJson(sessionStorage,HANDOFF_KEY,null);
     const session=readLocal();
@@ -180,6 +191,7 @@
       const c=cloud();
       transition([STATES.WORKSPACE_READY,STATES.OFFLINE_READY,STATES.BACKGROUND_SYNC].includes(runtimeState.state)?STATES.BACKGROUND_SYNC:STATES.AUTHORIZING,{source:'workspace-verification'});
       const ready=await waitCloud(4000);
+      if(!sameLocalWorkspace(local))return false;
       if(!ready||!c?.state?.client){
         workspaceReady('offline-cache',{reason:'cloud-init-timeout'});
         return true;
@@ -197,12 +209,14 @@
           workspaceReady('local-cache',{reason:!navigator.onLine?'offline-no-session-check':'session-restore-'+(restoreStatus||'uncertain')});
           return true;
         }
+        if(!sameLocalWorkspace(local))return false;
         clearLocalAuthState();
         showAccess('Your secure session has ended. Sign in again to open private school data.',STATES.UNAUTHENTICATED,false);
         return false;
       }
 
       const handoff=readHandoff();
+      if(!sameLocalWorkspace(local))return false;
       if(handoff?.userId&&String(handoff.userId)!==String(user.id)){
         clearLocalAuthState();
         showAccess('The signed-in account changed before this school workspace opened. Sign in again and select the correct school.',STATES.AUTH_ERROR,false);
@@ -214,6 +228,7 @@
       try{
         access=await c.verifyWorkspaceAccess?.(local.institutionId,expected,force);
       }catch(error){
+        if(!sameLocalWorkspace(local)||String(c?.state?.user?.id||'')!==String(user.id))return false;
         const type=dataRuntime()?.classify?.(error)||'DATA_FETCH_FAILED';
         if(['NETWORK_TIMEOUT','NETWORK_OFFLINE','SERVER_TEMPORARY_FAILURE'].includes(type)){
           workspaceReady('offline-cache',{reason:type});
@@ -224,6 +239,8 @@
         return true;
       }
 
+      // Ignore a late authorization response for a previous browser session.
+      if(!sameLocalWorkspace(local)||String(c?.state?.user?.id||'')!==String(user.id))return false;
       if(!access){
         clearLocalAuthState();
         showAccess('This account is no longer approved for the selected school workspace. Sign in and select an approved school.',STATES.AUTH_ERROR,false);
@@ -292,6 +309,8 @@
     if(!user)return false;
     try{
       const rows=await c.listAuthorizedWorkspaces?.(force);
+      // A sign-out or a second login may occur while the school list is loading.
+      if(String(c?.state?.user?.id||'')!==String(user.id)||validLocal())return false;
       if(!rows?.length)return false;
       if(rows.length!==1)return false;
       const access=rows[0];
