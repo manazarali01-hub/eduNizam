@@ -267,6 +267,7 @@
       '<div class="section-head" style="margin-top:18px"><div><h3>Class / Section Directory</h3><p class="muted">Class teacher, room aur current student strength.</p></div></div>'+
       '<div class="paper-grid">'+(rows.length?rows.map(card).join(''):loadError?'<div class="empty-state">School classes not verified (cloud read unavailable).</div>':disconnected?'<div class="empty-state">Sign in to the school workspace to load classes.</div>':'<div class="empty-state">No class / section records in this school yet. Add the actual classes to begin.</div>')+'</div>';
     bind();
+    window.EDUNIZAM_ACADEMIC_GROUPS_CSV?.mount?.();
     $('csRefresh')?.addEventListener('click',()=>{root.dataset.cloudLoaded='';root.dataset.cloudError='';render()});
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('classSectionApp');if(root)delete root.dataset.cloudLoaded;render()});
