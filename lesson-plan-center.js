@@ -12,7 +12,7 @@
   const isHead=()=>role()==='head';
   let lessonPlanSaveInFlight=false,syllabusUnitSaveInFlight=false;
   const lessonDeleteInFlight=new Set();
-  let cloudClassRows=[],cloudClassScope='',cloudLessonScope='';
+  let cloudClassRows=[],cloudClassScope='',cloudLessonScope='',classFetchEpoch=0;
   const currentSchoolScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
   function notifySyllabusChange(scope){
     if(cloudReady()&&scope===currentSchoolScope()&&typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function')
@@ -134,18 +134,18 @@
      targetEnd:x.target_end||'',completion:Number(x.completion_percent||0),status:x.status,familyVisible:x.family_visible===true,createdBy:x.created_by||'',createdAt:x.created_at,cloudExisting:true}}
   async function pullSchoolClasses(){
     if(!cloudReady())return;
-    const id=cfg().institutionId,scope=currentSchoolScope(),client=cloud().state.client;
+    const id=cfg().institutionId,scope=currentSchoolScope(),client=cloud().state.client,epoch=++classFetchEpoch;
     cloudClassRows=[];cloudClassScope='';
     try{
       const rows=await runCloud('lesson-class-directory:'+scope,'Lesson school class options',
         ({signal}={})=>fetchAllSchoolRows(client,'class_sections','class_name,section_name,active',id,{
           signal,filter:q=>q.eq('active',true),pageSize:250,maxRows:5000
         }),{timeout:20000,retries:0});
-      if(!cloudReady()||currentSchoolScope()!==scope)return;
+      if(!cloudReady()||currentSchoolScope()!==scope||epoch!==classFetchEpoch)return;
       cloudClassRows=rows.map(x=>({className:x.class_name,sectionName:x.section_name,active:x.active!==false}));
       cloudClassScope=scope;
     }catch(error){
-      console.warn('Lesson class directory unavailable:',error?.message||error);
+      if(epoch===classFetchEpoch&&currentSchoolScope()===scope)console.warn('Lesson class directory unavailable:',error?.message||error);
     }
   }
   async function pullCloud(){
@@ -373,7 +373,36 @@
     bind(units);
     window.EDUNIZAM_SYLLABUS_CSV?.mount?.();
   }
+  function refreshClassSelect(prefix){
+    const control=$('lp'+prefix+'Class');
+    if(!control)return;
+    const options=classOptions(),previous=control.value,academic=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;
+    const chosen=options.find(x=>academic?.sameClass?.(x,previous))||'';
+    control.innerHTML='<option value="">Select registered class</option>'+
+      options.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+    control.value=chosen;
+    refreshSyllabusLists(prefix);
+  }
+  async function handleSchoolDataChange(event){
+    const detail=event?.detail,requestScope=currentSchoolScope();
+    if(!cloudReady()||detail?.scope!==requestScope||!['classes','syllabus'].includes(detail.area))return;
+    if(detail.area==='classes'){
+      await pullSchoolClasses();
+      if(currentSchoolScope()!==requestScope)return;
+      for(const prefix of ['Plan','Unit'])refreshClassSelect(prefix);
+      window.EDUNIZAM_SYLLABUS_CSV?.worksheetSelections?.();
+    }else if(detail.source!=='school-syllabus-csv'&&detail.source!=='lesson-plan-center'){
+      try{await pullCloud()}catch(error){
+        if(currentSchoolScope()===requestScope)console.warn('School syllabus synchronization:',error?.message||error);
+        return;
+      }
+      if(currentSchoolScope()===requestScope){
+        for(const prefix of ['Plan','Unit'])refreshSyllabusLists(prefix);
+      }
+    }
+  }
+  window.addEventListener('edunizam:school-data-changed',event=>{void handleSchoolDataChange(event)});
   window.addEventListener('edunizam:auth',()=>{const root=$('lessonCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_LESSON_CENTER={render,pullCloud,cloudReady,registeredClasses,classOptions,savedUnits,classesVerified:()=>cloudClassScope===currentSchoolScope(),syllabusVerified:()=>cloudLessonScope===currentSchoolScope(),fetchAllSchoolRows,recordedSchoolTopic,unitBookValidation,savePlan,saveUnit};
+  window.EDUNIZAM_LESSON_CENTER={render,pullCloud,cloudReady,registeredClasses,classOptions,savedUnits,classesVerified:()=>cloudClassScope===currentSchoolScope(),syllabusVerified:()=>cloudLessonScope===currentSchoolScope(),fetchAllSchoolRows,recordedSchoolTopic,unitBookValidation,savePlan,saveUnit,handleSchoolDataChange,refreshClassSelect};
 })();
