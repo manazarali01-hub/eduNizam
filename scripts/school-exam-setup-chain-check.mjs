@@ -109,7 +109,7 @@ element('#pbAdmin',{checked:false});
 for(const id of ['#pbSelectedChapters','#pbChapterPicker','#paperPreview',
  '#pbGenerationStatus','#pbSchoolCatalogStatus','#savedTeacherPapers',
  '#pbSavedCount','#pbSavedSearch','#pbSavedClass','#pbClasses',
- '#pbSubjects','#pbTeacherChapters'])element(id);
+ '#pbSubjects','#pbTeacherChapters','#paperBuilderApp'])element(id);
 const document={readyState:'loading',querySelector:selector=>elements.get(selector)||null,
  querySelectorAll:()=>[],addEventListener(){}};
 const cfg={institutionId:'school-A',enabled:true},user={id:'head-A'};
@@ -152,4 +152,34 @@ assert(!errors.length,'Unexpected workflow error: '+errors.join('; '));
 element('#pbSection').value='B';
 assert.equal(paper.schoolPaperReadiness('5','Science',[chapterA]).allowed,false);
 assert.equal(paper.schoolPaperReadiness('5','Science',[chapterB]).allowed,true);
+// A local academic write in the current school must refresh a previously
+// mounted Paper Builder; a different school's event must never mutate its UI.
+const initialSectionCount=paper.getSchoolCatalog().classes.length;
+tables.class_sections.push({id:'section-C',class_name:'Grade 5',section_name:'C',active:true});
+await paper.handleSchoolDataChange({detail:{scope:'school-B|head-A',area:'classes',source:'academic-groups-csv'}});
+assert.equal(paper.getSchoolCatalog().classes.length,initialSectionCount,
+ 'Cross-school notification changed private class choices');
+element('#pbSection').value='A';
+paper.writeSelectedChapters([chapterA]);
+const freshPreview=paper.previewPaper();
+assert(freshPreview.ready,'Could not prepare a previously-generated preview for invalidation');
+await paper.handleSchoolDataChange({detail:{scope:'school-A|head-A',area:'classes',source:'academic-groups-csv'}});
+assert.equal(paper.getSchoolCatalog().classes.length,initialSectionCount+1,
+ 'Newly registered section did not reach Paper Builder without navigation');
+assert.equal(element('#paperPreview').innerHTML,'','Stale exam preview survived changed class directory');
+assert.equal(element('#pbChapters').value,'','Old chapter selection survived class registration change');
+tables.syllabus_progress_units.push({
+ id:'unit-C',class_name:'5',section_name:'C',subject:'General Science',
+ unit_title:'New genuine fixture unit',textbook_title:'School Book (fixture)',
+ curriculum_board:'punjab-pectaa'
+});
+await paper.handleSchoolDataChange({detail:{scope:'school-A|head-A',area:'syllabus',source:'lesson-plan-center'}});
+element('#pbSection').value='C';
+assert(paper.schoolChapters('5','Science').includes('New genuine fixture unit'),
+ 'Fresh lesson-center syllabus unit was absent from Paper Builder dropdown source');
+assert.equal(paper.schoolPaperReadiness('5','Science',['New genuine fixture unit']).allowed,true,
+ 'Current-school real chapter failed guard after synchronization');
+assert.equal(paper.schoolPaperReadiness('5','Science',[chapterA]).allowed,false,
+ 'Section C gained access to section A-only chapter after synchronization');
+
 console.log('Full school exam setup PASS: Academic Groups -> class-scoped blank syllabus CSV -> reviewed question CSV -> verified 20-mark preview/save, with section isolation.');
