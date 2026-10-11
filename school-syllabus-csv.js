@@ -40,6 +40,97 @@ const sameClass=(a,b)=>{const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;if(api?.
 const subj=v=>window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.subjectKey?.(v)||norm(v);
 const key=x=>[norm(x.className).replace(/^(class|grade)\s+/,''),norm(x.sectionName),subj(x.subject),norm(x.unitTitle)].join('|');
 let staged=[],stagedScope='',stagedFile=null,busy=false,reviewEpoch=0,sessionEpoch=0;
+
+// Build a review worksheet from the VERIFIED current school's active directory.
+// Empty curriculum columns are intentional. Never infer a prescribed subject,
+// textbook, edition or chapter from a class name or generic topic catalog.
+function registeredClassWorksheet(classes=[],{className='',sectionName=''}={}){
+ if(!Array.isArray(classes)||!classes.length)throw Error('No registered school classes available. Set up Academic Groups first.');
+ if(sectionName&&!className)throw Error('Select a class before selecting an individual section.');
+ const available=classes.filter(x=>x&&x.active!==false&&String(x.className||'').trim());
+ if(className&&!available.some(x=>sameClass(x.className,className)))throw Error('Selected class is not in this school directory. Refresh classes.');
+ const relevant=available.filter(x=>(!className||sameClass(x.className,className))&&
+  (!sectionName||norm(x.sectionName)===norm(sectionName)));
+ if(!relevant.length)throw Error('No registered section matches your selection in the current school.');
+ const seen=new Set(),rows=[];
+ for(const x of relevant){
+  const name=String(x.className||'').trim(),section=String(x.sectionName||'').trim();
+  // Excel/Sheets may execute formula-like CSV values even inside double quotes.
+  if([name,section].some(v=>/^[=+@-]/.test(v)||/[\r\n\t]/.test(v)))
+   throw Error('Unsafe class/section name in Academic Groups. Correct it before CSV export.');
+  const identity=[norm(name).replace(/^(class|grade)\s+/,''),norm(section)].join('|');
+  if(seen.has(identity))continue;
+  seen.add(identity);
+  rows.push([name,section,'','','','','','']);
+ }
+ if(!rows.length)throw Error('No registered class sections to export.');
+ if(rows.length>150)throw Error('More than 150 class sections. Select one class or section and download separate worksheets.');
+ const quoted=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ return '\uFEFF'+fields.join(',')+'\r\n'+rows.map(row=>row.map(quoted).join(',')).join('\r\n')+'\r\n';
+}
+function worksheetSelections(){
+ const cls=$('sbiWorksheetClass'),section=$('sbiWorksheetSection');
+ if(!cls||!section)return;
+ const available=permitted()?api()?.registeredClasses?.()||[]:[];
+ const keys=new Map();
+ for(const x of available){
+  if(x?.active===false||!String(x?.className||'').trim())continue;
+  const name=String(x.className).trim(),key=norm(name).replace(/^(class|grade)\s+/,'');
+  if(!keys.has(key))keys.set(key,name);
+ }
+ const previous=cls.value;
+ cls.innerHTML='<option value="">All registered classes</option>'+
+  [...keys.values()].map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+ if([...keys.values()].some(x=>x===previous))cls.value=previous;
+ const chosen=cls.value,sections=new Set();
+ if(chosen)for(const x of available){
+  if(sameClass(x.className,chosen)&&x.active!==false&&String(x.sectionName||'').trim())
+   sections.add(String(x.sectionName).trim());
+ }
+ const old=section.value;
+ section.innerHTML='<option value="">All sections in selected class</option>'+
+  [...sections].map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+ if(sections.has(old))section.value=old;
+ section.disabled=!chosen;
+ const note=$('sbiWorksheetNote');
+ if(note)note.textContent=available.length
+  ?'Registered directory loaded ('+available.length+' accessible class/section rows). Other syllabus fields remain blank.'
+  :'No current-school classes loaded. Register Academic Groups or refresh the school directory.';
+}
+let worksheetBusy=false;
+async function downloadRegisteredClassWorksheet(){
+ if(worksheetBusy)return;
+ if(!permitted())return announce('Verified teacher/Head cloud login required before exporting school class names.',true);
+ const start=scope(),generation=sessionEpoch,className=$('sbiWorksheetClass')?.value||'',
+  sectionName=$('sbiWorksheetSection')?.value||'',button=$('sbiRegisteredWorksheet');
+ worksheetBusy=true;if(button)button.disabled=true;
+ try{
+  // Re-read the authorized directory immediately before export. In-memory
+  // or stale localStorage rows cannot authorize a school worksheet.
+  await api().pullCloud();
+  if(scope()!==start||generation!==sessionEpoch)return;
+  if(api().classesVerified?.()!==true)throw Error('Current school class directory was not verified. Refresh Academic Groups.');
+  if(($('sbiWorksheetClass')?.value||'')!==className||
+     ($('sbiWorksheetSection')?.value||'')!==sectionName)
+   throw Error('Class/section selection changed during refresh. Download again.');
+  const contents=registeredClassWorksheet(api().registeredClasses(),{className,sectionName});
+  if(scope()!==start||generation!==sessionEpoch)return;
+  const blob=new Blob([contents],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  const slug=String(className||'all-classes').replace(/[^a-zA-Z0-9]+/g,'-').slice(0,40);
+  a.href=url;a.download='edunizam-'+slug+'-registered-syllabus-BLANK-REVIEW.csv';
+  a.click();setTimeout(()=>URL.revokeObjectURL(url),500);
+  announce('Blank registered-class worksheet downloaded. Fill the actual subject, chapter, prescribed book and board for each row; add rows as needed. Nothing was imported.');
+  worksheetSelections();
+ }catch(error){
+  if(scope()===start&&generation===sessionEpoch)
+   announce('Worksheet not generated: '+String(error?.message||error),true);
+ }finally{
+  worksheetBusy=false;
+  if(scope()===start&&generation===sessionEpoch&&button?.isConnected)button.disabled=false;
+ }
+}
+
 function resetPreview(){
  reviewEpoch++;staged=[];stagedScope='';stagedFile=null;
  const button=$('sbiSave');if(button)button.disabled=true;
@@ -186,6 +277,8 @@ function mount(){
  target.insertAdjacentHTML('beforebegin','<article class="card" id="sbiImport" style="margin:16px 0"><h3>Bulk Import School Syllabus (CSV)</h3>'+
  '<p class="coverage-note">Import your real textbooks and exact chapter names. Requires registered classes, book/board details and review. Template contains no fabricated content.</p>'+
  '<p class="coverage-note">Class 5 Science chapter reference: PEF Content Book <strong>2025–26 only</strong> (partner-school planning; not an approved 2026–27 school syllabus). <a href="https://www.pef.edu.pk/pdf/downloads/Content-List/Content-book-Primary-01-09-25.pdf" target="_blank" rel="noopener noreferrer">View PEF source</a> · <a href="https://pectaa.edu.pk/books-and-publications/" target="_blank" rel="noopener noreferrer">Check current PECTAA books</a>. Reference CSV has <strong>blank textbook title and board</strong>: no import until your school confirms them.</p>'+
+ '<div class="form-grid"><label>Registered class / grade<select id="sbiWorksheetClass" aria-label="Choose registered class for syllabus worksheet"><option value="">All registered classes</option></select></label><label>Section<select id="sbiWorksheetSection" aria-label="Choose registered section for syllabus worksheet" disabled><option value="">All sections in selected class</option></select></label></div>'+ 
+ '<div class="paper-actions"><button type="button" class="secondary" id="sbiRegisteredWorksheet">Download registered-class blank worksheet</button><button type="button" class="secondary" id="sbiRefreshWorksheet">Refresh registered classes</button></div><p id="sbiWorksheetNote" class="coverage-note" role="status" aria-live="polite">Only class and section names will be filled. Subjects, chapters, books and boards must be entered from real school textbooks.</p>'+ 
  '<div class="paper-actions"><button type="button" class="secondary" id="sbiTemplate">Download blank CSV</button>'+
  '<button type="button" class="secondary" id="sbiClass5Reference">Class 5 Science: 9 sourced chapter names (review CSV)</button>'+
  '<input id="sbiFile" type="file" accept=".csv,text/csv" aria-label="Select genuine school syllabus CSV">'+
@@ -194,6 +287,19 @@ function mount(){
  '<p id="sbiStatus" role="status" aria-live="polite">Up to 150 rows and 1 MB. No records are saved before confirmation.</p>'+
  '<div id="sbiPreview"></div></article>');
  $('sbiTemplate').onclick=template;$('sbiClass5Reference').onclick=downloadClass5ScienceReference;$('sbiPreviewButton').onclick=preview;$('sbiSave').onclick=save;
+ $('sbiWorksheetClass').onchange=worksheetSelections;
+ $('sbiRegisteredWorksheet').onclick=downloadRegisteredClassWorksheet;
+ $('sbiRefreshWorksheet').onclick=async()=>{
+  if(!permitted())return announce('Login required to refresh class names.',true);
+  const start=scope(),generation=sessionEpoch;
+  try{
+   await api().pullCloud();
+   if(start!==scope()||generation!==sessionEpoch)return;
+   if(api().classesVerified?.()!==true)throw Error('Class directory could not be verified.');
+   worksheetSelections();announce('Registered school classes refreshed. Select a class and download the blank worksheet.');
+  }catch(error){if(start===scope()&&generation===sessionEpoch)announce('Class refresh failed: '+String(error?.message||error),true)}
+ };
+ worksheetSelections();
  $('sbiFile').onchange=()=>{resetPreview();announce('Selected file changed. Validate the new CSV.')};
 }
 // A sign-out can be followed by login to the SAME school with the SAME ID;
@@ -208,6 +314,6 @@ if(typeof window.addEventListener==='function'){
   }
  });
 }
-window.EDUNIZAM_SYLLABUS_CSV={fields,csv,validate,mount,preview,save,resetPreview,class5ScienceReference,class5ScienceReviewCsv,downloadClass5ScienceReference};
+window.EDUNIZAM_SYLLABUS_CSV={fields,csv,validate,mount,preview,save,resetPreview,registeredClassWorksheet,worksheetSelections,downloadRegisteredClassWorksheet,class5ScienceReference,class5ScienceReviewCsv,downloadClass5ScienceReference};
 setTimeout(mount,0);
 })();
