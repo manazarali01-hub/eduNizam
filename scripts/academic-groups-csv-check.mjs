@@ -75,7 +75,7 @@ assert.match(nodes.acsvStatus.textContent,/Head of Institute/,'Teacher may not b
 function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return{promise,resolve}}
 {
  const slow=deferred(),oldFile={size:300,text:()=>slow.promise};
- const newFile={size:300,text:async()=>header+'\\n6,C,Room 6,24'};
+ const newFile={size:300,text:async()=>header+'\n6,C,Room 6,24'};
  const ui={acsvFile:{files:[oldFile],value:'old.csv'},acsvSave:{disabled:true,isConnected:true},
   acsvStatus:{textContent:'',dataset:{}},acsvPreview:{innerHTML:''}};
  const writes=[];
@@ -90,7 +90,7 @@ function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return
  const oldPreview=imp.preview();
  await Promise.resolve();await Promise.resolve();
  ui.acsvFile.files=[newFile];imp.resetPreview();
- slow.resolve(header+'\\n8,B,Old Room,40');
+ slow.resolve(header+'\n8,B,Old Room,40');
  await oldPreview;
  assert.equal(ui.acsvSave.disabled,true,'Old async file completed after selection changed');
  await imp.save();
