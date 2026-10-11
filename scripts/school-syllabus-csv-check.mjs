@@ -12,6 +12,38 @@ const good=header+'\n5,A,Mathematics,"Solids, liquids",School Science,punjab-pec
 const row=validate(good,registered,[]);
 assert.equal(row.errors.length,0);assert.equal(row.valid.length,1);
 assert.equal(row.valid[0].unitTitle,'Solids, liquids');
+
+const {registeredClassWorksheet}=w.EDUNIZAM_SYLLABUS_CSV;
+const blank=registeredClassWorksheet(registered);
+const structured=csv(blank);
+assert.equal(structured.length,3,'Expected two authentic registered class sections');
+assert.deepEqual([...structured[0]],fields);
+assert.deepEqual([...structured[1]],['Grade 5','A','','','','','','']);
+assert.deepEqual([...structured[2]],['5','B','','','','','','']);
+assert.equal(validate(blank,registered,[]).valid.length,0,
+ 'Blank unreviewed class worksheet should never pass textbook validation');
+assert.equal(validate(blank,registered,[]).errors.length,2);
+const selected=registeredClassWorksheet(registered,{className:'Class 5',sectionName:'B'});
+assert.equal(csv(selected).length,2,'Selected section exported extra classes');
+assert.equal(csv(selected)[1][1],'B');
+assert.throws(()=>registeredClassWorksheet(registered,{className:'7'}),/not in this school/i);
+assert.throws(()=>registeredClassWorksheet(registered,{sectionName:'A'}),/Select a class/i);
+assert.throws(()=>registeredClassWorksheet([]),/No registered school classes/i);
+assert.throws(()=>registeredClassWorksheet([{className:'=2+2',sectionName:'A'}]),
+ /Unsafe class/i,'Spreadsheet formula-like class names should not be exported');
+assert.throws(()=>registeredClassWorksheet(Array.from({length:151},(_,i)=>({className:'5',sectionName:'S'+i}))),
+ /150/);
+assert.equal(csv(registeredClassWorksheet([{className:'5',sectionName:'A, "Blue"'}]))[1][1],
+ 'A, "Blue"','Quoted section text was corrupted');
+assert.equal(csv(registeredClassWorksheet([{className:'5',sectionName:'A'},{className:'Grade 5',sectionName:'A'}])).length,
+ 2,'Whole-grade aliases should not duplicate class sections');
+const actual=csv(selected)[1];
+actual[2]='General Science';actual[3]='Verified real chapter';actual[4]='Actual School Science';
+actual[5]='punjab-pectaa';actual[6]='2026';
+const reviewed=fields.join(',')+'\n'+actual.map(v=>'"'+v.replace(/"/g,'""')+'"').join(',')+'\n';
+assert.equal(validate(reviewed,registered,[]).valid.length,1,
+ 'A completed school worksheet did not roundtrip into the syllabus importer');
+
 assert.equal(csv('"One line\nSecond line",B\n')[0][0],'One line\nSecond line');
 const stored=[{className:'Grade 5',sectionName:'A',subject:'Mathematics',unitTitle:'Solids, liquids'}];
 assert.equal(validate(good,registered,stored).errors.length,1,'Existing same-school chapter duplicated');
