@@ -556,14 +556,29 @@ async function saveQuestionImport(){
  }
  if(!confirm('Import '+pendingImportRows.length+' teacher-supplied questions into this institute? Please verify textbook/chapter alignment and answer keys first.'))return;
  importBusy=true;if(button){button.disabled=true;button.textContent='Importing reviewed questions...'}
- const total=pendingImportRows.length;
+ const stagedRows=pendingImportRows.slice(),total=stagedRows.length;
  try{
+  // A colleague may have saved a duplicate after the teacher previewed
+  // this file. Refresh the full school bank before the actual INSERT.
+  await loadCustomQuestions();
+  if(!ready()||importScope!==currentSchoolScope()||sessionGeneration!==paperSessionGeneration||
+     epoch!==questionImportEpoch||pendingImportScope!==importScope||
+     (pendingImportOrigin==='file'&&(!pendingImportFile||$('#qbImportFile')?.files?.[0]!==pendingImportFile)))
+   throw Error('School session or selected question file changed. Revalidate the questions.');
+  if(questionScope!==importScope)
+   throw Error('Current school Question Bank is unavailable. Refresh and revalidate before importing.');
+  const validator=window.EDUNIZAM_QUESTION_IMPORT;
+  if(!validator?.prepare)throw Error('Question import validator unavailable. Reload Paper Builder.');
+  const rechecked=validator.prepare(JSON.stringify(stagedRows),'staged-questions.json',currentTeacherQuestions());
+  if(rechecked.errors.length||rechecked.duplicates||rechecked.valid.length!==total)
+   throw Error('Question Bank changed after preview: '+rechecked.duplicates+' duplicate(s), '+rechecked.errors.length+
+    ' invalid row(s). Revalidate the file before importing to avoid duplicates.');
   // One PostgREST INSERT statement: a row validation/RLS failure rolls back
   // the entire request. A per-25-row loop left partial question banks behind.
   if(importScope!==currentSchoolScope()||pendingImportScope!==importScope||epoch!==questionImportEpoch||
    (pendingImportOrigin==='file'&&(!pendingImportFile||$('#qbImportFile')?.files?.[0]!==pendingImportFile)))throw Error('School or selected question file changed before saving.');
   const owner=cloud().state.user.id,institution=cfg().institutionId;
-  const records=pendingImportRows.map(q=>({...q,institution_id:institution,creator_user_id:owner,updated_at:new Date().toISOString()}));
+  const records=stagedRows.map(q=>({...q,institution_id:institution,creator_user_id:owner,updated_at:new Date().toISOString()}));
   // An error-free INSERT response alone is not proof that the reviewed batch
   // was stored: require every expected question and returned database ID.
   const response=await cloud().state.client.from('teacher_question_bank')
