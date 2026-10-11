@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261011-paper-save-integrity-v71';
+  const VERSION='20261011-school-cache-session-v72';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
