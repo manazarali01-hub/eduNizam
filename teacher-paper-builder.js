@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s),all=s=>[...document.querySelectorAll(s)],es
 const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{},settings=()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}},role=()=>{let r;try{r=JSON.parse(localStorage.getItem('edunizam_session')||'{}').role}catch{}return r==='admin'?'head':r||'student'},ready=()=>!!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId);
 let current=null,currentRow=null,teacherDefaults={classes:[],subjects:[]},customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
 let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
-let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0;
+let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0,savedPapersViewScope='';
 let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='';
 function clearPendingQuestionImport(){
  questionImportEpoch++;pendingImportRows=[];pendingImportScope='';pendingImportFile=null;pendingImportOrigin='';
@@ -578,31 +578,46 @@ async function deletePaper(id){if(!ready())return;if(!confirm('Delete this saved
 async function loadPapers(){
  const requestId=++savedPapersRequestId,scope=currentSchoolScope();
  const el=$('#savedTeacherPapers');
+ // Drop the former school's visible paper cards and editor immediately.
+ // Do not wait for another network response to hide protected content.
+ if(savedPapersViewScope!==scope){
+  savedPapersViewScope=scope;currentRow=null;current=null;
+  if(el)el.innerHTML='<div class="empty-state">Loading current school papers…</div>';
+  if($('#paperPreview'))$('#paperPreview').innerHTML='';
+  if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
+ }
  if(!ready()){
   if(el)el.innerHTML='<div class="empty-state">Sign in to the school workspace to view saved papers.</div>';
+  if($('#paperPreview'))$('#paperPreview').innerHTML='';
+  currentRow=null;current=null;
   if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
   return;
  }
  const client=cloud().state.client,institution=cfg().institutionId;
- let response;
- try{response=await client.from('teacher_papers').select('*').eq('institution_id',institution).order('created_at',{ascending:false}).limit(100)}
- catch(error){
-  if(scope===currentSchoolScope()&&requestId===savedPapersRequestId&&el)
-   el.innerHTML='<div class="empty-state">Could not load saved papers. Refresh and retry.</div>';
+ let data;
+ try{
+  // Searching only the newest 100 saved papers silently hid older school work.
+  // Read complete, stable institution-scoped pages; fail closed on a partial read.
+  data=await fetchPagedSchoolRows(client,'teacher_papers','*',institution,{pageSize:250,maxRows:5000});
+ }catch(error){
+  if(scope===currentSchoolScope()&&requestId===savedPapersRequestId&&el){
+   el.innerHTML='<div class="empty-state">Saved papers could not be verified completely. Check school access or connection, then retry.</div>';
+   if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
+  }
   return;
  }
- // Never display a late paper list from a former school/account or an older
- // search request. Switching the workspace invalidates the entire response.
  if(!ready()||scope!==currentSchoolScope()||requestId!==savedPapersRequestId||!el)return;
- const {data,error}=response||{};
- if(error){el.innerHTML='<div class="empty-state">'+esc(error.message)+'</div>';return}
+ // The complete result is ordered in the UI by date, regardless of the
+ // immutable id ordering used for safe database pagination.
+ data.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))||String(b.id||'').localeCompare(String(a.id||'')));
  const search=String($('#pbSavedSearch')?.value||'').trim().toLowerCase(),cls=String($('#pbSavedClass')?.value||'').trim().toLowerCase(),uid=String(cloud()?.state?.user?.id||'');
- const rows=(data||[]).filter(x=>(!search||[x.title,x.subject,x.class_name,(x.chapters||[]).join(' ')].join(' ').toLowerCase().includes(search))&&(!cls||String(x.class_name||'').toLowerCase().includes(cls)));
+ const rows=data.filter(x=>(!search||[x.title,x.subject,x.class_name,(x.chapters||[]).join(' ')].join(' ').toLowerCase().includes(search))&&(!cls||String(x.class_name||'').toLowerCase().includes(cls)));
+ const visible=rows.slice(0,100);
  $('#pbSavedCount')&&($('#pbSavedCount').textContent=rows.length+' paper'+(rows.length===1?'':'s'));
- el.innerHTML=rows.map(x=>{const ss=x.paper_json?.sourceStats||{},own=String(x.creator_user_id||'')===uid;return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(x.class_name)+'</span><span class="mini-badge">'+(x.visibility==='admin'?'Teacher + Admin':'Private')+'</span></div><span class="mini-badge">'+new Date(x.created_at).toLocaleDateString()+'</span></div><h3>'+esc(x.title)+'</h3><p>'+esc(x.subject)+' · '+x.total_marks+' marks · '+esc(x.difficulty)+'</p>'+(ss.total?'<p class="coverage-note">'+(ss.teacherBank||0)+' teacher-bank · '+(ss.practiceBank||0)+' curriculum-bank · '+(ss.templateFallback||0)+' fallback</p>':'')+'<div class="paper-actions"><button class="secondary" data-pb-open="'+x.id+'">'+(own?'Open / Edit / Print':'Review / Print')+'</button><button class="secondary" data-pb-clone="'+x.id+'">Clone</button>'+(own?'<button class="secondary" data-pb-delete="'+x.id+'">Delete</button>':'')+'</div></article>'}).join('')||'<div class="empty-state">No papers match this filter.</div>';
- all('[data-pb-open]').forEach(b=>b.onclick=()=>{currentRow=data.find(y=>y.id===b.dataset.pbOpen);current=JSON.parse(JSON.stringify(currentRow.paper_json||{}));showEditor();$('#paperPreview').scrollIntoView({behavior:'smooth'})});
- all('[data-pb-clone]').forEach(b=>b.onclick=()=>clonePaper(data.find(y=>y.id===b.dataset.pbClone)));
- all('[data-pb-delete]').forEach(b=>b.onclick=()=>deletePaper(b.dataset.pbDelete));
+ el.innerHTML=visible.map(x=>{const ss=x.paper_json?.sourceStats||{},own=String(x.creator_user_id||'')===uid;return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(x.class_name)+'</span><span class="mini-badge">'+(x.visibility==='admin'?'Teacher + Admin':'Private')+'</span></div><span class="mini-badge">'+new Date(x.created_at).toLocaleDateString()+'</span></div><h3>'+esc(x.title)+'</h3><p>'+esc(x.subject)+' · '+x.total_marks+' marks · '+esc(x.difficulty)+'</p>'+(ss.total?'<p class="coverage-note">'+(ss.teacherBank||0)+' teacher-bank · '+(ss.practiceBank||0)+' curriculum-bank · '+(ss.templateFallback||0)+' fallback</p>':'')+'<div class="paper-actions"><button class="secondary" data-pb-open="'+x.id+'">'+(own?'Open / Edit / Print':'Review / Print')+'</button><button class="secondary" data-pb-clone="'+x.id+'">Clone</button>'+(own?'<button class="secondary" data-pb-delete="'+x.id+'">Delete</button>':'')+'</div></article>'}).join('')+(rows.length>100?'<p class="coverage-note">Showing newest 100 of '+rows.length+' matching papers. Narrow the search or class filter to find older papers.</p>':'')||'<div class="empty-state">No papers match this filter.</div>';
+ all('[data-pb-open]').forEach(b=>b.onclick=()=>{if(!ready()||scope!==currentSchoolScope())return;currentRow=data.find(y=>y.id===b.dataset.pbOpen);if(!currentRow)return;current=JSON.parse(JSON.stringify(currentRow.paper_json||{}));showEditor();$('#paperPreview')?.scrollIntoView({behavior:'smooth'})});
+ all('[data-pb-clone]').forEach(b=>b.onclick=()=>{if(!ready()||scope!==currentSchoolScope())return;const row=data.find(y=>y.id===b.dataset.pbClone);if(row)clonePaper(row)});
+ all('[data-pb-delete]').forEach(b=>b.onclick=()=>{if(ready()&&scope===currentSchoolScope())deletePaper(b.dataset.pbDelete)});
 }
 function chapterChoices(cls,subject,sourceQuestions=null,sourceUnits=null){
  if(sourceQuestions===null)sourceQuestions=[...(ready()&&questionScope!==currentSchoolScope()?[]:customQuestions),...activeSourceRows()];
