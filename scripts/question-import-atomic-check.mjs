@@ -73,6 +73,23 @@ elements['#qbImportFile'].files=[{size:600,name:'reviewed-science.csv',text:asyn
 await app.loadSchoolCatalog();await app.loadCustomQuestions();
 await app.previewQuestionImport();
 assert.equal(elements['#qbImportSave'].disabled,false,'Valid reviewed questions did not enable save');
+// A second teacher/device can insert a question between this preview and
+// the import. The write must recheck the complete school bank, not silently
+// save a new duplicate from a previously valid local CSV.
+existing['school-A'].teacher_question_bank.push({
+ id:'other-teacher-question',class_name:'Grade 5',subject:'General Science',
+ chapter:'Energy',question_type:'mcq',question_text:'Which form transfers energy?',
+ difficulty:'Balanced',options:['Light','Desk','Stone','Chair'],correct_option:0,
+ creator_user_id:'other-teacher',active:true
+});
+await app.saveQuestionImport();
+assert.equal(inserts.length,0,'Stale preview inserted another teacher\'s existing question');
+assert.match(elements['#qbImportReport'].textContent,/duplicate/i,
+ 'Stale question duplicate did not explain revalidation');
+assert.equal(elements['#qbImportSave'].disabled,true,
+ 'Duplicate conflict did not disable the old import preview');
+existing['school-A'].teacher_question_bank.pop();
+await app.previewQuestionImport();
 await app.saveQuestionImport();
 assert.equal(inserts.length,1,'Rejected import must use a single database operation');
 assert.equal(inserts[0].rows.length,2,'Rejected batch must contain both questions');
