@@ -68,7 +68,7 @@ const prompt=src.questionPrompt('Matter is anything with mass and volume.','5','
 assert(prompt.includes('DIRECTLY supported')&&prompt.includes('Teacher must review')&&!prompt.includes('API key'),'AI source-grounded drafting review safeguards missing');
 const builder=read('teacher-paper-builder.js'),loader=read('feature-loader.js');
 assert(builder.includes('activeSourceRows()')&&builder.includes('attachSourceQuestions(rows)')&&builder.includes('prepareSourceSync()'),'In-memory source question staging or separately gated sync missing');
-assert(builder.includes('schoolPaperReadiness(x.class_name,x.subject,[x.chapter])'),'Unmapped textbook questions could synchronize to school');
+assert(builder.includes('schoolQuestionReadiness(x.class_name,x.subject,[x.chapter])'),'Unmapped textbook questions could synchronize to school');
 assert(builder.includes('window.EDUNIZAM_PAPER_SOURCE?.mount?.()'),'Upload UI not mounted when Paper Builder opens');
 assert(loader.includes("'paper-source-import.js','teacher-paper-builder.js'"),'Photo/PDF helper not loaded before paper form');
 assert(read('paper-source-import.js').includes('pbSourceAiConsent')&&read('paper-source-import.js').includes('pbSourceReviewed'),'No separate opt-in for AI and teacher answer review');
