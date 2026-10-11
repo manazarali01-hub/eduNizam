@@ -79,4 +79,41 @@ assert.match(source,/\.insert\(payloads\)/);
 assert.doesNotMatch(source,/for\(const x of rows\)\s*\{[\s\S]*?\.insert\(payload\)/,
  'Importer must not reintroduce a per-row database write loop');
 
+// Old asynchronous CSV reads must not reactivate Save after a user selects another file.
+function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return{promise,resolve}}
+{
+ const slow=deferred();
+ const oldFile={size:400,text:()=>slow.promise};
+ const newFile={size:400,text:async()=>header+'\\n5,A,General Science,New Chapter,School Science,punjab-pectaa,2026,https://example.org/book'};
+ const ui={sbiFile:{files:[oldFile],value:'old.csv'},sbiSave:{disabled:true,isConnected:true},
+  sbiStatus:{textContent:'',dataset:{}},sbiPreview:{innerHTML:''}};
+ const writes=[];
+ const lesson={cloudReady:()=>true,pullCloud:async()=>{},registeredClasses:()=>registered,
+  savedUnits:()=>[],render:async()=>{}};
+ const ww={EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-A'},
+  EDUNIZAM_CLOUD:{state:{user:{id:'teacher-1'},client:{from:()=>({insert:async rows=>{writes.push(rows);return{error:null}}})}}},
+  EDUNIZAM_LESSON_CENTER:lesson};
+ const dd={getElementById:id=>ui[id]||null};
+ runInNewContext(source,{window:ww,document:dd,
+  localStorage:{getItem:()=>JSON.stringify({role:'head'})},setTimeout:()=>0,
+  confirm:()=>true,Promise,console});
+ const imp=ww.EDUNIZAM_SYLLABUS_CSV;
+ const oldPreview=imp.preview();
+ await Promise.resolve();await Promise.resolve();
+ ui.sbiFile.files=[newFile];imp.resetPreview();
+ slow.resolve(header+'\\n5,A,General Science,Old Chapter,School Science,punjab-pectaa,2026,https://example.org/book');
+ await oldPreview;
+ assert.equal(ui.sbiSave.disabled,true,'Old syllabus preview reactivated Save after file changed');
+ await imp.save();assert.equal(writes.length,0,'Stale syllabus CSV was written to school records');
+ await imp.preview();assert.equal(ui.sbiSave.disabled,false);
+ await imp.save();assert.equal(writes.length,1);
+ assert.equal(writes[0][0].unit_title,'New Chapter','Old file overwrote selected new syllabus CSV');
+ ui.sbiFile.files=[newFile];imp.resetPreview();await imp.preview();
+ const fetchRows=deferred();lesson.pullCloud=()=>fetchRows.promise;
+ const pendingSave=imp.save();
+ ui.sbiFile.files=[oldFile];imp.resetPreview();
+ fetchRows.resolve();await pendingSave;
+ assert.equal(writes.length,1,'Syllabus file switch during save still caused a database write');
+}
+
 console.log('Syllabus CSV import PASS: school/section validation, real board/title, duplicates, quoted/newline CSV, HTTPS, atomic guarded cloud write.');
