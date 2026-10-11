@@ -250,6 +250,9 @@ async function save(){
   }
   committed=true;staged=[];stagedScope='';stagedFile=null;
   if($('sbiFile'))$('sbiFile').value='';
+  if(scope()===start&&session===sessionEpoch&&typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function')
+   window.dispatchEvent(new CustomEvent('edunizam:school-data-changed',
+    {detail:{scope:start,area:'syllabus',source:'school-syllabus-csv'}}));
   announce(rows.length+' genuine chapter(s) saved together to the selected school.');
   if(scope()===start&&session===sessionEpoch){
    try{await api().pullCloud();if(scope()===start&&session===sessionEpoch)await api().render()}
