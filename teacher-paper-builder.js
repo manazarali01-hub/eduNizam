@@ -1,7 +1,7 @@
 (function(){
 const $=s=>document.querySelector(s),all=s=>[...document.querySelectorAll(s)],esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{},settings=()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}},role=()=>{let r;try{r=JSON.parse(localStorage.getItem('edunizam_session')||'{}').role}catch{}return r==='admin'?'head':r||'student'},ready=()=>!!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId);
-let current=null,currentRow=null,teacherDefaults={classes:[],subjects:[]},teacherDefaultsScope='',teacherDefaultsRequestId=0,customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
+let current=null,currentRow=null,currentDraftScope='',teacherDefaults={classes:[],subjects:[]},teacherDefaultsScope='',teacherDefaultsRequestId=0,customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
 let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
 let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0,savedPapersViewScope='';
 let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='';
@@ -545,7 +545,11 @@ async function clonePaper(row){
  $('#pbSubject').value=normalizedSubject(row.subject);refreshPaperCatalog();
  writeSelectedChapters(row.chapters||[]);renderSelectedChapters();
  $('#pbMarks').value=row.total_marks;$('#pbDifficulty').value=row.difficulty||'Balanced';
- current=JSON.parse(JSON.stringify(row.paper_json||{}));currentRow=null;showEditor();
+ current=JSON.parse(JSON.stringify(row.paper_json||{}));currentRow=null;currentDraftScope=currentSchoolScope();
+ if($('#pbDistribution'))$('#pbDistribution').value=current.distribution||'Balanced';
+ if($('#pbTeacherOnly'))$('#pbTeacherOnly').checked=!!current.teacherOnly;
+ if($('#pbConceptDraft'))$('#pbConceptDraft').checked=current.curriculumMode==='concept-only-draft';
+ showEditor();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 async function savePaper(){
@@ -555,18 +559,19 @@ async function savePaper(){
   total=Number($('#pbMarks')?.value||50),difficulty=$('#pbDifficulty')?.value||'Balanced',
   mode=$('#pbDistribution')?.value||'Balanced';
  if(!subject||!cls||!topics.length)return alert('Choose a class, subject and at least one exact topic.');
- const gate=schoolPaperReadiness(cls,subject,topics,{conceptDraft:!!$('#pbConceptDraft')?.checked});
+ const concept=!!$('#pbConceptDraft')?.checked;
+ const gate=schoolPaperReadiness(cls,subject,topics,{conceptDraft:concept});
  if(!gate.allowed)return alert(gate.reason);
  try{current=build(subject,topics,total,difficulty,mode,cls,{teacherOnly:!!$('#pbTeacherOnly')?.checked})}
  catch(error){return alert(error.message||'Question bank coverage is insufficient.')}
- current.sectionName=paperSection();current.curriculumMode=gate.mode;current.textbookVerified=false;
+ current.sectionName=paperSection();current.curriculumMode=concept?'concept-only-draft':gate.mode;current.textbookVerified=false;currentDraftScope=currentSchoolScope();
  const title=$('#pbTitle')?.value?.trim()||subject+' Paper';
  const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,
   title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,
-  visibility:gate.mode==='concept-only-draft'?'private':($('#pbAdmin')?.checked?'admin':'private')};
+  visibility:concept?'private':($('#pbAdmin')?.checked?'admin':'private')};
  const scope=currentSchoolScope(),{data,error}=await cloud().state.client.from('teacher_papers').insert(payload).select().single();
  if(scope!==currentSchoolScope())return;
- if(error)return alert(error.message);
+ if(error||!data?.id)return alert('Paper save was not confirmed. Refresh Saved Papers before retrying. '+String(error?.message||''));
  currentRow=data;showEditor();loadPapers();
  window.EDUNIZAM_PREMIUM?.toast?.('Paper draft saved. Verify the current book, questions and answer key.','success');
 }
@@ -594,32 +599,40 @@ function previewPaper(){
  let paper;
  try{paper=build(subject,topics,total,difficulty,pattern,cls,{teacherOnly:!!$('#pbTeacherOnly')?.checked})}
  catch(e){return fail('Not enough matching questions for this marks/pattern choice: '+String(e?.message||e))}
- current=paper;currentRow=null;current.sectionName=paperSection();current.curriculumMode=concept?'concept-only-draft':'school-recorded';current.textbookVerified=false;
+ current=paper;currentRow=null;currentDraftScope=currentSchoolScope();current.sectionName=paperSection();current.curriculumMode=concept?'concept-only-draft':'school-recorded';current.textbookVerified=false;
  showEditor();
  if(status)status.textContent='Preview generated: '+total+' marks · '+pattern+'. '+(concept?'This is NOT a verified school exam.':'School-recorded chapters; teacher review required.');
  $('#paperPreview')?.scrollIntoView?.({behavior:'smooth',block:'start'});
  return{ready:true,mode:current.curriculumMode,total};
+}
+function currentDraftMatchesForm(cls,subject,topics,total,difficulty,pattern,teacherOnly,concept){
+ const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
+ return !!current&&currentDraftScope===currentSchoolScope()&&
+  A?.sameClass?.(current.className,cls)&&A.normalizeSubject(current.subject)===A.normalizeSubject(subject)&&
+  Array.isArray(current.topics)&&current.topics.length===topics.length&&topics.every(x=>current.topics.some(y=>A.chapterMatches(x,y)))&&
+  current.totalMarks===total&&String(current.sectionName||'')===paperSection()&&
+  current.difficulty===difficulty&&current.distribution===pattern&&!!current.teacherOnly===teacherOnly&&
+  current.curriculumMode===(concept?'concept-only-draft':'school-recorded');
 }
 async function saveCurrentAsNew(){
  if(!ready()||!current)return alert('Cloud login and preview required.');
  syncEdits();
  const subject=$('#pbSubject')?.value?.trim()||'',cls=$('#pbClass')?.value?.trim()||'',
   topics=readSelectedChapters(),
-  total=Number($('#pbMarks')?.value||current.totalMarks||50),difficulty=$('#pbDifficulty')?.value||'Balanced',
-  title=$('#pbTitle')?.value?.trim()||subject+' Paper';
- const gate=schoolPaperReadiness(cls,subject,topics,{conceptDraft:!!$('#pbConceptDraft')?.checked});
+  total=Number($('#pbMarks')?.value),difficulty=$('#pbDifficulty')?.value||'Balanced',
+  pattern=$('#pbDistribution')?.value||'Balanced',teacherOnly=!!$('#pbTeacherOnly')?.checked,
+  concept=!!$('#pbConceptDraft')?.checked,title=$('#pbTitle')?.value?.trim()||subject+' Paper';
+ if(!currentDraftMatchesForm(cls,subject,topics,total,difficulty,pattern,teacherOnly,concept))
+  return alert('Paper settings or school changed after preview (class, chapter, marks, difficulty, pattern, question source or draft mode). Generate a fresh preview before saving.');
+ const gate=schoolPaperReadiness(cls,subject,topics,{conceptDraft:concept});
  if(!gate.allowed)return alert(gate.reason);
- const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
- if(!A?.sameClass?.(current.className,cls)||A.normalizeSubject(current.subject)!==A.normalizeSubject(subject)||
-  current.topics?.length!==topics.length||topics.some(x=>!current.topics.some(y=>A.chapterMatches(x,y)))||
-  (current.totalMarks!==total||String(current.sectionName||'')!==paperSection()))return alert('Paper fields changed after preview. Generate a fresh paper before saving a copy.');
- current.curriculumMode=gate.mode;current.textbookVerified=false;
+ current.curriculumMode=concept?'concept-only-draft':gate.mode;current.textbookVerified=false;
  const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,
   title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,
-  visibility:gate.mode==='concept-only-draft'?'private':($('#pbAdmin')?.checked?'admin':'private')};
+  visibility:concept?'private':($('#pbAdmin')?.checked?'admin':'private')};
  const scope=currentSchoolScope(),{data,error}=await cloud().state.client.from('teacher_papers').insert(payload).select().single();
  if(scope!==currentSchoolScope())return;
- if(error)return alert(error.message);
+ if(error||!data?.id)return alert('Paper copy save was not confirmed. Refresh Saved Papers before retrying. '+String(error?.message||''));
  currentRow=data;showEditor();loadPapers();
  window.EDUNIZAM_PREMIUM?.toast?.('Paper copy saved as new, teacher review required.','success');
 }
@@ -705,7 +718,7 @@ async function loadPapers(){
  // Drop the former school's visible paper cards and editor immediately.
  // Do not wait for another network response to hide protected content.
  if(savedPapersViewScope!==scope){
-  savedPapersViewScope=scope;currentRow=null;current=null;
+  savedPapersViewScope=scope;currentRow=null;current=null;currentDraftScope='';
   if(el)el.innerHTML='<div class="empty-state">Loading current school papers…</div>';
   if($('#paperPreview'))$('#paperPreview').innerHTML='';
   if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
@@ -713,7 +726,7 @@ async function loadPapers(){
  if(!ready()){
   if(el)el.innerHTML='<div class="empty-state">Sign in to the school workspace to view saved papers.</div>';
   if($('#paperPreview'))$('#paperPreview').innerHTML='';
-  currentRow=null;current=null;
+  currentRow=null;current=null;currentDraftScope='';
   if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
   return;
  }
@@ -1002,5 +1015,5 @@ async function render(){
  void loadCustomQuestions().then(()=>updateBankInsight())
   .catch(error=>console.warn('Paper Builder question bank:',error?.message||error));
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper,currentDraftMatchesForm};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
