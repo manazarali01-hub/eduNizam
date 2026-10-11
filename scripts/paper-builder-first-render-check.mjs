@@ -11,6 +11,7 @@ const cfg={institutionId:'school-A'},user={id:'teacher-A'};
 const classes={ 'school-A':[{id:'class-A',class_name:'5',section_name:'A',active:true}],
  'school-B':[{id:'class-B',class_name:'6',section_name:'B',active:true}]};
 const cloudCalls=[];
+let nextQuestionResponse=null;
 const client={from(table){
  let school='',person='';
  const q={
@@ -19,7 +20,7 @@ const client={from(table){
   maybeSingle(){cloudCalls.push({table,school,person});return school==='school-A'?staffA.promise:staffB.promise},
   then(resolve,reject){
    cloudCalls.push({table,school});
-   if(table==='teacher_question_bank')return (school==='school-A'?questionsA.promise:questionsB.promise).then(resolve,reject);
+   if(table==='teacher_question_bank')return (nextQuestionResponse?.promise||(school==='school-A'?questionsA.promise:questionsB.promise)).then(resolve,reject);
    if(table==='class_sections')return Promise.resolve({data:classes[school]||[],error:null}).then(resolve,reject);
    return Promise.resolve({data:[],error:null}).then(resolve,reject);
   }
@@ -44,7 +45,10 @@ function node(key){
 const root=node('#paperBuilderApp');
 const document={readyState:'loading',querySelector:key=>nodes.get(key)||null,
  querySelectorAll:()=>[],addEventListener(){}};
-const window={EDUNIZAM_CLOUD:{state:{user,client}},EDUNIZAM_CLOUD_CONFIG:cfg};
+const listeners=new Map();
+const window={EDUNIZAM_CLOUD:{state:{user,client}},EDUNIZAM_CLOUD_CONFIG:cfg,
+ addEventListener:(event,fn)=>listeners.set(event,[...(listeners.get(event)||[]),fn])};
+const emit=(event,detail)=>{for(const fn of listeners.get(event)||[])fn({detail})};
 const warnings=[];
 runInNewContext(source,{window,document,localStorage:{getItem:()=>JSON.stringify({role:'teacher'})},
  console:{warn:(...args)=>warnings.push(args.join(' ')),log(){}},
@@ -79,3 +83,22 @@ questionsB.resolve({data:[],error:null});
 for(let i=0;i<15;i++)await Promise.resolve();
 assert.equal(api.getSchoolCatalog().classes[0]?.section_name,'B','Previous school class data leaked');
 console.log('Paper Builder first paint PASS: controls show without optional cloud reads, school data loads independently, and old-school preferences are ignored.');
+
+// In-flight private teacher questions must not repopulate the new page after
+// logout, even when the cloud user and institution identifiers have not yet
+// changed (or the same teacher logs in again).
+nextQuestionResponse=deferred();
+const pendingOldQuestions=api.loadCustomQuestions();
+emit('edunizam:auth',{event:'SIGNED_OUT'});
+assert.equal(node('#qbList').innerHTML,'','Question Bank cards remained on screen after logout');
+assert.equal(node('#pbSavedCount').textContent,'0 papers');
+nextQuestionResponse.resolve({data:[{
+ id:'from-ended-session',creator_user_id:'teacher-B',class_name:'6',subject:'Science',
+ chapter:'PRIVATE PRIOR SESSION',question_type:'short',question_text:'Secret old-session question',
+ answer_text:'Private answer',active:true
+}],error:null});
+await pendingOldQuestions;
+assert.equal(api.getQuestionScope(),'','Late Question Bank request revived an ended session');
+assert.doesNotMatch(node('#qbList').innerHTML,/Secret old-session question|PRIVATE PRIOR SESSION/);
+assert.equal(node('#qbCount').textContent,'0 questions');
+console.log('Paper Builder old-session Question Bank PASS: private cards cleared on signout; late same-user read ignored.');
