@@ -782,8 +782,34 @@ function build(subject,topics,total,diff,mode,cls='',options={}){
 }
 function header(p,row){const st=settings(),logo=st.schoolLogo?'<img src="'+esc(st.schoolLogo)+'" class="pb-print-logo" alt="">':'';return (p.curriculumMode==='school-recorded'?'':'<p class="coverage-note"><strong>CONCEPT PRACTICE DRAFT — NOT A VERIFIED SCHOOL EXAM</strong></p>')+'<div class="pb-paper-head">'+logo+'<div><h1>'+esc(st.schoolName||'EduNizam Institute')+'</h1><p>'+esc(st.schoolType||'Educational Institute')+(st.session?' · '+esc(st.session):'')+'</p></div></div><div class="pb-meta"><span><b>Paper:</b> '+esc(row?.title||$('#pbTitle')?.value||p.subject+' Paper')+'</span><span><b>Class:</b> '+esc(row?.class_name||$('#pbClass')?.value||'')+'</span>'+(p.sectionName?'<span><b>Section:</b> '+esc(p.sectionName)+'</span>':'')+'<span><b>Subject:</b> '+esc(p.subject)+'</span><span><b>Marks:</b> '+p.totalMarks+'</span><span><b>Difficulty:</b> '+esc(p.difficulty)+'</span></div><div class="pb-student-line">Name: ____________________ &nbsp; Roll No: __________ &nbsp; Date: __________</div>'}
 function paperHtml(p,row,editable=false){return '<div class="pb-print-sheet">'+header(p,row)+p.sections.map((s,si)=>'<section class="pb-section"><h3>'+esc(s.title)+' <span>'+s.marks+' Marks</span></h3>'+s.questions.map((q,qi)=>'<div class="pb-question"><b>Q'+q.no+'.</b> '+(Number(q.marks)>0?'<small>('+Number(q.marks)+' mark'+(Number(q.marks)===1?'':'s')+')</small> ':'')+(editable?'<textarea data-q="'+si+':'+qi+'">'+esc(q.text)+'</textarea>':esc(q.text))+'</div>').join('')+'</section>').join('')+'</div>'}
-function keyHtml(p){return '<div class="pb-answer-key"><h2>Teacher Answer Key / Marking Guide</h2>'+p.answers.map(a=>'<p><b>Q'+a.no+'.</b> '+esc(a.answer)+'</p>').join('')+'</div>'}
-function syncEdits(){if(!current||!currentPaperSession())return;all('[data-q]').forEach(x=>{const [s,q]=x.dataset.q.split(':').map(Number);current.sections[s].questions[q].text=x.value})}
+function keyHtml(p,editable=false){
+ const rows=Array.isArray(p.answers)?p.answers:[];
+ return '<div class="pb-answer-key"><h2>Teacher Answer Key / Marking Guide</h2>'+
+  (editable?'<p class="coverage-note">Review and edit the answer or marking guide for every question. Changes save with your paper; check the revised question text against its key.</p>':'')+
+  rows.map(a=>editable?
+   '<label class="coverage-note" style="display:block;margin:12px 0"><strong>Q'+esc(a.no)+'. Marking guide</strong><textarea rows="3" data-answer-no="'+esc(a.no)+'" aria-label="Answer key question '+esc(a.no)+'">'+esc(a.answer)+'</textarea></label>':
+   '<p><b>Q'+esc(a.no)+'.</b> '+esc(a.answer)+'</p>'
+  ).join('')+'</div>';
+}
+function syncEdits(){
+ if(!current||!currentPaperSession())return;
+ all('[data-q]').forEach(x=>{
+  const [section,index]=String(x.dataset.q||'').split(':').map(Number);
+  const question=current.sections?.[section]?.questions?.[index];
+  if(question)question.text=x.value;
+ });
+ all('[data-answer-no]').forEach(x=>{
+  const no=Number(x.dataset.answerNo);
+  if(!Number.isInteger(no)||no<=0)return;
+  const answer=current.answers?.find(row=>Number(row.no)===no);
+  if(!answer)return;
+  answer.answer=x.value;
+  // Keep the per-question source answer consistent with the printable key.
+  current.sections?.forEach(section=>section.questions?.forEach(q=>{
+   if(Number(q.no)===no)q.answer=x.value;
+  }));
+ });
+}
 function applyPreset(v){const p={quiz:[20,'Easy','Objective Heavy'],monthly:[50,'Balanced','Balanced'],term:[100,'Balanced','Subjective Heavy']}[v];if(!p)return;$('#pbMarks').value=p[0];$('#pbDifficulty').value=p[1];$('#pbDistribution').value=p[2]}
 async function clonePaper(row){
  if(!paperFormIsCurrent())return alert('The school workspace changed. Reopen Paper Builder before cloning.');
@@ -971,7 +997,7 @@ function showEditor(){
   (saveAllowed?'<button id="pbSaveAsNew">Save to School (Draft)</button>':
    '<span class="coverage-note">Preview/print only. School saving requires an active registered class, prescribed syllabus and verified cloud login.</span><button type="button" class="secondary" id="pbSetupClasses">Set Up Classes</button>');
  const readOnly=currentRow&&!ownRow?'<div class="coverage-note"><strong>Admin review:</strong> This paper is shared by its creator. You can review, print, view the answer key or clone it; the original remains read-only.</div>':'';
- el.innerHTML='<div class="section-head no-print"><div><h3>Paper Preview & Editor</h3><p class="muted">'+(currentRow&&!ownRow?'Shared paper review mode.':'Question text edit karein, then save or print.')+'</p></div><div class="paper-actions">'+saveAction+'<button id="pbPrint" class="secondary">Print A4</button><button id="pbKey" class="secondary">Answer Key</button></div></div>'+readOnly+syllabusNote+sourceNote+paperHtml(current,currentRow,!(currentRow&&!ownRow))+'<div id="pbKeyWrap" class="hidden">'+keyHtml(current)+'</div>';
+ el.innerHTML='<div class="section-head no-print"><div><h3>Paper Preview & Editor</h3><p class="muted">'+(currentRow&&!ownRow?'Shared paper review mode.':'Questions aur answer keys edit karein, then save or print.')+'</p></div><div class="paper-actions">'+saveAction+'<button id="pbPrint" class="secondary">Print A4</button><button id="pbKey" class="secondary">Answer Key</button></div></div>'+readOnly+syllabusNote+sourceNote+paperHtml(current,currentRow,!(currentRow&&!ownRow))+'<div id="pbKeyWrap" class="hidden">'+keyHtml(current,!(currentRow&&!ownRow))+'</div>';
  if($('#pbSaveEdits'))$('#pbSaveEdits').onclick=updatePaper;if($('#pbSaveAsNew'))$('#pbSaveAsNew').onclick=saveCurrentAsNew;
  if($('#pbSetupClasses'))$('#pbSetupClasses').onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('classcenter');
  $('#pbPrint').onclick=()=>{syncEdits();el.innerHTML='<div class="no-print"><button id="pbBack">← Back to editor</button></div>'+paperHtml(current,currentRow,false);$('#pbBack').onclick=showEditor;window.print()};
