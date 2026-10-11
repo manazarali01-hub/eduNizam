@@ -17,7 +17,7 @@ const {registeredClassWorksheet}=w.EDUNIZAM_SYLLABUS_CSV;
 const blank=registeredClassWorksheet(registered);
 const structured=csv(blank);
 assert.equal(structured.length,3,'Expected two authentic registered class sections');
-assert.deepEqual([...structured[0]],fields);
+assert.deepEqual([...structured[0]],[...fields]);
 assert.deepEqual([...structured[1]],['Grade 5','A','','','','','','']);
 assert.deepEqual([...structured[2]],['5','B','','','','','','']);
 assert.equal(validate(blank,registered,[]).valid.length,0,
