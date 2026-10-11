@@ -205,6 +205,12 @@ pass(invalidOnly.missingChapters.length===1&&invalidOnly.totals.mcq===0,'Incompl
 pass(!auditAPI.usable({question:'Explain why',type:'short',answerText:'',explanation:''},'short',false),'Missing subjective answer guide must be rejected');
 pass(!auditAPI.usable({question:'Explain why',type:'short',answer_text:''},'short',true),'Teacher written question requires a real marking guide');
 const sameQuestionTeacher={class_name:'Grade 1',subject:'Mathematics',chapter:math1.chapter,question_type:'mcq',question_text:math1.question,options:[...math1.options],correct_option:math1.answer,active:true,difficulty:'Balanced'};
+// User-facing dropdowns accept Maths, Math and Mathematics for one subject.
+// The exact-chapter readiness audit must use the same aliases for teacher records.
+const mathsAlias=auditAPI.audit({className:'Grade 1',subject:'Mathematics',chapters:[math1.chapter],
+ teacherQuestions:[{...sameQuestionTeacher,subject:'Maths'}],practiceQuestions:[],teacherOnly:true});
+pass(auditAPI.normalizeSubject('Maths')==='mathematics'&&mathsAlias.totals.mcq===1&&mathsAlias.missingChapters.length===0,
+ 'Teacher-saved Maths questions disappeared from the Mathematics chapter readiness check');
 const overlap=auditAPI.audit({className:'1',subject:'Mathematics',chapters:[math1.chapter],teacherQuestions:[sameQuestionTeacher],practiceQuestions:[math1]});
 pass(overlap.totals.mcq===1&&overlap.chapters[0].types.mcq.teacher===1&&overlap.chapters[0].types.mcq.practice===0,'Overlapping teacher and practice questions must only count once');
 const matchingGrade=build('Mathematics',topics.slice(0,2),20,'Balanced','Objective Heavy','Grade 1');
