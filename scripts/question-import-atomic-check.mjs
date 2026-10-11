@@ -90,6 +90,8 @@ assert.equal(elements['#qbImportSave'].disabled,true,
  'Duplicate conflict did not disable the old import preview');
 existing['school-A'].teacher_question_bank.pop();
 await app.previewQuestionImport();
+assert.match(elements['#qbImportReport'].textContent,/2 new valid/i,
+ 'CSV preview used a stale deleted question and incorrectly skipped a genuine row');
 await app.saveQuestionImport();
 assert.equal(inserts.length,1,'Rejected import must use a single database operation');
 assert.equal(inserts[0].rows.length,2,'Rejected batch must contain both questions');
