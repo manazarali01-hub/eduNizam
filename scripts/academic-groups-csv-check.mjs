@@ -16,10 +16,11 @@ const nodes={
  acsvStatus:{textContent:'',dataset:{}},
  acsvPreview:{innerHTML:''}
 };
-const recorded=[];let noReturnedRows=false,badReturnedRow=false;
+const recorded=[],changeEvents=[];let noReturnedRows=false,badReturnedRow=false;
 const directory={cloudReady:()=>true,cacheScope:()=> 'school-A|admin-1',
  pullCloud:async()=>{},read:()=>rows,render:async()=>{}};
 const w={
+ dispatchEvent:event=>{changeEvents.push(event.detail);return true},
  EDUNIZAM_CLASS_SECTION_CENTER:directory,
  EDUNIZAM_ACADEMIC_FORM_OPTIONS:options.EDUNIZAM_ACADEMIC_FORM_OPTIONS,
  EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-A'},
@@ -36,7 +37,7 @@ const w={
 const doc={getElementById:id=>nodes[id]||null};
 runInNewContext(source,{window:w,document:doc,
  localStorage:{getItem:()=>JSON.stringify({role:'head'})},Promise,
- setTimeout:()=>0,confirm:()=>true,console});
+ setTimeout:()=>0,confirm:()=>true,console,CustomEvent:class{constructor(type,init){this.type=type;this.detail=init.detail}}});
 const csv=w.EDUNIZAM_ACADEMIC_GROUPS_CSV;
 assert.deepEqual([...csv.columns],['className','sectionName','roomLabel','capacity']);
 assert.equal(csv.validate(fileText,rows).valid.length,2);
@@ -65,12 +66,16 @@ assert.equal(recorded[0].length,2,'All rows should be sent in one database opera
 assert.equal(recorded[0][0].institution_id,'school-A');
 assert.equal(recorded[0][0].updated_by,'admin-1');
 assert.match(nodes.acsvStatus.textContent,/Save not confirmed/);
+assert.equal(changeEvents.length,0,'A rejected class batch triggered a school sync event');
 await csv.preview();
 await csv.save();
 assert.equal(recorded.length,2);
 assert.equal(recorded[1].length,2);
 assert.match(source,/\.insert\(payloads\)[\s\S]*?\.select\('id,class_name,section_name'\)/);
 assert.match(nodes.acsvStatus.textContent,/saved together|Rows saved/);
+assert.equal(changeEvents.length,1,'Confirmed class batch did not notify dependent school features');
+assert.equal(changeEvents[0].scope,'school-A|admin-1');
+assert.equal(changeEvents[0].area,'classes');
 noReturnedRows=true;
 await csv.preview();await csv.save();
 assert.equal(recorded.length,3,'Zero returned rows did not execute one submitted batch');
@@ -82,6 +87,7 @@ assert.equal(recorded.length,4,'Unexpected response was not tested');
 assert.match(nodes.acsvStatus.textContent,/not confirmed/i,
  'Incorrect class/section response was reported as a verified import');
 badReturnedRow=false;
+assert.equal(changeEvents.length,1,'Unconfirmed or mismatched class records triggered a false sync');
 assert.doesNotMatch(source,/service_role|sb_secret_/);
 const otherWindow={EDUNIZAM_CLASS_SECTION_CENTER:directory,EDUNIZAM_CLOUD_CONFIG:w.EDUNIZAM_CLOUD_CONFIG,EDUNIZAM_CLOUD:w.EDUNIZAM_CLOUD};
 runInNewContext(source,{window:otherWindow,document:doc,localStorage:{getItem:()=>JSON.stringify({role:'teacher'})},
