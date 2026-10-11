@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 const read=f=>readFileSync(new URL('../'+f,import.meta.url),'utf8');
 const el={'#pbClass':{value:'5'},'#pbSubject':{value:'Science'},'#pbSection':{value:'A'},
  '#pbSchoolCatalogStatus':{textContent:''},'#pbSchoolSetupChecklist':{textContent:'',innerHTML:''},
- '#pbSchoolRefresh':{disabled:false,isConnected:true},'#pbChapters':{value:'Matter'}};
+ '#pbSchoolRefresh':{disabled:false,isConnected:true},'#pbChapters':{value:'Matter'},
+ '#pbMarks':{value:'50'},'#pbDifficulty':{value:'Balanced'},'#pbDistribution':{value:'Balanced'}};
 const doc={readyState:'loading',querySelector:k=>el[k]||null,querySelectorAll:()=>[],addEventListener(){}};
 let offline=false;
 const rows={class_sections:[{class_name:'5',section_name:'A',active:true},{class_name:'5',section_name:'B',active:true}],
@@ -37,6 +38,37 @@ assert.equal(dataRows.length,1,'Missing question worksheet repeated existing MCQ
 assert.match(dataRows[0],/"Matter","long"/);
 assert.doesNotMatch(missingCsv,/Section B private|What is a solid\?|Explain a solid/,
  'Worksheet disclosed another section or invented prior questions');
+
+// The separate quantity worksheet must fill the real exam-building count,
+// not simply one question of each type. No answers or student data are forged.
+const gaps=api.schoolPaperQuestionWorksheet();
+assert.equal(gaps.trim().split(/\r?\n/).length-1,12,
+ '50 Balanced marks need 7 MCQ, 3 short, 2 long additional real questions');
+for(const [type,count] of [['mcq',7],['short',3],['long',2]]){
+ assert.equal(gaps.split(/\r?\n/).filter(x=>x.includes('"'+type+'"')).length,count,
+  'Paper marks gap worksheet miscounted '+type);
+}
+assert(!gaps.includes('What is a solid?')&&!gaps.includes('Section B private'),
+ 'Quantity worksheet leaked a question or chapter from another section');
+rows.teacher_question_bank.push({...rows.teacher_question_bank[0],id:'duplicate-stem'});
+await api.loadCustomQuestions();
+assert.equal(api.schoolPaperQuestionWorksheet().trim().split(/\r?\n/).length-1,12,
+ 'Duplicate question wrongly counted as additional unique question');
+rows.teacher_question_bank.pop();
+await api.loadCustomQuestions();
+el['#pbDistribution'].value='Objective Heavy';
+assert.equal(api.schoolPaperQuestionWorksheet().trim().split(/\r?\n/).length-1,16,
+ 'Objective Heavy 50-mark minimum is not calculated correctly');
+el['#pbDistribution'].value='Subjective Heavy';
+assert.equal(api.schoolPaperQuestionWorksheet().trim().split(/\r?\n/).length-1,9,
+ 'Subjective Heavy 50-mark minimum is not calculated correctly');
+el['#pbMarks'].value='9';
+assert.throws(()=>api.schoolPaperQuestionWorksheet(),/whole-number/);
+el['#pbMarks'].value='50';
+el['#pbDistribution'].value='Balanced';
+assert(read('teacher-paper-builder.js').includes('id="qbRequiredQuestionsWorksheet"'),
+ 'Marks-based worksheet download button is missing');
+
 const blank=api.schoolQuestionWorksheet();
 assert.equal(blank.trim().split(/\r?\n/).length,4,
  'Full blank school worksheet no longer includes all three question types');
