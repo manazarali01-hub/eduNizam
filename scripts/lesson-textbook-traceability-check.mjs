@@ -26,7 +26,7 @@ const data={
  'school-B':{class_sections:[{class_name:'6',section_name:'B',active:true}],
   lesson_plans:[],syllabus_progress_units:[]}
 };
-let uid=0;
+let uid=0,delayNextInsert=false,releasePendingInsert=null;
 const client={from(table){
  const filters={};let action='',payload;
  const query={
@@ -36,7 +36,12 @@ const client={from(table){
   single(){
    if(action==='insert'){
     const rec={id:'record-'+(++uid),created_at:'2026-10-09T12:00:00Z',...payload};
-    data[payload.institution_id][table].push(rec);return Promise.resolve({data:rec,error:null});
+    data[payload.institution_id][table].push(rec);
+    if(delayNextInsert){
+      delayNextInsert=false;
+      return new Promise(resolve=>{releasePendingInsert=()=>resolve({data:rec,error:null})});
+    }
+    return Promise.resolve({data:rec,error:null});
    }
    return Promise.resolve({data:null,error:{message:'Unexpected database mutation'}});
   },
@@ -49,9 +54,10 @@ const client={from(table){
  return query;
 }};
 const cloud={state:{client,user:{id:'head-A'}}};
+const listeners=new Map();
 const window={EDUNIZAM_CLOUD:cloud,EDUNIZAM_CLOUD_CONFIG:config,
  EDUNIZAM_ROLE_SCOPE:{getVisibleStudents:()=>[],teacherClassKeys:()=>new Set()},
- addEventListener(){}};
+ addEventListener(name,fn){listeners.set(name,fn)}};
 const errors=[];
 const ctx={window,document,localStorage,console,Date,AbortController,
  setTimeout:()=>0,clearTimeout(){},alert:x=>errors.push(String(x))};
@@ -98,6 +104,26 @@ errors.length=0;el('lpTopic').value='Exact Textbook Chapter 1';
 await api.savePlan();
 verify(data['school-A'].lesson_plans.length===1&&errors.length===0,
  'Published real lesson did not save after matching actual school chapter');
+// The database may complete a write but return the response after same-user
+// sign-out and sign-in. The stale response must not overwrite current cache.
+set({lpUnitTitle:'Delayed school chapter'});
+delayNextInsert=true;
+const staleSave=api.saveUnit();
+for(let tick=0;tick<35&&!releasePendingInsert;tick++)await Promise.resolve();
+verify(typeof releasePendingInsert==='function','Expected a pending cloud insert');
+const sameUser=cloud.state.user;
+cloud.state.user=null;
+listeners.get('edunizam:auth')?.({detail:{event:'SIGNED_OUT'}});
+cloud.state.user=sameUser;
+listeners.get('edunizam:auth')?.({detail:{event:'SIGNED_IN'}});
+await api.pullCloud();
+const freshCache=storage.get('edunizam_syllabus_units_v1');
+verify(JSON.parse(freshCache).some(x=>x.unitTitle==='Delayed school chapter'),
+ 'Fresh login did not retrieve the saved syllabus');
+releasePendingInsert();await staleSave;
+verify(storage.get('edunizam_syllabus_units_v1')===freshCache,
+ 'Previous login response overwrote the newly authenticated syllabus');
+releasePendingInsert=null;
 config.institutionId='school-B';cloud.state.user.id='head-B';
 verify(api.classOptions().length===0&&!api.savedUnits().length&&
  !api.recordedSchoolTopic('5','A','Math','Exact Textbook Chapter 1'),
