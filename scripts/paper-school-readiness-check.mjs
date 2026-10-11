@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const read=f=>readFileSync(new URL('../'+f,import.meta.url),'utf8');
 const el={'#pbClass':{value:'5'},'#pbSubject':{value:'Science'},'#pbSection':{value:'A'},
  '#pbSchoolCatalogStatus':{textContent:''},'#pbSchoolSetupChecklist':{textContent:'',innerHTML:''},
- '#pbSchoolRefresh':{disabled:false,isConnected:true}};
+ '#pbSchoolRefresh':{disabled:false,isConnected:true},'#pbChapters':{value:'Matter'}};
 const doc={readyState:'loading',querySelector:k=>el[k]||null,querySelectorAll:()=>[],addEventListener(){}};
 let offline=false;
 const rows={class_sections:[{class_name:'5',section_name:'A',active:true},{class_name:'5',section_name:'B',active:true}],
@@ -17,7 +17,7 @@ const rows={class_sections:[{class_name:'5',section_name:'A',active:true},{class
  {id:'b',class_name:'5',subject:'Science',chapter:'Matter',question_type:'short',active:true,question_text:'Explain a solid',answer_text:'Definite shape',difficulty:'Balanced'}]};
 const cloud={state:{user:{id:'u1'},client:{from(table){return {select(){return this},eq(){return this},order(){return this},limit(){return this},then(ok,bad){return Promise.resolve(offline?{error:{message:'Access denied'}}:{data:rows[table]||[]}).then(ok,bad)}}}}}};
 const win={EDUNIZAM_CLOUD:cloud,EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-1'},EDUNIZAM_PRACTICE_DATA:{questions:[]}};
-const cx={window:win,document:doc,console,localStorage:{getItem:()=>null},AbortController,setTimeout,clearTimeout};
+const cx={window:win,document:doc,console,localStorage:{getItem:key=>key==='edunizam_session'?JSON.stringify({role:'teacher'}):null},AbortController,setTimeout,clearTimeout};
 vm.runInNewContext(read('paper-syllabus-audit.js'),cx);
 vm.runInNewContext(read('teacher-paper-builder.js'),cx);
 const api=win.EDUNIZAM_PAPER_BUILDER;
@@ -28,6 +28,18 @@ let r=api.schoolSetupReadiness();
 assert.equal(r.classes,2);assert.equal(r.units.length,2);assert.equal(r.mapped,1);
 assert.equal(r.missing.length,1);assert.equal(r.questions,2);
 assert(r.coverage.find(x=>x.chapter==='Matter').types.long.total===0);
+// This class/section already has a usable MCQ and a short answer question.
+// Only the missing LONG question type should appear in the blank review CSV.
+const missingCsv=api.schoolQuestionWorksheet({missingOnly:true});
+assert(missingCsv.startsWith('\uFEFFclass,subject,chapter,type,difficulty,question'), 'Incorrect reviewed-question CSV headers');
+const dataRows=missingCsv.trim().split(/\r?\n/).slice(1);
+assert.equal(dataRows.length,1,'Missing question worksheet repeated existing MCQ/short questions');
+assert.match(dataRows[0],/"Matter","long"/);
+assert.doesNotMatch(missingCsv,/Section B private|What is a solid\?|Explain a solid/,
+ 'Worksheet disclosed another section or invented prior questions');
+const blank=api.schoolQuestionWorksheet();
+assert.equal(blank.trim().split(/\r?\n/).length,4,
+ 'Full blank school worksheet no longer includes all three question types');
 assert(!el['#pbSchoolSetupChecklist'].innerHTML.includes('Section B private'));
 assert(el['#pbSchoolSetupChecklist'].innerHTML.includes('Action needed'));
 rows.class_sections=[];rows.syllabus_progress_units=[];rows.teacher_question_bank=[];
