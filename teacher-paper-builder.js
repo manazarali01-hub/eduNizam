@@ -541,7 +541,7 @@ async function previewQuestionImport(){
 async function saveQuestionImport(){
  const button=$('#qbImportSave'),report=$('#qbImportReport');
  if(importBusy||!pendingImportRows.length)return;
- const importScope=currentSchoolScope(),epoch=questionImportEpoch;
+ const importScope=currentSchoolScope(),epoch=questionImportEpoch,sessionGeneration=paperSessionGeneration;
  const fileUnchanged=pendingImportOrigin==='source'||(pendingImportOrigin==='file'&&!!pendingImportFile&&$('#qbImportFile')?.files?.[0]===pendingImportFile);
  if(!ready()||!['teacher','head'].includes(role())||pendingImportScope!==importScope||!fileUnchanged){
   clearPendingQuestionImport();
@@ -564,22 +564,35 @@ async function saveQuestionImport(){
    (pendingImportOrigin==='file'&&(!pendingImportFile||$('#qbImportFile')?.files?.[0]!==pendingImportFile)))throw Error('School or selected question file changed before saving.');
   const owner=cloud().state.user.id,institution=cfg().institutionId;
   const records=pendingImportRows.map(q=>({...q,institution_id:institution,creator_user_id:owner,updated_at:new Date().toISOString()}));
-  const {error}=await cloud().state.client.from('teacher_question_bank').insert(records);
-  if(importScope!==currentSchoolScope())return;
-  if(error)throw Error(error.message||'Database rejected this question batch.');
+  // An error-free INSERT response alone is not proof that the reviewed batch
+  // was stored: require every expected question and returned database ID.
+  const response=await cloud().state.client.from('teacher_question_bank')
+   .insert(records).select('id,question_text');
+  if(!ready()||importScope!==currentSchoolScope()||sessionGeneration!==paperSessionGeneration||epoch!==questionImportEpoch)return;
+  if(response?.error)throw Error(response.error.message||'Database rejected this question batch.');
+  const expected=new Map();
+  for(const q of records)expected.set(q.question_text,(expected.get(q.question_text)||0)+1);
+  const confirmed=response?.data;
+  if(!Array.isArray(confirmed)||confirmed.length!==total||
+     !confirmed.every(q=>{
+      const remaining=expected.get(q?.question_text)||0;
+      if(!q?.id||!remaining)return false;
+      expected.set(q.question_text,remaining-1);return true;
+     })||[...expected.values()].some(count=>count!==0))
+   throw Error('Database did not confirm every expected question. Check the school bank before retrying.');
   clearPendingQuestionImport();
   if(report)report.textContent=total+' reviewed question'+(total===1?'':'s')+' saved together in this school. Check answer keys before printing.';
   try{await loadCustomQuestions();updateBankInsight()}
   catch(_){if(report)report.textContent=total+' questions were saved, but the bank list could not refresh. Reopen the Question Bank.'}
  }catch(error){
-  if(importScope!==currentSchoolScope())return;
+  if(!ready()||importScope!==currentSchoolScope()||sessionGeneration!==paperSessionGeneration||epoch!==questionImportEpoch)return;
   // Network timeout is ambiguous: it may happen after the database commits.
   // Force a new preview and current-school duplicate check before retry.
   clearPendingQuestionImport();
   if(report)report.textContent='Batch save was not confirmed: '+(error.message||error)+'. Refresh this school’s Question Bank and validate the file again before retrying.';
  }finally{
   importBusy=false;
-  if(button?.isConnected){button.textContent='Import Verified Questions';button.disabled=true}
+  if(importScope===currentSchoolScope()&&sessionGeneration===paperSessionGeneration&&button?.isConnected){button.textContent='Import Verified Questions';button.disabled=true}
  }
 }
 function renderQuestionBankList(){
