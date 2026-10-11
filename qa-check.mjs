@@ -210,9 +210,9 @@ if(!app.includes("retryBtn.textContent='Retrying…'")) fail.push('Feature Retry
 // Keep the new paper-builder script cache and installed PWA controllers aligned.
 const expectedWizard='20261009-practice-source-v44';
 if(!read('feature-loader.js').includes("const VERSION='20261010-class5-source-review-v39'"))fail.push('Feature asset cache version was not bumped for the paper wizard.');
-if(!read('sw.js').includes("const CACHE='edunizam-v277-auth-race-v45'"))fail.push('PWA release cache does not match the paper wizard release.');
-if(!read('pwa-install.js').includes('sw.js?v=20261010-auth-race-v45'))fail.push('Installed-app service worker update URL is stale.');
-if(!read('system-auto-update.js').includes("const ACTIVE_CACHE='edunizam-v277-auth-race-v45'"))fail.push('PWA system updater still clears or retains the wrong cache.');
+if(!read('sw.js').includes("const CACHE='edunizam-v278-session-epoch-v46'"))fail.push('PWA release cache does not match the paper wizard release.');
+if(!read('pwa-install.js').includes('sw.js?v=20261011-session-epoch-v46'))fail.push('Installed-app service worker update URL is stale.');
+if(!read('system-auto-update.js').includes("const ACTIVE_CACHE='edunizam-v278-session-epoch-v46'"))fail.push('PWA system updater still clears or retains the wrong cache.');
 const systemAutoUpdateSafety=read('system-auto-update.js');
 const reliabilitySafety=read('reliability-guardian.js');
 if(systemAutoUpdateSafety.includes("querySelectorAll('button[disabled]')")) fail.push('System auto-update still globally re-enables disabled controls.');
@@ -222,8 +222,8 @@ if(/querySelectorAll\(['"]button\[disabled\]['"]\)/.test(reliabilitySafety)) fai
 for(const page of ['index.html','login.html','app.html','learn.html','admission.html','about.html','features.html','learning-resources-pakistan.html','online-school-admissions.html','privacy.html','school-management-system-pakistan.html']){
   const html=read(page);
   for(const ref of [...html.matchAll(/(?:pwa-install|system-auto-update)\.js\?v=([A-Za-z0-9._-]+)/g)].map(m=>m[1])){
-    if(!['20261008-natural-glass-v31','20261008-coldstart-v36','20261009-paper-builder-v42','20261009-practice-source-v44','20261010-auth-race-v45'].includes(ref)) fail.push('Unknown runtime cache-busting token on '+page+': '+ref);
-    if(page==='index.html' && ref!=='20261009-practice-source-v44') fail.push('Homepage must load current PWA cold-start controllers: '+ref);
+    if(!['20261008-natural-glass-v31','20261008-coldstart-v36','20261009-paper-builder-v42','20261009-practice-source-v44','20261010-auth-race-v45','20261011-session-epoch-v46'].includes(ref)) fail.push('Unknown runtime cache-busting token on '+page+': '+ref);
+    if(page==='index.html' && ref!=='20261011-session-epoch-v46') fail.push('Homepage must load current PWA cold-start controllers: '+ref);
   }
 }
 const appExternalScriptTags=[...index.matchAll(/<script[^>]+src=["'][^"']+["'][^>]*>/g)].map(m=>m[0]);

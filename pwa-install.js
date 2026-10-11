@@ -86,7 +86,7 @@
     // Registration must not wait for large background photos / advertising
     // resources. The SW's network-first navigation protects the cold launch.
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('./sw.js?v=20261010-auth-race-v45',{updateViaCache:'none'})
+      navigator.serviceWorker.register('./sw.js?v=20261011-session-epoch-v46',{updateViaCache:'none'})
         .then(reg=>reg.update())
         .catch(()=>{});
     }
