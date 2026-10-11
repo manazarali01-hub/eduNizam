@@ -84,7 +84,7 @@ function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return
 {
  const slow=deferred();
  const oldFile={size:400,text:()=>slow.promise};
- const newFile={size:400,text:async()=>header+'\\n5,A,General Science,New Chapter,School Science,punjab-pectaa,2026,https://example.org/book'};
+ const newFile={size:400,text:async()=>header+'\n5,A,General Science,New Chapter,School Science,punjab-pectaa,2026,https://example.org/book'};
  const ui={sbiFile:{files:[oldFile],value:'old.csv'},sbiSave:{disabled:true,isConnected:true},
   sbiStatus:{textContent:'',dataset:{}},sbiPreview:{innerHTML:''}};
  const writes=[];
@@ -101,7 +101,7 @@ function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return
  const oldPreview=imp.preview();
  await Promise.resolve();await Promise.resolve();
  ui.sbiFile.files=[newFile];imp.resetPreview();
- slow.resolve(header+'\\n5,A,General Science,Old Chapter,School Science,punjab-pectaa,2026,https://example.org/book');
+ slow.resolve(header+'\n5,A,General Science,Old Chapter,School Science,punjab-pectaa,2026,https://example.org/book');
  await oldPreview;
  assert.equal(ui.sbiSave.disabled,true,'Old syllabus preview reactivated Save after file changed');
  await imp.save();assert.equal(writes.length,0,'Stale syllabus CSV was written to school records');
