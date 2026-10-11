@@ -39,7 +39,12 @@ const permitted=()=>['head','teacher'].includes(role())&&!!api()?.cloudReady?.()
 const sameClass=(a,b)=>{const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;if(api?.sameClass)return api.sameClass(a,b);const whole=v=>norm(v).match(/^(?:(?:class|grade)\s*)?(1[0-2]|[1-9])$/)?.[1];return norm(a)===norm(b)||!!(whole(a)&&whole(a)===whole(b))};
 const subj=v=>window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.subjectKey?.(v)||norm(v);
 const key=x=>[norm(x.className).replace(/^(class|grade)\s+/,''),norm(x.sectionName),subj(x.subject),norm(x.unitTitle)].join('|');
-let staged=[],stagedScope='',busy=false;
+let staged=[],stagedScope='',stagedFile=null,busy=false,reviewEpoch=0;
+function resetPreview(){
+ reviewEpoch++;staged=[];stagedScope='';stagedFile=null;
+ const button=$('sbiSave');if(button)button.disabled=true;
+ const output=$('sbiPreview');if(output)output.innerHTML='';
+}
 function csv(text){
  text=String(text||'').replace(/^\uFEFF/,'');
  let out=[],row=[],cell='',quote=false;
@@ -86,34 +91,37 @@ function previewOutput(r){
  (r.errors.length?'<p>'+r.errors.slice(0,12).map(x=>'Row '+x.line+': '+esc(x.error)).join(' · ')+'</p>':'');
 }
 async function preview(){
- const f=$('sbiFile')?.files?.[0];staged=[];stagedScope='';if($('sbiSave'))$('sbiSave').disabled=true;
+ resetPreview();const epoch=reviewEpoch,f=$('sbiFile')?.files?.[0];
  if(!f)return announce('Select a CSV file first.',true);
  if(!permitted())return announce('A current authorized school login is required; no local-only import.',true);
  if(f.size>1024*1024)return announce('Maximum file size 1 MB.',true);
  const start=scope();
  try{
   await api().pullCloud();
+  if(epoch!==reviewEpoch||$('sbiFile')?.files?.[0]!==f)return;
   if(!permitted()||scope()!==start)throw Error('School changed. Reopen syllabus import.');
   if(api().classesVerified?.()===false)throw Error('School class directory could not be verified. Refresh Academic Groups before importing.');
   const classes=api().registeredClasses();
   if(!classes.length)throw Error('Register your school classes in Academic Groups first.');
-  const result=validate(await f.text(),classes,api().savedUnits());
-  if(scope()!==start)throw Error('School changed during file review.');
+  const contents=await f.text();
+  if(epoch!==reviewEpoch||$('sbiFile')?.files?.[0]!==f)return;
+  if(scope()!==start||!permitted())throw Error('School changed during file review.');
+  const result=validate(contents,classes,api().savedUnits());
   previewOutput(result);
   if(result.errors.length)throw Error('Correct all CSV row issues before saving.');
-  staged=result.valid;stagedScope=start;
+  staged=result.valid;stagedScope=start;stagedFile=f;
   if($('sbiSave'))$('sbiSave').disabled=!staged.length;
   announce(staged.length+' rows validated. Check all book/chapter names, then confirm Save.');
- }catch(e){announce(String(e.message||e),true)}
+ }catch(e){if(epoch===reviewEpoch)announce(String(e.message||e),true)}
 }
 async function save(){
- if(busy||!staged.length||stagedScope!==scope()||!permitted())return announce('Validate your CSV again for the current school.',true);
- const start=scope(),rows=staged.slice(),inst=window.EDUNIZAM_CLOUD_CONFIG.institutionId,uid=window.EDUNIZAM_CLOUD.state.user.id;
+ if(busy||!staged.length||!stagedFile||$('sbiFile')?.files?.[0]!==stagedFile||stagedScope!==scope()||!permitted())return announce('Validate your CSV again for the current school.',true);
+ const start=scope(),epoch=reviewEpoch,selectedFile=stagedFile,rows=staged.slice(),inst=window.EDUNIZAM_CLOUD_CONFIG.institutionId,uid=window.EDUNIZAM_CLOUD.state.user.id;
  if(!confirm('Save '+rows.length+' actual prescribed textbook chapter(s) to this school?'))return;
  busy=true;let committed=false;const button=$('sbiSave');if(button)button.disabled=true;
  try{
   await api().pullCloud();
-  if(start!==scope()||!permitted())throw Error('School session changed.');
+  if(start!==scope()||!permitted()||epoch!==reviewEpoch||$('sbiFile')?.files?.[0]!==selectedFile)throw Error('School session or selected CSV changed.');
   if(api().classesVerified?.()===false)throw Error('Current school class directory not verified; nothing was submitted.');
   const headers=fields.join(','),lines=rows.map(x=>fields.map(f=>'"'+x[f].replace(/"/g,'""')+'"').join(','));
   const current=validate(headers+'\n'+lines.join('\n'),api().registeredClasses(),api().savedUnits());
@@ -127,7 +135,7 @@ async function save(){
    status:'Planned',completion_percent:0,family_visible:false,created_by:uid,updated_by:uid,updated_at:new Date().toISOString()}));
   const response=await client().from('syllabus_progress_units').insert(payloads);
   if(response?.error)throw Error('Database rejected the batch: '+response.error.message);
-  committed=true;staged=[];stagedScope='';
+  committed=true;staged=[];stagedScope='';stagedFile=null;
   if($('sbiFile'))$('sbiFile').value='';
   announce(rows.length+' genuine chapter(s) saved together to the selected school.');
   if(scope()===start){
@@ -135,7 +143,7 @@ async function save(){
    catch(_){announce(rows.length+' chapter(s) saved, but the list could not refresh. Reopen Lesson Center to view them.',true)}
   }
  }catch(e){
-  staged=[];stagedScope='';
+  staged=[];stagedScope='';stagedFile=null;
   // An interrupted network response may arrive after the database commits:
   // check records before retrying rather than promising zero saved rows.
   announce(committed
@@ -169,8 +177,8 @@ function mount(){
  '<p id="sbiStatus" role="status" aria-live="polite">Up to 150 rows and 1 MB. No records are saved before confirmation.</p>'+
  '<div id="sbiPreview"></div></article>');
  $('sbiTemplate').onclick=template;$('sbiClass5Reference').onclick=downloadClass5ScienceReference;$('sbiPreviewButton').onclick=preview;$('sbiSave').onclick=save;
- $('sbiFile').onchange=()=>{staged=[];stagedScope='';$('sbiSave').disabled=true;announce('Selected file changed. Validate the new CSV.')};
+ $('sbiFile').onchange=()=>{resetPreview();announce('Selected file changed. Validate the new CSV.')};
 }
-window.EDUNIZAM_SYLLABUS_CSV={fields,csv,validate,mount,preview,save,class5ScienceReference,class5ScienceReviewCsv,downloadClass5ScienceReference};
+window.EDUNIZAM_SYLLABUS_CSV={fields,csv,validate,mount,preview,save,resetPreview,class5ScienceReference,class5ScienceReviewCsv,downloadClass5ScienceReference};
 setTimeout(mount,0);
 })();
