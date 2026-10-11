@@ -10,6 +10,13 @@ const directory=()=>window.EDUNIZAM_CLASS_SECTION_CENTER;
 const role=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role}catch{return null}};
 const permitted=()=>role()==='head'&&!!directory()?.cloudReady?.()&&!!directory()?.cacheScope?.();
 const scope=()=>directory()?.cacheScope?.()||'';
+function notifySchoolChange(){
+ if(typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function'){
+  const full=scope();
+  if(permitted()&&full)window.dispatchEvent(new CustomEvent('edunizam:school-data-changed',
+   {detail:{scope:full,area:'classes',source:'academic-groups-csv'}}));
+ }
+}
 let staged=[],stagedScope='',stagedFile=null,saving=false,reviewEpoch=0,sessionEpoch=0;
 const classKey=name=>{const value=norm(name),m=value.match(/^(?:(?:class|grade)\s*)?(1[0-2]|[1-9])$/);return m?String(Number(m[1])):value};
 const identity=(cls,section)=>classKey(cls)+'|'+norm(section);
@@ -129,6 +136,7 @@ async function save(){
   staged=[];stagedScope='';stagedFile=null;
   if($('acsvFile'))$('acsvFile').value='';
   if(scope()===current&&session===sessionEpoch){
+   notifySchoolChange();
    status(rows.length+' real class/section rows saved together to this school.');
    try{await directory().pullCloud();if(scope()===current&&session===sessionEpoch)await directory().render()}
    catch(_){status('Rows saved, but refresh failed. Reopen Academic Groups to verify them.',true)}
