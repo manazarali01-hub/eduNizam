@@ -71,6 +71,42 @@ runInNewContext(source,{window:otherWindow,document:doc,localStorage:{getItem:()
  Promise,setTimeout:()=>0,confirm:()=>true,console});
 await otherWindow.EDUNIZAM_ACADEMIC_GROUPS_CSV.preview();
 assert.match(nodes.acsvStatus.textContent,/Head of Institute/,'Teacher may not bulk insert Academic Groups');
+// A slow File.text() from the former selection must not re-enable Save.
+function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return{promise,resolve}}
+{
+ const slow=deferred(),oldFile={size:300,text:()=>slow.promise};
+ const newFile={size:300,text:async()=>header+'\\n6,C,Room 6,24'};
+ const ui={acsvFile:{files:[oldFile],value:'old.csv'},acsvSave:{disabled:true,isConnected:true},
+  acsvStatus:{textContent:'',dataset:{}},acsvPreview:{innerHTML:''}};
+ const writes=[];
+ const dir={cloudReady:()=>true,cacheScope:()=> 'school-A|admin-1',pullCloud:async()=>{},
+  read:()=>[],render:async()=>{}};
+ const ww={EDUNIZAM_CLASS_SECTION_CENTER:dir,EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-A'},
+  EDUNIZAM_CLOUD:{state:{user:{id:'admin-1'},client:{from:()=>({insert:async x=>{writes.push(x);return{error:null}}})}}}};
+ const dd={getElementById:id=>ui[id]||null};
+ runInNewContext(source,{window:ww,document:dd,localStorage:{getItem:()=>JSON.stringify({role:'head'})},
+  Promise,setTimeout:()=>0,confirm:()=>true,console});
+ const imp=ww.EDUNIZAM_ACADEMIC_GROUPS_CSV;
+ const oldPreview=imp.preview();
+ await Promise.resolve();await Promise.resolve();
+ ui.acsvFile.files=[newFile];imp.resetPreview();
+ slow.resolve(header+'\\n8,B,Old Room,40');
+ await oldPreview;
+ assert.equal(ui.acsvSave.disabled,true,'Old async file completed after selection changed');
+ await imp.save();
+ assert.equal(writes.length,0,'Stale preview was allowed to insert the old CSV');
+ await imp.preview();assert.equal(ui.acsvSave.disabled,false,'Current file cannot be reviewed after invalidation');
+ await imp.save();assert.equal(writes.length,1);
+ assert.equal(writes[0][0].class_name,'6','The old CSV overwrote the newly selected file');
+ // Change selected file while save is waiting for the latest cloud directory.
+ ui.acsvFile.files=[newFile];imp.resetPreview();await imp.preview();
+ const fetching=deferred();dir.pullCloud=()=>fetching.promise;
+ const pendingSave=imp.save();
+ ui.acsvFile.files=[oldFile];imp.resetPreview();
+ fetching.resolve();await pendingSave;
+ assert.equal(writes.length,1,'A file changed during save still reached PostgREST');
+}
+
 const loader=readFileSync(new URL('../feature-loader.js',import.meta.url),'utf8');
 const center=readFileSync(new URL('../class-section-center.js',import.meta.url),'utf8');
 assert.match(loader,/classcenter:\['school-student-picker\.js','class-section-center\.js','academic-groups-csv\.js'\]/);
