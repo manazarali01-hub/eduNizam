@@ -4,7 +4,7 @@ const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{},s
 let current=null,currentRow=null,currentDraftScope='',teacherDefaults={classes:[],subjects:[]},teacherDefaultsScope='',teacherDefaultsRequestId=0,customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
 let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
 let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0,savedPapersViewScope='';
-let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='';
+let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='',questionRequestId=0;
 const paperMutationsInFlight=new Set(),paperInsertInFlight=new Set();
 let paperDraftRevision=0,paperSessionGeneration=0,currentDraftGeneration=0;
 let paperFormScope=null,paperFormGeneration=0;
@@ -26,7 +26,7 @@ function clearPaperWorkspace(reason='Your school session changed. Reopen Paper B
  paperSessionGeneration++;paperDraftRevision++;current=null;currentRow=null;
  currentDraftScope='';currentDraftGeneration=paperSessionGeneration;
  paperFormScope='invalidated';paperFormGeneration=-1;
- savedPapersRequestId++;catalogRequestId++;teacherDefaultsRequestId++;
+ savedPapersRequestId++;catalogRequestId++;teacherDefaultsRequestId++;questionRequestId++;
  savedPapersViewScope='';questionScope='';catalogScope='';teacherDefaultsScope='';
  customQuestions=[];schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
  teacherDefaults={classes:[],subjects:[]};editingQuestionId='';
@@ -245,20 +245,21 @@ async function loadTeacherDefaults(){
  }
 }
 async function loadCustomQuestions(){
+ const requestId=++questionRequestId,sessionGeneration=paperSessionGeneration;
  if(!ready()){customQuestions=[];questionScope='';return[]}
  const scope=currentSchoolScope(),inst=cfg().institutionId,client=cloud().state.client;
  if(questionScope!==scope){customQuestions=[];questionScope='';editingQuestionId='';pendingImportRows=[];pendingImportScope=''}
  let data;
  try{data=await fetchPagedSchoolRows(client,'teacher_question_bank','*',inst,{pageSize:250,maxRows:5000})}
  catch(error){
-  if(currentSchoolScope()!==scope)return[];
+  if(currentSchoolScope()!==scope||sessionGeneration!==paperSessionGeneration||requestId!==questionRequestId)return[];
   console.warn('Question bank:',error.message||error);
   customQuestions=[];questionScope='';
   const report=$('#qbImportReport');
   if(report)report.textContent='School Question Bank could not be verified completely. Refresh and check your connection before importing or generating.';
   renderSchoolReadiness();return[];
  }
- if(!ready()||currentSchoolScope()!==scope)return[];
+ if(!ready()||currentSchoolScope()!==scope||sessionGeneration!==paperSessionGeneration||requestId!==questionRequestId)return[];
  customQuestions=data;questionScope=scope;
  renderQuestionBankList();refreshPaperCatalog();refreshTeacherQuestionCatalog();updateBankInsight();renderSchoolReadiness();return customQuestions;
 }
