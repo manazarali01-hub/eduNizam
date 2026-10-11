@@ -54,6 +54,9 @@ jobs:
       - name: Verify complete paginated Paper Builder school data and fail-closed reads
         run: node scripts/paper-cloud-pagination-check.mjs
 
+      - name: Verify saved paper edits and deletes confirm actual school-owner database rows
+        run: node scripts/paper-write-confirmation-check.mjs
+
       - name: Verify saved Paper Builder lists do not leak across account switches
         run: node scripts/paper-saved-list-race-check.mjs
       - name: Verify complete saved paper history, older search and immediate school switch purge
