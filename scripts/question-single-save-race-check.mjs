@@ -73,9 +73,10 @@ const app=window.EDUNIZAM_PAPER_BUILDER;
 await app.loadSchoolCatalog();
 await app.loadCustomQuestions();
 const first=app.saveCustomQuestion(),duplicate=app.saveCustomQuestion();
+await duplicate;
+for(let i=0;i<3;i++)await Promise.resolve();
 assert.equal(writes.length,1,'Two taps inserted the same reviewed question twice');
 assert(node('#qbSave').disabled,'Manual Save button stayed active during the pending request');
-await duplicate;
 // User is composing a different question before the old write finishes.
 node('#qbQuestion').value='Second question being drafted';
 pending.shift().resolve({error:null});
@@ -94,6 +95,7 @@ edit.onclick();
 assert.equal(node('#qbSave').textContent,'Update Question');
 node('#qbQuestion').value='Teacher corrected question';
 const updating=app.saveCustomQuestion();
+for(let i=0;i<3;i++)await Promise.resolve();
 assert.equal(writes.length,2);
 assert.equal(writes[1].operation,'update');
 assert.deepEqual({...writes[1].filters},
@@ -109,6 +111,7 @@ node('#qbAnswer').value='Another answer';
 node('#qbChapter').value='Energy';
 const before=writes.length;
 const oldRequest=app.saveCustomQuestion();
+for(let i=0;i<3;i++)await Promise.resolve();
 assert.equal(writes.length,before+1);
 emit('edunizam:auth',{event:'SIGNED_OUT'});
 assert.equal(node('#qbQuestion').value,'','Old private question remained after signout');
