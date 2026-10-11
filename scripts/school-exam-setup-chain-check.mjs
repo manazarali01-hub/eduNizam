@@ -110,9 +110,10 @@ for(const id of ['#pbSelectedChapters','#pbChapterPicker','#paperPreview',
  '#pbGenerationStatus','#pbSchoolCatalogStatus','#savedTeacherPapers',
  '#pbSavedCount','#pbSavedSearch','#pbSavedClass','#pbClasses',
  '#pbSubjects','#pbTeacherChapters','#paperBuilderApp'])element(id);
-let editedQuestions=[];
+let editedQuestions=[],editedKeys=[];
 const document={readyState:'loading',querySelector:selector=>elements.get(selector)||null,
- querySelectorAll:selector=>selector==='[data-q]'?editedQuestions:[],addEventListener(){}};
+ querySelectorAll:selector=>selector==='[data-q]'?editedQuestions:
+  selector==='[data-answer-no]'?editedKeys:[],addEventListener(){}};
 const cfg={institutionId:'school-A',enabled:true},user={id:'head-A'};
 const listeners=new Map(),errors=[];
 const appWin={EDUNIZAM_CLOUD:{state:{client,user}},EDUNIZAM_CLOUD_CONFIG:cfg,
@@ -142,6 +143,8 @@ for(const type of ['mcq','short','long'])
  assert.equal(coverage.totals[type],9,'Missing imported '+type+' coverage');
 const preview=paper.previewPaper();
 assert.equal(preview.ready,true,'Reviewed class/subject/chapter questions could not generate a paper: '+(preview.reason||errors.join('; ')));
+assert.match(element('#paperPreview').innerHTML,/data-answer-no="1"/,
+ 'Generated paper preview does not offer an editable teacher answer key');
 // Reproduce the real Save to School (Draft) button after an editable preview.
 // Emptying a question must never create a paper, even if the preview was
 // valid when generated.
@@ -153,10 +156,23 @@ assert(errors.some(x=>/Cannot save incomplete paper.*blank/i.test(x)),
  'Empty question did not show an actionable validation message');
 errors.length=0;
 editedQuestions=[{dataset:{q:'0:0'},value:'Teacher-reviewed question after editing'}];
+editedKeys=[{dataset:{answerNo:'1'},value:' '}];
+await paper.saveCurrentAsNew();
+assert.equal(tables.teacher_papers.length,0,'Blank edited marking guide was saved to school');
+assert(errors.some(x=>/Cannot save incomplete paper.*answer key/i.test(x)),
+ 'Blank teacher marking guide was not rejected before saving');
+errors.length=0;
+editedKeys=[{dataset:{answerNo:'1'},value:'Reviewed answer and marking guide for the edited question'}];
 await paper.saveCurrentAsNew();
 assert.equal(tables.teacher_papers.length,1,'Full setup chain did not save one edited preview paper');
 assert.equal(tables.teacher_papers[0].paper_json.sections[0].questions[0].text,
  'Teacher-reviewed question after editing','Edited preview text was not preserved in saved paper');
+assert.equal(tables.teacher_papers[0].paper_json.answers[0].answer,
+ 'Reviewed answer and marking guide for the edited question',
+ 'Reviewed answer-key correction did not survive cloud paper save');
+assert.equal(tables.teacher_papers[0].paper_json.sections[0].questions[0].answer,
+ tables.teacher_papers[0].paper_json.answers[0].answer,
+ 'Saved paper question answer disagrees with its teacher marking guide');
 assert.equal(tables.teacher_papers[0].paper_json.curriculumMode,'school-recorded');
 assert.equal(tables.teacher_papers[0].institution_id,'school-A');
 assert.equal(tables.teacher_papers[0].paper_json.sectionName,'A');
