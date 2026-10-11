@@ -250,7 +250,7 @@ function questionFormValues(){
 async function saveCustomQuestion(){
  if(!ready())return alert('Cloud login required.');
  const v=questionFormValues();if(!v.className||!v.subject||!v.chapter||!v.question)return alert('Class, subject, chapter and question required.');
- const chapterGate=schoolPaperReadiness(v.className,v.subject,[v.chapter]);
+ const chapterGate=schoolQuestionReadiness(v.className,v.subject,[v.chapter]);
  if(!chapterGate.allowed)return alert('Question bank requires a recorded, book-mapped school chapter: '+chapterGate.reason);
   if(v.type!=='mcq'&&!v.answer)return alert('Written questions require a marking guide / model answer.');
  if(v.type==='mcq'&&(v.options.length!==4||new Set(v.options.map(x=>x.toLowerCase())).size!==4||v.correct<0||v.correct>=4))return alert('MCQ ke liye exactly 4 different options aur valid answer number (1–4) required hain.');
@@ -352,7 +352,7 @@ async function saveQuestionImport(){
   if(report)report.textContent='Your school/account changed or login expired. Verify the CSV/JSON again before saving.';
   return;
  }
- const unmapped=pendingImportRows.map((q,i)=>({index:i+1,gate:schoolPaperReadiness(q.class_name,q.subject,[q.chapter])})).filter(x=>!x.gate.allowed);
+ const unmapped=pendingImportRows.map((q,i)=>({index:i+1,gate:schoolQuestionReadiness(q.class_name,q.subject,[q.chapter])})).filter(x=>!x.gate.allowed);
  if(unmapped.length){
   if(report)report.textContent='Import blocked: '+unmapped.length+' question(s) lack real school textbook-chapter mapping. Row '+unmapped[0].index+': '+unmapped[0].gate.reason;
   return;
@@ -423,6 +423,27 @@ function schoolPaperReadiness(cls,subject,topics,{conceptDraft=false}={}){
  }
  if(!conceptDraft)return{allowed:false,reason:'No school-recorded syllabus units for this class/subject. Add genuine textbook units or explicitly select Concept-only Draft (private, not verified).'};
  return{allowed:true,mode:'concept-only-draft',verified:false};
+}
+// Teacher questions are reusable at class level. Their book/chapter provenance
+// must be verified against at least one ACTIVE class section in this school,
+// not against whichever section happens to be selected in the paper wizard.
+function schoolQuestionReadiness(cls,subject,chapters){
+ const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
+ if(!ready())return{allowed:false,reason:'Verified school login is required for saving reviewed questions.'};
+ if(catalogScope!==currentSchoolScope()||schoolCatalog.classState!=='loaded'||schoolCatalog.unitState!=='loaded')
+  return{allowed:false,reason:'Current school class and syllabus records are not verified. Refresh school records first.'};
+ const sections=schoolCatalog.classes.filter(row=>row.active!==false&&A?.sameClass?.(row.class_name,cls));
+ if(!sections.length)return{allowed:false,reason:'This class is not active in the current school.'};
+ if(!Array.isArray(chapters)||!chapters.length)return{allowed:false,reason:'A recorded school chapter is required.'};
+ const keys=new Set(sections.map(row=>sectionKey(row.section_name)));
+ const norm=x=>String(x||'').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ');
+ const missing=chapters.filter(chapter=>!schoolCatalog.units.some(unit=>
+  A?.sameClass?.(unit.class_name,cls)&&A?.normalizeSubject?.(unit.subject)===A?.normalizeSubject?.(subject)&&
+  norm(unit.unit_title)===norm(chapter)&&(!sectionKey(unit.section_name)||keys.has(sectionKey(unit.section_name)))&&
+  String(unit.textbook_title||'').trim()&&String(unit.curriculum_board||'').trim()
+ ));
+ if(missing.length)return{allowed:false,reason:'These chapters lack a prescribed book/board mapping in an active school section: '+missing.join(', ')};
+ return{allowed:true,mode:'school-question-bank',verified:false};
 }
 function bank(s){return banks[s]||banks.General} function fill(x,t){return x.replaceAll('{t}',t)}
 function distribute(total,mode){const r=mode==='Objective Heavy'?[.4,.35,.25]:mode==='Subjective Heavy'?[.15,.35,.5]:[.25,.35,.4];let a=Math.max(1,Math.round(total*r[0])),b=Math.max(1,Math.round(total*r[1]));return[a,b,total-a-b]}
@@ -830,7 +851,7 @@ function attachSourceQuestions(rows){
 function prepareSourceSync(){
  const list=activeSourceRows();if(!list.length)throw Error('No reviewed file questions staged.');
  if(!ready())throw Error('Current school cloud login required to sync question bank.');
- const failed=list.map(x=>schoolPaperReadiness(x.class_name,x.subject,[x.chapter])).find(x=>!x.allowed);
+ const failed=list.map(x=>schoolQuestionReadiness(x.class_name,x.subject,[x.chapter])).find(x=>!x.allowed);
  if(failed)throw Error('Cannot save source questions to school yet: '+failed.reason);
  clearPendingQuestionImport();pendingImportRows=list.slice();pendingImportScope=currentSchoolScope();pendingImportOrigin='source';
  if($('#qbImportSave'))$('#qbImportSave').disabled=false;
@@ -923,5 +944,5 @@ async function render(){
  void loadCustomQuestions().then(()=>updateBankInsight())
   .catch(error=>console.warn('Paper Builder question bank:',error?.message||error));
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
