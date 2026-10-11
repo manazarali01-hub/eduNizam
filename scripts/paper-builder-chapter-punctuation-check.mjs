@@ -74,7 +74,10 @@ node('#savedTeacherPapers');node('#pbSavedCount');node('#pbSavedSearch');node('#
 node('#pbClasses');node('#pbSubjects');node('#pbTeacherChapters');
 const doc={readyState:'loading',querySelector:s=>map.get(s)||null,
  querySelectorAll:()=>[],addEventListener(){}};
-const win={EDUNIZAM_CLOUD:{state:{client,user}},EDUNIZAM_CLOUD_CONFIG:cfg};
+const listeners=new Map();
+const win={EDUNIZAM_CLOUD:{state:{client,user}},EDUNIZAM_CLOUD_CONFIG:cfg,
+ addEventListener:(event,fn)=>listeners.set(event,[...(listeners.get(event)||[]),fn])};
+const emit=(event,detail)=>{for(const fn of listeners.get(event)||[])fn({detail})};
 const errors=[];
 const context={window:win,document:doc,console,Promise,setTimeout,clearTimeout,
  AbortController,localStorage:{getItem:key=>key==='edunizam_session'?JSON.stringify({role:'teacher'}):null},
@@ -195,3 +198,30 @@ assert.match(errors.at(-1),/not confirmed/i,
  'Ambiguous network response was presented as successful');
 delayInserts=false;
 console.log('Paper insert isolation PASS: duplicate tap guarded, late copy response cannot erase newer preview, ambiguous network failure not misreported.');
+
+// Sign-out can occur while an INSERT is unresolved. A later sign-in may reuse
+// the SAME user ID and school ID; equality of those alone is not session safety.
+assert(api.previewPaper().ready);
+delayInserts=true;
+const beforeSignOut=saves.length;
+const oldSessionSave=api.saveCurrentAsNew();
+assert.equal(saves.length,beforeSignOut+1);
+assert.match(map.get('#paperPreview').innerHTML,/pbSaveAsNew/);
+const pendingOldResponse=pendingInsertResponses.shift();
+emit('edunizam:auth',{event:'SIGNED_OUT'});
+assert.equal(map.get('#paperPreview').innerHTML,'','Private exam remained visible after sign-out');
+assert.doesNotMatch(map.get('#savedTeacherPapers').innerHTML,/Saved paper/);
+assert.equal(map.get('#pbSavedCount').textContent,'0 papers');
+pendingOldResponse.pending.resolve({data:{id:'late-saved-same-account'},error:null});
+await oldSessionSave;
+assert.equal(map.get('#paperPreview').innerHTML,'',
+ 'Delayed same-school save response reopened the editor after sign-out');
+assert.equal(api.previewPaper().ready,false,
+ 'Old Paper Builder form generated a new preview after session invalidation');
+await api.savePaper();
+assert.equal(saves.length,beforeSignOut+1,
+ 'Old form inserted into an ended session, despite same user and institution IDs');
+assert.match(errors.at(-1),/session changed|reopen/i);
+emit('edunizam:auth-state',{state:'AUTH_ERROR'});
+assert.equal(map.get('#paperPreview').innerHTML,'');
+console.log('Paper logout/reauth isolation PASS: immediate private preview purge; queued same-account save result ignored; old form cannot preview or save.');
