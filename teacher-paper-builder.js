@@ -385,10 +385,16 @@ async function saveCustomQuestion(){
     .eq('id',editId).eq('creator_user_id',owner).eq('institution_id',institution)
     .select('id').maybeSingle();
   }else{
-   response=await client.from('teacher_question_bank').insert(payload);
+   // Confirm the inserted row and ID before reporting success; an empty write response is not proof of persistence.
+   response=await client.from('teacher_question_bank').insert(payload).select('id').single();
   }
   if(scope!==currentSchoolScope()||generation!==paperSessionGeneration)return;
-  if(response?.error)throw Error(response.error.message||'Question save was rejected.');
+  if(response?.error){
+   if(String(response.error.code||'')==='23505')throw Error('This question already exists in your Question Bank. Refresh and edit the existing question.');
+   throw Error(response.error.message||'Question save was rejected.');
+  }
+  if(!editId&&!response?.data?.id)
+   throw Error('Database did not confirm a saved question ID. Refresh your Question Bank before retrying.');
   if(editId&&String(response?.data?.id||'')!==String(editId))
    throw Error('No owned question was updated. Refresh Question Bank and reopen it.');
   // Editing another question while the first write is in flight must not lose it.
