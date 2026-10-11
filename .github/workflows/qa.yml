@@ -86,6 +86,9 @@ jobs:
       - name: Verify school Academic Groups reviewed CSV importer
         run: node scripts/academic-groups-csv-check.mjs
 
+      - name: Verify complete Academic Groups to syllabus questions and saved-paper integration
+        run: node scripts/school-exam-setup-chain-check.mjs
+
       - name: Verify complete Lesson class, textbook chapter and plan pagination
         run: node scripts/lesson-syllabus-pages-check.mjs
 
