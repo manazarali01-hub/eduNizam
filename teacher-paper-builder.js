@@ -783,6 +783,42 @@ async function clonePaper(row){
  showEditor();
  window.scrollTo({top:0,behavior:'smooth'});
 }
+// Do not store a paper if edited questions, allocated marks or answer keys
+// no longer form a printable examination.
+function validatePaperDraft(paper){
+ if(!paper||!Array.isArray(paper.sections)||!paper.sections.length)
+  return 'No printable paper sections. Generate a fresh preview.';
+ const total=Number(paper.totalMarks);
+ if(!Number.isInteger(total)||total<10||total>200)
+  return 'Paper total must be a whole number between 10 and 200.';
+ const answers=Array.isArray(paper.answers)?paper.answers:[];
+ const keys=new Map(answers.map(a=>[Number(a.no),String(a.answer??'').trim()]));
+ const seen=new Set();let sum=0;
+ for(const section of paper.sections){
+  const marks=Number(section?.marks),questions=section?.questions;
+  if(!Number.isInteger(marks)||marks<=0||!Array.isArray(questions)||!questions.length)
+   return 'A paper section has missing questions or invalid marks.';
+  let sectionSum=0;
+  for(const q of questions){
+   const no=Number(q?.no),points=Number(q?.marks);
+   if(!Number.isInteger(no)||no<=0||seen.has(no))
+    return 'Question numbering is incomplete or duplicated.';
+   seen.add(no);
+   if(!String(q?.text??'').trim())
+    return 'Question '+no+' is blank. Restore its text before saving.';
+   if(!Number.isInteger(points)||points<=0)
+    return 'Question '+no+' must have positive whole-number marks.';
+   if(!keys.has(no)||!keys.get(no))
+    return 'Question '+no+' has no teacher answer key / marking guide.';
+   sectionSum+=points;
+  }
+  if(sectionSum!==marks)
+   return 'Section marks do not match its questions. Generate a fresh preview.';
+  sum+=marks;
+ }
+ if(sum!==total)return 'Total marks do not match the paper sections. Generate a fresh preview.';
+ return '';
+}
 async function savePaper(){
  if(!ready())return alert('Cloud login required.');
  if(!paperFormIsCurrent())return alert('Your school session changed. Reopen Paper Builder before saving.');
@@ -799,6 +835,8 @@ async function savePaper(){
  try{current=build(subject,topics,total,difficulty,mode,cls,{teacherOnly:!!$('#pbTeacherOnly')?.checked})}
  catch(error){return alert(error.message||'Question bank coverage is insufficient.')}
  current.sectionName=paperSection();current.curriculumMode=concept?'concept-only-draft':gate.mode;current.textbookVerified=false;markCurrentDraft();
+ const paperIssue=validatePaperDraft(current);
+ if(paperIssue)return alert('Cannot save incomplete paper: '+paperIssue);
  const title=$('#pbTitle')?.value?.trim()||subject+' Paper';
  const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,
   title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,
@@ -880,6 +918,8 @@ async function saveCurrentAsNew(){
  const gate=schoolPaperReadiness(cls,subject,topics,{conceptDraft:concept});
  if(!gate.allowed)return alert(gate.reason);
  current.curriculumMode=concept?'concept-only-draft':gate.mode;current.textbookVerified=false;
+ const paperIssue=validatePaperDraft(current);
+ if(paperIssue)return alert('Cannot save incomplete paper: '+paperIssue);
  const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,
   title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,
   visibility:concept?'private':($('#pbAdmin')?.checked?'admin':'private')};
@@ -929,6 +969,8 @@ async function updatePaper(){
  const key=scope+'|'+paperId;
  if(paperMutationsInFlight.has(key))return;
  syncEdits();
+ const paperIssue=validatePaperDraft(current);
+ if(paperIssue)return alert('Cannot save incomplete paper: '+paperIssue);
  const paperJson=JSON.parse(JSON.stringify(current)),button=$('#pbSaveEdits');
  paperMutationsInFlight.add(key);if(button)button.disabled=true;
  try{
@@ -1294,5 +1336,5 @@ async function render(){
  void loadCustomQuestions().then(()=>updateBankInsight())
   .catch(error=>console.warn('Paper Builder question bank:',error?.message||error));
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,schoolPaperQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper,handleSchoolDataChange,currentDraftMatchesForm,deleteCustomQuestion,questionDuplicateKey};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,schoolPaperQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper,handleSchoolDataChange,currentDraftMatchesForm,deleteCustomQuestion,questionDuplicateKey,validatePaperDraft};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
