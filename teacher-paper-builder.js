@@ -5,7 +5,7 @@ let current=null,currentRow=null,currentDraftScope='',teacherDefaults={classes:[
 let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
 let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0,savedPapersViewScope='';
 let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='',questionRequestId=0;
-const paperMutationsInFlight=new Set(),paperInsertInFlight=new Set();
+const paperMutationsInFlight=new Set(),paperInsertInFlight=new Set(),questionSaveInFlight=new Set();
 let paperDraftRevision=0,paperSessionGeneration=0,currentDraftGeneration=0;
 let paperFormScope=null,paperFormGeneration=0;
 function markCurrentDraft(){
@@ -31,6 +31,7 @@ function clearPaperWorkspace(reason='Your school session changed. Reopen Paper B
  customQuestions=[];schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
  teacherDefaults={classes:[],subjects:[]};editingQuestionId='';
  sourceStagedQuestions=[];sourceScope='';clearPendingQuestionImport();
+ clearQuestionForm();
  if($('#paperPreview'))$('#paperPreview').innerHTML='';
  if($('#savedTeacherPapers'))$('#savedTeacherPapers').innerHTML='<div class="empty-state">Reopen this school workspace to load saved papers.</div>';
  if($('#qbList'))$('#qbList').innerHTML='';
@@ -299,22 +300,43 @@ function questionFormValues(){
 }
 async function saveCustomQuestion(){
  if(!ready())return alert('Cloud login required.');
- const v=questionFormValues();if(!v.className||!v.subject||!v.chapter||!v.question)return alert('Class, subject, chapter and question required.');
+ if(!paperFormIsCurrent())return alert('Your school session changed. Reopen Paper Builder before saving a question.');
+ const scope=currentSchoolScope(),generation=paperSessionGeneration;
+ // A second tap while the first database write is unresolved is never another insert.
+ if(questionSaveInFlight.has(scope))return;
+ const v=questionFormValues();
+ if(!v.className||!v.subject||!v.chapter||!v.question)return alert('Class, subject, chapter and question required.');
  const chapterGate=schoolQuestionReadiness(v.className,v.subject,[v.chapter]);
  if(!chapterGate.allowed)return alert('Question bank requires a recorded, book-mapped school chapter: '+chapterGate.reason);
-  if(v.type!=='mcq'&&!v.answer)return alert('Written questions require a marking guide / model answer.');
+ if(v.type!=='mcq'&&!v.answer)return alert('Written questions require a marking guide / model answer.');
  if(v.type==='mcq'&&(v.options.length!==4||new Set(v.options.map(x=>x.toLowerCase())).size!==4||v.correct<0||v.correct>=4))return alert('MCQ ke liye exactly 4 different options aur valid answer number (1–4) required hain.');
- const questionSaveScope=currentSchoolScope();
- const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,class_name:v.className,subject:normalizedSubject(v.subject),chapter:v.chapter||null,question_type:v.type,difficulty:v.difficulty,question_text:v.question,options:v.type==='mcq'?v.options:[],correct_option:v.type==='mcq'?v.correct:null,answer_text:v.answer||null,visibility:v.visibility,active:true,updated_at:new Date().toISOString()};
- let error;
- if(editingQuestionId){
-   ({error}=await cloud().state.client.from('teacher_question_bank').update(payload).eq('id',editingQuestionId).eq('creator_user_id',cloud().state.user.id));
- }else{
-   ({error}=await cloud().state.client.from('teacher_question_bank').insert(payload));
+ const institution=cfg().institutionId,owner=cloud().state.user.id,editId=editingQuestionId,
+  snapshot=JSON.stringify(v),client=cloud().state.client,button=$('#qbSave');
+ const payload={institution_id:institution,creator_user_id:owner,class_name:v.className,subject:normalizedSubject(v.subject),chapter:v.chapter||null,question_type:v.type,difficulty:v.difficulty,question_text:v.question,options:v.type==='mcq'?v.options:[],correct_option:v.type==='mcq'?v.correct:null,answer_text:v.answer||null,visibility:v.visibility,active:true,updated_at:new Date().toISOString()};
+ questionSaveInFlight.add(scope);
+ if(button)button.disabled=true;
+ try{
+  let response;
+  if(editId){
+   // Scope updates by the exact school and original creator, not merely ID.
+   response=await client.from('teacher_question_bank').update(payload)
+    .eq('id',editId).eq('creator_user_id',owner).eq('institution_id',institution);
+  }else{
+   response=await client.from('teacher_question_bank').insert(payload);
+  }
+  if(scope!==currentSchoolScope()||generation!==paperSessionGeneration)return;
+  if(response?.error)throw Error(response.error.message||'Question save was rejected.');
+  // Editing another question while the first write is in flight must not lose it.
+  if(editingQuestionId===editId&&JSON.stringify(questionFormValues())===snapshot)clearQuestionForm();
+  window.EDUNIZAM_PREMIUM?.toast?.(editId?'Question updated.':'Question added to reusable bank.','success');
+  await loadCustomQuestions();
+ }catch(error){
+  if(scope===currentSchoolScope()&&generation===paperSessionGeneration)
+   alert('Question save was not confirmed: '+String(error?.message||error)+'. Check the Question Bank before retrying, to avoid duplicates.');
+ }finally{
+  questionSaveInFlight.delete(scope);
+  if(scope===currentSchoolScope()&&generation===paperSessionGeneration&&button?.isConnected)button.disabled=false;
  }
- if(questionSaveScope!==currentSchoolScope())return;
- if(error)return alert(error.message);
- window.EDUNIZAM_PREMIUM?.toast?.(editingQuestionId?'Question updated.':'Question added to reusable bank.','success');clearQuestionForm();await loadCustomQuestions();
 }
 function editCustomQuestion(id){
  const q=customQuestions.find(x=>String(x.id)===String(id));if(!q||String(q.creator_user_id)!==String(cloud()?.state?.user?.id||''))return;
