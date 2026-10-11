@@ -10,7 +10,12 @@ const directory=()=>window.EDUNIZAM_CLASS_SECTION_CENTER;
 const role=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role}catch{return null}};
 const permitted=()=>role()==='head'&&!!directory()?.cloudReady?.()&&!!directory()?.cacheScope?.();
 const scope=()=>directory()?.cacheScope?.()||'';
-let staged=[],stagedScope='',saving=false;
+let staged=[],stagedScope='',stagedFile=null,saving=false,reviewEpoch=0;
+function resetPreview(){
+ reviewEpoch++;staged=[];stagedScope='';stagedFile=null;
+ const button=$('acsvSave');if(button)button.disabled=true;
+ const output=$('acsvPreview');if(output)output.innerHTML='';
+}
 function csv(text){
  const result=[],str=String(text||'').replace(/^\uFEFF/,'');
  let row=[],value='',quoted=false;
@@ -63,33 +68,36 @@ function previewList(result){
  (result.errors.length?'<p>'+result.errors.slice(0,15).map(e=>'Row '+e.line+': '+esc(e.error)).join(' · ')+'</p>':'');
 }
 async function preview(){
- staged=[];stagedScope='';if($('acsvSave'))$('acsvSave').disabled=true;
- const file=$('acsvFile')?.files?.[0];
+ resetPreview();
+ const epoch=reviewEpoch,file=$('acsvFile')?.files?.[0];
  if(!file)return status('Choose a CSV file first.',true);
  if(!permitted())return status('Sign in as the Head of Institute to the correct school.',true);
  if(file.size>1024*1024)return status('Maximum CSV size is 1 MB.',true);
  const current=scope();
  try{
   await directory().pullCloud();
+  if(epoch!==reviewEpoch||$('acsvFile')?.files?.[0]!==file)return;
   if(!permitted()||scope()!==current)throw Error('School or account changed during import preview.');
-  const checked=validate(await file.text(),directory().read());
+  const contents=await file.text();
+  if(epoch!==reviewEpoch||$('acsvFile')?.files?.[0]!==file||scope()!==current)return;
+  const checked=validate(contents,directory().read());
   previewList(checked);
   if(checked.errors.length)throw Error('Correct every CSV row before saving.');
   if(scope()!==current)throw Error('School changed during import review.');
-  staged=checked.valid;stagedScope=current;
+  staged=checked.valid;stagedScope=current;stagedFile=file;
   if($('acsvSave'))$('acsvSave').disabled=!staged.length;
   status(staged.length+' reviewed class/section rows ready. Check details and confirm Save.');
- }catch(e){status(String(e.message||e),true)}
+ }catch(e){if(epoch===reviewEpoch)status(String(e.message||e),true)}
 }
 async function save(){
- if(saving||!staged.length||scope()!==stagedScope||!permitted())
+ if(saving||!staged.length||!stagedFile||$('acsvFile')?.files?.[0]!==stagedFile||scope()!==stagedScope||!permitted())
   return status('Revalidate the CSV for the current authorized school.',true);
- const rows=staged.slice(),current=scope(),config=window.EDUNIZAM_CLOUD_CONFIG,cloud=window.EDUNIZAM_CLOUD;
+ const rows=staged.slice(),current=scope(),epoch=reviewEpoch,selectedFile=stagedFile,config=window.EDUNIZAM_CLOUD_CONFIG,cloud=window.EDUNIZAM_CLOUD;
  if(!confirm('Save '+rows.length+' real class/section rows to this school?'))return;
  saving=true;const button=$('acsvSave');if(button)button.disabled=true;
  try{
   await directory().pullCloud();
-  if(!permitted()||scope()!==current)throw Error('School changed. Nothing was submitted.');
+  if(!permitted()||scope()!==current||epoch!==reviewEpoch||$('acsvFile')?.files?.[0]!==selectedFile)throw Error('School or selected CSV changed. Nothing was submitted.');
   const header=columns.join(','),body=rows.map(row=>columns.map(k=>'"'+String(k==='capacity'?(row[k]??''):row[k]).replace(/"/g,'""')+'"').join(','));
   const verified=validate(header+'\n'+body.join('\n'),directory().read());
   if(verified.errors.length||verified.valid.length!==rows.length)throw Error('Class directory changed or CSV contains duplicates. Review it again.');
@@ -99,7 +107,7 @@ async function save(){
     capacity:row.capacity,active:true,updated_by:cloud.state.user.id}));
   const {error}=await cloud.state.client.from('class_sections').insert(payloads);
   if(error)throw Error(error.message||'Database rejected the batch.');
-  staged=[];stagedScope='';
+  staged=[];stagedScope='';stagedFile=null;
   if($('acsvFile'))$('acsvFile').value='';
   if(scope()===current){
    status(rows.length+' real class/section rows saved together to this school.');
@@ -107,8 +115,8 @@ async function save(){
    catch(_){status('Rows saved, but refresh failed. Reopen Academic Groups to verify them.',true)}
   }
  }catch(e){
-  staged=[];stagedScope='';
-  if(scope()===current)status('Save not confirmed: '+String(e.message||e)+'. Refresh school records before retrying to avoid duplicates.',true);
+  staged=[];stagedScope='';stagedFile=null;
+  if(scope()===current&&epoch===reviewEpoch)status('Save not confirmed: '+String(e.message||e)+'. Refresh school records before retrying to avoid duplicates.',true);
  }finally{saving=false;if(button?.isConnected)button.disabled=true}
 }
 function template(){
@@ -129,8 +137,8 @@ function mount(){
  '<p id="acsvStatus" role="status" aria-live="polite">Up to 100 sections, 1 MB file. Nothing saved before review.</p>'+
  '<div id="acsvPreview"></div></article>');
  $('acsvTemplate').onclick=template;$('acsvPreviewButton').onclick=preview;$('acsvSave').onclick=save;
- $('acsvFile').onchange=()=>{staged=[];stagedScope='';$('acsvSave').disabled=true;status('File changed. Validate and preview again.')};
+ $('acsvFile').onchange=()=>{resetPreview();status('File changed. Validate and preview again.')};
 }
-window.EDUNIZAM_ACADEMIC_GROUPS_CSV={columns,csv,validate,preview,save,mount};
+window.EDUNIZAM_ACADEMIC_GROUPS_CSV={columns,csv,validate,preview,save,mount,resetPreview};
 setTimeout(mount,0);
 })();
