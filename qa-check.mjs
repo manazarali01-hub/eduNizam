@@ -194,7 +194,7 @@ if(loginHtml.includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.pu
 if(read('admissions-cloud.js').includes('manazarali01-hub.github.io/eduNizam/login.html')) fail.push('Admission auth redirects still leave the production custom domain.');
 const admissionHtml=read('admission.html');
 if(admissionHtml.includes("body+'<script src=\"system-auto-update.js")) fail.push('Admission printable markup still embeds a literal script closing tag inside inline JavaScript.');
-if(!admissionHtml.includes('system-auto-update.js?v=20261008-natural-glass-v31')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
+if(!admissionHtml.includes('system-auto-update.js?v=20261011-session-epoch-v46')) fail.push('Admission page runtime updater is not loaded as a page-level script.');
 const aiEdge=read('supabase/functions/ai-assistant/index.ts');
 if(!aiEdge.includes('https://edunizam.online')) fail.push('AI Edge Function does not allow the production custom domain.');
 if(!aiEdge.includes('supabaseUser.auth.getUser()')) fail.push('AI Edge Function does not verify the authenticated user.');
