@@ -50,6 +50,8 @@ jobs:
 
       - name: Verify saved Paper Builder lists do not leak across account switches
         run: node scripts/paper-saved-list-race-check.mjs
+      - name: Verify complete saved paper history, older search and immediate school switch purge
+        run: node scripts/paper-saved-list-pagination-check.mjs
 
       - name: Verify Paper Builder exact school setup readiness
         run: node scripts/paper-school-readiness-check.mjs
