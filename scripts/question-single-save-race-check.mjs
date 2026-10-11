@@ -24,6 +24,7 @@ const client={from(table){
   select(){return this},range(){return this},order(){return this},
   eq(k,v){filters[k]=v;if(k==='institution_id')school=v;return this},
   update(payload){assert.equal(table,'teacher_question_bank');operation='update';this.payload=payload;return this},
+  delete(){assert.equal(table,'teacher_question_bank');operation='delete';return this},
   insert(payload){assert.equal(table,'teacher_question_bank');operation='insert';this.payload=payload;return this},
   maybeSingle(){return this.write().then(res=>res.error?res:{...res,data:{id:filters.id}})},
   write(){
@@ -31,6 +32,9 @@ const client={from(table){
    const wait=deferred();pending.push(wait);
    return wait.promise.then(result=>{
     if(!result.error&&operation==='insert')questions.push({...this.payload,id:'new-'+writes.length});
+    if(!result.error&&operation==='delete'&&Array.isArray(result.data)&&result.data.some(x=>x.id===filters.id)){
+     const i=questions.findIndex(x=>x.id===filters.id);if(i>=0)questions.splice(i,1);
+    }
     return result;
    });
   },
@@ -71,7 +75,7 @@ const window={EDUNIZAM_CLOUD_CONFIG:cfg,EDUNIZAM_CLOUD:{state:{user,client}},
 const emit=(event,detail)=>{for(const f of handlers.get(event)||[])f({detail})};
 runInNewContext(read('paper-syllabus-audit.js'),{window,document,console,localStorage:{getItem:()=>null}});
 runInNewContext(read('teacher-paper-builder.js'),{window,document,console,localStorage:{getItem:()=>null},
- alert:msg=>alerts.push(String(msg)),setTimeout,clearTimeout,AbortController,Promise},
+ alert:msg=>alerts.push(String(msg)),confirm:()=>true,setTimeout,clearTimeout,AbortController,Promise},
  {filename:'teacher-paper-builder.js'});
 const app=window.EDUNIZAM_PAPER_BUILDER;
 await app.loadSchoolCatalog();
@@ -108,6 +112,35 @@ assert.deepEqual({...writes[1].filters},
 pending.shift().resolve({error:null});
 await updating;
 assert.equal(toasts.at(-1)[0],'Question updated.','Edited question was reported as newly inserted');
+// Normalized duplicate stem must be rejected before a second insert.
+node('#qbQuestion').value='  NEW  teacher   QUESTION  ';
+node('#qbChapter').value='Energy';
+node('#qbAnswer').value='A revised but unrelated answer cannot justify a second stem';
+const countBeforeDuplicate=writes.length;
+await app.saveCustomQuestion();
+assert.equal(writes.length,countBeforeDuplicate,'An existing owned question was duplicated');
+assert.match(alerts.at(-1),/already exists/i);
+// No-row DELETE may be successful HTTP 200/RLS but must NOT show deleted.
+let ongoing=app.deleteCustomQuestion('existing-1');
+for(let i=0;i<35;i++)await Promise.resolve();
+assert.equal(writes.at(-1).operation,'delete');
+assert.deepEqual({...writes.at(-1).filters},
+ {id:'existing-1',creator_user_id:'teacher-A',institution_id:'school-A'},
+ 'Delete must check exact question, owner and school');
+const toastBeforeMissing=toasts.length;
+pending.shift().resolve({data:[],error:null});
+await ongoing;
+assert.equal(toasts.length,toastBeforeMissing,'Zero-row delete falsely announced success');
+assert.match(alerts.at(-1),/not confirmed/i);
+// Confirmed DELETE removes the actual row and reloads the search list.
+ongoing=app.deleteCustomQuestion('existing-1');
+for(let i=0;i<35;i++)await Promise.resolve();
+assert.equal(writes.at(-1).operation,'delete');
+pending.shift().resolve({data:[{id:'existing-1'}],error:null});
+await ongoing;
+assert.equal(toasts.at(-1)[0],'Question deleted.');
+assert(!questions.some(x=>x.id==='existing-1'),'Mock database retained the deleted question');
+
 // Old network response after logout must not revive a private teacher form
 // even if the same user ID and school ID remain in client state.
 node('#qbQuestion').value='Another teacher question';
