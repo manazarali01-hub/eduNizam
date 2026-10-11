@@ -10,7 +10,9 @@ const directory=()=>window.EDUNIZAM_CLASS_SECTION_CENTER;
 const role=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role}catch{return null}};
 const permitted=()=>role()==='head'&&!!directory()?.cloudReady?.()&&!!directory()?.cacheScope?.();
 const scope=()=>directory()?.cacheScope?.()||'';
-let staged=[],stagedScope='',stagedFile=null,saving=false,reviewEpoch=0;
+let staged=[],stagedScope='',stagedFile=null,saving=false,reviewEpoch=0,sessionEpoch=0;
+const classKey=name=>{const value=norm(name),m=value.match(/^(?:(?:class|grade)\s*)?(1[0-2]|[1-9])$/);return m?String(Number(m[1])):value};
+const identity=(cls,section)=>classKey(cls)+'|'+norm(section);
 function resetPreview(){
  reviewEpoch++;staged=[];stagedScope='';stagedFile=null;
  const button=$('acsvSave');if(button)button.disabled=true;
@@ -92,32 +94,50 @@ async function preview(){
 async function save(){
  if(saving||!staged.length||!stagedFile||$('acsvFile')?.files?.[0]!==stagedFile||scope()!==stagedScope||!permitted())
   return status('Revalidate the CSV for the current authorized school.',true);
- const rows=staged.slice(),current=scope(),epoch=reviewEpoch,selectedFile=stagedFile,config=window.EDUNIZAM_CLOUD_CONFIG,cloud=window.EDUNIZAM_CLOUD;
+ const rows=staged.slice(),current=scope(),epoch=reviewEpoch,session=sessionEpoch,selectedFile=stagedFile,config=window.EDUNIZAM_CLOUD_CONFIG,cloud=window.EDUNIZAM_CLOUD;
  if(!confirm('Save '+rows.length+' real class/section rows to this school?'))return;
  saving=true;const button=$('acsvSave');if(button)button.disabled=true;
  try{
   await directory().pullCloud();
-  if(!permitted()||scope()!==current||epoch!==reviewEpoch||$('acsvFile')?.files?.[0]!==selectedFile)throw Error('School or selected CSV changed. Nothing was submitted.');
+  if(!permitted()||scope()!==current||session!==sessionEpoch||epoch!==reviewEpoch||$('acsvFile')?.files?.[0]!==selectedFile)throw Error('School or selected CSV changed. Nothing was submitted.');
   const header=columns.join(','),body=rows.map(row=>columns.map(k=>'"'+String(k==='capacity'?(row[k]??''):row[k]).replace(/"/g,'""')+'"').join(','));
   const verified=validate(header+'\n'+body.join('\n'),directory().read());
   if(verified.errors.length||verified.valid.length!==rows.length)throw Error('Class directory changed or CSV contains duplicates. Review it again.');
-  if(!permitted()||scope()!==current)throw Error('School changed just before saving.');
+  if(!permitted()||scope()!==current||session!==sessionEpoch||epoch!==reviewEpoch)throw Error('School changed just before saving.');
   const payloads=rows.map(row=>({institution_id:config.institutionId,
     class_name:row.className,section_name:row.sectionName,room_label:row.roomLabel||null,
     capacity:row.capacity,active:true,updated_by:cloud.state.user.id}));
-  const {error}=await cloud.state.client.from('class_sections').insert(payloads);
+  // PostgREST can return no error while RLS inserts zero rows. Each exact
+  // class+section must be returned before we report a successful setup.
+  const {data,error}=await cloud.state.client.from('class_sections').insert(payloads)
+   .select('id,class_name,section_name');
+  if(scope()!==current||session!==sessionEpoch||epoch!==reviewEpoch||$('acsvFile')?.files?.[0]!==selectedFile)return;
   if(error)throw Error(error.message||'Database rejected the batch.');
+  const expected=new Map();
+  for(const item of payloads){
+   const name=identity(item.class_name,item.section_name);
+   expected.set(name,(expected.get(name)||0)+1);
+  }
+  if(!Array.isArray(data)||data.length!==rows.length||
+     !data.every(item=>{
+      const name=identity(item?.class_name,item?.section_name),remaining=expected.get(name)||0;
+      if(!item?.id||!remaining)return false;
+      expected.set(name,remaining-1);
+      return true;
+     })||[...expected.values()].some(value=>value!==0))
+   throw Error('Database did not confirm every class/section. Refresh the school directory before retrying.');
   staged=[];stagedScope='';stagedFile=null;
   if($('acsvFile'))$('acsvFile').value='';
-  if(scope()===current){
+  if(scope()===current&&session===sessionEpoch){
    status(rows.length+' real class/section rows saved together to this school.');
-   try{await directory().pullCloud();await directory().render()}
+   try{await directory().pullCloud();if(scope()===current&&session===sessionEpoch)await directory().render()
    catch(_){status('Rows saved, but refresh failed. Reopen Academic Groups to verify them.',true)}
   }
  }catch(e){
+  if(scope()!==current||session!==sessionEpoch||epoch!==reviewEpoch)return;
   staged=[];stagedScope='';stagedFile=null;
   if(scope()===current&&epoch===reviewEpoch)status('Save not confirmed: '+String(e.message||e)+'. Refresh school records before retrying to avoid duplicates.',true);
- }finally{saving=false;if(button?.isConnected)button.disabled=true}
+ }finally{saving=false;if(scope()===current&&session===sessionEpoch&&button?.isConnected)button.disabled=true}
 }
 function template(){
  const file=new Blob(['\uFEFF'+columns.join(',')+'\r\n'],{type:'text/csv;charset=utf-8'});
@@ -138,6 +158,16 @@ function mount(){
  '<div id="acsvPreview"></div></article>');
  $('acsvTemplate').onclick=template;$('acsvPreviewButton').onclick=preview;$('acsvSave').onclick=save;
  $('acsvFile').onchange=()=>{resetPreview();status('File changed. Validate and preview again.')};
+}
+if(typeof window.addEventListener==='function'){
+ window.addEventListener('edunizam:auth',event=>{
+  if(event?.detail?.event==='SIGNED_OUT'){sessionEpoch++;resetPreview();status('School session ended. Revalidate classes after signing in.')}
+ });
+ window.addEventListener('edunizam:auth-state',event=>{
+  if(['UNAUTHENTICATED','AUTH_ERROR'].includes(event?.detail?.state)){
+   sessionEpoch++;resetPreview();status('School access ended. Sign in before reviewing school classes.');
+  }
+ });
 }
 window.EDUNIZAM_ACADEMIC_GROUPS_CSV={columns,csv,validate,preview,save,mount,resetPreview};
 setTimeout(mount,0);
