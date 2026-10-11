@@ -256,6 +256,20 @@ const fixture=importer.prepare(importer.template,'template.csv');
 pass(fixture.valid.length===2&&fixture.errors.length===0,'Valid example CSV import fixture is not accepted');
 pass(fixture.valid[0].correct_option===2,'MCQ 1-based correct answer is not converted to zero-based storage');
 pass(fixture.valid[1].question_type==='short'&&!!fixture.valid[1].answer_text,'Written question bank template incomplete');
+// JSON numeric answers exported from the database are zero-based 0–3.
+// Worksheet CSV and JSON string answers remain human-readable 1–4 / A–D.
+const mcqJson={class:'5',subject:'Science',chapter:'Energy',type:'mcq',difficulty:'Balanced',
+ question:'Which option is correct?',options:['First','Second','Third','Fourth']};
+for(const [rawAnswer,expected] of [[0,0],[1,1],[2,2],[3,3],['1',0],['4',3],['A',0],['D',3]]){
+ const parsed=importer.prepare(JSON.stringify([{...mcqJson,correct_option:rawAnswer}]),'reviewed.json');
+ pass(parsed.valid.length===1&&parsed.errors.length===0&&parsed.valid[0].correct_option===expected,
+  'JSON MCQ answer '+JSON.stringify(rawAnswer)+' mapped incorrectly; expected index '+expected);
+}
+for(const invalidAnswer of [-1,4,1.5,null,'0','5',false]){
+ const parsed=importer.prepare(JSON.stringify([{...mcqJson,correct_option:invalidAnswer}]),'reviewed.json');
+ pass(parsed.valid.length===0&&parsed.errors.length===1,
+  'JSON importer accepted unsupported MCQ answer '+JSON.stringify(invalidAnswer));
+}
 const repeat=importer.prepare(importer.template,'template.csv',fixture.valid);
 pass(repeat.valid.length===0&&repeat.duplicates===2,'Import duplicate detection ineffective');
 const invalid=importer.prepare(JSON.stringify([{class:'9',subject:'Physics',chapter:'Force',type:'mcq',question:'Test',options:['A','B','C','C'],correct_option:'4'}]),'bad.json');
