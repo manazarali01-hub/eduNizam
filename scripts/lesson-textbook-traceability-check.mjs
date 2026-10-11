@@ -105,6 +105,31 @@ verify(api.classOptions().length===0&&!api.savedUnits().length&&
 await api.pullCloud();
 verify(api.classOptions().length===1&&api.classOptions()[0]==='6','New-school class absent after switch');
 verify(!api.savedUnits().length,'Previous-school textbook metadata survived identity switch');
+// Cached data from a configured cloud school must not become viewable or
+// writable as a "local mode" when an account signs out or session expires.
+storage.set('edunizam_syllabus_units_v1',JSON.stringify([
+ {id:'private-unit',className:'5',subject:'Private Maths',unitTitle:'Private school chapter',status:'Planned'}]));
+storage.set('edunizam_lesson_plans_v1',JSON.stringify([
+ {id:'private-plan',className:'5',subject:'Private Maths',topic:'Private school lesson',status:'Published'}]));
+cloud.state.user=null;
+verify(!api.cloudReady()&&api.classOptions().length===0&&api.savedUnits().length===0,
+ 'Expired cloud login exposed cached school classes or syllabus');
+const beforeUnitCount=data['school-B'].syllabus_progress_units.length;
+const beforePlanCount=data['school-B'].lesson_plans.length;
+errors.length=0;
+await api.saveUnit();await api.savePlan();
+verify(data['school-B'].syllabus_progress_units.length===beforeUnitCount&&
+ data['school-B'].lesson_plans.length===beforePlanCount,
+ 'Signed-out Lesson Center unexpectedly wrote school records');
+verify(errors.some(x=>x.toLowerCase().includes('login')),
+ 'Expired login did not explain why school saving was blocked');
+el('lessonCenterApp').dataset={};
+await api.render();
+const html=el('lessonCenterApp').innerHTML||'';
+verify(html.includes('School sign-in required')&&
+ !html.includes('Private school chapter')&&!html.includes('Private school lesson')&&
+ !html.includes('id="lpSaveUnit"')&&!html.includes('id="lpSavePlan"'),
+ 'Signed-out school showed private cached lesson cards or editable forms');
 const migration=read('supabase/migrations/20261009141035_add_syllabus_textbook_traceability_20261009.sql');
 for(const name of ['textbook_title','curriculum_board','edition_year','source_url'])
  verify(migration.includes('add column if not exists '+name),'Missing live additive textbook column '+name);

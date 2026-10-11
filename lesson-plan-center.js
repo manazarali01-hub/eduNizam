@@ -7,9 +7,11 @@
   const role=()=>session()?.role||'student';
   const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
   const cloud=()=>window.EDUNIZAM_CLOUD;
-  const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
-  const isStaff=()=>['teacher','head'].includes(role());
-  const isHead=()=>role()==='head';
+  const cloudConfigured=()=>!!cfg().enabled;
+  const cloudReady=()=>!!(cloudConfigured()&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
+  // Signed-out cloud schools never fall back to private cached school data.
+  const isStaff=()=>['teacher','head'].includes(role())&&(!cloudConfigured()||cloudReady());
+  const isHead=()=>role()==='head'&&(!cloudConfigured()||cloudReady());
   let lessonPlanSaveInFlight=false,syllabusUnitSaveInFlight=false;
   const lessonDeleteInFlight=new Set();
   let cloudClassRows=[],cloudClassScope='',cloudLessonScope='',classFetchEpoch=0;
@@ -63,6 +65,7 @@
   function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
   function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||[]}
   function registeredClasses(){
+    if(cloudConfigured()&&!cloudReady())return[];
     const rows=[];
     const scope=window.EDUNIZAM_ROLE_SCOPE;
     const teacherKeys=role()==='teacher'?scope?.teacherClassKeys?.()||new Set():new Set();
@@ -71,7 +74,7 @@
     let directory=[];
     if(cloudReady()){
       if(cloudClassScope===currentSchoolScope())directory=cloudClassRows;
-    }else{
+    }else if(!cloudConfigured()){
       try{directory=JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')}catch(_){}
     }
     for(const row of Array.isArray(directory)?directory:[]){
@@ -81,11 +84,11 @@
     }
     // Admin class choices in cloud mode come from the real institution
     // directory, never from unscoped legacy student rows.
-    if(!cloudReady()||!isHead())for(const st of visibleStudents())rows.push({className:st.className,sectionName:st.sectionName});
+    if(!cloudConfigured())for(const st of visibleStudents())rows.push({className:st.className,sectionName:st.sectionName});
     return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.registeredSections(rows)||[];
   }
   function classOptions(){return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.distinct(registeredClasses().map(x=>x.className))||[]}
-  function savedUnits(){return cloudReady()&&cloudLessonScope!==currentSchoolScope()?[]:read(UNIT_KEY)}
+  function savedUnits(){return cloudConfigured()&&(!cloudReady()||cloudLessonScope!==currentSchoolScope())?[]:read(UNIT_KEY)}
   function syllabusOptionData(cls,subject){
     return window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.chapters(cls,subject,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG||{},savedUnits())||{saved:[],concepts:[]};
   }
@@ -269,6 +272,7 @@
     return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">'+esc(x.subject)+'</span><span class="badge">'+esc(x.status)+'</span></div><h3>'+esc(x.unitTitle)+'</h3><p class="muted">Class '+esc(x.className)+(x.sectionName?' - '+esc(x.sectionName):'')+(x.targetEnd?' · Target '+esc(x.targetEnd):'')+'</p>'+(x.textbookTitle?'<p class="muted"><strong>Textbook (school-entered):</strong> '+esc(x.textbookTitle)+(x.curriculumBoard?' · '+esc(x.curriculumBoard):'')+(x.editionYear?' · '+esc(x.editionYear):'')+'</p>':'<p class="coverage-note">No prescribed textbook metadata recorded. Update this legacy unit.</p>')+(x.sourceUrl&&/^https:\/\//i.test(x.sourceUrl)?'<p><a href="'+esc(x.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Book source link</a></p>':'')+'<p><strong>Completion:</strong> '+Number(x.completion||0)+'%</p><div style="height:9px;border-radius:999px;background:#e6ecef;overflow:hidden"><div style="height:100%;width:'+Math.min(100,Math.max(0,Number(x.completion||0)))+'%;background:currentColor"></div></div>'+(canManage?'<div class="paper-actions" style="margin-top:12px"><button data-lp-edit-unit="'+esc(x.id)+'">Edit</button><button class="secondary" data-lp-delete-unit="'+esc(x.id)+'">Delete</button></div>':'')+'</article>';
   }
   async function savePlan(){
+    if(cloudConfigured()&&!cloudReady())return alert('School login required. Reopen your authorized workspace before saving a lesson plan.');
     const btn=$('lpSavePlan');if(lessonPlanSaveInFlight||btn?.disabled)return;
     const id=$('lpPlanEditId')?.value||'',className=$('lpPlanClass')?.value,subject=$('lpPlanSubject')?.value.trim(),topic=$('lpTopic')?.value.trim(),weekStart=$('lpWeekStart')?.value;
     if(!className||!subject||!topic||!weekStart)return alert('Class, subject, topic aur week start required hain.');
@@ -287,6 +291,7 @@
     }finally{lessonPlanSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function saveUnit(){
+    if(cloudConfigured()&&!cloudReady())return alert('School login required. Reopen your authorized workspace before saving syllabus.');
     const btn=$('lpSaveUnit');if(syllabusUnitSaveInFlight||btn?.disabled)return;
     const id=$('lpUnitEditId')?.value||'',className=$('lpUnitClass')?.value,subject=$('lpUnitSubject')?.value.trim(),unitTitle=$('lpUnitTitle')?.value.trim(),
       completion=Number(String($('lpCompletion')?.value??'0').trim()),textbookTitle=$('lpTextbookTitle')?.value?.trim()||'',
@@ -363,10 +368,10 @@
       root.dataset.cloudLoaded='1';root.dataset.cloudScope=currentSchoolScope();
       try{await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Lesson/syllabus cloud sync:',e.message)}
     }
-    const scoped=cloudReady()&&cloudLessonScope!==currentSchoolScope();
+    const scoped=cloudConfigured()&&(!cloudReady()||cloudLessonScope!==currentSchoolScope());
     const plans=visiblePlans(scoped?[]:read(PLAN_KEY)).sort((a,b)=>String(b.weekStart).localeCompare(String(a.weekStart)));
     const units=visibleUnits(scoped?[]:read(UNIT_KEY)).sort((a,b)=>String(a.subject).localeCompare(String(b.subject))||String(a.unitTitle).localeCompare(String(b.unitTitle)));
-    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?(scoped?'Cloud data unavailable':'Cloud Sync'):'Local Mode')+'</span></div><button id="lpPrint" class="secondary">Print Syllabus Progress</button></div>'+
+    root.innerHTML='<div class="section-head"><div><span class="academic-pill">'+(cloudConfigured()?(!cloudReady()?'School sign-in required':scoped?'Cloud data unavailable':'Cloud Sync'):'Local Mode')+'</span></div><button id="lpPrint" class="secondary">Print Syllabus Progress</button></div>'+
       metrics(plans,units)+'<div id="lpPlanEditor" style="margin-top:16px">'+planEditor()+'</div><div id="lpUnitEditor">'+unitEditor()+'</div>'+
       '<div class="section-head" style="margin-top:18px"><div><h3>Weekly Lesson Plans</h3><p class="muted">Planned teaching topics and learning objectives.</p></div></div><div class="paper-grid">'+(plans.length?plans.map(planCard).join(''):'<div class="empty-state">No lesson plans available.</div>')+'</div>'+
       '<div class="section-head" style="margin-top:18px"><div><h3>Syllabus Progress</h3><p class="muted">Unit/chapter completion tracking.</p></div></div><div class="paper-grid">'+(units.length?units.map(unitCard).join(''):'<div class="empty-state">No syllabus units available.</div>')+'</div>';
