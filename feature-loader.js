@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261011-exam-chain-v57';
+  const VERSION='20261011-academic-live-sync-v58';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
