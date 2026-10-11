@@ -301,9 +301,9 @@ function questionFormValues(){
 async function saveCustomQuestion(){
  if(!ready())return alert('Cloud login required.');
  if(!paperFormIsCurrent())return alert('Your school session changed. Reopen Paper Builder before saving a question.');
- const scope=currentSchoolScope(),generation=paperSessionGeneration;
- // A second tap while the first database write is unresolved is never another insert.
- if(questionSaveInFlight.has(scope))return;
+ const scope=currentSchoolScope(),generation=paperSessionGeneration,saveKey=scope+'|'+generation;
+ // A second tap in this session while its first write is unresolved cannot duplicate it.
+ if(questionSaveInFlight.has(saveKey))return;
  const v=questionFormValues();
  if(!v.className||!v.subject||!v.chapter||!v.question)return alert('Class, subject, chapter and question required.');
  const chapterGate=schoolQuestionReadiness(v.className,v.subject,[v.chapter]);
@@ -313,7 +313,7 @@ async function saveCustomQuestion(){
  const institution=cfg().institutionId,owner=cloud().state.user.id,editId=editingQuestionId,
   snapshot=JSON.stringify(v),client=cloud().state.client,button=$('#qbSave');
  const payload={institution_id:institution,creator_user_id:owner,class_name:v.className,subject:normalizedSubject(v.subject),chapter:v.chapter||null,question_type:v.type,difficulty:v.difficulty,question_text:v.question,options:v.type==='mcq'?v.options:[],correct_option:v.type==='mcq'?v.correct:null,answer_text:v.answer||null,visibility:v.visibility,active:true,updated_at:new Date().toISOString()};
- questionSaveInFlight.add(scope);
+ questionSaveInFlight.add(saveKey);
  if(button)button.disabled=true;
  try{
   let response;
@@ -334,7 +334,7 @@ async function saveCustomQuestion(){
   if(scope===currentSchoolScope()&&generation===paperSessionGeneration)
    alert('Question save was not confirmed: '+String(error?.message||error)+'. Check the Question Bank before retrying, to avoid duplicates.');
  }finally{
-  questionSaveInFlight.delete(scope);
+  questionSaveInFlight.delete(saveKey);
   if(scope===currentSchoolScope()&&generation===paperSessionGeneration&&button?.isConnected)button.disabled=false;
  }
 }
