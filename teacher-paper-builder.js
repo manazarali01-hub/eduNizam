@@ -985,6 +985,24 @@ async function saveCurrentAsNew(){
   if(scope===currentSchoolScope()&&generation===paperSessionGeneration&&revision===paperDraftRevision&&button?.isConnected)button.disabled=false;
  }
 }
+function printCurrentPaper({answerKey=false}={}){
+ const el=$('#paperPreview');
+ if(!el||!current||!currentPaperSession()||!paperFormIsCurrent())
+  return alert('Your paper session changed. Reopen the paper before printing.');
+ syncEdits();
+ const issue=validatePaperDraft(current);
+ if(issue)return alert('Cannot print incomplete paper: '+issue);
+ // Never mix the confidential teacher key into the student question sheet.
+ // The separate print view also contains only read-only, escaped answer text.
+ const printView=answerKey?
+  '<div class="pb-print-sheet">'+header(current,currentRow)+
+   '<p class="pb-teacher-copy"><strong>CONFIDENTIAL — TEACHER ANSWER KEY. DO NOT DISTRIBUTE TO STUDENTS.</strong></p>'+
+   keyHtml(current,false)+'</div>':
+  paperHtml(current,currentRow,false);
+ el.innerHTML='<div class="no-print"><button type="button" id="pbBack">← Back to editor</button></div>'+printView;
+ if($('#pbBack'))$('#pbBack').onclick=showEditor;
+ window.print?.();
+}
 function showEditor(){
  const el=$('#paperPreview');if(!el||!current)return;
  if(!currentPaperSession()){current=null;currentRow=null;currentDraftScope='';paperDraftRevision++;el.innerHTML='';return}
@@ -997,10 +1015,11 @@ function showEditor(){
   (saveAllowed?'<button id="pbSaveAsNew">Save to School (Draft)</button>':
    '<span class="coverage-note">Preview/print only. School saving requires an active registered class, prescribed syllabus and verified cloud login.</span><button type="button" class="secondary" id="pbSetupClasses">Set Up Classes</button>');
  const readOnly=currentRow&&!ownRow?'<div class="coverage-note"><strong>Admin review:</strong> This paper is shared by its creator. You can review, print, view the answer key or clone it; the original remains read-only.</div>':'';
- el.innerHTML='<div class="section-head no-print"><div><h3>Paper Preview & Editor</h3><p class="muted">'+(currentRow&&!ownRow?'Shared paper review mode.':'Questions aur answer keys edit karein, then save or print.')+'</p></div><div class="paper-actions">'+saveAction+'<button id="pbPrint" class="secondary">Print A4</button><button id="pbKey" class="secondary">Answer Key</button></div></div>'+readOnly+syllabusNote+sourceNote+paperHtml(current,currentRow,!(currentRow&&!ownRow))+'<div id="pbKeyWrap" class="hidden">'+keyHtml(current,!(currentRow&&!ownRow))+'</div>';
+ el.innerHTML='<div class="section-head no-print"><div><h3>Paper Preview & Editor</h3><p class="muted">'+(currentRow&&!ownRow?'Shared paper review mode.':'Questions aur answer keys edit karein, then save or print.')+'</p></div><div class="paper-actions">'+saveAction+'<button id="pbPrint" class="secondary">Print A4</button><button id="pbPrintKey" class="secondary">Print Answer Key (Teacher Only)</button><button id="pbKey" class="secondary">Answer Key</button></div></div>'+readOnly+syllabusNote+sourceNote+paperHtml(current,currentRow,!(currentRow&&!ownRow))+'<div id="pbKeyWrap" class="hidden">'+keyHtml(current,!(currentRow&&!ownRow))+'</div>';
  if($('#pbSaveEdits'))$('#pbSaveEdits').onclick=updatePaper;if($('#pbSaveAsNew'))$('#pbSaveAsNew').onclick=saveCurrentAsNew;
  if($('#pbSetupClasses'))$('#pbSetupClasses').onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('classcenter');
- $('#pbPrint').onclick=()=>{syncEdits();el.innerHTML='<div class="no-print"><button id="pbBack">← Back to editor</button></div>'+paperHtml(current,currentRow,false);$('#pbBack').onclick=showEditor;window.print()};
+ $('#pbPrint').onclick=()=>printCurrentPaper();
+ $('#pbPrintKey').onclick=()=>printCurrentPaper({answerKey:true});
  $('#pbKey').onclick=()=>$('#pbKeyWrap').classList.toggle('hidden');
 }
 async function updatePaper(){
