@@ -6,7 +6,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const win={},doc={getElementById:()=>null,readyState:'loading',addEventListener(){}};
-const ctx={window:win,document:doc,console,Promise,setTimeout,clearTimeout,
+const ctx={window:win,document:doc,console,Promise,TextEncoder,setTimeout,clearTimeout,
  localStorage:{getItem:()=>JSON.stringify({role:'head'})}};
 for(const script of ['academic-form-options.js','academic-groups-csv.js',
  'school-syllabus-csv.js','teacher-question-import.js'])
