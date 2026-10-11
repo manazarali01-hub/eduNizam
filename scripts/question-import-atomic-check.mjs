@@ -40,7 +40,9 @@ const elements={
  '#qbImportSave':{textContent:'Import Verified Questions',disabled:true,isConnected:true}
 };
 const doc={readyState:'loading',querySelector:k=>elements[k]||null,querySelectorAll:()=>[],addEventListener(){}};
-const window={EDUNIZAM_CLOUD:{state:{user,client}},EDUNIZAM_CLOUD_CONFIG:cfg};
+const listeners=new Map();
+const window={EDUNIZAM_CLOUD:{state:{user,client}},EDUNIZAM_CLOUD_CONFIG:cfg,
+ addEventListener(name,handler){listeners.set(name,handler)}};
 const context={window,document:doc,localStorage:{getItem:()=>JSON.stringify({role:'head'})},
  console,TextEncoder,Promise,setTimeout,clearTimeout,AbortController,confirm:()=>true,alert:()=>{}};
 runInNewContext(read('paper-syllabus-audit.js'),context,{filename:'paper-syllabus-audit.js'});
@@ -104,8 +106,6 @@ assert.match(elements['#qbImportReport'].textContent,/school\/account changed/i)
 // If logout happens during a pending INSERT, even a later same-user login
 // cannot revive the former import's success state or stale Save button.
 function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return{promise,resolve}}
-const events=new Map();
-// Capture is validated in a separate session-aware fixture below.
 const source=read('teacher-paper-builder.js');
 assert.match(source,/pendingImportScope!==importScope/);
 assert.match(source,/\.insert\(records\)\.select\('id,question_text'\)/);
@@ -152,4 +152,28 @@ const beforeSource=inserts.length;
 await app.saveQuestionImport();
 assert.equal(inserts.length,beforeSource+1,'Reviewed-source question sync broke under the file guard');
 
-console.log('Class 5 Science question import PASS: textbook gate, atomic rejection/save, session isolation and forced revalidation.');
+// A successful INSERT response from a previous same-user login must not show
+// a saved message after logout and re-login, even if its school/user IDs match.
+elements['#qbImportFile'].files=[{size:600,name:'reviewed-science.csv',text:async()=>csv}];
+await app.previewQuestionImport();
+delayInsert=deferred();
+const waiting=app.saveQuestionImport();
+for(let step=0;step<20&&inserts.length===beforeSource+1;step++)await Promise.resolve();
+assert.equal(inserts.length,beforeSource+2,'Expected pending school question insert');
+const priorUser=window.EDUNIZAM_CLOUD.state.user;
+window.EDUNIZAM_CLOUD.state.user=null;
+listeners.get('edunizam:auth')?.({detail:{event:'SIGNED_OUT'}});
+const afterLogout=elements['#qbImportReport'].textContent;
+window.EDUNIZAM_CLOUD.state.user=priorUser;
+listeners.get('edunizam:auth')?.({detail:{event:'SIGNED_IN'}});
+delayInsert.resolve({data:[
+ {id:'after-logout-1',question_text:'Which form transfers energy?'},
+ {id:'after-logout-2',question_text:'Give a form of energy.'}
+],error:null});
+await waiting;
+assert.equal(elements['#qbImportReport'].textContent,afterLogout,
+ 'Late question INSERT displayed success after a same-user session change');
+assert.equal(elements['#qbImportSave'].disabled,true,'Stale import reactivated Save');
+delayInsert=null;
+
+console.log('Class 5 Science question import PASS: book-mapped atomic confirmation, no-return rejection, session isolation and forced revalidation.');
