@@ -84,7 +84,7 @@ assert(alerts.length>lastAlertCount&&alerts.at(-1).includes('book-mapped'),
 assert(sourceHasQuestionImportGuard(),'CSV question import does not enforce book-mapped school syllabus');
 function sourceHasQuestionImportGuard(){
  const src=read('teacher-paper-builder.js');
- return src.includes('pendingImportRows.map((q,i)=>({index:i+1,gate:schoolPaperReadiness(')&&
+ return src.includes('pendingImportRows.map((q,i)=>({index:i+1,gate:schoolQuestionReadiness(')&&
  src.includes('importScope!==currentSchoolScope()');
 }
 elements['#pbConceptDraft'].checked=true;
