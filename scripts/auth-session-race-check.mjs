@@ -158,6 +158,56 @@ const row={id:'school-A',name:'School A',workspace_role:'head_of_institute'};
   assert.equal(JSON.parse(e.localStorage.getItem('edunizam_session')).institutionId,'school-B');
 }
 
+// Regression 5: an outstanding Supabase getSession() cannot resurrect a
+// logged-out account or overwrite another account that signed in meanwhile.
+// This tests the shared admissions-cloud client, not just the UI auth bridge.
+function makeCloudRestoreRace({timeoutFirst=false}={}){
+  const pending=deferred();
+  let authHandler=null;
+  const client={auth:{
+    onAuthStateChange(handler){authHandler=handler;return{data:{subscription:{unsubscribe(){}}}}},
+    getSession(){return pending.promise}
+  }};
+  const win={
+    EDUNIZAM_CLOUD_CONFIG:{enabled:true,provider:'supabase',supabaseUrl:'https://example.supabase.co',supabasePublishableKey:'test-public-key'},
+    supabase:{createClient:()=>client},
+    dispatchEvent(){}
+  };
+  const context={window:win,console,
+    CustomEvent:class {constructor(type,options={}){this.type=type;this.detail=options.detail}},
+    setTimeout:timeoutFirst?fn=>{setImmediate(fn);return 1}:setTimeout,
+    clearTimeout:timeoutFirst?()=>{}:clearTimeout
+  };
+  vm.runInNewContext(read('admissions-cloud.js'),context,{filename:'admissions-cloud.js'});
+  return{window:win,pending,auth:(event,session)=>{assert.ok(authHandler);authHandler(event,session)}};
+}
+{
+  const e=makeCloudRestoreRace();
+  await flush();
+  e.auth('SIGNED_OUT',null);
+  e.pending.resolve({data:{session:{user:{id:'old-account',email:'old@example.test'}}}});
+  await e.window.EDUNIZAM_CLOUD.whenReady();
+  assert.equal(e.window.EDUNIZAM_CLOUD.state.user,null,'A stale restore resurrected a signed-out account');
+  assert.equal(e.window.EDUNIZAM_CLOUD.state.sessionRestoreStatus,'absent');
+}
+{
+  const e=makeCloudRestoreRace();
+  await flush();
+  e.auth('SIGNED_IN',{user:{id:'new-account',email:'new@example.test'}});
+  e.pending.resolve({data:{session:{user:{id:'old-account',email:'old@example.test'}}}});
+  await e.window.EDUNIZAM_CLOUD.whenReady();
+  assert.equal(e.window.EDUNIZAM_CLOUD.state.user?.id,'new-account','Stale initial restore replaced the new login');
+}
+{
+  const e=makeCloudRestoreRace({timeoutFirst:true});
+  await e.window.EDUNIZAM_CLOUD.whenReady();
+  e.auth('SIGNED_OUT',null);
+  e.pending.resolve({data:{session:{user:{id:'old-account'}}}});
+  await flush();
+  assert.equal(e.window.EDUNIZAM_CLOUD.state.user,null,'Late restore after timeout resurrected signed-out account');
+  assert.equal(e.window.EDUNIZAM_CLOUD.state.sessionRestoreStatus,'absent');
+}
+
 assert.match(read('app.html'),/auth-bridge\.js\?v=20261010-auth-race-v1/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);
 assert.match(read('sw.js'),/edunizam-v277-auth-race-v45/);
