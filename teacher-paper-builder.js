@@ -5,7 +5,7 @@ let current=null,currentRow=null,currentDraftScope='',teacherDefaults={classes:[
 let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
 let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0,savedPapersViewScope='';
 let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='',questionRequestId=0;
-const paperMutationsInFlight=new Set(),paperInsertInFlight=new Set(),questionSaveInFlight=new Set();
+const paperMutationsInFlight=new Set(),paperInsertInFlight=new Set(),questionSaveInFlight=new Set(),questionDeleteInFlight=new Set();
 let paperDraftRevision=0,paperSessionGeneration=0,currentDraftGeneration=0;
 let paperFormScope=null,paperFormGeneration=0;
 function markCurrentDraft(){
@@ -298,6 +298,19 @@ function questionFormValues(){
  const correct=/^[1-4]$/.test(rawCorrect)?Number(rawCorrect)-1:-1;
  return{className:$('#qbClass')?.value.trim()||'',subject:$('#qbSubject')?.value.trim()||'',chapter:$('#qbChapter')?.value.trim()||'',type,difficulty:$('#qbDifficulty')?.value||'Balanced',question:$('#qbQuestion')?.value.trim()||'',answer:$('#qbAnswer')?.value.trim()||'',options,correct,visibility:$('#qbAdmin')?.checked?'admin':'private'};
 }
+// The comparison mirrors textbook chapter and teacher-question semantics, not
+// answer choices: changing the answer to a duplicate stem is an EDIT operation.
+function questionDuplicateKey(className,subject,chapter,type,question){
+ const norm=v=>String(v||'').normalize('NFKC').trim().toLocaleLowerCase().replace(/\s+/g,' ');
+ const grade=classLevelFrom(className);
+ return [grade?String(grade):norm(className),norm(normalizedSubject(subject)),norm(chapter),norm(type),norm(question)].join('|');
+}
+function matchingOwnedQuestion(v,owner,exceptId=''){
+ const key=questionDuplicateKey(v.className,v.subject,v.chapter,v.type,v.question);
+ return customQuestions.find(q=>q.active!==false&&String(q.creator_user_id||'')===String(owner)&&
+   String(q.id||'')!==String(exceptId)&&
+   questionDuplicateKey(q.class_name,q.subject,q.chapter,q.question_type,q.question_text)===key);
+}
 async function saveCustomQuestion(){
  if(!ready())return alert('Cloud login required.');
  if(!paperFormIsCurrent())return alert('Your school session changed. Reopen Paper Builder before saving a question.');
@@ -316,16 +329,30 @@ async function saveCustomQuestion(){
  questionSaveInFlight.add(saveKey);
  if(button)button.disabled=true;
  try{
+  // Refresh the complete current-school bank before comparing. A stale cache
+  // (or a failed/partial read) cannot safely authorize a duplicate insert.
+  await loadCustomQuestions();
+  if(scope!==currentSchoolScope()||generation!==paperSessionGeneration)return;
+  if(questionScope!==scope)throw Error('Current school Question Bank could not be verified.');
+  if(editingQuestionId!==editId||JSON.stringify(questionFormValues())!==snapshot)
+   throw Error('Question form changed during verification. Review it and save again.');
+  if(editId&&!customQuestions.some(q=>String(q.id)===String(editId)&&String(q.creator_user_id)===String(owner)))
+   throw Error('The original question was not found in your current school. Refresh before editing.');
+  if(matchingOwnedQuestion(v,owner,editId))
+   throw Error('This question already exists in your Question Bank. Open the existing entry to edit it instead.');
   let response;
   if(editId){
-   // Scope updates by the exact school and original creator, not merely ID.
+   // Zero matching rows under RLS can return no error. Require the actual ID.
    response=await client.from('teacher_question_bank').update(payload)
-    .eq('id',editId).eq('creator_user_id',owner).eq('institution_id',institution);
+    .eq('id',editId).eq('creator_user_id',owner).eq('institution_id',institution)
+    .select('id').maybeSingle();
   }else{
    response=await client.from('teacher_question_bank').insert(payload);
   }
   if(scope!==currentSchoolScope()||generation!==paperSessionGeneration)return;
   if(response?.error)throw Error(response.error.message||'Question save was rejected.');
+  if(editId&&String(response?.data?.id||'')!==String(editId))
+   throw Error('No owned question was updated. Refresh Question Bank and reopen it.');
   // Editing another question while the first write is in flight must not lose it.
   if(editingQuestionId===editId&&JSON.stringify(questionFormValues())===snapshot)clearQuestionForm();
   window.EDUNIZAM_PREMIUM?.toast?.(editId?'Question updated.':'Question added to reusable bank.','success');
@@ -344,10 +371,29 @@ function editCustomQuestion(id){
  $('#qbClass').value=q.class_name||'';$('#qbSubject').value=q.subject||'';$('#qbChapter').value=q.chapter||'';$('#qbType').value=q.question_type||'short';$('#qbDifficulty').value=q.difficulty||'Balanced';$('#qbQuestion').value=q.question_text||'';$('#qbAnswer').value=q.answer_text||'';$('#qbOptions').value=(Array.isArray(q.options)?q.options:[]).join('\n');$('#qbCorrect').value=Number(q.correct_option??0)+1;$('#qbAdmin').checked=q.visibility==='admin';$('#qbSave').textContent='Update Question';$('#qbCancelEdit').classList.remove('hidden');$('#questionBankManager')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function deleteCustomQuestion(id){
- const q=customQuestions.find(x=>String(x.id)===String(id));if(!q||String(q.creator_user_id)!==String(cloud()?.state?.user?.id||''))return;
+ if(!ready()||!paperFormIsCurrent())return alert('Reopen your current school Question Bank before deleting.');
+ const scope=currentSchoolScope(),generation=paperSessionGeneration,owner=cloud().state.user.id,institution=cfg().institutionId;
+ if(questionScope!==scope)return alert('Refresh current-school Question Bank before deleting.');
+ const q=customQuestions.find(x=>String(x.id)===String(id));
+ if(!q||String(q.creator_user_id||'')!==String(owner))return alert('Only the original creator can delete this question.');
+ const key=scope+'|'+generation+'|'+id;
+ if(questionDeleteInFlight.has(key)||questionSaveInFlight.has(scope+'|'+generation))return;
  if(!confirm('Delete this custom question?'))return;
- const {error}=await cloud().state.client.from('teacher_question_bank').delete().eq('id',id).eq('creator_user_id',cloud().state.user.id);if(error)return alert(error.message);
- await loadCustomQuestions();
+ questionDeleteInFlight.add(key);
+ try{
+  const {data,error}=await cloud().state.client.from('teacher_question_bank').delete()
+   .eq('id',id).eq('creator_user_id',owner).eq('institution_id',institution).select('id');
+  if(scope!==currentSchoolScope()||generation!==paperSessionGeneration)return;
+  if(error)throw Error(error.message||'Question delete rejected.');
+  if(!Array.isArray(data)||data.length!==1||String(data[0]?.id||'')!==String(id))
+   throw Error('No owned question was deleted. Refresh the Question Bank before retrying.');
+  if(String(editingQuestionId)===String(id))clearQuestionForm();
+  window.EDUNIZAM_PREMIUM?.toast?.('Question deleted.','success');
+  await loadCustomQuestions();
+ }catch(error){
+  if(scope===currentSchoolScope()&&generation===paperSessionGeneration)
+   alert('Question deletion was not confirmed: '+String(error?.message||error)+'. Refresh Question Bank before retrying.');
+ }finally{questionDeleteInFlight.delete(key)}
 }
 // One blank, teacher-authored question worksheet for each question type in
 // every book-mapped, school-recorded chapter. No sample questions or answer keys.
@@ -1126,5 +1172,5 @@ async function render(){
  void loadCustomQuestions().then(()=>updateBankInsight())
   .catch(error=>console.warn('Paper Builder question bank:',error?.message||error));
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper,currentDraftMatchesForm};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper,currentDraftMatchesForm,deleteCustomQuestion,questionDuplicateKey};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
