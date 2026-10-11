@@ -14,7 +14,7 @@
   const isHead=()=>role()==='head'&&(!cloudConfigured()||cloudReady());
   let lessonPlanSaveInFlight=false,syllabusUnitSaveInFlight=false;
   const lessonDeleteInFlight=new Set();
-  let cloudClassRows=[],cloudClassScope='',cloudLessonScope='',classFetchEpoch=0;
+  let cloudClassRows=[],cloudClassScope='',cloudLessonScope='',classFetchEpoch=0,authEpoch=0;
   const currentSchoolScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
   function notifySyllabusChange(scope){
     if(cloudReady()&&scope===currentSchoolScope()&&typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function')
@@ -137,14 +137,14 @@
      targetEnd:x.target_end||'',completion:Number(x.completion_percent||0),status:x.status,familyVisible:x.family_visible===true,createdBy:x.created_by||'',createdAt:x.created_at,cloudExisting:true}}
   async function pullSchoolClasses(){
     if(!cloudReady())return;
-    const id=cfg().institutionId,scope=currentSchoolScope(),client=cloud().state.client,epoch=++classFetchEpoch;
+    const id=cfg().institutionId,scope=currentSchoolScope(),client=cloud().state.client,epoch=++classFetchEpoch,sessionEpoch=authEpoch;
     cloudClassRows=[];cloudClassScope='';
     try{
       const rows=await runCloud('lesson-class-directory:'+scope,'Lesson school class options',
         ({signal}={})=>fetchAllSchoolRows(client,'class_sections','class_name,section_name,active',id,{
           signal,filter:q=>q.eq('active',true),pageSize:250,maxRows:5000
         }),{timeout:20000,retries:0});
-      if(!cloudReady()||currentSchoolScope()!==scope||epoch!==classFetchEpoch)return;
+      if(!cloudReady()||currentSchoolScope()!==scope||epoch!==classFetchEpoch||authEpoch!==sessionEpoch)return;
       cloudClassRows=rows.map(x=>({className:x.class_name,sectionName:x.section_name,active:x.active!==false}));
       cloudClassScope=scope;
     }catch(error){
@@ -153,7 +153,7 @@
   }
   async function pullCloud(){
     if(!cloudReady())return;
-    const c=cloud().state.client,id=cfg().institutionId,scope=currentSchoolScope();
+    const c=cloud().state.client,id=cfg().institutionId,scope=currentSchoolScope(),sessionEpoch=authEpoch;
     // Class directory remains independently loadable if the lesson tables fail,
     // but the syllabus cache is refreshed only after BOTH paginated reads succeed.
     const classesJob=pullSchoolClasses();
@@ -166,13 +166,13 @@
           ]);
           return{p,u};
         },{timeout:25000,retries:1});
-      if(!cloudReady()||currentSchoolScope()!==scope)return;
+      if(!cloudReady()||currentSchoolScope()!==scope||authEpoch!==sessionEpoch)return;
       write(PLAN_KEY,p.map(mapPlan));write(UNIT_KEY,u.map(mapUnit));
       cloudLessonScope=scope;
     }catch(error){
       // Do not present the previously cached data as a verified, fresh
       // syllabus after an incomplete page, access failure or storage error.
-      if(currentSchoolScope()===scope)cloudLessonScope='';
+      if(currentSchoolScope()===scope&&authEpoch===sessionEpoch)cloudLessonScope='';
       throw error;
     }finally{await classesJob}
   }
@@ -282,11 +282,11 @@
       return alert('To publish/complete, select a school-recorded chapter for this class/section/subject. Unverified topics can be saved as Draft only.');
     const rows=read(PLAN_KEY),old=rows.find(x=>String(x.id)===String(id));
     lessonPlanSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
-    const saveScope=currentSchoolScope();
+    const saveScope=currentSchoolScope(),saveEpoch=authEpoch;
     try{
       let item={id:id||String(Date.now()),className,sectionName:$('lpPlanSection')?.value.trim()||'',subject,weekStart,topic,objectives:$('lpObjectives')?.value.trim()||'',activities:$('lpActivities')?.value.trim()||'',homeworkNote:$('lpHomework')?.value.trim()||'',status:$('lpPlanStatus')?.value||'Draft',createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
       try{if(cloudReady())item=await savePlanCloud(item)}catch(e){return alert('Cloud lesson-plan save failed: '+(e.message||e))}
-      if(cloudReady()&&currentSchoolScope()!==saveScope)return;
+      if(cloudConfigured()&&(!cloudReady()||currentSchoolScope()!==saveScope||authEpoch!==saveEpoch))return;
       write(PLAN_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
     }finally{lessonPlanSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
@@ -310,11 +310,11 @@
         textNorm(x.unitTitle)===textNorm(unitTitle)))
       return alert('This class/section/subject already has this chapter. Edit the existing unit instead of duplicating it.');
     syllabusUnitSaveInFlight=true;setBusy(btn,true,id?'Updating...':'Saving...');
-    const saveScope=currentSchoolScope();
+    const saveScope=currentSchoolScope(),saveEpoch=authEpoch;
     try{
       let item={id:id||String(Date.now()),className,sectionName:$('lpUnitSection')?.value.trim()||'',subject,unitTitle,textbookTitle,curriculumBoard,editionYear,sourceUrl,targetEnd:$('lpTargetEnd')?.value||'',completion,status,familyVisible:!!$('lpFamilyVisible')?.checked,createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
       try{if(cloudReady())item=await saveUnitCloud(item)}catch(e){return alert('Cloud syllabus progress save failed: '+(e.message||e))}
-      if(cloudReady()&&currentSchoolScope()!==saveScope)return;
+      if(cloudConfigured()&&(!cloudReady()||currentSchoolScope()!==saveScope||authEpoch!==saveEpoch))return;
       write(UNIT_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));notifySyllabusChange(saveScope);render();
     }finally{syllabusUnitSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
@@ -323,11 +323,12 @@
   async function remove(kind,id,btn){
     const flightKey=kind+':'+String(id||'');if(!isStaff()||lessonDeleteInFlight.has(flightKey)||btn?.disabled)return;
     if(!confirm('Delete this '+(kind==='plan'?'lesson plan':'syllabus unit')+'?'))return;
-    const key=kind==='plan'?PLAN_KEY:UNIT_KEY,table=kind==='plan'?'lesson_plans':'syllabus_progress_units';
+    const key=kind==='plan'?PLAN_KEY:UNIT_KEY,table=kind==='plan'?'lesson_plans':'syllabus_progress_units',deleteScope=currentSchoolScope(),deleteEpoch=authEpoch;
     lessonDeleteInFlight.add(flightKey);setBusy(btn,true,'Deleting...');
     try{
       try{if(cloudReady())await deleteCloud(table,id)}catch(e){return alert('Cloud delete failed: '+(e.message||e))}
-      write(key,read(key).filter(x=>String(x.id)!==String(id)));if(kind==='unit')notifySyllabusChange(currentSchoolScope());render();
+      if(cloudConfigured()&&(!cloudReady()||currentSchoolScope()!==deleteScope||authEpoch!==deleteEpoch))return;
+      write(key,read(key).filter(x=>String(x.id)!==String(id)));if(kind==='unit')notifySyllabusChange(deleteScope);render();
     }finally{lessonDeleteInFlight.delete(flightKey);if(btn?.isConnected)setBusy(btn,false)}
   }
   function printProgress(units){
@@ -407,7 +408,21 @@
     }
   }
   window.addEventListener('edunizam:school-data-changed',event=>{void handleSchoolDataChange(event)});
-  window.addEventListener('edunizam:auth',()=>{const root=$('lessonCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
+  function invalidateCloudSession(){
+    authEpoch++;classFetchEpoch++;
+    cloudClassRows=[];cloudClassScope='';cloudLessonScope='';
+    const root=$('lessonCenterApp');if(root)delete root.dataset.cloudLoaded;
+  }
+  window.addEventListener('edunizam:auth',event=>{
+    if(['SIGNED_OUT','SIGNED_IN'].includes(event?.detail?.event))invalidateCloudSession();
+    else {const root=$('lessonCenterApp');if(root)delete root.dataset.cloudLoaded}
+    void render();
+  });
+  window.addEventListener('edunizam:auth-state',event=>{
+    if(['UNAUTHENTICATED','AUTH_ERROR'].includes(event?.detail?.state)){
+      invalidateCloudSession();void render();
+    }
+  });
   setTimeout(render,0);setTimeout(render,900);
   window.EDUNIZAM_LESSON_CENTER={render,pullCloud,cloudReady,registeredClasses,classOptions,savedUnits,classesVerified:()=>cloudClassScope===currentSchoolScope(),syllabusVerified:()=>cloudLessonScope===currentSchoolScope(),fetchAllSchoolRows,recordedSchoolTopic,unitBookValidation,savePlan,saveUnit,handleSchoolDataChange,refreshClassSelect};
 })();
