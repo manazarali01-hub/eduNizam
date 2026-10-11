@@ -102,3 +102,52 @@ const source=read('paper-source-import.js');
 assert(source.includes('EDUNIZAM_PAPER_BUILDER?.readSelectedChapters?.()'),
  'PDF/photo chapter hint still blindly splits selected comma-containing chapter');
 console.log('Chapter punctuation PASS: legacy selection, JSON-encoded comma titles, Urdu/quotes/HTML safety, reviewed preview, CSV worksheet and exact saved paper.');
+
+// Regression: Save as New must never silently mismatch the live form against
+// already-generated questions/marks. A newly previewed copy must match first.
+assert(api.previewPaper().ready);
+const before=saves.length;
+map.get('#pbDifficulty').value='Easy';
+await api.saveCurrentAsNew();
+assert.equal(saves.length,before,'Difficulty changed after preview but a stale copy was saved');
+assert.match(errors.at(-1),/fresh preview/i);
+map.get('#pbDifficulty').value='Balanced';
+map.get('#pbDistribution').value='Objective Heavy';
+await api.saveCurrentAsNew();
+assert.equal(saves.length,before,'Paper pattern changed after preview but stale copy was saved');
+map.get('#pbDistribution').value='Balanced';
+map.get('#pbTeacherOnly').checked=false;
+await api.saveCurrentAsNew();
+assert.equal(saves.length,before,'Question-source option changed after preview but stale copy was saved');
+map.get('#pbTeacherOnly').checked=true;
+map.get('#pbConceptDraft').checked=true;
+await api.saveCurrentAsNew();
+assert.equal(saves.length,before,'Concept-only switch silently elevated/relabelled a paper');
+map.get('#pbConceptDraft').checked=false;
+cfg.institutionId='different-school';user.id='different-teacher';
+await api.saveCurrentAsNew();
+assert.equal(saves.length,before,'Preview from former school was copied into another school');
+cfg.institutionId='school-A';user.id='teacher-A';
+await api.saveCurrentAsNew();
+assert.equal(saves.length,before+1,'Matching fresh/current-school preview could not be saved');
+assert.deepEqual([...saves.at(-1).chapters],[title],'Saved copy lost comma-containing exact chapter');
+assert.equal(saves.at(-1).paper_json.distribution,'Balanced');
+assert.equal(saves.at(-1).paper_json.teacherOnly,true);
+
+// Even with real school syllabus rows, a concept-only preview is a private
+// concept draft and must not be promoted to "school-recorded" via save.
+map.get('#pbConceptDraft').checked=true;
+map.get('#pbAdmin').checked=true;
+assert(api.previewPaper().ready,'Private concept preview unavailable with registered school data');
+const beforeConcept=saves.length;
+await api.saveCurrentAsNew();
+assert.equal(saves.length,beforeConcept+1);
+assert.equal(saves.at(-1).visibility,'private','Concept paper was published to Admin');
+assert.equal(saves.at(-1).paper_json.curriculumMode,'concept-only-draft',
+ 'Saved concept copy silently became a school examination');
+await api.savePaper();
+assert.equal(saves.at(-1).visibility,'private','Direct concept save was made public');
+assert.equal(saves.at(-1).paper_json.curriculumMode,'concept-only-draft',
+ 'Direct concept save was labelled school-recorded');
+
+console.log('Paper preview signature PASS: difficulty, pattern, source, concept mode, school switch rejected; matching copy saved; concept-only drafts always private.');
