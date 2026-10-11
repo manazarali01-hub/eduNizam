@@ -55,6 +55,27 @@ ok(setup.length===9,'Missing readiness actions absent');
 ok(setup.slice(0,4).map(x=>x.key).join(',')==='classes,staff,students,units','School setup action prerequisites out of order');
 ok(setup.at(-1).key==='library'&&setup.at(-1).status==='unknown','Connection errors must not be treated as missing books');
 ok(app.nextSteps(Object.fromEntries(app.definitions.map(x=>[x.key,{status:'ok',count:3}]))).length===0,'A nonzero record count must not create fake missing actions');
+
+// The Head's exam blocker must be based on actual accessible school records,
+// never published example questions or indexed generic curriculum topics.
+const examStages=[
+ [{classes:{status:'ok',count:0},units:{status:'ok',count:0},questions:{status:'ok',count:0}},'classes','classcenter'],
+ [{classes:{status:'ok',count:2},units:{status:'ok',count:0},questions:{status:'ok',count:0}},'units','lessoncenter'],
+ [{classes:{status:'ok',count:2},units:{status:'ok',count:8},questions:{status:'ok',count:0}},'questions','paperbuilder']
+];
+for(const [counts,key,view] of examStages){
+ const p=app.paperPrerequisites(counts);
+ ok(p.state==='missing'&&p.key===key&&p.view===view,'Wrong next school-exam setup prerequisite: '+key);
+}
+const unknownExam=app.paperPrerequisites({classes:{status:'unknown'},units:{status:'ok',count:0}});
+ok(unknownExam.state==='unknown','Unavailable database count was misrepresented as missing data');
+const incompleteExam=app.paperPrerequisites({classes:{status:'ok',count:1},units:{status:'ok',count:3},questions:{status:'ok',count:5}});
+ok(incompleteExam.state==='review'&&/no completeness percentage/.test(incompleteExam.text),'A few rows falsely certified a usable exam paper');
+ok(app.paperPrerequisites(null).state==='unchecked','Unrun audit should not imply a missing school');
+ok(source.includes('id="readinessPaperPrerequisites"')&&source.includes('data-readiness-action')&&source.includes('id="readinessPaperSetup"'),
+ 'The missing exam-data summary and actionable school setup control are absent');
+ok(!/\.insert\(|\.upsert\(|\.update\(|\.delete\(/.test(source),
+ 'Readiness source is no longer strictly read-only');
 // School-entered book metadata must be checked independently of row counts.
 const meta=app.evaluateUnitMetadata([
  {unit_title:'Fractions',textbook_title:'School Mathematics',curriculum_board:'Punjab',edition_year:2026,source_url:'https://pectaa.edu.pk/'},
