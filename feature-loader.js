@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261011-paper-insert-race-v50';
+  const VERSION='20261011-session-isolation-v51';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
