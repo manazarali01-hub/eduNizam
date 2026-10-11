@@ -199,6 +199,18 @@ html{scroll-behavior:smooth}
   max-width:820px;margin:18px auto;padding:24px;
   background:#fff;color:#172033;border:1px dashed #9aabbb;border-radius:14px;
 }
+.pb-teacher-copy{
+  margin:16px 0;padding:10px 14px;
+  border:2px solid #8f2534;background:#fff5f5;color:#781e2c;
+  font-weight:700;text-align:center;letter-spacing:.02em;
+}
+.pb-print-sheet>.pb-answer-key{
+  margin:14px 0;padding:10px 0;border:0;max-width:none;
+}
+@media print{
+  .pb-teacher-copy{background:#fff!important;color:#111!important;border:2px solid #111!important}
+  .pb-answer-key p{break-inside:avoid}
+}
 .paper-presets{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
 .paper-presets button{min-height:38px}
 
