@@ -1019,7 +1019,7 @@ function showEditor(){
  if($('#pbSaveEdits'))$('#pbSaveEdits').onclick=updatePaper;if($('#pbSaveAsNew'))$('#pbSaveAsNew').onclick=saveCurrentAsNew;
  if($('#pbSetupClasses'))$('#pbSetupClasses').onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('classcenter');
  $('#pbPrint').onclick=()=>printCurrentPaper();
- $('#pbPrintKey').onclick=()=>printCurrentPaper({answerKey:true});
+ const keyPrintButton=$('#pbPrintKey');if(keyPrintButton)keyPrintButton.onclick=()=>printCurrentPaper({answerKey:true});
  $('#pbKey').onclick=()=>$('#pbKeyWrap').classList.toggle('hidden');
 }
 async function updatePaper(){
