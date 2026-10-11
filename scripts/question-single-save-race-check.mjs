@@ -26,7 +26,7 @@ const client={from(table){
   update(payload){assert.equal(table,'teacher_question_bank');operation='update';this.payload=payload;return this},
   delete(){assert.equal(table,'teacher_question_bank');operation='delete';return this},
   insert(payload){assert.equal(table,'teacher_question_bank');operation='insert';this.payload=payload;return this},
-  maybeSingle(){return this.write().then(res=>res.error?res:{...res,data:{id:filters.id}})},
+  maybeSingle(){return this.write().then(res=>res.error||res.data===null?res:{...res,data:{id:filters.id}})},
   write(){
    writes.push({operation,filters:{...filters},payload:this.payload});
    const wait=deferred();pending.push(wait);
@@ -112,6 +112,25 @@ assert.deepEqual({...writes[1].filters},
 pending.shift().resolve({error:null});
 await updating;
 assert.equal(toasts.at(-1)[0],'Question updated.','Edited question was reported as newly inserted');
+// Supabase can silently UPDATE zero rows due to a stale ID or RLS. Reject it.
+edit.onclick();
+node('#qbQuestion').value='Denied update must not show success';
+const beforeUnconfirmed=toasts.length;
+const denied=app.saveCustomQuestion();
+for(let i=0;i<35;i++)await Promise.resolve();
+assert.equal(writes.at(-1).operation,'update');
+pending.shift().resolve({data:null,error:null});
+await denied;
+assert.equal(toasts.length,beforeUnconfirmed,'No-row UPDATE falsely announced success');
+assert.match(alerts.at(-1),/not confirmed/i);
+// Live search must filter the current school bank, not cached/hidden rows.
+node('#qbSearch').value='New teacher question';
+await app.loadCustomQuestions();
+assert.equal(node('#qbCount').textContent,'1 question','Search included unmatched questions');
+assert.match(node('#qbList').innerHTML,/New teacher question/);
+assert.doesNotMatch(node('#qbList').innerHTML,/Existing lesson question/);
+node('#qbSearch').value='';
+await app.loadCustomQuestions();
 // Normalized duplicate stem must be rejected before a second insert.
 node('#qbQuestion').value='  NEW  teacher   QUESTION  ';
 node('#qbChapter').value='Energy';
