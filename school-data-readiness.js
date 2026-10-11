@@ -77,7 +77,7 @@
 
  // First genuine exam-data blocker. Head-only, read-only, current-school counts.
  // Never conflate "some records" with a verified textbook or full question set.
- function paperPrerequisites(results){
+ function paperPrerequisites(results,unitMetadata){
   if(!results)return{state:'unchecked',text:'Run Check School Data to identify the first missing requirement for school exam papers.',view:''};
   const prerequisites=[
    ['classes','Register actual class and section names in Academic Groups.','classcenter'],
@@ -88,6 +88,19 @@
    const value=results[key];
    if(!value||value.status!=='ok')return{state:'unknown',text:'Unable to verify '+key+' for this school. Check access or connection and rerun the audit.',view};
    if(value.count===0)return{state:'missing',text,view,key};
+   // Records alone are not paper-ready: traceability must cover ALL accessible
+   // chapters, not only a subset of the first 1000 rows.
+   if(key==='units'&&unitMetadata!==undefined){
+    if(!unitMetadata||unitMetadata.status==='unknown')
+     return{state:'unknown',key:'unitMetadata',view:'lessoncenter',
+      text:'Syllabus records exist but textbook metadata has not been checked for this school. Run or retry the current-school metadata audit.'};
+    if(unitMetadata.incomplete>0)
+     return{state:'missing',key:'unitMetadata',view:'lessoncenter',
+      text:unitMetadata.incomplete+' of '+unitMetadata.reviewed+' checked school syllabus units are missing chapter/book/board details or have invalid edition/source fields. Correct these in Lesson Center before treating exam setup as ready.'};
+    if(unitMetadata.status!=='ok')
+     return{state:'unknown',key:'unitMetadata',view:'lessoncenter',
+      text:'Only '+unitMetadata.reviewed+' of '+unitMetadata.total+' accessible syllabus units were checked. Textbook traceability is not yet verified across all units.'};
+   }
   }
   return{state:'review',text:'Class, chapter and question records exist. Verify book/board accuracy, matching chapter names, answer keys and enough questions for each exam pattern in Paper Builder; no completeness percentage is implied.',view:'paperbuilder'};
  }
@@ -126,7 +139,7 @@
   }
 
   if(paperStatus){
-   const p=paperPrerequisites(counts);
+   const p=paperPrerequisites(counts,unitQuality);
    paperStatus.innerHTML='<strong>School Exam Paper Data:</strong> '+esc(p.text)+
     (p.view?'<button type="button" class="secondary" id="readinessPaperSetup">Open '+(p.state==='review'?'Paper Builder':'required setup')+'</button>':'')+
     '<p class="muted">This audit reports accessible records, not certified textbook/question correctness. It never generates sample school records.</p>';

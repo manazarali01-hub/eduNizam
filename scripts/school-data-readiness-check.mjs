@@ -64,13 +64,25 @@ const examStages=[
  [{classes:{status:'ok',count:2},units:{status:'ok',count:8},questions:{status:'ok',count:0}},'questions','paperbuilder']
 ];
 for(const [counts,key,view] of examStages){
- const p=app.paperPrerequisites(counts);
+ const p=app.paperPrerequisites(counts,{status:'ok',reviewed:8,total:8,incomplete:0});
  ok(p.state==='missing'&&p.key===key&&p.view===view,'Wrong next school-exam setup prerequisite: '+key);
 }
 const unknownExam=app.paperPrerequisites({classes:{status:'unknown'},units:{status:'ok',count:0}});
 ok(unknownExam.state==='unknown','Unavailable database count was misrepresented as missing data');
-const incompleteExam=app.paperPrerequisites({classes:{status:'ok',count:1},units:{status:'ok',count:3},questions:{status:'ok',count:5}});
+const completeCountedExam={classes:{status:'ok',count:1},units:{status:'ok',count:3},questions:{status:'ok',count:5}};
+const incompleteExam=app.paperPrerequisites(completeCountedExam,{status:'ok',reviewed:3,total:3,incomplete:0});
 ok(incompleteExam.state==='review'&&/no completeness percentage/.test(incompleteExam.text),'A few rows falsely certified a usable exam paper');
+const missingMeta=app.paperPrerequisites(completeCountedExam,{status:'ok',reviewed:3,total:3,incomplete:2});
+ok(missingMeta.state==='missing'&&missingMeta.key==='unitMetadata'&&missingMeta.view==='lessoncenter'&&/2 of 3/.test(missingMeta.text),'Incomplete textbook metadata must block exam-readiness before Paper Builder');
+const uncheckedMeta=app.paperPrerequisites(completeCountedExam,null);
+ok(uncheckedMeta.state==='unknown'&&uncheckedMeta.view==='lessoncenter','Pending textbook metadata cannot imply school exam readiness');
+const sampledMeta=app.paperPrerequisites(completeCountedExam,{status:'sample',reviewed:1000,total:1200,incomplete:0});
+ok(sampledMeta.state==='unknown'&&/1000 of 1200/.test(sampledMeta.text),'First 1000 clean records cannot certify a larger syllabus');
+const unknownMeta=app.paperPrerequisites(completeCountedExam,{status:'unknown'});
+ok(unknownMeta.state==='unknown','Unable to read textbook metadata must not be silently accepted');
+const missingQuestion=app.paperPrerequisites({classes:{status:'ok',count:1},units:{status:'ok',count:3},questions:{status:'ok',count:0}},{status:'ok',reviewed:3,total:3,incomplete:0});
+ok(missingQuestion.key==='questions','Question import must be the next step once complete book metadata exists');
+ok(source.includes('paperPrerequisites(counts,unitQuality)'),'Exam readiness card must use checked school syllabus metadata');
 ok(app.paperPrerequisites(null).state==='unchecked','Unrun audit should not imply a missing school');
 ok(source.includes('id="readinessPaperPrerequisites"')&&source.includes('data-readiness-action')&&source.includes('id="readinessPaperSetup"'),
  'The missing exam-data summary and actionable school setup control are absent');
