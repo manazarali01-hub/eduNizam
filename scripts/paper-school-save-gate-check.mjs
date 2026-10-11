@@ -35,7 +35,9 @@ const client={from(table){
  return q;
 }};
 const cloud={state:{user:{id:'head-A'},client}};
-const window={EDUNIZAM_CLOUD:cloud,EDUNIZAM_CLOUD_CONFIG:cfg};
+const listeners=new Map();
+const window={EDUNIZAM_CLOUD:cloud,EDUNIZAM_CLOUD_CONFIG:cfg,
+ addEventListener(name,fn){listeners.set(name,fn)}};
 const document={readyState:'loading',addEventListener(){},querySelector(){return null},querySelectorAll(){return[]}};
 const alerts=[];
 const elements={
@@ -104,11 +106,34 @@ assert(api.getQuestionScope()==='school-A|head-A','School A teacher bank scope a
 assert(api.chapterChoices('5','Mathematics').includes('Confidential School A Topic'),'Current school question chapter not loaded');
 const signedInUser=cloud.state.user;
 cloud.state.user=null;
+assert(!api.schoolChapters('5','Mathematics').includes('Prescribed Unit: Fractions'),
+ 'Expired login exposed cached private school syllabus chapters');
+assert(api.getSchoolCatalog().units.length===0&&api.getSchoolCatalog().classes.length===0,
+ 'Public Paper Builder API disclosed cached private school data after login expiry');
+assert(!api.chapterChoices('5','Mathematics').includes('Prescribed Unit: Fractions'),
+ 'Expired login exposed a private school syllabus dropdown option');
 assert(!api.chapterChoices('5','Mathematics').includes('Confidential School A Topic'),
  'Expired login exposed a cached private teacher-bank chapter');
 cloud.state.user=signedInUser;
 assert(api.chapterChoices('5','Mathematics').includes('Confidential School A Topic'),
  'Authenticated school bank no longer appears for the same user');
+// Explicit sign-out must immediately clear previously rendered class/chapter
+// form values as well as private cached question and syllabus results.
+elements['#pbSchoolCatalogStatus']={textContent:''};
+elements['#pbChapters']={value:'Prescribed Unit: Fractions'};
+elements['#pbChapterPicker']={value:'Prescribed Unit: Fractions',tagName:'SELECT',innerHTML:'Private school chapter'};
+cloud.state.user=null;
+listeners.get('edunizam:auth')?.({detail:{event:'SIGNED_OUT'}});
+assert(elements['#pbChapters'].value===''&&
+ elements['#pbChapterPicker'].value===''&&
+ !elements['#pbChapterPicker'].innerHTML.includes('Private school chapter'),
+ 'Signed-out Paper Builder retained private chapter selections');
+assert(/sign-in required/i.test(elements['#pbSchoolCatalogStatus'].textContent),
+ 'Signed-out Paper Builder kept school textbook status visible');
+cloud.state.user=signedInUser;
+await api.loadSchoolCatalog();await api.loadCustomQuestions();
+assert(api.schoolChapters('5','Mathematics').includes('Prescribed Unit: Fractions'),
+ 'Current school syllabus did not recover after re-authentication');
 cfg.institutionId='school-B';cloud.state.user.id='head-B';
 assert(!api.schoolPaperReadiness('5','Mathematics',['Prescribed Unit: Fractions']).allowed,'Previous school syllabus authorized an exam after switch');
 assert(!api.chapterChoices('5','Mathematics').includes('Confidential School A Topic'),'Previous school teacher-bank chapter leaked after switch');
