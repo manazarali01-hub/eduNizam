@@ -39,7 +39,7 @@ const permitted=()=>['head','teacher'].includes(role())&&!!api()?.cloudReady?.()
 const sameClass=(a,b)=>{const api=window.EDUNIZAM_ACADEMIC_FORM_OPTIONS;if(api?.sameClass)return api.sameClass(a,b);const whole=v=>norm(v).match(/^(?:(?:class|grade)\s*)?(1[0-2]|[1-9])$/)?.[1];return norm(a)===norm(b)||!!(whole(a)&&whole(a)===whole(b))};
 const subj=v=>window.EDUNIZAM_ACADEMIC_FORM_OPTIONS?.subjectKey?.(v)||norm(v);
 const key=x=>[norm(x.className).replace(/^(class|grade)\s+/,''),norm(x.sectionName),subj(x.subject),norm(x.unitTitle)].join('|');
-let staged=[],stagedScope='',stagedFile=null,busy=false,reviewEpoch=0;
+let staged=[],stagedScope='',stagedFile=null,busy=false,reviewEpoch=0,sessionEpoch=0;
 function resetPreview(){
  reviewEpoch++;staged=[];stagedScope='';stagedFile=null;
  const button=$('sbiSave');if(button)button.disabled=true;
@@ -116,40 +116,57 @@ async function preview(){
 }
 async function save(){
  if(busy||!staged.length||!stagedFile||$('sbiFile')?.files?.[0]!==stagedFile||stagedScope!==scope()||!permitted())return announce('Validate your CSV again for the current school.',true);
- const start=scope(),epoch=reviewEpoch,selectedFile=stagedFile,rows=staged.slice(),inst=window.EDUNIZAM_CLOUD_CONFIG.institutionId,uid=window.EDUNIZAM_CLOUD.state.user.id;
+ const start=scope(),epoch=reviewEpoch,session=sessionEpoch,selectedFile=stagedFile,rows=staged.slice(),inst=window.EDUNIZAM_CLOUD_CONFIG.institutionId,uid=window.EDUNIZAM_CLOUD.state.user.id;
  if(!confirm('Save '+rows.length+' actual prescribed textbook chapter(s) to this school?'))return;
  busy=true;let committed=false;const button=$('sbiSave');if(button)button.disabled=true;
  try{
   await api().pullCloud();
-  if(start!==scope()||!permitted()||epoch!==reviewEpoch||$('sbiFile')?.files?.[0]!==selectedFile)throw Error('School session or selected CSV changed.');
+  if(start!==scope()||!permitted()||session!==sessionEpoch||epoch!==reviewEpoch||$('sbiFile')?.files?.[0]!==selectedFile)throw Error('School session or selected CSV changed.');
   if(api().classesVerified?.()===false)throw Error('Current school class directory not verified; nothing was submitted.');
   const headers=fields.join(','),lines=rows.map(x=>fields.map(f=>'"'+x[f].replace(/"/g,'""')+'"').join(','));
   const current=validate(headers+'\n'+lines.join('\n'),api().registeredClasses(),api().savedUnits());
   if(current.errors.length||current.valid.length!==rows.length)throw Error('School chapters or permissions changed. Validate file again.');
-  if(scope()!==start||!permitted())throw Error('School session changed before save.');
+  if(scope()!==start||session!==sessionEpoch||epoch!==reviewEpoch||!permitted())throw Error('School session changed before save.');
   // One PostgREST INSERT statement: every validated row commits together or
   // a database validation/RLS error rejects the entire batch. Never write per row.
   const payloads=rows.map(x=>({institution_id:inst,class_name:x.className,section_name:x.sectionName||null,
    subject:x.subject,unit_title:x.unitTitle,textbook_title:x.textbookTitle,curriculum_board:x.curriculumBoard,
    edition_year:x.editionYear?Number(x.editionYear):null,source_url:x.sourceUrl||null,
    status:'Planned',completion_percent:0,family_visible:false,created_by:uid,updated_by:uid,updated_at:new Date().toISOString()}));
-  const response=await client().from('syllabus_progress_units').insert(payloads);
+  // HTTP success is not proof of a saved syllabus batch. Require every
+  // returned row and exact chapter name, not merely absence of an RLS error.
+  const response=await client().from('syllabus_progress_units').insert(payloads).select('id,unit_title');
+  if(scope()!==start||session!==sessionEpoch||epoch!==reviewEpoch||$('sbiFile')?.files?.[0]!==selectedFile)return;
   if(response?.error)throw Error('Database rejected the batch: '+response.error.message);
+  const rowsSaved=response?.data,expected=new Map();
+  for(const payload of payloads){
+   const chapter=norm(payload.unit_title);
+   expected.set(chapter,(expected.get(chapter)||0)+1);
+  }
+  if(!Array.isArray(rowsSaved)||rowsSaved.length!==rows.length||
+     !rowsSaved.every(row=>{
+      const chapter=norm(row?.unit_title),remaining=expected.get(chapter)||0;
+      if(!row?.id||!remaining)return false;
+      expected.set(chapter,remaining-1);return true;
+     })||[...expected.values()].some(v=>v!==0)){
+   throw Error('Database did not confirm all expected syllabus chapters. Check the school chapter list before retrying.');
+  }
   committed=true;staged=[];stagedScope='';stagedFile=null;
   if($('sbiFile'))$('sbiFile').value='';
   announce(rows.length+' genuine chapter(s) saved together to the selected school.');
-  if(scope()===start){
-   try{await api().pullCloud();await api().render()}
+  if(scope()===start&&session===sessionEpoch){
+   try{await api().pullCloud();if(scope()===start&&session===sessionEpoch)await api().render()}
    catch(_){announce(rows.length+' chapter(s) saved, but the list could not refresh. Reopen Lesson Center to view them.',true)}
   }
  }catch(e){
+  if(scope()!==start||session!==sessionEpoch||epoch!==reviewEpoch)return;
   staged=[];stagedScope='';stagedFile=null;
   // An interrupted network response may arrive after the database commits:
   // check records before retrying rather than promising zero saved rows.
   announce(committed
    ?rows.length+' chapter(s) saved, but the view could not refresh.'
    :'Batch save was not confirmed: '+String(e.message||e)+'. Check existing school chapters before validating and retrying.',true);
- }finally{busy=false;if(button?.isConnected)button.disabled=true}
+ }finally{busy=false;if(scope()===start&&session===sessionEpoch&&button?.isConnected)button.disabled=true}
 }
 function downloadClass5ScienceReference(){
  const file=new Blob([class5ScienceReviewCsv()],{type:'text/csv;charset=utf-8'});
@@ -178,6 +195,18 @@ function mount(){
  '<div id="sbiPreview"></div></article>');
  $('sbiTemplate').onclick=template;$('sbiClass5Reference').onclick=downloadClass5ScienceReference;$('sbiPreviewButton').onclick=preview;$('sbiSave').onclick=save;
  $('sbiFile').onchange=()=>{resetPreview();announce('Selected file changed. Validate the new CSV.')};
+}
+// A sign-out can be followed by login to the SAME school with the SAME ID;
+// only a generation check prevents a late response from reviving old UI.
+if(typeof window.addEventListener==='function'){
+ window.addEventListener('edunizam:auth',event=>{
+  if(event?.detail?.event==='SIGNED_OUT'){sessionEpoch++;resetPreview();announce('School session ended. Validate a new CSV after login.')}
+ });
+ window.addEventListener('edunizam:auth-state',event=>{
+  if(['UNAUTHENTICATED','AUTH_ERROR'].includes(event?.detail?.state)){
+   sessionEpoch++;resetPreview();announce('School access ended. Sign in and revalidate the selected CSV.');
+  }
+ });
 }
 window.EDUNIZAM_SYLLABUS_CSV={fields,csv,validate,mount,preview,save,resetPreview,class5ScienceReference,class5ScienceReviewCsv,downloadClass5ScienceReference};
 setTimeout(mount,0);
