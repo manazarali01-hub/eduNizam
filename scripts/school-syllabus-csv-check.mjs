@@ -12,6 +12,28 @@ const good=header+'\n5,A,Mathematics,"Solids, liquids",School Science,punjab-pec
 const row=validate(good,registered,[]);
 assert.equal(row.errors.length,0);assert.equal(row.valid.length,1);
 assert.equal(row.valid[0].unitTitle,'Solids, liquids');
+// A retired class/section may still exist in a cached directory, but must
+// never authorize new prescribed syllabus data.
+const withInactive=[{className:'5',sectionName:'A',active:false},
+ {className:'Grade 5',sectionName:'B',active:true}];
+assert.equal(validate(good,withInactive,[]).valid.length,0,
+ 'Archived class section incorrectly authorized a syllabus upload');
+assert.match(validate(good,withInactive,[]).errors[0].error,/not active/i);
+assert.throws(()=>w.EDUNIZAM_SYLLABUS_CSV.registeredClassWorksheet(withInactive,{className:'5',sectionName:'A'}),
+ /No registered section/i,'Inactive section was exported in an active-class worksheet');
+const activeB=good.replace('5,A,','5,B,');
+assert.equal(validate(activeB,withInactive,[]).valid.length,1,
+ 'Active section was wrongly rejected alongside an inactive sibling');
+// Current official curriculum authority IDs must work in the same importer
+// that Lesson Center uses. Keep earlier codes valid for existing installations.
+for(const code of ['kp-dcte-kptbb','balochistan-btbb','kp-textbook','balochistan']){
+ const candidate=good.replace('punjab-pectaa',code);
+ assert.equal(validate(candidate,registered,[]).errors.length,0,
+  'School syllabus import rejected registered board authority '+code);
+}
+const lessonSource=readFileSync(new URL('../lesson-plan-center.js',import.meta.url),'utf8');
+for(const code of ['kp-dcte-kptbb','balochistan-btbb','kp-textbook','balochistan'])
+ assert(lessonSource.includes("['"+code+"'"),'Lesson Center lost board dropdown choice '+code);
 
 const {registeredClassWorksheet}=w.EDUNIZAM_SYLLABUS_CSV;
 const blank=registeredClassWorksheet(registered);

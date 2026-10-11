@@ -244,7 +244,7 @@
       '<input id="lpUnitTitle" list="lpUnitTopics" placeholder="Exact chapter / unit title *" value="'+esc(edit?.unitTitle||'')+'"><datalist id="lpUnitTopics"></datalist>'+
        '<input id="lpTextbookTitle" placeholder="Prescribed textbook title *" value="'+esc(edit?.textbookTitle||'')+'">'+
        '<select id="lpCurriculumBoard" aria-label="Textbook authority">'+
-         [['','Select school textbook board'],['punjab-pectaa','Punjab · PECTAA'],['federal-fbise','Federal · FBISE'],['sindh-stbb','Sindh · STBB'],['kp-textbook','Khyber Pakhtunkhwa'],['balochistan','Balochistan'],['other','Other / School-specific']].map(([v,t])=>'<option value="'+v+'" '+((edit?.curriculumBoard||'')===v?'selected':'')+'>'+t+'</option>').join('')+
+         [['','Select school textbook board'],['punjab-pectaa','Punjab · PECTAA'],['federal-fbise','Federal · FBISE'],['sindh-stbb','Sindh · STBB'],['kp-dcte-kptbb','KP · DCTE / KPTBB'],['balochistan-btbb','Balochistan · BTBB'],['kp-textbook','KP · legacy stored value'],['balochistan','Balochistan · legacy stored value'],['other','Other / School-specific']].map(([v,t])=>'<option value="'+v+'" '+((edit?.curriculumBoard||'')===v?'selected':'')+'>'+t+'</option>').join('')+
        '</select>'+
        '<input id="lpEditionYear" type="number" min="1900" max="2100" step="1" placeholder="Textbook edition year (optional)" value="'+esc(edit?.editionYear||'')+'">'+
        '<input id="lpSourceUrl" type="url" placeholder="Textbook source link (optional, https://)" value="'+esc(edit?.sourceUrl||'')+'">'+

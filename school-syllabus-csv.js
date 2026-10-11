@@ -6,7 +6,9 @@ const $=id=>document.getElementById(id);
 const norm=x=>String(x??'').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ');
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const fields=['className','sectionName','subject','unitTitle','textbookTitle','curriculumBoard','editionYear','sourceUrl'];
-const boards=new Set(['punjab-pectaa','federal-fbise','sindh-stbb','kp-textbook','balochistan','other']);
+// Prefer the IDs in the official curriculum registry. Historic stored values
+// stay accepted so previously imported books remain editable.
+const boards=new Set(['punjab-pectaa','federal-fbise','sindh-stbb','kp-dcte-kptbb','balochistan-btbb','kp-textbook','balochistan','other']);
 // Historic, attributed CHAPTER REFERENCE ONLY from Punjab Education Foundation's
 // 2025–26 Primary Content Book, Class 5 General Science, PDF pp. 253–263.
 // PEF partner-school planning is NOT a certification of any school's 2026–27
@@ -168,8 +170,8 @@ function validate(text,classes=[],existing=[]){
   if(values.length!==fields.length)error='Incorrect number of fields';
   else if(fields.some(k=>x[k].length>400))error='One field exceeds 400 characters';
   else if(['className','subject','unitTitle','textbookTitle','curriculumBoard'].some(k=>!x[k]))error='Class, Subject, Chapter, actual Textbook and Board are required';
-  else if(!classes.some(c=>sameClass(c.className,x.className)))error='Class not registered in this school';
-  else if(x.sectionName&&!classes.some(c=>sameClass(c.className,x.className)&&norm(c.sectionName)===norm(x.sectionName)))error='Section not registered in this school';
+  else if(!classes.some(c=>c?.active!==false&&sameClass(c.className,x.className)))error='Class not active or registered in this school';
+  else if(x.sectionName&&!classes.some(c=>c?.active!==false&&sameClass(c.className,x.className)&&norm(c.sectionName)===norm(x.sectionName)))error='Section not active or registered in this school';
   else if(!boards.has(x.curriculumBoard))error='Invalid textbook authority';
   else if(x.editionYear&&(!/^\d{4}$/.test(x.editionYear)||+x.editionYear<1900||+x.editionYear>2100))error='Invalid edition year';
   else if(x.sourceUrl&&!/^https:\/\/[^\s]+$/i.test(x.sourceUrl))error='Source URL must be HTTPS';
