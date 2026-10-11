@@ -61,11 +61,12 @@ function node(id){
 const list=node('#savedTeacherPapers'),preview=node('#paperPreview');
 node('#pbSavedSearch');node('#pbSavedClass');node('#pbSavedCount');
 const buttons={};
-let mockEdits=[];
+let mockEdits=[],mockAnswers=[];
 const document={readyState:'loading',addEventListener(){},
  querySelector:id=>nodes.get(id)||null,
  querySelectorAll:selector=>{
   if(selector==='[data-q]')return mockEdits;
+  if(selector==='[data-answer-no]')return mockAnswers;
   if(selector==='[data-pb-open]'){
    buttons.open={dataset:{pbOpen:'paper-A'},onclick:null};
    return[buttons.open];
@@ -103,12 +104,21 @@ await api.loadPapers();
 buttons.open.onclick();
 assert.match(preview.innerHTML,/Original question/,'Saved editor not opened');
 assert.match(preview.innerHTML,/pbSaveEdits/,'Owner cannot access save changes');
+assert.match(preview.innerHTML,/data-answer-no="1"/,
+ 'Owner cannot edit and correct a paper answer key');
 mockEdits=[{dataset:{q:'0:0'},value:'   '}];
 const oldCalls=calls.length;
 await api.updatePaper();
 assert.equal(calls.length,oldCalls,'Blank edited question reached school database');
 assert.match(alerts.at(-1),/Cannot save incomplete paper.*blank/i);
 mockEdits=[{dataset:{q:'0:0'},value:'Original question'}];
+mockAnswers=[{dataset:{answerNo:'1'},value:'  '}];
+const callsBeforeBlankKey=calls.length;
+await api.updatePaper();
+assert.equal(calls.length,callsBeforeBlankKey,'Empty teacher answer key reached school database');
+assert.match(alerts.at(-1),/Cannot save incomplete paper.*answer key/i,
+ 'Empty marking guide did not show an actionable save error');
+mockAnswers=[{dataset:{answerNo:'1'},value:'Corrected key: explain the exact science concept.'}];
 updateMode='none';
 await api.updatePaper();
 assert.equal(logged.length,0,'No-row UPDATE falsely reported saved');
@@ -125,6 +135,11 @@ updateMode='confirmed';
 await api.updatePaper();
 assert.equal(logged.length,1,'Confirmed UPDATE was not acknowledged');
 assert.equal(logged[0][0],'Paper changes saved.');
+const savedPayload=calls.at(-1).payload.paper_json;
+assert.equal(savedPayload.answers[0].answer,'Corrected key: explain the exact science concept.',
+ 'Corrected marking guide was not persisted in saved paper JSON');
+assert.equal(savedPayload.sections[0].questions[0].answer,savedPayload.answers[0].answer,
+ 'Question answer and printable key disagree after editing');
 updateMode='deferred';
 const pending=api.updatePaper();
 settings.institutionId='school-B';user.id='owner-B';
