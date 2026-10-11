@@ -4,6 +4,9 @@
   const roleCache={key:'',value:null,at:0,inflight:null};
   const institutionsCache={userId:'',value:null,at:0,inflight:null};
   const SESSION_RESTORE_TIMEOUT_MS=3500;
+  // Supabase auth events are authoritative. A stale getSession promise must
+  // never resurrect a signed-out user or replace a newer signed-in account.
+  let authRevision=0;
   function clearIdentityCaches(){roleCache.key='';roleCache.value=null;roleCache.at=0;roleCache.inflight=null;institutionsCache.userId='';institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
   async function boundedRead(key,builder,{timeout=6500,retries=1,cacheMs=15000,label='School data'}={}){
     const execute=async({signal}={})=>{
@@ -36,6 +39,7 @@
         state.session=session||null;
         state.user=nextUser;
         state.authEvent=event;
+        authRevision++;
         if(session){state.sessionRestoreStatus='active';state.sessionRestoreError=null}
         else if(event==='INITIAL_SESSION'||event==='SIGNED_OUT'){state.sessionRestoreStatus='absent';state.sessionRestoreError=null}
         state.initialized=true;
@@ -55,6 +59,7 @@
       // thing as an authoritative signed-out browser session.
       state.sessionRestoreStatus='pending';
       state.sessionRestoreError=null;
+      const restoreRevision=authRevision;
       const restorePromise=Promise.resolve().then(()=>state.client.auth.getSession());
       let restoreTimer=0;
       try{
@@ -75,13 +80,15 @@
           // Supabase may still finish an expired-token refresh later. Keep that
           // result useful without allowing the unresolved request to own app startup.
           restorePromise.then(({data,error})=>{
+            if(authRevision!==restoreRevision)return;
             if(error)throw error;
             state.session=data?.session||state.session||null;
-            state.user=state.session?.user||state.user||null;
+            state.user=state.session?.user||null;
             state.sessionRestoreStatus=state.session?'active':'absent';
             state.sessionRestoreError=null;
             window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event:'LATE_SESSION_RESTORE',user:state.user}}));
           }).catch(e=>{
+            if(authRevision!==restoreRevision)return;
             if(state.sessionRestoreStatus!=='active'){
               state.sessionRestoreStatus='error';
               state.sessionRestoreError=e;
@@ -92,17 +99,22 @@
         }else{
           const {data,error}=outcome.value||{};
           if(error)throw error;
-          state.session=data?.session||state.session||null;
-          state.user=state.session?.user||state.user||null;
-          state.sessionRestoreStatus=state.session?'active':'absent';
+          if(authRevision===restoreRevision){
+            state.session=data?.session||null;
+            state.user=state.session?.user||null;
+            state.sessionRestoreStatus=state.session?'active':'absent';
+            state.sessionRestoreError=null;
+          }
         }
       }catch(e){
         clearTimeout(restoreTimer);
-        if(state.sessionRestoreStatus!=='active'){
-          state.sessionRestoreStatus='error';
-          state.sessionRestoreError=e;
+        if(authRevision===restoreRevision){
+          if(state.sessionRestoreStatus!=='active'){
+            state.sessionRestoreStatus='error';
+            state.sessionRestoreError=e;
+          }
+          console.warn('EduNizam session restore:',e.message||e);
         }
-        console.warn('EduNizam session restore:',e.message||e);
       }finally{
         state.initialized=true;
         window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event:'INIT_COMPLETE',user:state.user}}));
