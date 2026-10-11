@@ -27,6 +27,8 @@ const client={from(table){
   delete(){assert.equal(table,'teacher_question_bank');operation='delete';return this},
   insert(payload){assert.equal(table,'teacher_question_bank');operation='insert';this.payload=payload;return this},
   maybeSingle(){return this.write().then(res=>res.error||res.data===null?res:{...res,data:{id:filters.id}})},
+  // PostgREST insert(...).select('id').single() confirms a row ID.
+  single(){return this.write().then(res=>res.error||res.data===null?res:{...res,data:res.data===undefined?{id:'new-'+writes.length}:res.data})},
   write(){
    writes.push({operation,filters:{...filters},payload:this.payload});
    const wait=deferred();pending.push(wait);
@@ -94,6 +96,27 @@ assert.equal(toasts.length,1);
 assert.equal(node('#qbQuestion').value,'Second question being drafted',
  'Late response cleared a new unsaved question from the form');
 assert.equal(node('#qbSave').disabled,false,'Save remained disabled after response');
+ // An HTTP success without the inserted row ID cannot be announced as saved.
+ node('#qbQuestion').value='Question with missing save confirmation';
+ node('#qbAnswer').value='Teacher answer must not be silently accepted';
+ const toastBeforeMissingId=toasts.length;
+ const unconfirmedInsert=app.saveCustomQuestion();
+ for(let i=0;i<35;i++)await Promise.resolve();
+ assert.equal(writes.at(-1).operation,'insert');
+ pending.shift().resolve({error:null,data:{}});
+ await unconfirmedInsert;
+ assert.equal(toasts.length,toastBeforeMissingId,'Missing inserted ID falsely showed success');
+ assert.match(alerts.at(-1),/not confirm/i);
+ // A concurrent save that hits the server-side unique index gets a clear message.
+ node('#qbQuestion').value='Question involved in a concurrent duplicate';
+ node('#qbAnswer').value='Valid written answer';
+ const duplicateIndexSave=app.saveCustomQuestion();
+ for(let i=0;i<35;i++)await Promise.resolve();
+ pending.shift().resolve({error:{code:'23505',message:'duplicate key'}});
+ await duplicateIndexSave;
+ assert.equal(toasts.length,toastBeforeMissingId,'Duplicate database row falsely showed success');
+ assert.match(alerts.at(-1),/already exists/i);
+
 // Update a teacher-owned question. Construct a realistic Edit button.
 const edit={dataset:{qbEdit:'existing-1'},onclick:null};
 editButtons=[edit];
