@@ -150,7 +150,22 @@ pass(typeof schoolChoice==='function','Paper Builder has no school-record syllab
 pass(schoolChoice('9','Mathematics',schoolUnits).length===2,'School syllabus should exclude duplicates and other grade/subjects');
 pass(schoolChoice('10','Mathematics',schoolUnits).length===1,'School syllabus grade isolation failed');
 pass(schoolChoice('9','Chemistry',schoolUnits).length===0,'School syllabus subject isolation failed');
+// Private school data is now exposed only to a current authenticated school.
+// Test the recorded-syllabus precedence under a real mock school session,
+// not through the signed-out public cache accessor.
+window.EDUNIZAM_CLOUD_CONFIG={institutionId:'fixture-school'};
+window.EDUNIZAM_CLOUD={state:{user:{id:'fixture-head'},client:{from:table=>({
+ select(){return this},eq(){return this},limit(){return this},
+ then(resolve,reject){
+  const data=table==='class_sections'?[{class_name:'Grade 1',section_name:'A',active:true}]:
+   table==='syllabus_progress_units'?[{class_name:'Grade 1',subject:'Mathematics',
+    unit_title:'School unit with no available questions'}]:[];
+  return Promise.resolve({data,error:null}).then(resolve,reject);
+ }
+})}}};
+await window.EDUNIZAM_PAPER_BUILDER.loadSchoolCatalog();
 const liveCatalog=window.EDUNIZAM_PAPER_BUILDER.getSchoolCatalog();
+pass(liveCatalog.units.length===1,'Authenticated fixture syllabus did not load');
 const originalUnits=liveCatalog.units;
 liveCatalog.units=[{class_name:'Grade 1',subject:'Mathematics',unit_title:'School unit with no available questions'}];
 const restricted=recommend('1','Mathematics',20,'Balanced','Objective Heavy');
