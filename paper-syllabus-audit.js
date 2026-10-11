@@ -14,7 +14,7 @@ const sameClass=(a,b)=>{
  return x&&y?x===y:!!norm(a)&&norm(a)===norm(b);
 };
 const normalizeSubject=v=>{
- const x=norm(v),aliases={'science':'general science','islamiyat':'islamiat / ethics','islamic studies':'islamiat / ethics','math':'mathematics','computer':'computer science','pak studies':'pakistan studies'};
+ const x=norm(v),aliases={'science':'general science','islamiyat':'islamiat / ethics','islamic studies':'islamiat / ethics','math':'mathematics','maths':'mathematics','computer':'computer science','pak studies':'pakistan studies'};
  return aliases[x]||x;
 };
 const questionKey=q=>norm(q?.question_text??q?.question);
