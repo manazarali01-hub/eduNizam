@@ -520,8 +520,10 @@ async function previewQuestionImport(){
  if(file.size>1048576){if(report)report.textContent='File must be under 1 MB.';return}
  const previewScope=currentSchoolScope();
  try{
-  // A stale cache from another school or a failed read cannot safely determine duplicates.
-  if(questionScope!==previewScope)await loadCustomQuestions();
+  // Always refresh the full current-school bank before a new CSV preview.
+  // Another teacher may have added, edited or removed questions since the
+  // previous review, even while the same institution remains selected.
+  await loadCustomQuestions();
   if(epoch!==questionImportEpoch||$('#qbImportFile')?.files?.[0]!==file)return;
   if(!ready()||currentSchoolScope()!==previewScope||questionScope!==previewScope)
    throw Error('Cannot verify the current-school question bank. Refresh and review the file again.');
