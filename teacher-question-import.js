@@ -39,8 +39,9 @@ const signature=x=>[gradeKey(x.class_name??x.class??x.className),subjectKey(x.su
 function prepare(text,filename,existing=[]){
  if(!text||!String(text).trim())throw Error('Select a non-empty CSV or JSON file.');
  if(new TextEncoder().encode(text).length>MAX_BYTES)throw Error('File larger than 1MB.');
+ const jsonInput=/\.json$/i.test(filename||'');
  let raw;
- if(/\.json$/i.test(filename||'')){const o=JSON.parse(text);raw=Array.isArray(o)?o:o?.questions;if(!Array.isArray(raw))throw Error('JSON must be an array or {questions: [...]}');}
+ if(jsonInput){const o=JSON.parse(text);raw=Array.isArray(o)?o:o?.questions;if(!Array.isArray(raw))throw Error('JSON must be an array or {questions: [...]}');}
  else if(/\.csv$/i.test(filename||''))raw=csv(text);
  else throw Error('Only CSV and JSON files are supported.');
  if(!raw.length||raw.length>MAX_ROWS)throw Error('Import needs 1–'+MAX_ROWS+' question rows.');
@@ -55,13 +56,19 @@ function prepare(text,filename,existing=[]){
    answer_text=norm(q.answer??q.answer_text)||null,
    visibility=low(q.visibility||'private');
   const options=Array.isArray(q.options)?q.options.map(norm):[q.option1,q.option2,q.option3,q.option4].map(norm);
-  const cr=norm(q.correct_option??q.correctOption);
-  const correct_option=/^[A-Da-d]$/.test(cr)?cr.toUpperCase().charCodeAt(0)-65:/^[1-4]$/.test(cr)?Number(cr)-1:-1;
+  const rawCorrect=q.correct_option??q.correctOption,cr=norm(rawCorrect);
+  // CSV worksheets use human answer numbers 1–4. Database-compatible JSON
+  // numeric indices are zero-based 0–3 (including numeric 0 for option A).
+  // JSON string answers retain the worksheet's 1–4 or A–D notation.
+  const correct_option=jsonInput&&typeof rawCorrect==='number'
+    ?(Number.isInteger(rawCorrect)&&rawCorrect>=0&&rawCorrect<=3?rawCorrect:-1)
+    :/^[A-Da-d]$/.test(cr)?cr.toUpperCase().charCodeAt(0)-65
+     :/^[1-4]$/.test(cr)?Number(cr)-1:-1;
   if(!class_name||!subject||!chapter||!question_text||question_text.length>3000){errors.push('Row '+row+': missing class/subject/chapter/question or question too long');continue}
   if(!['mcq','short','long'].includes(question_type)||!['Easy','Balanced','Challenging'].includes(difficulty)){errors.push('Row '+row+': invalid type/difficulty');continue}
   if(!['private','admin'].includes(visibility)){errors.push('Row '+row+': invalid visibility');continue}
   if(question_type==='mcq'&&(options.length!==4||options.some(x=>!x)||new Set(options.map(low)).size!==4||correct_option<0)){
-   errors.push('Row '+row+': MCQ requires 4 unique options and correct_option 1–4 or A–D');continue
+   errors.push('Row '+row+': MCQ needs 4 unique options; CSV/string answer must be 1–4 or A–D, JSON numeric answer must be 0–3');continue
   }
   if(question_type!=='mcq'&&!answer_text){errors.push('Row '+row+': written question missing model answer');continue}
   const item={class_name:class_name.slice(0,90),subject:subject.slice(0,90),chapter:chapter.slice(0,150),
