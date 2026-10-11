@@ -2,7 +2,7 @@
 const $=s=>document.querySelector(s),all=s=>[...document.querySelectorAll(s)],esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{},settings=()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}},role=()=>{let r;try{r=JSON.parse(localStorage.getItem('edunizam_session')||'{}').role}catch{}return r==='admin'?'head':r||'student'},ready=()=>!!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId);
 let current=null,currentRow=null,currentDraftScope='',teacherDefaults={classes:[],subjects:[]},teacherDefaultsScope='',teacherDefaultsRequestId=0,customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
-let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
+let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogSyncQueued=false,catalogScope='',questionScope='';
 let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0,savedPapersViewScope='';
 let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='',questionRequestId=0;
 const paperMutationsInFlight=new Set(),paperInsertInFlight=new Set(),questionSaveInFlight=new Set(),questionDeleteInFlight=new Set();
@@ -27,7 +27,7 @@ function clearPaperWorkspace(reason='Your school session changed. Reopen Paper B
  currentDraftScope='';currentDraftGeneration=paperSessionGeneration;
  paperFormScope='invalidated';paperFormGeneration=-1;
  savedPapersRequestId++;catalogRequestId++;teacherDefaultsRequestId++;questionRequestId++;
- savedPapersViewScope='';questionScope='';catalogScope='';teacherDefaultsScope='';
+ savedPapersViewScope='';questionScope='';catalogScope='';catalogSyncQueued=false;teacherDefaultsScope='';
  customQuestions=[];schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
  teacherDefaults={classes:[],subjects:[]};editingQuestionId='';
  sourceStagedQuestions=[];sourceScope='';clearPendingQuestionImport();
@@ -50,6 +50,7 @@ function bindPaperWorkspaceEvents(){
   if(['UNAUTHENTICATED','AUTH_ERROR'].includes(event.detail?.state))
    clearPaperWorkspace('School access ended. Sign in before viewing or saving private papers.');
  });
+ window.addEventListener('edunizam:school-data-changed',event=>{void handleSchoolDataChange(event)});
  window.addEventListener('edunizam:workspace-ready',()=>{
   if(paperFormScope!==null&&paperFormScope!==currentSchoolScope())clearPaperWorkspace();
  });
@@ -184,10 +185,24 @@ async function fetchPagedSchoolRows(client,table,columns,institution,{pageSize=2
  }
  throw Error('School data exceeded the safe page limit.');
 }
+async function handleSchoolDataChange(event){
+ const detail=event?.detail,scope=currentSchoolScope();
+ if(!ready()||!['classes','syllabus'].includes(detail?.area)||detail?.scope!==scope||!$('#paperBuilderApp'))return;
+ // An already-generated preview may refer to a class/chapter that changed.
+ if(current){
+  current=null;currentRow=null;currentDraftScope='';paperDraftRevision++;
+  if($('#paperPreview'))$('#paperPreview').innerHTML='';
+  if($('#pbGenerationStatus'))$('#pbGenerationStatus').textContent='School classes or syllabus changed. Select current chapters and generate a fresh paper preview.';
+ }
+ if($('#pbChapters'))$('#pbChapters').value='';
+ renderSelectedChapters();
+ if(schoolCatalogBusy&&catalogScope===scope){catalogSyncQueued=true;return}
+ await loadSchoolCatalog();
+}
 async function loadSchoolCatalog(){
  if(!ready())return;
  const client=cloud().state.client,inst=cfg().institutionId,scope=currentSchoolScope();
- if(schoolCatalogBusy&&catalogScope===scope)return;
+ if(schoolCatalogBusy&&catalogScope===scope){catalogSyncQueued=true;return}
  if(catalogScope!==scope)schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
  catalogScope=scope;schoolCatalogBusy=true;
  const requestId=++catalogRequestId;
@@ -214,6 +229,10 @@ async function loadSchoolCatalog(){
    schoolCatalogBusy=false;
    if(button?.isConnected)button.disabled=false;
    renderSchoolStatus();
+   if(catalogSyncQueued&&currentSchoolScope()===scope){
+    catalogSyncQueued=false;
+    void Promise.resolve().then(()=>loadSchoolCatalog());
+   }
   }
  }
 }
@@ -1180,5 +1199,5 @@ async function render(){
  void loadCustomQuestions().then(()=>updateBankInsight())
   .catch(error=>console.warn('Paper Builder question bank:',error?.message||error));
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper,currentDraftMatchesForm,deleteCustomQuestion,questionDuplicateKey};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper,handleSchoolDataChange,currentDraftMatchesForm,deleteCustomQuestion,questionDuplicateKey};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
