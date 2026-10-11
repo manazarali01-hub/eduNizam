@@ -57,6 +57,7 @@ runInNewContext(audit,context);
 runInNewContext(source,context);
 const api=window.EDUNIZAM_PAPER_BUILDER;
 await api.loadSchoolCatalog();
+await api.loadCustomQuestions();
 assert.equal(api.schoolPaperReadiness('5','Science',['Energy, Sound']).allowed,false,
  'Paper exam unexpectedly used the wrong section chapter');
 assert.equal(api.schoolQuestionReadiness('5','Science',['Energy, Sound']).allowed,true,
