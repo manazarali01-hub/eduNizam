@@ -80,8 +80,9 @@ const nodes={
  sbiSave:{disabled:true,isConnected:true},
  sbiStatus:{textContent:'',dataset:{}}
 };
-const calls=[];let rejectBatch=true,returnNoRows=false;
+const calls=[],changeEvents=[];let rejectBatch=true,returnNoRows=false;
 const importerWindow={
+ dispatchEvent:event=>{changeEvents.push(event.detail);return true},
  EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-A'},
  EDUNIZAM_CLOUD:{state:{user:{id:'teacher-1'},client:{from(table){
   assert.equal(table,'syllabus_progress_units');
@@ -97,7 +98,7 @@ const importerWindow={
 const importerDoc={getElementById:id=>nodes[id]||null};
 runInNewContext(source,{window:importerWindow,document:importerDoc,
  localStorage:{getItem:()=>JSON.stringify({role:'head'})},setTimeout:()=>0,
- confirm:()=>true,console,Promise});
+ confirm:()=>true,console,Promise,CustomEvent:class{constructor(type,init){this.type=type;this.detail=init.detail}}});
 const importer=importerWindow.EDUNIZAM_SYLLABUS_CSV;
 await importer.preview();
 assert.equal(nodes.sbiSave.disabled,false,'Valid reviewed chapters should enable save');
@@ -106,16 +107,21 @@ assert.equal(calls.length,1,'Rejected multi-row import must make only one write 
 assert.equal(calls[0].length,2,'One payload must contain both validated chapters');
 assert.equal(calls[0][0].institution_id,'school-A');
 assert.match(nodes.sbiStatus.textContent,/not confirmed/,'Batch rejection must not claim any success');
+assert.equal(changeEvents.length,0,'Failed syllabus CSV write incorrectly notified school features');
 rejectBatch=false;
 await importer.preview();
 await importer.save();
 assert.equal(calls.length,2,'Successful multi-row import must still use one additional write');
 assert.equal(calls[1].length,2);
 assert.match(nodes.sbiStatus.textContent,/2 genuine chapter\(s\) saved together/);
+assert.equal(changeEvents.length,1,'Confirmed school chapter import did not synchronize other features');
+assert.equal(changeEvents[0].scope,'school-A|teacher-1');
+assert.equal(changeEvents[0].area,'syllabus');
 returnNoRows=true;
 await importer.preview();await importer.save();
 assert.equal(calls.length,3,'Zero-return insert should be submitted just once');
 assert.match(nodes.sbiStatus.textContent,/not confirmed/,'Zero-return INSERT falsely announced imported chapters');
+assert.equal(changeEvents.length,1,'Unconfirmed syllabus chapters triggered a false synchronization');
 returnNoRows=false;
 assert.match(source,/\.insert\(payloads\)\.select\('id,unit_title'\)/);
 assert.doesNotMatch(source,/for\(const x of rows\)\s*\{[\s\S]*?\.insert\(payload\)/,
