@@ -130,7 +130,7 @@ async function save(){
   if($('acsvFile'))$('acsvFile').value='';
   if(scope()===current&&session===sessionEpoch){
    status(rows.length+' real class/section rows saved together to this school.');
-   try{await directory().pullCloud();if(scope()===current&&session===sessionEpoch)await directory().render()
+   try{await directory().pullCloud();if(scope()===current&&session===sessionEpoch)await directory().render()}
    catch(_){status('Rows saved, but refresh failed. Reopen Academic Groups to verify them.',true)}
   }
  }catch(e){
