@@ -45,6 +45,9 @@ jobs:
       - name: Verify Class 5 Science reviewed question import saves atomically
         run: node scripts/question-import-atomic-check.mjs
 
+      - name: Verify comma/Unicode school chapter selection through paper save
+        run: node scripts/paper-builder-chapter-punctuation-check.mjs
+
       - name: Verify Paper Builder renders before teacher preferences and question bank load
         run: node scripts/paper-builder-first-render-check.mjs
 
