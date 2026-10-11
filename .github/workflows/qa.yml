@@ -62,6 +62,9 @@ jobs:
       - name: Verify Paper Builder exact school setup readiness
         run: node scripts/paper-school-readiness-check.mjs
 
+      - name: Verify teacher Question Bank uses active school section textbook rather than paper wizard selection
+        run: node scripts/paper-question-bank-section-check.mjs
+
       - name: Verify school section syllabus isolation
         run: node scripts/paper-builder-section-check.mjs
 
