@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261011-paper-answer-key-editor-v73';
+  const VERSION='20261011-teacher-key-print-v74';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
