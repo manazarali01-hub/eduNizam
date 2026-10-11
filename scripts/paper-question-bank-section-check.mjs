@@ -74,6 +74,9 @@ assert.equal(saved.length,1,'Valid Section B reviewed question was not saved');
 assert.equal(saved[0].chapter,'Energy, Sound','Punctuation in reviewed question chapter was lost');
 assert.equal(alerts.length,0,'Unexpected validation alert: '+alerts.join(' | '));
 els['#qbChapter'].value='Private C';
+// Successful saving clears the form, so provide the next unapproved test question.
+els['#qbQuestion'].value='Question from inactive C?';
+els['#qbAnswer'].value='Unapproved answer.';
 await api.saveCustomQuestion();
 assert.equal(saved.length,1,'Inactive section saved an unapproved school question');
 assert.match(alerts.at(-1),/book-mapped|active school section/i);
