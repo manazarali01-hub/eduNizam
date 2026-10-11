@@ -38,6 +38,17 @@ function clearPaperWorkspace(reason='Your school session changed. Reopen Paper B
  if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
  if($('#qbCount'))$('#qbCount').textContent='0 questions';
  if($('#pbGenerationStatus'))$('#pbGenerationStatus').textContent=reason;
+ // Existing dropdown markup is still mounted when authorization expires.
+ // Drop school-specific options immediately, before another interaction.
+ for(const selector of ['#pbClass','#pbSubject','#pbSection','#pbChapterPicker','#pbChapters','#qbClass','#qbSubject','#qbChapter']){
+  const node=$(selector);if(!node)continue;
+  if('value' in node)node.value='';
+  if(node.tagName==='SELECT')node.innerHTML='<option value="">Sign in to load school choices</option>';
+ }
+ if($('#pbSchoolCatalogStatus'))$('#pbSchoolCatalogStatus').textContent='School sign-in required to view private class and textbook data.';
+ if($('#pbSchoolSetupChecklist'))$('#pbSchoolSetupChecklist').textContent=reason;
+ if($('#pbTeacherChapters'))$('#pbTeacherChapters').innerHTML='';
+ if($('#pbSelectedChapters'))$('#pbSelectedChapters').textContent='Reopen Paper Builder after school login.';
 }
 function bindPaperWorkspaceEvents(){
  if(typeof window.addEventListener!=='function')return;
@@ -1119,7 +1130,7 @@ function refreshTeacherQuestionCatalog(){
 }
 function refreshPaperCatalog(){
   const classSelect=$('#pbClass'),cl=classSelect?.value||'',lv=classLevelFrom(cl),D=window.EDUNIZAM_PRACTICE_DATA||{},A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
-  const configured=schoolCatalog.classes.map(x=>String(x.class_name||'').trim());
+  const configured=privateCatalog().classes.map(x=>String(x.class_name||'').trim());
   const allClasses=[...new Set([...Array.from({length:12},(_,i)=>String(i+1)),...configured,...teacherDefaults.classes])].filter(Boolean);
   const classList=$('#pbClasses');
   if(classList)classList.innerHTML=allClasses.map(x=>'<option value="'+esc(x)+'"></option>').join('');
@@ -1131,7 +1142,7 @@ function refreshPaperCatalog(){
   const sectionSelect=$('#pbSection');
   if(sectionSelect){
    const previous=sectionSelect.value;
-   const sections=[...new Map(schoolCatalog.classes.filter(row=>row.active!==false&&A?.sameClass?.(row.class_name,cl)).map(row=>String(row.section_name||'').trim()).filter(Boolean).map(section=>[sectionKey(section),section])).values()];
+   const sections=[...new Map(privateCatalog().classes.filter(row=>row.active!==false&&A?.sameClass?.(row.class_name,cl)).map(row=>String(row.section_name||'').trim()).filter(Boolean).map(section=>[sectionKey(section),section])).values()];
    sectionSelect.innerHTML='<option value="">All sections (shared chapters only)</option>'+sections.map(section=>'<option value="'+esc(section)+'">Section '+esc(section)+'</option>').join('');
    sectionSelect.disabled=!cl||!sections.length;
    if(sections.some(section=>sectionKey(section)===sectionKey(previous)))sectionSelect.value=previous;
@@ -1140,7 +1151,7 @@ function refreshPaperCatalog(){
   const catalogSubjects=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects?.[String(lv)]||[];
   const common=['English','Urdu','Mathematics','General Science','General Knowledge','Social Studies','Islamiat / Ethics','Nazra Quran','Computer Science'];
   const imported=[...currentTeacherQuestions(),...activeSourceRows()].filter(q=>q.active!==false&&A?.sameClass(q.class_name,cl)).map(q=>q.subject).filter(Boolean);
-  const savedSubjects=schoolCatalog.units.filter(x=>A?.sameClass(x.class_name,cl)).map(x=>x.subject);
+  const savedSubjects=privateCatalog().units.filter(x=>A?.sameClass(x.class_name,cl)).map(x=>x.subject);
   const source=cl?[...baseSubjects,...catalogSubjects,...teacherDefaults.subjects,...imported,...savedSubjects]:[];
   if(cl&&!source.length)source.push(...common);
   const found=new Map();
