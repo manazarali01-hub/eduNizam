@@ -4,6 +4,11 @@ const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{},s
 let current=null,currentRow=null,teacherDefaults={classes:[],subjects:[]},customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
 let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
 let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0;
+let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='';
+function clearPendingQuestionImport(){
+ questionImportEpoch++;pendingImportRows=[];pendingImportScope='';pendingImportFile=null;pendingImportOrigin='';
+ const button=$('#qbImportSave');if(button)button.disabled=true;
+}
 const paperSection=()=>String($('#pbSection')?.value||'').trim();
 const sectionKey=value=>String(value||'').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ');
 const unitInSection=unit=>!sectionKey(unit.section_name)||(!!sectionKey(paperSection())&&sectionKey(unit.section_name)===sectionKey(paperSection()));
@@ -266,8 +271,8 @@ function downloadQuestionTemplate(){
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 async function previewQuestionImport(){
- const file=$('#qbImportFile')?.files?.[0],report=$('#qbImportReport'),save=$('#qbImportSave');
- pendingImportRows=[];pendingImportScope='';if(save)save.disabled=true;
+ clearPendingQuestionImport();
+ const epoch=questionImportEpoch,file=$('#qbImportFile')?.files?.[0],report=$('#qbImportReport'),save=$('#qbImportSave');
  if(!file){if(report)report.textContent='Choose a CSV/JSON file first.';return}
  if(!ready()||!['teacher','head'].includes(role())){if(report)report.textContent='Authorized school staff login required before reviewing bank imports.';return}
  if(file.size>1048576){if(report)report.textContent='File must be under 1 MB.';return}
@@ -275,26 +280,29 @@ async function previewQuestionImport(){
  try{
   // A stale cache from another school or a failed read cannot safely determine duplicates.
   if(questionScope!==previewScope)await loadCustomQuestions();
+  if(epoch!==questionImportEpoch||$('#qbImportFile')?.files?.[0]!==file)return;
   if(!ready()||currentSchoolScope()!==previewScope||questionScope!==previewScope)
    throw Error('Cannot verify the current-school question bank. Refresh and review the file again.');
   const processor=window.EDUNIZAM_QUESTION_IMPORT;
   if(!processor)throw Error('Question import validator unavailable; reload this page.');
   const content=await file.text();
+  if(epoch!==questionImportEpoch||$('#qbImportFile')?.files?.[0]!==file)return;
   if(currentSchoolScope()!==previewScope)throw Error('School changed while reading the import file.');
   const results=processor.prepare(content,file.name,customQuestions);
   const summary='Checked '+results.total+' rows · '+results.valid.length+' new valid · '+results.duplicates+' duplicates · '+results.errors.length+' errors.';
   if(report)report.textContent=summary+(results.errors.length?' First errors: '+results.errors.slice(0,7).join(' | '):' Ready to import.');
   if(results.errors.length)return;
-  pendingImportRows=results.valid;pendingImportScope=previewScope;
+  pendingImportRows=results.valid;pendingImportScope=previewScope;pendingImportFile=file;pendingImportOrigin='file';
   if(save)save.disabled=!pendingImportRows.length;
- }catch(error){if(report)report.textContent='Validation failed: '+(error.message||error)}
+ }catch(error){if(epoch===questionImportEpoch&&report)report.textContent='Validation failed: '+(error.message||error)}
 }
 async function saveQuestionImport(){
  const button=$('#qbImportSave'),report=$('#qbImportReport');
  if(importBusy||!pendingImportRows.length)return;
- const importScope=currentSchoolScope();
- if(!ready()||!['teacher','head'].includes(role())||pendingImportScope!==importScope){
-  pendingImportRows=[];pendingImportScope='';
+ const importScope=currentSchoolScope(),epoch=questionImportEpoch;
+ const fileUnchanged=pendingImportOrigin==='source'||(pendingImportOrigin==='file'&&!!pendingImportFile&&$('#qbImportFile')?.files?.[0]===pendingImportFile);
+ if(!ready()||!['teacher','head'].includes(role())||pendingImportScope!==importScope||!fileUnchanged){
+  clearPendingQuestionImport();
   if(button)button.disabled=true;
   if(report)report.textContent='Your school/account changed or login expired. Verify the CSV/JSON again before saving.';
   return;
@@ -310,13 +318,14 @@ async function saveQuestionImport(){
  try{
   // One PostgREST INSERT statement: a row validation/RLS failure rolls back
   // the entire request. A per-25-row loop left partial question banks behind.
-  if(importScope!==currentSchoolScope()||pendingImportScope!==importScope)throw Error('School changed before saving.');
+  if(importScope!==currentSchoolScope()||pendingImportScope!==importScope||epoch!==questionImportEpoch||
+   (pendingImportOrigin==='file'&&(!pendingImportFile||$('#qbImportFile')?.files?.[0]!==pendingImportFile)))throw Error('School or selected question file changed before saving.');
   const owner=cloud().state.user.id,institution=cfg().institutionId;
   const records=pendingImportRows.map(q=>({...q,institution_id:institution,creator_user_id:owner,updated_at:new Date().toISOString()}));
   const {error}=await cloud().state.client.from('teacher_question_bank').insert(records);
   if(importScope!==currentSchoolScope())return;
   if(error)throw Error(error.message||'Database rejected this question batch.');
-  pendingImportRows=[];pendingImportScope='';
+  clearPendingQuestionImport();
   if(report)report.textContent=total+' reviewed question'+(total===1?'':'s')+' saved together in this school. Check answer keys before printing.';
   try{await loadCustomQuestions();updateBankInsight()}
   catch(_){if(report)report.textContent=total+' questions were saved, but the bank list could not refresh. Reopen the Question Bank.'}
@@ -324,7 +333,7 @@ async function saveQuestionImport(){
   if(importScope!==currentSchoolScope())return;
   // Network timeout is ambiguous: it may happen after the database commits.
   // Force a new preview and current-school duplicate check before retry.
-  pendingImportRows=[];pendingImportScope='';
+  clearPendingQuestionImport();
   if(report)report.textContent='Batch save was not confirmed: '+(error.message||error)+'. Refresh this school’s Question Bank and validate the file again before retrying.';
  }finally{
   importBusy=false;
@@ -763,7 +772,7 @@ function prepareSourceSync(){
  if(!ready())throw Error('Current school cloud login required to sync question bank.');
  const failed=list.map(x=>schoolPaperReadiness(x.class_name,x.subject,[x.chapter])).find(x=>!x.allowed);
  if(failed)throw Error('Cannot save source questions to school yet: '+failed.reason);
- pendingImportRows=list.slice();pendingImportScope=currentSchoolScope();
+ clearPendingQuestionImport();pendingImportRows=list.slice();pendingImportScope=currentSchoolScope();pendingImportOrigin='source';
  if($('#qbImportSave'))$('#qbImportSave').disabled=false;
  if($('#qbImportReport'))$('#qbImportReport').textContent=list.length+' reviewed source questions ready. Confirm Import Verified Questions to write to current school.';
  $('#questionBankManager')?.scrollIntoView?.({behavior:'smooth',block:'start'});
@@ -843,10 +852,10 @@ async function render(){
   refreshPaperCatalog();refreshTeacherQuestionCatalog();refreshPatternBreakdown();
  $('#qbSave').onclick=saveCustomQuestion;$('#qbCancelEdit').onclick=clearQuestionForm;$('#qbSearch').addEventListener('input',renderQuestionBankList);
  $('#qbImportTemplate').onclick=downloadQuestionTemplate;$('#qbSchoolQuestionWorksheet').onclick=downloadSchoolQuestionWorksheet;$('#qbImportPreview').onclick=previewQuestionImport;$('#qbImportSave').onclick=saveQuestionImport;
- $('#qbImportFile').addEventListener('change',()=>{pendingImportRows=[];$('#qbImportSave').disabled=true;$('#qbImportReport').textContent='File selected. Click Validate File before importing.'});
+ $('#qbImportFile').addEventListener('change',()=>{clearPendingQuestionImport();$('#qbImportReport').textContent='File selected. Click Validate File before importing.'});
  $('#qbType').addEventListener('change',()=>{const mcq=$('#qbType').value==='mcq';$('#qbOptions').disabled=!mcq;$('#qbCorrect').disabled=!mcq});
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
