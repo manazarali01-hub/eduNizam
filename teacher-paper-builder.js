@@ -6,9 +6,54 @@ let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'uncheck
 let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0,savedPapersViewScope='';
 let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='';
 const paperMutationsInFlight=new Set(),paperInsertInFlight=new Set();
-let paperDraftRevision=0;
-function markCurrentDraft(){paperDraftRevision++;currentDraftScope=currentSchoolScope()}
+let paperDraftRevision=0,paperSessionGeneration=0,currentDraftGeneration=0;
+let paperFormScope=null,paperFormGeneration=0;
+function markCurrentDraft(){
+ paperDraftRevision++;currentDraftScope=currentSchoolScope();currentDraftGeneration=paperSessionGeneration;
+}
 function paperInsertActive(){return paperInsertInFlight.has(currentSchoolScope())}
+function currentPaperSession(){
+ return currentDraftScope===currentSchoolScope()&&currentDraftGeneration===paperSessionGeneration;
+}
+function paperFormIsCurrent(){
+ if(paperFormScope===null){paperFormScope=currentSchoolScope();paperFormGeneration=paperSessionGeneration}
+ if(paperFormScope===currentSchoolScope()&&paperFormGeneration===paperSessionGeneration)return true;
+ current=null;currentRow=null;currentDraftScope='';paperDraftRevision++;
+ if($('#paperPreview'))$('#paperPreview').innerHTML='';
+ return false;
+}
+function clearPaperWorkspace(reason='Your school session changed. Reopen Paper Builder.'){
+ paperSessionGeneration++;paperDraftRevision++;current=null;currentRow=null;
+ currentDraftScope='';currentDraftGeneration=paperSessionGeneration;
+ paperFormScope='invalidated';paperFormGeneration=-1;
+ savedPapersRequestId++;catalogRequestId++;teacherDefaultsRequestId++;
+ savedPapersViewScope='';questionScope='';catalogScope='';teacherDefaultsScope='';
+ customQuestions=[];schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
+ teacherDefaults={classes:[],subjects:[]};editingQuestionId='';
+ sourceStagedQuestions=[];sourceScope='';clearPendingQuestionImport();
+ if($('#paperPreview'))$('#paperPreview').innerHTML='';
+ if($('#savedTeacherPapers'))$('#savedTeacherPapers').innerHTML='<div class="empty-state">Reopen this school workspace to load saved papers.</div>';
+ if($('#qbList'))$('#qbList').innerHTML='';
+ if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
+ if($('#qbCount'))$('#qbCount').textContent='0 questions';
+ if($('#pbGenerationStatus'))$('#pbGenerationStatus').textContent=reason;
+}
+function bindPaperWorkspaceEvents(){
+ if(typeof window.addEventListener!=='function')return;
+ window.addEventListener('edunizam:auth',event=>{
+  if(event.detail?.event==='SIGNED_OUT')clearPaperWorkspace('Signed out. Reopen Paper Builder after signing in.');
+  else if(event.detail?.event==='SIGNED_IN'&&paperFormScope!==null&&paperFormScope!==currentSchoolScope())
+   clearPaperWorkspace();
+ });
+ window.addEventListener('edunizam:auth-state',event=>{
+  if(['UNAUTHENTICATED','AUTH_ERROR'].includes(event.detail?.state))
+   clearPaperWorkspace('School access ended. Sign in before viewing or saving private papers.');
+ });
+ window.addEventListener('edunizam:workspace-ready',()=>{
+  if(paperFormScope!==null&&paperFormScope!==currentSchoolScope())clearPaperWorkspace();
+ });
+}
+bindPaperWorkspaceEvents();
 function clearPendingQuestionImport(){
  questionImportEpoch++;pendingImportRows=[];pendingImportScope='';pendingImportFile=null;pendingImportOrigin='';
  const button=$('#qbImportSave');if(button)button.disabled=true;
@@ -539,9 +584,10 @@ function build(subject,topics,total,diff,mode,cls='',options={}){
 function header(p,row){const st=settings(),logo=st.schoolLogo?'<img src="'+esc(st.schoolLogo)+'" class="pb-print-logo" alt="">':'';return (p.curriculumMode==='school-recorded'?'':'<p class="coverage-note"><strong>CONCEPT PRACTICE DRAFT — NOT A VERIFIED SCHOOL EXAM</strong></p>')+'<div class="pb-paper-head">'+logo+'<div><h1>'+esc(st.schoolName||'EduNizam Institute')+'</h1><p>'+esc(st.schoolType||'Educational Institute')+(st.session?' · '+esc(st.session):'')+'</p></div></div><div class="pb-meta"><span><b>Paper:</b> '+esc(row?.title||$('#pbTitle')?.value||p.subject+' Paper')+'</span><span><b>Class:</b> '+esc(row?.class_name||$('#pbClass')?.value||'')+'</span>'+(p.sectionName?'<span><b>Section:</b> '+esc(p.sectionName)+'</span>':'')+'<span><b>Subject:</b> '+esc(p.subject)+'</span><span><b>Marks:</b> '+p.totalMarks+'</span><span><b>Difficulty:</b> '+esc(p.difficulty)+'</span></div><div class="pb-student-line">Name: ____________________ &nbsp; Roll No: __________ &nbsp; Date: __________</div>'}
 function paperHtml(p,row,editable=false){return '<div class="pb-print-sheet">'+header(p,row)+p.sections.map((s,si)=>'<section class="pb-section"><h3>'+esc(s.title)+' <span>'+s.marks+' Marks</span></h3>'+s.questions.map((q,qi)=>'<div class="pb-question"><b>Q'+q.no+'.</b> '+(Number(q.marks)>0?'<small>('+Number(q.marks)+' mark'+(Number(q.marks)===1?'':'s')+')</small> ':'')+(editable?'<textarea data-q="'+si+':'+qi+'">'+esc(q.text)+'</textarea>':esc(q.text))+'</div>').join('')+'</section>').join('')+'</div>'}
 function keyHtml(p){return '<div class="pb-answer-key"><h2>Teacher Answer Key / Marking Guide</h2>'+p.answers.map(a=>'<p><b>Q'+a.no+'.</b> '+esc(a.answer)+'</p>').join('')+'</div>'}
-function syncEdits(){if(!current)return;all('[data-q]').forEach(x=>{const [s,q]=x.dataset.q.split(':').map(Number);current.sections[s].questions[q].text=x.value})}
+function syncEdits(){if(!current||!currentPaperSession())return;all('[data-q]').forEach(x=>{const [s,q]=x.dataset.q.split(':').map(Number);current.sections[s].questions[q].text=x.value})}
 function applyPreset(v){const p={quiz:[20,'Easy','Objective Heavy'],monthly:[50,'Balanced','Balanced'],term:[100,'Balanced','Subjective Heavy']}[v];if(!p)return;$('#pbMarks').value=p[0];$('#pbDifficulty').value=p[1];$('#pbDistribution').value=p[2]}
 async function clonePaper(row){
+ if(!paperFormIsCurrent())return alert('The school workspace changed. Reopen Paper Builder before cloning.');
  $('#pbTitle').value=(row.title||row.subject+' Paper')+' — Copy';
  $('#pbClass').value=row.class_name;refreshPaperCatalog();
  if($('#pbSection'))$('#pbSection').value=row.paper_json?.sectionName||'';
@@ -557,6 +603,7 @@ async function clonePaper(row){
 }
 async function savePaper(){
  if(!ready())return alert('Cloud login required.');
+ if(!paperFormIsCurrent())return alert('Your school session changed. Reopen Paper Builder before saving.');
  // One insert per school/account at a time: double taps cannot duplicate papers.
  if(paperInsertActive())return;
  const subject=$('#pbSubject')?.value?.trim()||'',cls=$('#pbClass')?.value?.trim()||'',
@@ -574,20 +621,20 @@ async function savePaper(){
  const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,
   title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,
   visibility:concept?'private':($('#pbAdmin')?.checked?'admin':'private')};
- const scope=currentSchoolScope(),revision=paperDraftRevision,draft=current,client=cloud().state.client;
+ const scope=currentSchoolScope(),revision=paperDraftRevision,generation=paperSessionGeneration,draft=current,client=cloud().state.client;
  // Freeze the insert payload: editing a preview during a network request must
  // not accidentally mutate what is submitted or overwrite the new editor.
  payload.paper_json=JSON.parse(JSON.stringify(current));
  paperInsertInFlight.add(scope);
  try{
   const {data,error}=await client.from('teacher_papers').insert(payload).select().single();
-  if(scope!==currentSchoolScope())return;
+  if(scope!==currentSchoolScope()||generation!==paperSessionGeneration)return;
   if(error||!data?.id)throw Error(error?.message||'No saved paper was confirmed by the database.');
   if(revision===paperDraftRevision&&current===draft){currentRow=data;showEditor()}
   void loadPapers();
   window.EDUNIZAM_PREMIUM?.toast?.('Paper draft saved. Verify the current book, questions and answer key.','success');
  }catch(error){
-  if(scope===currentSchoolScope())
+  if(scope===currentSchoolScope()&&generation===paperSessionGeneration)
    alert('Paper save was not confirmed: '+String(error?.message||error)+'. Refresh Saved Papers before trying again, to avoid duplicates.');
  }finally{paperInsertInFlight.delete(scope)}
 }
@@ -599,6 +646,11 @@ function refreshPatternBreakdown(){
  el.textContent='Pattern preview: '+total+' total marks · MCQs '+mcq+' marks · Short '+short+' marks · Long '+long+' marks ('+pattern+').';
 }
 function previewPaper(){
+ if(!paperFormIsCurrent()){
+  const reason='Your school session changed. Reopen Paper Builder to load current school selections.';
+  if($('#pbGenerationStatus'))$('#pbGenerationStatus').textContent=reason;
+  return{ready:false,reason};
+ }
  const cls=$('#pbClass')?.value?.trim()||'',subject=$('#pbSubject')?.value?.trim()||'',
   topics=readSelectedChapters(),
   total=Number($('#pbMarks')?.value),difficulty=$('#pbDifficulty')?.value||'Balanced',
@@ -623,7 +675,7 @@ function previewPaper(){
 }
 function currentDraftMatchesForm(cls,subject,topics,total,difficulty,pattern,teacherOnly,concept){
  const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
- return !!current&&currentDraftScope===currentSchoolScope()&&
+ return !!current&&currentPaperSession()&&paperFormIsCurrent()&&
   A?.sameClass?.(current.className,cls)&&A.normalizeSubject(current.subject)===A.normalizeSubject(subject)&&
   Array.isArray(current.topics)&&current.topics.length===topics.length&&topics.every(x=>current.topics.some(y=>A.chapterMatches(x,y)))&&
   current.totalMarks===total&&String(current.sectionName||'')===paperSection()&&
@@ -632,6 +684,7 @@ function currentDraftMatchesForm(cls,subject,topics,total,difficulty,pattern,tea
 }
 async function saveCurrentAsNew(){
  if(!ready()||!current)return alert('Cloud login and preview required.');
+ if(!currentPaperSession()||!paperFormIsCurrent())return alert('Your school session changed. Reopen Paper Builder and generate a fresh preview.');
  if(paperInsertActive())return;
  if(currentRow)return alert('This paper is already saved. Clone it to save a separate copy.');
  syncEdits();
@@ -648,27 +701,28 @@ async function saveCurrentAsNew(){
  const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,
   title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,
   visibility:concept?'private':($('#pbAdmin')?.checked?'admin':'private')};
- const scope=currentSchoolScope(),revision=paperDraftRevision,draft=current,client=cloud().state.client,button=$('#pbSaveAsNew');
+ const scope=currentSchoolScope(),revision=paperDraftRevision,generation=paperSessionGeneration,draft=current,client=cloud().state.client,button=$('#pbSaveAsNew');
  payload.paper_json=JSON.parse(JSON.stringify(current));
  paperInsertInFlight.add(scope);
  if(button)button.disabled=true;
  try{
   const {data,error}=await client.from('teacher_papers').insert(payload).select().single();
-  if(scope!==currentSchoolScope())return;
+  if(scope!==currentSchoolScope()||generation!==paperSessionGeneration)return;
   if(error||!data?.id)throw Error(error?.message||'No saved copy was confirmed by the database.');
   if(revision===paperDraftRevision&&current===draft){currentRow=data;showEditor()}
   void loadPapers();
   window.EDUNIZAM_PREMIUM?.toast?.('Paper copy saved as new, teacher review required.','success');
  }catch(error){
-  if(scope===currentSchoolScope())
+  if(scope===currentSchoolScope()&&generation===paperSessionGeneration)
    alert('Paper copy save was not confirmed: '+String(error?.message||error)+'. Refresh Saved Papers before trying again, to avoid duplicates.');
  }finally{
   paperInsertInFlight.delete(scope);
-  if(scope===currentSchoolScope()&&revision===paperDraftRevision&&button?.isConnected)button.disabled=false;
+  if(scope===currentSchoolScope()&&generation===paperSessionGeneration&&revision===paperDraftRevision&&button?.isConnected)button.disabled=false;
  }
 }
 function showEditor(){
  const el=$('#paperPreview');if(!el||!current)return;
+ if(!currentPaperSession()){current=null;currentRow=null;currentDraftScope='';paperDraftRevision++;el.innerHTML='';return}
  const ss=current.sourceStats||{},uid=String(cloud()?.state?.user?.id||''),ownRow=!!currentRow&&String(currentRow.creator_user_id||'')===uid;
  const syllabusNote='<div class="coverage-note"><strong>Curriculum status:</strong> '+(current.curriculumMode==='school-recorded'?'School-recorded chapter names — textbook edition and answer keys NOT verified.':'Unverified concept-only or legacy draft. Check textbook alignment before using in a school examination.')+'</div>';
   const sourceNote=ss.total?'<div class="coverage-note"><strong>Question source:</strong> '+(ss.teacherBank||0)+' teacher-bank · '+(ss.practiceBank||0)+' EduNizam curriculum-bank · '+(ss.templateFallback||0)+' template fallback. Teacher verification remains required.</div>':'';
@@ -686,7 +740,8 @@ function showEditor(){
 }
 async function updatePaper(){
  if(!ready()||!currentRow||!current)return alert('Open your saved paper in the current school before editing.');
- const scope=currentSchoolScope(),institution=cfg().institutionId,owner=cloud().state.user.id;
+ if(!currentPaperSession()||!paperFormIsCurrent())return alert('Your school session changed. Reopen your saved paper before editing.');
+ const scope=currentSchoolScope(),generation=paperSessionGeneration,institution=cfg().institutionId,owner=cloud().state.user.id;
  const paperId=currentRow.id;
  if(String(currentRow.creator_user_id||'')!==String(owner))return alert('Only the paper creator can save changes.');
  const key=scope+'|'+paperId;
@@ -701,23 +756,24 @@ async function updatePaper(){
    .update({paper_json:paperJson,updated_at:new Date().toISOString()})
    .eq('id',paperId).eq('creator_user_id',owner).eq('institution_id',institution)
    .select('id').maybeSingle();
-  if(scope!==currentSchoolScope())return;
+  if(scope!==currentSchoolScope()||generation!==paperSessionGeneration)return;
   if(error)throw Error(error.message||'Paper update rejected.');
   if(!data?.id||String(data.id)!==String(paperId))
    throw Error('No saved paper was updated. Refresh My / Shared Papers and reopen this paper.');
   if(currentRow?.id===paperId)currentRow.paper_json=paperJson;
   window.EDUNIZAM_PREMIUM?.toast?.('Paper changes saved.','success');
  }catch(error){
-  if(scope===currentSchoolScope())
+  if(scope===currentSchoolScope()&&generation===paperSessionGeneration)
    alert('Paper changes were not confirmed: '+String(error?.message||error)+'. Refresh the saved papers before retrying.');
  }finally{
   paperMutationsInFlight.delete(key);
-  if(button?.isConnected)button.disabled=false;
+  if(generation===paperSessionGeneration&&button?.isConnected)button.disabled=false;
  }
 }
 async function deletePaper(id){
  if(!ready())return alert('Verified school login required.');
- const scope=currentSchoolScope(),institution=cfg().institutionId,owner=cloud().state.user.id;
+ if(!paperFormIsCurrent())return alert('Your school session changed. Reopen Saved Papers before deleting.');
+ const scope=currentSchoolScope(),generation=paperSessionGeneration,institution=cfg().institutionId,owner=cloud().state.user.id;
  const key=scope+'|'+id;
  if(paperMutationsInFlight.has(key))return;
  if(!confirm('Delete your saved paper?'))return;
@@ -728,7 +784,7 @@ async function deletePaper(id){
   const {data,error}=await cloud().state.client.from('teacher_papers').delete()
    .eq('id',id).eq('institution_id',institution).eq('creator_user_id',owner)
    .select('id');
-  if(scope!==currentSchoolScope())return;
+  if(scope!==currentSchoolScope()||generation!==paperSessionGeneration)return;
   if(error)throw Error(error.message||'Paper deletion rejected.');
   if(!Array.isArray(data)||data.length!==1||String(data[0]?.id)!==String(id))
    throw Error('No owned paper was deleted. Refresh your saved-paper list.');
@@ -739,7 +795,7 @@ async function deletePaper(id){
   window.EDUNIZAM_PREMIUM?.toast?.('Paper deleted.','success');
   void loadPapers();
  }catch(error){
-  if(scope===currentSchoolScope())
+  if(scope===currentSchoolScope()&&generation===paperSessionGeneration)
    alert('Paper deletion was not confirmed: '+String(error?.message||error)+'. Refresh the saved-paper list before retrying.');
  }finally{paperMutationsInFlight.delete(key)}
 }
@@ -986,6 +1042,7 @@ function updateBankInsight(){
 }
 async function render(){
  const root=$('#paperBuilderApp');if(!root)return;
+ paperFormScope=currentSchoolScope();paperFormGeneration=paperSessionGeneration;
  if(!['teacher','head'].includes(role())){root.innerHTML='<div class="empty-state">Paper Builder is for teachers and Admin review.</div>';return}
  // Do not block the first paint on an optional staff profile request.
  void loadTeacherDefaults();
