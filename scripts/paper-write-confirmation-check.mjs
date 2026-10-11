@@ -61,9 +61,11 @@ function node(id){
 const list=node('#savedTeacherPapers'),preview=node('#paperPreview');
 node('#pbSavedSearch');node('#pbSavedClass');node('#pbSavedCount');
 const buttons={};
+let mockEdits=[];
 const document={readyState:'loading',addEventListener(){},
  querySelector:id=>nodes.get(id)||null,
  querySelectorAll:selector=>{
+  if(selector==='[data-q]')return mockEdits;
   if(selector==='[data-pb-open]'){
    buttons.open={dataset:{pbOpen:'paper-A'},onclick:null};
    return[buttons.open];
@@ -83,10 +85,30 @@ runInNewContext(read('teacher-paper-builder.js'),ctx,{filename:'teacher-paper-bu
 const api=window.EDUNIZAM_PAPER_BUILDER;
 assert.equal(typeof api.updatePaper,'function');
 assert.equal(typeof api.deletePaper,'function');
+assert.equal(typeof api.validatePaperDraft,'function','Paper structure validator not available');
+assert.equal(api.validatePaperDraft(paper.paper_json),'','Valid saved paper failed structure audit');
+const changed=mutate=>{const v=JSON.parse(JSON.stringify(paper.paper_json));mutate(v);return v};
+for(const [mutate,expected] of [
+ [v=>{v.sections[0].questions[0].text='   '},/blank/i],
+ [v=>{v.sections[0].questions[0].marks=0},/positive/i],
+ [v=>{v.sections[0].questions[0].marks=8},/Section marks/i],
+ [v=>{v.totalMarks=20},/Total marks/i],
+ [v=>{v.answers[0].answer=''},/answer key/i],
+ [v=>{v.sections[0].questions.push({...v.sections[0].questions[0]})},/numbering/i]
+]){
+ assert.match(api.validatePaperDraft(changed(mutate)),expected,
+  'Paper save guard accepted an incomplete edited paper');
+}
 await api.loadPapers();
 buttons.open.onclick();
 assert.match(preview.innerHTML,/Original question/,'Saved editor not opened');
 assert.match(preview.innerHTML,/pbSaveEdits/,'Owner cannot access save changes');
+mockEdits=[{dataset:{q:'0:0'},value:'   '}];
+const oldCalls=calls.length;
+await api.updatePaper();
+assert.equal(calls.length,oldCalls,'Blank edited question reached school database');
+assert.match(alerts.at(-1),/Cannot save incomplete paper.*blank/i);
+mockEdits=[{dataset:{q:'0:0'},value:'Original question'}];
 updateMode='none';
 await api.updatePaper();
 assert.equal(logged.length,0,'No-row UPDATE falsely reported saved');
