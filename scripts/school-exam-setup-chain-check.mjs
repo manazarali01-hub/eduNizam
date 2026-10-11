@@ -110,8 +110,9 @@ for(const id of ['#pbSelectedChapters','#pbChapterPicker','#paperPreview',
  '#pbGenerationStatus','#pbSchoolCatalogStatus','#savedTeacherPapers',
  '#pbSavedCount','#pbSavedSearch','#pbSavedClass','#pbClasses',
  '#pbSubjects','#pbTeacherChapters','#paperBuilderApp'])element(id);
+let editedQuestions=[];
 const document={readyState:'loading',querySelector:selector=>elements.get(selector)||null,
- querySelectorAll:()=>[],addEventListener(){}};
+ querySelectorAll:selector=>selector==='[data-q]'?editedQuestions:[],addEventListener(){}};
 const cfg={institutionId:'school-A',enabled:true},user={id:'head-A'};
 const listeners=new Map(),errors=[];
 const appWin={EDUNIZAM_CLOUD:{state:{client,user}},EDUNIZAM_CLOUD_CONFIG:cfg,
@@ -141,8 +142,21 @@ for(const type of ['mcq','short','long'])
  assert.equal(coverage.totals[type],9,'Missing imported '+type+' coverage');
 const preview=paper.previewPaper();
 assert.equal(preview.ready,true,'Reviewed class/subject/chapter questions could not generate a paper: '+(preview.reason||errors.join('; ')));
-await paper.savePaper();
-assert.equal(tables.teacher_papers.length,1,'Full setup chain did not save one paper');
+// Reproduce the real Save to School (Draft) button after an editable preview.
+// Emptying a question must never create a paper, even if the preview was
+// valid when generated.
+editedQuestions=[{dataset:{q:'0:0'},value:'   '}];
+await paper.saveCurrentAsNew();
+assert.equal(tables.teacher_papers.length,0,
+ 'A blank edited preview was incorrectly saved to school');
+assert(errors.some(x=>/Cannot save incomplete paper.*blank/i.test(x)),
+ 'Empty question did not show an actionable validation message');
+errors.length=0;
+editedQuestions=[{dataset:{q:'0:0'},value:'Teacher-reviewed question after editing'}];
+await paper.saveCurrentAsNew();
+assert.equal(tables.teacher_papers.length,1,'Full setup chain did not save one edited preview paper');
+assert.equal(tables.teacher_papers[0].paper_json.sections[0].questions[0].text,
+ 'Teacher-reviewed question after editing','Edited preview text was not preserved in saved paper');
 assert.equal(tables.teacher_papers[0].paper_json.curriculumMode,'school-recorded');
 assert.equal(tables.teacher_papers[0].institution_id,'school-A');
 assert.equal(tables.teacher_papers[0].paper_json.sectionName,'A');
@@ -182,4 +196,4 @@ assert.equal(paper.schoolPaperReadiness('5','Science',['New genuine fixture unit
 assert.equal(paper.schoolPaperReadiness('5','Science',[chapterA]).allowed,false,
  'Section C gained access to section A-only chapter after synchronization');
 
-console.log('Full school exam setup PASS: Academic Groups -> class-scoped blank syllabus CSV -> reviewed question CSV -> verified 20-mark preview/save, with section isolation.');
+console.log('Full school exam setup PASS: Academic Groups -> syllabus CSV -> reviewed teacher question CSV -> 20-mark preview/edit/save, invalid paper rejection and section isolation.');
