@@ -178,4 +178,73 @@ function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return
  pendingDatabaseResponse=null;
 }
 
+
+// The actual Lesson Center UI must expose an actionable download. Its cloud
+// directory must be refreshed before exporting; no cached cross-school data.
+{
+ const elements=new Map(),downloads=[],urls=new Map(),events=new Map();
+ const mk=id=>{
+  if(elements.has(id))return elements.get(id);
+  const e={value:'',innerHTML:'',textContent:'',disabled:false,dataset:{},isConnected:true,onclick:null,onchange:null};
+  elements.set(id,e);return e;
+ };
+ mk('lpUnitEditor').insertAdjacentHTML=(_,markup)=>{
+  for(const m of markup.matchAll(/\bid="([^"]+)"/g))mk(m[1]);
+ };
+ const doc={getElementById:id=>elements.get(id)||null,createElement:()=>({
+  href:'',download:'',click(){downloads.push({name:this.download,blob:urls.get(this.href)})}
+ })};
+ const state={institutionId:'school-A'},user={id:'head-1'};
+ let cloudRows=registered,verified=true,refreshes=0,slowRefresh=null;
+ const lesson={
+  cloudReady:()=>true,
+  pullCloud:async()=>{refreshes++;if(slowRefresh)await slowRefresh.promise},
+  registeredClasses:()=>cloudRows,
+  classesVerified:()=>verified
+ };
+ const win={
+  EDUNIZAM_CLOUD_CONFIG:state,EDUNIZAM_CLOUD:{state:{user}},
+  EDUNIZAM_LESSON_CENTER:lesson,
+  addEventListener:(name,callback)=>events.set(name,callback)
+ };
+ const URLStub={createObjectURL(blob){const url='blob:review-'+urls.size;urls.set(url,blob);return url},revokeObjectURL(){}};
+ runInNewContext(source,{window:win,document:doc,localStorage,
+  URL:URLStub,Blob,console,Promise,setTimeout:()=>0,confirm:()=>true});
+ const ui=win.EDUNIZAM_SYLLABUS_CSV;
+ ui.mount();
+ assert(elements.has('sbiRegisteredWorksheet'),'Registered-class download button is missing');
+ assert(elements.has('sbiRefreshWorksheet'),'Registered-class directory refresh button is missing');
+ assert.match(mk('sbiWorksheetClass').innerHTML,/Grade 5/);
+ mk('sbiWorksheetClass').value='Grade 5';
+ ui.worksheetSelections();
+ assert.match(mk('sbiWorksheetSection').innerHTML,/>A</);
+ mk('sbiWorksheetSection').value='A';
+ await mk('sbiRegisteredWorksheet').onclick();
+ assert.equal(refreshes,1,'Export did not reread the school cloud directory');
+ assert.equal(downloads.length,1,'Registered-class download button was inactive');
+ assert.match(downloads[0].name,/BLANK-REVIEW\.csv$/);
+ const exported=csv(await downloads[0].blob.text());
+ assert.equal(exported.length,2);
+ assert.deepEqual([...exported[1]],['Grade 5','A','','','','','','']);
+ // A switched institution with unverified class rows must never export.
+ verified=false;state.institutionId='school-B';
+ const oldDownloads=downloads.length;
+ await mk('sbiRegisteredWorksheet').onclick();
+ assert.equal(downloads.length,oldDownloads,'Unverified switched-school class list was exported');
+ assert.match(mk('sbiStatus').textContent,/not generated/i);
+ verified=true;state.institutionId='school-A';
+ mk('sbiWorksheetClass').value='Grade 5';
+ ui.worksheetSelections();
+ mk('sbiWorksheetSection').value='A';
+ slowRefresh=deferred();
+ const oldDownload=mk('sbiRegisteredWorksheet').onclick();
+ events.get('edunizam:auth')?.({detail:{event:'SIGNED_OUT'}});
+ assert.equal(mk('sbiWorksheetClass').value,'','Sign-out kept private class selection');
+ assert.doesNotMatch(mk('sbiWorksheetClass').innerHTML,/Grade 5/,
+  'Sign-out leaked old class names in the worksheet dropdown');
+ slowRefresh.resolve();
+ await oldDownload;
+ assert.equal(downloads.length,oldDownloads,'Old-session pending export completed after sign-out');
+}
+
 console.log('Syllabus CSV import PASS: school/section validation, real board/title, duplicates, quoted/newline CSV, HTTPS, atomic guarded cloud write.');
