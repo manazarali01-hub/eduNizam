@@ -87,7 +87,7 @@ const source=read('teacher-paper-builder.js');
 assert.match(source,/pendingImportScope!==importScope/);
 assert.match(source,/\.insert\(records\)/);
 assert.doesNotMatch(source,/batchSize=25/);
-assert.match(source,/pendingImportRows\.map\(\(q,i\)=>\(\{index:i\+1,gate:schoolPaperReadiness\(/);
+assert.match(source,/pendingImportRows\.map\(\(q,i\)=>\(\{index:i\+1,gate:schoolQuestionReadiness\(/);
 // A stale File.text() response must not re-enable Import after CSV/JSON selection changes.
 function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return{promise,resolve}}
 cfg.institutionId='school-A';user.id='head-A';
