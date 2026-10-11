@@ -88,4 +88,45 @@ assert.match(source,/pendingImportScope!==importScope/);
 assert.match(source,/\.insert\(records\)/);
 assert.doesNotMatch(source,/batchSize=25/);
 assert.match(source,/pendingImportRows\.map\(\(q,i\)=>\(\{index:i\+1,gate:schoolPaperReadiness\(/);
+// A stale File.text() response must not re-enable Import after CSV/JSON selection changes.
+function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return{promise,resolve}}
+cfg.institutionId='school-A';user.id='head-A';
+await app.loadSchoolCatalog();await app.loadCustomQuestions();
+{
+ const oldRead=deferred(),oldFile={size:600,name:'old.csv',text:()=>oldRead.promise};
+ const currentFile={size:600,name:'reviewed-science.csv',text:async()=>csv};
+ elements['#qbImportFile'].files=[oldFile];
+ const oldPreview=app.previewQuestionImport();
+ await Promise.resolve();await Promise.resolve();
+ elements['#qbImportFile'].files=[currentFile];
+ app.clearPendingQuestionImport();
+ oldRead.resolve(csv);
+ await oldPreview;
+ assert.equal(elements['#qbImportSave'].disabled,true,'Old file preview activated Import after selection changed');
+ const before=inserts.length;
+ await app.saveQuestionImport();
+ assert.equal(inserts.length,before,'Old selected file uploaded despite review invalidation');
+ await app.previewQuestionImport();
+ assert.equal(elements['#qbImportSave'].disabled,false,'New file could not be validated after stale preview');
+ // Guard direct file replacement even if a change listener is missed.
+ elements['#qbImportFile'].files=[oldFile];
+ await app.saveQuestionImport();
+ assert.equal(inserts.length,before,'Replaced file without a change event was imported');
+ assert.match(elements['#qbImportReport'].textContent,/verify.*again|changed/i);
+ elements['#qbImportFile'].files=[currentFile];
+ await app.previewQuestionImport();
+ await app.saveQuestionImport();
+ assert.equal(inserts.length,before+1,'Currently reviewed file was not saved');
+}
+
+// File identity checks must not block the separate teacher-reviewed source workflow.
+const staged=app.attachSourceQuestions([{class:'5',subject:'Science',chapter:'Energy',
+ type:'short',difficulty:'Balanced',question:'What is renewable energy?',
+ answer:'Energy supplied by naturally replenished sources.',visibility:'private'}]);
+assert.equal(staged.valid,1);
+app.prepareSourceSync();
+const beforeSource=inserts.length;
+await app.saveQuestionImport();
+assert.equal(inserts.length,beforeSource+1,'Reviewed-source question sync broke under the file guard');
+
 console.log('Class 5 Science question import PASS: textbook gate, atomic rejection/save, session isolation and forced revalidation.');
