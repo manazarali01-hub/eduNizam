@@ -90,7 +90,9 @@ const sheet=api.schoolQuestionWorksheet();
 assert(sheet.includes('"' + title.replaceAll('"','""') + '"'),'Worksheet lost CSV quoted punctuation');
 const result=api.previewPaper();
 assert.equal(result.ready,true,'Punctuated chapter preview failed: '+result.reason);
-assert.match(map.get('#paperPreview').innerHTML,/Energy, Light/);
+assert.deepEqual([...api.readSelectedChapters()],[title],
+ 'Paper preview modified the selected exact textbook chapter');
+assert.match(map.get('#paperPreview').innerHTML,/Question source:/);
 assert.equal(errors.length,0);
 await api.savePaper();
 assert.equal(saves.length,1,'Selected punctuation chapter was not saved');
