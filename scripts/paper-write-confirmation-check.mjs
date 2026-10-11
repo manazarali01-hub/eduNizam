@@ -15,7 +15,7 @@ const paper={id:'paper-A',institution_id:'school-A',creator_user_id:'owner-A',
   sections:[{title:'MCQ',marks:10,questions:[{no:1,marks:10,text:'Original question'}]}],
   answers:[{no:1,answer:'Answer key'}],curriculumMode:'school-recorded'}};
 let records=[paper],updateMode='confirmed',deleteMode='confirmed',waitingUpdate=null;
-const logged=[],calls=[],alerts=[];
+const logged=[],calls=[],alerts=[],printed=[];
 const client={from(table){
  assert.equal(table,'teacher_papers');
  let operation='list',filters={};
@@ -78,7 +78,8 @@ const document={readyState:'loading',addEventListener(){},
  }};
 const window={EDUNIZAM_CLOUD_CONFIG:settings,
  EDUNIZAM_CLOUD:{state:{user,client}},
- EDUNIZAM_PREMIUM:{toast:(...args)=>logged.push(args)}};
+ EDUNIZAM_PREMIUM:{toast:(...args)=>logged.push(args)},
+ print:()=>printed.push(preview.innerHTML)};
 const ctx={window,document,console,
  localStorage:{getItem:()=>null},alert:x=>alerts.push(String(x)),
  confirm:()=>true,AbortController,setTimeout,clearTimeout};
@@ -119,6 +120,32 @@ assert.equal(calls.length,callsBeforeBlankKey,'Empty teacher answer key reached 
 assert.match(alerts.at(-1),/Cannot save incomplete paper.*answer key/i,
  'Empty marking guide did not show an actionable save error');
 mockAnswers=[{dataset:{answerNo:'1'},value:'Corrected key: explain the exact science concept.'}];
+// The teacher copy must contain the corrected answer but not student-facing
+// question text, edit controls, or other unsaved paper forms.
+assert.match(preview.innerHTML,/id="pbPrintKey"/,'Teacher answer-key print action is absent');
+node('#pbPrintKey').onclick();
+assert.equal(printed.length,1,'Teacher answer key was not sent to browser print');
+assert.match(printed[0],/CONFIDENTIAL.*TEACHER ANSWER KEY/);
+assert.match(printed[0],/Corrected key: explain the exact science concept/);
+assert.doesNotMatch(printed[0],/Original question|data-answer-no=|<textarea/i,
+ 'Teacher print sheet contained the student paper or editable inputs');
+assert.match(preview.innerHTML,/pbBack/,'Printed teacher key has no editor return');
+node('#pbBack').onclick();
+assert.match(preview.innerHTML,/pbSaveEdits/,'Back from teacher key did not restore the paper editor');
+assert.match(preview.innerHTML,/Corrected key: explain the exact science concept/,
+ 'Unpersisted marking guide was lost after teacher-key printing');
+node('#pbPrint').onclick();
+assert.equal(printed.length,2,'Separate student question-sheet print did not run');
+assert.match(printed[1],/Original question/);
+assert.doesNotMatch(printed[1],/Corrected key: explain the exact science concept|TEACHER ANSWER KEY/,
+ 'Confidential marking guide leaked onto student question sheet');
+node('#pbBack').onclick();
+const beforeInvalidPrint=printed.length;
+mockAnswers[0].value=' ';
+node('#pbPrintKey').onclick();
+assert.equal(printed.length,beforeInvalidPrint,'Blank teacher marking guide was printed');
+assert.match(alerts.at(-1),/Cannot print incomplete paper.*answer key/i);
+mockAnswers[0].value='Corrected key: explain the exact science concept.';
 updateMode='none';
 await api.updatePaper();
 assert.equal(logged.length,0,'No-row UPDATE falsely reported saved');
