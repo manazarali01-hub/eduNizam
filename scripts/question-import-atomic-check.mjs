@@ -120,6 +120,7 @@ await app.loadSchoolCatalog();await app.loadCustomQuestions();
 }
 
 // File identity checks must not block the separate teacher-reviewed source workflow.
+elements['#pbChapters']={value:''};
 const staged=app.attachSourceQuestions([{class:'5',subject:'Science',chapter:'Energy',
  type:'short',difficulty:'Balanced',question:'What is renewable energy?',
  answer:'Energy supplied by naturally replenished sources.',visibility:'private'}]);
