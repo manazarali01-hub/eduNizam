@@ -48,12 +48,17 @@ const nodes={
  sbiSave:{disabled:true,isConnected:true},
  sbiStatus:{textContent:'',dataset:{}}
 };
-const calls=[];let rejectBatch=true;
+const calls=[];let rejectBatch=true,returnNoRows=false;
 const importerWindow={
  EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-A'},
  EDUNIZAM_CLOUD:{state:{user:{id:'teacher-1'},client:{from(table){
   assert.equal(table,'syllabus_progress_units');
-  return {insert:async payload=>{calls.push(payload);return rejectBatch?{error:{message:'simulated RLS rejection'}}:{error:null}}};
+  return {insert:payload=>({select:async()=>{
+   calls.push(payload);
+   return rejectBatch?{error:{message:'simulated RLS rejection'}}:
+    returnNoRows?{data:[],error:null}:
+    {data:payload.map((row,i)=>({id:'confirmed-'+i,unit_title:row.unit_title})),error:null};
+  }})};
  }}}},
  EDUNIZAM_LESSON_CENTER:{cloudReady:()=>true,pullCloud:async()=>{},registeredClasses:()=>registered,savedUnits:()=>[],render:async()=>{}}
 };
@@ -75,7 +80,12 @@ await importer.save();
 assert.equal(calls.length,2,'Successful multi-row import must still use one additional write');
 assert.equal(calls[1].length,2);
 assert.match(nodes.sbiStatus.textContent,/2 genuine chapter\(s\) saved together/);
-assert.match(source,/\.insert\(payloads\)/);
+returnNoRows=true;
+await importer.preview();await importer.save();
+assert.equal(calls.length,3,'Zero-return insert should be submitted just once');
+assert.match(nodes.sbiStatus.textContent,/not confirmed/,'Zero-return INSERT falsely announced imported chapters');
+returnNoRows=false;
+assert.match(source,/\.insert\(payloads\)\.select\('id,unit_title'\)/);
 assert.doesNotMatch(source,/for\(const x of rows\)\s*\{[\s\S]*?\.insert\(payload\)/,
  'Importer must not reintroduce a per-row database write loop');
 
@@ -91,7 +101,10 @@ function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return
  const lesson={cloudReady:()=>true,pullCloud:async()=>{},registeredClasses:()=>registered,
   savedUnits:()=>[],render:async()=>{}};
  const ww={EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-A'},
-  EDUNIZAM_CLOUD:{state:{user:{id:'teacher-1'},client:{from:()=>({insert:async rows=>{writes.push(rows);return{error:null}}})}}},
+  EDUNIZAM_CLOUD:{state:{user:{id:'teacher-1'},client:{from:()=>({insert:rows=>({select:async()=>{
+   writes.push(rows);
+   return{data:rows.map((row,i)=>({id:'new-'+i,unit_title:row.unit_title})),error:null};
+  }})})}}},
   EDUNIZAM_LESSON_CENTER:lesson};
  const dd={getElementById:id=>ui[id]||null};
  runInNewContext(source,{window:ww,document:dd,
