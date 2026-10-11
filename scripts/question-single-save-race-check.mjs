@@ -127,9 +127,9 @@ assert.equal(node('#qbSave').textContent,'Update Question');
 node('#qbQuestion').value='Teacher corrected question';
 const updating=app.saveCustomQuestion();
 for(let i=0;i<35;i++)await Promise.resolve();
-assert.equal(writes.length,2);
-assert.equal(writes[1].operation,'update');
-assert.deepEqual({...writes[1].filters},
+assert.equal(writes.length,4);
+assert.equal(writes[3].operation,'update');
+assert.deepEqual({...writes[3].filters},
  {id:'existing-1',creator_user_id:'teacher-A',institution_id:'school-A'},
  'Question update was not scoped to school, owner and exact question ID');
 pending.shift().resolve({error:null});
