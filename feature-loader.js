@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261011-lesson-auth-generation-v66';
+  const VERSION='20261011-json-answer-map-v67';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
