@@ -30,9 +30,11 @@ const client={from(table){
   insert(payload){
    assert.equal(table,'teacher_question_bank');
    assert.equal(payload.institution_id,'school-A');
-   saved.push(payload);database.teacher_question_bank.push({...payload,id:'saved-'+saved.length});
-   return Promise.resolve({error:null});
+   saved.push(payload);this.insertedId='saved-'+saved.length;
+   database.teacher_question_bank.push({...payload,id:this.insertedId});
+   return this;
   },
+  single(){return Promise.resolve({data:{id:this.insertedId},error:null})},
   then(resolve,reject){
    if(school!=='school-A')throw Error('Unscoped or wrong-school read');
    return Promise.resolve({data:database[table]||[],error:null}).then(resolve,reject);
