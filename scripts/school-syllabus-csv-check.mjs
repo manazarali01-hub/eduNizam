@@ -97,12 +97,14 @@ function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return
  const newFile={size:400,text:async()=>header+'\n5,A,General Science,New Chapter,School Science,punjab-pectaa,2026,https://example.org/book'};
  const ui={sbiFile:{files:[oldFile],value:'old.csv'},sbiSave:{disabled:true,isConnected:true},
   sbiStatus:{textContent:'',dataset:{}},sbiPreview:{innerHTML:''}};
- const writes=[];
+ const writes=[];let pendingDatabaseResponse=null;
+ const listeners=new Map();
  const lesson={cloudReady:()=>true,pullCloud:async()=>{},registeredClasses:()=>registered,
   savedUnits:()=>[],render:async()=>{}};
- const ww={EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-A'},
+ const ww={addEventListener:(name,fn)=>listeners.set(name,fn),EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-A'},
   EDUNIZAM_CLOUD:{state:{user:{id:'teacher-1'},client:{from:()=>({insert:rows=>({select:async()=>{
    writes.push(rows);
+   if(pendingDatabaseResponse)return pendingDatabaseResponse.promise;
    return{data:rows.map((row,i)=>({id:'new-'+i,unit_title:row.unit_title})),error:null};
   }})})}}},
   EDUNIZAM_LESSON_CENTER:lesson};
@@ -127,6 +129,21 @@ function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return
  ui.sbiFile.files=[oldFile];imp.resetPreview();
  fetchRows.resolve();await pendingSave;
  assert.equal(writes.length,1,'Syllabus file switch during save still caused a database write');
+ // A completed INSERT response from the former session must not show success
+ // if the SAME user logs back in before the network call resolves.
+ ui.sbiFile.files=[newFile];imp.resetPreview();await imp.preview();
+ pendingDatabaseResponse=deferred();
+ const staleSave=imp.save();
+ for(let i=0;i<12;i++)await Promise.resolve();
+ assert.equal(writes.length,2,'Expected one outstanding current-school syllabus insert');
+ listeners.get('edunizam:auth')?.({detail:{event:'SIGNED_OUT'}});
+ const logoutMessage=ui.sbiStatus.textContent;
+ assert.equal(ui.sbiSave.disabled,true,'Logout did not disable old CSV Save');
+ pendingDatabaseResponse.resolve({data:[{id:'confirmed-late',unit_title:'New Chapter'}],error:null});
+ await staleSave;
+ assert.equal(ui.sbiStatus.textContent,logoutMessage,
+  'Late same-user syllabus INSERT revived a success message after logout');
+ pendingDatabaseResponse=null;
 }
 
 console.log('Syllabus CSV import PASS: school/section validation, real board/title, duplicates, quoted/newline CSV, HTTPS, atomic guarded cloud write.');
