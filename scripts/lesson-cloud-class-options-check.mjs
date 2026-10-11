@@ -46,7 +46,11 @@ const window={
  EDUNIZAM_ROLE_SCOPE:{getVisibleStudents:()=>[],teacherClassKeys:()=>new Set()},
  addEventListener(){}
 };
-const document={getElementById:()=>null,querySelectorAll:()=>[]};
+const controls=new Map([
+ ['lpPlanClass',{value:'8',innerHTML:''}],
+ ['lpUnitClass',{value:'8',innerHTML:''}]
+]);
+const document={getElementById:id=>controls.get(id)||null,querySelectorAll:()=>[]};
 const ctx={window,document,localStorage,console,setTimeout:()=>0,clearTimeout(){}};
 runInNewContext(read('academic-form-options.js'),ctx,{filename:'academic-form-options.js'});
 runInNewContext(read('lesson-plan-center.js'),ctx,{filename:'lesson-plan-center.js'});
@@ -80,6 +84,18 @@ try{await api.pullCloud()}catch(_){failed=true}
 check(failed,'Test fixture did not simulate failed lesson table access');
 check(api.classOptions().join('|')==='8','Failed lesson table hid available school C class dropdown');
 check(!api.registeredClasses().some(x=>x.className==='6'||x.className==='9'),'Failed fetch fell back to stale unrelated school classes');
+// A class registered in Academic Groups must appear without navigating out
+// of Lesson Center, while partially filled form values remain untouched.
+const beforeCrossSchool=calls.length;
+await api.handleSchoolDataChange({detail:{scope:'schoolA|head2',area:'classes',source:'academic-groups-csv'}});
+check(calls.length===beforeCrossSchool,'Unrelated school event triggered a private directory fetch');
+directory.schoolC.push({class_name:'9',section_name:'E',active:true});
+await api.handleSchoolDataChange({detail:{scope:'schoolC|head2',area:'classes',source:'academic-groups-csv'}});
+check(api.classOptions().includes('9'),'New school section did not synchronize into Lesson Center');
+check(controls.get('lpPlanClass').value==='8'&&controls.get('lpUnitClass').value==='8',
+ 'Synchronized school classes erased the teacher form selection');
+check(controls.get('lpPlanClass').innerHTML.includes('value="9"'),
+ 'New registered class did not reach the existing dropdown without page navigation');
 const lessonCode=read('lesson-plan-center.js');
 check(lessonCode.includes('cloudLessonScope!==currentSchoolScope()')&&lessonCode.includes('scoped?[]:read(PLAN_KEY)')&&lessonCode.includes('scoped?[]:read(UNIT_KEY)'),'Lesson/syllabus cards can leak stale cached records on a school switch');
 console.log('EduNizam Lesson Planner cloud class dropdown PASS: direct-open active directory, school/user isolation, inaccessible lesson tables, no stale local fallback.');
