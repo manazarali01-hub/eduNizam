@@ -97,6 +97,12 @@ function worksheetSelections(){
   ?'Registered directory loaded ('+available.length+' accessible class/section rows). Other syllabus fields remain blank.'
   :'No current-school classes loaded. Register Academic Groups or refresh the school directory.';
 }
+function clearWorksheetSelections(){
+ const cls=$('sbiWorksheetClass'),section=$('sbiWorksheetSection'),note=$('sbiWorksheetNote');
+ if(cls){cls.innerHTML='<option value="">Reopen school workspace</option>';cls.value=''}
+ if(section){section.innerHTML='<option value="">Select registered class first</option>';section.value='';section.disabled=true}
+ if(note)note.textContent='School session ended. Reopen Lesson Center after signing in.';
+}
 let worksheetBusy=false;
 async function downloadRegisteredClassWorksheet(){
  if(worksheetBusy)return;
@@ -306,14 +312,14 @@ function mount(){
 // only a generation check prevents a late response from reviving old UI.
 if(typeof window.addEventListener==='function'){
  window.addEventListener('edunizam:auth',event=>{
-  if(event?.detail?.event==='SIGNED_OUT'){sessionEpoch++;resetPreview();announce('School session ended. Validate a new CSV after login.')}
+  if(event?.detail?.event==='SIGNED_OUT'){sessionEpoch++;resetPreview();clearWorksheetSelections();announce('School session ended. Validate a new CSV after login.')}
  });
  window.addEventListener('edunizam:auth-state',event=>{
   if(['UNAUTHENTICATED','AUTH_ERROR'].includes(event?.detail?.state)){
-   sessionEpoch++;resetPreview();announce('School access ended. Sign in and revalidate the selected CSV.');
+   sessionEpoch++;resetPreview();clearWorksheetSelections();announce('School access ended. Sign in and revalidate the selected CSV.');
   }
  });
 }
-window.EDUNIZAM_SYLLABUS_CSV={fields,csv,validate,mount,preview,save,resetPreview,registeredClassWorksheet,worksheetSelections,downloadRegisteredClassWorksheet,class5ScienceReference,class5ScienceReviewCsv,downloadClass5ScienceReference};
+window.EDUNIZAM_SYLLABUS_CSV={fields,csv,validate,mount,preview,save,resetPreview,registeredClassWorksheet,worksheetSelections,clearWorksheetSelections,downloadRegisteredClassWorksheet,class5ScienceReference,class5ScienceReviewCsv,downloadClass5ScienceReference};
 setTimeout(mount,0);
 })();
