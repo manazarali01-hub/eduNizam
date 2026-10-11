@@ -660,10 +660,12 @@ function build(subject,topics,total,diff,mode,cls='',options={}){
    }
   }
   const available=candidates.length;
-  const required=Math.max(1,Math.ceil(n*.6));
-  // Avoid printing zero-mark questions when a small section's marks
-   // are fewer than its default question count.
-   n=Math.min(n,available,sm);
+  // Cap default target by section marks BEFORE computing minimum coverage.
+  // A 2-mark MCQ section cannot require three separate marked MCQs.
+  const targetCount=Math.min(n,sm);
+  const required=Math.max(1,Math.ceil(targetCount*.6));
+  // Only real unique questions can appear; every printed item has >=1 mark.
+  n=Math.min(targetCount,available);
   const maxMarksPerQuestion=type==='mcq'?2:type==='short'?5:12;
   if(n<required||!n||sm>n*maxMarksPerQuestion)
     throw new Error('Insufficient real unique '+type.toUpperCase()+' questions for '+cls+' / '+subject+(topics.length?' / '+topics.join(', '):'')+': '+available+' usable unique questions; at least '+Math.max(required,Math.ceil(sm/maxMarksPerQuestion))+' needed. Select more exact chapters, reduce marks, or import teacher-verified questions.');

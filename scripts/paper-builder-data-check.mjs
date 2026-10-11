@@ -126,11 +126,14 @@ const examples=['mcq','short','long'].flatMap(type=>Array.from({length:12},(_,i)
  ...(type==='mcq'?{options:['One','Two','Three','Four'],answer:0}:{answerText:'Worked answer '+i})
 })));
 window.EDUNIZAM_PRACTICE_DATA.questions.push(...examples);
-const ten=build('Mathematics',[tenMarkFixture],10,'Balanced','Balanced','1');
-pass(ten.sections.reduce((sum,s)=>sum+s.marks,0)===10,'10-mark section total mismatch');
-pass(ten.sections.every(s=>s.questions.length>0&&s.questions.every(q=>q.marks>0)&&
- s.questions.reduce((sum,q)=>sum+q.marks,0)===s.marks),
- '10-mark preview contains zero-mark questions or section totals mismatch');
+for(const paperPattern of ['Balanced','Objective Heavy','Subjective Heavy']){
+ const ten=build('Mathematics',[tenMarkFixture],10,'Balanced',paperPattern,'1');
+ pass(ten.sections.reduce((sum,s)=>sum+s.marks,0)===10,
+  '10-mark section totals mismatch for '+paperPattern);
+ pass(ten.sections.every(s=>s.questions.length>0&&s.questions.every(q=>q.marks>0)&&
+  s.questions.reduce((sum,q)=>sum+q.marks,0)===s.marks),
+  '10-mark preview has zero-mark questions or broken sections for '+paperPattern);
+}
 
 // Institutional syllabus records are scoped before they populate the Paper Builder.
 // Actual school textbook titles are NEVER generated from this reference fixture.
