@@ -83,6 +83,8 @@ function writeSelectedChapters(chapters){
 const sectionKey=value=>String(value||'').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ');
 const unitInSection=unit=>!sectionKey(unit.section_name)||(!!sectionKey(paperSection())&&sectionKey(unit.section_name)===sectionKey(paperSection()));
 const currentSchoolScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
+// Private cloud question rows are inaccessible as soon as auth is no longer ready.
+const currentTeacherQuestions=()=>ready()&&questionScope===currentSchoolScope()?customQuestions:[];
 const activeSourceRows=()=>sourceScope===currentSchoolScope()?sourceStagedQuestions:[];
 function schoolChapters(cls,subject,sourceUnits=null){
  if(sourceUnits===null)sourceUnits=ready()&&catalogScope!==currentSchoolScope()?[]:schoolCatalog.units;
@@ -292,9 +294,9 @@ function sameChapter(selected,actual){
 }
 function customPool(cls,subject,topics,type,diff){
  const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
- if(!A||(ready()&&questionScope!==currentSchoolScope()))return[];
+ if(!A)return[];
  const selected=(topics||[]).map(x=>String(x).trim()).filter(Boolean);
- return shuffled([...customQuestions,...activeSourceRows()].filter(q=>selected.some(ch=>A.matchesTeacher(q,cls,subject,ch,type,diff))));
+ return shuffled([...currentTeacherQuestions(),...activeSourceRows()].filter(q=>selected.some(ch=>A.matchesTeacher(q,cls,subject,ch,type,diff))));
 }
 function fromCustom(q,type){
  if(type==='mcq'){
@@ -532,7 +534,7 @@ async function saveQuestionImport(){
 }
 function renderQuestionBankList(){
  const el=$('#qbList');if(!el)return;const uid=String(cloud()?.state?.user?.id||''),q=String($('#qbSearch')?.value||'').trim().toLowerCase();
- const rows=customQuestions.filter(x=>!q||[x.class_name,x.subject,x.chapter,x.question_text,x.difficulty].join(' ').toLowerCase().includes(q));
+ const rows=currentTeacherQuestions().filter(x=>!q||[x.class_name,x.subject,x.chapter,x.question_text,x.difficulty].join(' ').toLowerCase().includes(q));
  $('#qbCount')&&($('#qbCount').textContent=rows.length+' question'+(rows.length===1?'':'s'));
  el.innerHTML=rows.map(x=>{const own=String(x.creator_user_id)===uid;return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(x.class_name)+'</span><span class="mini-badge">'+esc(x.subject)+'</span><span class="mini-badge">'+esc(String(x.question_type||'').toUpperCase())+'</span></div><span class="mini-badge">'+esc(x.difficulty)+'</span></div><h3>'+esc(x.question_text)+'</h3>'+(x.chapter?'<p class="muted">'+esc(x.chapter)+'</p>':'')+'<p class="coverage-note"><strong>Answer:</strong> '+esc(x.answer_text||((Array.isArray(x.options)&&x.options[x.correct_option])?x.options[x.correct_option]:'Teacher key'))+'</p><div class="paper-actions">'+(own?'<button class="secondary" data-qb-edit="'+x.id+'">Edit</button><button class="secondary" data-qb-delete="'+x.id+'">Delete</button>':'<span class="muted">Shared with Admin · read-only</span>')+'</div></article>'}).join('')||'<div class="empty-state">No reusable custom questions yet.</div>';
  all('[data-qb-edit]').forEach(b=>b.onclick=()=>editCustomQuestion(b.dataset.qbEdit));all('[data-qb-delete]').forEach(b=>b.onclick=()=>deleteCustomQuestion(b.dataset.qbDelete));
@@ -642,7 +644,7 @@ function build(subject,topics,total,diff,mode,cls='',options={}){
  const marks=distribute(total,mode),sections=[],answers=[],usedQuestionKeys=new Set();let no=1,customUsed=0,bankUsed=0,templateUsed=0;
  const teacherOnly=!!options.teacherOnly;
  const audit=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT?.audit?.({
-  className:cls,subject,chapters:topics,teacherQuestions:[...(ready()&&questionScope!==currentSchoolScope()?[]:customQuestions),...activeSourceRows()],
+  className:cls,subject,chapters:topics,teacherQuestions:[...currentTeacherQuestions(),...activeSourceRows()],
   practiceQuestions:window.EDUNIZAM_PRACTICE_DATA?.questions||[],difficulty:diff,teacherOnly
  });
  if(audit?.missingChapters?.length)throw new Error('No '+(teacherOnly?'teacher-bank':'available')+' questions match the EXACT selected chapter: '+audit.missingChapters.join(', ')+'. Add verified questions or remove it.');
@@ -659,7 +661,9 @@ function build(subject,topics,total,diff,mode,cls='',options={}){
   }
   const available=candidates.length;
   const required=Math.max(1,Math.ceil(n*.6));
-  n=Math.min(n,available);
+  // Avoid printing zero-mark questions when a small section's marks
+   // are fewer than its default question count.
+   n=Math.min(n,available,sm);
   const maxMarksPerQuestion=type==='mcq'?2:type==='short'?5:12;
   if(n<required||!n||sm>n*maxMarksPerQuestion)
     throw new Error('Insufficient real unique '+type.toUpperCase()+' questions for '+cls+' / '+subject+(topics.length?' / '+topics.join(', '):'')+': '+available+' usable unique questions; at least '+Math.max(required,Math.ceil(sm/maxMarksPerQuestion))+' needed. Select more exact chapters, reduce marks, or import teacher-verified questions.');
@@ -940,7 +944,7 @@ async function loadPapers(){
  all('[data-pb-delete]').forEach(b=>b.onclick=()=>{if(ready()&&scope===currentSchoolScope())deletePaper(b.dataset.pbDelete)});
 }
 function chapterChoices(cls,subject,sourceQuestions=null,sourceUnits=null){
- if(sourceQuestions===null)sourceQuestions=[...(ready()&&questionScope!==currentSchoolScope()?[]:customQuestions),...activeSourceRows()];
+ if(sourceQuestions===null)sourceQuestions=[...currentTeacherQuestions(),...activeSourceRows()];
  if(sourceUnits===null)sourceUnits=ready()&&catalogScope!==currentSchoolScope()?[]:schoolCatalog.units;
  const grade=classLevelFrom(cls),key=normalizedSubject(subject);
  const D=window.EDUNIZAM_PRACTICE_DATA||{},A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
@@ -948,6 +952,15 @@ function chapterChoices(cls,subject,sourceQuestions=null,sourceUnits=null){
  const add=text=>{const value=String(text||'').trim(),n=value.normalize('NFKC').toLowerCase().replace(/\\s+/g,' ');if(value&&!results.has(n))results.set(n,value)};
  schoolChapters(cls,subject,sourceUnits).forEach(add);
  (D.chapters?.[grade+'|'+key]||[]).forEach(add);
+  // Concept catalog suggestions are not certified school textbook chapters.
+  const catalogTopics=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.chapters||{};
+  const target=A?.normalizeSubject?.(key)||String(key).toLowerCase();
+  for(const [label,items] of Object.entries(catalogTopics)){
+   const split=label.indexOf('|');
+   if(split<0||Number(label.slice(0,split))!==grade)continue;
+   if((A?.normalizeSubject?.(label.slice(split+1))||label.slice(split+1).toLowerCase())!==target)continue;
+   if(Array.isArray(items))items.forEach(add);
+  }
  if(A){
   (sourceQuestions||[]).filter(q=>q.active!==false&&A.sameClass(q.class_name,cls)&&A.normalizeSubject(q.subject)===A.normalizeSubject(subject)&&A.usable(q,q.question_type,true))
    .forEach(q=>add(q.chapter));
@@ -996,7 +1009,7 @@ function refreshPaperCatalog(){
   const subjectSelect=$('#pbSubject'),previousSubject=String(subjectSelect?.value||''),baseSubjects=D.subjects?.[lv]||[];
   const catalogSubjects=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects?.[String(lv)]||[];
   const common=['English','Urdu','Mathematics','General Science','General Knowledge','Social Studies','Islamiat / Ethics','Nazra Quran','Computer Science'];
-  const imported=[...customQuestions,...activeSourceRows()].filter(q=>q.active!==false&&A?.sameClass(q.class_name,cl)).map(q=>q.subject).filter(Boolean);
+  const imported=[...currentTeacherQuestions(),...activeSourceRows()].filter(q=>q.active!==false&&A?.sameClass(q.class_name,cl)).map(q=>q.subject).filter(Boolean);
   const savedSubjects=schoolCatalog.units.filter(x=>A?.sameClass(x.class_name,cl)).map(x=>x.subject);
   const source=cl?[...baseSubjects,...catalogSubjects,...teacherDefaults.subjects,...imported,...savedSubjects]:[];
   if(cl&&!source.length)source.push(...common);
@@ -1069,7 +1082,7 @@ function recommendPaperChapters(cls,subject,total,difficulty='Balanced',distribu
  const audit=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
  if(!cls||!subject||!audit||!Number.isInteger(total)||total<10||total>200)
   return{ready:false,topics:[],source,eligible:0,reason:'Choose class, subject, and a whole-number paper total between 10 and 200.'};
- const optionsForAudit={className:cls,subject,teacherQuestions:[...(ready()&&questionScope!==currentSchoolScope()?[]:customQuestions),...activeSourceRows()],practiceQuestions:window.EDUNIZAM_PRACTICE_DATA?.questions||[],difficulty,teacherOnly:!!options.teacherOnly};
+ const optionsForAudit={className:cls,subject,teacherQuestions:[...currentTeacherQuestions(),...activeSourceRows()],practiceQuestions:window.EDUNIZAM_PRACTICE_DATA?.questions||[],difficulty,teacherOnly:!!options.teacherOnly};
  const supported=candidates.filter(chapter=>{
   const row=audit.audit({...optionsForAudit,chapters:[chapter]}).chapters[0];
   return !!row&&['mcq','short','long'].every(t=>row.types[t].total>0);
@@ -1121,7 +1134,7 @@ function updateBankInsight(){
  if(!cls||!subject){el.textContent='Choose class and subject to audit chapter-by-chapter question coverage before generating.';return}
  const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
  if(!A){el.textContent='Syllabus audit unavailable. Reload this page before generating.';return}
- const result=A.audit({className:cls,subject,chapters,teacherQuestions:[...(ready()&&questionScope!==currentSchoolScope()?[]:customQuestions),...activeSourceRows()],practiceQuestions:window.EDUNIZAM_PRACTICE_DATA?.questions||[],difficulty,teacherOnly});
+ const result=A.audit({className:cls,subject,chapters,teacherQuestions:[...currentTeacherQuestions(),...activeSourceRows()],practiceQuestions:window.EDUNIZAM_PRACTICE_DATA?.questions||[],difficulty,teacherOnly});
   const gate=ready()?schoolPaperReadiness(cls,subject,chapters,{conceptDraft:!!$('#pbConceptDraft')?.checked}):null;
  const rows=result.chapters.slice(0,24).map(row=>'<tr><td>'+esc(row.chapter)+'</td>'+['mcq','short','long'].map(type=>{
     const item=row.types[type],mark=item.total===0?' style="font-weight:750;color:#9f3a23"':'';

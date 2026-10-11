@@ -5,7 +5,7 @@ import {runInNewContext} from 'node:vm';
 import {TextEncoder} from 'node:util';
 const read=(name)=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const files=[
- 'past-papers-data.js','practice-data.js','study-data.js','pectaa-core-textbooks.js','pectaa-secondary-textbooks.js',
+ 'past-papers-data.js','practice-data.js','academic-option-catalog.js','study-data.js','pectaa-core-textbooks.js','pectaa-secondary-textbooks.js',
  'learning-premium-data.js','learning-complete-data.js','learning-required-data.js',
  'practice-foundation-data.js','practice-curriculum-expansion.js','practice-depth-data.js',
  'punjab-quran-subjects-pack.js','practice-complete-data.js','practice-session-core.js'
@@ -107,6 +107,27 @@ pass(!choices('10','Physics',[teacherChapter]).includes(teacherChapter.chapter),
 pass(!choices('9','Chemistry',[teacherChapter]).includes(teacherChapter.chapter),'Teacher chapters must not leak to another subject');
 pass(!choices('9','Physics',[{...teacherChapter,answer_text:''}]).includes(teacherChapter.chapter),'Invalid teacher questions should not supply empty chapter dropdown values');
 pass(choices('Grade 1','Mathematics',[]).length>=4,'The existing built-in grade chapter choices must remain available');
+const conceptMap=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG.chapters;
+for(const [grade,subject] of [['9','Chemistry'],['12','Statistics'],['5','General Science']]){
+ const sample=conceptMap[grade+'|'+subject];
+ pass(Array.isArray(sample)&&sample.length>0,'Academic reference concept fixture missing: '+grade+' '+subject);
+ pass(sample.every(topic=>choices(grade,subject,[]).includes(topic)),
+  'Academic option catalog missing from Paper Builder dropdown: '+grade+' '+subject);
+ pass(!choices(grade,'English',[]).includes(sample[0]),
+  'Reference concepts leaked to another subject: '+grade+' '+subject);
+}
+const fixture='10 mark pattern fixture';
+const examples=['mcq','short','long'].flatMap(type=>Array.from({length:12},(_,i)=>({
+ classLevel:1,subject:'Mathematics',chapter:fixture,type,difficulty:'Balanced',
+ question:'Ten mark fixture '+type+' '+i,
+ ...(type==='mcq'?{options:['One','Two','Three','Four'],answer:0}:{answerText:'Worked answer '+i})
+})));
+window.EDUNIZAM_PRACTICE_DATA.questions.push(...examples);
+const ten=build('Mathematics',[fixture],10,'Balanced','Balanced','1');
+pass(ten.sections.reduce((sum,s)=>sum+s.marks,0)===10,'10-mark section total mismatch');
+pass(ten.sections.every(s=>s.questions.length>0&&s.questions.every(q=>q.marks>0)&&
+ s.questions.reduce((sum,q)=>sum+q.marks,0)===s.marks),
+ '10-mark preview contains zero-mark questions or section totals mismatch');
 
 // Institutional syllabus records are scoped before they populate the Paper Builder.
 // Actual school textbook titles are NEVER generated from this reference fixture.

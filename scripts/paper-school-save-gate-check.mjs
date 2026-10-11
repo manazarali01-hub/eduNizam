@@ -102,6 +102,13 @@ assert(source.includes('id="pbConceptDraft"')&&source.includes("curriculumMode=c
 await api.loadCustomQuestions();
 assert(api.getQuestionScope()==='school-A|head-A','School A teacher bank scope absent');
 assert(api.chapterChoices('5','Mathematics').includes('Confidential School A Topic'),'Current school question chapter not loaded');
+const signedInUser=cloud.state.user;
+cloud.state.user=null;
+assert(!api.chapterChoices('5','Mathematics').includes('Confidential School A Topic'),
+ 'Expired login exposed a cached private teacher-bank chapter');
+cloud.state.user=signedInUser;
+assert(api.chapterChoices('5','Mathematics').includes('Confidential School A Topic'),
+ 'Authenticated school bank no longer appears for the same user');
 cfg.institutionId='school-B';cloud.state.user.id='head-B';
 assert(!api.schoolPaperReadiness('5','Mathematics',['Prescribed Unit: Fractions']).allowed,'Previous school syllabus authorized an exam after switch');
 assert(!api.chapterChoices('5','Mathematics').includes('Confidential School A Topic'),'Previous school teacher-bank chapter leaked after switch');
