@@ -25,17 +25,21 @@ const client={from(table){
   eq(k,v){filters[k]=v;if(k==='institution_id')school=v;return this},
   update(payload){assert.equal(table,'teacher_question_bank');operation='update';this.payload=payload;return this},
   insert(payload){assert.equal(table,'teacher_question_bank');operation='insert';this.payload=payload;return this},
-  then(resolve,reject){
-   if(operation==='read'){
-    assert.equal(school,'school-A','Private question data read was not school-scoped');
-    return Promise.resolve({data:rows[table]||[],error:null}).then(resolve,reject);
-   }
+  maybeSingle(){return this.write().then(res=>res.error?res:{...res,data:{id:filters.id}})},
+  write(){
    writes.push({operation,filters:{...filters},payload:this.payload});
    const wait=deferred();pending.push(wait);
    return wait.promise.then(result=>{
     if(!result.error&&operation==='insert')questions.push({...this.payload,id:'new-'+writes.length});
     return result;
-   }).then(resolve,reject);
+   });
+  },
+  then(resolve,reject){
+   if(operation==='read'){
+    assert.equal(school,'school-A','Private question data read was not school-scoped');
+    return Promise.resolve({data:rows[table]||[],error:null}).then(resolve,reject);
+   }
+   return this.write().then(resolve,reject);
   }
  };
  return query;
@@ -74,7 +78,7 @@ await app.loadSchoolCatalog();
 await app.loadCustomQuestions();
 const first=app.saveCustomQuestion(),duplicate=app.saveCustomQuestion();
 await duplicate;
-for(let i=0;i<3;i++)await Promise.resolve();
+for(let i=0;i<35;i++)await Promise.resolve();
 assert.equal(writes.length,1,'Two taps inserted the same reviewed question twice');
 assert(node('#qbSave').disabled,'Manual Save button stayed active during the pending request');
 // User is composing a different question before the old write finishes.
@@ -95,7 +99,7 @@ edit.onclick();
 assert.equal(node('#qbSave').textContent,'Update Question');
 node('#qbQuestion').value='Teacher corrected question';
 const updating=app.saveCustomQuestion();
-for(let i=0;i<3;i++)await Promise.resolve();
+for(let i=0;i<35;i++)await Promise.resolve();
 assert.equal(writes.length,2);
 assert.equal(writes[1].operation,'update');
 assert.deepEqual({...writes[1].filters},
@@ -111,7 +115,7 @@ node('#qbAnswer').value='Another answer';
 node('#qbChapter').value='Energy';
 const before=writes.length;
 const oldRequest=app.saveCustomQuestion();
-for(let i=0;i<3;i++)await Promise.resolve();
+for(let i=0;i<35;i++)await Promise.resolve();
 assert.equal(writes.length,before+1);
 emit('edunizam:auth',{event:'SIGNED_OUT'});
 assert.equal(node('#qbQuestion').value,'','Old private question remained after signout');
