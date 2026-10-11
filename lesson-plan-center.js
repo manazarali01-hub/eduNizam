@@ -14,6 +14,11 @@
   const lessonDeleteInFlight=new Set();
   let cloudClassRows=[],cloudClassScope='',cloudLessonScope='';
   const currentSchoolScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
+  function notifySyllabusChange(scope){
+    if(cloudReady()&&scope===currentSchoolScope()&&typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function')
+      window.dispatchEvent(new CustomEvent('edunizam:school-data-changed',
+       {detail:{scope,area:'syllabus',source:'lesson-plan-center'}}));
+  }
   function setBusy(btn,busy,label='Working...'){
     if(!btn)return;
     if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
@@ -305,7 +310,7 @@
       let item={id:id||String(Date.now()),className,sectionName:$('lpUnitSection')?.value.trim()||'',subject,unitTitle,textbookTitle,curriculumBoard,editionYear,sourceUrl,targetEnd:$('lpTargetEnd')?.value||'',completion,status,familyVisible:!!$('lpFamilyVisible')?.checked,createdBy:old?.createdBy||cloud()?.state?.user?.id||'',createdAt:old?.createdAt||new Date().toISOString(),cloudExisting:!!(old&&cloudReady())};
       try{if(cloudReady())item=await saveUnitCloud(item)}catch(e){return alert('Cloud syllabus progress save failed: '+(e.message||e))}
       if(cloudReady()&&currentSchoolScope()!==saveScope)return;
-      write(UNIT_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));render();
+      write(UNIT_KEY,rows.filter(x=>String(x.id)!==String(id)).concat(item));notifySyllabusChange(saveScope);render();
     }finally{syllabusUnitSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   function editPlan(id){const x=read(PLAN_KEY).find(r=>String(r.id)===String(id));if(!x)return;const b=$('lpPlanEditor');if(b)b.innerHTML=planEditor(x);bindEditors()}
@@ -317,7 +322,7 @@
     lessonDeleteInFlight.add(flightKey);setBusy(btn,true,'Deleting...');
     try{
       try{if(cloudReady())await deleteCloud(table,id)}catch(e){return alert('Cloud delete failed: '+(e.message||e))}
-      write(key,read(key).filter(x=>String(x.id)!==String(id)));render();
+      write(key,read(key).filter(x=>String(x.id)!==String(id)));if(kind==='unit')notifySyllabusChange(currentSchoolScope());render();
     }finally{lessonDeleteInFlight.delete(flightKey);if(btn?.isConnected)setBusy(btn,false)}
   }
   function printProgress(units){
