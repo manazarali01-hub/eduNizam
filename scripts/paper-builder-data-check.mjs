@@ -116,14 +116,14 @@ for(const [grade,subject] of [['9','Chemistry'],['12','Statistics'],['5','Genera
  pass(!choices(grade,'English',[]).includes(sample[0]),
   'Reference concepts leaked to another subject: '+grade+' '+subject);
 }
-const fixture='10 mark pattern fixture';
+const tenMarkFixture='10 mark pattern tenMarkFixture';
 const examples=['mcq','short','long'].flatMap(type=>Array.from({length:12},(_,i)=>({
- classLevel:1,subject:'Mathematics',chapter:fixture,type,difficulty:'Balanced',
+ classLevel:1,subject:'Mathematics',chapter:tenMarkFixture,type,difficulty:'Balanced',
  question:'Ten mark fixture '+type+' '+i,
  ...(type==='mcq'?{options:['One','Two','Three','Four'],answer:0}:{answerText:'Worked answer '+i})
 })));
 window.EDUNIZAM_PRACTICE_DATA.questions.push(...examples);
-const ten=build('Mathematics',[fixture],10,'Balanced','Balanced','1');
+const ten=build('Mathematics',[tenMarkFixture],10,'Balanced','Balanced','1');
 pass(ten.sections.reduce((sum,s)=>sum+s.marks,0)===10,'10-mark section total mismatch');
 pass(ten.sections.every(s=>s.questions.length>0&&s.questions.every(q=>q.marks>0)&&
  s.questions.reduce((sum,q)=>sum+q.marks,0)===s.marks),
