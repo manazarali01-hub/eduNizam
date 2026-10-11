@@ -96,8 +96,8 @@ assert(requests.some(q=>q.table==='class_sections'&&q.filters.institution_id==='
  requests.some(q=>q.table==='syllabus_progress_units'&&q.filters.institution_id==='school-A'),
  'Class/syllabus lookup must use current institution');
 const source=read('teacher-paper-builder.js');
-assert(source.includes("gate.mode==='concept-only-draft'?'private'"),'Reference draft was not forced to private visibility');
-assert(source.includes('id="pbConceptDraft"')&&source.includes('curriculumMode=gate.mode'),'Paper preview cannot distinguish verified vs concept status');
+assert(source.includes("visibility:concept?'private'"),'Reference draft was not forced to private visibility');
+assert(source.includes('id="pbConceptDraft"')&&source.includes("curriculumMode=concept?'concept-only-draft'"),'Paper preview cannot distinguish verified vs concept status');
 
 await api.loadCustomQuestions();
 assert(api.getQuestionScope()==='school-A|head-A','School A teacher bank scope absent');
