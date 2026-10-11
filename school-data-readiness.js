@@ -74,11 +74,29 @@
    if(r.status==='unknown')return 'Unknown (network / access)';
    return r.count===0?'No accessible records':r.count+' accessible record'+(r.count===1?'':'s');
  };
+
+ // First genuine exam-data blocker. Head-only, read-only, current-school counts.
+ // Never conflate "some records" with a verified textbook or full question set.
+ function paperPrerequisites(results){
+  if(!results)return{state:'unchecked',text:'Run Check School Data to identify the first missing requirement for school exam papers.',view:''};
+  const prerequisites=[
+   ['classes','Register actual class and section names in Academic Groups.','classcenter'],
+   ['units','Enter the actual prescribed book, curriculum board and exact syllabus chapters in Lesson Center.','lessoncenter'],
+   ['questions','Enter teacher-reviewed MCQ, short and long questions with valid answers for the school textbook chapters.','paperbuilder']
+  ];
+  for(const [key,text,view] of prerequisites){
+   const value=results[key];
+   if(!value||value.status!=='ok')return{state:'unknown',text:'Unable to verify '+key+' for this school. Check access or connection and rerun the audit.',view};
+   if(value.count===0)return{state:'missing',text,view,key};
+  }
+  return{state:'review',text:'Class, chapter and question records exist. Verify book/board accuracy, matching chapter names, answer keys and enough questions for each exam pattern in Paper Builder; no completeness percentage is implied.',view:'paperbuilder'};
+ }
  const countRows=()=>{
   forgetOtherSchool();
   const r=document.getElementById('readinessCloudRows');if(!r)return;
   const suggested=document.getElementById('readinessNextSteps');
   const unitStatus=document.getElementById('readinessUnitQuality');
+  const paperStatus=document.getElementById('readinessPaperPrerequisites');
   if(suggested){
    const actions=nextSteps();
    suggested.innerHTML=!counts?'<p class="muted">Run Check School Data to identify the next real setup steps. Reference topics alone do not prove textbook readiness.</p>':
@@ -105,6 +123,16 @@
    }else unitStatus.textContent='Textbook traceability: pending current-school metadata check.';
    const button=document.getElementById('readinessUnitQualityFix');
    if(button)button.onclick=()=>{if(window.EDUNIZAM_ROLE_SCOPE?.canView?.('lessoncenter'))window.EDUNIZAM_APP_NAV?.setView?.('lessoncenter')};
+  }
+
+  if(paperStatus){
+   const p=paperPrerequisites(counts);
+   paperStatus.innerHTML='<strong>School Exam Paper Data:</strong> '+esc(p.text)+
+    (p.view?'<button type="button" class="secondary" id="readinessPaperSetup">Open '+(p.state==='review'?'Paper Builder':'required setup')+'</button>':'')+
+    '<p class="muted">This audit reports accessible records, not certified textbook/question correctness. It never generates sample school records.</p>';
+   const open=document.getElementById('readinessPaperSetup');
+   if(open)open.onclick=()=>{if(p.view&&window.EDUNIZAM_ROLE_SCOPE?.canView?.(p.view))
+    window.EDUNIZAM_APP_NAV?.setView?.(p.view)};
   }
   suggested?.querySelectorAll('[data-readiness-action]').forEach(button=>{
    button.onclick=()=>{
@@ -235,14 +263,14 @@
   el.innerHTML='<article class="card"><div class="section-head"><div><h3>Reference Curriculum Data</h3><p class="muted">Indexed categories and concept topics are available for planning; they are not a certified exact textbook contents list.</p></div><span class="academic-pill">Grade 1–12</span></div>'+
    '<div class="form-grid"><label>Class / Grade<select id="readinessGrade">'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">Class '+(i+1)+'</option>').join('')+'</select></label><label>Subject<select id="readinessSubject"><option value="">All subjects</option></select></label></div><p id="readinessReferenceSummary" role="status" class="coverage-note"></p><div id="readinessTopicList"></div>'+
    '<p class="coverage-note">Verify your actual prescribed textbook edition, school subject allocation and chapter sequence. The topic index is a starting point, not a promise that a published exam is syllabus-correct.</p></article>'+
-   '<article class="card" style="margin-top:18px"><div class="section-head"><div><h3>School Data Availability</h3><p class="muted">28 school data areas: required setup first, optional activity in a collapsed section. Read-only current-school counts; no fake students, books or scores.</p></div><button id="readinessAuditBtn" type="button">Check School Data</button></div><p id="readinessCloudStatus" class="coverage-note" role="status">Not checked. Select Check School Data when you want to audit record availability.</p><div id="readinessNextSteps" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessUnitQuality" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessCloudRows" class="paper-grid"></div>'+
+   '<article class="card" style="margin-top:18px"><div class="section-head"><div><h3>School Data Availability</h3><p class="muted">28 school data areas: required setup first, optional activity in a collapsed section. Read-only current-school counts; no fake students, books or scores.</p></div><button id="readinessAuditBtn" type="button">Check School Data</button></div><p id="readinessCloudStatus" class="coverage-note" role="status">Not checked. Select Check School Data when you want to audit record availability.</p><div id="readinessNextSteps" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessUnitQuality" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessPaperPrerequisites" class="coverage-note" role="status" aria-live="polite"></div><div id="readinessCloudRows" class="paper-grid"></div>'+
    '<p class="coverage-note">Zero means no records were accessible to this account at audit time; it is not proof none exist. “Unknown” may mean RLS restrictions, unavailable access or a slow connection. Bank visibility depends on author sharing, and library inventory may not apply to every school. Nonzero counts do not verify accuracy, curriculum alignment or completion.</p></article>';
   document.getElementById('readinessGrade')?.addEventListener('change',refreshReference);
   document.getElementById('readinessSubject')?.addEventListener('change',renderTopics);
   document.getElementById('readinessAuditBtn')?.addEventListener('click',audit);
   refreshReference();countRows();
  }
- window.EDUNIZAM_DATA_READINESS={render,referenceSubjects:getSubjects,referenceTopics:getTopics,definitions:spec.map(x=>({key:x.key,table:x.table,view:x.view,activity:!!x.activity})),countOne,nextSteps,scope,evaluateUnitMetadata,readUnitQuality};
+ window.EDUNIZAM_DATA_READINESS={render,referenceSubjects:getSubjects,referenceTopics:getTopics,definitions:spec.map(x=>({key:x.key,table:x.table,view:x.view,activity:!!x.activity})),countOne,nextSteps,scope,evaluateUnitMetadata,readUnitQuality,paperPrerequisites};
  if(document.readyState!=='loading')render();
  else document.addEventListener('DOMContentLoaded',render);
 })();
