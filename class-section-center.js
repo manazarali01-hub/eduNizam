@@ -172,7 +172,9 @@
   async function save(){
     const btn=$('csSave');if(classSectionSaveInFlight||btn?.disabled)return;
     if(!isHead()||!cloudReady())return alert('Please sign in as Head of Institute to your verified school before saving.');
-    if(currentPeople()?.staffStatus!=='loaded')return alert('Teacher directory is not verified yet. Refresh School Records before saving.');
+    // A school must be able to register real class/section names before staff
+    // accounts exist. Require verified staff only if assigning a class teacher.
+    if(currentPeople()?.staffStatus!=='loaded'&&String($('csTeacher')?.value||'').trim())return alert('Teacher directory is not verified yet. Refresh School Records before assigning a class teacher.');
     const className=$('csClass')?.value.trim(),sectionName=$('csSection')?.value.trim();
     if(!className||!sectionName)return alert('Class aur section required hain.');
     const rows=read(),editId=$('csEditId')?.value||'',staffId=$('csTeacher')?.value||'';
@@ -272,5 +274,5 @@
   }
   window.addEventListener('edunizam:auth',()=>{const root=$('classSectionApp');if(root)delete root.dataset.cloudLoaded;render()});
   setTimeout(render,0);setTimeout(render,900);
-  window.EDUNIZAM_CLASS_SECTION_CENTER={render,read,pullCloud,cloudReady,cacheScope,saveCloud,assignCloud,removeCloud,students,staff};
+  window.EDUNIZAM_CLASS_SECTION_CENTER={render,read,pullCloud,cloudReady,cacheScope,saveCloud,assignCloud,removeCloud,students,staff,save};
 })();
