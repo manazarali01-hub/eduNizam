@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261010-class5-source-review-v39';
+  const VERSION='20261011-school-import-race-v40';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
