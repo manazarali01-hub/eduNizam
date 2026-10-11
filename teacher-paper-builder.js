@@ -1,7 +1,7 @@
 (function(){
 const $=s=>document.querySelector(s),all=s=>[...document.querySelectorAll(s)],esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{},settings=()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}},role=()=>{let r;try{r=JSON.parse(localStorage.getItem('edunizam_session')||'{}').role}catch{}return r==='admin'?'head':r||'student'},ready=()=>!!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId);
-let current=null,currentRow=null,teacherDefaults={classes:[],subjects:[]},customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
+let current=null,currentRow=null,teacherDefaults={classes:[],subjects:[]},teacherDefaultsScope='',teacherDefaultsRequestId=0,customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
 let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
 let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0,savedPapersViewScope='';
 let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='';
@@ -149,7 +149,33 @@ async function loadSchoolCatalog(){
  }
 }
 
-async function loadTeacherDefaults(){if(!ready()||role()!=='teacher')return;const {data}=await cloud().state.client.from('staff_profiles').select('classes,subjects').eq('institution_id',cfg().institutionId).eq('user_id',cloud().state.user.id).maybeSingle();teacherDefaults={classes:data?.classes||[],subjects:data?.subjects||[]}}
+async function loadTeacherDefaults(){
+ const scope=currentSchoolScope(),requestId=++teacherDefaultsRequestId;
+ if(teacherDefaultsScope!==scope){
+  teacherDefaults={classes:[],subjects:[]};
+  teacherDefaultsScope=scope;
+ }
+ if(!ready()||role()!=='teacher')return;
+ const client=cloud().state.client,institution=cfg().institutionId,userId=cloud().state.user.id;
+ try{
+  // Optional form assistance, never a prerequisite for rendering Paper Builder.
+  const {data,error}=await client.from('staff_profiles').select('classes,subjects')
+   .eq('institution_id',institution).eq('user_id',userId).maybeSingle();
+  if(error)throw error;
+  if(!ready()||role()!=='teacher'||currentSchoolScope()!==scope||requestId!==teacherDefaultsRequestId)return;
+  teacherDefaults={
+   classes:Array.isArray(data?.classes)?data.classes:[],
+   subjects:Array.isArray(data?.subjects)?data.subjects:[]
+  };
+  if($('#paperBuilderApp')){
+   refreshPaperCatalog();
+   refreshTeacherQuestionCatalog();
+  }
+ }catch(error){
+  if(currentSchoolScope()===scope&&requestId===teacherDefaultsRequestId)
+   console.warn('Optional Paper Builder teacher defaults unavailable:',error?.message||error);
+ }
+}
 async function loadCustomQuestions(){
  if(!ready()){customQuestions=[];questionScope='';return[]}
  const scope=currentSchoolScope(),inst=cfg().institutionId,client=cloud().state.client;
@@ -819,7 +845,8 @@ function updateBankInsight(){
 async function render(){
  const root=$('#paperBuilderApp');if(!root)return;
  if(!['teacher','head'].includes(role())){root.innerHTML='<div class="empty-state">Paper Builder is for teachers and Admin review.</div>';return}
- await loadTeacherDefaults();
+ // Do not block the first paint on an optional staff profile request.
+ void loadTeacherDefaults();
  root.innerHTML='<article class="card no-print"><div class="section-head"><div><h3>⚡ Smart Paper Builder</h3><p class="muted">Your verified teacher question bank is prioritized, then EduNizam concept practice. Current textbook editions and chapter coverage must be checked; missing content blocks paper generation.</p></div><span class="academic-pill">Teacher Review Required</span></div><div class="paper-presets"><button type="button" class="secondary" data-preset="quiz">Quick Quiz · 20</button><button type="button" class="secondary" data-preset="monthly">Monthly · 50</button><button type="button" class="secondary" data-preset="term">Term · 100</button></div><div class="form-grid"><input id="pbTitle" placeholder="Paper title (optional)"><label>Class / Grade *<select id="pbClass" aria-label="Select class / grade"><option value="">Select Class / Grade</option><option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option><option value="4">Class 4</option><option value="5">Class 5</option><option value="6">Class 6</option><option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option><option value="11">Class 11</option><option value="12">Class 12</option></select></label><label>Section<select id="pbSection" aria-label="Registered class section"><option value="">All sections (shared chapters only)</option></select></label><label>Subject *<select id="pbSubject" aria-label="Select subject"><option value="">Select Class First</option></select></label><datalist id="pbClasses"></datalist><datalist id="pbSubjects"></datalist><input id="pbChapters" type="hidden"><label>Chapter / Topic *<select id="pbChapterPicker" aria-label="Select chapter"><option value="">Choose Class + Subject First</option></select></label><div id="pbSelectedChapters" class="coverage-note" role="status" aria-live="polite">Choose one or more chapters from the dropdown.</div><button type="button" class="secondary" id="pbAutoChapters">Auto-select ready chapters</button><select id="pbBookBoard" aria-label="Curriculum authority"><option value="punjab-pectaa">Punjab · PECTAA</option><option value="federal-fbise">Federal · FBISE</option><option value="sindh-stbb">Sindh · STBB</option><option value="kp-dcte-kptbb">KP · Textbook Board</option><option value="balochistan-btbb">Balochistan · Textbook Board</option></select><label>Total Marks *<input id="pbMarks" type="number" min="10" max="200" step="1" value="50" aria-label="Total marks"></label><label>Difficulty<select id="pbDifficulty"><option>Easy</option><option selected>Balanced</option><option>Challenging</option></select></label><label>Paper Pattern<select id="pbDistribution" aria-label="Paper pattern"><option>Balanced</option><option>Objective Heavy</option><option>Subjective Heavy</option></select></label><label class="coverage-note"><input id="pbAdmin" type="checkbox"> Show to Admin</label><label class="coverage-note"><input id="pbTeacherOnly" type="checkbox"> Teacher question bank only (exclude built-in concept questions)</label><label class="coverage-note"><input id="pbConceptDraft" type="checkbox" checked> <strong>Practice / concept preview</strong> — works without a registered school class. Not an official textbook-certified school exam. Uncheck only to request a school-recorded examination.</label><button id="pbGenerate" type="button">Generate Paper Preview</button><p class="coverage-note" id="pbPatternBreakdown" role="status" aria-live="polite"></p><p class="coverage-note" id="pbGenerationStatus" role="status" aria-live="polite">Choose class, subject, chapters, total marks and paper pattern. Generation previews first; school saving requires verified class and syllabus records.</p></div><div id="pbCurriculumSources" class="coverage-note">Select class, subject and textbook board to open official curriculum sources.</div><div id="pbBankInsight" class="coverage-note">Choose class and subject to see available teacher + EduNizam question-bank depth.</div><p class="coverage-note">Only generate from chapters taught in the current syllabus. Built-in questions are not official board textbook extracts. Review the answer key and every question.</p></article>'+
  '<article class="card no-print" id="questionBankManager"><div class="section-head"><div><h3>Reusable Teacher Question Bank</h3><p class="muted">Add verified questions once and reuse them automatically in future papers.</p></div><span id="qbCount" class="badge">0 questions</span></div><div class="form-grid"><input id="qbClass" list="pbClasses" placeholder="Class / Grade"><input id="qbSubject" list="pbSubjects" placeholder="Subject"><input id="qbChapter" list="pbTeacherChapters" placeholder="Chapter / Topic (required)"><datalist id="pbTeacherChapters"></datalist><select id="qbType"><option value="mcq">MCQ</option><option value="short">Short</option><option value="long">Long</option></select><select id="qbDifficulty"><option>Easy</option><option selected>Balanced</option><option>Challenging</option></select><textarea id="qbQuestion" rows="3" placeholder="Question text"></textarea><textarea id="qbAnswer" rows="2" placeholder="Answer / marking guide"></textarea><textarea id="qbOptions" rows="4" placeholder="MCQ options — one per line"></textarea><input id="qbCorrect" type="number" min="1" value="1" placeholder="Correct option number"><label class="coverage-note"><input id="qbAdmin" type="checkbox"> Share this question with Admin</label><button id="qbSave">Add to Question Bank</button><button id="qbCancelEdit" class="secondary hidden" type="button">Cancel Edit</button></div><input id="qbSearch" class="no-print" type="search" placeholder="Search reusable questions" style="width:100%;margin-top:12px"><div class="coverage-note" id="qbBulkImport" style="margin-top:16px"><strong>Bulk verified question import (CSV / JSON)</strong><p>Download the template, fill authentic subject/chapter questions and their answer keys, then validate before saving. Files stay on your device until you confirm Import; institution/user IDs always come from your secure login.</p><div class="paper-actions"><button type="button" class="secondary" id="qbImportTemplate">Download CSV Template</button><button type="button" class="secondary" id="qbSchoolQuestionWorksheet">Blank questions from recorded school chapters</button><input type="file" accept=".csv,.json,text/csv,application/json" id="qbImportFile" aria-label="Select question bank CSV or JSON" style="max-width:270px"><button type="button" class="secondary" id="qbImportPreview">Validate File</button><button type="button" id="qbImportSave" disabled>Import Verified Questions</button></div><p id="qbImportReport" role="status" aria-live="polite">Up to 500 questions and 1 MB per file. Four distinct MCQ options, the correct answer and a chapter are required. Nothing imports automatically.</p></div><div id="qbList" class="paper-grid" style="margin-top:12px"></div></article>'+
  '<div class="section-head no-print"><div><h3>My / Shared Papers</h3><p class="muted">Search, reopen, clone or review saved papers.</p></div><span id="pbSavedCount" class="badge">0 papers</span></div><div class="form-grid no-print"><input id="pbSavedSearch" type="search" placeholder="Search saved papers"><input id="pbSavedClass" placeholder="Filter class"></div><div id="savedTeacherPapers" class="paper-grid no-print" style="margin-top:12px"></div><div id="paperPreview" style="margin-top:16px"></div>';
@@ -870,7 +897,12 @@ async function render(){
  $('#qbImportFile').addEventListener('change',()=>{clearPendingQuestionImport();$('#qbImportReport').textContent='File selected. Click Validate File before importing.'});
  $('#qbType').addEventListener('change',()=>{const mcq=$('#qbType').value==='mcq';$('#qbOptions').disabled=!mcq;$('#qbCorrect').disabled=!mcq});
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
- await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
+ // Independent reads: a slow/unavailable Question Bank must not block syllabus,
+ // class choices, saved papers, or a functional first render.
+ void loadSchoolCatalog().catch(error=>console.warn('Paper Builder school setup:',error?.message||error));
+ void loadPapers().catch(error=>console.warn('Paper Builder paper list:',error?.message||error));
+ void loadCustomQuestions().then(()=>updateBankInsight())
+  .catch(error=>console.warn('Paper Builder question bank:',error?.message||error));
 }
 window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
