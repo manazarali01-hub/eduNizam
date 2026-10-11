@@ -5,7 +5,10 @@ let current=null,currentRow=null,currentDraftScope='',teacherDefaults={classes:[
 let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
 let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0,savedPapersViewScope='';
 let questionImportEpoch=0,pendingImportFile=null,pendingImportOrigin='';
-const paperMutationsInFlight=new Set();
+const paperMutationsInFlight=new Set(),paperInsertInFlight=new Set();
+let paperDraftRevision=0;
+function markCurrentDraft(){paperDraftRevision++;currentDraftScope=currentSchoolScope()}
+function paperInsertActive(){return paperInsertInFlight.has(currentSchoolScope())}
 function clearPendingQuestionImport(){
  questionImportEpoch++;pendingImportRows=[];pendingImportScope='';pendingImportFile=null;pendingImportOrigin='';
  const button=$('#qbImportSave');if(button)button.disabled=true;
@@ -545,7 +548,7 @@ async function clonePaper(row){
  $('#pbSubject').value=normalizedSubject(row.subject);refreshPaperCatalog();
  writeSelectedChapters(row.chapters||[]);renderSelectedChapters();
  $('#pbMarks').value=row.total_marks;$('#pbDifficulty').value=row.difficulty||'Balanced';
- current=JSON.parse(JSON.stringify(row.paper_json||{}));currentRow=null;currentDraftScope=currentSchoolScope();
+ current=JSON.parse(JSON.stringify(row.paper_json||{}));currentRow=null;markCurrentDraft();
  if($('#pbDistribution'))$('#pbDistribution').value=current.distribution||'Balanced';
  if($('#pbTeacherOnly'))$('#pbTeacherOnly').checked=!!current.teacherOnly;
  if($('#pbConceptDraft'))$('#pbConceptDraft').checked=current.curriculumMode==='concept-only-draft';
@@ -554,6 +557,8 @@ async function clonePaper(row){
 }
 async function savePaper(){
  if(!ready())return alert('Cloud login required.');
+ // One insert per school/account at a time: double taps cannot duplicate papers.
+ if(paperInsertActive())return;
  const subject=$('#pbSubject')?.value?.trim()||'',cls=$('#pbClass')?.value?.trim()||'',
   topics=readSelectedChapters(),
   total=Number($('#pbMarks')?.value||50),difficulty=$('#pbDifficulty')?.value||'Balanced',
@@ -564,16 +569,27 @@ async function savePaper(){
  if(!gate.allowed)return alert(gate.reason);
  try{current=build(subject,topics,total,difficulty,mode,cls,{teacherOnly:!!$('#pbTeacherOnly')?.checked})}
  catch(error){return alert(error.message||'Question bank coverage is insufficient.')}
- current.sectionName=paperSection();current.curriculumMode=concept?'concept-only-draft':gate.mode;current.textbookVerified=false;currentDraftScope=currentSchoolScope();
+ current.sectionName=paperSection();current.curriculumMode=concept?'concept-only-draft':gate.mode;current.textbookVerified=false;markCurrentDraft();
  const title=$('#pbTitle')?.value?.trim()||subject+' Paper';
  const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,
   title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,
   visibility:concept?'private':($('#pbAdmin')?.checked?'admin':'private')};
- const scope=currentSchoolScope(),{data,error}=await cloud().state.client.from('teacher_papers').insert(payload).select().single();
- if(scope!==currentSchoolScope())return;
- if(error||!data?.id)return alert('Paper save was not confirmed. Refresh Saved Papers before retrying. '+String(error?.message||''));
- currentRow=data;showEditor();loadPapers();
- window.EDUNIZAM_PREMIUM?.toast?.('Paper draft saved. Verify the current book, questions and answer key.','success');
+ const scope=currentSchoolScope(),revision=paperDraftRevision,draft=current,client=cloud().state.client;
+ // Freeze the insert payload: editing a preview during a network request must
+ // not accidentally mutate what is submitted or overwrite the new editor.
+ payload.paper_json=JSON.parse(JSON.stringify(current));
+ paperInsertInFlight.add(scope);
+ try{
+  const {data,error}=await client.from('teacher_papers').insert(payload).select().single();
+  if(scope!==currentSchoolScope())return;
+  if(error||!data?.id)throw Error(error?.message||'No saved paper was confirmed by the database.');
+  if(revision===paperDraftRevision&&current===draft){currentRow=data;showEditor()}
+  void loadPapers();
+  window.EDUNIZAM_PREMIUM?.toast?.('Paper draft saved. Verify the current book, questions and answer key.','success');
+ }catch(error){
+  if(scope===currentSchoolScope())
+   alert('Paper save was not confirmed: '+String(error?.message||error)+'. Refresh Saved Papers before trying again, to avoid duplicates.');
+ }finally{paperInsertInFlight.delete(scope)}
 }
 function refreshPatternBreakdown(){
  const el=$('#pbPatternBreakdown');if(!el)return;
@@ -599,7 +615,7 @@ function previewPaper(){
  let paper;
  try{paper=build(subject,topics,total,difficulty,pattern,cls,{teacherOnly:!!$('#pbTeacherOnly')?.checked})}
  catch(e){return fail('Not enough matching questions for this marks/pattern choice: '+String(e?.message||e))}
- current=paper;currentRow=null;currentDraftScope=currentSchoolScope();current.sectionName=paperSection();current.curriculumMode=concept?'concept-only-draft':'school-recorded';current.textbookVerified=false;
+ current=paper;currentRow=null;markCurrentDraft();current.sectionName=paperSection();current.curriculumMode=concept?'concept-only-draft':'school-recorded';current.textbookVerified=false;
  showEditor();
  if(status)status.textContent='Preview generated: '+total+' marks · '+pattern+'. '+(concept?'This is NOT a verified school exam.':'School-recorded chapters; teacher review required.');
  $('#paperPreview')?.scrollIntoView?.({behavior:'smooth',block:'start'});
@@ -616,6 +632,8 @@ function currentDraftMatchesForm(cls,subject,topics,total,difficulty,pattern,tea
 }
 async function saveCurrentAsNew(){
  if(!ready()||!current)return alert('Cloud login and preview required.');
+ if(paperInsertActive())return;
+ if(currentRow)return alert('This paper is already saved. Clone it to save a separate copy.');
  syncEdits();
  const subject=$('#pbSubject')?.value?.trim()||'',cls=$('#pbClass')?.value?.trim()||'',
   topics=readSelectedChapters(),
@@ -630,11 +648,24 @@ async function saveCurrentAsNew(){
  const payload={institution_id:cfg().institutionId,creator_user_id:cloud().state.user.id,
   title,class_name:cls,subject,chapters:topics,total_marks:total,difficulty,paper_json:current,
   visibility:concept?'private':($('#pbAdmin')?.checked?'admin':'private')};
- const scope=currentSchoolScope(),{data,error}=await cloud().state.client.from('teacher_papers').insert(payload).select().single();
- if(scope!==currentSchoolScope())return;
- if(error||!data?.id)return alert('Paper copy save was not confirmed. Refresh Saved Papers before retrying. '+String(error?.message||''));
- currentRow=data;showEditor();loadPapers();
- window.EDUNIZAM_PREMIUM?.toast?.('Paper copy saved as new, teacher review required.','success');
+ const scope=currentSchoolScope(),revision=paperDraftRevision,draft=current,client=cloud().state.client,button=$('#pbSaveAsNew');
+ payload.paper_json=JSON.parse(JSON.stringify(current));
+ paperInsertInFlight.add(scope);
+ if(button)button.disabled=true;
+ try{
+  const {data,error}=await client.from('teacher_papers').insert(payload).select().single();
+  if(scope!==currentSchoolScope())return;
+  if(error||!data?.id)throw Error(error?.message||'No saved copy was confirmed by the database.');
+  if(revision===paperDraftRevision&&current===draft){currentRow=data;showEditor()}
+  void loadPapers();
+  window.EDUNIZAM_PREMIUM?.toast?.('Paper copy saved as new, teacher review required.','success');
+ }catch(error){
+  if(scope===currentSchoolScope())
+   alert('Paper copy save was not confirmed: '+String(error?.message||error)+'. Refresh Saved Papers before trying again, to avoid duplicates.');
+ }finally{
+  paperInsertInFlight.delete(scope);
+  if(scope===currentSchoolScope()&&revision===paperDraftRevision&&button?.isConnected)button.disabled=false;
+ }
 }
 function showEditor(){
  const el=$('#paperPreview');if(!el||!current)return;
@@ -718,7 +749,7 @@ async function loadPapers(){
  // Drop the former school's visible paper cards and editor immediately.
  // Do not wait for another network response to hide protected content.
  if(savedPapersViewScope!==scope){
-  savedPapersViewScope=scope;currentRow=null;current=null;currentDraftScope='';
+  savedPapersViewScope=scope;currentRow=null;current=null;currentDraftScope='';paperDraftRevision++;
   if(el)el.innerHTML='<div class="empty-state">Loading current school papers…</div>';
   if($('#paperPreview'))$('#paperPreview').innerHTML='';
   if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
@@ -726,7 +757,7 @@ async function loadPapers(){
  if(!ready()){
   if(el)el.innerHTML='<div class="empty-state">Sign in to the school workspace to view saved papers.</div>';
   if($('#paperPreview'))$('#paperPreview').innerHTML='';
-  currentRow=null;current=null;currentDraftScope='';
+  currentRow=null;current=null;currentDraftScope='';paperDraftRevision++;
   if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
   return;
  }
@@ -752,7 +783,7 @@ async function loadPapers(){
  const visible=rows.slice(0,100);
  $('#pbSavedCount')&&($('#pbSavedCount').textContent=rows.length+' paper'+(rows.length===1?'':'s'));
  el.innerHTML=visible.map(x=>{const ss=x.paper_json?.sourceStats||{},own=String(x.creator_user_id||'')===uid;return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">'+esc(x.class_name)+'</span><span class="mini-badge">'+(x.visibility==='admin'?'Teacher + Admin':'Private')+'</span></div><span class="mini-badge">'+new Date(x.created_at).toLocaleDateString()+'</span></div><h3>'+esc(x.title)+'</h3><p>'+esc(x.subject)+' · '+x.total_marks+' marks · '+esc(x.difficulty)+'</p>'+(ss.total?'<p class="coverage-note">'+(ss.teacherBank||0)+' teacher-bank · '+(ss.practiceBank||0)+' curriculum-bank · '+(ss.templateFallback||0)+' fallback</p>':'')+'<div class="paper-actions"><button class="secondary" data-pb-open="'+x.id+'">'+(own?'Open / Edit / Print':'Review / Print')+'</button><button class="secondary" data-pb-clone="'+x.id+'">Clone</button>'+(own?'<button class="secondary" data-pb-delete="'+x.id+'">Delete</button>':'')+'</div></article>'}).join('')+(rows.length>100?'<p class="coverage-note">Showing newest 100 of '+rows.length+' matching papers. Narrow the search or class filter to find older papers.</p>':'')||'<div class="empty-state">No papers match this filter.</div>';
- all('[data-pb-open]').forEach(b=>b.onclick=()=>{if(!ready()||scope!==currentSchoolScope())return;currentRow=data.find(y=>y.id===b.dataset.pbOpen);if(!currentRow)return;current=JSON.parse(JSON.stringify(currentRow.paper_json||{}));showEditor();$('#paperPreview')?.scrollIntoView({behavior:'smooth'})});
+ all('[data-pb-open]').forEach(b=>b.onclick=()=>{if(!ready()||scope!==currentSchoolScope())return;currentRow=data.find(y=>y.id===b.dataset.pbOpen);if(!currentRow)return;current=JSON.parse(JSON.stringify(currentRow.paper_json||{}));markCurrentDraft();showEditor();$('#paperPreview')?.scrollIntoView({behavior:'smooth'})});
  all('[data-pb-clone]').forEach(b=>b.onclick=()=>{if(!ready()||scope!==currentSchoolScope())return;const row=data.find(y=>y.id===b.dataset.pbClone);if(row)clonePaper(row)});
  all('[data-pb-delete]').forEach(b=>b.onclick=()=>{if(ready()&&scope===currentSchoolScope())deletePaper(b.dataset.pbDelete)});
 }
