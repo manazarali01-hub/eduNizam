@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s),all=s=>[...document.querySelectorAll(s)],es
 const cloud=()=>window.EDUNIZAM_CLOUD,cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{},settings=()=>{try{return JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch{return{}}},role=()=>{let r;try{r=JSON.parse(localStorage.getItem('edunizam_session')||'{}').role}catch{}return r==='admin'?'head':r||'student'},ready=()=>!!(cloud()?.state?.client&&cloud()?.state?.user&&cfg().institutionId);
 let current=null,currentRow=null,teacherDefaults={classes:[],subjects:[]},customQuestions=[],editingQuestionId='',pendingImportRows=[],importBusy=false;
 let schoolCatalog={classes:[],units:[],classState:'unchecked',unitState:'unchecked'},schoolCatalogBusy=false,catalogScope='',questionScope='';
-let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='';
+let sourceStagedQuestions=[],sourceScope='',catalogRequestId=0,pendingImportScope='',savedPapersRequestId=0;
 const paperSection=()=>String($('#pbSection')?.value||'').trim();
 const sectionKey=value=>String(value||'').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ');
 const unitInSection=unit=>!sectionKey(unit.section_name)||(!!sectionKey(paperSection())&&sectionKey(unit.section_name)===sectionKey(paperSection()));
@@ -567,8 +567,25 @@ function showEditor(){
 async function updatePaper(){if(!currentRow||String(currentRow.creator_user_id||'')!==String(cloud()?.state?.user?.id||''))return;syncEdits();const {error}=await cloud().state.client.from('teacher_papers').update({paper_json:current,updated_at:new Date().toISOString()}).eq('id',currentRow.id).eq('creator_user_id',cloud().state.user.id);if(error)return alert(error.message);window.EDUNIZAM_PREMIUM?.toast?.('Paper changes saved.','success')}
 async function deletePaper(id){if(!ready())return;if(!confirm('Delete this saved paper?'))return;let q=cloud().state.client.from('teacher_papers').delete().eq('id',id).eq('institution_id',cfg().institutionId);if(role()==='teacher')q=q.eq('creator_user_id',cloud().state.user.id);const {error}=await q;if(error)return alert(error.message);window.EDUNIZAM_PREMIUM?.toast?.('Paper deleted.','success');loadPapers()}
 async function loadPapers(){
- if(!ready())return;
- const {data,error}=await cloud().state.client.from('teacher_papers').select('*').eq('institution_id',cfg().institutionId).order('created_at',{ascending:false}).limit(100),el=$('#savedTeacherPapers');if(!el)return;
+ const requestId=++savedPapersRequestId,scope=currentSchoolScope();
+ const el=$('#savedTeacherPapers');
+ if(!ready()){
+  if(el)el.innerHTML='<div class="empty-state">Sign in to the school workspace to view saved papers.</div>';
+  if($('#pbSavedCount'))$('#pbSavedCount').textContent='0 papers';
+  return;
+ }
+ const client=cloud().state.client,institution=cfg().institutionId;
+ let response;
+ try{response=await client.from('teacher_papers').select('*').eq('institution_id',institution).order('created_at',{ascending:false}).limit(100)}
+ catch(error){
+  if(scope===currentSchoolScope()&&requestId===savedPapersRequestId&&el)
+   el.innerHTML='<div class="empty-state">Could not load saved papers. Refresh and retry.</div>';
+  return;
+ }
+ // Never display a late paper list from a former school/account or an older
+ // search request. Switching the workspace invalidates the entire response.
+ if(!ready()||scope!==currentSchoolScope()||requestId!==savedPapersRequestId||!el)return;
+ const {data,error}=response||{};
  if(error){el.innerHTML='<div class="empty-state">'+esc(error.message)+'</div>';return}
  const search=String($('#pbSavedSearch')?.value||'').trim().toLowerCase(),cls=String($('#pbSavedClass')?.value||'').trim().toLowerCase(),uid=String(cloud()?.state?.user?.id||'');
  const rows=(data||[]).filter(x=>(!search||[x.title,x.subject,x.class_name,(x.chapters||[]).join(' ')].join(' ').toLowerCase().includes(search))&&(!cls||String(x.class_name||'').toLowerCase().includes(cls)));
@@ -831,5 +848,5 @@ async function render(){
  let timer;$('#pbSavedSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});$('#pbSavedClass').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(loadPapers,180)});
  await loadCustomQuestions();updateBankInsight();loadPapers();loadSchoolCatalog();
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
