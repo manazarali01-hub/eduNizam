@@ -163,6 +163,7 @@ window.EDUNIZAM_CLOUD={state:{user:{id:'fixture-head'},client:{from:table=>({
   return Promise.resolve({data,error:null}).then(resolve,reject);
  }
 })}}};
+document.querySelector=()=>null;document.querySelectorAll=()=>[];
 await window.EDUNIZAM_PAPER_BUILDER.loadSchoolCatalog();
 const liveCatalog=window.EDUNIZAM_PAPER_BUILDER.getSchoolCatalog();
 pass(liveCatalog.units.length===1,'Authenticated fixture syllabus did not load');
