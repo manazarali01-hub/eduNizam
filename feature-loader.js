@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261011-fresh-question-check-v69';
+  const VERSION='20261011-school-question-recheck-v70';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
