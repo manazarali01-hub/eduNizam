@@ -157,7 +157,8 @@ let extracting=false,asking=false;
 const status=message=>{const el=$('#pbSourceStatus');if(el)el.textContent=message};
 function context(){
  const cls=String($('#pbClass')?.value||'').trim(),subject=String($('#pbSubject')?.value||'').trim();
- const chapter=String($('#pbSourceChapter')?.value||String($('#pbChapters')?.value||'').split(',').map(x=>x.trim()).find(Boolean)||$('#pbChapterPicker')?.value||'').trim();
+ const selected=window.EDUNIZAM_PAPER_BUILDER?.readSelectedChapters?.()||String($('#pbChapters')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);
+ const chapter=String($('#pbSourceChapter')?.value||selected[0]||$('#pbChapterPicker')?.value||'').trim();
  if(!cls||!subject||!chapter)throw Error('Select class, subject and a source chapter / topic first.');
  return{cls,subject,chapter};
 }
