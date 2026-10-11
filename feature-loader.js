@@ -1,5 +1,5 @@
 (function(){
-  const VERSION='20261011-paper-catalog-privacy-v60';
+  const VERSION='20261011-paper-catalog-access-v61';
   const sharedBundles={
     // Small shared bases first. The cross-section enrichment files execute once
     // only after every dataset they can enhance already exists.
@@ -57,7 +57,7 @@
   const featureBundles={
     pastpapers:['learningCore','pastpapersDeep'],
     practice:['learningCore','practiceDeep'],
-    paperbuilder:['learningCore','practiceDeep','studyDeep'],
+    paperbuilder:['learningCore','practiceDeep','studyDeep','lessonCatalog'],
     study:['learningCore','studyDeep'],
     lessoncenter:['lessonCatalog'],
     datareadiness:['lessonCatalog'],

@@ -107,6 +107,9 @@ pass(!choices('10','Physics',[teacherChapter]).includes(teacherChapter.chapter),
 pass(!choices('9','Chemistry',[teacherChapter]).includes(teacherChapter.chapter),'Teacher chapters must not leak to another subject');
 pass(!choices('9','Physics',[{...teacherChapter,answer_text:''}]).includes(teacherChapter.chapter),'Invalid teacher questions should not supply empty chapter dropdown values');
 pass(choices('Grade 1','Mathematics',[]).length>=4,'The existing built-in grade chapter choices must remain available');
+const featureLoader=read('feature-loader.js');
+pass(featureLoader.includes("paperbuilder:['learningCore','practiceDeep','studyDeep','lessonCatalog']"),
+ 'Direct Paper Builder entry must load the academic concept catalog, not depend on opening Lesson Center first');
 const conceptMap=window.EDUNIZAM_ACADEMIC_OPTION_CATALOG.chapters;
 for(const [grade,subject] of [['9','Chemistry'],['12','Statistics'],['5','General Science']]){
  const sample=conceptMap[grade+'|'+subject];
