@@ -114,6 +114,9 @@ jobs:
       - name: Verify class-section student pickers and authorized form submission
         run: node scripts/student-form-picker-check.mjs
 
+      - name: Verify first-time Academic Groups setup without preloaded staff
+        run: node scripts/class-section-first-setup-check.mjs
+
       - name: Verify class section cloud-only saves, renames, student assignment and school cache isolation
         run: node scripts/class-section-cloud-integrity-check.mjs
 

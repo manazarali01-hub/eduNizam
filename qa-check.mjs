@@ -209,7 +209,7 @@ if(!app.includes("retryBtn.textContent='Retrying…'")) fail.push('Feature Retry
 
 // Keep the new paper-builder script cache and installed PWA controllers aligned.
 const expectedWizard='20261009-practice-source-v44';
-if(!read('feature-loader.js').includes("const VERSION='20261011-paper-list-scope-v41'"))fail.push('Feature asset cache version was not bumped for the paper wizard.');
+if(!read('feature-loader.js').includes("const VERSION='20261011-school-first-setup-v42'"))fail.push('Feature asset cache version was not bumped for the paper wizard.');
 if(!read('sw.js').includes("const CACHE='edunizam-v278-session-epoch-v46'"))fail.push('PWA release cache does not match the paper wizard release.');
 if(!read('pwa-install.js').includes('sw.js?v=20261011-session-epoch-v46'))fail.push('Installed-app service worker update URL is stale.');
 if(!read('system-auto-update.js').includes("const ACTIVE_CACHE='edunizam-v278-session-epoch-v46'"))fail.push('PWA system updater still clears or retains the wrong cache.');
