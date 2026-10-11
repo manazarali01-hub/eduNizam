@@ -12,7 +12,7 @@ const existing={
   teacher_question_bank:[]
  }
 };
-let rejectBatch=true;
+let rejectBatch=true,returnNoRows=false,delayInsert=null;
 const inserts=[];
 const client={from(table){
  let filters={};
@@ -23,7 +23,14 @@ const client={from(table){
    const data=existing[filters.institution_id]?.[table]||[];
    return Promise.resolve({data,error:null}).then(resolve,reject);
   },
-  async insert(rows){inserts.push({table,rows});return {error:rejectBatch?{message:'simulated RLS error'}:null}}
+  insert(rows){
+   inserts.push({table,rows});
+   return {select:async()=>{
+    if(delayInsert)return delayInsert.promise;
+    return rejectBatch?{data:null,error:{message:'simulated RLS error'}}:
+     {data:returnNoRows?[]:rows.map((q,i)=>({id:'confirmed-'+inserts.length+'-'+i,question_text:q.question_text})),error:null};
+   }};
+  }
  };
 }};
 const elements={
@@ -78,18 +85,33 @@ await app.saveQuestionImport();
 assert.equal(inserts.length,2,'Successful import must use a single second write');
 assert.equal(inserts[1].rows.length,2);
 assert.match(elements['#qbImportReport'].textContent,/saved together/i);
+// A successful HTTP response with no returned question IDs must not claim
+// any saved questions. The teacher must inspect the bank before retrying.
+returnNoRows=true;
+await app.previewQuestionImport();
+await app.saveQuestionImport();
+assert.equal(inserts.length,3,'Unconfirmed import should make one write');
+assert.match(elements['#qbImportReport'].textContent,/not confirmed/i,
+ 'No-return question insert falsely showed saved together');
+assert.equal(elements['#qbImportSave'].disabled,true,
+ 'Unconfirmed question insert did not require a fresh review');
+returnNoRows=false;
 await app.previewQuestionImport();
 cfg.institutionId='school-B';user.id='head-B';
 await app.saveQuestionImport();
-assert.equal(inserts.length,2,'School switch must never allow uploading previous-school reviewed questions');
+assert.equal(inserts.length,3,'School switch must never allow uploading previous-school reviewed questions');
 assert.match(elements['#qbImportReport'].textContent,/school\/account changed/i);
+// If logout happens during a pending INSERT, even a later same-user login
+// cannot revive the former import's success state or stale Save button.
+function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return{promise,resolve}}
+const events=new Map();
+// Capture is validated in a separate session-aware fixture below.
 const source=read('teacher-paper-builder.js');
 assert.match(source,/pendingImportScope!==importScope/);
-assert.match(source,/\.insert\(records\)/);
+assert.match(source,/\.insert\(records\)\.select\('id,question_text'\)/);
 assert.doesNotMatch(source,/batchSize=25/);
 assert.match(source,/pendingImportRows\.map\(\(q,i\)=>\(\{index:i\+1,gate:schoolQuestionReadiness\(/);
 // A stale File.text() response must not re-enable Import after CSV/JSON selection changes.
-function deferred(){let resolve;const promise=new Promise(r=>{resolve=r});return{promise,resolve}}
 cfg.institutionId='school-A';user.id='head-A';
 await app.loadSchoolCatalog();await app.loadCustomQuestions();
 {
