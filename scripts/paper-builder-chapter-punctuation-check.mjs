@@ -20,6 +20,12 @@ const questions=['mcq','short','long'].flatMap(type=>Array.from({length:9},(_,i)
 const data={class_sections:classes,syllabus_progress_units:units,teacher_question_bank:questions,teacher_papers:[]};
 const cfg={enabled:true,institutionId:'school-A'},user={id:'teacher-A'};
 const saves=[];
+let delayInserts=false;
+const pendingInsertResponses=[];
+function deferred(){
+ let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b});
+ return{promise,resolve,reject};
+}
 const client={from(table){
  assert(table in data,'Unexpected query table '+table);
  let start=0,end=249,school=null;
@@ -29,8 +35,12 @@ const client={from(table){
   insert(payload){
    assert.equal(table,'teacher_papers');
    saves.push(payload);
-   data.teacher_papers.push({id:'saved-paper-1',...payload,created_at:'2026-10-11T00:00:00Z'});
-   return{select(){return this},async single(){return{data:data.teacher_papers[0],error:null}}};
+   const saved={id:'saved-paper-'+saves.length,...payload,created_at:'2026-10-11T00:00:00Z'};
+   data.teacher_papers.push(saved);
+   return{select(){return this},single(){
+    if(delayInserts){const pending=deferred();pendingInsertResponses.push({pending,saved});return pending.promise}
+    return Promise.resolve({data:saved,error:null});
+   }};
   },
   then(resolve,reject){
    assert.equal(school,'school-A','Read not institution-scoped');
@@ -151,3 +161,37 @@ assert.equal(saves.at(-1).paper_json.curriculumMode,'concept-only-draft',
  'Direct concept save was labelled school-recorded');
 
 console.log('Paper preview signature PASS: difficulty, pattern, source, concept mode, school switch rejected; matching copy saved; concept-only drafts always private.');
+
+// Concurrent clicks: two Save actions must not create two database INSERTs.
+delayInserts=true;
+assert(api.previewPaper().ready);
+let base=saves.length;
+const firstCopy=api.saveCurrentAsNew();
+await api.saveCurrentAsNew();
+assert.equal(saves.length,base+1,'Double tap submitted duplicate Save as New requests');
+// User can generate a new draft while the previous one is still saving.
+assert(api.previewPaper().ready);
+assert.match(map.get('#paperPreview').innerHTML,/pbSaveAsNew/);
+pendingInsertResponses.shift().pending.resolve({data:{id:'saved-late-copy'},error:null});
+await firstCopy;
+assert.match(map.get('#paperPreview').innerHTML,/pbSaveAsNew/,
+ 'Late Save as New response overwrote a newer paper preview');
+// Guard direct savePaper against double-click as well.
+base=saves.length;
+const firstDirect=api.savePaper();
+await api.savePaper();
+assert.equal(saves.length,base+1,'Double tap submitted duplicate Save Paper requests');
+pendingInsertResponses.shift().pending.resolve({data:{id:'saved-direct'},error:null});
+await firstDirect;
+// A network error may have occurred after an insert committed. Do not retry
+// automatically or pretend the save was confirmed.
+base=saves.length;
+const ambiguous=api.savePaper();
+await api.savePaper();
+assert.equal(saves.length,base+1,'Unconfirmed save triggered duplicate request');
+pendingInsertResponses.shift().pending.reject(new Error('Connection reset after request'));
+await ambiguous;
+assert.match(errors.at(-1),/not confirmed/i,
+ 'Ambiguous network response was presented as successful');
+delayInserts=false;
+console.log('Paper insert isolation PASS: duplicate tap guarded, late copy response cannot erase newer preview, ambiguous network failure not misreported.');
