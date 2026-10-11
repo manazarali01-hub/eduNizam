@@ -83,11 +83,13 @@ function writeSelectedChapters(chapters){
 const sectionKey=value=>String(value||'').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ');
 const unitInSection=unit=>!sectionKey(unit.section_name)||(!!sectionKey(paperSection())&&sectionKey(unit.section_name)===sectionKey(paperSection()));
 const currentSchoolScope=()=>String(cfg().institutionId||'')+'|'+String(cloud()?.state?.user?.id||'');
+// School-specific cached records are only visible in their authorized session.
+const privateCatalog=()=>ready()&&catalogScope===currentSchoolScope()?schoolCatalog:{classes:[],units:[],classState:'unchecked',unitState:'unchecked'};
 // Private cloud question rows are inaccessible as soon as auth is no longer ready.
 const currentTeacherQuestions=()=>ready()&&questionScope===currentSchoolScope()?customQuestions:[];
 const activeSourceRows=()=>sourceScope===currentSchoolScope()?sourceStagedQuestions:[];
 function schoolChapters(cls,subject,sourceUnits=null){
- if(sourceUnits===null)sourceUnits=ready()&&catalogScope!==currentSchoolScope()?[]:schoolCatalog.units;
+ if(sourceUnits===null)sourceUnits=privateCatalog().units;
  const A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
  if(!A||!cls||!subject)return[];
  const found=new Map();
@@ -145,6 +147,10 @@ function renderSchoolReadiness(){
 }
 function renderSchoolStatus(){
  const el=$('#pbSchoolCatalogStatus');if(!el)return;
+ if(!ready()||catalogScope!==currentSchoolScope()){
+  el.textContent='School sign-in required to view private class and textbook data.';
+  renderSchoolReadiness();return;
+ }
  const classNote=schoolCatalog.classState==='loaded'
   ?schoolCatalog.classes.length+' active class/section record(s)'+(schoolCatalog.classes.length?'':' — configure Academic Groups'):
    schoolCatalog.classState==='error'?'class lookup unavailable (network/access)':'class data not yet checked';
@@ -1069,7 +1075,7 @@ async function loadPapers(){
 }
 function chapterChoices(cls,subject,sourceQuestions=null,sourceUnits=null){
  if(sourceQuestions===null)sourceQuestions=[...currentTeacherQuestions(),...activeSourceRows()];
- if(sourceUnits===null)sourceUnits=ready()&&catalogScope!==currentSchoolScope()?[]:schoolCatalog.units;
+ if(sourceUnits===null)sourceUnits=privateCatalog().units;
  const grade=classLevelFrom(cls),key=normalizedSubject(subject);
  const D=window.EDUNIZAM_PRACTICE_DATA||{},A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
  const results=new Map();
@@ -1336,5 +1342,5 @@ async function render(){
  void loadCustomQuestions().then(()=>updateBankInsight())
   .catch(error=>console.warn('Paper Builder question bank:',error?.message||error));
 }
-window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:()=>schoolCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,schoolPaperQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper,handleSchoolDataChange,currentDraftMatchesForm,deleteCustomQuestion,questionDuplicateKey,validatePaperDraft};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
+window.EDUNIZAM_PAPER_BUILDER={render,build,previewPaper,attachSourceQuestions,prepareSourceSync,activeSourceRows,refreshPaperCatalog,renderSelectedChapters,refreshPatternBreakdown,chapterChoices,schoolChapters,recommendPaperChapters,materialSubjectMatches,loadSchoolCatalog,fetchPagedSchoolRows,getSchoolCatalog:privateCatalog,schoolSetupReadiness,renderSchoolReadiness,schoolPaperReadiness,getQuestionScope:()=>questionScope,loadCustomQuestions,savePaper,saveCurrentAsNew,saveCustomQuestion,schoolQuestionWorksheet,schoolPaperQuestionWorksheet,downloadSchoolQuestionWorksheet,previewQuestionImport,saveQuestionImport,loadPapers,clearPendingQuestionImport,readSelectedChapters,writeSelectedChapters,schoolQuestionReadiness,updatePaper,deletePaper,handleSchoolDataChange,currentDraftMatchesForm,deleteCustomQuestion,questionDuplicateKey,validatePaperDraft};if(document.readyState!=='loading')render();else document.addEventListener('DOMContentLoaded',render);
 })();
