@@ -23,6 +23,11 @@
     return runtime?runtime.run(key,factory,{timeout,retries,label}):factory({});
   }
   const cacheScope=()=>cloudReady()?String(cfg().institutionId)+'|'+String(cloud().state.user.id):'';
+  function notifyClassChange(scope){
+    if(scope&&cacheScope()===scope&&typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function')
+      window.dispatchEvent(new CustomEvent('edunizam:school-data-changed',
+        {detail:{scope,area:'classes',source:'class-section-center'}}));
+  }
   function read(){
     const scope=cacheScope();if(!scope)return[];
     try{const cached=JSON.parse(localStorage.getItem(KEY)||'null');return cached?.scope===scope&&Array.isArray(cached.rows)?cached.rows:[]}
@@ -188,7 +193,7 @@
       catch(e){return alert('Cloud class/section save failed. Nothing was saved locally: '+(e.message||e))}
       if(cacheScope()!==requestScope)return;
       const next=rows.filter(x=>String(x.id)!==String(editId)&&!(String(x.className).toLowerCase()===className.toLowerCase()&&String(x.sectionName).toLowerCase()===sectionName.toLowerCase()));
-      next.push(item);write(next);render();
+      next.push(item);write(next);notifyClassChange(requestScope);render();
     }finally{classSectionSaveInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
   }
   async function assign(){
@@ -231,7 +236,7 @@
       const requestScope=cacheScope();
       try{await removeCloud(id)}catch(e){return alert('Cloud delete failed: '+(e.message||e))}
       if(cacheScope()!==requestScope)return;
-      write(read().filter(r=>String(r.id)!==String(id)));render();
+      write(read().filter(r=>String(r.id)!==String(id)));notifyClassChange(requestScope);render();
     }finally{classSectionDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
   function bindEditor(){
