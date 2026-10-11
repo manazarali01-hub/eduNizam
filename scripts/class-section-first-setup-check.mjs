@@ -29,11 +29,12 @@ const client={from(table){
   }})};
  }};
 }};
-const win={EDUNIZAM_CLOUD_CONFIG:{enabled:true,institutionId:'real-school-A'},
+const syncEvents=[];
+const win={dispatchEvent:event=>{syncEvents.push(event.detail);return true},EDUNIZAM_CLOUD_CONFIG:{enabled:true,institutionId:'real-school-A'},
  EDUNIZAM_CLOUD:{state:{client,user:{id:'verified-head-A'}}},addEventListener(){}};
 const alerts=[];
 runInNewContext(source,{window:win,document,localStorage,
- setTimeout:()=>0,clearTimeout,Date,console,alert:msg=>alerts.push(String(msg))},
+ setTimeout:()=>0,clearTimeout,Date,console,CustomEvent:class{constructor(type,init){this.type=type;this.detail=init.detail}},alert:msg=>alerts.push(String(msg))},
  {filename:'class-section-center.js'});
 const api=win.EDUNIZAM_CLASS_SECTION_CENTER;
 assert.equal(typeof api.save,'function');
@@ -44,6 +45,9 @@ assert.equal(written[0].class_name,'5');
 assert.equal(written[0].section_name,'A');
 assert.equal(written[0].class_teacher_user_id,null);
 assert.equal(written[0].updated_by,'verified-head-A');
+assert.equal(syncEvents.length,1,'Confirmed single-class save did not notify Lesson and Paper Builder');
+assert.equal(syncEvents[0].scope,'real-school-A|verified-head-A');
+assert.equal(syncEvents[0].area,'classes');
 assert.equal(api.read().length,1,'Cloud-confirmed class not reflected in same-school directory');
 assert.equal(nodes.csSave.disabled,false,'Save button stayed disabled after request');
 
@@ -58,5 +62,6 @@ memory.set('edunizam_session',JSON.stringify({role:'teacher'}));
 await api.save();
 assert.equal(written.length,1,'Non-Head role created a class');
 assert.match(alerts.at(-1),/Head of Institute/i);
+assert.equal(syncEvents.length,1,'Unauthorized class write emitted a false sync event');
 
 console.log('Academic Groups first-use PASS: unassigned class before staff setup, scoped cloud save, no unverified teacher assignment or unauthorized save.');
