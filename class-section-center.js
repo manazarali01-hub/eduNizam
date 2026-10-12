@@ -186,6 +186,13 @@
       '<select id="csTarget"><option value="">Select class / section</option>'+rows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.className)+' - '+esc(x.sectionName)+'</option>').join('')+'</select>'+
       '<button id="csAssign"'+(students().length&&rows.length?'':' disabled')+'>Assign Student</button>'+(students().length&&rows.length?'':'<p class="coverage-note">Add real students and active class sections before allocating.</p>')+'</div></article>';
   }
+  function unassignedStudentCount(rows){
+    const directory=Array.isArray(rows)?rows.filter(x=>x.active!==false):[];
+    return students().filter(s=>{
+      const cls=String(s.className||'').trim(),sec=String(s.sectionName||'').trim();
+      return !cls||!sec||!directory.some(x=>String(x.className||'').trim().toLowerCase()===cls.toLowerCase()&&String(x.sectionName||'').trim().toLowerCase()===sec.toLowerCase());
+    }).length;
+  }
   function card(x){
     const count=currentPeople()?.studentStatus==='loaded'?studentCount(x):null,full=count!==null&&x.capacity>0&&count>=x.capacity;
     return '<article class="paper-card"><div class="paper-card-top"><span class="mini-badge">Class '+esc(x.className)+' - '+esc(x.sectionName)+'</span><span id="profileRiskBadge" data-risk="'+(x.active===false?'high':full?'medium':'good')+'">'+(x.active===false?'Inactive':full?'Full':'Active')+'</span></div>'+
@@ -291,6 +298,7 @@
     root.innerHTML='<div class="section-head"><span class="academic-pill">'+(disconnected?'Cloud login required':loadError?'Cloud read unavailable':'School cloud')+'</span>'+(disconnected?'':'<button class="secondary" id="csRefresh" type="button">Refresh School Records</button>')+'</div>'+
       (loadError?'<p class="coverage-note">Class directory could not be verified. Do not assume this school has zero classes. Retry after checking connection and access.</p>':'')+
       '<div id="csEditor">'+editor()+'</div>'+allocation()+
+      (currentPeople()?.studentStatus==='loaded'&&unassignedStudentCount(rows)>0?'<div class="coverage-note" role="status" style="margin-top:12px"><strong>Student class assignment needs attention:</strong> '+unassignedStudentCount(rows)+' student record(s) have a blank class/section or do not match an active registered section. Register the actual class/section first, then use Allocate Student to Section. No student records were changed.</div>':'')+
       '<div class="section-head" style="margin-top:18px"><div><h3>Class / Section Directory</h3><p class="muted">Class teacher, room aur current student strength.</p></div></div>'+
       '<div class="paper-grid">'+(rows.length?rows.map(card).join(''):loadError?'<div class="empty-state">School classes not verified (cloud read unavailable).</div>':disconnected?'<div class="empty-state">Sign in to the school workspace to load classes.</div>':'<div class="empty-state">No class / section records in this school yet. Add the actual classes to begin.</div>')+'</div>';
     bind();
