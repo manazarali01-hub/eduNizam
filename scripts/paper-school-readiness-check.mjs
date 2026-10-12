@@ -6,7 +6,17 @@ const el={'#pbClass':{value:'5'},'#pbSubject':{value:'Science'},'#pbSection':{va
  '#pbSchoolCatalogStatus':{textContent:''},'#pbSchoolSetupChecklist':{textContent:'',innerHTML:''},
  '#pbSchoolRefresh':{disabled:false,isConnected:true},'#pbChapters':{value:'Matter'},
  '#pbMarks':{value:'50'},'#pbDifficulty':{value:'Balanced'},'#pbDistribution':{value:'Balanced'}};
-const doc={readyState:'loading',querySelector:k=>el[k]||null,querySelectorAll:()=>[],addEventListener(){}};
+const setupActionNodes={};let readinessHtml='';
+Object.defineProperty(el['#pbSchoolSetupChecklist'],'innerHTML',{
+ get(){return readinessHtml},
+ set(value){
+  readinessHtml=String(value);
+  for(const key of Object.keys(setupActionNodes))delete setupActionNodes[key];
+  for(const match of readinessHtml.matchAll(/id="(pbReadinessClasses|pbReadinessSyllabus)"/g))
+   setupActionNodes['#'+match[1]]={onclick:null,disabled:false};
+ }
+});
+const doc={readyState:'loading',querySelector:k=>el[k]||setupActionNodes[k]||null,querySelectorAll:()=>[],addEventListener(){}};
 let offline=false;
 const rows={class_sections:[{class_name:'5',section_name:'A',active:true},{class_name:'5',section_name:'B',active:true}],
  syllabus_progress_units:[
@@ -17,7 +27,9 @@ const rows={class_sections:[{class_name:'5',section_name:'A',active:true},{class
  {id:'a',class_name:'5',subject:'Science',chapter:'Matter',question_type:'mcq',active:true,question_text:'What is a solid?',options:['A','B','C','D'],correct_option:0,difficulty:'Balanced'},
  {id:'b',class_name:'5',subject:'Science',chapter:'Matter',question_type:'short',active:true,question_text:'Explain a solid',answer_text:'Definite shape',difficulty:'Balanced'}]};
 const cloud={state:{user:{id:'u1'},client:{from(table){return {select(){return this},eq(){return this},order(){return this},limit(){return this},then(ok,bad){return Promise.resolve(offline?{error:{message:'Access denied'}}:{data:rows[table]||[]}).then(ok,bad)}}}}}};
-const win={EDUNIZAM_CLOUD:cloud,EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-1'},EDUNIZAM_PRACTICE_DATA:{questions:[]}};
+const navCalls=[];
+const win={EDUNIZAM_CLOUD:cloud,EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-1'},EDUNIZAM_PRACTICE_DATA:{questions:[]},
+ EDUNIZAM_APP_NAV:{setView:view=>navCalls.push(view)}};
 const cx={window:win,document:doc,console,localStorage:{getItem:key=>key==='edunizam_session'?JSON.stringify({role:'teacher'}):null},AbortController,setTimeout,clearTimeout};
 vm.runInNewContext(read('paper-syllabus-audit.js'),cx);
 vm.runInNewContext(read('teacher-paper-builder.js'),cx);
@@ -79,6 +91,11 @@ await api.loadSchoolCatalog();await api.loadCustomQuestions();
 r=api.schoolSetupReadiness();
 assert.equal(r.classes,0);assert.equal(r.units.length,0);assert.equal(r.questions,0);
 assert(el['#pbSchoolSetupChecklist'].innerHTML.includes('Register active classes'));
+assert(setupActionNodes['#pbReadinessClasses'],'Readiness checklist lacks a direct Academic Groups action');
+assert(setupActionNodes['#pbReadinessSyllabus'],'Readiness checklist lacks a direct Lesson/Syllabus action');
+setupActionNodes['#pbReadinessClasses'].onclick();
+setupActionNodes['#pbReadinessSyllabus'].onclick();
+assert.deepEqual(navCalls,['classcenter','lessoncenter'],'Readiness actions did not open the correct setup views');
 offline=true;await api.loadSchoolCatalog();
 assert.equal(api.schoolSetupReadiness().verified,false);
 assert(el['#pbSchoolSetupChecklist'].textContent.includes('have not been verified'));
