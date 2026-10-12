@@ -147,14 +147,23 @@ function renderSchoolReadiness(){
   return '<tr><td>'+esc(x.chapter)+'</td><td>'+book+'</td>'+
    ['mcq','short','long'].map(type=>'<td>'+x.types[type].total+'</td>').join('')+'</tr>';
  }).join('');
+ const needsClasses=!report.classes||(!!cls&&report.classes&&!schoolCatalog.classes.some(x=>window.EDUNIZAM_PAPER_SYLLABUS_AUDIT?.sameClass?.(x.class_name,cls)));
+ const needsSyllabus=!report.units.length||report.missing.length>0;
+ const setupActions=(needsClasses?'<button type="button" class="secondary" id="pbReadinessClasses">Open Academic Groups</button>':'')+
+  (needsSyllabus?'<button type="button" class="secondary" id="pbReadinessSyllabus">Open Lesson Plans &amp; Syllabus</button>':'');
  el.innerHTML='<strong>Actual school data readiness</strong><p>'+report.classes+' active classes/sections · '+
    report.units.length+' selected syllabus chapters · '+report.mapped+' book/board mapped · '+
    (report.questionLoaded?report.questions+' saved teacher questions':'teacher questions not yet checked')+
    '. Reference concept questions are not official textbook extracts.</p>'+
    (issues.length?'<p><strong>Action needed:</strong> '+issues.map(esc).join(' · ')+'</p>':
     '<p>School data recorded. Teacher must still verify the textbook edition and answers.</p>')+
+   (setupActions?'<div class="paper-actions no-print">'+setupActions+'</div>':'')+
    (rows?'<div class="schedule-table-wrap"><table class="schedule-table"><thead><tr><th>School chapter</th><th>Book</th><th>MCQ</th><th>Short</th><th>Long</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'')+
    (report.coverage.length>20?'<p>Showing 20 of '+report.coverage.length+' chapters.</p>':'');
+ const classesButton=$('#pbReadinessClasses');
+ if(classesButton)classesButton.onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('classcenter');
+ const syllabusButton=$('#pbReadinessSyllabus');
+ if(syllabusButton)syllabusButton.onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('lessoncenter');
 }
 function renderSchoolStatus(){
  const el=$('#pbSchoolCatalogStatus');if(!el)return;
