@@ -1181,8 +1181,11 @@ function refreshTeacherQuestionCatalog(){
 }
 function refreshPaperCatalog(){
   const classSelect=$('#pbClass'),cl=classSelect?.value||'',lv=classLevelFrom(cl),D=window.EDUNIZAM_PRACTICE_DATA||{},A=window.EDUNIZAM_PAPER_SYLLABUS_AUDIT;
-  const configured=privateCatalog().classes.map(x=>String(x.class_name||'').trim());
-  const allClasses=[...new Set([...Array.from({length:12},(_,i)=>String(i+1)),...configured,...teacherDefaults.classes])].filter(Boolean);
+  const configured=privateCatalog().classes.filter(x=>x.active!==false).map(x=>String(x.class_name||'').trim());
+  // Never advertise a class that the school has not registered. Synthetic 1–12
+  // choices led teachers into a dead end: the wizard offered a class then refused
+  // to save because Academic Groups had no matching active record.
+  const allClasses=[...new Set([...configured])].filter(Boolean);
   const classList=$('#pbClasses');
   if(classList)classList.innerHTML=allClasses.map(x=>'<option value="'+esc(x)+'"></option>').join('');
   if(classSelect){
