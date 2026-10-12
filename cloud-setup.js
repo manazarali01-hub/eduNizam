@@ -179,23 +179,35 @@
     }
 
     document.getElementById('refreshSchoolsBtn').onclick=()=>loadOwnedSchools(true);
-    document.getElementById('addOwnedSchoolBtn').onclick=async()=>{
-      if(!isHead())return;
+    const addOwnedSchoolButton=document.getElementById('addOwnedSchoolBtn');
+    let ownedSchoolCreateInFlight=false;
+    addOwnedSchoolButton.onclick=async()=>{
+      if(!isHead()||ownedSchoolCreateInFlight)return;
       const cloud=window.EDUNIZAM_CLOUD,msgBox=document.getElementById('multiSchoolMsg');
       if(!cloud?.state?.client||!cloud?.state?.user){msgBox.textContent='Please sign in first.';return}
       const name=document.getElementById('newOwnedSchoolName').value.trim();
       const registration=document.getElementById('newOwnedSchoolRegistration').value.trim();
       const phone=document.getElementById('newOwnedSchoolPhone').value.trim();
       if(!name){msgBox.textContent='School name is required.';return}
+      ownedSchoolCreateInFlight=true;
+      addOwnedSchoolButton.disabled=true;
       msgBox.textContent='Adding school...';
-      const {data,error}=await cloud.state.client.rpc('create_owned_institution_v2',{p_school_name:name,p_registration_number:registration,p_phone:phone});
-      if(error){msgBox.textContent=error.message;return}
-      const school=Array.isArray(data)?data[0]:data;
-      msgBox.textContent='School added successfully. '+(registration?'Registration No. saved for display. ':'')+'Parent/Student can now find this school by name and request approval.';
-      document.getElementById('newOwnedSchoolName').value='';
-      document.getElementById('newOwnedSchoolRegistration').value='';
-      document.getElementById('newOwnedSchoolPhone').value='';
-      if(school?.id)useInstitution(school,true); else await loadOwnedSchools();
+      try{
+        const {data,error}=await cloud.state.client.rpc('create_owned_institution_v2',{p_school_name:name,p_registration_number:registration,p_phone:phone});
+        if(error)throw error;
+        const school=Array.isArray(data)?data[0]:data;
+        if(!school?.id)throw new Error('The server did not confirm the new school ID.');
+        msgBox.textContent='School added successfully. '+(registration?'Registration No. saved for display. ':'')+'Parent/Student can now find this school by name and request approval.';
+        document.getElementById('newOwnedSchoolName').value='';
+        document.getElementById('newOwnedSchoolRegistration').value='';
+        document.getElementById('newOwnedSchoolPhone').value='';
+        useInstitution(school,true);
+      }catch(error){
+        msgBox.textContent='School creation was not confirmed: '+String(error?.message||error)+'. Refresh My Schools before retrying.';
+      }finally{
+        ownedSchoolCreateInFlight=false;
+        if(addOwnedSchoolButton?.isConnected!==false)addOwnedSchoolButton.disabled=false;
+      }
     };
     // School lists are loaded only when the Admin explicitly requests them.
     // This keeps Settings data off the login/dashboard startup request budget.
