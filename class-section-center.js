@@ -52,13 +52,35 @@
       '<option value="'+esc(x.id)+'" '+(String(x.id)===String(selected)?'selected':'')+'>'+esc(x.fullName)+' · '+esc(x.designation||'Teacher')+'</option>'
     ).join('');
   }
+  // Load complete, stable pages instead of silently truncating large schools
+  // at PostgREST's default/max row cap. If paging is unavailable, fail closed.
+  async function fetchSchoolRows(table,columns,inst,signal,orderBy=[]){
+    const client=cloud().state.client,rows=[],pageSize=250,maxRows=5000;
+    let canPage=null;
+    for(let offset=0;offset<=maxRows;offset+=pageSize){
+      let q=client.from(table).select(columns).eq('institution_id',inst);
+      for(const column of orderBy)q=q.order(column,{ascending:true});
+      const supportsRange=typeof q.range==='function';
+      if(canPage===null)canPage=supportsRange;
+      if(canPage!==supportsRange)throw new Error('School data pagination support changed during read.');
+      if(supportsRange)q=q.range(offset,offset+pageSize-1);
+      else if(offset===0)q=q.limit(pageSize);
+      else throw new Error('School data pagination is unavailable; complete school data cannot be verified.');
+      q=withSignal(q,signal);
+      const out=await q;
+      if(out.error)throw out.error;
+      if(!Array.isArray(out.data))throw new Error('School data response was not a record list.');
+      if(offset>=maxRows){if(out.data.length)throw new Error('School data exceeds the safe '+maxRows+' row limit.');return rows;}
+      rows.push(...out.data);
+      if(out.data.length<pageSize)return rows;
+      if(!supportsRange)throw new Error('School data reached the page limit but pagination is unavailable.');
+    }
+    throw new Error('School data exceeds the safe '+maxRows+' row limit.');
+  }
   async function loadPeople(inst,requestScope){
     const query=async(table,columns)=>{
-      const result=await runCloud('class-section-directory:'+table+':'+requestScope,'Current school '+table,async({signal}={})=>{
-        let q=cloud().state.client.from(table).select(columns).eq('institution_id',inst).limit(1000);
-        q=withSignal(q,signal);const out=await q;
-        if(out.error)throw out.error;return out.data||[];
-      },{timeout:8000,retries:1});
+      const result=await runCloud('class-section-directory:'+table+':'+requestScope,'Current school '+table,async({signal}={})=>
+        fetchSchoolRows(table,columns,inst,signal,['id']),{timeout:25000,retries:1});
       return result;
     };
     const [studentRows,staffRows]=await Promise.allSettled([
@@ -81,11 +103,9 @@
   async function pullCloud(){
     if(!cloudReady())return read();
     const inst=cfg().institutionId,requestScope=cacheScope();
-    const result=await runCloud('class-sections-load:'+requestScope,'Class and section directory',async({signal}={})=>{
-      let q=cloud().state.client.from('class_sections').select('*').eq('institution_id',inst).order('class_name').order('section_name');
-      q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
-    },{timeout:7000,retries:1});
-    const rows=(result.data||[]).map(x=>({
+    const result=await runCloud('class-sections-load:'+requestScope,'Class and section directory',async({signal}={})=>
+      fetchSchoolRows('class_sections','*',inst,signal,['class_name','section_name','id']),{timeout:25000,retries:1});
+    const rows=result.map(x=>({
       id:x.id,className:x.class_name,sectionName:x.section_name,
       classTeacherUserId:x.class_teacher_user_id||'',classTeacherName:x.class_teacher_name||'',
       roomLabel:x.room_label||'',capacity:Number(x.capacity||0),active:x.active!==false,createdAt:x.created_at
