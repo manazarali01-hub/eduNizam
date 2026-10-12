@@ -161,9 +161,9 @@ function renderSchoolReadiness(){
    (rows?'<div class="schedule-table-wrap"><table class="schedule-table"><thead><tr><th>School chapter</th><th>Book</th><th>MCQ</th><th>Short</th><th>Long</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'')+
    (report.coverage.length>20?'<p>Showing 20 of '+report.coverage.length+' chapters.</p>':'');
  const classesButton=$('#pbReadinessClasses');
- if(classesButton)classesButton.onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('classcenter');
+ if(classesButton)classesButton.onclick=()=>document.querySelector('.nav-item[data-view="classcenter"]')?.click();
  const syllabusButton=$('#pbReadinessSyllabus');
- if(syllabusButton)syllabusButton.onclick=()=>window.EDUNIZAM_APP_NAV?.setView?.('lessoncenter');
+ if(syllabusButton)syllabusButton.onclick=()=>document.querySelector('.nav-item[data-view="lessoncenter"]')?.click();
 }
 function renderSchoolStatus(){
  const el=$('#pbSchoolCatalogStatus');if(!el)return;
