@@ -1195,11 +1195,12 @@ function refreshPaperCatalog(){
   // choices led teachers into a dead end: the wizard offered a class then refused
   // to save because Academic Groups had no matching active record.
   // Preserve public concept-practice access for an unconfigured workspace, while registered schools see only their active classes.
-  // The concept-only draft can use generic grade choices only outside an
-  // authorized school workspace. Once a school's directory has been checked,
-  // an empty or inaccessible catalog must not offer fictional official classes.
+  // Generic grades are allowed only for an explicitly selected concept-practice
+  // draft. An official school paper must use the school's real active classes.
+  // This keeps concept previews usable without turning fictional grades into
+  // official school directory entries.
   const schoolDirectory=privateCatalog();
-  const allowConceptGrades=!ready()||schoolDirectory.classState==='unchecked';
+  const allowConceptGrades=!ready()||schoolDirectory.classState==='unchecked'||!!$('#pbConceptDraft')?.checked;
   const allClasses=[...new Set(configured.length?configured:(allowConceptGrades?Array.from({length:12},(_,i)=>String(i+1)):[]))].filter(Boolean);
   const classList=$('#pbClasses');
   // Keep teacher-entered grade preferences available to helper inputs, without adding unregistered grades to the official paper dropdown.
@@ -1404,7 +1405,7 @@ async function render(){
   $('#pbSubject')?.addEventListener('change',()=>{$('#pbChapters').value='';refreshPaperCatalog();updateBankInsight()});
   $('#pbSection')?.addEventListener('change',()=>{$('#pbChapters').value='';refreshPaperCatalog();updateBankInsight()});
  $('#pbTeacherOnly')?.addEventListener('change',updateBankInsight);
-  $('#pbConceptDraft')?.addEventListener('change',updateBankInsight);
+  $('#pbConceptDraft')?.addEventListener('change',()=>{refreshPaperCatalog();updateBankInsight()});
  $('#pbDifficulty')?.addEventListener('change',updateBankInsight);
  $('#pbMarks')?.addEventListener('input',()=>{refreshPatternBreakdown();updateBankInsight()});
  $('#pbDistribution')?.addEventListener('change',()=>{refreshPatternBreakdown();updateBankInsight()});
