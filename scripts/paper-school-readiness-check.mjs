@@ -16,7 +16,11 @@ Object.defineProperty(el['#pbSchoolSetupChecklist'],'innerHTML',{
    setupActionNodes['#'+match[1]]={onclick:null,disabled:false};
  }
 });
-const doc={readyState:'loading',querySelector:k=>el[k]||setupActionNodes[k]||null,querySelectorAll:()=>[],addEventListener(){}};
+const nativeNavNodes={
+ '.nav-item[data-view="classcenter"]':{click(){navCalls.push('classcenter')}},
+ '.nav-item[data-view="lessoncenter"]':{click(){navCalls.push('lessoncenter')}}
+};
+const doc={readyState:'loading',querySelector:k=>el[k]||setupActionNodes[k]||nativeNavNodes[k]||null,querySelectorAll:()=>[],addEventListener(){}};
 let offline=false;
 const rows={class_sections:[{class_name:'5',section_name:'A',active:true},{class_name:'5',section_name:'B',active:true}],
  syllabus_progress_units:[
@@ -28,8 +32,7 @@ const rows={class_sections:[{class_name:'5',section_name:'A',active:true},{class
  {id:'b',class_name:'5',subject:'Science',chapter:'Matter',question_type:'short',active:true,question_text:'Explain a solid',answer_text:'Definite shape',difficulty:'Balanced'}]};
 const cloud={state:{user:{id:'u1'},client:{from(table){return {select(){return this},eq(){return this},order(){return this},limit(){return this},then(ok,bad){return Promise.resolve(offline?{error:{message:'Access denied'}}:{data:rows[table]||[]}).then(ok,bad)}}}}}};
 const navCalls=[];
-const win={EDUNIZAM_CLOUD:cloud,EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-1'},EDUNIZAM_PRACTICE_DATA:{questions:[]},
- EDUNIZAM_APP_NAV:{setView:view=>navCalls.push(view)}};
+const win={EDUNIZAM_CLOUD:cloud,EDUNIZAM_CLOUD_CONFIG:{institutionId:'school-1'},EDUNIZAM_PRACTICE_DATA:{questions:[]}};
 const cx={window:win,document:doc,console,localStorage:{getItem:key=>key==='edunizam_session'?JSON.stringify({role:'teacher'}):null},AbortController,setTimeout,clearTimeout};
 vm.runInNewContext(read('paper-syllabus-audit.js'),cx);
 vm.runInNewContext(read('teacher-paper-builder.js'),cx);
@@ -100,4 +103,7 @@ offline=true;await api.loadSchoolCatalog();
 assert.equal(api.schoolSetupReadiness().verified,false);
 assert(el['#pbSchoolSetupChecklist'].textContent.includes('have not been verified'));
 assert(read('teacher-paper-builder.js').includes('pbOpenClassSetup'));
+assert(read('teacher-paper-builder.js').includes('.nav-item[data-view="classcenter"]') &&
+ read('teacher-paper-builder.js').includes('.nav-item[data-view="lessoncenter"]'),
+ 'Readiness actions must use native app navigation instead of a nonexistent global API');
 console.log('Paper Builder verified readiness: missing school setup, textbook/board provenance, exact chapter coverage and errors PASS.');
