@@ -1185,7 +1185,8 @@ function refreshPaperCatalog(){
   // Never advertise a class that the school has not registered. Synthetic 1–12
   // choices led teachers into a dead end: the wizard offered a class then refused
   // to save because Academic Groups had no matching active record.
-  const allClasses=[...new Set([...configured])].filter(Boolean);
+  // Preserve public concept-practice access for an unconfigured workspace, while registered schools see only their active classes.
+  const allClasses=[...new Set(configured.length?configured:Array.from({length:12},(_,i)=>String(i+1)))].filter(Boolean);
   const classList=$('#pbClasses');
   if(classList)classList.innerHTML=allClasses.map(x=>'<option value="'+esc(x)+'"></option>').join('');
   if(classSelect){
