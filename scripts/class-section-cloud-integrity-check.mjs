@@ -26,7 +26,8 @@ const client={from(table){
   select(){return this},
   eq(k,v){state.filters[k]=v;return this},
   order(){return this},
-  limit(){return this},
+  limit(n){state.limit=n;return this},
+  range(start,end){state.range=[start,end];return this},
   update(payload){state.action='update';state.payload=payload;return this},
   insert(payload){state.action='insert';state.payload=payload;return this},
   delete(){state.action='delete';return this},
@@ -39,7 +40,9 @@ const client={from(table){
  function execute(){
   const institution=state.filters.institution_id??state.payload?.institution_id;
   const group=database[institution]?.[table]||[];
-  const picked=group.filter(matches);
+  let picked=group.filter(matches);
+  if(state.range)picked=picked.slice(state.range[0],state.range[1]+1);
+  else if(state.limit)picked=picked.slice(0,state.limit);
   actions.push([state.action,table,institution,{...state.filters}]);
   if(state.action==='read')return{data:picked.map(x=>({...x})),error:null};
   if(state.action==='insert'){
@@ -93,6 +96,12 @@ await app.removeCloud('not-found').then(()=>{throw Error('Deleting missing class
 ok(database.A.class_sections.length===2,'Missing delete mutated school records');
 await app.removeCloud('new-1');
 ok(database.A.class_sections.length===1,'Delete failed for actual class ID');
+// Prove the student picker is not silently capped at a single 250-row page.
+database.A.core_students.push(...Array.from({length:260},(_,i)=>({
+ id:'student-page-'+i,student_code:'PAGE-'+i,name:'Paged student '+i,institution_id:'A',class_name:'5',section_name:'A'
+})));
+await app.pullCloud();
+ok(app.students().length===261,'Student picker truncated records at one PostgREST page');
 config.institutionId='B';cloud.state.user.id='admin-B';
 ok(app.read().length===0,'School A class cache visible to School B before cloud fetch');
 ok(app.students().length===0&&app.staff().length===0,'School A student or staff list leaked to school B before fetch');
