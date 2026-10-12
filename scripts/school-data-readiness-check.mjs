@@ -5,12 +5,23 @@ const read=name=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const ok=(x,m)=>{if(!x)throw new Error(m)};
 const catalog={window:{}};
 runInNewContext(read('academic-option-catalog.js'),catalog,{filename:'academic-option-catalog.js'});
-const calls=[];
+const calls=[],metadataRanges=[];
 const queryFactory=table=>{
+ let selectedFields='',headOnly=false,from=0,to=999;
  const q={
-  select:(fields,opts)=>{calls.push(['select',table,fields,opts]);return q},
+  select:(fields,opts)=>{selectedFields=fields;headOnly=!!opts?.head;calls.push(['select',table,fields,opts]);return q},
   eq:(field,value)=>{calls.push(['eq',table,field,value]);return q},
-  then:(resolve,reject)=>Promise.resolve({count:3,error:null}).then(resolve,reject)
+  range:(start,end)=>{from=start;to=end;metadataRanges.push([start,end]);return q},
+  then:(resolve,reject)=>{
+   if(table==='syllabus_progress_units'&&!headOnly){
+    const data=Array.from({length:Math.max(0,Math.min(to-from+1,1205-from))},(_,i)=>({
+     unit_title:'Chapter '+(from+i+1),textbook_title:'School Mathematics',curriculum_board:'Punjab',
+     edition_year:2026,source_url:'https://pectaa.edu.pk/'
+    }));
+    return Promise.resolve({data,error:null}).then(resolve,reject);
+   }
+   return Promise.resolve({count:3,error:null}).then(resolve,reject);
+  }
  };
  return q;
 };
@@ -96,9 +107,12 @@ const meta=app.evaluateUnitMetadata([
 ],3);
 ok(meta.status==='ok'&&meta.reviewed===3&&meta.incomplete===2,'Metadata quality must reveal incomplete school syllabus units');
 ok(meta.missingChapter===1&&meta.missingTextbook===1&&meta.missingBoard===1&&meta.invalidEdition===1&&meta.invalidSource===1,'Metadata quality issue types incorrectly counted');
-ok(app.evaluateUnitMetadata([{unit_title:'1',textbook_title:'Math',curriculum_board:'Punjab'}],3).status==='sample','First 1000 records must not be falsely reported as complete coverage');
+ok(app.evaluateUnitMetadata([{unit_title:'1',textbook_title:'Math',curriculum_board:'Punjab'}],3).status==='sample','Partial metadata input must not be falsely reported as complete coverage');
 ok(app.evaluateUnitMetadata([{unit_title:'1',textbook_title:'Math',curriculum_board:'Punjab',edition_year:2026,source_url:'https://pectaa.edu.pk/'}],1).incomplete===0,'Complete school-entered metadata rejected');
-ok(source.includes("select('unit_title,textbook_title,curriculum_board,edition_year,source_url')")&&source.includes(".eq('institution_id',id).limit(1000)"),'Metadata query may fetch student/private fields or another school');
+const pagedMeta=await app.readUnitQuality('test-school',1205);
+ok(pagedMeta.status==='ok'&&pagedMeta.reviewed===1205&&pagedMeta.total===1205,'Syllabus metadata audit must verify every page beyond 1000 records');
+ok(metadataRanges.length===2&&metadataRanges[0][0]===0&&metadataRanges[1][0]===1000,'Syllabus metadata audit did not request consecutive pages');
+ok(source.includes("select('unit_title,textbook_title,curriculum_board,edition_year,source_url')")&&source.includes('.eq(\'institution_id\',id).range('),'Metadata query may fetch student/private fields or another school');
 ok(source.includes('id="readinessUnitQuality"')&&source.includes('scope()!==requestScope'),'Metadata status UI/scope isolation missing');
 ok(app.scope()==='test-school|test-head','Readiness school/user cache scope not correctly separated');
 ok(source.includes('data-readiness-action')&&source.includes('EDUNIZAM_APP_NAV?.setView?.(view)'),'No working setup navigation for real missing school data');

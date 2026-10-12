@@ -223,20 +223,32 @@
  async function readUnitQuality(id,total){
   if(!Number.isInteger(total)||total<0)return{status:'unknown'};
   if(total===0)return{status:'empty',total:0,reviewed:0,incomplete:0};
+  // Do not silently certify a partial audit. Supabase commonly returns at
+  // most 1000 rows per page; read every page within a defensible safety cap.
+  // If a school exceeds the cap, mark quality unknown rather than sampling.
+  const maxAuditedRows=50000,pageSize=1000;
+  if(total>maxAuditedRows)return{status:'unknown',total,reviewed:0,incomplete:0,reason:'audit-cap'};
   const client=cloud()?.state?.client;
   if(!client)return{status:'unknown'};
-  const controller=typeof AbortController!=='undefined'?new AbortController():null;
-  let request=client.from('syllabus_progress_units')
-   .select('unit_title,textbook_title,curriculum_board,edition_year,source_url')
-   .eq('institution_id',id).limit(1000);
-  if(controller&&typeof request.abortSignal==='function')request=request.abortSignal(controller.signal);
-  let timer;
-  const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller?.abort();reject(new Error('quality timeout'))},5800)});
-  try{
-   const {data,error}=await Promise.race([request,timeout]);
-   if(error||!Array.isArray(data))return{status:'unknown'};
-   return evaluateUnitMetadata(data,total);
-  }catch(_){return{status:'unknown'}}finally{clearTimeout(timer)}
+  const records=[];
+  for(let start=0;start<total;start+=pageSize){
+   const controller=typeof AbortController!=='undefined'?new AbortController():null;
+   let request=client.from('syllabus_progress_units')
+    .select('unit_title,textbook_title,curriculum_board,edition_year,source_url')
+    .eq('institution_id',id).range(start,Math.min(start+pageSize-1,total-1));
+   if(controller&&typeof request.abortSignal==='function')request=request.abortSignal(controller.signal);
+   let timer;
+   const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller?.abort();reject(new Error('quality timeout'))},5800)});
+   try{
+    const {data,error}=await Promise.race([request,timeout]);
+    if(error||!Array.isArray(data)||data.length===0)return{status:'unknown',total,reviewed:records.length};
+    records.push(...data);
+    if(data.length<Math.min(pageSize,total-start))return{status:'unknown',total,reviewed:records.length};
+   }catch(_){return{status:'unknown',total,reviewed:records.length}}
+   finally{clearTimeout(timer)}
+  }
+  if(records.length!==total)return{status:'unknown',total,reviewed:records.length};
+  return evaluateUnitMetadata(records,total);
  }
  async function audit(){
   if(busy)return;
