@@ -591,7 +591,8 @@ if(!admissionsPortal.includes("btn.setAttribute('aria-busy','true')")) fail.push
   if(admission.includes('create_owned_institution')||admission.includes('register_admin_school')) fail.push('Admission applicant portal can create schools.');
 }
 if(!cloudSetup.includes("const isHead=")) fail.push('Cloud Setup has no Admin-only school creation guard.');
-if(!cloudSetup.includes("if(!isHead())return;")) fail.push('Add School action is not blocked for non-Admin roles.');
+if(!cloudSetup.includes("if(!isHead()||ownedSchoolCreateInFlight)return;")) fail.push('Add School action is not blocked for non-Admin roles or duplicate submissions.');
+if(!cloudSetup.includes("addOwnedSchoolButton.disabled=true")||!cloudSetup.includes("ownedSchoolCreateInFlight=false")) fail.push('Add School action does not guard and release its in-flight state.');
 const schoolDirectoryMigration='supabase/migrations/20260926054500_admin_only_school_creation_and_directory.sql';
 if(!exists(schoolDirectoryMigration)) fail.push('Admin-only school creation/directory migration missing.');
 else{
