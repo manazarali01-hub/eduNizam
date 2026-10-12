@@ -1188,7 +1188,9 @@ function refreshPaperCatalog(){
   // Preserve public concept-practice access for an unconfigured workspace, while registered schools see only their active classes.
   const allClasses=[...new Set(configured.length?configured:Array.from({length:12},(_,i)=>String(i+1)))].filter(Boolean);
   const classList=$('#pbClasses');
-  if(classList)classList.innerHTML=allClasses.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+  // Keep teacher-entered grade preferences available to helper inputs, without adding unregistered grades to the official paper dropdown.
+  const helperClasses=[...new Set([...allClasses,...teacherDefaults.classes.map(x=>String(x||'').trim()).filter(Boolean)])];
+  if(classList)classList.innerHTML=helperClasses.map(x=>'<option value="'+esc(x)+'"></option>').join('');
   if(classSelect){
    const previous=classSelect.value;
    classSelect.innerHTML='<option value="">Select Class / Grade</option>'+allClasses.map(x=>'<option value="'+esc(x)+'">'+esc(/^(?:(?:class|grade)\s*)?\d+$/i.test(x)?'Class '+classLevelFrom(x):x)+'</option>').join('');
