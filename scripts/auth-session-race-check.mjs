@@ -208,6 +208,42 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
   assert.equal(e.window.EDUNIZAM_CLOUD.state.sessionRestoreStatus,'absent');
 }
 
+// Regression 6: a stale verification finishing after sign-out must not clear
+// the newer account's in-flight verification promise and permit duplicate RPCs.
+{
+  const accesses=[];
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},sessionRestoreStatus:'active',authEvent:'SIGNED_IN'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:()=>{
+      const d=deferred();
+      accesses.push(d);
+      return d.promise;
+    }
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  const oldVerification=e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true);
+  await flush();
+  assert.equal(accesses.length,1);
+  cloud.state.user=null;
+  cloud.state.authEvent='SIGNED_OUT';
+  e.window.dispatchEvent({type:'edunizam:auth',detail:{event:'SIGNED_OUT'}});
+  const nextSession={...JSON.parse(localSession()),identity:'new@example.test',loginAt:67890};
+  e.localStorage.setItem('edunizam_session',JSON.stringify(nextSession));
+  cloud.state.user={id:'user-2',email:'new@example.test'};
+  cloud.state.authEvent='SIGNED_IN';
+  const newVerification=e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true);
+  await flush();
+  assert.equal(accesses.length,2);
+  const owned=e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.verification;
+  accesses[0].resolve(row);
+  assert.equal(await oldVerification,false);
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.verification,owned,
+    'A stale verification cleared the newer account verification lock');
+  accesses[1].resolve({...row,id:'school-A'});
+  assert.equal(await newVerification,true);
+}
+
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
 assert.match(read('app.html'),/auth-bridge\.js\?v=20261010-auth-race-v1/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);
