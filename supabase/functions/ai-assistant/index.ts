@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
     const openaiKey = Deno.env.get("OPENAI_API_KEY") || "";
-    const model = Deno.env.get("EDUNIZAM_AI_MODEL") || "gpt-5.6-luna";
+    const model = Deno.env.get("EDUNIZAM_AI_MODEL") || "gpt-6-luna";
     const dailyLimit = Math.max(1, Number(Deno.env.get("EDUNIZAM_AI_DAILY_LIMIT") || "25"));
 
     if (!supabaseUrl || !serviceKey || !anonKey) throw new Error("Supabase function environment is incomplete.");
