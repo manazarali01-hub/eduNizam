@@ -69,19 +69,6 @@ Deno.serve(async (req) => {
     if (prompt.length > 12000) return new Response(JSON.stringify({ error: "Prompt is too long. Maximum 12,000 characters." }), { status: 400, headers: jsonHeaders(origin) });
     if (context.length > 8000) return new Response(JSON.stringify({ error: "Context is too long." }), { status: 400, headers: jsonHeaders(origin) });
 
-    const dayStart = new Date();
-    dayStart.setUTCHours(0, 0, 0, 0);
-    const { count, error: countError } = await supabaseAdmin
-      .from("ai_usage_logs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", dayStart.toISOString());
-    if (countError) throw countError;
-    const used = Number(count || 0);
-    if (used >= dailyLimit) {
-      return new Response(JSON.stringify({ error: "Daily AI limit reached.", remaining: 0 }), { status: 429, headers: jsonHeaders(origin) });
-    }
-
     let institutionId: string | null = null;
     const requestedInstitution = String(body?.institutionId || "").trim();
     if (/^[0-9a-f-]{36}$/i.test(requestedInstitution)) {
@@ -96,6 +83,22 @@ Deno.serve(async (req) => {
         if (profile?.institution_id === requestedInstitution) institutionId = profile.institution_id;
       }
     }
+
+    // Reserve quota atomically before provider spend; parallel requests cannot
+    // all pass a separate count-then-insert check.
+    const { data: reservation, error: reserveError } = await supabaseAdmin.rpc("edunizam_ai_reserve_usage", {
+      p_user_id: user.id,
+      p_institution_id: institutionId,
+      p_model: model,
+      p_request_chars: prompt.length,
+      p_daily_limit: dailyLimit
+    });
+    if (reserveError) throw new Error("AI quota reservation failed. Apply the latest AI usage migration.");
+    if (!reservation?.allowed) {
+      return new Response(JSON.stringify({ error: "Daily AI limit reached.", remaining: 0 }), { status: 429, headers: jsonHeaders(origin) });
+    }
+    const usageId = Number(reservation.usage_id);
+    const remaining = Number(reservation.remaining ?? 0);
 
     let role = "student";
     try {
@@ -138,19 +141,20 @@ Deno.serve(async (req) => {
     const answer = outputText(data);
     if (!answer) throw new Error("AI provider returned an empty response.");
 
-    await supabaseAdmin.from("ai_usage_logs").insert({
-      institution_id: institutionId,
-      user_id: user.id,
-      model,
-      request_chars: prompt.length,
-      input_tokens: data?.usage?.input_tokens ?? null,
-      output_tokens: data?.usage?.output_tokens ?? null
-    });
+    // The quota row was inserted before the provider call; update token usage
+    // without creating a second row or reopening the quota race.
+    await supabaseAdmin.from("ai_usage_logs")
+      .update({
+        input_tokens: data?.usage?.input_tokens ?? null,
+        output_tokens: data?.usage?.output_tokens ?? null
+      })
+      .eq("id", usageId)
+      .eq("user_id", user.id);
 
     return new Response(JSON.stringify({
       answer,
       model,
-      remaining: Math.max(0, dailyLimit - used - 1)
+      remaining
     }), { headers: jsonHeaders(origin) });
   } catch (e) {
     const message = String((e as any)?.message || e || "Unknown error");
