@@ -187,7 +187,7 @@
     if(runtimeState.verification)return runtimeState.verification;
     if(!force&&runtimeState.lastVerifiedAt&&Date.now()-runtimeState.lastVerifiedAt<60000)return true;
 
-    runtimeState.verification=(async()=>{
+    const verification=runtimeState.verification=(async()=>{
       const c=cloud();
       transition([STATES.WORKSPACE_READY,STATES.OFFLINE_READY,STATES.BACKGROUND_SYNC].includes(runtimeState.state)?STATES.BACKGROUND_SYNC:STATES.AUTHORIZING,{source:'workspace-verification'});
       const ready=await waitCloud(4000);
@@ -254,8 +254,8 @@
       return true;
     })();
 
-    try{return await runtimeState.verification}
-    finally{runtimeState.verification=null}
+    try{return await verification}
+    finally{if(runtimeState.verification===verification)runtimeState.verification=null}
   }
 
   function scheduleWorkspaceVerification({force=false,reason='background',delay=null}={}){
