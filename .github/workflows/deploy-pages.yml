@@ -22,7 +22,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment_retry.outputs.page_url || steps.deployment_primary.outputs.page_url }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -120,9 +120,11 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment_primary
         if: steps.latest.outputs.deploy == 'true'
-        timeout-minutes: 3
+        timeout-minutes: 17
         continue-on-error: true
         uses: actions/deploy-pages@v5
+        with:
+          timeout: 900000
 
       - name: Pause before Pages retry
         if: steps.latest.outputs.deploy == 'true' && steps.deployment_primary.outcome == 'failure'
@@ -131,8 +133,10 @@ jobs:
       - name: Retry GitHub Pages deployment
         id: deployment_retry
         if: steps.latest.outputs.deploy == 'true' && steps.deployment_primary.outcome == 'failure'
-        timeout-minutes: 3
+        timeout-minutes: 17
         uses: actions/deploy-pages@v5
+        with:
+          timeout: 900000
 
       - name: Verify live EduNizam deployment
         if: steps.latest.outputs.deploy == 'true'
