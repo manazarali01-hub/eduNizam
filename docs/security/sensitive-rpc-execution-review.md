@@ -1,10 +1,14 @@
 # Sensitive RPC execution review
 
-Reviewed the EduNizam Supabase project and `supabase-production-one-step.sql` on 2026-10-14.
+Read-only audit of the EduNizam Supabase project on 2026-10-14.
 
-## Live grant verification: five functions
+## Live grant verification
 
-Queried `pg_proc.proacl` and `information_schema.routine_privileges` for these SECURITY DEFINER functions:
+Queried live PostgreSQL ACLs for all `SECURITY DEFINER` functions in the `public` schema using `pg_proc.proacl` and `aclexplode`, checking specifically for grants to `PUBLIC` or `anon`.
+
+**Result: no public-schema SECURITY DEFINER function was found with EXECUTE granted to `PUBLIC` or `anon`.** This means the earlier concern based only on static inspection of the bootstrap SQL was not confirmed in the live database. Do not add a blanket revoke based on that concern.
+
+Five important functions were also checked individually:
 
 - `platform_owner_institutions()`
 - `claim_institution_invite(text)`
@@ -12,17 +16,19 @@ Queried `pg_proc.proacl` and `information_schema.routine_privileges` for these S
 - `claim_student_record(text)`
 - `is_platform_admin()`
 
-For all five, the live ACL showed only `postgres`, `authenticated`, and `service_role` with EXECUTE. Neither `PUBLIC` nor `anon` appeared in the effective ACL. **No production change is needed for these five functions based on this check.** This corrects the initial static-review concern: the bootstrap SQL alone was not enough to establish the live grants.
+Their live ACLs showed only `postgres`, `authenticated`, and `service_role` with EXECUTE. No production RPC grant change is indicated by this check.
 
-## Remaining audit scope
+## Remaining security item
 
-The bootstrap SQL contains many more SECURITY DEFINER functions. Review the live ACL and authorization logic function-by-function before proposing changes. Do not apply a blanket revoke: some helpers may be used by guest health checks, RLS policies, or triggers.
+Supabase Security Advisor still reports **Leaked Password Protection Disabled**. This is an Auth dashboard setting, separate from database function grants.
 
-## Validation checklist
+Reference: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 
-1. Continue checking live ACLs for remaining SECURITY DEFINER functions.
-2. For any real exposure, confirm the function's intended callers and test authorization before changing grants.
-3. Run EduNizam QA and browser workflow regressions after any approved change.
-4. Re-check Supabase Security Advisor. Leaked-password protection remains a separate dashboard setting and is still reported disabled.
+## Next validation
+
+1. Review the authorization logic inside sensitive functions for business-rule issues; grants alone do not prove the logic is correct.
+2. Test invite claim, student record claim, parent linking, and platform owner workflows in EduNizam.
+3. Run EduNizam QA and browser workflow regressions after any actual code/database change.
+4. Enable leaked-password protection in Supabase Auth settings if the project plan supports it, then re-check the advisor.
 
 This document records a read-only audit; no database changes were made as part of this review.
