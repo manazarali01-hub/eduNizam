@@ -27,6 +27,15 @@ function outputText(data: any) {
   return parts.join("\n").trim();
 }
 
+class HttpError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+  }
+}
+
 Deno.serve(async (req) => {
   const origin = allowedOrigin(req);
   if (!origin) return new Response(JSON.stringify({ error: "Origin not allowed" }), { status: 403, headers: { "Content-Type": "application/json" } });
@@ -41,7 +50,7 @@ Deno.serve(async (req) => {
     const model = Deno.env.get("EDUNIZAM_AI_MODEL") || "gpt-6-luna";
     const dailyLimit = Math.max(1, Number(Deno.env.get("EDUNIZAM_AI_DAILY_LIMIT") || "25"));
 
-    if (!supabaseUrl || !serviceKey || !anonKey) throw new Error("Supabase function environment is incomplete.");
+    if (!supabaseUrl || !serviceKey || !anonKey) throw new HttpError(503, "AI service configuration is incomplete.");
 
     const authHeader = req.headers.get("Authorization") || "";
     const supabaseUser = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
@@ -61,7 +70,7 @@ Deno.serve(async (req) => {
       }), { headers: jsonHeaders(origin) });
     }
 
-    if (!openaiKey) throw new Error("OPENAI_API_KEY is not configured in Edge Function secrets.");
+    if (!openaiKey) throw new HttpError(503, "AI service is not configured yet.");
 
     const prompt = String(body?.prompt || "").trim();
     const context = String(body?.context || "").trim();
@@ -93,7 +102,7 @@ Deno.serve(async (req) => {
       p_request_chars: prompt.length,
       p_daily_limit: dailyLimit
     });
-    if (reserveError) throw new Error("AI quota reservation failed. Apply the latest AI usage migration.");
+    if (reserveError) throw new HttpError(503, "AI quota service is temporarily unavailable.");
     if (!reservation?.allowed) {
       return new Response(JSON.stringify({ error: "Daily AI limit reached.", remaining: 0 }), { status: 429, headers: jsonHeaders(origin) });
     }
@@ -134,12 +143,11 @@ Deno.serve(async (req) => {
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const message = data?.error?.message || "AI provider request failed.";
-      throw new Error(message);
+      throw new HttpError(502, `AI provider request failed (${response.status}).`);
     }
 
     const answer = outputText(data);
-    if (!answer) throw new Error("AI provider returned an empty response.");
+    if (!answer) throw new HttpError(502, "AI provider returned an empty response.");
 
     // The quota row was inserted before the provider call; update token usage
     // without creating a second row or reopening the quota race.
@@ -158,6 +166,8 @@ Deno.serve(async (req) => {
     }), { headers: jsonHeaders(origin) });
   } catch (e) {
     const message = String((e as any)?.message || e || "Unknown error");
-    return new Response(JSON.stringify({ error: message }), { status: 400, headers: jsonHeaders(origin) });
+    const status = e instanceof HttpError ? e.status : 500;
+    const safeMessage = e instanceof HttpError ? message : "AI service encountered an internal error.";
+    return new Response(JSON.stringify({ error: safeMessage }), { status, headers: jsonHeaders(origin) });
   }
 });
