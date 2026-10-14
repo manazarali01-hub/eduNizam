@@ -18,6 +18,8 @@ const usageUpdateAt = edge.indexOf('.update({', providerAt);
 assert.ok(reserveAt >= 0, "Edge Function must call quota reservation RPC");
 assert.ok(providerAt > reserveAt, "quota must be reserved before the provider request");
 assert.ok(usageUpdateAt > providerAt, "token usage must update the existing reservation, not insert a second quota row");
+assert.match(edge, /Deno\.env\.get\("EDUNIZAM_AI_MODEL"\) \|\| "gpt-6-luna"/, "fallback model must use a published API model identifier");
+assert.doesNotMatch(edge, /gpt-5\.6-luna/, "do not regress to the malformed model identifier");
 assert.match(edge, /AI quota reservation failed\. Apply the latest AI usage migration\./, "missing migration must fail clearly");
 assert.match(edge, /if \(!reservation\?\.allowed\)/, "rejected quota reservations must stop provider calls");
 assert.doesNotMatch(edge, /\.from\("ai_usage_logs"\)\s*\.insert\(/, "Edge Function must not create a second usage row after provider response");
