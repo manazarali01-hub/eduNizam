@@ -27,6 +27,6 @@ assert.doesNotMatch(edge, /\.from\("ai_usage_logs"\)\s*\.insert\(/, "Edge Functi
 console.log("AI quota reservation checks passed.");
 
 assert.match(edge, /class HttpError extends Error/, "server failures need explicit HTTP status classification");
-assert.match(edge, /new HttpError\(502, `AI provider request failed \\(\$\{response\.status\}\)\.`\)/, "provider failures must use a gateway error, not a client error");
+assert.ok(edge.includes("throw new HttpError(502, `AI provider request failed (${response.status}).`);"), "provider failures must use a gateway error, not a client error");
 assert.match(edge, /const status = e instanceof HttpError \? e\.status : 500/, "unexpected exceptions must return HTTP 500");
 assert.match(edge, /const safeMessage = e instanceof HttpError \? message : "AI service encountered an internal error\."/,"unexpected internal errors must not leak raw details");
