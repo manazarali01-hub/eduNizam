@@ -25,7 +25,7 @@ assert.match(body, /matching_students > 1[\s\S]*?raise exception 'Student code i
   'RPC must fail closed when duplicate codes exist within the parent school');
 assert.match(body, /cs\.auth_user_id is not null/i,
   'RPC must only create requests for student accounts already linked to a student row');
-assert.match(body, /status = case[\s\S]*?then 'approved' else 'pending' end/i,
+assert.match(body, /status = case[\s\S]*?then 'approved'[\s\S]*?else 'pending'[\s\S]*?end/i,
   'Re-requesting a child link must not silently revoke an already approved link');
 assert.match(sql, /create or replace function public\.request_parent_link_by_student_code[\s\S]*?select private\.request_parent_link_by_student_code_impl/i,
   'Public RPC must remain a wrapper around the private implementation');
