@@ -268,6 +268,11 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
     'Local authenticated session remained while remote sign-out was pending');
   assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'UNAUTHENTICATED',
     'Workspace UI was not locked immediately on logout');
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Logout did not render the private-workspace guard');
+  e.doc.dispatchEvent({type:'visibilitychange'});
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Returning to a visible tab removed the guard after logout');
   await flush();
   assert.equal(signOutStarted,true,'Remote Supabase sign-out was not started');
   remoteSignOut.resolve();
