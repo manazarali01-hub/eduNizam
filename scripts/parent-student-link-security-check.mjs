@@ -6,7 +6,7 @@ const match = sql.match(/create or replace function public\.request_parent_link_
 assert.ok(match, 'Expected parent-student link hardening migration');
 const body = match[1];
 
-assert.match(body, /security definer[\s\S]*?set search_path\s*=\s*''/i,
+assert.match(sql, /security definer\s+set search_path\s*=\s*''/i,
   'SECURITY DEFINER function must use an empty search_path');
 assert.match(body, /auth\.uid\(\)/i, 'RPC must require an authenticated user');
 assert.match(body, /profile_role is distinct from 'parent'/i,
