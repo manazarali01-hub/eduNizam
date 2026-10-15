@@ -1139,11 +1139,11 @@ try{
       initialized:window.EDUNIZAM_CLOUD?.state?.initialized===true,
       session:JSON.parse(localStorage.getItem('edunizam_session')||'null')
     }));
-    if(hungRestore.guardPresent||!hungRestore.session||!hungRestore.initialized||hungRestore.restoreStatus!=='timeout'){
-      pushFailure('auth hung restore','Hung Supabase getSession blocked or evicted the valid local workspace',JSON.stringify(hungRestore));
+    if(!hungRestore.guardPresent||!hungRestore.session||!hungRestore.initialized||hungRestore.restoreStatus!=='timeout'){
+      pushFailure('auth hung restore','Unresolved online Supabase getSession did not keep the private workspace guarded',JSON.stringify(hungRestore));
     }
-    if(!['WORKSPACE_READY','OFFLINE_READY','BACKGROUND_SYNC'].includes(hungRestore.authState)){
-      pushFailure('auth hung restore','Hung Supabase getSession left the app in a blocking auth state',JSON.stringify(hungRestore));
+    if(hungRestore.authState!=='AUTH_ERROR'){
+      pushFailure('auth hung restore','Unresolved online Supabase getSession did not settle into a guarded retry state',JSON.stringify(hungRestore));
     }
 
     // Temporary session restoration failures must preserve a valid local shell.
@@ -1170,8 +1170,8 @@ try{
       authState:document.documentElement.dataset.authState||'',
       session:JSON.parse(localStorage.getItem('edunizam_session')||'null')
     }));
-    if(transientRestore.guardPresent||!transientRestore.session)pushFailure('auth transient restore','Temporary session restore failure evicted a valid local workspace',JSON.stringify(transientRestore));
-    if(!['WORKSPACE_READY','OFFLINE_READY','BACKGROUND_SYNC'].includes(transientRestore.authState))pushFailure('auth transient restore','Temporary session restore failure left the app in a blocking auth state',JSON.stringify(transientRestore));
+    if(!transientRestore.guardPresent||!transientRestore.session)pushFailure('auth transient restore','Temporary online session restore failure did not preserve local metadata behind the private-workspace guard',JSON.stringify(transientRestore));
+    if(transientRestore.authState!=='AUTH_ERROR')pushFailure('auth transient restore','Temporary online session restore failure did not settle into a guarded retry state',JSON.stringify(transientRestore));
 
     // A known missing browser session is authoritative and must clear stale private state.
     await authPage.goto('http://127.0.0.1:'+port+'/auth-harness',{waitUntil:'domcontentloaded'});

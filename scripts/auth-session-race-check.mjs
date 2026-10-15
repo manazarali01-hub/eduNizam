@@ -289,7 +289,10 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
     verifyWorkspaceAccess:async()=>{verified++;return row}
   };
   const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
-  assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),true);
+  assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),false,
+    'An uncertain online session restore unlocked the cached workspace');
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'The private-workspace guard was not retained while session restore was uncertain');
   assert.equal(verified,0,'Unresolved initial restore unexpectedly queried workspace access');
   cloud.state.user={id:'user-1',email:'user@example.test'};
   cloud.state.sessionRestoreStatus='active';
@@ -331,14 +334,41 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
     whenReady:async()=>cloud
   };
   const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
-  assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),true);
-  assert.notEqual(e.localStorage.getItem('edunizam_session'),null);
+  assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),false,
+    'An uncertain online restore incorrectly authorized the cached workspace');
+  assert.notEqual(e.localStorage.getItem('edunizam_session'),null,
+    'Local metadata should remain available for a legitimate late restore');
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Private workspace guard was missing before the late restore error');
   cloud.state.sessionRestoreStatus='error';
   e.window.dispatchEvent({type:'edunizam:cloud-ready',detail:{event:'LATE_SESSION_RESTORE_ERROR',user:null}});
   await flush();
   await flush();
   assert.equal(e.localStorage.getItem('edunizam_session'),null,'Failed online session restore retained a private local workspace');
   assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'AUTH_ERROR');
+}
+
+// Regression 11: startup with cached identity must keep private UI covered
+// until live workspace authorization succeeds.
+{
+  const access=deferred();
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},sessionRestoreStatus:'active',authEvent:'SIGNED_IN'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:()=>access.promise
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  await e.window.EDUNIZAM_AUTH_BRIDGE.boot();
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Startup exposed the cached private workspace before authorization');
+  const verification=e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true);
+  await flush();
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Pending school authorization removed the private-workspace guard');
+  access.resolve(row);
+  assert.equal(await verification,true);
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
+    'Successful workspace authorization did not unlock the workspace');
 }
 
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
