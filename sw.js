@@ -1,4 +1,4 @@
-const CACHE='edunizam-v278-session-epoch-v46'
+const CACHE='edunizam-v279-logout-immediate-v1'
 const CORE=[
   './',
   './index.html',
