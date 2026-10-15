@@ -23,6 +23,7 @@ const localSession=()=>JSON.stringify({
 });
 function fakeDocument(){
   const byId=new Map();
+  const listeners=new Map();
   const classList={toggle(){},remove(){},add(){},contains(){return false}};
   const makeNode=()=>({
     style:{},classList,hidden:false,disabled:false,textContent:'',dataset:{},
@@ -41,7 +42,8 @@ function fakeDocument(){
     createElement:()=>makeNode(),
     getElementById:id=>byId.get(id)||null,
     querySelector:()=>null,
-    addEventListener(){}
+    addEventListener(type,handler){listeners.set(type,[...(listeners.get(type)||[]),handler])},
+    dispatchEvent(event){for(const handler of listeners.get(event.type)||[])handler(event)}
   };
 }
 function environment(script,{local={},cloud=null}={}){
@@ -244,9 +246,39 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
   assert.equal(await newVerification,true);
 }
 
+// Regression 7: logout closes the local private workspace before the remote
+// Supabase sign-out promise settles, so a slow network cannot leave the UI open.
+{
+  const remoteSignOut=deferred();
+  let signOutStarted=false;
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},authEvent:'SIGNED_IN',sessionRestoreStatus:'active'},
+    signOut:()=>{signOutStarted=true;return remoteSignOut.promise}
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{
+    edunizam_session:localSession(),
+    edunizam_cloud_runtime_config:'{"institutionId":"school-A"}'
+  }});
+  e.doc.dispatchEvent({
+    type:'click',
+    target:{closest:selector=>selector==='#roleSession button'?{}:null},
+    preventDefault(){}
+  });
+  assert.equal(e.localStorage.getItem('edunizam_session'),null,
+    'Local authenticated session remained while remote sign-out was pending');
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'UNAUTHENTICATED',
+    'Workspace UI was not locked immediately on logout');
+  await flush();
+  assert.equal(signOutStarted,true,'Remote Supabase sign-out was not started');
+  remoteSignOut.resolve();
+  await flush();
+}
+
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
-assert.match(read('app.html'),/auth-bridge\.js\?v=20261010-auth-race-v1/);
+assert.match(read('app.html'),/auth-bridge\.js\?v=20261015-logout-immediate-v1/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);
-assert.match(read('sw.js'),/edunizam-v278-session-epoch-v46/);
-assert.match(read('system-auto-update.js'),/edunizam-v278-session-epoch-v46/);
+assert.match(read('sw.js'),/edunizam-v279-logout-immediate-v1/);
+assert.match(read('system-auto-update.js'),/edunizam-v279-logout-immediate-v1/);
+assert.match(read('system-auto-update.js'),/20261015-logout-immediate-v1/);
+assert.ok(read('pwa-install.js').includes('sw.js?v=20261015-logout-immediate-v1'));
 console.log('Auth isolation, sign-out races, school-switch races and PWA cache checks passed.');
