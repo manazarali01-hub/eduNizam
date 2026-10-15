@@ -175,6 +175,8 @@ const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
 if(authBridgeMobileFix.includes("workspaceReady('local-cache',{reason:'authorization-check-error'})")) fail.push('Unclassified workspace authorization errors must not fail open to a cached private workspace.');
 if(!authBridgeMobileFix.includes('Unknown authorization failures must fail closed.')) fail.push('Workspace authorization error handling is missing the fail-closed guard.');
+if(authBridgeMobileFix.includes("workspaceReady('offline-cache',{reason:'cloud-init-timeout'});\n        return true;")) fail.push('Cloud initialization timeout must not fail open to cached private workspace while the browser is online.');
+if(!authBridgeMobileFix.includes("if(!navigator.onLine){\n          workspaceReady('offline-cache',{reason:'cloud-init-timeout'});\n          return true;\n        }")) fail.push('Cloud initialization timeout may use the cached workspace only when the browser is offline.');
 if(!authBridgeMobileFix.includes('Retry session check')) fail.push('Signed-out session Retry action is not explicit.');
 if(!authBridgeMobileFix.includes('<a id="cloudAuthLogin"')||!authBridgeMobileFix.includes('href="login.html?from=secure-guard"')) fail.push('Secure-session Login action is not a native link.');
 if(!authBridgeMobileFix.includes('<a id="cloudAuthGuest"')||!authBridgeMobileFix.includes('href="learn.html?from=secure-guard"')) fail.push('Secure-session Guest action is not a native link.');
