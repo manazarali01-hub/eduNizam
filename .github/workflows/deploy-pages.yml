@@ -38,6 +38,9 @@ jobs:
       - name: Run EduNizam QA gate
         run: node qa-check.mjs
 
+      - name: Verify student record claim stays within an authorized school
+        run: node scripts/student-record-claim-scope-check.mjs
+
       - name: Block incomplete curriculum/question catalog
         run: node scripts/data-completion-check.mjs
 

@@ -33,6 +33,8 @@ jobs:
         run: node scripts/public-feedback-check.mjs
       - name: Reproduce logout/session restore races and backup isolation
         run: node scripts/auth-session-race-check.mjs
+      - name: Verify student record claim stays within an authorized school
+        run: node scripts/student-record-claim-scope-check.mjs
       - name: Validate reference-data completeness
         run: node scripts/data-completion-check.mjs
       - name: Validate paper-builder marks and dynamic school data
