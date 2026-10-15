@@ -193,8 +193,14 @@
       const ready=await waitCloud(4000);
       if(!sameLocalWorkspace(local))return false;
       if(!ready||!c?.state?.client){
-        workspaceReady('offline-cache',{reason:'cloud-init-timeout'});
-        return true;
+        if(!navigator.onLine){
+          workspaceReady('offline-cache',{reason:'cloud-init-timeout'});
+          return true;
+        }
+        console.warn('Workspace authorization could not start because the cloud session is unavailable.');
+        clearLocalAuthState();
+        showAccess('We could not restore your secure school session. Please retry or sign in again.',STATES.AUTH_ERROR,true);
+        return false;
       }
 
       // admissions-cloud owns the one browser session restoration call.
