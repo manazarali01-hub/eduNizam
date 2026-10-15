@@ -719,10 +719,9 @@ try{
   }
 
 
-  // Authenticated mobile app shell must never remain trapped behind startup/auth UI.
-  // Exercise every role with a valid local Supabase workspace while the remote CDN/cloud
-  // is unavailable: dashboard must open immediately, navigation must remain tappable,
-  // drawer locks must clear, and normal page scrolling must recover after the drawer closes.
+  // Offline-cache mobile app shell must remain usable when cloud endpoints are unavailable.
+  // This fixture explicitly marks the browser offline; an online browser with unverified
+  // cloud authorization must still be blocked by auth-bridge's fail-closed guard.
   console.log('App shell step START: authenticated role navigation / mobile interaction');
   for(const roleCase of [
     {role:'head',label:'Head of Institute',visible:'settings',hidden:null},
@@ -743,6 +742,9 @@ try{
     page.on('pageerror',error=>shellErrors.push(error.message||String(error)));
     try{
       await page.addInitScript(({role})=>{
+        // This test blocks remote requests, so model the matching offline browser state.
+        // Without this, the fixture claims to be online and correctly trips the auth guard.
+        Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false});
         localStorage.clear();
         sessionStorage.clear();
         localStorage.setItem('edunizam_session',JSON.stringify({
