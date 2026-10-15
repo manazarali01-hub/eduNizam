@@ -398,7 +398,9 @@
   });
 
   document.addEventListener('visibilitychange',()=>{
-    if(!document.hidden)unlockUI();
+    if(document.hidden)return;
+    // Returning to a tab must not remove the private-workspace guard after logout.
+    if(validLocal()&&[STATES.WORKSPACE_READY,STATES.BACKGROUND_SYNC,STATES.OFFLINE_READY].includes(runtimeState.state))unlockUI();
   });
 
   // Logout is handled centrally even if roleSession is mounted after startup.
