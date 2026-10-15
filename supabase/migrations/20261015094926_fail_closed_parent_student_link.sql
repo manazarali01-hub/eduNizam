@@ -1,7 +1,6 @@
 -- Fail closed for parent linking and preserve the private-RPC wrapper architecture.
--- This migration has not been applied to the live database yet, so harden the
--- existing pending migration in place rather than briefly deploying an unsafe
--- intermediate public RPC before a follow-up migration.
+-- This migration is recorded in production history; keep the repository version
+-- aligned with the applied SQL to prevent migration-history drift.
 create or replace function private.request_parent_link_by_student_code_impl(p_student_code text)
 returns public.parent_student_links
 language plpgsql
