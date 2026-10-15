@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const path = 'supabase/migrations/20261015120000_fail_closed_student_record_claim.sql';
 const sql = fs.readFileSync(path, 'utf8');
-const match = sql.match(/create or replace function private\.claim_student_record_impl\(p_student_code text\)([\s\S]*?)\$\$;?/i);
+const match = sql.match(/create or replace function private\.claim_student_record_impl\(p_student_code text\)[\s\S]*?as \$\$([\s\S]*?)\$\$;/i);
 assert.ok(match, 'Expected private.claim_student_record_impl replacement migration');
 const body = match[1];
 
