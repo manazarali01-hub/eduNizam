@@ -275,8 +275,8 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
 }
 
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
-assert.match(read('app.html'),/auth-bridge\.js\?v=20261010-auth-race-v1/);
+assert.match(read('app.html'),/auth-bridge\.js\?v=20261015-logout-immediate-v1/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);
 assert.match(read('sw.js'),/edunizam-v279-logout-immediate-v1/);
-assert.match(read('system-auto-update.js'),/edunizam-v278-session-epoch-v46/);
+assert.match(read('system-auto-update.js'),/edunizam-v279-logout-immediate-v1/);
 console.log('Auth isolation, sign-out races, school-switch races and PWA cache checks passed.');
