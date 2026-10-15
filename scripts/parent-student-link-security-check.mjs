@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const sql = fs.readFileSync('supabase/migrations/20261015140000_scope_parent_link_to_institution.sql', 'utf8');
+const sql = fs.readFileSync('supabase/migrations/20261015133000_fail_closed_parent_student_link.sql', 'utf8');
 const match = sql.match(/create or replace function private\.request_parent_link_by_student_code_impl\(p_student_code text\)[\s\S]*?as \$\$([\s\S]*?)\$\$;/i);
 assert.ok(match, 'Expected school-scoped private parent-link implementation');
 const body = match[1];
