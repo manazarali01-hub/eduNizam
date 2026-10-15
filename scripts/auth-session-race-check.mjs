@@ -323,6 +323,24 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
   assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'WORKSPACE_READY');
 }
 
+// Regression 10: a late session restore failure must not leave an online
+// browser displaying a private workspace from an unverified local cache.
+{
+  const cloud={
+    state:{client:{},user:null,sessionRestoreStatus:'timeout',authEvent:'INITIAL_SESSION'},
+    whenReady:async()=>cloud
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),true);
+  assert.notEqual(e.localStorage.getItem('edunizam_session'),null);
+  cloud.state.sessionRestoreStatus='error';
+  e.window.dispatchEvent({type:'edunizam:cloud-ready',detail:{event:'LATE_SESSION_RESTORE_ERROR',user:null}});
+  await flush();
+  await flush();
+  assert.equal(e.localStorage.getItem('edunizam_session'),null,'Failed online session restore retained a private local workspace');
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'AUTH_ERROR');
+}
+
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
 assert.match(read('app.html'),/auth-bridge\.js\?v=20261015-logout-immediate-v1/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);

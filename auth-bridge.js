@@ -407,20 +407,33 @@
   // local workspace when that late result arrives; otherwise the app can stay
   // on an unverified local cache or leave a restored user stranded at login.
   window.addEventListener('edunizam:cloud-ready',event=>{
-    if(event.detail?.event!=='LATE_SESSION_RESTORE')return;
+    const eventName=event.detail?.event;
+    if(!['LATE_SESSION_RESTORE','LATE_SESSION_RESTORE_ERROR'].includes(eventName))return;
     const recheck=()=>{
+      const c=cloud();
+      if(eventName==='LATE_SESSION_RESTORE_ERROR'&&!c?.state?.user){
+        // A failed restore is not proof that a cached private workspace is still
+        // authorized. Keep the cache only for an explicitly offline session.
+        if(!navigator.onLine&&validLocal()){
+          workspaceReady('offline-cache',{reason:'session-restore-error-offline'});
+          return;
+        }
+        clearLocalAuthState();
+        showAccess('We could not restore your secure school session. Please retry or sign in again.',STATES.AUTH_ERROR,true);
+        return;
+      }
       if(validLocal()){
         verifyCurrentWorkspace(true).catch(error=>console.warn('Late session restore verification:',error?.message||error));
         return;
       }
-      if(cloud()?.state?.user){
+      if(c?.state?.user){
         restoreWithoutLocal(true).catch(error=>console.warn('Late session workspace restore:',error?.message||error));
         return;
       }
       showAccess('Sign in to open your private school workspace, or continue as Guest for public learning resources.',STATES.UNAUTHENTICATED,false);
     };
     const pending=runtimeState.verification;
-    if(pending)pending.finally(()=>setTimeout(recheck,0));
+    if(pending)pending.then(()=>setTimeout(recheck,0),()=>setTimeout(recheck,0));
     else recheck();
   });
 
