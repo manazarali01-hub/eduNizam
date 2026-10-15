@@ -279,6 +279,50 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
   await flush();
 }
 
+// Regression 8: a successful session restore that finishes after the
+// startup timeout must re-verify an existing local workspace.
+{
+  let verified=0;
+  const cloud={
+    state:{client:{},user:null,sessionRestoreStatus:'timeout',authEvent:'INITIAL_SESSION'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:async()=>{verified++;return row}
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),true);
+  assert.equal(verified,0,'Unresolved initial restore unexpectedly queried workspace access');
+  cloud.state.user={id:'user-1',email:'user@example.test'};
+  cloud.state.sessionRestoreStatus='active';
+  e.window.dispatchEvent({type:'edunizam:cloud-ready',detail:{event:'LATE_SESSION_RESTORE',user:cloud.state.user}});
+  await flush();
+  await flush();
+  assert.equal(verified,1,'Late session restore did not trigger workspace authorization');
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.detail.userId,'user-1');
+}
+
+// Regression 9: a late restored user with no local workspace must not remain
+// stranded at the login guard when exactly one authorized school is available.
+{
+  let restoreCalls=0;
+  const cloud={
+    state:{client:{},user:null,sessionRestoreStatus:'timeout',authEvent:'INITIAL_SESSION'},
+    whenReady:async()=>cloud,
+    listAuthorizedWorkspaces:async()=>{restoreCalls++;return [row]}
+  };
+  const e=environment('auth-bridge.js',{cloud});
+  await e.window.EDUNIZAM_AUTH_BRIDGE.boot();
+  await flush();
+  assert.equal(e.localStorage.getItem('edunizam_session'),null);
+  cloud.state.user={id:'user-1',email:'user@example.test'};
+  cloud.state.sessionRestoreStatus='active';
+  e.window.dispatchEvent({type:'edunizam:cloud-ready',detail:{event:'LATE_SESSION_RESTORE',user:cloud.state.user}});
+  await flush();
+  await flush();
+  assert.equal(restoreCalls,1,'Late restored user did not fetch authorized workspaces');
+  assert.equal(JSON.parse(e.localStorage.getItem('edunizam_session')).institutionId,'school-A');
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'WORKSPACE_READY');
+}
+
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
 assert.match(read('app.html'),/auth-bridge\.js\?v=20261015-logout-immediate-v1/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);
