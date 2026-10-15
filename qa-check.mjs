@@ -173,6 +173,8 @@ if(!read('index.html').includes('home-showcase.css?v=20261007-showcase8')) fail.
 const authBridgeMobileFix=read('auth-bridge.js');
 const cloudSetupMobileFix=read('cloud-setup.js');
 const loginHtml=read('login.html');
+if(authBridgeMobileFix.includes("workspaceReady('local-cache',{reason:'authorization-check-error'})")) fail.push('Unclassified workspace authorization errors must not fail open to a cached private workspace.');
+if(!authBridgeMobileFix.includes('Unknown authorization failures must fail closed.')) fail.push('Workspace authorization error handling is missing the fail-closed guard.');
 if(!authBridgeMobileFix.includes('Retry session check')) fail.push('Signed-out session Retry action is not explicit.');
 if(!authBridgeMobileFix.includes('<a id="cloudAuthLogin"')||!authBridgeMobileFix.includes('href="login.html?from=secure-guard"')) fail.push('Secure-session Login action is not a native link.');
 if(!authBridgeMobileFix.includes('<a id="cloudAuthGuest"')||!authBridgeMobileFix.includes('href="learn.html?from=secure-guard"')) fail.push('Secure-session Guest action is not a native link.');

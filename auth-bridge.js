@@ -234,9 +234,12 @@
           workspaceReady('offline-cache',{reason:type});
           return true;
         }
-        console.warn('Workspace authorization:',error?.message||error);
-        workspaceReady('local-cache',{reason:'authorization-check-error'});
-        return true;
+        console.warn('Workspace authorization could not be verified:',error?.message||error);
+        // Unknown authorization failures must fail closed. Only positively
+        // classified network outages may use the explicitly supported cache path.
+        clearLocalAuthState();
+        showAccess('We could not verify access to this school workspace. Please retry or sign in again.',STATES.AUTH_ERROR,true);
+        return false;
       }
 
       // Ignore a late authorization response for a previous browser session.
