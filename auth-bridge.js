@@ -407,9 +407,12 @@
     if(!btn)return;
     event.preventDefault();
     const c=cloud();
-    Promise.resolve(c?.signOut?.()).catch(()=>{}).finally(()=>{
-      clearLocalAuthState();
-      showAccess('You have signed out. Sign in again, or continue as Guest.',STATES.UNAUTHENTICATED,false);
+    // Close the local school session immediately; network sign-out must not
+    // leave private workspace UI available while Supabase is responding.
+    clearLocalAuthState();
+    showAccess('You have signed out. Sign in again, or continue as Guest.',STATES.UNAUTHENTICATED,false);
+    Promise.resolve().then(()=>c?.signOut?.()).catch(error=>{
+      console.warn('Supabase sign-out could not be confirmed:',error?.message||error);
     });
   },true);
 
