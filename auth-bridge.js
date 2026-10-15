@@ -363,6 +363,20 @@
     const local=readLocal();
     if(validLocal(local)){
       const handoff=readHandoff();
+      if(handoff){
+        const cloudUser=cloud()?.state?.user||null;
+        if(handoff.userId&&cloudUser?.id&&String(handoff.userId)!==String(cloudUser.id)){
+          clearLocalAuthState();
+          showAccess('The signed-in account changed before this school workspace opened. Sign in again and select the correct school.',STATES.AUTH_ERROR,false);
+          return;
+        }
+        // The login flow has already verified this short-lived, school-scoped
+        // handoff. Open the workspace immediately, then let the normal delayed
+        // verification reconcile the live session without blocking the UI.
+        workspaceReady('login-handoff',{institutionId:local.institutionId,role:local.role});
+        scheduleWorkspaceVerification({reason:'login-handoff'});
+        return;
+      }
       if(!navigator.onLine){
         // Preserve the explicitly supported offline workspace path.
         workspaceReady('offline-cache',{institutionId:local.institutionId,role:local.role,reason:'startup-offline'});
