@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='20261011-session-epoch-v46', KEY='edunizam_system_build';
+const BUILD='20261015-logout-immediate-v1', KEY='edunizam_system_build';
 const ACTIVE_CACHE='edunizam-v279-logout-immediate-v1';
 const emit=(name,detail={})=>window.dispatchEvent(new CustomEvent(name,{detail}));
 function safeSet(k,v){try{localStorage.setItem(k,v)}catch(_){}}
