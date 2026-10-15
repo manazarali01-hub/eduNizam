@@ -211,9 +211,16 @@
       if(!user){
         const restoreStatus=String(c.state.sessionRestoreStatus||'').toLowerCase();
         const authoritativeAbsent=restoreStatus==='absent'||c.state.authEvent==='SIGNED_OUT';
-        if(!navigator.onLine||!authoritativeAbsent){
-          workspaceReady('local-cache',{reason:!navigator.onLine?'offline-no-session-check':'session-restore-'+(restoreStatus||'uncertain')});
+        if(!navigator.onLine){
+          workspaceReady('offline-cache',{reason:'offline-no-session-check'});
           return true;
+        }
+        if(!authoritativeAbsent){
+          // A timeout/unknown restore result must not authorize private cached
+          // UI while online. Keep local metadata for a possible late restore,
+          // but require a successful retry or late-session verification to unlock.
+          showAccess('We could not yet confirm your secure school session. Please retry or sign in again.',STATES.AUTH_ERROR,true);
+          return false;
         }
         if(!sameLocalWorkspace(local))return false;
         clearLocalAuthState();
@@ -353,15 +360,19 @@
 
   async function boot(){
     transition(STATES.BOOTING);
-    unlockUI();
     const local=readLocal();
     if(validLocal(local)){
-      // UI responsiveness is independent of network fetching. A fresh login
-      // handoff or valid local workspace opens immediately; cloud authorization
-      // is rechecked in the background and RLS remains authoritative.
       const handoff=readHandoff();
-      workspaceReady(handoff?'login-handoff':'local-session',{institutionId:local.institutionId,role:local.role});
-      scheduleWorkspaceVerification({reason:handoff?'login-handoff':'startup-local-session'});
+      if(!navigator.onLine){
+        // Preserve the explicitly supported offline workspace path.
+        workspaceReady('offline-cache',{institutionId:local.institutionId,role:local.role,reason:'startup-offline'});
+        scheduleWorkspaceVerification({reason:'startup-offline-session'});
+        return;
+      }
+      // A cached local identity is not proof of a live Supabase session. Keep
+      // private UI covered until the current user and school access are verified.
+      showAccess('Checking your secure school session. Please wait or retry the check.',STATES.AUTHORIZING,true);
+      scheduleWorkspaceVerification({force:true,reason:handoff?'login-handoff':'startup-local-session',delay:0});
       return;
     }
     showAccess('Sign in to open your private school workspace, or continue as Guest for public learning resources.',STATES.UNAUTHENTICATED,false);
