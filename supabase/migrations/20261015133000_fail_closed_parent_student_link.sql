@@ -60,7 +60,9 @@ begin
   insert into public.parent_student_links(parent_user_id, student_user_id, institution_id, status)
   values(uid, student_row.auth_user_id, student_row.institution_id, 'pending')
   on conflict (parent_user_id, student_user_id)
-  do update set institution_id = excluded.institution_id, status = 'pending'
+  do update set institution_id = excluded.institution_id,
+    status = case when public.parent_student_links.status = 'approved'
+      then 'approved' else 'pending' end
   returning * into result_row;
 
   return result_row;
