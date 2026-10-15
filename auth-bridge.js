@@ -403,6 +403,27 @@
     if(validLocal()&&[STATES.WORKSPACE_READY,STATES.BACKGROUND_SYNC,STATES.OFFLINE_READY].includes(runtimeState.state))unlockUI();
   });
 
+  // A session restore can finish after its startup timeout. Reconcile the
+  // local workspace when that late result arrives; otherwise the app can stay
+  // on an unverified local cache or leave a restored user stranded at login.
+  window.addEventListener('edunizam:cloud-ready',event=>{
+    if(event.detail?.event!=='LATE_SESSION_RESTORE')return;
+    const recheck=()=>{
+      if(validLocal()){
+        verifyCurrentWorkspace(true).catch(error=>console.warn('Late session restore verification:',error?.message||error));
+        return;
+      }
+      if(cloud()?.state?.user){
+        restoreWithoutLocal(true).catch(error=>console.warn('Late session workspace restore:',error?.message||error));
+        return;
+      }
+      showAccess('Sign in to open your private school workspace, or continue as Guest for public learning resources.',STATES.UNAUTHENTICATED,false);
+    };
+    const pending=runtimeState.verification;
+    if(pending)pending.finally(()=>setTimeout(recheck,0));
+    else recheck();
+  });
+
   // Logout is handled centrally even if roleSession is mounted after startup.
   document.addEventListener('click',event=>{
     const btn=event.target.closest?.('#roleSession button');
