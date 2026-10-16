@@ -167,6 +167,9 @@ jobs:
       - name: Verify production Timetable schema and form column contract
         run: node scripts/timetable-production-schema-check.mjs
 
+      - name: Validate teacher content UPDATE/DELETE policy migration contract
+        run: node scripts/teacher-content-update-policy-check.mjs
+
       - name: Verify cloud-first student staff and class bulk imports
         run: node scripts/bulk-import-cloud-check.mjs
 
@@ -238,3 +241,35 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f scripts/diary-rls-test-fixture.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016130000_scope_diary_write_policies.sql
           psql -v ON_ERROR_STOP=1 -f scripts/diary-write-policy-integration.sql
+
+  teacher-content-rls-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Apply teacher content migration to disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/teacher-content-rls-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016110000_scope_teacher_content_updates.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/teacher-content-rls-integration.sql
