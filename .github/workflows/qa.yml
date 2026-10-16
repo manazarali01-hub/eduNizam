@@ -178,6 +178,7 @@ jobs:
 
   browser-layout:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     needs: static-qa
     timeout-minutes: 15
     steps:
@@ -205,6 +206,7 @@ jobs:
           python3 -m pip install --quiet pillow
           python3 scripts/build-clay-icons.py
       - name: Run rendered mobile/layout regression checks
+        timeout-minutes: 20
         run: node scripts/browser-layout-check.mjs
       - name: Run Teacher Student Parent workflow regressions
         run: node scripts/role-workflow-check.mjs

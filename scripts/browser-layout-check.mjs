@@ -276,6 +276,7 @@ try{
     try{
       for(const width of widths){
         await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
+        console.log('Layout QA viewport:',route,width+'px');
         const {result,errors}=await inspectPage(page,'http://127.0.0.1:'+port+route,width);
         const scope=route+' @ '+width+'px';
         if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px '+JSON.stringify(result.wideElements));
