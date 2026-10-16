@@ -104,6 +104,29 @@ END
 $head$;
 RESET ROLE;
 
+-- Simulate staff revocation while the class_sections assignment remains stale.
+DELETE FROM public.institution_members
+WHERE institution_id='10000000-0000-0000-0000-000000000001'
+  AND user_id='20000000-0000-0000-0000-000000000001';
+
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000001',false);
+SELECT set_config('app.account_role','teacher',false);
+DO $former_staff$
+BEGIN
+  BEGIN
+    INSERT INTO public.daily_class_diaries
+      (id,institution_id,teacher_user_id,diary_date,class_name,section_name,subject,topic,homework,instructions)
+    VALUES
+      ('50000000-0000-0000-0000-000000000007','10000000-0000-0000-0000-000000000001',auth.uid(),'2026-10-16','Class 2','A','Math','Former staff insert','','');
+    RAISE EXCEPTION 'Former staff inserted a diary using a stale class assignment';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+END
+$former_staff$;
+RESET ROLE;
+
 DO $verify$
 BEGIN
   IF NOT EXISTS (
@@ -122,6 +145,10 @@ BEGIN
   ) THEN RAISE EXCEPTION 'Inactive-section INSERT unexpectedly persisted'; END IF;
   IF EXISTS (
     SELECT 1 FROM public.daily_class_diaries
+    WHERE id='50000000-0000-0000-0000-000000000007'
+  ) THEN RAISE EXCEPTION 'Former-staff INSERT using stale assignment unexpectedly persisted'; END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.daily_class_diaries
     WHERE id IN ('50000000-0000-0000-0000-000000000001','50000000-0000-0000-0000-000000000002')
   ) THEN RAISE EXCEPTION 'Authorized teacher/owner delete did not take effect'; END IF;
   IF NOT EXISTS (
@@ -133,6 +160,6 @@ BEGIN
     SELECT 1 FROM public.daily_class_diaries
     WHERE id='50000000-0000-0000-0000-000000000004'
   ) THEN RAISE EXCEPTION 'Other teacher diary unexpectedly disappeared'; END IF;
-  RAISE NOTICE 'Diary RLS integration PASS: allowed active INSERT/UPDATE/DELETE; blocked inactive INSERT and cross-class/inactive/cross-teacher UPDATE/DELETE; preserved owner DELETE.';
+  RAISE NOTICE 'Diary RLS integration PASS: allowed active INSERT/UPDATE/DELETE; blocked inactive and former-staff INSERTs plus cross-class/inactive/cross-teacher UPDATE/DELETE; preserved owner DELETE.';
 END
 $verify$;
