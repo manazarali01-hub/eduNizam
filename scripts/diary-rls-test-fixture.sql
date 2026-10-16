@@ -65,6 +65,8 @@ ALTER TABLE public.class_sections ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "fixture institution class read" ON public.class_sections
   FOR SELECT TO authenticated USING (public.is_institution_staff(institution_id));
 ALTER TABLE public.daily_class_diaries ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "fixture institution diary read" ON public.daily_class_diaries
+  FOR SELECT TO authenticated USING (public.is_institution_staff(institution_id));
 
 -- Existing owner-delete rule must survive the teacher-policy migration.
 CREATE POLICY "heads delete institute diaries" ON public.daily_class_diaries
