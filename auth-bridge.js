@@ -243,7 +243,7 @@
       }catch(error){
         if(!sameLocalWorkspace(local)||String(c?.state?.user?.id||'')!==String(user.id))return false;
         const type=dataRuntime()?.classify?.(error)||'DATA_FETCH_FAILED';
-        if(['NETWORK_TIMEOUT','NETWORK_OFFLINE','SERVER_TEMPORARY_FAILURE'].includes(type)){
+        if(!navigator.onLine&&['NETWORK_TIMEOUT','NETWORK_OFFLINE','SERVER_TEMPORARY_FAILURE'].includes(type)){
           workspaceReady('offline-cache',{reason:type});
           return true;
         }
