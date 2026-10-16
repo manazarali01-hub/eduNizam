@@ -30,6 +30,22 @@ GRANT EXECUTE ON FUNCTION public.is_institution_staff(uuid) TO authenticated;
 
 ALTER TABLE public.teacher_question_bank ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teacher_papers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "fixture question creator read" ON public.teacher_question_bank
+  FOR SELECT TO authenticated USING (
+    creator_user_id = (SELECT auth.uid())
+    OR (visibility = 'admin' AND EXISTS (
+      SELECT 1 FROM public.institutions i
+      WHERE i.id = teacher_question_bank.institution_id AND i.owner_user_id = (SELECT auth.uid())
+    ))
+  );
+CREATE POLICY "fixture paper creator read" ON public.teacher_papers
+  FOR SELECT TO authenticated USING (
+    creator_user_id = (SELECT auth.uid())
+    OR (visibility = 'admin' AND EXISTS (
+      SELECT 1 FROM public.institutions i
+      WHERE i.id = teacher_papers.institution_id AND i.owner_user_id = (SELECT auth.uid())
+    ))
+  );
 GRANT SELECT, UPDATE, DELETE ON public.teacher_question_bank TO authenticated;
 GRANT SELECT, UPDATE, DELETE ON public.teacher_papers TO authenticated;
 
