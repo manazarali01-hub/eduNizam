@@ -46,6 +46,7 @@ CREATE POLICY "fixture paper creator read" ON public.teacher_papers
       WHERE i.id = teacher_papers.institution_id AND i.owner_user_id = (SELECT auth.uid())
     ))
   );
+GRANT SELECT ON public.institutions TO authenticated;
 GRANT SELECT, UPDATE, DELETE ON public.teacher_question_bank TO authenticated;
 GRANT SELECT, UPDATE, DELETE ON public.teacher_papers TO authenticated;
 
