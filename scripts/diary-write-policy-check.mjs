@@ -1,4 +1,4 @@
-/* Static contract test for teacher diary UPDATE/DELETE policy scope.
+/* Static contract test for teacher diary INSERT/UPDATE/DELETE policy scope.
  * Checks migration text only; it does not execute SQL or replace live RLS tests.
  */
 import {readFileSync} from 'node:fs';
@@ -10,8 +10,8 @@ const count = (value, fragment) => value.split(fragment).length - 1;
 
 assert.match(compact, /^\s*begin;/, 'Migration must start a transaction');
 assert.match(compact, /commit;\s*$/, 'Migration must commit its transaction');
-assert.equal(count(compact, 'create policy '), 2, 'Expected UPDATE and DELETE policy replacements');
-assert.equal(count(compact, 'drop policy if exists '), 2, 'Expected only the two diary teacher policies to be replaced');
+assert.equal(count(compact, 'create policy '), 3, 'Expected INSERT, UPDATE and DELETE policy replacements');
+assert.equal(count(compact, 'drop policy if exists '), 3, 'Expected only the three diary teacher policies to be replaced');
 
 for (const [name, command] of [
   ['diary teacher updates own', 'update'],
@@ -28,9 +28,19 @@ for (const [name, command] of [
   assert.ok(body.includes('public.is_institution_staff(institution_id)'), 'Policy must require current institution authorization');
   assert.ok(body.includes('from public.class_sections cs'), 'Policy must validate current class assignment');
   assert.ok(body.includes('cs.class_teacher_user_id = (select auth.uid())'), 'Policy must require the current class teacher');
-  assert.ok(body.includes("coalesce(cs.active, true) = true"), 'Policy must require an active class section');
+  assert.ok(body.includes("cs.active is true"), 'Policy must require an active class section');
   if (command === 'update') assert.ok(body.includes(' with check ('), 'UPDATE policy must validate the new row');
 }
+
+const insertStart = compact.indexOf('create policy "assigned teachers write diaries" on public.daily_class_diaries');
+assert.notEqual(insertStart, -1, 'Missing INSERT policy');
+const insertEnd = compact.indexOf(';', insertStart);
+const insertBody = compact.slice(insertStart, insertEnd);
+assert.ok(insertBody.includes(' for insert to authenticated with check ('), 'INSERT must be authenticated and use WITH CHECK');
+assert.ok(insertBody.includes('teacher_user_id = (select auth.uid())'), 'INSERT must bind the diary teacher');
+assert.ok(insertBody.includes("public.current_account_role() = 'teacher'"), 'INSERT must require teacher role');
+assert.ok(insertBody.includes('cs.class_teacher_user_id = (select auth.uid())'), 'INSERT must require current class teacher assignment');
+assert.ok(insertBody.includes('cs.active is true'), 'INSERT must reject inactive class sections');
 assert.doesNotMatch(compact, /to public|to anon/, 'Policies must not grant public or anonymous access');
 assert.doesNotMatch(compact, /insert into|delete from|truncate|update public\./, 'Migration must not mutate diary records');
-console.log('Teacher diary RLS contract PASS: UPDATE/DELETE require creator, teacher role, institution membership and current active class assignment.');
+console.log('Teacher diary RLS contract PASS: INSERT/UPDATE/DELETE require teacher role and active class assignment.');
