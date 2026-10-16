@@ -205,3 +205,36 @@ jobs:
         run: node scripts/browser-layout-check.mjs
       - name: Run Teacher Student Parent workflow regressions
         run: node scripts/role-workflow-check.mjs
+
+
+  diary-rls-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Apply diary migration to disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/diary-rls-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016130000_scope_diary_write_policies.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/diary-write-policy-integration.sql
