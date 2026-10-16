@@ -7,6 +7,19 @@ BEGIN
   PERFORM set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000001',true);
   PERFORM set_config('app.account_role','teacher',true);
 
+  IF auth.uid() IS DISTINCT FROM '20000000-0000-0000-0000-000000000001'::uuid
+    THEN RAISE EXCEPTION 'Fixture auth.uid() did not read the simulated user'; END IF;
+  IF public.current_account_role() IS DISTINCT FROM 'teacher'
+    THEN RAISE EXCEPTION 'Fixture role helper did not read the simulated teacher role'; END IF;
+  IF NOT public.is_institution_staff('10000000-0000-0000-0000-000000000001')
+    THEN RAISE EXCEPTION 'Fixture institution membership helper denied the seeded teacher'; END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.class_sections cs
+    WHERE cs.institution_id='10000000-0000-0000-0000-000000000001'
+      AND cs.class_teacher_user_id=auth.uid()
+      AND cs.class_name='Class 2' AND cs.section_name='A' AND cs.active=true
+  ) THEN RAISE EXCEPTION 'Fixture class assignment is not visible to the simulated teacher'; END IF;
+
   UPDATE public.daily_class_diaries SET topic='Teacher A updated'
   WHERE id='50000000-0000-0000-0000-000000000001';
   GET DIAGNOSTICS affected = ROW_COUNT;
