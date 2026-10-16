@@ -12,6 +12,16 @@ BEGIN
   GET DIAGNOSTICS affected = ROW_COUNT;
   IF affected <> 1 THEN RAISE EXCEPTION 'Assigned active class teacher should update own diary; rows=%', affected; END IF;
 
+  -- USING must authorize the old row and WITH CHECK must reject moving it to another class.
+  BEGIN
+    UPDATE public.daily_class_diaries SET class_name='Class 3'
+    WHERE id='50000000-0000-0000-0000-000000000001';
+    GET DIAGNOSTICS affected = ROW_COUNT;
+    IF affected <> 0 THEN RAISE EXCEPTION 'Teacher moved diary into an unassigned class'; END IF;
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+
   UPDATE public.daily_class_diaries SET topic='Unauthorized cross-class edit'
   WHERE id='50000000-0000-0000-0000-000000000002';
   GET DIAGNOSTICS affected = ROW_COUNT;
