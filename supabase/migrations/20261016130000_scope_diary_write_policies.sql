@@ -19,7 +19,7 @@ create policy "diary teacher updates own"
         and cs.class_teacher_user_id = (select auth.uid())
         and cs.class_name = daily_class_diaries.class_name
         and coalesce(cs.section_name, '') = coalesce(daily_class_diaries.section_name, '')
-        and coalesce(cs.active, true) = true
+        and cs.active IS TRUE
     )
   )
   with check (
@@ -33,7 +33,7 @@ create policy "diary teacher updates own"
         and cs.class_teacher_user_id = (select auth.uid())
         and cs.class_name = daily_class_diaries.class_name
         and coalesce(cs.section_name, '') = coalesce(daily_class_diaries.section_name, '')
-        and coalesce(cs.active, true) = true
+        and cs.active IS TRUE
     )
   );
 
@@ -53,7 +53,27 @@ create policy "diary teacher deletes own"
         and cs.class_teacher_user_id = (select auth.uid())
         and cs.class_name = daily_class_diaries.class_name
         and coalesce(cs.section_name, '') = coalesce(daily_class_diaries.section_name, '')
-        and coalesce(cs.active, true) = true
+        and cs.active IS TRUE
+    )
+  );
+
+-- Keep the existing INSERT access model but reject writes to inactive sections.
+drop policy if exists "assigned teachers write diaries" on public.daily_class_diaries;
+create policy "assigned teachers write diaries"
+  on public.daily_class_diaries
+  for insert
+  to authenticated
+  with check (
+    teacher_user_id = (select auth.uid())
+    and public.current_account_role() = 'teacher'
+    and exists (
+      select 1
+      from public.class_sections cs
+      where cs.institution_id = daily_class_diaries.institution_id
+        and cs.class_teacher_user_id = (select auth.uid())
+        and cs.class_name = daily_class_diaries.class_name
+        and coalesce(cs.section_name, '') = coalesce(daily_class_diaries.section_name, '')
+        and cs.active IS TRUE
     )
   );
 
