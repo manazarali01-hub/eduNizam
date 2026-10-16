@@ -68,6 +68,20 @@ ALTER TABLE public.daily_class_diaries ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "fixture institution diary read" ON public.daily_class_diaries
   FOR SELECT TO authenticated USING (public.is_institution_staff(institution_id));
 
+-- Simulate the existing INSERT policy before the migration; it lacks active-state validation.
+CREATE POLICY "assigned teachers write diaries" ON public.daily_class_diaries
+  FOR INSERT TO authenticated WITH CHECK (
+    teacher_user_id = (SELECT auth.uid())
+    AND public.current_account_role() = 'teacher'
+    AND EXISTS (
+      SELECT 1 FROM public.class_sections cs
+      WHERE cs.institution_id = daily_class_diaries.institution_id
+        AND cs.class_teacher_user_id = (SELECT auth.uid())
+        AND cs.class_name = daily_class_diaries.class_name
+        AND COALESCE(cs.section_name, '') = COALESCE(daily_class_diaries.section_name, '')
+    )
+  );
+
 -- Existing owner-delete rule must survive the teacher-policy migration.
 CREATE POLICY "heads delete institute diaries" ON public.daily_class_diaries
   FOR DELETE TO authenticated
@@ -79,7 +93,7 @@ CREATE POLICY "heads delete institute diaries" ON public.daily_class_diaries
 
 GRANT SELECT ON public.institutions TO authenticated;
 GRANT SELECT ON public.class_sections TO authenticated;
-GRANT SELECT, UPDATE, DELETE ON public.daily_class_diaries TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.daily_class_diaries TO authenticated;
 
 INSERT INTO public.institutions VALUES
  ('10000000-0000-0000-0000-000000000001','90000000-0000-0000-0000-000000000001');
