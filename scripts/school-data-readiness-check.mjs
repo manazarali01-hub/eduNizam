@@ -65,6 +65,19 @@ const setup=app.nextSteps(missing);
 ok(setup.length===9,'Missing readiness actions absent');
 ok(setup.slice(0,4).map(x=>x.key).join(',')==='classes,staff,students,units','School setup action prerequisites out of order');
 ok(setup.at(-1).key==='library'&&setup.at(-1).status==='unknown','Connection errors must not be treated as missing books');
+const existingStudentsWithoutGroups=app.nextSteps({
+ classes:{status:'ok',count:0},students:{status:'ok',count:2},
+ staff:{status:'ok',count:0},units:{status:'ok',count:0},
+ questions:{status:'ok',count:0},lessons:{status:'ok',count:0},
+ timetable:{status:'ok',count:0},datesheets:{status:'ok',count:0},
+ library:{status:'ok',count:0}
+});
+ok(/2 student records already exist/.test(existingStudentsWithoutGroups[0].text),
+ 'Readiness should warn when student records predate class/section setup');
+ok(/reconcile existing student assignments/.test(existingStudentsWithoutGroups[0].text),
+ 'Readiness should direct the Head to reconcile existing student assignments');
+ok(/avoid re-importing these students/.test(existingStudentsWithoutGroups[0].text),
+ 'Readiness should warn against duplicate student imports');
 ok(app.nextSteps(Object.fromEntries(app.definitions.map(x=>[x.key,{status:'ok',count:3}]))).length===0,'A nonzero record count must not create fake missing actions');
 
 // The Head's exam blocker must be based on actual accessible school records,
