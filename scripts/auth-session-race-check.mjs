@@ -380,7 +380,7 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
     verifyWorkspaceAccess:async()=>{throw new Error('simulated authorization timeout')}
   };
   const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
-  e.window.EDUNIZAM_DATA_RUNTIME={classify:()=> 'NETWORK_TIMEOUT'};
+  e.window.EDUNIZAM_DATA_RUNTIME={classify:()=> 'NETWORK_TIMEOUT',run:async(_key,fn)=>fn()};
   assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),false,
     'Online authorization timeout incorrectly enabled offline-cache workspace access');
   assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'AUTH_ERROR',
