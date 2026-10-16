@@ -1,4 +1,4 @@
-const CACHE='edunizam-v279-logout-immediate-v1'
+const CACHE='edunizam-v280-online-auth-fail-closed-v1'
 const CORE=[
   './',
   './index.html',
