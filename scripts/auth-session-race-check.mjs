@@ -371,6 +371,26 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
     'Successful workspace authorization did not unlock the workspace');
 }
 
+// Regression 12: a classified network timeout must not expose cached private
+// workspace UI while the browser still reports that it is online.
+{
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},sessionRestoreStatus:'active',authEvent:'SIGNED_IN'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:async()=>{throw new Error('simulated authorization timeout')}
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  e.window.EDUNIZAM_DATA_RUNTIME={classify:()=> 'NETWORK_TIMEOUT'};
+  assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),false,
+    'Online authorization timeout incorrectly enabled offline-cache workspace access');
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'AUTH_ERROR',
+    'Online authorization timeout did not fail closed');
+  assert.equal(e.localStorage.getItem('edunizam_session'),null,
+    'Online authorization timeout retained local private-workspace authorization');
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Online authorization timeout removed the private-workspace guard');
+}
+
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
 assert.match(read('app.html'),/auth-bridge\.js\?v=20261015-logout-immediate-v1/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);
