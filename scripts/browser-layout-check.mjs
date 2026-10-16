@@ -301,7 +301,7 @@ try{
             window.scrollTo(0,0);
           });
           await page.waitForTimeout(90);
-          const routeName=route==='/'?'home':route.replace(/^\\//,'').replace(/\\.html$/,'');
+          const routeName=route==='/'?'home':route.replace(/^\//,'').replace(/\.html$/,'');
           await page.screenshot({
             path:path.join(visualDir,routeName+'-'+width+'.png'),
             fullPage:false,
