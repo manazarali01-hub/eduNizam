@@ -57,7 +57,7 @@ create policy "diary teacher deletes own"
     )
   );
 
--- Keep the existing INSERT access model but reject writes to inactive sections.
+-- Require current institution authorization and an active class assignment for INSERT.
 drop policy if exists "assigned teachers write diaries" on public.daily_class_diaries;
 create policy "assigned teachers write diaries"
   on public.daily_class_diaries
@@ -66,6 +66,7 @@ create policy "assigned teachers write diaries"
   with check (
     teacher_user_id = (select auth.uid())
     and public.current_account_role() = 'teacher'
+    and public.is_institution_staff(institution_id)
     and exists (
       select 1
       from public.class_sections cs
