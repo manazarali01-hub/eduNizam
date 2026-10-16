@@ -1,12 +1,13 @@
 -- Integration assertions for the actual diary migration, run only on disposable CI PostgreSQL.
 -- Authenticated users execute statements under RLS; helper functions are isolated test doubles.
+-- Set JWT/role GUCs in separate statements so STABLE helpers see the intended values.
 SET ROLE authenticated;
-DO $test$
+SELECT set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000001',false);
+SELECT set_config('app.account_role','teacher',false);
+
+DO $teacher$
 DECLARE affected integer;
 BEGIN
-  PERFORM set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000001',true);
-  PERFORM set_config('app.account_role','teacher',true);
-
   IF auth.uid() IS DISTINCT FROM '20000000-0000-0000-0000-000000000001'::uuid
     THEN RAISE EXCEPTION 'Fixture auth.uid() did not read the simulated user'; END IF;
   IF public.current_account_role() IS DISTINCT FROM 'teacher'
@@ -25,7 +26,7 @@ BEGIN
   GET DIAGNOSTICS affected = ROW_COUNT;
   IF affected <> 1 THEN RAISE EXCEPTION 'Assigned active class teacher should update own diary; rows=%', affected; END IF;
 
-  -- USING must authorize the old row and WITH CHECK must reject moving it to another class.
+  -- USING authorizes the old row; WITH CHECK must reject moving it to another class.
   BEGIN
     UPDATE public.daily_class_diaries SET class_name='Class 3'
     WHERE id='50000000-0000-0000-0000-000000000001';
@@ -64,10 +65,15 @@ BEGIN
   WHERE id='50000000-0000-0000-0000-000000000001';
   GET DIAGNOSTICS affected = ROW_COUNT;
   IF affected <> 1 THEN RAISE EXCEPTION 'Assigned active class teacher should delete own diary; rows=%', affected; END IF;
+END
+$teacher$;
 
-  PERFORM set_config('request.jwt.claim.sub','90000000-0000-0000-0000-000000000001',true);
-  PERFORM set_config('app.account_role','head',true);
+SELECT set_config('request.jwt.claim.sub','90000000-0000-0000-0000-000000000001',false);
+SELECT set_config('app.account_role','head',false);
 
+DO $head$
+DECLARE affected integer;
+BEGIN
   UPDATE public.daily_class_diaries SET topic='Head must not use teacher UPDATE policy'
   WHERE id='50000000-0000-0000-0000-000000000004';
   GET DIAGNOSTICS affected = ROW_COUNT;
@@ -78,7 +84,7 @@ BEGIN
   GET DIAGNOSTICS affected = ROW_COUNT;
   IF affected <> 1 THEN RAISE EXCEPTION 'Existing institution-owner DELETE policy was not preserved; rows=%', affected; END IF;
 END
-$test$;
+$head$;
 RESET ROLE;
 
 DO $verify$
