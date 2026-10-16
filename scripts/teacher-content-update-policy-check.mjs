@@ -16,15 +16,18 @@ for (const [policy, table] of [
   ['question creator updates', 'teacher_question_bank'],
   ['paper creator updates', 'teacher_papers']
 ]) {
-  const escaped = policy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp('create policy "' + escaped + '" on public\\.' + table + ' for update to authenticated using \\((.*?)\\) with check \\((.*?)\\);');
+  const escaped = policy;
+  const re = new RegExp('create policy "' + escaped + '" on public\\\\.' + table + ' for update to authenticated([\\\\s\\\\S]*?);');
   const match = compact.match(re);
   assert.ok(match, 'Missing authenticated UPDATE policy for ' + table);
-  for (const [clauseName, clause] of [['USING', match[1]], ['WITH CHECK', match[2]]]) {
-    assert.match(clause, /creator_user_id = \(select auth\.uid\(\)\)/, table + ' ' + clauseName + ' must bind updates to the authenticated creator');
-    assert.match(clause, /public\.is_institution_staff\(institution_id\)/, table + ' ' + clauseName + ' must verify current institution authorization');
-  }
-  assert.match(match[2], /institution_id is not null/, table + ' WITH CHECK must reject unscoped content');
+  const body = match[1];
+  assert.match(body, /using \\(/, table + ' policy must define USING');
+  assert.match(body, /with check \\(/, table + ' policy must define WITH CHECK');
+  assert.equal((body.match(/creator_user_id = \\(select auth\\.uid\\(\\)\\)/g) || []).length, 2,
+    table + ' must bind both USING and WITH CHECK to the authenticated creator');
+  assert.equal((body.match(/public\\.is_institution_staff\\(institution_id\\)/g) || []).length, 2,
+    table + ' must verify institution authorization in both USING and WITH CHECK');
+  assert.match(body, /institution_id is not null/, table + ' WITH CHECK must reject unscoped content');
 }
 assert.doesNotMatch(compact, /to public|to anon/, 'UPDATE policies must not grant anonymous/public access');
 assert.doesNotMatch(compact, /alter table|delete from|truncate|update public\./, 'Migration must not mutate school records or table-level grants');
