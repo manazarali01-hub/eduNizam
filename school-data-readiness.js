@@ -60,7 +60,13 @@
   if(!results)return[];
   const missing=order.filter(key=>results[key]?.status==='ok'&&results[key].count===0);
   const unknown=order.filter(key=>results[key]?.status==='unknown');
-  return[...missing.map(key=>({key,status:'missing',text:prerequisites[key]})),
+  return[...missing.map(key=>({
+      key,status:'missing',
+      text:key==='classes'&&results.classes?.status==='ok'&&results.classes.count===0&&
+        results.students?.status==='ok'&&results.students.count>0
+        ? 'No class sections are registered, but '+results.students.count+' student record'+(results.students.count===1?'':'s')+' already exist. Register the real class/section groups first, then reconcile existing student assignments; avoid re-importing these students.'
+        : prerequisites[key]
+    })),
     ...unknown.map(key=>({key,status:'unknown',text:'Could not verify this area due to access, connection or timeout. Check permissions and retry.'}))];
  }
  const forgetOtherSchool=()=>{
