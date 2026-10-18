@@ -190,12 +190,30 @@ const duas=[
 const names={family:"خاندان",peace:"سکون و صبر",knowledge:"علم و ہدایت",life:"روزمرہ زندگی"};
 const genericMethod="اس آیت کو اس کے مفہوم کے ساتھ عام دعا کے طور پر پڑھیں، اپنی زبان میں بھی اللہ سے مانگیں، اور مسئلے کے مطابق جائز عملی اسباب اختیار کریں۔ قرآن میں اس دعا کے لیے کوئی مخصوص تعداد یا لازمی دنیاوی نتیجہ مقرر نہیں؛ ایسا دعویٰ نہ کریں۔";
 function chooseDua(t,i){
- const s=t[0];
- if(/اولاد|نسل|میاں بیوی|گھرانے|شریکِ حیات|نکاح|خاندان|والدین|یتیم|پڑوسی|رشتوں|گھر میں|گھر والوں|اہلِ خانہ/.test(s)) return [duas[0],duas[1],duas[11],duas[23],duas[24]][i%5];
- if(/علم|تعلیم|امتحان|استاد|شاگرد|مطالعے|سیکھے|فہم|قرآن سمجھ|حکمت|فیصلے|گفتگو|زبان|سچائی|گواہی/.test(s)) return [duas[4],duas[5],duas[14],duas[22]][i%4];
- if(/رزق|قرض|کاروبار|نعمت|روزگار|حاجت|وقت|وعدہ|امانت|حق دار|عدل|انصاف|ضرورت مند|فضول خرچی|قناعت|حلال|ذمہ داری|سچ بول|نیک عمل|مدد|معاشرے|ظلم|سفر|صحت|بیماری/.test(s)) return [duas[2],duas[6],duas[15],duas[19],duas[20]][i%5];
- if(/صبر|غم|پریشانی|خوف|مایوسی|غصے|آزمائش|تنہائی|مصیبت|مغفرت|ہدایت|دلوں|اخلاص|تکبر|شکر|آخرت|موت|توبہ|معافی|وسوس|رحمت|بیماری/.test(s)) return [duas[3],duas[8],duas[9],duas[10],duas[17],duas[18],duas[21],duas[25]][i%8];
- return [duas[2],duas[7],duas[13],duas[16],duas[26]][i%5];
+ const title=t[0];
+ // Prefer the closest thematic passage; some topics intentionally use broad prayers,
+ // and the introduction explains that not every heading has a unique verse.
+ if(/نیک اولاد|اولاد کی دینی تربیت|نسلوں کی نیکی|اپنی اور اولاد/.test(title)) return duas[0];
+ if(/میاں بیوی|نکاح|شریکِ حیات|گھر میں محبت|گھرانے|ازدواجی/.test(title)) return duas[1];
+ if(/والدین/.test(title)) return duas[25];
+ if(/یتیم|پڑوسی|مسافروں|ضرورت مند|محتاج/.test(title)) return duas[27];
+ if(/علم|تعلیم|امتحان|استاد|شاگرد|مطالعہ|سیکھے|فہم|قرآن سمجھ/.test(title)) return duas[4];
+ if(/زبان|گفتگو|دل کی کشادگی|مشکل کام/.test(title)) return duas[5];
+ if(/حاجت|رزق|قرض|کاروبار|روزگار|حلال رزق/.test(title)) return duas[6];
+ if(/شکر/.test(title)) return duas[15];
+ if(/ہدایت|دلوں کی اصلاح|حق اور باطل|رہنمائی|فیصلے میں بصیرت|مشورہ/.test(title)) return duas[14];
+ if(/توبہ|غلطی کے بعد|معافی|مغفرت|گناہ/.test(title)) return duas[9];
+ if(/صبر|آزمائش|ثابت قدمی/.test(title)) return duas[20];
+ if(/بیماری|صحت/.test(title)) return duas[2];
+ if(/ظلم|مظلوم|تشدد|حفاظت|سلامتی/.test(title)) return duas[22];
+ if(/اہلِ خانہ|گھر والوں|خاندان/.test(title)) return duas[24];
+ if(/موت|آخرت|خاتمہ/.test(title)) return duas[18];
+ if(/توکل|بھروسا/.test(title)) return duas[7];
+ if(/غم|پریشانی|مشکل|مصیبت|تنہائی|مایوسی|خوف/.test(title)) return duas[3];
+ if(/نیک عمل|قبولیت/.test(title)) return duas[19];
+ if(/نیک لوگوں|اچھی صحبت|حکمت/.test(title)) return duas[23];
+ if(/دنیا و آخرت|جامع بھلائی/.test(title)) return duas[2];
+ return [duas[2],duas[7],duas[14],duas[16],duas[28]][i%5];
 }
 function chapterHTML(t,i){
  const d=chooseDua(t,i), n=String(i+1).padStart(2,'0');
