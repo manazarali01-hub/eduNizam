@@ -20,7 +20,7 @@
 
 /* Premium reading layer: refined color hierarchy, contrast and responsive type */
 :root{--reader-scale:1;--teal:#176a69;--blue:#315d91;--rose:#9c4c59;--lavender:#f2effb;--sky:#eef6fc;--sand:#fff7e5;--reader-line:#dce6de}
-body{font-size:calc(16px * var(--reader-scale));background:radial-gradient(ellipse at 8% 10%,#e9f3f8 0,transparent 28rem),radial-gradient(ellipse at 96% 35%,#f8f0df 0,transparent 30rem),#f8f9f5;line-height:2.15}
+body{font-size:1rem;background:radial-gradient(ellipse at 8% 10%,#e9f3f8 0,transparent 28rem),radial-gradient(ellipse at 96% 35%,#f8f0df 0,transparent 30rem),#f8f9f5;line-height:2.15}
 .topbar{background:linear-gradient(100deg,#10392f,#1d5b45 58%,#315d68);box-shadow:0 4px 20px #153c3020}
 .brand{font-size:1rem;color:#fff4d7}
 .hero{background:radial-gradient(circle at 12% 100%,#366b81 0,transparent 33%),radial-gradient(ellipse at 86% 12%,#42876b 0,transparent 43%),linear-gradient(125deg,#10382f,#185644 58%,#254d54);border:1px solid #ffffff25;box-shadow:0 24px 65px #143f302b}
@@ -158,12 +158,12 @@ const topics=[
 const names={family:"خاندان",peace:"سکون و صبر",knowledge:"علم و ہدایت",life:"روزمرہ زندگی"};
 const list=document.getElementById('topicList'), grid=document.getElementById('catalogGrid'), search=document.getElementById('search');
 let active='all';
-topics.forEach((t,i)=>{const li=document.createElement('li');li.dataset.category=t[1];li.dataset.text=t[0].toLowerCase();const btn=document.createElement('button');btn.innerHTML=(i<8?String(i+1).padStart(2,'0')+' · ':'')+t[0]+(i<8?'':'<small>علمی جانچ جاری</small>');btn.addEventListener('click',()=>{if(i<8){document.getElementById('dua-'+(i+1)).scrollIntoView({behavior:'smooth',block:'start'});}else{document.getElementById('catalogGrid').scrollIntoView({behavior:'smooth',block:'start'});}});li.appendChild(btn);list.appendChild(li);const item=document.createElement('div');item.className='catalog-item';item.dataset.category=t[1];item.dataset.text=t[0].toLowerCase();item.innerHTML='<b>'+String(i+1).padStart(3,'0')+'</b>'+t[0]+(i<8?'':'<span class="pending">عربی متن اور حوالہ شامل کرنے سے پہلے علمی جانچ درکار</span>');grid.appendChild(item);});
+topics.forEach((t,i)=>{const li=document.createElement('li');li.dataset.category=t[1];li.dataset.text=t[0].toLowerCase();const btn=document.createElement('button');btn.innerHTML=(i<8?String(i+1).padStart(2,'0')+' · ':'')+t[0]+(i<8?'':'<small>علمی جانچ جاری</small>');btn.addEventListener('click',()=>{if(i<8){document.getElementById('dua-'+(i+1)).scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}else{grid.children[i].scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});}});li.appendChild(btn);list.appendChild(li);const item=document.createElement('div');item.className='catalog-item';item.dataset.category=t[1];item.dataset.text=t[0].toLowerCase();item.innerHTML='<b>'+String(i+1).padStart(3,'0')+'</b>'+t[0]+(i<8?'':'<span class="pending">عربی متن اور حوالہ شامل کرنے سے پہلے علمی جانچ درکار</span>');grid.appendChild(item);});
 function filterItems(){const q=search.value.trim().toLowerCase();document.querySelectorAll('#topicList li,#catalogGrid .catalog-item').forEach(el=>{el.hidden=!(active==='all'||el.dataset.category===active)||!!q&&!el.dataset.text.includes(q);});document.querySelectorAll('.chapter').forEach(el=>{el.hidden=!!q&&!((el.dataset.search+' '+el.innerText).toLowerCase().includes(q))||active!=='all'&&el.dataset.category!==active;});}
 document.querySelectorAll('.filter').forEach(b=>b.addEventListener('click',()=>{active=b.dataset.filter;document.querySelectorAll('.filter').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));filterItems();}));
 search.addEventListener('input',filterItems);
 let readerScale=1;
-document.getElementById('fontDown').addEventListener('click',()=>{readerScale=Math.max(.88,Math.round((readerScale-.06)*100)/100);document.documentElement.style.setProperty('--reader-scale',readerScale);});
+document.getElementById('fontDown').addEventListener('click',()=>{readerScale=Math.max(.88,Math.round((readerScale-.06)*100)/100);document.documentElement.style.fontSize=(16*readerScale)+'px';});
 document.getElementById('fontUp').addEventListener('click',()=>{readerScale=Math.min(1.24,Math.round((readerScale+.06)*100)/100);document.documentElement.style.setProperty('--reader-scale',readerScale);});
 document.getElementById('contrastToggle').addEventListener('click',e=>{const on=document.body.classList.toggle('high-contrast');e.currentTarget.setAttribute('aria-pressed',String(on));e.currentTarget.textContent=on?'عام رنگ':'زیادہ واضح';});
 const resultStatus=document.getElementById('resultStatus');
