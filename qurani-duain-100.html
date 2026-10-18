@@ -167,7 +167,7 @@ document.getElementById('fontDown').addEventListener('click',()=>{readerScale=Ma
 document.getElementById('fontUp').addEventListener('click',()=>{readerScale=Math.min(1.24,Math.round((readerScale+.06)*100)/100);document.documentElement.style.fontSize=(16*readerScale)+'px';});
 document.getElementById('contrastToggle').addEventListener('click',e=>{const on=document.body.classList.toggle('high-contrast');e.currentTarget.setAttribute('aria-pressed',String(on));e.currentTarget.textContent=on?'عام رنگ':'زیادہ واضح';});
 const resultStatus=document.getElementById('resultStatus');
-function announceResults(){const visibleTopics=[...document.querySelectorAll('#topicList li')].filter(x=>!x.hidden).length;resultStatus.textContent=search.value.trim()?('تلاش کے نتائج: '+visibleTopics+' موضوعات'):'کتاب میں 100 موضوعات شامل ہیں؛ 8 نمونہ ابواب مکمل متن کے ساتھ موجود ہیں۔';}
+function announceResults(){const visibleTopics=[...document.querySelectorAll('#topicList li')].filter(x=>!x.hidden).length;const visibleChapters=[...document.querySelectorAll('.chapter')].filter(x=>!x.hidden).length;if(search.value.trim()||active!=='all'){resultStatus.textContent='فہرست میں '+visibleTopics+' موضوعات؛ مکمل ابواب میں '+visibleChapters+' نتائج';}else{resultStatus.textContent='کتاب میں 100 موضوعات شامل ہیں؛ 8 نمونہ ابواب مکمل متن کے ساتھ موجود ہیں۔';}}
 const originalFilterItems=filterItems;
 filterItems=function(){originalFilterItems();announceResults();};
 </script>
