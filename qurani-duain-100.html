@@ -164,7 +164,7 @@ document.querySelectorAll('.filter').forEach(b=>b.addEventListener('click',()=>{
 search.addEventListener('input',filterItems);
 let readerScale=1;
 document.getElementById('fontDown').addEventListener('click',()=>{readerScale=Math.max(.88,Math.round((readerScale-.06)*100)/100);document.documentElement.style.fontSize=(16*readerScale)+'px';});
-document.getElementById('fontUp').addEventListener('click',()=>{readerScale=Math.min(1.24,Math.round((readerScale+.06)*100)/100);document.documentElement.style.setProperty('--reader-scale',readerScale);});
+document.getElementById('fontUp').addEventListener('click',()=>{readerScale=Math.min(1.24,Math.round((readerScale+.06)*100)/100);document.documentElement.style.fontSize=(16*readerScale)+'px';});
 document.getElementById('contrastToggle').addEventListener('click',e=>{const on=document.body.classList.toggle('high-contrast');e.currentTarget.setAttribute('aria-pressed',String(on));e.currentTarget.textContent=on?'عام رنگ':'زیادہ واضح';});
 const resultStatus=document.getElementById('resultStatus');
 function announceResults(){const visibleTopics=[...document.querySelectorAll('#topicList li')].filter(x=>!x.hidden).length;resultStatus.textContent=search.value.trim()?('تلاش کے نتائج: '+visibleTopics+' موضوعات'):'کتاب میں 100 موضوعات شامل ہیں؛ 8 نمونہ ابواب مکمل متن کے ساتھ موجود ہیں۔';}
