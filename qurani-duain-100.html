@@ -213,7 +213,7 @@ function chooseDua(t,i){
  if(/نیک عمل|قبولیت/.test(title)) return duas[19];
  if(/نیک لوگوں|اچھی صحبت|حکمت/.test(title)) return duas[23];
  if(/دنیا و آخرت|جامع بھلائی/.test(title)) return duas[2];
- return [duas[2],duas[7],duas[14],duas[16],duas[28]][i%5];
+ return duas[2]; // غیر واضح موضوعات کے لیے جامع دعا؛ بے جوڑ آیت منتخب نہ کریں
 }
 function chapterHTML(t,i){
  const d=chooseDua(t,i), n=String(i+1).padStart(2,'0');
