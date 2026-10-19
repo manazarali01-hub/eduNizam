@@ -50,7 +50,7 @@ const widths=[360,375,390,412,430,768,1366];
 const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html','/pakistan-degree-accreditation-recognition.html','/pakistan-entry-tests-scholarships.html'];
 
 function routeNameForScreenshot(route){
-  return route==='/'?'home':route.replace(/^\\//,'').replace(/\\.html$/,'');
+  return route==='/'?'home':route.replace(/^\//,'').replace(/\.html$/,'');
 }
 
 function pushFailure(scope,message,detail=''){
