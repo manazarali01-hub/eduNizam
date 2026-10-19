@@ -239,7 +239,11 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
   assert.ok(e.doc.getElementById('cloudAuthScreen'),
     'Private workspace guard disappeared while authorization was pending');
   nextAccess.resolve(row);
-  await flush();
+  // Let the zero-delay verification timer and its async authorization chain
+  // settle deterministically on slower CI runners.
+  for(let i=0;i<20&&e.doc.getElementById('cloudAuthScreen');i++){
+    await new Promise(resolve=>setTimeout(resolve,10));
+  }
   await flush();
   assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
     'Successful fresh authorization should release the guard');
