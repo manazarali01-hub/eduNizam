@@ -86,7 +86,7 @@
     // Registration must not wait for large background photos / advertising
     // resources. The SW's network-first navigation protects the cold launch.
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('./sw.js?v=20261016-online-auth-fail-closed-v1',{updateViaCache:'none'})
+      navigator.serviceWorker.register('./sw.js?v=20261019-auth-event-guard-v1',{updateViaCache:'none'})
         .then(reg=>reg.update())
         .catch(()=>{});
     }
