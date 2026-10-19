@@ -236,9 +236,14 @@ try{
     const el=document.getElementById('loginSchoolName');
     if(!el)return false;
     const cs=getComputedStyle(el);
+    const brandLogo=document.querySelector('.auth-page .mobile-brand img');
+    const brandTitle=document.querySelector('.auth-page .mobile-brand strong');
     return parseFloat(cs.borderTopWidth)>=2.8&&
       (cs.backgroundImage.match(/linear-gradient/g)||[]).length>=2&&
-      parseFloat(cs.borderTopLeftRadius)>=16;
+      parseFloat(cs.borderTopLeftRadius)>=16&&
+      !!brandLogo&&!!brandTitle&&
+      getComputedStyle(brandLogo).alignSelf==='flex-end'&&
+      getComputedStyle(brandTitle).alignSelf==='flex-end';
   },null,{timeout:15000,polling:200}).catch(()=>{});
 
   const colorfulForms=await premiumFormPage.evaluate(()=>{
