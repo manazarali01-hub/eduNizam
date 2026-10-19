@@ -899,3 +899,54 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
     }catch(err){message(friendly(err.message||err),false,'otpStatus')}
     finally{busy($('resendOtpBtn'),false);refreshEmailCooldown()}
   };
+
+  $('backOtp').onclick=()=>{show('authView');setTab('login')};
+
+  $('resetForm').onsubmit=async e=>{
+    e.preventDefault();
+    const password=$('newPassword').value;
+    const confirmPassword=$('confirmNewPassword').value;
+    if(password.length<8)return message('Use at least 8 characters.',false,'resetStatus');
+    if(password!==confirmPassword)return message('New Password and Confirm New Password do not match.',false,'resetStatus');
+    try{
+      const {error}=await client.auth.updateUser({password});
+      if(error)throw error;
+      $('newPassword').value='';
+      $('confirmNewPassword').value='';
+      localStorage.removeItem('edunizam_recovery_email');
+      otpMode='';otpEmail='';
+      message('Password changed successfully.',true,'resetStatus');
+      setTimeout(()=>show('roleView'),700);
+    }catch(err){message(friendly(err.message||err),false,'resetStatus')}
+  };
+  $('backReset').onclick=()=>show('roleView');
+
+  if(localStorage.getItem('edunizam_verify_email'))$('resendVerifyBtn').classList.remove('hidden');
+  refreshEmailCooldown();
+
+  if(client){
+    client.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY'){otpMode='recovery';show('resetView')}});
+    const params=new URLSearchParams(location.search);
+    client.auth.getSession().then(async({data})=>{
+      if(params.get('reset')==='1'&&data.session){show('resetView');return}
+      if(data.session?.user){
+        const meta=data.session.user.user_metadata||{};
+        const localPending=(()=>{try{return JSON.parse(localStorage.getItem('edunizam_pending_signup')||'null')}catch(_){return null}})();
+        if(await shouldCompleteSignup(data.session.user,localPending)){
+          try{
+            const completed=await completeSignup(data.session.user);
+            if(completed)return;
+          }catch(err){
+            show('authView');
+            message(friendly(err.message||err));
+          }
+        }
+      }
+    });
+  }
+})();
+</script>
+<script src="system-auto-update.js?v=20261011-session-epoch-v46" defer></script>
+  <script src="edunizam-colorful-icons.js?v=20261008-clay-webp-v10" defer></script>
+</body>
+</html>
