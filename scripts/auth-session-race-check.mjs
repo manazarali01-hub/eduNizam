@@ -210,6 +210,41 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
   assert.equal(e.window.EDUNIZAM_CLOUD.state.sessionRestoreStatus,'absent');
 }
 
+// Regression 6: an auth lifecycle event must cover an already-open private
+// workspace synchronously, before the scheduled authorization check can run.
+{
+  const nextAccess=deferred();
+  let accessCalls=0;
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},sessionRestoreStatus:'active',authEvent:'SIGNED_IN'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:async()=>{
+      accessCalls++;
+      return accessCalls===1?row:nextAccess.promise;
+    }
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),true);
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'WORKSPACE_READY');
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null);
+
+  e.window.dispatchEvent({type:'edunizam:auth',detail:{
+    event:'SIGNED_IN',user:{id:'user-1',email:'user@example.test'}
+  }});
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Auth event left the previously open private workspace uncovered');
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'AUTHORIZING');
+
+  await flush();
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Private workspace guard disappeared while authorization was pending');
+  nextAccess.resolve(row);
+  await flush();
+  await flush();
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
+    'Successful fresh authorization should release the guard');
+}
+ 
 // Regression 6: a stale verification finishing after sign-out must not clear
 // the newer account's in-flight verification promise and permit duplicate RPCs.
 {
