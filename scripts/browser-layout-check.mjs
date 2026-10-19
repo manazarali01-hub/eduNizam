@@ -283,8 +283,27 @@ try{
       for(const width of widths){
         await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
         console.log('Layout QA viewport:',route,width+'px');
-        const {result,errors}=await inspectPage(page,'http://127.0.0.1:'+port+route,width);
         const scope=route+' @ '+width+'px';
+        // A browser-side evaluation can occasionally stop responding even when
+        // navigation has completed. Bound each route/viewport inspection, then
+        // retire that page so one bad document cannot consume the whole CI job.
+        let inspectionTimer;
+        let inspection;
+        try{
+          inspection=await Promise.race([
+            inspectPage(page,'http://127.0.0.1:'+port+route,width),
+            new Promise((_,reject)=>{
+              inspectionTimer=setTimeout(()=>reject(new Error('rendered inspection exceeded 18s budget')),18000);
+            })
+          ]);
+        }catch(error){
+          pushFailure(scope,'Rendered inspection timed out; remaining viewports for this route were skipped',error?.message||String(error));
+          await page.close({runBeforeUnload:false}).catch(()=>{});
+          break;
+        }finally{
+          clearTimeout(inspectionTimer);
+        }
+        const {result,errors}=inspection;
         // Visual snapshots are best-effort and isolated from the regression page.
         // A screenshot must never hold the functional/layout suite hostage.
         if(width===390||width===1366){
