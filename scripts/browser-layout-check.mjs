@@ -236,9 +236,14 @@ try{
     const el=document.getElementById('loginSchoolName');
     if(!el)return false;
     const cs=getComputedStyle(el);
+    const brandLogo=document.querySelector('.auth-page .mobile-brand img');
+    const brandTitle=document.querySelector('.auth-page .mobile-brand strong');
     return parseFloat(cs.borderTopWidth)>=2.8&&
       (cs.backgroundImage.match(/linear-gradient/g)||[]).length>=2&&
-      parseFloat(cs.borderTopLeftRadius)>=16;
+      parseFloat(cs.borderTopLeftRadius)>=16&&
+      !!brandLogo&&!!brandTitle&&
+      getComputedStyle(brandLogo).alignSelf==='flex-end'&&
+      getComputedStyle(brandTitle).alignSelf==='flex-end';
   },null,{timeout:15000,polling:200}).catch(()=>{});
 
   const colorfulForms=await premiumFormPage.evaluate(()=>{
@@ -272,6 +277,25 @@ try{
     pushFailure('premium forms','Colorful field label pill not rendered',JSON.stringify(colorfulForms.label));
   if(!colorfulForms.toggle||colorfulForms.toggle.border<1.8)
     pushFailure('premium forms','Premium Show/Hide password button styling absent');
+  const mobileBrandLayout=await premiumFormPage.evaluate(()=>{
+    const brand=document.querySelector('.auth-page .mobile-brand');
+    const logo=brand?.querySelector('img');
+    const title=brand?.querySelector('strong');
+    if(!brand||!logo||!title)return {missing:true};
+    const b=brand.getBoundingClientRect(),l=logo.getBoundingClientRect(),t=title.getBoundingClientRect();
+    const after=getComputedStyle(brand,'::after');
+    const taglineBottom=(parseFloat(after.top)||0)+(parseFloat(after.lineHeight)||18);
+    return {missing:false,brandHeight:b.height,logoTop:l.top-b.top,logoBottom:l.bottom-b.top,
+      titleTop:t.top-b.top,titleBottom:t.bottom-b.top,taglineBottom,overflow:brand.scrollHeight>brand.clientHeight+2};
+  });
+  console.log('Mobile login brand layout:',JSON.stringify(mobileBrandLayout));
+  if(mobileBrandLayout.missing)pushFailure('mobile login brand','Brand, logo or title is missing');
+  else if(mobileBrandLayout.logoTop<mobileBrandLayout.taglineBottom+8||
+          mobileBrandLayout.titleTop<mobileBrandLayout.taglineBottom+8||
+          mobileBrandLayout.logoBottom>mobileBrandLayout.brandHeight+1||
+          mobileBrandLayout.titleBottom>mobileBrandLayout.brandHeight+1||
+          mobileBrandLayout.overflow)
+    pushFailure('mobile login brand','Logo/title overlaps the tagline or escapes its framed header',JSON.stringify(mobileBrandLayout));
   await premiumFormPage.close();
   for(const route of pages){
     console.log('Layout QA route:',route);
