@@ -417,11 +417,38 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
     'Explicitly offline path unexpectedly cleared local session metadata');
 }
 
+// Regression 14: auth lifecycle events must not remove the private-workspace
+// guard before the current account's access to the selected school is verified.
+{
+  const access=deferred();
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},sessionRestoreStatus:'active',authEvent:'SIGNED_IN'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:()=>access.promise
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  await e.window.EDUNIZAM_AUTH_BRIDGE.boot();
+  await flush();
+  await flush();
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Startup guard missing while school authorization was pending');
+  e.window.dispatchEvent({type:'edunizam:auth',detail:{
+    event:'SIGNED_IN',user:{id:'user-1',email:'user@example.test'}
+  }});
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'SIGNED_IN event exposed private workspace before access verification');
+  access.resolve(row);
+  await flush();
+  await flush();
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
+    'Verified school authorization did not remove the guard');
+}
+ 
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
-assert.match(read('app.html'),/auth-bridge\.js\?v=20261016-online-auth-fail-closed-v1/);
+assert.match(read('app.html'),/auth-bridge\.js\?v=20261019-auth-event-guard-v1/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);
-assert.match(read('sw.js'),/edunizam-v280-online-auth-fail-closed-v1/);
-assert.match(read('system-auto-update.js'),/edunizam-v280-online-auth-fail-closed-v1/);
-assert.match(read('system-auto-update.js'),/20261016-online-auth-fail-closed-v1/);
-assert.ok(read('pwa-install.js').includes('sw.js?v=20261016-online-auth-fail-closed-v1'));
+assert.match(read('sw.js'),/edunizam-v281-auth-event-guard-v1/);
+assert.match(read('system-auto-update.js'),/edunizam-v281-auth-event-guard-v1/);
+assert.match(read('system-auto-update.js'),/20261019-auth-event-guard-v1/);
+assert.ok(read('pwa-install.js').includes('sw.js?v=20261019-auth-event-guard-v1'));
 console.log('Auth isolation, sign-out races, school-switch races and PWA cache checks passed.');
