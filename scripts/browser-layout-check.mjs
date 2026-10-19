@@ -4,6 +4,8 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const visualDir=path.resolve(root,'artifacts','visual-qa');
+fs.mkdirSync(visualDir,{recursive:true});
 const port=4173;
 const mime={
   '.html':'text/html; charset=utf-8',
@@ -46,6 +48,10 @@ const browser=await chromium.launch(launchOptions);
 const failures=[];
 const widths=[360,375,390,412,430,768,1366];
 const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html','/pakistan-degree-accreditation-recognition.html','/pakistan-entry-tests-scholarships.html'];
+
+function routeNameForScreenshot(route){
+  return route==='/'?'home':route.replace(/^\//,'').replace(/\.html$/,'');
+}
 
 function pushFailure(scope,message,detail=''){
   failures.push({scope,message,detail});
@@ -277,8 +283,78 @@ try{
       for(const width of widths){
         await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
         console.log('Layout QA viewport:',route,width+'px');
-        const {result,errors}=await inspectPage(page,'http://127.0.0.1:'+port+route,width);
         const scope=route+' @ '+width+'px';
+        // A browser-side evaluation can occasionally stop responding even when
+        // navigation has completed. Bound each route/viewport inspection, then
+        // retire that page so one bad document cannot consume the whole CI job.
+        let inspectionTimer;
+        let inspection;
+        try{
+          inspection=await Promise.race([
+            inspectPage(page,'http://127.0.0.1:'+port+route,width),
+            new Promise((_,reject)=>{
+              inspectionTimer=setTimeout(()=>reject(new Error('rendered inspection exceeded 18s budget')),18000);
+            })
+          ]);
+        }catch(error){
+          pushFailure(scope,'Rendered inspection timed out; remaining viewports for this route were skipped',error?.message||String(error));
+          await page.close({runBeforeUnload:false}).catch(()=>{});
+          break;
+        }finally{
+          clearTimeout(inspectionTimer);
+        }
+        const {result,errors}=inspection;
+        // Visual snapshots are best-effort and isolated from the regression page.
+        // A screenshot must never hold the functional/layout suite hostage.
+        if(width===390||width===1366){
+          let screenshotContext=null;
+          const capture=async()=>{
+            screenshotContext=await browser.newContext({viewport:{width,height:844},serviceWorkers:'block'});
+            const screenshotPage=await screenshotContext.newPage();
+            screenshotPage.setDefaultTimeout(4000);
+            screenshotPage.setDefaultNavigationTimeout(6000);
+            await screenshotPage.route('**/*',route=>{
+              const requestUrl=new URL(route.request().url());
+              if(requestUrl.hostname==='127.0.0.1')route.continue();
+              else route.abort();
+            });
+            await screenshotPage.goto('http://127.0.0.1:'+port+route,{waitUntil:'domcontentloaded',timeout:6000});
+            await screenshotPage.addStyleTag({content:`
+              :root{
+                --en-photo-kids:url("/assets/edunizam-login-children.webp")!important;
+                --en-photo-students:url("/assets/edunizam-girl-hero.webp")!important;
+                --en-photo-study:url("/assets/edunizam-girl-hero.webp")!important;
+                --en-photo-flatlay:url("/assets/edunizam-login-children.webp")!important;
+                --en-photo-stationery:url("/assets/edunizam-girl-hero.webp")!important;
+                --en-photo-classroom:url("/assets/edunizam-login-children.webp")!important;
+              }
+              *,*:before,*:after{animation:none!important;transition:none!important}
+            `});
+            await screenshotPage.evaluate(()=>{
+              const hero=document.querySelector('.page-home .hero-image-wrap img');
+              if(hero)hero.setAttribute('src','assets/edunizam-login-children.webp');
+              window.scrollTo(0,0);
+            });
+            await screenshotPage.screenshot({
+              path:path.join(visualDir,routeNameForScreenshot(route)+'-'+width+'.png'),
+              fullPage:false,
+              timeout:4000,
+              animations:'disabled'
+            });
+          };
+          let timeoutId;
+          try{
+            await Promise.race([
+              capture(),
+              new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error('visual screenshot exceeded 9s budget')),9000);})
+            ]);
+          }catch(error){
+            console.warn('Visual QA screenshot skipped (non-blocking):',route,width+'px',error?.message||String(error));
+          }finally{
+            clearTimeout(timeoutId);
+            if(screenshotContext)await screenshotContext.close().catch(()=>{});
+          }
+        }
         if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px '+JSON.stringify(result.wideElements));
         if(result.clipped.length)pushFailure(scope,'Interactive controls escape the viewport',JSON.stringify(result.clipped));
         if(result.publicGuideHero&&width<=430){
