@@ -49,6 +49,10 @@ const failures=[];
 const widths=[360,375,390,412,430,768,1366];
 const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html','/pakistan-degree-accreditation-recognition.html','/pakistan-entry-tests-scholarships.html'];
 
+function routeNameForScreenshot(route){
+  return route==='/'?'home':route.replace(/^\\//,'').replace(/\\.html$/,'');
+}
+
 function pushFailure(scope,message,detail=''){
   failures.push({scope,message,detail});
 }
@@ -281,32 +285,56 @@ try{
         console.log('Layout QA viewport:',route,width+'px');
         const {result,errors}=await inspectPage(page,'http://127.0.0.1:'+port+route,width);
         const scope=route+' @ '+width+'px';
-        // Preserve rendered review snapshots for the two key device widths.
-        // The measured layout assertions above remain based on the unmodified page.
+        // Visual snapshots are best-effort and isolated from the regression page.
+        // A screenshot must never hold the functional/layout suite hostage.
         if(width===390||width===1366){
-          await page.addStyleTag({content:`
-            :root{
-              --en-photo-kids:url("/assets/edunizam-login-children.webp")!important;
-              --en-photo-students:url("/assets/edunizam-girl-hero.webp")!important;
-              --en-photo-study:url("/assets/edunizam-girl-hero.webp")!important;
-              --en-photo-flatlay:url("/assets/edunizam-login-children.webp")!important;
-              --en-photo-stationery:url("/assets/edunizam-girl-hero.webp")!important;
-              --en-photo-classroom:url("/assets/edunizam-login-children.webp")!important;
-            }
-            *,*:before,*:after{animation:none!important;transition:none!important}
-          `});
-          await page.evaluate(()=>{
-            const hero=document.querySelector('.page-home .hero-image-wrap img');
-            if(hero)hero.setAttribute('src','assets/edunizam-login-children.webp');
-            window.scrollTo(0,0);
-          });
-          await page.waitForTimeout(90);
-          const routeName=route==='/'?'home':route.replace(/^\//,'').replace(/\.html$/,'');
-          await page.screenshot({
-            path:path.join(visualDir,routeName+'-'+width+'.png'),
-            fullPage:false,
-            timeout:7000
-          });
+          let screenshotContext=null;
+          const capture=async()=>{
+            screenshotContext=await browser.newContext({viewport:{width,height:844},serviceWorkers:'block'});
+            const screenshotPage=await screenshotContext.newPage();
+            screenshotPage.setDefaultTimeout(4000);
+            screenshotPage.setDefaultNavigationTimeout(6000);
+            await screenshotPage.route('**/*',route=>{
+              const requestUrl=new URL(route.request().url());
+              if(requestUrl.hostname==='127.0.0.1')route.continue();
+              else route.abort();
+            });
+            await screenshotPage.goto('http://127.0.0.1:'+port+route,{waitUntil:'domcontentloaded',timeout:6000});
+            await screenshotPage.addStyleTag({content:`
+              :root{
+                --en-photo-kids:url("/assets/edunizam-login-children.webp")!important;
+                --en-photo-students:url("/assets/edunizam-girl-hero.webp")!important;
+                --en-photo-study:url("/assets/edunizam-girl-hero.webp")!important;
+                --en-photo-flatlay:url("/assets/edunizam-login-children.webp")!important;
+                --en-photo-stationery:url("/assets/edunizam-girl-hero.webp")!important;
+                --en-photo-classroom:url("/assets/edunizam-login-children.webp")!important;
+              }
+              *,*:before,*:after{animation:none!important;transition:none!important}
+            `});
+            await screenshotPage.evaluate(()=>{
+              const hero=document.querySelector('.page-home .hero-image-wrap img');
+              if(hero)hero.setAttribute('src','assets/edunizam-login-children.webp');
+              window.scrollTo(0,0);
+            });
+            await screenshotPage.screenshot({
+              path:path.join(visualDir,routeNameForScreenshot(route)+'-'+width+'.png'),
+              fullPage:false,
+              timeout:4000,
+              animations:'disabled'
+            });
+          };
+          let timeoutId;
+          try{
+            await Promise.race([
+              capture(),
+              new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error('visual screenshot exceeded 9s budget')),9000);})
+            ]);
+          }catch(error){
+            console.warn('Visual QA screenshot skipped (non-blocking):',route,width+'px',error?.message||String(error));
+          }finally{
+            clearTimeout(timeoutId);
+            if(screenshotContext)await screenshotContext.close().catch(()=>{});
+          }
         }
         if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px '+JSON.stringify(result.wideElements));
         if(result.clipped.length)pushFailure(scope,'Interactive controls escape the viewport',JSON.stringify(result.clipped));
