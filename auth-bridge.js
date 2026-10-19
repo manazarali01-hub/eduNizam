@@ -410,8 +410,10 @@
           showAccess('The signed-in account changed before this school workspace opened. Sign in again and select the correct school.',STATES.AUTH_ERROR,false);
           return;
         }
-        unlockUI();
-        scheduleWorkspaceVerification({reason:'auth-event'});
+        // A Supabase auth event proves identity, not current authorization for
+        // this school. Keep the private-workspace guard until access verification
+        // succeeds; force an immediate check instead of opening the cached UI.
+        scheduleWorkspaceVerification({force:true,reason:'auth-event',delay:0});
       }else{
         restoreWithoutLocal(false).catch(()=>{});
       }
