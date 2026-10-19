@@ -177,6 +177,20 @@ async function inspectPage(page,url,width){
           photo:bs.backgroundImage,headingRight:hb.right,copyRight:pb.right,
           heroRight:er.right,height:er.height};
       })(),
+      publicNav:(()=>{
+        const el=document.querySelector('.premium-public-page .public-links');
+        if(!el)return null;
+        const cs=getComputedStyle(el),bar=getComputedStyle(el,'::-webkit-scrollbar');
+        const start=el.scrollLeft;
+        el.scrollLeft=el.scrollWidth;
+        const reachable=el.scrollLeft>start;
+        el.scrollLeft=0;
+        return {
+          clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,overflowX:cs.overflowX,
+          scrollbarWidth:cs.scrollbarWidth,scrollbarDisplay:bar.display,scrollbarHeight:parseFloat(bar.height)||0,
+          linkCount:el.querySelectorAll('a').length,canScroll:el.scrollWidth>el.clientWidth+4,reachable
+        };
+      })(),
       home:{
         nav:box('.page-home .public-nav'),
         main:box('.page-home .public-main'),
@@ -357,6 +371,17 @@ try{
         }
         if(result.overflow>2)pushFailure(scope,'Unexpected horizontal page overflow',String(result.overflow)+'px '+JSON.stringify(result.wideElements));
         if(result.clipped.length)pushFailure(scope,'Interactive controls escape the viewport',JSON.stringify(result.clipped));
+        if(route==='/features.html'&&width<=430){
+          const nav=result.publicNav;
+          if(!nav)pushFailure(scope,'Public mobile navigation is missing');
+          else{
+            if(nav.linkCount<7)pushFailure(scope,'Public navigation is missing expected destinations',JSON.stringify(nav));
+            if(!nav.canScroll||!nav.reachable||!['auto','scroll'].includes(nav.overflowX))
+              pushFailure(scope,'Public mobile navigation destinations are not horizontally reachable',JSON.stringify(nav));
+            if(nav.scrollbarWidth==='none'||nav.scrollbarDisplay==='none'||nav.scrollbarHeight<4)
+              pushFailure(scope,'Public mobile navigation has no visible scroll cue',JSON.stringify(nav));
+          }
+        }
         if(result.publicGuideHero&&width<=430){
           const h=result.publicGuideHero;
           if(h.missing)pushFailure(scope,'Public guide hero heading or description missing');
