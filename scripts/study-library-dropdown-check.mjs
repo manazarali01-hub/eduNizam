@@ -72,5 +72,7 @@ check(!math.includes('Separate Mathematical Physics'),'Mathematics filter incorr
 
 // Corrupt or wrong-shaped local preferences must not break public Study Library rendering.
 check(typeof api.materialMatchesBoard==='function','Study Library failed to initialize with invalid saved/recent preferences');
-check(el('studyLibrary').innerHTML.includes('Official Class Nine Maths')||el('studyLibrary').innerHTML.length>=0,'Study Library renderer unavailable after storage recovery');
+check(el('studyStatSaved').textContent==='0','Malformed saved preferences must safely fall back to an empty list');
+check(el('studyStatRecent').textContent==='0','Wrong-shaped recent preferences must safely fall back to an empty list');
+check(el('studyLibrary').innerHTML.includes('Official Class Nine Maths'),'Study Library must still render resources when browser preferences are invalid');
 console.log('EduNizam Study Library dropdown PASS: subject isolation and corrupt/wrong-shaped browser preference recovery.');
