@@ -418,6 +418,23 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-test-fixture.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020110000_revoke_authenticated_truncate_public.sql
           psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-integration.sql
+      - name: Verify supabase_admin remediation fails closed for unauthorized role
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        shell: bash
+        run: |
+          if psql -v ON_ERROR_STOP=1 -f supabase/manual/20261020_supabase_admin_default_truncate_remediation.sql > /tmp/owner-remediation-guard.log 2>&1; then
+            cat /tmp/owner-remediation-guard.log
+            echo "ERROR: owner remediation unexpectedly succeeded as postgres"
+            exit 1
+          fi
+          cat /tmp/owner-remediation-guard.log
+          grep -F "Must run as supabase_admin" /tmp/owner-remediation-guard.log
+
       - name: Verify supabase_admin default ACL remediation on disposable PostgreSQL
         env:
           PGHOST: localhost
