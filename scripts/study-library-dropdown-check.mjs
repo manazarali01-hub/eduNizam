@@ -8,7 +8,11 @@ const values=new Map([
  ['edunizam_study_saved','{malformed-json'],
  ['edunizam_study_recent','{"not":"an array"}']
 ]);
-const localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v))};
+let storageBlocked=false;
+const localStorage={
+ getItem:k=>{if(storageBlocked)throw new Error('SecurityError: storage access denied');return values.get(k)||null},
+ setItem:(k,v)=>{if(storageBlocked)throw new Error('SecurityError: storage access denied');values.set(k,String(v))}
+};
 const nodes=new Map();
 function el(id){
  if(!nodes.has(id)){
@@ -75,4 +79,13 @@ check(typeof api.materialMatchesBoard==='function','Study Library failed to init
 check(String(el('studyStatSaved').textContent)==='0','Malformed saved preferences must safely fall back to an empty list');
 check(String(el('studyStatRecent').textContent)==='0','Wrong-shaped recent preferences must safely fall back to an empty list');
 check(el('studyLibrary').innerHTML.includes('Official Class Nine Maths'),'Study Library must still render resources when browser preferences are invalid');
-console.log('EduNizam Study Library dropdown PASS: subject isolation and corrupt/wrong-shaped browser preference recovery.');
+
+// Browsers may deny Storage access entirely (for example, restricted/private contexts).
+// Both reads and writes can throw SecurityError even when the Storage API exists.
+storageBlocked=true;
+let blockedStorageRenderError=null;
+try{window.renderStudyLibrary()}catch(error){blockedStorageRenderError=error}
+check(!blockedStorageRenderError,'Study Library must remain usable when browser storage access throws');
+check(el('studyLibrary').innerHTML.includes('Official Class Nine Maths'),'Storage access denial must not hide public resources');
+check(String(el('studyStatSaved').textContent)==='0'&&String(el('studyStatRecent').textContent)==='0','Denied storage reads must safely report empty local preferences');
+console.log('EduNizam Study Library dropdown PASS: subject isolation, corrupt preferences, and denied browser storage recovery.');
