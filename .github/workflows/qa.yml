@@ -27,6 +27,8 @@ jobs:
         run: node qa-check.mjs
       - name: Verify atomic AI quota reservation before provider spend
         run: node scripts/ai-quota-reservation-check.mjs
+      - name: Verify AI usage sequence privilege migration contract
+        run: node scripts/ai-usage-sequence-privilege-check.mjs
       - name: Verify navigation load races and dynamic action binding
         run: node scripts/navigation-request-race-check.mjs
       - name: Validate public homepage feedback intake and submission safeguards
