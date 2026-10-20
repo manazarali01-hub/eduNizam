@@ -89,4 +89,13 @@ try{window.renderStudyLibrary();saveButton.onclick()}catch(error){blockedStorage
 check(!blockedStorageRenderError,'Study Library rendering and save interaction must survive denied browser storage');
 check(el('studyLibrary').innerHTML.includes('Official Class Nine Maths'),'Storage access denial must not hide public resources');
 check(String(el('studyStatSaved').textContent)==='0'&&String(el('studyStatRecent').textContent)==='0','Denied storage reads must safely report empty local preferences');
-console.log('EduNizam Study Library dropdown PASS: subject isolation, corrupt preferences, and denied browser storage recovery.');
+
+// Some privacy-restricted browsers throw while resolving window.localStorage itself,
+// before getItem/setItem can run. Keep the public library usable in that case too.
+Object.defineProperty(ctx,'localStorage',{configurable:true,get(){throw new Error('SecurityError: localStorage property access denied')}});
+let blockedStoragePropertyError=null;
+try{window.renderStudyLibrary();saveButton.onclick()}catch(error){blockedStoragePropertyError=error}
+check(!blockedStoragePropertyError,'Study Library rendering/save must survive a throwing localStorage property getter');
+check(el('studyLibrary').innerHTML.includes('Official Class Nine Maths'),'Blocked localStorage property access must not hide public resources');
+check(String(el('studyStatSaved').textContent)==='0'&&String(el('studyStatRecent').textContent)==='0','Blocked localStorage property access must fall back to empty local preferences');
+console.log('EduNizam Study Library dropdown PASS: subject isolation, corrupt preferences, denied storage methods, and denied storage property access.');
