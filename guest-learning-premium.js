@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-const norm=v=>window.EDUNIZAM_LEARNING_SEARCH?.normalize?.(v)||String(v??'').normalize('NFKC').toLocaleLowerCase('en-PK').replace(/[^\\p{L}\\p{N}]+/gu,' ').trim();
+const norm=v=>window.EDUNIZAM_LEARNING_SEARCH?.normalize?.(v)||String(v??'').normalize('NFKC').toLocaleLowerCase('en-PK').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 const FKEY='edunizam_guest_favorites', RKEY='edunizam_guest_recent_searches', PKEY='edunizam_guest_practice_history', PRESUME='edunizam_guest_practice_resume';
 const getJSON=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(_){return d}};
 const setJSON=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
