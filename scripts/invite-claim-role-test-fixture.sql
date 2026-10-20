@@ -38,7 +38,7 @@ create table public.user_profiles (
 create table public.institution_members (
   institution_id uuid not null references public.institutions(id),
   user_id uuid not null,
-  role text not null check (role in ('student','parent','teacher','head_of_institute')),
+  role text not null check (role in ('teacher','parent','student')),
   created_at timestamptz not null default now(),
   primary key (institution_id,user_id)
 );
@@ -64,7 +64,6 @@ insert into public.user_profiles(user_id,account_role,institution_id) values
  ('20000000-0000-0000-0000-000000000004','parent','10000000-0000-0000-0000-000000000001');
 
 insert into public.institution_members(institution_id,user_id,role) values
- ('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','head_of_institute'),
  ('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000002','teacher'),
  ('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000003','student'),
  ('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000004','parent');
