@@ -227,8 +227,8 @@ if(/querySelectorAll\(['"]button\[disabled\]['"]\)/.test(reliabilitySafety)) fai
 for(const page of ['index.html','login.html','app.html','learn.html','admission.html','about.html','features.html','learning-resources-pakistan.html','online-school-admissions.html','privacy.html','school-management-system-pakistan.html']){
   const html=read(page);
   for(const ref of [...html.matchAll(/(?:pwa-install|system-auto-update)\.js\?v=([A-Za-z0-9._-]+)/g)].map(m=>m[1])){
-    if(!['20261008-natural-glass-v31','20261008-coldstart-v36','20261009-paper-builder-v42','20261009-practice-source-v44','20261010-auth-race-v45','20261011-session-epoch-v46','20261016-online-auth-fail-closed-v1','20261019-auth-event-guard-v1'].includes(ref)) fail.push('Unknown runtime cache-busting token on '+page+': '+ref);
-    if(page==='index.html' && ref!=='20261016-online-auth-fail-closed-v1') fail.push('Homepage must load current PWA cold-start controllers: '+ref);
+    if(!['20261008-natural-glass-v31','20261008-coldstart-v36','20261009-paper-builder-v42','20261009-practice-source-v44','20261010-auth-race-v45','20261011-session-epoch-v46','20261016-online-auth-fail-closed-v1','20261019-auth-event-guard-v1','20261020-auth-event-guard-v2'].includes(ref)) fail.push('Unknown runtime cache-busting token on '+page+': '+ref);
+    if(page==='index.html' && ref!=='20261020-auth-event-guard-v2') fail.push('Homepage must load current PWA cold-start controllers: '+ref);
   }
 }
 const appExternalScriptTags=[...index.matchAll(/<script[^>]+src=["'][^"']+["'][^>]*>/g)].map(m=>m[0]);
