@@ -8,7 +8,8 @@ if ! grep -q 'LOCAL.*REMOTE' "$1"; then
   exit 2
 fi
 
-if awk -F '│' '
+set +e
+awk -F '│' '
   NF >= 3 {
     local_version = $1
     remote_version = $2
@@ -20,9 +21,20 @@ if awk -F '│' '
     }
   }
   END { exit found ? 0 : 1 }
-' "$1"; then
-  echo "::error::Production has remote-only migration versions with no matching local SQL. Reconcile from an authoritative source before deployment." >&2
-  exit 1
-fi
+' "$1"
+awk_status=$?
+set -e
 
-echo "Linked migration history contains no remote-only version entries."
+case "$awk_status" in
+  0)
+    echo "::error::Production has remote-only migration versions with no matching local SQL. Reconcile from an authoritative source before deployment." >&2
+    exit 1
+    ;;
+  1)
+    echo "Linked migration history contains no remote-only version entries."
+    ;;
+  *)
+    echo "::error::Could not safely parse linked migration history; refusing deployment." >&2
+    exit 2
+    ;;
+esac
