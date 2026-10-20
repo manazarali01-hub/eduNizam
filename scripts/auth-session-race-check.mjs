@@ -477,7 +477,11 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
   assert.ok(e.doc.getElementById('cloudAuthScreen'),
     'SIGNED_IN event exposed private workspace before access verification');
   access.resolve(row);
-  await flush();
+  // Authorization includes several async boundaries (cloud readiness, RPC,
+  // and state reconciliation); wait boundedly rather than assuming two ticks.
+  for(let i=0;i<20&&e.doc.getElementById('cloudAuthScreen');i++){
+    await new Promise(resolve=>setTimeout(resolve,10));
+  }
   await flush();
   assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
     'Verified school authorization did not remove the guard');
