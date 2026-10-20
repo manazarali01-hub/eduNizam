@@ -23,7 +23,7 @@ begin
     patched := regexp_replace(
       definition,
       'institution_id[[:space:]]*=[[:space:]]*excluded\.institution_id[[:space:]]*,',
-      'institution_id=case when public.user_profiles.institution_id is null then excluded.institution_id else public.user_profiles.institution_id end,',
+      'institution_id=case when user_profiles.institution_id is null then excluded.institution_id else user_profiles.institution_id end,',
       ''
     );
 
