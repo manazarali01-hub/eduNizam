@@ -6,6 +6,11 @@ on:
 permissions:
   contents: read
 
+# Serialize production deploys; never cancel a migration push mid-flight.
+concurrency:
+  group: edunizam-production-supabase-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -50,6 +55,40 @@ jobs:
 
       - name: Link Supabase project
         run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+
+      # Remote-only rows mean production has applied migration versions whose
+      # SQL files are absent locally. Stop rather than pushing into uncertain
+      # history; do not use migration repair/include-all as an automatic fix.
+      - name: Block deployment when remote migration history is unreconciled
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --linked | tee /tmp/supabase-migration-list.txt
+
+          if ! grep -q 'LOCAL.*REMOTE' /tmp/supabase-migration-list.txt; then
+            echo "::error::Could not recognize Supabase migration-list output; refusing deployment."
+            exit 1
+          fi
+
+          if awk -F '│' '
+            NF >= 3 {
+              local_version = $1
+              remote_version = $2
+              gsub(/[[:space:]]/, "", local_version)
+              gsub(/[[:space:]]/, "", remote_version)
+              if (local_version == "" && length(remote_version) == 14 && remote_version ~ /^[0-9]+$/) {
+                print "Remote-only migration history entry: " remote_version
+                found = 1
+              }
+            }
+            END { exit found ? 0 : 1 }
+          ' /tmp/supabase-migration-list.txt; then
+            echo "::error::Production has remote-only migration versions with no matching local SQL. Reconcile from an authoritative source before deployment."
+            exit 1
+          fi
+
+      - name: Preview pending database migrations
+        run: supabase db push --dry-run
 
       - name: Apply database migrations
         run: supabase db push
