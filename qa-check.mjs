@@ -211,6 +211,17 @@ if(loginHtml.includes("sw.js?v=20261001-visitor202")) fail.push('Login still reg
 if(!app.includes("classList?.contains('feature-loading-notice')")) fail.push('Feature Retry does not clear stale loader/error notices before retrying.');
 if(!app.includes("retryBtn.textContent='Retrying…'")) fail.push('Feature Retry button does not expose an active retry state.');
 
+// Invite-claim source-of-truth: migration and fresh-project bootstrap must agree.
+const inviteMigration=read('supabase/migrations/20261020050000_harden_invite_claim_role_consistency.sql');
+const inviteBootstrap=read('supabase-production-one-step.sql');
+if(!inviteMigration.includes("existing_role is distinct from inv.target_role"))fail.push('Invite migration does not reject cross-role reassignment.');
+if(!inviteMigration.includes('on conflict on constraint institution_members_pkey'))fail.push('Invite migration must avoid ambiguous OUT-parameter conflict targets.');
+if(!inviteMigration.includes('This account already has a different school membership'))fail.push('Invite migration does not reject conflicting existing school memberships.');
+const bootstrapPrivateFns=[...inviteBootstrap.matchAll(/create or replace function private\.claim_institution_invite_v2\(p_code text\)/g)];
+const bootstrapPublicFns=[...inviteBootstrap.matchAll(/create or replace function public\.claim_institution_invite\(p_code text\)([\s\S]*?)\$function\$;/g)];
+if(bootstrapPrivateFns.length!==1)fail.push('Fresh-project bootstrap must define exactly one canonical private invite-claim implementation.');
+if(bootstrapPublicFns.length!==2||bootstrapPublicFns.some(m=>!m[1].includes('select * from private.claim_institution_invite_v2(p_code)')))fail.push('Both duplicate bootstrap public invite RPC definitions must delegate to the canonical hardened function.');
+
 // Keep the new paper-builder script cache and installed PWA controllers aligned.
 const expectedWizard='20261009-practice-source-v44';
 if(!read('app.html').includes('auth-bridge.js?v=20261020-auth-event-guard-v2'))fail.push('Secure auth bridge cache version was not bumped after the fail-closed fix.');
