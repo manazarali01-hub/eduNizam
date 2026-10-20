@@ -27,9 +27,7 @@ jobs:
         run: node qa-check.mjs
       - name: Verify atomic AI quota reservation before provider spend
         run: node scripts/ai-quota-reservation-check.mjs
-      - name: Verify public TRUNCATE revocation migration contract
-        run: node scripts/public-truncate-revocation-migration-check.mjs
-      - name: Verify authorized Supabase owner-default remediation contract
+      - name: Verify TRUNCATE revocation and authorized owner-default remediation contracts
         run: node scripts/public-truncate-revocation-migration-check.mjs
       - name: Verify navigation load races and dynamic action binding
         run: node scripts/navigation-request-race-check.mjs
