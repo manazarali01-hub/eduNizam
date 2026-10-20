@@ -210,6 +210,82 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
   assert.equal(e.window.EDUNIZAM_CLOUD.state.sessionRestoreStatus,'absent');
 }
 
+// Regression 6: a matching auth event must preserve the short-lived login handoff
+// that the login flow has already verified, without weakening account-change guards.
+{
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},sessionRestoreStatus:'active',authEvent:'SIGNED_IN'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:async()=>row
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  const now=Date.now();
+  e.sessionStorage.setItem('edunizam_secure_login_handoff',JSON.stringify({
+    version:2,nonce:'verified-handoff',userId:'user-1',institutionId:'school-A',role:'head',at:now,expiresAt:now+120000
+  }));
+  e.window.EDUNIZAM_AUTH_BRIDGE.boot();
+  const timer=e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.verificationTimer;
+  if(timer)clearTimeout(timer);
+  e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.verificationTimer=0;
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'WORKSPACE_READY');
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null);
+
+  e.window.dispatchEvent({type:'edunizam:auth',detail:{
+    event:'SIGNED_IN',user:{id:'user-1',email:'user@example.test'}
+  }});
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
+    'Matching SIGNED_IN event must not revoke a verified login handoff');
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'WORKSPACE_READY');
+
+  e.window.dispatchEvent({type:'edunizam:auth',detail:{
+    event:'USER_UPDATED',user:{id:'user-1',email:'user@example.test'}
+  }});
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'USER_UPDATED must still trigger fresh workspace authorization');
+  const pending=e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.verificationTimer;
+  if(pending)clearTimeout(pending);
+  e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.verificationTimer=0;
+}
+
+// Regression 6: an auth lifecycle event must cover an already-open private
+// workspace synchronously, before the scheduled authorization check can run.
+{
+  const nextAccess=deferred();
+  let accessCalls=0;
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},sessionRestoreStatus:'active',authEvent:'SIGNED_IN'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:async()=>{
+      accessCalls++;
+      return accessCalls===1?row:nextAccess.promise;
+    }
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  assert.equal(await e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true),true);
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'WORKSPACE_READY');
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null);
+
+  e.window.dispatchEvent({type:'edunizam:auth',detail:{
+    event:'SIGNED_IN',user:{id:'user-1',email:'user@example.test'}
+  }});
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Auth event left the previously open private workspace uncovered');
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'AUTHORIZING');
+
+  await flush();
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Private workspace guard disappeared while authorization was pending');
+  nextAccess.resolve(row);
+  // Let the zero-delay verification timer and its async authorization chain
+  // settle deterministically on slower CI runners.
+  for(let i=0;i<20&&e.doc.getElementById('cloudAuthScreen');i++){
+    await new Promise(resolve=>setTimeout(resolve,10));
+  }
+  await flush();
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
+    'Successful fresh authorization should release the guard');
+}
+ 
 // Regression 6: a stale verification finishing after sign-out must not clear
 // the newer account's in-flight verification promise and permit duplicate RPCs.
 {
@@ -438,17 +514,21 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
   assert.ok(e.doc.getElementById('cloudAuthScreen'),
     'SIGNED_IN event exposed private workspace before access verification');
   access.resolve(row);
-  await flush();
+  // Authorization includes several async boundaries (cloud readiness, RPC,
+  // and state reconciliation); wait boundedly rather than assuming two ticks.
+  for(let i=0;i<20&&e.doc.getElementById('cloudAuthScreen');i++){
+    await new Promise(resolve=>setTimeout(resolve,10));
+  }
   await flush();
   assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
     'Verified school authorization did not remove the guard');
 }
  
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
-assert.match(read('app.html'),/auth-bridge\.js\?v=20261019-auth-event-guard-v1/);
+assert.match(read('app.html'),/auth-bridge\.js\?v=20261020-auth-event-guard-v2/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);
-assert.match(read('sw.js'),/edunizam-v281-auth-event-guard-v1/);
-assert.match(read('system-auto-update.js'),/edunizam-v281-auth-event-guard-v1/);
-assert.match(read('system-auto-update.js'),/20261019-auth-event-guard-v1/);
-assert.ok(read('pwa-install.js').includes('sw.js?v=20261019-auth-event-guard-v1'));
+assert.match(read('sw.js'),/edunizam-v282-auth-event-guard-v2/);
+assert.match(read('system-auto-update.js'),/edunizam-v282-auth-event-guard-v2/);
+assert.match(read('system-auto-update.js'),/20261020-auth-event-guard-v2/);
+assert.ok(read('pwa-install.js').includes('sw.js?v=20261020-auth-event-guard-v2'));
 console.log('Auth isolation, sign-out races, school-switch races and PWA cache checks passed.');
