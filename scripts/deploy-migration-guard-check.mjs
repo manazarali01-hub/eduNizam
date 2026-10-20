@@ -1,4 +1,6 @@
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 
@@ -30,10 +32,14 @@ assert.match(
 );
 
 function checkMigrationHistory(input) {
-  return spawnSync("bash", [guardPath.pathname, "/dev/stdin"], {
-    input,
-    encoding: "utf8",
-  });
+  const directory = mkdtempSync(join(tmpdir(), "edunizam-migration-guard-"));
+  const fixture = join(directory, "migration-list.txt");
+  try {
+    writeFileSync(fixture, input, "utf8");
+    return spawnSync("bash", [guardPath.pathname, fixture], { encoding: "utf8" });
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 }
 
 const remoteOnly = [
