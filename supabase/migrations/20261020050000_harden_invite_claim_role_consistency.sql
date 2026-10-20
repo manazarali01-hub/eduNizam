@@ -96,7 +96,7 @@ as $function$
 $function$;
 
 revoke all on function private.claim_institution_invite_v2(text) from public, anon;
-grant execute on function private.claim_institution_invite_v2(text) to authenticated;
+grant execute on function private.claim_institution_invite_v2(text) to authenticated, service_role;
 
 revoke all on function public.claim_institution_invite(text) from public, anon;
 grant execute on function public.claim_institution_invite(text) to authenticated, service_role;

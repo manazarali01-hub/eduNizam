@@ -841,7 +841,7 @@ end;
 $function$;
 
 revoke all on function private.claim_institution_invite_v2(text) from public, anon;
-grant execute on function private.claim_institution_invite_v2(text) to authenticated;
+grant execute on function private.claim_institution_invite_v2(text) to authenticated, service_role;
 
 create or replace function public.claim_institution_invite(p_code text)
 returns table(institution_id uuid, institution_name text, granted_role text)
