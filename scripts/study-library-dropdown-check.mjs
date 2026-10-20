@@ -4,7 +4,10 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 const src=readFileSync(new URL('../study-library.js',import.meta.url),'utf8');
 const check=(ok,msg)=>{if(!ok)throw Error(msg)};
-const values=new Map();
+const values=new Map([
+ ['edunizam_study_saved','{malformed-json'],
+ ['edunizam_study_recent','{"not":"an array"}']
+]);
 const localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v))};
 const nodes=new Map();
 function el(id){
@@ -66,4 +69,10 @@ window.renderStudyLibrary();
 const math=el('studyLibrary').innerHTML;
 check(math.includes('Official Class Nine Maths')&&math.includes('Class Nine Multi Subject Scheme'),'Mathematics filter hides exact/bundled resource');
 check(!math.includes('Separate Mathematical Physics'),'Mathematics filter incorrectly matched another subject');
-console.log('EduNizam Study Library dropdown PASS: no duplicate All Subjects, official multi-subject schemes, grade and board aliases, subject isolation.');
+
+// Corrupt or wrong-shaped local preferences must not break public Study Library rendering.
+check(typeof api.materialMatchesBoard==='function','Study Library failed to initialize with invalid saved/recent preferences');
+check(String(el('studyStatSaved').textContent)==='0','Malformed saved preferences must safely fall back to an empty list');
+check(String(el('studyStatRecent').textContent)==='0','Wrong-shaped recent preferences must safely fall back to an empty list');
+check(el('studyLibrary').innerHTML.includes('Official Class Nine Maths'),'Study Library must still render resources when browser preferences are invalid');
+console.log('EduNizam Study Library dropdown PASS: subject isolation and corrupt/wrong-shaped browser preference recovery.');

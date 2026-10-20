@@ -5,9 +5,15 @@
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
   let activeTab='library',current=null;
-  const saved=()=>JSON.parse(localStorage.getItem('edunizam_study_saved')||'[]');
-  const recent=()=>JSON.parse(localStorage.getItem('edunizam_study_recent')||'[]');
-  const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+  // Browser storage can be stale, manually edited, or partially written. A bad
+  // preference must never prevent the public Study Library from rendering.
+  const readList=k=>{
+    try{const value=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(value)?value:[]}
+    catch(_){return[]}
+  };
+  const saved=()=>readList('edunizam_study_saved');
+  const recent=()=>readList('edunizam_study_recent');
+  const put=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(_){return false}};
   const byId=id=>D.materials.find(x=>x.id===id);
   const boardByName=name=>(PP.boards||[]).find(b=>b.name===name);
 
