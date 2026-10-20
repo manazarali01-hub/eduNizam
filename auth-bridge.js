@@ -410,6 +410,15 @@
           showAccess('The signed-in account changed before this school workspace opened. Sign in again and select the correct school.',STATES.AUTH_ERROR,false);
           return;
         }
+        // The login flow creates this short-lived handoff only after verifying
+        // the user's school access. Supabase commonly emits INITIAL_SESSION or
+        // SIGNED_IN immediately afterward; the same user event must not revoke
+        // that verified handoff and cover the workspace again. USER_UPDATED is
+        // intentionally excluded because profile changes require fresh review.
+        if(type!=='USER_UPDATED'&&handoff?.userId&&eventUser?.id
+          &&String(handoff.userId)===String(eventUser.id)){
+          return;
+        }
         // Auth lifecycle events can represent an account/session change. Cover
         // private school UI synchronously, before a scheduled verification can
         // yield to visibility changes or another browser event.
