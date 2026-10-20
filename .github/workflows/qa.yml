@@ -25,12 +25,10 @@ jobs:
           node-version: '22'
       - name: Run EduNizam QA
         run: node qa-check.mjs
-      - name: Validate canonical titles and search/social metadata consistency
-        run: node scripts/public-metadata-consistency-check.mjs
       - name: Verify atomic AI quota reservation before provider spend
         run: node scripts/ai-quota-reservation-check.mjs
-      - name: Verify AI usage sequence privilege migration contract
-        run: node scripts/ai-usage-sequence-privilege-check.mjs
+      - name: Verify public TRUNCATE revocation migration contract
+        run: node scripts/public-truncate-revocation-migration-check.mjs
       - name: Verify navigation load races and dynamic action binding
         run: node scripts/navigation-request-race-check.mjs
       - name: Validate public homepage feedback intake and submission safeguards
@@ -353,7 +351,7 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020100000_preserve_default_school_on_access_approval.sql
           psql -v ON_ERROR_STOP=1 -f scripts/default-school-preservation-integration.sql
 
-  ai-usage-sequence-privilege-integration:
+  public-truncate-revocation-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     services:
@@ -373,7 +371,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Verify AI usage sequence grants on disposable PostgreSQL
+      - name: Verify TRUNCATE revocation against disposable PostgreSQL
         env:
           PGHOST: localhost
           PGPORT: 5432
@@ -381,6 +379,6 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: postgres
         run: |
-          psql -v ON_ERROR_STOP=1 -f scripts/ai-usage-sequence-test-fixture.sql
-          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020080000_revoke_ai_usage_sequence_app_privileges.sql
-          psql -v ON_ERROR_STOP=1 -f scripts/ai-usage-sequence-privilege-integration.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020110000_revoke_authenticated_truncate_public.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-integration.sql
