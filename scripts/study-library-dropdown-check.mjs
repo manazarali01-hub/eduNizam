@@ -30,7 +30,8 @@ function el(id){
  }
  return nodes.get(id);
 }
-const document={getElementById:el,querySelectorAll:()=>[]};
+const saveButton={dataset:{studySave:'core-math'},onclick:null};
+const document={getElementById:el,querySelectorAll:selector=>selector==='[data-study-save]'?[saveButton]:[]};
 const materials=[
  {id:'core-math',board:'Punjab · PECTAA',classLevels:[9],subject:'Mathematics',type:'Textbook',title:'Official Class Nine Maths',source:'official',url:'https://example.org/math'},
  {id:'general-hub',board:'Punjab PECTAA',classLevels:[9],subject:'All Subjects',type:'Directory',title:'Punjab Curriculum Directory',source:'official',url:'https://example.org/general'},
@@ -84,8 +85,8 @@ check(el('studyLibrary').innerHTML.includes('Official Class Nine Maths'),'Study 
 // Both reads and writes can throw SecurityError even when the Storage API exists.
 storageBlocked=true;
 let blockedStorageRenderError=null;
-try{window.renderStudyLibrary()}catch(error){blockedStorageRenderError=error}
-check(!blockedStorageRenderError,'Study Library must remain usable when browser storage access throws');
+try{window.renderStudyLibrary();saveButton.onclick()}catch(error){blockedStorageRenderError=error}
+check(!blockedStorageRenderError,'Study Library rendering and save interaction must survive denied browser storage');
 check(el('studyLibrary').innerHTML.includes('Official Class Nine Maths'),'Storage access denial must not hide public resources');
 check(String(el('studyStatSaved').textContent)==='0'&&String(el('studyStatRecent').textContent)==='0','Denied storage reads must safely report empty local preferences');
 console.log('EduNizam Study Library dropdown PASS: subject isolation, corrupt preferences, and denied browser storage recovery.');
