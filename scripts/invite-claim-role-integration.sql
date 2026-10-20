@@ -52,6 +52,7 @@ BEGIN
     THEN RAISE EXCEPTION 'Same-role parent multi-school claim failed or changed default school'; END IF;
 
   -- Existing student cannot become a parent; invitation remains unused.
+  PERFORM set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000003',false);
   BEGIN
     PERFORM 1 FROM public.claim_institution_invite('STUDENT-PARENT');
     RAISE EXCEPTION 'TEST_SENTINEL: student-to-parent reassignment unexpectedly succeeded';
