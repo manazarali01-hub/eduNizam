@@ -1,43 +1,67 @@
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 
 const workflow = readFileSync(
   new URL("../.github/workflows/deploy-supabase.yml", import.meta.url),
   "utf8",
 );
+const guardPath = new URL("./check-supabase-migration-history.sh", import.meta.url);
 
 assert.match(
   workflow,
   /concurrency:\s*\n\s*group:\s*edunizam-production-supabase-deploy\s*\n\s*cancel-in-progress:\s*false/,
   "production Supabase deployments must be serialized and never canceled mid-migration",
 );
-
 assert.match(
   workflow,
   /supabase migration list --linked/,
   "deployment must inspect the linked production migration ledger",
 );
-
 assert.match(
   workflow,
-  /Could not recognize Supabase migration-list output; refusing deployment/,
-  "unrecognized migration-list output must fail closed",
+  /bash scripts\/check-supabase-migration-history\.sh/,
+  "deployment must use the separately tested migration history guard",
 );
-
 assert.match(
   workflow,
-  /Remote-only migration history entry/,
-  "deployment must detect remote migration versions with no local SQL file",
+  /supabase db push --dry-run[\s\S]*supabase db push/,
+  "pending migrations must be previewed before application",
 );
 
-assert.match(
-  workflow,
-  /Production has remote-only migration versions with no matching local SQL/,
-  "remote-only migration history must block production deployment",
-);
+function checkMigrationHistory(input) {
+  return spawnSync("bash", [guardPath.pathname, "/dev/stdin"], {
+    input,
+    encoding: "utf8",
+  });
+}
 
-const preview = workflow.indexOf("run: supabase db push --dry-run");
-const apply = workflow.indexOf("run: supabase db push\n");
-assert.ok(preview >= 0 && apply > preview, "pending migrations must be previewed before application");
+const remoteOnly = [
+  " LOCAL │ REMOTE │ TIME",
+  "       │ 20261014170754 │ 2026-10-14 17:07:54",
+].join("\n") + "\n";
+const matching = [
+  " LOCAL │ REMOTE │ TIME",
+  " 20261020110000 │ 20261020110000 │ 2026-10-20 11:00:00",
+].join("\n") + "\n";
+const localOnly = [
+  " LOCAL │ REMOTE │ TIME",
+  " 20261020110000 │ │",
+].join("\n") + "\n";
+const unrecognized = "migration versions unavailable\n";
 
-console.log("Production migration deployment guard contract checks passed.");
+const blocked = checkMigrationHistory(remoteOnly);
+assert.notEqual(blocked.status, 0, "remote-only migrations must block deployment");
+assert.match(blocked.stderr, /Remote-only migration history entry: 20261014170754/);
+
+const matchingResult = checkMigrationHistory(matching);
+assert.equal(matchingResult.status, 0, matchingResult.stderr || "matching versions should pass");
+
+const localOnlyResult = checkMigrationHistory(localOnly);
+assert.equal(localOnlyResult.status, 0, localOnlyResult.stderr || "local-only pending migrations should pass the history guard");
+
+const unknownResult = checkMigrationHistory(unrecognized);
+assert.notEqual(unknownResult.status, 0, "unrecognized migration output must fail closed");
+assert.match(unknownResult.stderr, /Could not recognize Supabase migration-list output/);
+
+console.log("Production migration deployment guard contract and parser fixtures passed.");
