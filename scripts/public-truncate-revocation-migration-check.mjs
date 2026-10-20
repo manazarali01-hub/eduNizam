@@ -29,3 +29,27 @@ assert.doesNotMatch(executableSql, /revoke\s+(select|insert|update|delete)\b/i,
   'Security migration must not change ordinary CRUD privileges');
 
 console.log('Public TRUNCATE revocation migration contract checks passed.');
+
+
+// The production audit also found supabase_admin-owned defaults. Keep that
+// remediation separate and fail-closed: it must run as the owning role.
+const ownerRemediation = fs.readFileSync(
+  'supabase/manual/20261020_supabase_admin_default_truncate_remediation.sql',
+  'utf8'
+);
+assert.match(ownerRemediation, /current_user\s*<>\s*'supabase_admin'/i,
+  'Owner-default remediation must refuse to run under an unauthorized role');
+for (const schema of ['public', 'graphql', 'graphql_public']) {
+  assert.match(ownerRemediation, new RegExp(
+    'alter\\s+default\\s+privileges\\s+in\\s+schema\\s+' + schema +
+    '\\s+revoke\\s+truncate\\s+on\\s+tables\\s+from\\s+anon\\s*,\\s*authenticated\\s*;', 'i'
+  ), 'Owner-default remediation must cover ' + schema);
+}
+assert.match(ownerRemediation, /a\.privilege_type\s*=\s*'TRUNCATE'/i,
+  'Owner-default remediation must verify the resulting ACL');
+assert.match(ownerRemediation, /commit\s*;/i,
+  'Owner-default remediation must commit only after the verification block');
+assert.doesNotMatch(ownerRemediation, /set\s+role\s+supabase_admin/i,
+  'Remediation must not attempt unauthorized role impersonation');
+
+console.log('Supabase owner-default remediation contract checks passed.');
