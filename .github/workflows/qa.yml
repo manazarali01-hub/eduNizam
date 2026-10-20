@@ -348,3 +348,35 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f scripts/default-school-preservation-test-fixture.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020100000_preserve_default_school_on_access_approval.sql
           psql -v ON_ERROR_STOP=1 -f scripts/default-school-preservation-integration.sql
+
+  ai-usage-sequence-privilege-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify AI usage sequence grants on disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/ai-usage-sequence-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020080000_revoke_ai_usage_sequence_app_privileges.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/ai-usage-sequence-privilege-integration.sql
