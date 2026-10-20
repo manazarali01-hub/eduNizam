@@ -531,4 +531,46 @@ assert.match(read('sw.js'),/edunizam-v282-auth-event-guard-v2/);
 assert.match(read('system-auto-update.js'),/edunizam-v282-auth-event-guard-v2/);
 assert.match(read('system-auto-update.js'),/20261020-auth-event-guard-v2/);
 assert.ok(read('pwa-install.js').includes('sw.js?v=20261020-auth-event-guard-v2'));
+// Regression 15: USER_UPDATED must trigger a real fresh authorization check,
+// not merely cover the UI and leave the verified login handoff stuck.
+{
+  const access=deferred();
+  let accessCalls=0;
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},sessionRestoreStatus:'active',authEvent:'SIGNED_IN'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:()=>{accessCalls++;return access.promise}
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  const now=Date.now();
+  e.sessionStorage.setItem('edunizam_secure_login_handoff',JSON.stringify({
+    version:2,nonce:'verified-handoff-user-updated',userId:'user-1',
+    institutionId:'school-A',role:'head',at:now,expiresAt:now+120000
+  }));
+  await e.window.EDUNIZAM_AUTH_BRIDGE.boot();
+  const startupTimer=e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.verificationTimer;
+  if(startupTimer)clearTimeout(startupTimer);
+  e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.verificationTimer=0;
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'WORKSPACE_READY');
+
+  e.window.dispatchEvent({type:'edunizam:auth',detail:{
+    event:'USER_UPDATED',user:{id:'user-1',email:'user@example.test'}
+  }});
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'USER_UPDATED did not synchronously cover the private workspace');
+
+  for(let i=0;i<20&&accessCalls===0;i++) await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(accessCalls,1,
+    'USER_UPDATED covered the workspace but never started fresh school authorization');
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Private workspace became visible while USER_UPDATED authorization was pending');
+
+  access.resolve(row);
+  for(let i=0;i<30&&e.doc.getElementById('cloudAuthScreen');i++)
+    await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
+    'Successful USER_UPDATED re-authorization did not release the workspace guard');
+  assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'WORKSPACE_READY');
+}
+
 console.log('Auth isolation, sign-out races, school-switch races and PWA cache checks passed.');
