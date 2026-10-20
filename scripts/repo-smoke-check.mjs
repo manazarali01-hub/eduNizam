@@ -95,8 +95,8 @@ try{
   const jsonLd=landing.match(/<script\s+type=["']application\/ld\+json["']>([\s\S]*?)<\/script>/i)?.[1];
   const parsed=JSON.parse(jsonLd||"");
   const graph=Array.isArray(parsed["@graph"])?parsed["@graph"]:[];
-  const appNode=graph.find(x=>x["@type"]==="SoftwareApplication");
-  appNode?.url===canonicalPages["index.html"]?ok("seo:structured-data:edunizam"):bad("seo:structured-data:edunizam","SoftwareApplication landing data missing/unexpected");
+  const appNode=graph.find(x=>x["@type"]==="WebApplication"||x["@type"]==="SoftwareApplication");
+  appNode?.url===canonicalPages["index.html"]?ok("seo:structured-data:edunizam"):bad("seo:structured-data:edunizam","WebApplication/SoftwareApplication landing data missing/unexpected");
 }catch(e){bad("seo:structured-data:edunizam",e.message)}
 
 for(const page of ["about.html","features.html","privacy.html","school-management-system-pakistan.html","online-school-admissions.html","learning-resources-pakistan.html"]){
