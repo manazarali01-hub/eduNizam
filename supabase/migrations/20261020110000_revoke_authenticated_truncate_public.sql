@@ -11,4 +11,4 @@ alter default privileges for role postgres in schema public
   revoke truncate on tables from anon, authenticated;
 
 alter default privileges for role supabase_admin in schema public
-  revoke truncate on tables from authenticated;
+  revoke truncate on tables from anon, authenticated;
