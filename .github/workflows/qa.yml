@@ -382,3 +382,11 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-test-fixture.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020110000_revoke_authenticated_truncate_public.sql
           psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-integration.sql
+      - name: Verify supabase_admin default ACL remediation on disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: psql -v ON_ERROR_STOP=1 -f scripts/supabase-admin-default-truncate-integration.sql
