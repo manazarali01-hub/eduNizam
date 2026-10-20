@@ -75,7 +75,7 @@ begin
   -- rewriting their canonical profile role/default institution.
   insert into public.institution_members(institution_id,user_id,role)
   values(inv.institution_id,uid,inv.target_role)
-  on conflict (institution_id,user_id) do update
+  on conflict on constraint institution_members_pkey do update
     set role=excluded.role;
 
   update public.institution_invites
