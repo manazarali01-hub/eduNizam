@@ -27,6 +27,8 @@ jobs:
         run: node qa-check.mjs
       - name: Verify atomic AI quota reservation before provider spend
         run: node scripts/ai-quota-reservation-check.mjs
+      - name: Verify public TRUNCATE revocation migration contract
+        run: node scripts/public-truncate-revocation-migration-check.mjs
       - name: Verify navigation load races and dynamic action binding
         run: node scripts/navigation-request-race-check.mjs
       - name: Validate public homepage feedback intake and submission safeguards
@@ -348,3 +350,35 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f scripts/default-school-preservation-test-fixture.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020100000_preserve_default_school_on_access_approval.sql
           psql -v ON_ERROR_STOP=1 -f scripts/default-school-preservation-integration.sql
+
+  public-truncate-revocation-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify TRUNCATE revocation against disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020110000_revoke_authenticated_truncate_public.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-integration.sql
