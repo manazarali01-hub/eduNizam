@@ -6,6 +6,11 @@ on:
 permissions:
   contents: read
 
+# Serialize production deploys; never cancel a migration push mid-flight.
+concurrency:
+  group: edunizam-production-supabase-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -50,6 +55,17 @@ jobs:
 
       - name: Link Supabase project
         run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+
+      # Stop if production has migration versions without corresponding local SQL.
+      - name: Block deployment when remote migration history is unreconciled
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --linked | tee /tmp/supabase-migration-list.txt
+          bash scripts/check-supabase-migration-history.sh /tmp/supabase-migration-list.txt
+
+      - name: Preview pending database migrations
+        run: supabase db push --dry-run
 
       - name: Apply database migrations
         run: supabase db push
