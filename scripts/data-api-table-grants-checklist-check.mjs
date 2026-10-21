@@ -15,7 +15,7 @@ for (const [pattern, message] of [
   [/20261014170754.*20261014170811/s, "Document candidate historical migration versions"],
   [/production ledger confirms version\/timestamp history, but does not preserve the original SQL text/s, "Explain the migration ledger provenance limit"],
   [/Contract tests and candidate files cannot prove exact SQL provenance/s, "Do not overstate candidate SQL provenance"],
-  [/Contract tests and candidate files cannot prove exact SQL provenance/s, "Distinguish contract tests from provenance evidence"],
+  [/GitHub commit\\/code searches have not located a trustworthy original source/s, "Require an independently verifiable original source"],
   [/PR #186 has been merged to `main`.*does not prove production has applied the migration/s, "Record merged public TRUNCATE hardening without claiming production release"],
   [/PR #182 remains open but is stale\/diverged.*Do not merge it wholesale/s, "Keep stale overlapping PR separate from owner-default remediation"],
   [/Do not apply any SQL to production/, "Explicitly prohibit production changes from this checklist"]
