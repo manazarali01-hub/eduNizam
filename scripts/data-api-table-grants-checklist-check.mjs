@@ -14,7 +14,7 @@ for (const [pattern, message] of [
   [/Audit future-table default privileges/, "Include a future default-ACL audit"],
   [/20261014170754.*20261014170811/s, "Document candidate historical migration versions"],
   [/production ledger confirms version\/timestamp history, but does not preserve the original SQL text/s, "Explain the migration ledger provenance limit"],
-  [/candidate files.*exact SQL provenance is not independently verified/s, "Do not overstate candidate SQL provenance"],
+  [/Contract tests and candidate files cannot prove exact SQL provenance/s, "Do not overstate candidate SQL provenance"],
   [/contract tests can detect drift from expected strings, but cannot prove those strings are the statements originally applied/is, "Distinguish contract tests from provenance evidence"],
   [/PR #186 has been merged to `main`.*does not prove production has applied the migration/s, "Record merged public TRUNCATE hardening without claiming production release"],
   [/PR #182 remains open but is stale\/diverged.*Do not merge it wholesale/s, "Keep stale overlapping PR separate from owner-default remediation"],
