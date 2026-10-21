@@ -92,7 +92,12 @@ assert.notEqual(blocked.status, 0, "remote-only migrations must block deployment
 assert.match(blocked.stderr, /Remote-only migration history entry: 20261014170754/);
 
 const matchingResult = checkMigrationHistory(matching);
-assert.equal(matchingResult.status, 0, matchingResult.stderr || "matching versions should pass");
+assert.equal(matchingResult.status, 0, matchingResult.stderr || "ordinary matching versions should pass");
+
+const provenanceBlocked = checkMigrationHistory(matchingButUnverifiedProvenance);
+assert.notEqual(provenanceBlocked.status, 0, "matching filenames must not bypass unresolved SQL provenance");
+assert.match(provenanceBlocked.stderr, /Unresolved migration SQL provenance: 20261014170754/);
+assert.match(provenanceBlocked.stderr, /Unresolved migration SQL provenance: 20261014170811/);
 
 const localOnlyResult = checkMigrationHistory(localOnly);
 assert.equal(localOnlyResult.status, 0, localOnlyResult.stderr || "local-only pending migrations should pass the history guard");
