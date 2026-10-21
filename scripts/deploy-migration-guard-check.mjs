@@ -10,6 +10,28 @@ const workflow = readFileSync(
 );
 const guardPath = new URL("./check-supabase-migration-history.sh", import.meta.url);
 
+// These two applied migrations were recovered verbatim from the production
+// supabase_migrations.schema_migrations ledger. Keep their historical versions
+// and SQL aligned; do not regenerate or reinterpret them as new migrations.
+const recoveredAnonGrantMigration = readFileSync(
+  new URL("../supabase/migrations/20261014170754_least_privilege_anon_table_grants.sql", import.meta.url),
+  "utf8",
+).trim();
+assert.equal(
+  recoveredAnonGrantMigration,
+  "revoke all privileges on all tables in schema public from anon;\\ngrant insert on table public.platform_feedback to anon;",
+  "Recovered 20261014170754 SQL must match the authoritative production ledger",
+);
+const recoveredDefaultGrantMigration = readFileSync(
+  new URL("../supabase/migrations/20261014170811_revoke_default_anon_table_grants.sql", import.meta.url),
+  "utf8",
+).trim();
+assert.equal(
+  recoveredDefaultGrantMigration,
+  "alter default privileges for role postgres in schema public revoke all on tables from anon;",
+  "Recovered 20261014170811 SQL must match the authoritative production ledger",
+);
+
 assert.match(
   workflow,
   /concurrency:\s*\n\s*group:\s*edunizam-production-supabase-deploy\s*\n\s*cancel-in-progress:\s*false/,
