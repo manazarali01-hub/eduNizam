@@ -12,6 +12,46 @@ if ! grep -q 'LOCAL.*REMOTE' "$1"; then
   exit 2
 fi
 
+# Validate every migration row before making a release decision. A header-only or
+# malformed table must not be mistaken for a clean migration history.
+set +e
+awk -F '│' '
+  /LOCAL.*REMOTE/ { header = 1; next }
+  index($0, "│") == 0 { next }
+  $0 !~ /[[:alnum:]]/ { next }
+  {
+    if (NF < 3) {
+      print "Malformed migration-list row: " $0 > "/dev/stderr"
+      invalid = 1
+      next
+    }
+    local_version = $1
+    remote_version = $2
+    gsub(/^[[:space:]]+|[[:space:]]+$/, "", local_version)
+    gsub(/^[[:space:]]+|[[:space:]]+$/, "", remote_version)
+    if ((local_version != "" && (length(local_version) != 14 || local_version ~ /[^0-9]/)) ||
+        (remote_version != "" && (length(remote_version) != 14 || remote_version ~ /[^0-9]/)) ||
+        (local_version == "" && remote_version == "")) {
+      print "Malformed migration version row: " $0 > "/dev/stderr"
+      invalid = 1
+    }
+    rows++
+  }
+  END {
+    if (!header || rows == 0) {
+      print "Migration-list output contains no recognizable migration rows." > "/dev/stderr"
+      invalid = 1
+    }
+    exit invalid ? 1 : 0
+  }
+' "$1"
+validation_status=$?
+set -e
+if [ "$validation_status" -ne 0 ]; then
+  echo "::error::Migration history output failed validation; refusing deployment." >&2
+  exit 2
+fi
+
 # These production versions have no independently verified original SQL.
 # Block them even if a candidate file with the same version is later added locally.
 set +e
