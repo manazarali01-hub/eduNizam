@@ -60,4 +60,13 @@ const malformedVersion = run([
 assert.notEqual(malformedVersion.status, 0, "malformed migration versions must block deploy");
 assert.match(malformedVersion.stderr, /Malformed migration version row|failed validation/);
 
+const strayRow = run([
+  " LOCAL │ REMOTE │ TIME",
+  " 20261020110000 │ 20261020110000 │ 2026-10-20 11:00:00",
+  "unexpected migration row",
+].join("\n") + "\n");
+assert.notEqual(strayRow.status, 0,
+  "stray non-table text must not be silently ignored beside valid migration rows");
+assert.match(strayRow.stderr, /Malformed migration-list row|failed validation/);
+
 console.log("Production migration history guard fixtures passed.");
