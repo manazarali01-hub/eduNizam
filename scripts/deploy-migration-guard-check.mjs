@@ -89,7 +89,7 @@ const matchingButUnverifiedProvenance = [
   " LOCAL │ REMOTE │ TIME",
   " 20261014170754 │ 20261014170754 │ 2026-10-14 17:07:54",
   " 20261014170811 │ 20261014170811 │ 2026-10-14 17:08:11",
-].join("\\n") + "\\n";
+].join("\n") + "\n";
 
 const unrecognized = "migration versions unavailable\n";
 
