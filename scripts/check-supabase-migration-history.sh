@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Fail closed when the linked Supabase migration ledger contains remote versions
-# that have no matching local SQL migration file.
+# Fail closed on remote-only versions and known versions whose SQL provenance is unresolved.
+# Do not remove the provenance block until an authoritative original artifact is reviewed.
 set -euo pipefail
 
 if [ "$#" -ne 1 ] || [ ! -f "$1" ] || [ ! -r "$1" ]; then
@@ -20,9 +20,14 @@ awk -F '│' '
     remote_version = $2
     gsub(/[[:space:]]/, "", local_version)
     gsub(/[[:space:]]/, "", remote_version)
-    if (local_version == "" && length(remote_version) == 14 && remote_version ~ /^[0-9]+$/) {
-      print "Remote-only migration history entry: " remote_version > "/dev/stderr"
-      found = 1
+    if (length(remote_version) == 14 && remote_version ~ /^[0-9]+$/) {
+      if (remote_version == "20261014170754" || remote_version == "20261014170811") {
+        print "Unresolved migration SQL provenance: " remote_version > "/dev/stderr"
+        found = 1
+      } else if (local_version == "") {
+        print "Remote-only migration history entry: " remote_version > "/dev/stderr"
+        found = 1
+      }
     }
   }
   END { exit found ? 0 : 1 }
@@ -32,7 +37,7 @@ set -e
 
 case "$awk_status" in
   0)
-    echo "::error::Production has remote-only migration versions with no matching local SQL. Reconcile from an authoritative source before deployment." >&2
+    echo "::error::Production migration history is unreconciled or contains versions with unresolved SQL provenance. Reconcile from an authoritative source before deployment." >&2
     exit 1
     ;;
   1)
