@@ -10,9 +10,10 @@ const workflow = readFileSync(
 );
 const guardPath = new URL("./check-supabase-migration-history.sh", import.meta.url);
 
-// These two applied migrations were recovered verbatim from the production
-// supabase_migrations.schema_migrations ledger. Keep their historical versions
-// and SQL aligned; do not regenerate or reinterpret them as new migrations.
+// Candidate historical migration files are checked for accidental drift only.
+// The production ledger proves version/timestamp history, not original SQL text;
+// this contract test is NOT proof of provenance. Resolve provenance separately
+// before treating the production migration history as reconciled.
 const recoveredAnonGrantMigration = readFileSync(
   new URL("../supabase/migrations/20261014170754_least_privilege_anon_table_grants.sql", import.meta.url),
   "utf8",
@@ -20,7 +21,7 @@ const recoveredAnonGrantMigration = readFileSync(
 assert.match(
   recoveredAnonGrantMigration,
   /revoke all privileges on all tables in schema public from anon;\s*grant insert on table public\.platform_feedback to anon;/s,
-  "Recovered 20261014170754 SQL must match the authoritative production ledger",
+  "Candidate 20261014170754 SQL must match this reviewed contract; this does not establish production provenance",
 );
 const recoveredDefaultGrantMigration = readFileSync(
   new URL("../supabase/migrations/20261014170811_revoke_default_anon_table_grants.sql", import.meta.url),
@@ -29,7 +30,7 @@ const recoveredDefaultGrantMigration = readFileSync(
 assert.equal(
   recoveredDefaultGrantMigration,
   "alter default privileges for role postgres in schema public revoke all on tables from anon;",
-  "Recovered 20261014170811 SQL must match the authoritative production ledger",
+  "Candidate 20261014170811 SQL must match this reviewed contract; this does not establish production provenance",
 );
 
 assert.match(
@@ -63,6 +64,14 @@ function checkMigrationHistory(input) {
     rmSync(directory, { recursive: true, force: true });
   }
 }
+
+const missingArgument = spawnSync("bash", [guardPath.pathname], { encoding: "utf8" });
+assert.notEqual(missingArgument.status, 0, "missing input argument must fail closed");
+assert.match(missingArgument.stderr, /Readable migration-list output file is required/);
+
+const missingFile = spawnSync("bash", [guardPath.pathname, new URL("./missing-migration-list-fixture.txt", import.meta.url).pathname], { encoding: "utf8" });
+assert.notEqual(missingFile.status, 0, "missing input file must fail closed");
+assert.match(missingFile.stderr, /Readable migration-list output file is required/);
 
 const remoteOnly = [
   " LOCAL │ REMOTE │ TIME",
