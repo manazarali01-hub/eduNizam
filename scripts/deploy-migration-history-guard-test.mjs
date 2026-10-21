@@ -27,7 +27,7 @@ const unresolvedMatching = run([
   " LOCAL │ REMOTE │ TIME",
   " 20261014170754 │ 20261014170754 │ 2026-10-14 17:07:54",
   " 20261014170811 │ 20261014170811 │ 2026-10-14 17:08:11",
-].join("\\n") + "\\n");
+].join("\n") + "\n");
 assert.notEqual(unresolvedMatching.status, 0,
   "known unresolved provenance must block deployment even when local and remote versions match");
 assert.match(unresolvedMatching.stderr, /Unresolved migration provenance entry: 20261014170754/);
