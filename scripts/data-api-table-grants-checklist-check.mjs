@@ -13,7 +13,7 @@ for (const [pattern, message] of [
   [/has_table_privilege/, "Include an effective table-privilege audit"],
   [/Audit future-table default privileges/, "Include a future default-ACL audit"],
   [/20261014170754.*20261014170811/s, "Document restored historical migration versions"],
-  [/restoring both migration files from the authoritative read-only production ledger/, "Reflect completed authoritative migration-history reconciliation"],
+  [/PR #182 remains open and unmerged.*not yet part of `main`/s, "Do not claim historical migration restoration is released before PR #182 merges"],
   [/Do not apply any SQL to production/, "Explicitly prohibit production changes from this checklist"]
 ]) {
   assert.match(doc, pattern, message);
