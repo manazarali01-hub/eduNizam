@@ -23,6 +23,16 @@ const remoteOnly = run([
 assert.notEqual(remoteOnly.status, 0, "remote-only versions must block deploy");
 assert.match(remoteOnly.stderr, /Remote-only migration history entry: 20261014170754/);
 
+const unresolvedMatching = run([
+  " LOCAL │ REMOTE │ TIME",
+  " 20261014170754 │ 20261014170754 │ 2026-10-14 17:07:54",
+  " 20261014170811 │ 20261014170811 │ 2026-10-14 17:08:11",
+].join("\\n") + "\\n");
+assert.notEqual(unresolvedMatching.status, 0,
+  "known unresolved provenance must block deployment even when local and remote versions match");
+assert.match(unresolvedMatching.stderr, /Unresolved migration provenance entry: 20261014170754/);
+assert.match(unresolvedMatching.stderr, /Unresolved migration provenance entry: 20261014170811/);
+
 const matching = run([
   " LOCAL │ REMOTE │ TIME",
   " 20261020110000 │ 20261020110000 │ 2026-10-20 11:00:00",
