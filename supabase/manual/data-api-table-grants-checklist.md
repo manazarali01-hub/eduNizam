@@ -59,6 +59,29 @@ where n.nspname = 'public'
 order by c.relname;
 ```
 
+## Audit future-table default privileges
+
+The table-level query above reports effective privileges on existing tables. This second read-only query helps identify default ACLs configured for future tables by each object-owning role. A role may have no row here because PostgreSQL uses built-in defaults; interpret results with the actual table owner and Supabase project configuration.
+
+```sql
+select
+  owner_role.rolname as object_owner,
+  n.nspname as schema_name,
+  grantee.rolname as grantee,
+  acl.privilege_type,
+  acl.is_grantable
+from pg_default_acl d
+join pg_roles owner_role on owner_role.oid = d.defaclrole
+join pg_namespace n on n.oid = d.defaclnamespace
+cross join lateral aclexplode(d.defaclacl) acl
+left join pg_roles grantee on grantee.oid = acl.grantee
+where n.nspname = 'public'
+  and grantee.rolname in ('anon', 'authenticated', 'service_role')
+order by owner_role.rolname, n.nspname, grantee.rolname, acl.privilege_type;
+```
+
+Do not treat a default ACL as a replacement for table-specific review. The migration must state the intended grants for each newly created table, and RLS must still enforce row access.
+
 ## EduNizam release gate
 
 - Do not retroactively grant access to all existing tables just to satisfy this announcement.
