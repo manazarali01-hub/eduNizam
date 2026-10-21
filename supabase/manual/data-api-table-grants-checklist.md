@@ -86,5 +86,5 @@ Do not treat a default ACL as a replacement for table-specific review. The migra
 
 - Do not retroactively grant access to all existing tables just to satisfy this announcement.
 - Do not apply any SQL to production as part of this checklist-only change.
-- Before merging security migrations, reconcile the previously noted production migration-history entries `20261014170754` and `20261014170811` with authoritative SQL; do not reconstruct missing historical migrations from guesses.
+- Production ledger reconciliation for `20261014170754` and `20261014170811` has been completed in PR #182 by restoring both migration files from the authoritative read-only production ledger and adding a static SQL alignment check. Preserve these historical versions and statements; do not regenerate or reinterpret them.
 - Keep the separate public `TRUNCATE` hardening PR and its owner-run `supabase_admin` remediation as distinct review/release gates.
