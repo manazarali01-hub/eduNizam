@@ -25,10 +25,14 @@ jobs:
           node-version: '22'
       - name: Run EduNizam QA
         run: node qa-check.mjs
+      - name: Verify production Supabase migration deployment guard
+        run: node scripts/deploy-migration-guard-check.mjs
       - name: Validate canonical titles and search/social metadata consistency
         run: node scripts/public-metadata-consistency-check.mjs
       - name: Verify atomic AI quota reservation before provider spend
         run: node scripts/ai-quota-reservation-check.mjs
+      - name: Verify TRUNCATE revocation and authorized owner-default remediation contracts
+        run: node scripts/public-truncate-revocation-migration-check.mjs
       - name: Verify AI usage sequence privilege migration contract
         run: node scripts/ai-usage-sequence-privilege-check.mjs
       - name: Verify navigation load races and dynamic action binding
@@ -384,3 +388,60 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f scripts/ai-usage-sequence-test-fixture.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020080000_revoke_ai_usage_sequence_app_privileges.sql
           psql -v ON_ERROR_STOP=1 -f scripts/ai-usage-sequence-privilege-integration.sql
+
+  public-truncate-revocation-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify TRUNCATE revocation against disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020110000_revoke_authenticated_truncate_public.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-revocation-integration.sql
+      - name: Verify supabase_admin remediation fails closed for unauthorized role
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        shell: bash
+        run: |
+          if psql -v ON_ERROR_STOP=1 -f supabase/manual/20261020_supabase_admin_default_truncate_remediation.sql > /tmp/owner-remediation-guard.log 2>&1; then
+            cat /tmp/owner-remediation-guard.log
+            echo "ERROR: owner remediation unexpectedly succeeded as postgres"
+            exit 1
+          fi
+          cat /tmp/owner-remediation-guard.log
+          grep -F "Must run as supabase_admin" /tmp/owner-remediation-guard.log
+
+      - name: Verify supabase_admin default ACL remediation on disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: psql -v ON_ERROR_STOP=1 -f scripts/supabase-admin-default-truncate-integration.sql
