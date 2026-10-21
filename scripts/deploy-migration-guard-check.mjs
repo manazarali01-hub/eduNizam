@@ -17,7 +17,7 @@ const recoveredAnonGrantMigration = readFileSync(
   new URL("../supabase/migrations/20261014170754_least_privilege_anon_table_grants.sql", import.meta.url),
   "utf8",
 ).trim();
-assert.equal(
+assert.match(
   recoveredAnonGrantMigration,
   /revoke all privileges on all tables in schema public from anon;\s*grant insert on table public\.platform_feedback to anon;/s,
   "Recovered 20261014170754 SQL must match the authoritative production ledger",
