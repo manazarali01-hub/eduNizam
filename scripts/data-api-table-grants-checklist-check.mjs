@@ -12,8 +12,11 @@ for (const [pattern, message] of [
   [/service_role/, "Warn about service-role secrets"],
   [/has_table_privilege/, "Include an effective table-privilege audit"],
   [/Audit future-table default privileges/, "Include a future default-ACL audit"],
-  [/20261014170754.*20261014170811/s, "Document restored historical migration versions"],
-  [/PR #182 remains open and unmerged.*not yet part of `main`/s, "Do not claim historical migration restoration is released before PR #182 merges"],
+  [/20261014170754.*20261014170811/s, "Document candidate historical migration versions"],
+  [/production ledger confirms version\/timestamp history, but does not preserve the original SQL text/s, "Explain the migration ledger provenance limit"],
+  [/candidate files.*exact SQL provenance is not independently verified/s, "Do not overstate candidate SQL provenance"],
+  [/contract tests can detect drift from expected strings, but cannot prove those strings are the statements originally applied/s, "Distinguish contract tests from provenance evidence"],
+  [/PR #182 remains open and unmerged.*not be treated as released or as authoritative history reconciliation/s, "Keep proposed files unreleased and history unreconciled"],
   [/Do not apply any SQL to production/, "Explicitly prohibit production changes from this checklist"]
 ]) {
   assert.match(doc, pattern, message);
