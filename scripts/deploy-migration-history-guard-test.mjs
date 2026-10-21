@@ -49,4 +49,24 @@ const unrecognized = run("migration versions unavailable\n");
 assert.notEqual(unrecognized.status, 0, "unrecognized output must fail closed");
 assert.match(unrecognized.stderr, /Could not recognize Supabase migration-list output/);
 
+const headerOnly = run(" LOCAL │ REMOTE │ TIME\n");
+assert.notEqual(headerOnly.status, 0, "header-only output must fail closed");
+assert.match(headerOnly.stderr, /contains no recognizable migration rows|failed validation/);
+
+const malformedVersion = run([
+  " LOCAL │ REMOTE │ TIME",
+  " garbage │ 20261015121212 │ 2026-10-15 12:12:12",
+].join("\n") + "\n");
+assert.notEqual(malformedVersion.status, 0, "malformed migration versions must block deploy");
+assert.match(malformedVersion.stderr, /Malformed migration version row|failed validation/);
+
+const strayRow = run([
+  " LOCAL │ REMOTE │ TIME",
+  " 20261020110000 │ 20261020110000 │ 2026-10-20 11:00:00",
+  "unexpected migration row",
+].join("\n") + "\n");
+assert.notEqual(strayRow.status, 0,
+  "stray non-table text must not be silently ignored beside valid migration rows");
+assert.match(strayRow.stderr, /Malformed migration-list row|failed validation/);
+
 console.log("Production migration history guard fixtures passed.");
