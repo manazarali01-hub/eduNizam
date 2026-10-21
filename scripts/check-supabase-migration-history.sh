@@ -3,6 +3,11 @@
 # that have no matching local SQL migration file.
 set -euo pipefail
 
+if [ "$#" -ne 1 ] || [ ! -f "$1" ] || [ ! -r "$1" ]; then
+  echo "::error::Readable migration-list output file is required; refusing deployment." >&2
+  exit 2
+fi
+
 if ! grep -q 'LOCAL.*REMOTE' "$1"; then
   echo "::error::Could not recognize Supabase migration-list output; refusing deployment." >&2
   exit 2
