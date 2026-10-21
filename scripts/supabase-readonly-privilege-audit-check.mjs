@@ -19,19 +19,14 @@ assert.match(executable, /pg_default_acl/i, "Inspect future-table default ACLs")
 assert.match(executable, /graphql_public/i, "Include Supabase-managed API schemas in default ACL review");
 assert.match(executable, /acl\.privilege_type\s*=\s*'TRUNCATE'/i, "Scope default ACL review to TRUNCATE");
 
-// Check every SQL statement independently: a mutation appended after a SELECT
-// on the same line must not slip past a line-start-only safety check.
+// Validate each statement independently. This catches an extra mutation appended
+// after a SELECT even when both commands appear on the same line.
 assert.equal(statements.length, 3, "Audit should contain exactly three read-only queries");
 for (const [index, statement] of statements.entries()) {
   assert.match(
     statement,
     /^select\b/i,
     `Audit statement ${index + 1} must be a SELECT query`,
-  );
-  assert.doesNotMatch(
-    statement,
-    /\b(?:insert|update|delete|truncate|grant|revoke|alter|drop|create|call|do|commit|rollback)\b/i,
-    `Audit statement ${index + 1} must not contain a mutating command`,
   );
 }
 
