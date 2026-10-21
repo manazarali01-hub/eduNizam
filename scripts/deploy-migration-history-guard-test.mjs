@@ -18,10 +18,10 @@ function run(input) {
 
 const remoteOnly = run([
   " LOCAL │ REMOTE │ TIME",
-  "       │ 20261014170754 │ 2026-10-14 17:07:54",
+  "       │ 20261015121212 │ 2026-10-15 12:12:12",
 ].join("\n") + "\n");
 assert.notEqual(remoteOnly.status, 0, "remote-only versions must block deploy");
-assert.match(remoteOnly.stderr, /Remote-only migration history entry: 20261014170754/);
+assert.match(remoteOnly.stderr, /Remote-only migration history entry: 20261015121212/);
 
 const unresolvedMatching = run([
   " LOCAL │ REMOTE │ TIME",
