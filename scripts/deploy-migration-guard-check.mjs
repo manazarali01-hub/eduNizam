@@ -19,7 +19,7 @@ const recoveredAnonGrantMigration = readFileSync(
 ).trim();
 assert.equal(
   recoveredAnonGrantMigration,
-  "revoke all privileges on all tables in schema public from anon;\\ngrant insert on table public.platform_feedback to anon;",
+  /revoke all privileges on all tables in schema public from anon;\s*grant insert on table public\.platform_feedback to anon;/s,
   "Recovered 20261014170754 SQL must match the authoritative production ledger",
 );
 const recoveredDefaultGrantMigration = readFileSync(
