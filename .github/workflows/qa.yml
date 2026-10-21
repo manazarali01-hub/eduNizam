@@ -25,6 +25,8 @@ jobs:
           node-version: '22'
       - name: Run EduNizam QA
         run: node qa-check.mjs
+      - name: Verify Supabase Data API grants checklist contract
+        run: node scripts/data-api-table-grants-checklist-check.mjs
       - name: Validate canonical titles and search/social metadata consistency
         run: node scripts/public-metadata-consistency-check.mjs
       - name: Verify atomic AI quota reservation before provider spend
