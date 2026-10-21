@@ -12,7 +12,8 @@ for (const [pattern, message] of [
   [/service_role/, "Warn about service-role secrets"],
   [/has_table_privilege/, "Include an effective table-privilege audit"],
   [/Audit future-table default privileges/, "Include a future default-ACL audit"],
-  [/20261014170754.*20261014170811/s, "Keep unresolved migration-history versions as a release gate"],
+  [/20261014170754.*20261014170811/s, "Document restored historical migration versions"],
+  [/restoring both migration files from the authoritative read-only production ledger/, "Reflect completed authoritative migration-history reconciliation"],
   [/Do not apply any SQL to production/, "Explicitly prohibit production changes from this checklist"]
 ]) {
   assert.match(doc, pattern, message);
