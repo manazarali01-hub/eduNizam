@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -27,6 +27,22 @@ assert.match(missingArgument.stderr, /Readable migration-list output file is req
 const missingFile = runArgs(["/path/that/does/not/exist/edunizam-migration-list.txt"]);
 assert.notEqual(missingFile.status, 0, "missing file must block deploy");
 assert.match(missingFile.stderr, /Readable migration-list output file is required/);
+
+// Exercise the unreadable-file branch on non-root runners, where mode 000 is meaningful.
+if (typeof process.getuid === "function" && process.getuid() !== 0) {
+  const dir = mkdtempSync(join(tmpdir(), "edunizam-migration-history-unreadable-"));
+  const file = join(dir, "migration-list.txt");
+  try {
+    writeFileSync(file, " LOCAL │ REMOTE │ TIME\\n", "utf8");
+    chmodSync(file, 0o000);
+    const unreadableFile = runArgs([file]);
+    assert.notEqual(unreadableFile.status, 0, "unreadable file must block deploy");
+    assert.match(unreadableFile.stderr, /Readable migration-list output file is required/);
+  } finally {
+    chmodSync(file, 0o600);
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
 
 const remoteOnly = run([
   " LOCAL │ REMOTE │ TIME",
