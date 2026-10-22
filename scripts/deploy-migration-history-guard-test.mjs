@@ -33,7 +33,7 @@ if (typeof process.getuid === "function" && process.getuid() !== 0) {
   const dir = mkdtempSync(join(tmpdir(), "edunizam-migration-history-unreadable-"));
   const file = join(dir, "migration-list.txt");
   try {
-    writeFileSync(file, " LOCAL │ REMOTE │ TIME\\n", "utf8");
+    writeFileSync(file, " LOCAL │ REMOTE │ TIME\n", "utf8");
     chmodSync(file, 0o000);
     const unreadableFile = runArgs([file]);
     assert.notEqual(unreadableFile.status, 0, "unreadable file must block deploy");
