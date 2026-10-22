@@ -26,10 +26,13 @@ assert.match(executable, /not\s+c\.relrowsecurity/i, "Find public tables without
 assert.match(executable, /pg_default_acl/i, "Inspect future-table default ACLs");
 assert.match(executable, /graphql_public/i, "Include Supabase-managed API schemas in default ACL review");
 assert.match(executable, /acl\.privilege_type\s*=\s*'TRUNCATE'/i, "Scope default ACL review to TRUNCATE");
+assert.match(executable, /has_sequence_privilege\s*\(/i, "Audit effective browser-role sequence privileges");
+assert.match(executable, /c\.relkind\s*=\s*'S'/i, "Limit sequence audit to actual sequences");
+assert.match(executable, /'USAGE'[\s\S]*'SELECT'[\s\S]*'UPDATE'/i, "Review all three PostgreSQL sequence privileges");
 
 // Check every statement independently, including mutation keywords appended to
 // a SELECT on the same line. String literals are ignored to avoid false positives.
-assert.equal(statements.length, 3, "Audit should contain exactly three read-only queries");
+assert.equal(statements.length, 4, "Audit should contain four read-only queries");
 for (const [index, statement] of statements.entries()) {
   assert.match(
     statement,

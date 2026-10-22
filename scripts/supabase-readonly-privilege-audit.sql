@@ -1,4 +1,4 @@
--- Read-only audit for browser-role table privileges in EduNizam's Supabase project.
+-- Read-only audit for browser-role table and sequence privileges in EduNizam's Supabase project.
 -- Run in the SQL Editor or with psql against the intended project.
 -- This file intentionally contains SELECT statements only. It does not change grants,
 -- default privileges, RLS policies, data, migration history, or Auth settings.
@@ -49,6 +49,28 @@ where n.nspname in ('public', 'storage', 'graphql', 'graphql_public')
   and grantee.rolname in ('anon', 'authenticated')
   and acl.privilege_type = 'TRUNCATE'
 order by n.nspname, owner_role.rolname, grantee.rolname;
+
+-- 4) Effective direct browser-role privileges on public sequences.
+-- Sequence privileges are separate from table RLS and CRUD; report them for review,
+-- but do not assume every sequence needs the same policy.
+select
+  n.nspname as schema_name,
+  c.relname as sequence_name,
+  roles.role_name,
+  has_sequence_privilege(roles.role_name, c.oid, 'USAGE') as has_usage,
+  has_sequence_privilege(roles.role_name, c.oid, 'SELECT') as has_select,
+  has_sequence_privilege(roles.role_name, c.oid, 'UPDATE') as has_update
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+cross join (values ('anon'), ('authenticated')) as roles(role_name)
+where n.nspname = 'public'
+  and c.relkind = 'S'
+  and (
+    has_sequence_privilege(roles.role_name, c.oid, 'USAGE')
+    or has_sequence_privilege(roles.role_name, c.oid, 'SELECT')
+    or has_sequence_privilege(roles.role_name, c.oid, 'UPDATE')
+  )
+order by c.relname, roles.role_name;
 
 -- Do not infer that RLS protects TRUNCATE: table-wide privileges are separate.
 -- Do not change Supabase-managed Storage grants without a separate reviewed plan.
