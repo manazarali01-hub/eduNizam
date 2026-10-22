@@ -33,6 +33,8 @@ jobs:
         run: node scripts/supabase-readonly-privilege-audit-check.mjs
       - name: Test production migration history deployment guard
         run: node scripts/deploy-migration-history-guard-test.mjs
+      - name: Verify production deployment guard ordering
+        run: node scripts/deploy-supabase-workflow-guard-check.mjs
       - name: Validate canonical titles and search/social metadata consistency
         run: node scripts/public-metadata-consistency-check.mjs
       - name: Verify atomic AI quota reservation before provider spend
