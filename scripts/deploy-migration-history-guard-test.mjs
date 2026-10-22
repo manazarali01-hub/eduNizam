@@ -78,7 +78,7 @@ const strayRow = run([
   "unexpected migration row",
 ].join("\n") + "\n");
 assert.notEqual(strayRow.status, 0,
-  "stray non-table text must not be silently ignored beside valid rows");
+  "stray non-table text must not be silently ignored beside valid migration rows");
 assert.match(strayRow.stderr, /Malformed migration-list row|failed validation/);
 
 console.log("Production migration history guard fixtures passed.");
