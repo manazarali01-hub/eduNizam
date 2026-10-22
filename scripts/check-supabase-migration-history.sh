@@ -18,6 +18,8 @@ set +e
 awk -F '│' '
   /LOCAL.*REMOTE/ { header = 1; next }
   index($0, "│") == 0 {
+    # Ignore blank lines and box-drawing borders, but reject stray text rows:
+    # otherwise a malformed row could be silently skipped beside valid rows.
     if ($0 ~ /[[:alnum:]]/) {
       print "Malformed migration-list row: " $0 > "/dev/stderr"
       invalid = 1
