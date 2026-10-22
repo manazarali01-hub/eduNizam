@@ -2,8 +2,8 @@
 # Fail closed when production has migration versions without matching local SQL.
 set -euo pipefail
 
-if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
-  echo "::error::Migration-list output file is required; refusing deployment." >&2
+if [ "$#" -ne 1 ] || [ ! -f "$1" ] || [ ! -r "$1" ]; then
+  echo "::error::Readable migration-list output file is required; refusing deployment." >&2
   exit 2
 fi
 
