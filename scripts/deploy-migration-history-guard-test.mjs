@@ -15,6 +15,18 @@ function run(input) {
     rmSync(dir, { recursive: true, force: true });
   }
 }
+function runArgs(args) {
+  return spawnSync("bash", [guard.pathname, ...args], { encoding: "utf8" });
+}
+
+// Invalid invocation and missing/unreadable input must fail closed before parsing.
+const missingArgument = runArgs([]);
+assert.notEqual(missingArgument.status, 0, "missing argument must block deploy");
+assert.match(missingArgument.stderr, /Readable migration-list output file is required/);
+
+const missingFile = runArgs(["/path/that/does/not/exist/edunizam-migration-list.txt"]);
+assert.notEqual(missingFile.status, 0, "missing file must block deploy");
+assert.match(missingFile.stderr, /Readable migration-list output file is required/);
 
 const remoteOnly = run([
   " LOCAL │ REMOTE │ TIME",
@@ -66,7 +78,7 @@ const strayRow = run([
   "unexpected migration row",
 ].join("\n") + "\n");
 assert.notEqual(strayRow.status, 0,
-  "stray non-table text must not be silently ignored beside valid migration rows");
+  "stray non-table text must not be silently ignored beside valid rows");
 assert.match(strayRow.stderr, /Malformed migration-list row|failed validation/);
 
 console.log("Production migration history guard fixtures passed.");
