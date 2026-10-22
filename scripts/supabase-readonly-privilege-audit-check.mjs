@@ -23,16 +23,18 @@ assert.match(sql, /read-only audit/i, "Document that this is a read-only audit")
 assert.match(executable, /has_table_privilege\s*\(/i, "Audit effective table privileges");
 assert.match(executable, /n\.nspname\s+in\s*\('public',\s*'storage'\)/i, "Audit public and Storage tables");
 assert.match(executable, /not\s+c\.relrowsecurity/i, "Find public tables without RLS");
-assert.match(executable, /pg_default_acl/i, "Inspect future-table default ACLs");
+assert.match(executable, /pg_default_acl/i, "Inspect future-object default ACLs");
 assert.match(executable, /graphql_public/i, "Include Supabase-managed API schemas in default ACL review");
-assert.match(executable, /acl\.privilege_type\s*=\s*'TRUNCATE'/i, "Scope default ACL review to TRUNCATE");
+assert.match(executable, /acl\.privilege_type\s*=\s*'TRUNCATE'/i, "Scope the focused default-table check to TRUNCATE");
 assert.match(executable, /has_sequence_privilege\s*\(/i, "Audit effective browser-role sequence privileges");
 assert.match(executable, /c\.relkind\s*=\s*'S'/i, "Limit sequence audit to actual sequences");
 assert.match(executable, /'USAGE'[\s\S]*'SELECT'[\s\S]*'UPDATE'/i, "Review all three PostgreSQL sequence privileges");
+assert.match(executable, /Full browser-role default ACL inventory/i, "Document the expanded default ACL inventory");
+assert.match(executable, /d\.defaclobjtype\s+in\s*\('r',\s*'S',\s*'f'\)/i, "Audit table, sequence, and function defaults");
+assert.match(executable, /grantee\.rolname\s+in\s*\('anon',\s*'authenticated'\)/i, "Scope inventory to browser roles");
+assert.match(executable, /acl\.privilege_type/i, "Report individual default privilege types");
 
-// Check every statement independently, including mutation keywords appended to
-// a SELECT on the same line. String literals are ignored to avoid false positives.
-assert.equal(statements.length, 4, "Audit should contain four read-only queries");
+assert.equal(statements.length, 5, "Audit should contain five read-only queries");
 for (const [index, statement] of statements.entries()) {
   assert.match(
     statement,
