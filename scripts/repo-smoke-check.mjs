@@ -479,7 +479,7 @@ else ok("auth:local-first-workspace");
 if(!authBridge.includes("authoritativeAbsent=restoreStatus==='absent'||c.state.authEvent==='SIGNED_OUT'"))bad("auth:transient-restore-safe","temporary session-restore failures can still evict a valid local workspace");
 else ok("auth:transient-restore-safe");
 
-if(!authBridge.includes("if(runtimeState.verification||runtimeState.verificationTimer)return true")||!authBridge.includes("function scheduleWorkspaceVerification"))bad("auth:verification-dedupe","workspace verification scheduling/dedupe is incomplete");
+if(!authBridge.includes("if(runtimeState.verification){runtimeState.verificationQueued=true;return true;}")||!authBridge.includes("if(runtimeState.verificationTimer)return true")||!authBridge.includes("function scheduleWorkspaceVerification"))bad("auth:verification-dedupe","workspace verification scheduling/dedupe is incomplete");
 else ok("auth:verification-dedupe");
 
 if(authBridge.includes("window.EDUNIZAM_CORE_CLOUD.pullAllCloudToLocal(false)"))bad("startup:no-bulk-core-pull","auth startup must not hydrate all school tables");
