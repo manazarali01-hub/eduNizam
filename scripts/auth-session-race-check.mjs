@@ -573,4 +573,41 @@ assert.ok(read('pwa-install.js').includes('sw.js?v=20261020-auth-event-guard-v2'
   assert.equal(e.window.EDUNIZAM_AUTH_BRIDGE.runtimeState.state,'WORKSPACE_READY');
 }
 
+
+// Regression 16: an account-change auth event arriving during an older school
+// authorization request must queue a fresh check if the older response goes stale.
+// Otherwise the guard remains visible forever because the event's check was dropped.
+{
+  const oldAccess=deferred();
+  let accessCalls=0;
+  const cloud={
+    state:{client:{},user:{id:'user-1',email:'user@example.test'},sessionRestoreStatus:'active',authEvent:'SIGNED_IN'},
+    whenReady:async()=>cloud,
+    verifyWorkspaceAccess:()=>{
+      accessCalls++;
+      return accessCalls===1?oldAccess.promise:Promise.resolve({...row,workspace_role:'head_of_institute'});
+    }
+  };
+  const e=environment('auth-bridge.js',{cloud,local:{edunizam_session:localSession()}});
+  const first=e.window.EDUNIZAM_AUTH_BRIDGE.verifyCurrentWorkspace(true);
+  for(let i=0;i<20&&accessCalls===0;i++) await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(accessCalls,1,'Initial authorization request did not start');
+  cloud.state.user={id:'user-2',email:'second@example.test'};
+  cloud.state.authEvent='SIGNED_IN';
+  e.window.dispatchEvent({type:'edunizam:auth',detail:{
+    event:'SIGNED_IN',user:{id:'user-2',email:'second@example.test'}
+  }});
+  assert.ok(e.doc.getElementById('cloudAuthScreen'),
+    'Account-change event did not synchronously cover the private workspace');
+  oldAccess.resolve(row);
+  assert.equal(await first,false,'Stale account authorization should be ignored');
+  for(let i=0;i<30&&accessCalls<2;i++) await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(accessCalls,2,'A fresh authorization check was not queued after the stale response');
+  for(let i=0;i<30&&e.doc.getElementById('cloudAuthScreen');i++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(e.doc.getElementById('cloudAuthScreen'),null,
+    'Fresh authorization succeeded but the private-workspace guard remained stuck');
+  assert.equal(JSON.parse(e.localStorage.getItem('edunizam_session')).identity,'second@example.test');
+}
+
 console.log('Auth isolation, sign-out races, school-switch races and PWA cache checks passed.');
