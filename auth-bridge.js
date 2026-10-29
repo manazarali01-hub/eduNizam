@@ -16,7 +16,7 @@
     AUTH_ERROR:'AUTH_ERROR'
   });
 
-  const runtimeState={state:STATES.BOOTING,detail:{},verification:null,verificationTimer:0,lastVerifiedAt:0,syncScheduled:false};
+  const runtimeState={state:STATES.BOOTING,detail:{},verification:null,verificationTimer:0,verificationQueued:false,lastVerifiedAt:0,syncScheduled:false};
   const cloud=()=>window.EDUNIZAM_CLOUD;
   const dataRuntime=()=>window.EDUNIZAM_DATA_RUNTIME;
   const mapRole=r=>r==='head_of_institute'?'head':(['head','teacher','parent','student'].includes(r)?r:'');
@@ -78,6 +78,7 @@
     }
     if(runtimeState.verificationTimer){clearTimeout(runtimeState.verificationTimer);runtimeState.verificationTimer=0}
     runtimeState.verification=null;
+    runtimeState.verificationQueued=false;
     runtimeState.lastVerifiedAt=0;
     runtimeState.syncScheduled=false;
   }
@@ -271,12 +272,24 @@
     })();
 
     try{return await verification}
-    finally{if(runtimeState.verification===verification)runtimeState.verification=null}
+    finally{
+      if(runtimeState.verification===verification){
+        runtimeState.verification=null;
+        // Auth events can arrive while an older school-access request is in flight.
+        // If that response becomes stale, run one fresh check instead of leaving
+        // the synchronously displayed private-workspace guard stuck indefinitely.
+        if(runtimeState.verificationQueued){
+          runtimeState.verificationQueued=false;
+          if(validLocal())scheduleWorkspaceVerification({force:true,reason:'queued-auth-recheck',delay:0});
+        }
+      }
+    }
   }
 
   function scheduleWorkspaceVerification({force=false,reason='background',delay=null}={}){
     if(!validLocal())return false;
-    if(runtimeState.verification||runtimeState.verificationTimer)return true;
+    if(runtimeState.verification){runtimeState.verificationQueued=true;return true;}
+    if(runtimeState.verificationTimer)return true;
     const freshHandoff=!!readHandoff();
     const wait=delay==null?(force?450:(freshHandoff?12000:1800)):Math.max(0,Number(delay)||0);
     runtimeState.verificationTimer=setTimeout(()=>{
