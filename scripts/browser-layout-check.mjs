@@ -1001,6 +1001,9 @@ try{
         const bounds=scroller?.getBoundingClientRect();
         const rect=group.querySelector(':scope > summary')?.getBoundingClientRect();
         if(scroller&&bounds&&rect){
+          // Avoid CSS smooth-scroll animation in the browser harness: Playwright
+          // can otherwise observe a permanently moving target on low-resource CI.
+          scroller.style.scrollBehavior='auto';
           const delta=rect.top<bounds.top+8
             ?rect.top-bounds.top-12
             :rect.bottom>bounds.bottom-8
@@ -1025,9 +1028,9 @@ try{
         return !!group?.open&&!!target&&getComputedStyle(target).visibility==='visible'&&!!rect&&rect.width>0&&rect.height>0;
       },{view:roleCase.visible},{timeout:5000});
       await targetButton.waitFor({state:'visible',timeout:5000});
-      await targetButton.scrollIntoViewIfNeeded({timeout:5000});
       await targetButton.evaluate(button=>{
         const scroller=document.querySelector('.sidebar #nav');
+        if(scroller)scroller.style.scrollBehavior='auto';
         const rect=button.getBoundingClientRect();
         const bounds=scroller?.getBoundingClientRect();
         if(scroller&&bounds){
@@ -1100,23 +1103,24 @@ try{
     }catch(error){
       // Capture the actual hit-testing and expansion state when a mobile tap
       // loses its target, instead of hiding a race behind a forced click.
-      const tapDiagnosis=await page.evaluate(()=>{
-        const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
-        const group=help?.closest('details.nav-group');
-        const rect=help?.getBoundingClientRect();
+      const tapDiagnosis=await page.evaluate(({view})=>{
+        const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        const group=target?.closest('details.nav-group');
+        const rect=target?.getBoundingClientRect();
         const x=rect?Math.max(1,Math.min(innerWidth-2,rect.left+rect.width/2)):0;
         const y=rect?Math.max(1,Math.min(innerHeight-2,rect.top+rect.height/2)):0;
         const hit=document.elementFromPoint(x,y);
         const nav=document.querySelector('.sidebar #nav');
-        return {groupOpen:group?.open,groupHidden:group?.hidden,
-          groupName:group?.dataset?.groupTitle,helpHidden:help?.hidden,
-          helpDisplay:help?getComputedStyle(help).display:'missing',
-          helpRect:rect?{top:Math.round(rect.top),bottom:Math.round(rect.bottom),left:Math.round(rect.left)}:null,
-          navTop:nav?.scrollTop,navHeight:nav?.clientHeight,
+        const style=target?getComputedStyle(target):null;
+        return {view,groupOpen:group?.open,groupHidden:group?.hidden,
+          groupName:group?.dataset?.groupTitle,targetMissing:!target,targetHidden:target?.hidden,
+          targetClasses:target?.className,targetDisplay:style?.display,targetVisibility:style?.visibility,
+          targetRect:rect?{top:Math.round(rect.top),bottom:Math.round(rect.bottom),left:Math.round(rect.left),width:Math.round(rect.width),height:Math.round(rect.height)}:null,
+          navTop:nav?.scrollTop,navHeight:nav?.clientHeight,navScrollHeight:nav?.scrollHeight,
           hitTag:hit?.tagName,hitText:(hit?.textContent||'').slice(0,50),
           hitGroup:hit?.closest?.('details')?.dataset?.groupTitle,
           drawerOpen:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')};
-      }).catch(e=>({unavailable:String(e)}));
+      },{view:roleCase.visible}).catch(e=>({unavailable:String(e)}));
       console.log('Mobile nav tap diagnosis '+roleCase.role+': '+JSON.stringify(tapDiagnosis));
       pushFailure('app shell '+roleCase.role,'Authenticated mobile app-shell regression failed',error?.message||String(error));
     }finally{
@@ -2023,6 +2027,7 @@ try{
         await group.evaluate(el=>{
           el.hidden=false;
           const scroller=el.closest('.sidebar')?.querySelector('#nav');
+          if(scroller)scroller.style.scrollBehavior='auto';
           const bounds=scroller?.getBoundingClientRect();
           const rect=el.querySelector(':scope > summary')?.getBoundingClientRect();
           if(scroller&&bounds&&rect){
@@ -2045,9 +2050,9 @@ try{
         // only after that layout has settled, then verify the target is inside
         // the actual #nav scrolling viewport before tapping it.
         await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-        await button.scrollIntoViewIfNeeded({timeout:5000});
         await button.evaluate(el=>{
           const scroller=el.closest('.sidebar')?.querySelector('#nav');
+          if(scroller)scroller.style.scrollBehavior='auto';
           const bounds=scroller?.getBoundingClientRect();
           const rect=el.getBoundingClientRect();
           if(scroller&&bounds){
