@@ -458,3 +458,24 @@ body.page-app .sidebar #nav .nav-item.active:before{
   body.page-app .sidebar #nav .nav-group>summary{min-height:44px!important}
   body.page-app .sidebar #nav .nav-item{min-height:42px!important}
 }
+
+
+/* Phase 1 QA correction: premium-ui.js can inject legacy teal/green field
+   shadows after the base theme. Reassert the blue glass tokens at higher
+   priority so the rendered controls match the Blue Glass visual identity. */
+body:is(.page-app,.auth-page,.page-home,.premium-public-page,.learning-sky,.admission-premium) :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+  border-color:rgba(51,142,230,.52)!important;
+  background:linear-gradient(142deg,rgba(255,255,255,.94),rgba(232,244,255,.88))!important;
+  box-shadow:0 0 0 1px rgba(51,142,230,.13),0 11px 20px rgba(21,95,158,.10),inset 0 2px 0 rgba(255,255,255,.96)!important;
+}
+body:is(.page-app,.auth-page,.page-home,.premium-public-page,.learning-sky,.admission-premium) :is(input,textarea,select):focus{
+  border-color:#338ee6!important;
+  box-shadow:0 0 0 4px rgba(103,194,246,.25),0 10px 22px rgba(21,95,158,.12)!important;
+}
+body:is(.page-app,.auth-page,.page-home,.premium-public-page,.learning-sky,.admission-premium) :is(label,.field-label,.form-label){
+  color:#245477!important;
+}
+body:is(.page-app,.auth-page,.page-home,.premium-public-page,.learning-sky,.admission-premium) :is(.primary,button.primary,.btn-primary){
+  background:linear-gradient(125deg,#155f9e,#1d73bd 56%,#338ee6)!important;
+  box-shadow:0 9px 24px rgba(21,95,158,.20)!important;
+}
