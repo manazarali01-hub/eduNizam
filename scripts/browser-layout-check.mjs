@@ -1993,12 +1993,10 @@ try{
         await group.evaluate(el=>{
           el.hidden=false;
           if(!el.open)el.open=true;
-          const scroller=el.closest('.sidebar')?.querySelector('#nav');
-          const bounds=scroller?.getBoundingClientRect();
-          const groupRect=el.getBoundingClientRect();
-          if(scroller&&bounds)scroller.scrollTop+=groupRect.top-bounds.top-12;
-          else el.scrollIntoView({block:'nearest'});
         });
+        // Let the native details toggle and the one-open mobile accordion
+        // listener settle before measuring the expanded panel.
+        await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
         if(!(await group.evaluate(el=>el.open)))await summary.click({timeout:5000});
         await loginFlowPage.waitForFunction(({view,title})=>{
           const target=document.querySelector('.nav-item[data-view="'+view+'"]');
@@ -2006,15 +2004,24 @@ try{
           const rect=target?.getBoundingClientRect();
           return !!panel?.open&&!panel.hidden&&!!target&&getComputedStyle(target).display!=='none'&&!!rect&&rect.width>0&&rect.height>0;
         },{view,title:groupTitle},{timeout:7000});
+        // Expanding a group changes its height. Recompute the scroll position
+        // only after that layout has settled, then verify the target is inside
+        // the actual #nav scrolling viewport before tapping it.
+        await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
         await button.evaluate(el=>{
           const scroller=el.closest('.sidebar')?.querySelector('#nav');
           const bounds=scroller?.getBoundingClientRect();
           const rect=el.getBoundingClientRect();
           if(scroller&&bounds){
-            if(rect.bottom>bounds.bottom-8)scroller.scrollTop+=rect.bottom-bounds.bottom+16;
-            else if(rect.top<bounds.top+8)scroller.scrollTop-=bounds.top-rect.top+16;
+            const delta=rect.top<bounds.top+8
+              ? rect.top-bounds.top-12
+              : rect.bottom>bounds.bottom-8
+                ? rect.bottom-bounds.bottom+12
+                : 0;
+            if(delta)scroller.scrollTop+=delta;
           }else el.scrollIntoView({block:'nearest',inline:'nearest'});
         });
+        await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
         await loginFlowPage.waitForFunction(view=>{
           const el=document.querySelector('.nav-item[data-view="'+view+'"]');
           const r=el?.getBoundingClientRect();
