@@ -151,10 +151,13 @@ async function setView(view){
 }
 window.EDUNIZAM_APP_NAV={setView};
 // Delegation keeps section buttons added after initial startup clickable too.
-const navRoot=document.getElementById('nav');
-navRoot?.addEventListener('click',event=>{
- const button=event.target.closest?.('.nav-item[data-view]');
- if(!button||button.disabled||!navRoot.contains(button))return;
+// Resolve the current navigation node for every click. The app shell can
+// replace #nav during workspace restoration; a listener on the old node would
+// leave the replacement sidebar visually clickable but functionally inert.
+document.addEventListener('click',event=>{
+ const liveNav=document.getElementById('nav');
+ const button=event.target?.closest?.('.nav-item[data-view]');
+ if(!button||button.disabled||!liveNav?.contains(button))return;
  setView(button.dataset.view);
 });
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=async()=>{
