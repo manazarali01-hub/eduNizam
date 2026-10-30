@@ -777,9 +777,20 @@ body.admission-premium{
     overscroll-behavior-y:contain;
   }
   .app-page .nav-group{min-width:0!important;width:100%!important}
-  .app-page .nav-group>summary{min-height:44px}
-  .app-page .nav-group-items{display:grid!important;gap:6px!important}
-  .app-page .nav-item{min-width:0!important;width:100%!important;white-space:normal!important}
+  .app-page .nav-group>summary{min-height:48px!important;cursor:pointer;touch-action:manipulation}
+  /* Native details must control visibility: forcing every child grid open
+     made collapsed groups render all feature buttons on narrow screens. */
+  .app-page .nav-group:not([open])>.nav-group-items{display:none!important}
+  .app-page .nav-group[open]>.nav-group-items{display:grid!important;gap:6px!important}
+  .app-page .nav-item{
+    min-width:0!important;width:100%!important;min-height:46px!important;
+    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+    overflow-wrap:normal!important;word-break:normal!important;
+  }
+  .app-page .nav-item .premium-nav-label{
+    display:block!important;min-width:0!important;overflow:hidden!important;
+    white-space:nowrap!important;text-overflow:ellipsis!important;
+  }
   .app-page .main{max-width:none!important}
   .auth-page .page{grid-template-columns:1fr}
   .auth-page .story{display:none!important}
