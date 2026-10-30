@@ -128,7 +128,16 @@
     const observer=new MutationObserver(mutations=>{
       let changed=false;
       for(const m of mutations){
-        for(const node of m.addedNodes){
+        if(m.type==='attributes'&&m.attributeName==='class'&&m.target.matches?.('.nav-item[data-view]')){
+          // app.js and the secure role-scope runtime can apply role-hidden
+          // after this menu mounts. Recompute group visibility when that
+          // permission state changes, otherwise an empty accordion can stay
+          // hidden even after an allowed role button becomes available.
+          const wasHidden=String(m.oldValue||'').split(/\\s+/).includes('role-hidden');
+          const isHidden=m.target.classList.contains('role-hidden');
+          if(wasHidden!==isHidden)changed=true;
+        }
+        for(const node of m.addedNodes||[]){
           if(node?.nodeType!==1)continue;
           if(node.matches?.('.nav-item')){placeButton(nav,node);changed=true}
           node.querySelectorAll?.('.nav-item').forEach(b=>{placeButton(nav,b);changed=true});
@@ -136,7 +145,7 @@
       }
       if(changed)setTimeout(filter,0);
     });
-    observer.observe(nav,{childList:true,subtree:true});
+    observer.observe(nav,{childList:true,subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
     window.addEventListener('edunizam:auth',()=>setTimeout(filter,50));
     // Preserve the background feature-warming contract: warm only after
     // workspace readiness, and independently refresh role-filtered groups.
