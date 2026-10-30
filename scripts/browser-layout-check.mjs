@@ -985,11 +985,10 @@ try{
         await targetSummary.tap({timeout:5000});
       }
       await page.waitForFunction(({view})=>{
-          const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
-          return !target?.closest('details.nav-group')?.open;
-        },{view:roleCase.visible},{timeout:3000});
-      }
-      await targetSummary.tap({timeout:5000});
+        const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        const group=target?.closest('details.nav-group');
+        return !!group?.open&&!group.hidden;
+      },{view:roleCase.visible},{timeout:5000});
       await page.waitForFunction(({view})=>{
         const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
         const group=target?.closest('details.nav-group');
