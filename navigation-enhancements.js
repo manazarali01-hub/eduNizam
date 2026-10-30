@@ -40,46 +40,25 @@
       if(keep)keep.open=true;
       syncSummaryState();
     };
-    // Capture the summary activation before native <details> toggling or any
-    // other delegated click handlers. This guarantees a single-open mobile
-    // accordion even when the navigation enhancement has already mounted.
-    // Bind at document capture rather than only to the current nav node.
-    // The app shell can rebuild navigation during workspace initialization;
-    // a document-level guard keeps the accordion contract attached to the live
-    // #nav element even if its contents or node are replaced.
-    // Bind the mobile accordion transition directly to each summary. A
-    // document-level capture listener can be bypassed by other shell-level
-    // capture handlers during authenticated drawer interactions; a target
-    // listener keeps the actual summary activation responsible for its state.
-    const bindSummary=summary=>{
-      if(!summary||summary.dataset.mobileAccordionClickBound==='1')return;
-      summary.dataset.mobileAccordionClickBound='1';
-      summary.addEventListener('click',event=>{
-        if(window.innerWidth>950)return;
-        const group=summary.parentElement;
-        if(!group?.matches('.nav-group')||group.parentElement!==nav)return;
-        const shouldOpen=!group.open;
-        event.preventDefault();
-        nav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{
-          if(other!==group)other.open=false;
-        });
-        group.open=shouldOpen;
-        syncSummaryState();
+    // Intercept summary activation at window capture, before document-level
+    // shell handlers can stop propagation. A target/bubble listener is too late
+    // when another shell handler intercepts mobile drawer clicks.
+    const handleSummaryActivation=event=>{
+      if(window.innerWidth>950)return;
+      const summary=event.target?.closest?.('.nav-group > summary');
+      const group=summary?.parentElement;
+      const liveNav=document.getElementById('nav');
+      if(!group||liveNav!==nav||group.parentElement!==nav)return;
+      const shouldOpen=!group.open;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      nav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{
+        if(other!==group)other.open=false;
       });
+      group.open=shouldOpen;
+      syncSummaryState();
     };
-    nav.querySelectorAll(':scope > .nav-group > summary').forEach(bindSummary);
-    const summaryBindingObserver=new MutationObserver(records=>{
-      for(const record of records){
-        for(const node of record.addedNodes||[]){
-          if(node?.nodeType!==1)continue;
-          if(node.matches?.(':scope > summary'))bindSummary(node);
-          node.querySelectorAll?.(':scope > summary').forEach(bindSummary);
-          if(node.matches?.('.nav-group'))bindSummary(node.querySelector(':scope > summary'));
-          node.querySelectorAll?.('.nav-group > summary').forEach(bindSummary);
-        }
-      }
-    });
-    summaryBindingObserver.observe(nav,{childList:true,subtree:true});
+    window.addEventListener('click',handleSummaryActivation,true);
     // Also normalize direct/programmatic open-state changes. This is important
     // during role/view restoration, where <details>.open can be assigned without
     // a click event. Keep the last newly-opened group, otherwise the active view.
@@ -106,8 +85,8 @@
     accordionObserver.observe(nav,{subtree:true,attributes:true,attributeFilter:['open']});
     // Do not normalize on queued native `toggle` events. Programmatic open-state
     // changes also emit toggle asynchronously; re-selecting the active-view group
-    // here would immediately collapse the group the user just opened. The capture-
-    // phase summary handler already enforces one-open-at-a-time synchronously.
+    // here would immediately collapse the group the user just opened. The window-
+    // capture summary handler enforces one-open-at-a-time synchronously.
     normalize();
     window.addEventListener('resize',normalize,{passive:true});
   }
@@ -209,7 +188,7 @@
       else setTimeout(run,4500);
     };
     // Feature navigation remains delegated separately; mobile summary
-    // activation is handled once in the capture-phase accordion controller.
+    // activation is handled by the window-capture accordion controller.
     nav.addEventListener('click',e=>{
       const b=e.target.closest('.nav-item');
       if(!b)return;
