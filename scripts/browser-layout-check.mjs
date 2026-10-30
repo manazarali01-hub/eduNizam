@@ -669,6 +669,26 @@ try{
     }));
     if(pastState.active!=='past'||!pastState.summary||pastState.gridText<20)pushFailure('guest learning','Past Papers search did not render a usable result state',JSON.stringify(pastState));
 
+    console.log('Guest step START: Grade 5 / Grade 8 resource filters');
+    await guestPage.locator('.tabs .tab[data-tab="grade"]').tap({timeout:5000});
+    await guestPage.waitForSelector('#grade.section.active',{state:'visible',timeout:5000});
+    await guestPage.waitForSelector('#guestGrade',{state:'visible',timeout:5000});
+    await guestPage.locator('#guestGrade').selectOption('5');
+    await guestPage.waitForFunction(()=>/PECTAA Grade 5/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
+    const grade5State=await guestPage.locator('#guestGradeResults').innerText();
+    if(!/PECTAA Grade 5 Mathematics Curriculum/i.test(grade5State)||!/Grade 5/i.test(grade5State)){
+      pushFailure('guest learning','Grade 5 public resource filter did not return the official curriculum',grade5State.slice(0,500));
+    }
+    await guestPage.locator('#guestGrade').selectOption('8');
+    await guestPage.waitForFunction(()=>/PECTAA Grade 8/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
+    await guestPage.locator('#guestGradeSubject').selectOption({label:'Mathematics'});
+    await guestPage.waitForFunction(()=>/PECTAA Grade 8 Mathematics Model Paper/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
+    const grade8State=await guestPage.locator('#guestGradeResults').innerText();
+    if(!/PECTAA Grade 8 Mathematics Model Paper/i.test(grade8State)){
+      pushFailure('guest learning','Grade 8 Mathematics filter did not return the official model paper',grade8State.slice(0,500));
+    }
+    console.log('Guest step PASS: Grade 5 / Grade 8 resource filters');
+
     console.log('Guest step START: global public search');
     await guestPage.locator('#globalSearch').fill('CS201 final term');
     await guestPage.locator('#runGlobalSearch').tap({timeout:5000});
