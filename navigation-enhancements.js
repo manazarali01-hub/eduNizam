@@ -22,6 +22,16 @@
     const nav=document.getElementById('nav');if(!nav||nav.dataset.enhanced==='1')return;
     const buttons=[...nav.querySelectorAll(':scope > .nav-item')];
     nav.dataset.enhanced='1';nav.classList.add('nav-groups');
+    // The current app shell already ships grouped <details> markup. Give those
+    // groups stable labels too; only dynamically-created groups have these
+    // attributes by default. This keeps role-aware navigation and QA selectors
+    // anchored to the real rendered group rather than assuming a rebuilt menu.
+    nav.querySelectorAll(':scope > details.nav-group').forEach(group=>{
+      if(!group.dataset.groupTitle){
+        const label=group.querySelector(':scope > summary strong')?.textContent?.trim();
+        if(label)group.dataset.groupTitle=label;
+      }
+    });
     let search=document.querySelector('.sidebar > .nav-search-wrap');
     if(!search){search=document.createElement('div');search.className='nav-search-wrap';search.innerHTML='<span aria-hidden="true">⌕</span><input id="navFeatureSearch" type="search" placeholder="Find a feature…" aria-label="Find a feature"><kbd>Ctrl K</kbd>';nav.before(search)}
     if(buttons.length){
