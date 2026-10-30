@@ -1,13 +1,15 @@
 (function(){
+  // Match the real accordion headings in app.html. The mobile active-view
+  // resolver relies on these names; synthetic labels left the current section
+  // collapsed when the drawer opened.
   const groups=[
-    ['Overview','⌂',['dashboard']],
-    ['Daily Work','★',['students','attendance','fees','staffcenter','access','noticeboard','schedulecenter','inboxcenter']],
-    ['Students & Academics','🎓',['classcenter','studentprofile','results','schoolwork','lessoncenter','examcenter','behaviorcenter','studentdocs']],
-    ['Staff & HR','👩‍🏫',['stafftime','staffpayroll','training','leavecenter']],
-    ['School Operations','⚙',['admissions','financecenter','bulkimport','inventorycenter','librarycenter','transportcenter','gatecenter','parentcomplaints','helpdeskcenter','calendarcenter','functionscenter','ourstudents','attendanceanalytics']],
-    ['Learning Resources','▤',['pastpapers','practice','study','schoolassessments','universities','competitive','ecosystem','pathways','vu']],
-    ['Communication','✉',['communication','notifications']],
-    ['AI & System','✦',['assistant','auditcenter','settings','troubleshoot','help']]
+    ['Core','⌂',['dashboard','students','studentprofile','classcenter','bulkimport','attendance','attendanceanalytics']],
+    ['People & Campus','◎',['staffcenter','stafftime','staffpayroll','training','ourstudents','behaviorcenter','gatecenter','studentdocs','leavecenter']],
+    ['Academics','✎',['results','schoolwork','lessoncenter','examcenter','paperbuilder','dailydiary','schedulecenter','calendarcenter']],
+    ['Finance & Operations','₨',['fees','financecenter','inventorycenter','librarycenter','transportcenter']],
+    ['Communication','✉',['noticeboard','functionscenter','inboxcenter','parentcomplaints','helpdeskcenter']],
+    ['Pakistan Learning','🇵🇰',['pastpapers','practice','study','schoolassessments','universities','competitive','ecosystem','pathways','vu','admissions']],
+    ['System','⚙',['assistant','datareadiness','settings','troubleshoot','help']]
   ];
   const groupMap=new Map(groups.flatMap(([title,,views])=>views.map(v=>[v,title])));
   function findGroup(nav,title){return [...nav.querySelectorAll(':scope > .nav-group')].find(g=>g.dataset.groupTitle===title)}
