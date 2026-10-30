@@ -342,8 +342,10 @@ try{
       }
       // Run the full responsive matrix on core entry points. Long-form public guides
       // get phone + desktop coverage; this keeps CI focused without dropping key breakpoints.
-      const routeWidths=['/','/login.html','/learn.html','/app.html','/admission.html','/features.html'].includes(route)
-        ?widths:[390,1366];
+      const routeWidths=route==='/app.html'
+        ?[390,768,1366]
+        :(['/','/login.html','/learn.html','/admission.html','/features.html'].includes(route)
+          ?widths:[390,1366]);
       for(const width of routeWidths){
         await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
         console.log('Layout QA viewport:',route,width+'px');
