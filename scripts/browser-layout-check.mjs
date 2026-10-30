@@ -977,7 +977,14 @@ try{
       const targetSummary=targetGroup.locator(':scope > summary');
       await targetGroup.evaluate(group=>{
         group.hidden=false;
-        group.scrollIntoView({block:'nearest'});
+        const drawer=group.closest('.sidebar');
+        const rect=group.getBoundingClientRect();
+        const drawerRect=drawer?.getBoundingClientRect();
+        if(drawer&&drawerRect){
+          drawer.scrollTop+=rect.top-drawerRect.top-12;
+        }else{
+          group.scrollIntoView({block:'nearest'});
+        }
       });
       if(await targetGroup.evaluate(group=>group.open)){
         await targetSummary.click({timeout:5000});
@@ -994,7 +1001,24 @@ try{
         return !!group?.open&&!!target&&getComputedStyle(target).visibility==='visible'&&!!rect&&rect.width>0&&rect.height>0;
       },{view:roleCase.visible},{timeout:5000});
       await targetButton.waitFor({state:'visible',timeout:5000});
-      await targetButton.scrollIntoViewIfNeeded();
+      await targetButton.evaluate(button=>{
+        const drawer=button.closest('.sidebar');
+        const rect=button.getBoundingClientRect();
+        const drawerRect=drawer?.getBoundingClientRect();
+        if(drawer&&drawerRect){
+          if(rect.bottom>drawerRect.bottom-8)drawer.scrollTop+=rect.bottom-drawerRect.bottom+16;
+          else if(rect.top<drawerRect.top+8)drawer.scrollTop-=drawerRect.top-rect.top+16;
+        }else{
+          button.scrollIntoView({block:'nearest',inline:'nearest'});
+        }
+      });
+      await page.waitForFunction(view=>{
+        const button=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        const drawer=button?.closest('.sidebar');
+        const rect=button?.getBoundingClientRect();
+        const bounds=drawer?.getBoundingClientRect();
+        return !!rect&&!!bounds&&rect.height>0&&rect.top>=bounds.top-1&&rect.bottom<=bounds.bottom+1;
+      },roleCase.visible,{timeout:5000});
       await targetButton.tap({timeout:5000});
       await page.waitForSelector('#'+roleCase.visible+'.view.active',{state:'visible',timeout:7000});
       await page.waitForFunction(()=>!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
@@ -1967,13 +1991,13 @@ try{
         // Scroll the drawer's own navigation viewport; Playwright's generic
         // scrollIntoView can race the drawer's transform/reflow on touch layouts.
         await group.evaluate(el=>{
-          const nav=el.closest('#nav');
-          if(nav){
-            const nr=nav.getBoundingClientRect(),gr=el.getBoundingClientRect();
-            nav.scrollTop+=gr.top-nr.top-12;
-          }
           el.hidden=false;
           if(!el.open)el.open=true;
+          const drawer=el.closest('.sidebar');
+          const drawerRect=drawer?.getBoundingClientRect();
+          const groupRect=el.getBoundingClientRect();
+          if(drawer&&drawerRect)drawer.scrollTop+=groupRect.top-drawerRect.top-12;
+          else el.scrollIntoView({block:'nearest'});
         });
         if(!(await group.evaluate(el=>el.open)))await summary.click({timeout:5000});
         await loginFlowPage.waitForFunction(({view,title})=>{
@@ -1982,7 +2006,15 @@ try{
           const rect=target?.getBoundingClientRect();
           return !!panel?.open&&!panel.hidden&&!!target&&getComputedStyle(target).display!=='none'&&!!rect&&rect.width>0&&rect.height>0;
         },{view,title:groupTitle},{timeout:7000});
-        await button.evaluate(el=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
+        await button.evaluate(el=>{
+          const drawer=el.closest('.sidebar');
+          const drawerRect=drawer?.getBoundingClientRect();
+          const rect=el.getBoundingClientRect();
+          if(drawer&&drawerRect){
+            if(rect.bottom>drawerRect.bottom-8)drawer.scrollTop+=rect.bottom-drawerRect.bottom+16;
+            else if(rect.top<drawerRect.top+8)drawer.scrollTop-=drawerRect.top-rect.top+16;
+          }else el.scrollIntoView({block:'nearest',inline:'nearest'});
+        });
         await loginFlowPage.waitForFunction(view=>{
           const el=document.querySelector('.nav-item[data-view="'+view+'"]');
           const r=el?.getBoundingClientRect();
