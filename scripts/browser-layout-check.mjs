@@ -508,8 +508,10 @@ try{
               const r=el.getBoundingClientRect();
               return {text:String(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,60),left:Math.round(r.left),right:Math.round(r.right),viewport};
             });
-            const closedGroup=sidebar.querySelector('details.nav-group:not([open])');
-            const closedChild=closedGroup?.querySelector('.nav-group-items .nav-item');
+            const closedGroup=[...sidebar.querySelectorAll('details.nav-group:not([open])')].find(group=>
+              [...group.querySelectorAll('.nav-group-items .nav-item')].some(el=>!el.hidden&&!el.classList.contains('role-hidden'))
+            );
+            const closedChild=[...(closedGroup?.querySelectorAll('.nav-group-items .nav-item')||[])].find(el=>!el.hidden&&!el.classList.contains('role-hidden'));
             const collapsedChildrenHidden=!!closedChild&&getComputedStyle(closedChild).display==='none';
             closedGroup?.querySelector('summary')?.click();
             const openGroupCount=sidebar.querySelectorAll('#nav > details.nav-group[open]').length;
