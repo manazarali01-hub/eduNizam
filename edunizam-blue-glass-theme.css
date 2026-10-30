@@ -244,3 +244,19 @@ body.learning-sky .tab.active{
     padding-bottom:max(24px,env(safe-area-inset-bottom))!important;
   }
 }
+
+
+/* Mobile navigation interaction: avoid smooth-scroll motion under touch taps.
+   The drawer must settle immediately after programmatic reveal/scroll so the
+   selected accordion item remains under the user's finger. */
+@media(max-width:950px){
+  body.page-app .sidebar #nav.nav-groups{
+    scroll-behavior:auto!important;
+    scroll-snap-type:none!important;
+    scroll-padding-block:12px!important;
+  }
+  body.page-app .sidebar #nav .nav-group,
+  body.page-app .sidebar #nav .nav-item{
+    scroll-margin-block:12px!important;
+  }
+}
