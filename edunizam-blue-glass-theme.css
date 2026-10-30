@@ -403,9 +403,8 @@ body.page-app .sidebar #nav .nav-group-items{
   padding:4px 2px 3px!important;
 }
 
-/* Native accordion state must win over the generic grid presentation above.
-   Without this explicit closed-state rule, collapsed groups still expose every
-   feature button on mobile despite their <details> element being closed. */
+/* Preserve native <details> accordion visibility on mobile: closed groups
+   must not expose their nested feature controls. Keep the open group as a grid. */
 body.page-app .sidebar #nav .nav-group:not([open])>.nav-group-items{
   display:none!important;
 }
