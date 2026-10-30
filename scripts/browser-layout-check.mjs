@@ -344,7 +344,7 @@ try{
       // Run the full responsive matrix on core entry points. Long-form public guides
       // get phone + desktop coverage; this keeps CI focused without dropping key breakpoints.
       const routeWidths=route==='/app.html'
-        ?[390,768,1366]
+        ?widths
         :(['/','/login.html','/learn.html','/admission.html','/features.html'].includes(route)
           ?widths:[390,1366]);
       for(const width of routeWidths){
