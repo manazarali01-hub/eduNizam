@@ -977,11 +977,11 @@ try{
       const targetSummary=targetGroup.locator(':scope > summary');
       await targetGroup.evaluate(group=>{
         group.hidden=false;
-        const drawer=group.closest('.sidebar');
+        const scroller=document.querySelector('.sidebar #nav');
         const rect=group.getBoundingClientRect();
-        const drawerRect=drawer?.getBoundingClientRect();
-        if(drawer&&drawerRect){
-          drawer.scrollTop+=rect.top-drawerRect.top-12;
+        const bounds=scroller?.getBoundingClientRect();
+        if(scroller&&bounds){
+          scroller.scrollTop+=rect.top-bounds.top-12;
         }else{
           group.scrollIntoView({block:'nearest'});
         }
@@ -1002,21 +1002,21 @@ try{
       },{view:roleCase.visible},{timeout:5000});
       await targetButton.waitFor({state:'visible',timeout:5000});
       await targetButton.evaluate(button=>{
-        const drawer=button.closest('.sidebar');
+        const scroller=document.querySelector('.sidebar #nav');
         const rect=button.getBoundingClientRect();
-        const drawerRect=drawer?.getBoundingClientRect();
-        if(drawer&&drawerRect){
-          if(rect.bottom>drawerRect.bottom-8)drawer.scrollTop+=rect.bottom-drawerRect.bottom+16;
-          else if(rect.top<drawerRect.top+8)drawer.scrollTop-=drawerRect.top-rect.top+16;
+        const bounds=scroller?.getBoundingClientRect();
+        if(scroller&&bounds){
+          if(rect.bottom>bounds.bottom-8)scroller.scrollTop+=rect.bottom-bounds.bottom+16;
+          else if(rect.top<bounds.top+8)scroller.scrollTop-=bounds.top-rect.top+16;
         }else{
           button.scrollIntoView({block:'nearest',inline:'nearest'});
         }
       });
       await page.waitForFunction(view=>{
         const button=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
-        const drawer=button?.closest('.sidebar');
+        const scroller=document.querySelector('.sidebar #nav');
         const rect=button?.getBoundingClientRect();
-        const bounds=drawer?.getBoundingClientRect();
+        const bounds=scroller?.getBoundingClientRect();
         return !!rect&&!!bounds&&rect.height>0&&rect.top>=bounds.top-1&&rect.bottom<=bounds.bottom+1;
       },roleCase.visible,{timeout:5000});
       await targetButton.tap({timeout:5000});
