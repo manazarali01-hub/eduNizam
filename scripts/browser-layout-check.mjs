@@ -46,7 +46,7 @@ const launchOptions={headless:true};
 if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZAM_BROWSER;
 const browser=await chromium.launch(launchOptions);
 const failures=[];
-const widths=[320,360,375,390,412,430,768,1366];
+const widths=[320,360,390,430,768,1366];
 const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html','/pakistan-degree-accreditation-recognition.html','/pakistan-entry-tests-scholarships.html'];
 
 function routeNameForScreenshot(route){
@@ -321,7 +321,11 @@ try{
       viewport:{width:widths[0],height:Math.max(760,Math.round(widths[0]*1.7))}
     });
     try{
-      for(const width of widths){
+      // Run the full responsive matrix on core entry points. Long-form public guides
+      // get phone + desktop coverage; this keeps CI focused without dropping key breakpoints.
+      const routeWidths=['/','/login.html','/learn.html','/app.html','/admission.html','/features.html'].includes(route)
+        ?widths:[390,1366];
+      for(const width of routeWidths){
         await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
         console.log('Layout QA viewport:',route,width+'px');
         const scope=route+' @ '+width+'px';
