@@ -731,6 +731,16 @@ for(const page of ['app.html','index.html','login.html','learn.html']){
 if(!blueGlassTheme.includes('--v52-line:rgba(51,142,230,.42)')||!blueGlassTheme.includes('--v5-glass-light:linear-gradient(130deg,rgba(253,254,255,.87),rgba(231,244,255,.75))')) fail.push('Blue glass palette tokens or translucent surface contract are missing.');
 if(!blueGlassTheme.includes('backdrop-filter:blur(16px) saturate(138%)')) fail.push('Sidebar blue glass blur/transparency contract is missing.');
 
+for(const page of htmlFiles){
+  const source=read(page);
+  const body=source.match(/<body[^>]*>/i)?.[0]||'';
+  if(/\\b(premium-public-page|admission-premium|page-home|learning-sky|auth-page|page-app)\\b/.test(body)){
+    if(!source.includes('edunizam-blue-glass-theme.css?v=20261030-blue-glass-v1')) fail.push('Blue glass brand layer is missing from '+page+'.');
+    if(source.lastIndexOf('edunizam-blue-glass-theme.css')<source.lastIndexOf('true-photo-glass-v5.css')) fail.push('Blue glass layer must load after the frosted-glass layer on '+page+'.');
+  }
+}
+
+
 if(!visualSystem.includes('HOME + PUBLIC BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push('Visible home/public background fix is missing.');
 if(!read('index.html').includes('edunizam-visual-system.css?v=20261007-premium1')) fail.push('Homepage visual-system cache token was not bumped for premium appearance deployment.');
 if(!visualSystem.includes('body.gold-home')||!visualSystem.includes('pexels-photo-36159720.jpeg')) fail.push('Homepage page-wide local background image is missing.');
