@@ -180,3 +180,42 @@ body.learning-sky .tab.active{
 @media(prefers-reduced-motion:reduce){
   body.page-app .sidebar{transition:none!important}
 }
+
+/* Mobile drawer scroll contract: the sidebar is a column and the nav itself
+   owns vertical scrolling. This prevents long role menus from extending
+   beyond the fixed drawer and leaving buttons outside the touch hit-area. */
+@media(max-width:950px){
+  body.page-app .sidebar,
+  body.page-app .sidebar.mobile-nav-open{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow:hidden!important;
+  }
+  body.page-app .sidebar .sidebar-wordmark,
+  body.page-app .sidebar .brand,
+  body.page-app .sidebar .sidebar-institute,
+  body.page-app .sidebar .nav-search-wrap{
+    flex:0 0 auto!important;
+  }
+  body.page-app .sidebar #nav.nav-groups{
+    display:block!important;
+    flex:1 1 0!important;
+    width:100%!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-y!important;
+    padding-bottom:max(24px,env(safe-area-inset-bottom))!important;
+  }
+  body.page-app .sidebar #nav .nav-group{
+    flex:0 0 auto!important;
+    width:100%!important;
+  }
+}
