@@ -46,7 +46,7 @@ const launchOptions={headless:true};
 if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZAM_BROWSER;
 const browser=await chromium.launch(launchOptions);
 const failures=[];
-const widths=[320,360,390,430,768,1366];
+const widths=[320,360,375,390,412,430,768,1366];
 const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html','/pakistan-degree-accreditation-recognition.html','/pakistan-entry-tests-scholarships.html'];
 
 function routeNameForScreenshot(route){
@@ -977,7 +977,7 @@ try{
       const targetSummary=targetGroup.locator(':scope > summary');
       await targetSummary.scrollIntoViewIfNeeded();
       if(await targetGroup.evaluate(group=>group.open)){
-        await targetSummary.tap({timeout:5000});
+        await targetSummary.click({timeout:5000});
         await page.waitForFunction(({view})=>{
           const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
           return !target?.closest('details.nav-group')?.open;
@@ -1963,13 +1963,14 @@ try{
         const summary=group.locator(':scope > summary');
         await summary.scrollIntoViewIfNeeded();
         if(!(await group.evaluate(el=>el.open))){
-          await summary.tap({timeout:5000});
+          await summary.click({timeout:5000});
         }
         await loginFlowPage.waitForFunction(({view,title})=>{
           const target=document.querySelector('.nav-item[data-view="'+view+'"]');
           const panel=document.querySelector('.nav-group[data-group-title="'+title+'"]');
           return !!panel?.open&&!!target&&target.getClientRects().length>0;
         },{view,title:groupTitle},{timeout:5000});
+        await button.scrollIntoViewIfNeeded();
         await button.tap({timeout:5000});
         await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
       });
