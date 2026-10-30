@@ -145,6 +145,38 @@ body.learning-sky .tab.active{
       var(--ref-students) center 35%/cover no-repeat!important;
   }
 }
+/* Mobile drawer: override legacy tablet rules that widened the sidebar to 100%.
+   Keep the workspace full-width behind a compact, readable overlay drawer. */
+@media(max-width:950px){
+  body.page-app .sidebar,
+  body.page-app .sidebar.mobile-nav-open{
+    width:min(330px,88vw)!important;
+    max-width:88vw!important;
+    inset:0 auto 0 0!important;
+  }
+  body.page-app .nav-group summary{
+    display:grid!important;
+    grid-template-columns:22px minmax(0,1fr) auto!important;
+    align-items:center!important;
+    gap:8px!important;
+    min-width:0!important;
+  }
+  body.page-app .nav-group summary strong{
+    display:block!important;
+    min-width:0!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    word-break:normal!important;
+    overflow-wrap:normal!important;
+  }
+  body.page-app .nav-group summary small{white-space:nowrap!important}
+  body.page-app .main{width:100%!important;min-width:0!important;margin:0!important}
+}
+@media(max-width:430px){
+  body.page-app .sidebar{width:min(310px,90vw)!important;max-width:90vw!important}
+  body.page-app .nav-group summary{padding:11px 10px!important}
+}
 @media(prefers-reduced-motion:reduce){
   body.page-app .sidebar{transition:none!important}
 }
