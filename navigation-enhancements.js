@@ -80,8 +80,10 @@
         .filter(group=>group.matches?.('.nav-group')&&group.parentElement===liveNav&&group.open);
       const activeView=document.querySelector('.view.active')?.id||'dashboard';
       const activeTitle=groupMap.get(activeView);
-      const keep=[...newlyOpened].reverse().find(group=>openGroups.includes(group)&&group.dataset.groupTitle===activeTitle)
-        ||[...newlyOpened].reverse().find(group=>openGroups.includes(group))
+      // A newly opened group represents the user's latest navigation intent.
+      // Prefer it over the active-view group: otherwise opening another section
+      // while the dashboard is active immediately collapses the requested group.
+      const keep=[...newlyOpened].reverse().find(group=>openGroups.includes(group))
         ||openGroups.find(group=>group.dataset.groupTitle===activeTitle)
         ||openGroups[0];
       openGroups.forEach(group=>{if(group!==keep)group.open=false});
