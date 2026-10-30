@@ -1581,6 +1581,9 @@ try{
     console.log('[login-flow pageerror] '+message);
   });
   loginFlowPage.on('requestfailed',request=>console.log('[login-flow requestfailed] '+request.url()+' :: '+(request.failure()?.errorText||'unknown')));
+  loginFlowPage.on('response',response=>{
+    if(response.status()>=400)console.log('[login-flow HTTP '+response.status()+'] '+response.url());
+  });
   const loginStep=async(label,fn)=>{
     console.log('Full login step START: '+label);
     const started=Date.now();
