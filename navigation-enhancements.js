@@ -43,18 +43,49 @@
     // Capture the summary activation before native <details> toggling or any
     // other delegated click handlers. This guarantees a single-open mobile
     // accordion even when the navigation enhancement has already mounted.
-    nav.addEventListener('click',event=>{
-      const summary=event.target.closest?.('.nav-group > summary');
+    // Bind at document capture rather than only to the current nav node.
+    // The app shell can rebuild navigation during workspace initialization;
+    // a document-level guard keeps the accordion contract attached to the live
+    // #nav element even if its contents or node are replaced.
+    document.addEventListener('click',event=>{
+      const summary=event.target.closest?.('#nav > .nav-group > summary');
       if(!summary||window.innerWidth>950)return;
+      const liveNav=document.getElementById('nav');
       const group=summary.parentElement;
-      if(!group||group.parentElement!==nav)return;
+      if(!liveNav||group?.parentElement!==liveNav)return;
       const shouldOpen=!group.open;
       event.preventDefault();
       event.stopImmediatePropagation();
-      nav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{other.open=false});
+      liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{other.open=false});
       group.open=shouldOpen;
-      syncSummaryState();
+      liveNav.querySelectorAll(':scope > .nav-group').forEach(item=>{
+        item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
+      });
     },true);
+    // Also normalize direct/programmatic open-state changes. This is important
+    // during role/view restoration, where <details>.open can be assigned without
+    // a click event. Keep the last newly-opened group, otherwise the active view.
+    const accordionObserver=new MutationObserver(records=>{
+      if(window.innerWidth>950)return;
+      const liveNav=document.getElementById('nav');
+      if(liveNav!==nav)return;
+      const openGroups=[...liveNav.querySelectorAll(':scope > .nav-group[open]')];
+      if(openGroups.length<=1)return;
+      const newlyOpened=records.map(record=>record.target)
+        .filter(group=>group.matches?.(':scope > .nav-group')&&group.open);
+      const activeView=document.querySelector('.view.active')?.id||'dashboard';
+      const activeTitle=groupMap.get(activeView);
+      const keep=[...newlyOpened].reverse().find(group=>openGroups.includes(group)&&group.dataset.groupTitle===activeTitle)
+        ||[...newlyOpened].reverse().find(group=>openGroups.includes(group))
+        ||openGroups.find(group=>group.dataset.groupTitle===activeTitle)
+        ||openGroups[0];
+      openGroups.forEach(group=>{if(group!==keep)group.open=false});
+      liveNav.querySelectorAll(':scope > .nav-group').forEach(item=>{
+        item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
+      });
+    });
+    accordionObserver.observe(nav,{subtree:false,childList:true});
+    accordionObserver.observe(nav,{subtree:true,attributes:true,attributeFilter:['open']});
     // Do not normalize on queued native `toggle` events. Programmatic open-state
     // changes also emit toggle asynchronously; re-selecting the active-view group
     // here would immediately collapse the group the user just opened. The capture-
