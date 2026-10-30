@@ -5,17 +5,15 @@
   if(!window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__){
     window.addEventListener('click',event=>{
       if(window.innerWidth>950)return;
+      // Auth/role hydration can replace the entire navigation element after
+      // this early capture listener is installed. Always resolve the live nav
+      // for each click rather than retaining a stale detached node.
       const nav=document.getElementById('nav');
-      // Resolve the actual summary from the composed event path. Some browser
-      // targets (icons/text nodes and nested inline elements) do not reliably
-      // match the full descendant selector through Element.closest().
       const path=typeof event.composedPath==='function'?event.composedPath():[];
       const target=event.target instanceof Element?event.target:null;
       const summary=target?.closest('#nav details.nav-group > summary')||
         path.find(node=>node instanceof Element&&node.matches('#nav details.nav-group > summary'));
       const group=summary?.closest('details.nav-group');
-      // Do not assume groups remain direct children: role-based navigation may
-      // re-parent or wrap sections while normalizing the menu.
       if(!nav||!summary||!group||!nav.contains(group))return;
       const shouldOpen=!group.open;
       event.preventDefault();
