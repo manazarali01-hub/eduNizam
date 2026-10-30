@@ -991,7 +991,7 @@ try{
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       // Preserve an already-open group; only tap the summary when it is closed.
       if(!(await targetGroup.evaluate(group=>group.open))){
-        await targetSummary.tap({timeout:5000});
+        await targetSummary.click({timeout:5000,force:true});
       }
       await page.waitForFunction(({view})=>{
         const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
@@ -2010,7 +2010,7 @@ try{
           }
         });
         await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-        if(!(await group.evaluate(el=>el.open)))await summary.click({timeout:5000});
+        if(!(await group.evaluate(el=>el.open)))await summary.click({timeout:5000,force:true});
         await loginFlowPage.waitForFunction(({view,title})=>{
           const target=document.querySelector('.nav-item[data-view="'+view+'"]');
           const panel=document.querySelector('.nav-group[data-group-title="'+title+'"]');
