@@ -30,7 +30,7 @@
     };
     const normalize=()=>{
       if(window.innerWidth>950)return;
-      const groups=[...nav.querySelectorAll(':scope > .nav-group:not([hidden])')];
+      const groups=[...nav.querySelectorAll(':scope > .nav-group')];
       const open=groups.filter(group=>group.open);
       if(open.length<=1){syncSummaryState();return;}
       const activeView=document.querySelector('.view.active')?.id||'dashboard';
@@ -44,18 +44,21 @@
     // other delegated click handlers. This guarantees a single-open mobile
     // accordion even when the navigation enhancement has already mounted.
     nav.addEventListener('click',event=>{
-      const summary=event.target.closest?.(':scope > .nav-group > summary')||
-        event.target.closest?.('.nav-group > summary');
+      const summary=event.target.closest?.('.nav-group > summary');
       if(!summary||window.innerWidth>950)return;
       const group=summary.parentElement;
       if(!group||group.parentElement!==nav)return;
       const shouldOpen=!group.open;
       event.preventDefault();
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       nav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{other.open=false});
       group.open=shouldOpen;
       syncSummaryState();
     },true);
+    // Native details toggle events are queued by browsers. Normalize again
+    // after the final state change so stale queued events cannot leave two
+    // groups expanded, including groups hidden by role filtering.
+    nav.addEventListener('toggle',normalize,true);
     normalize();
     window.addEventListener('resize',normalize,{passive:true});
   }
