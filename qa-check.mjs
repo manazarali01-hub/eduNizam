@@ -720,6 +720,17 @@ if(!visualSystem.includes('APP BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push
 if(!visualSystem.includes('pexels-photo-36159720.jpeg')||!visualSystem.includes('pexels-photo-5833.jpeg')) fail.push('Authenticated app backgrounds are not using bundled local education images.');
 if(!visualSystem.includes('.page-app .view.active > .section-head:first-child')||!visualSystem.includes('min-height:132px')) fail.push('Authenticated view opening banners are not visibly image-backed.');
 if(!read('app.html').includes('edunizam-visual-system.css?v=20261030-mobile-accordion-v1')) fail.push('App visual-system cache token does not match the latest mobile sidebar release.');
+const blueGlassTheme=read('edunizam-blue-glass-theme.css');
+if(!exists('edunizam-blue-glass-theme.css')) fail.push('Premium blue glass theme stylesheet is missing.');
+for(const page of ['app.html','index.html','login.html','learn.html']){
+  const source=read(page);
+  const themeHref='edunizam-blue-glass-theme.css?v=20261030-blue-glass-v1';
+  if(!source.includes(themeHref)) fail.push('Blue glass theme is not linked on '+page+'.');
+  if(source.lastIndexOf('edunizam-blue-glass-theme.css')<source.lastIndexOf('true-photo-glass-v5.css')) fail.push('Blue glass theme must load after the shared frosted-glass layer on '+page+'.');
+}
+if(!blueGlassTheme.includes('--v52-line:rgba(51,142,230,.42)')||!blueGlassTheme.includes('--v5-glass-light:linear-gradient(130deg,rgba(253,254,255,.87),rgba(231,244,255,.75))')) fail.push('Blue glass palette tokens or translucent surface contract are missing.');
+if(!blueGlassTheme.includes('backdrop-filter:blur(16px) saturate(138%)')) fail.push('Sidebar blue glass blur/transparency contract is missing.');
+
 if(!visualSystem.includes('HOME + PUBLIC BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push('Visible home/public background fix is missing.');
 if(!read('index.html').includes('edunizam-visual-system.css?v=20261007-premium1')) fail.push('Homepage visual-system cache token was not bumped for premium appearance deployment.');
 if(!visualSystem.includes('body.gold-home')||!visualSystem.includes('pexels-photo-36159720.jpeg')) fail.push('Homepage page-wide local background image is missing.');
