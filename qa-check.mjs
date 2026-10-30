@@ -734,7 +734,7 @@ if(!blueGlassTheme.includes('backdrop-filter:blur(16px) saturate(138%)')) fail.p
 for(const page of htmlFiles){
   const source=read(page);
   const body=source.match(/<body[^>]*>/i)?.[0]||'';
-  if(/\\b(premium-public-page|admission-premium|page-home|learning-sky|auth-page|page-app)\\b/.test(body)){
+  if(/\b(premium-public-page|admission-premium|page-home|learning-sky|auth-page|page-app)\b/.test(body)){
     if(!source.includes('edunizam-blue-glass-theme.css?v=20261030-blue-glass-v1')) fail.push('Blue glass brand layer is missing from '+page+'.');
     if(source.lastIndexOf('edunizam-blue-glass-theme.css')<source.lastIndexOf('true-photo-glass-v5.css')) fail.push('Blue glass layer must load after the frosted-glass layer on '+page+'.');
   }
