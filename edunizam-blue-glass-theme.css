@@ -260,3 +260,44 @@ body.learning-sky .tab.active{
     scroll-margin-block:12px!important;
   }
 }
+
+
+/* Final mobile drawer layout: let the navigation occupy the space left by
+   the real role-specific header. A fixed 280px offset overlaps/clips the
+   accordion on roles whose institute/search header has a different height. */
+@media(max-width:950px){
+  body.page-app .sidebar{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    position:fixed!important;
+    inset:0 auto 0 0!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow:hidden!important;
+  }
+  body.page-app .sidebar #nav.nav-groups{
+    position:relative!important;
+    inset:auto!important;
+    top:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    left:auto!important;
+    display:block!important;
+    flex:1 1 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    margin-top:0!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-y!important;
+    scroll-behavior:auto!important;
+    scroll-snap-type:none!important;
+    padding-bottom:max(24px,env(safe-area-inset-bottom))!important;
+  }
+}
