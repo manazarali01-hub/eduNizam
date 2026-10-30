@@ -977,18 +977,14 @@ try{
       const targetSummary=targetGroup.locator(':scope > summary');
       await targetGroup.evaluate(group=>{
         group.hidden=false;
-        const scroller=document.querySelector('.sidebar #nav');
-        const rect=group.getBoundingClientRect();
-        const bounds=scroller?.getBoundingClientRect();
-        if(scroller&&bounds){
-          scroller.scrollTop+=rect.top-bounds.top-12;
-        }else{
-          group.scrollIntoView({block:'nearest'});
-        }
+        if(!group.open)group.open=true;
       });
-      if(await targetGroup.evaluate(group=>group.open)){
-        await targetSummary.click({timeout:5000});
-        await page.waitForFunction(({view})=>{
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      // Preserve an already-open group; only tap the summary when it is closed.
+      if(!(await targetGroup.evaluate(group=>group.open))){
+        await targetSummary.tap({timeout:5000});
+      }
+      await page.waitForFunction(({view})=>{
           const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
           return !target?.closest('details.nav-group')?.open;
         },{view:roleCase.visible},{timeout:3000});
