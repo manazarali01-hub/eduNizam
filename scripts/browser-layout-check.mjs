@@ -930,11 +930,11 @@ try{
       await page.waitForFunction(()=>!document.getElementById('cloudAuthScreen'),null,{timeout:4000});
       // navigation-enhancements.js mounts the accordion asynchronously after the shell.
       // Wait for its real DOM contract before attempting mobile user taps.
-      await page.waitForFunction(()=>{
+      await page.waitForFunction(({view})=>{
         const nav=document.querySelector('#nav.nav-groups');
-        const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
-        return !!nav&&!!help?.closest('details.nav-group');
-      },null,{timeout:7000});
+        const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        return !!nav&&!!target?.closest('details.nav-group');
+      },{view:roleCase.visible},{timeout:7000});
 
       const startup=await page.evaluate(({visible,hidden,label})=>{
         const visibleBtn=document.querySelector('.nav-item[data-view="'+visible+'"]');
@@ -968,22 +968,32 @@ try{
         pushFailure('app shell '+roleCase.role,'Mobile navigation did not open into a consistent locked state',JSON.stringify(opened));
       }
 
-      const helpButton=page.locator('.sidebar .nav-item[data-view="help"]');
-      const helpGroup=page.locator('.sidebar .nav-group[data-group-title="AI & System"]');
-      await helpGroup.waitFor({state:'attached',timeout:7000});
-      const helpSummary=helpGroup.locator(':scope > summary');
-      await helpSummary.scrollIntoViewIfNeeded();
-      const helpGroupOpen=await helpGroup.evaluate(group=>group.open);
-      if(!helpGroupOpen)await helpSummary.tap({timeout:5000});
-      await page.waitForFunction(()=>{
-        const group=document.querySelector('.sidebar .nav-group[data-group-title="AI & System"]');
-        const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
-        return !!group?.open&&!!help&&help.getClientRects().length>0;
-      },null,{timeout:5000});
-      await helpButton.waitFor({state:'visible',timeout:5000});
-      await helpButton.scrollIntoViewIfNeeded();
-      await helpButton.tap({timeout:5000});
-      await page.waitForSelector('#help.view.active',{state:'visible',timeout:7000});
+      // Exercise a destination permitted for this role. Help is not available
+      // to every role, so using it as a universal mobile-navigation target
+      // creates false failures for Teacher, Parent and Head accounts.
+      const targetButton=page.locator('.sidebar .nav-item[data-view="'+roleCase.visible+'"]');
+      const targetGroup=targetButton.locator('xpath=ancestor::details[contains(concat(" ",normalize-space(@class)," ")," nav-group ")]');
+      await targetGroup.waitFor({state:'attached',timeout:7000});
+      const targetSummary=targetGroup.locator(':scope > summary');
+      await targetSummary.scrollIntoViewIfNeeded();
+      if(await targetGroup.evaluate(group=>group.open)){
+        await targetSummary.tap({timeout:5000});
+        await page.waitForFunction(({view})=>{
+          const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+          return !target?.closest('details.nav-group')?.open;
+        },{view:roleCase.visible},{timeout:3000});
+      }
+      await targetSummary.tap({timeout:5000});
+      await page.waitForFunction(({view})=>{
+        const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        const group=target?.closest('details.nav-group');
+        const rect=target?.getBoundingClientRect();
+        return !!group?.open&&!!target&&getComputedStyle(target).visibility==='visible'&&!!rect&&rect.width>0&&rect.height>0;
+      },{view:roleCase.visible},{timeout:5000});
+      await targetButton.waitFor({state:'visible',timeout:5000});
+      await targetButton.scrollIntoViewIfNeeded();
+      await targetButton.tap({timeout:5000});
+      await page.waitForSelector('#'+roleCase.visible+'.view.active',{state:'visible',timeout:7000});
       await page.waitForFunction(()=>!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
 
       // setView() intentionally reveals the destination before lazy feature code
@@ -991,7 +1001,7 @@ try{
       // races with that paint. Wait for the loader's own readiness contract instead,
       // then also require the global loading marker to be cleared.
       await page.waitForFunction(()=>(
-        window.EDUNIZAM_FEATURE_LOADER?.isReady?.('help')===true &&
+        window.EDUNIZAM_FEATURE_LOADER?.isReady?.(roleCase.visible)===true &&
         !document.documentElement.classList.contains('edu-feature-loading')
       ),null,{timeout:9000});
 
@@ -1003,7 +1013,7 @@ try{
         loading:document.documentElement.classList.contains('edu-feature-loading'),
         title:(document.getElementById('page-title')?.textContent||'').trim()
       }));
-      if(afterNav.active!=='help'||afterNav.locked||afterNav.backdrop||afterNav.expanded!=='false'||afterNav.loading){
+      if(afterNav.active!==roleCase.visible||afterNav.locked||afterNav.backdrop||afterNav.expanded!=='false'||afterNav.loading){
         pushFailure('app shell '+roleCase.role,'Navigation click left the app frozen or drawer-locked',JSON.stringify(afterNav));
       }
 
