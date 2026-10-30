@@ -20,8 +20,49 @@
     const group=findGroup(nav,title),box=group?.querySelector('.nav-group-items');
     if(box&&b.parentElement!==box)box.appendChild(b);
   }
+  function installMobileAccordion(nav){
+    if(!nav||nav.dataset.mobileAccordionBound==='1')return;
+    nav.dataset.mobileAccordionBound='1';
+    const syncSummaryState=()=>{
+      nav.querySelectorAll(':scope > .nav-group').forEach(group=>{
+        group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
+      });
+    };
+    const normalize=()=>{
+      if(window.innerWidth>950)return;
+      const groups=[...nav.querySelectorAll(':scope > .nav-group:not([hidden])')];
+      const open=groups.filter(group=>group.open);
+      if(open.length<=1){syncSummaryState();return;}
+      const activeView=document.querySelector('.view.active')?.id||'dashboard';
+      const activeTitle=groupMap.get(activeView);
+      const keep=open.find(group=>group.dataset.groupTitle===activeTitle)||open[0];
+      open.forEach(group=>{if(group!==keep)group.open=false});
+      if(keep)keep.open=true;
+      syncSummaryState();
+    };
+    // Capture the summary activation before native <details> toggling or any
+    // other delegated click handlers. This guarantees a single-open mobile
+    // accordion even when the navigation enhancement has already mounted.
+    nav.addEventListener('click',event=>{
+      const summary=event.target.closest?.(':scope > .nav-group > summary')||
+        event.target.closest?.('.nav-group > summary');
+      if(!summary||window.innerWidth>950)return;
+      const group=summary.parentElement;
+      if(!group||group.parentElement!==nav)return;
+      const shouldOpen=!group.open;
+      event.preventDefault();
+      event.stopPropagation();
+      nav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{other.open=false});
+      group.open=shouldOpen;
+      syncSummaryState();
+    },true);
+    normalize();
+    window.addEventListener('resize',normalize,{passive:true});
+  }
   function mount(){
-    const nav=document.getElementById('nav');if(!nav||nav.dataset.enhanced==='1')return;
+    const nav=document.getElementById('nav');if(!nav)return;
+    installMobileAccordion(nav);
+    if(nav.dataset.enhanced==='1')return;
     const buttons=[...nav.querySelectorAll(':scope > .nav-item')];
     nav.dataset.enhanced='1';nav.classList.add('nav-groups');
     // The current app shell already ships grouped <details> markup. Give those
@@ -115,21 +156,9 @@
       if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:5000});
       else setTimeout(run,4500);
     };
-    // Handle mobile accordion state synchronously on the summary click.
-    // Native <details> toggle events are queued and can arrive after another
-    // group has been opened, causing a stale event to collapse the user's
-    // current panel. Prevent the native toggle and apply one deterministic
-    // state transition instead; keyboard activation also emits a click.
+    // Feature navigation remains delegated separately; mobile summary
+    // activation is handled once in the capture-phase accordion controller.
     nav.addEventListener('click',e=>{
-      const summary=e.target.closest('.nav-group > summary');
-      if(summary&&window.innerWidth<=950){
-        const group=summary.parentElement;
-        const shouldOpen=!group.open;
-        e.preventDefault();
-        nav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{other.open=false});
-        group.open=shouldOpen;
-        return;
-      }
       const b=e.target.closest('.nav-item');
       if(!b)return;
       const g=b.closest('.nav-group');if(g)g.open=true;
