@@ -1195,6 +1195,11 @@ if(!read('assets/IMAGE-CREDITS.md').includes('Cool Nature Glass V5.2'))fail.push
 for(const token of ['V5.3 · NATURAL VARIETY','--v53-sky:','--v53-ivory:','--v53-sage:','--v53-cloud:'])if(!realGlass.includes(token))fail.push('Natural Variety V5.3 missing CSS: '+token);
 
 
+const educationHubs=read('education-hubs.js');
+if(educationHubs.includes('Exact Indexed Resource'))fail.push('University directory must not claim every generic source page is an exact indexed resource.');
+if(!educationHubs.includes('Source Listing'))fail.push('University directory source-listing label is missing.');
+if(!educationHubs.includes("arr.length+' matching resources · '+S.resources.length+' total'"))fail.push('Grade 5/8 resource count must reflect active filters and total inventory.');
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
