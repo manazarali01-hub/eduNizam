@@ -10,18 +10,21 @@
       // targets (icons/text nodes and nested inline elements) do not reliably
       // match the full descendant selector through Element.closest().
       const path=typeof event.composedPath==='function'?event.composedPath():[];
-      const summary=(path.find(node=>node instanceof Element&&node.matches('summary'))||
-        (event.target instanceof Element?event.target.closest('summary'):null));
-      const group=summary?.parentElement;
-      if(!nav||!summary||!group?.matches('details.nav-group')||group.parentElement!==nav)return;
+      const target=event.target instanceof Element?event.target:null;
+      const summary=target?.closest('#nav details.nav-group > summary')||
+        path.find(node=>node instanceof Element&&node.matches('#nav details.nav-group > summary'));
+      const group=summary?.closest('details.nav-group');
+      // Do not assume groups remain direct children: role-based navigation may
+      // re-parent or wrap sections while normalizing the menu.
+      if(!nav||!summary||!group||!nav.contains(group))return;
       const shouldOpen=!group.open;
       event.preventDefault();
       event.stopImmediatePropagation();
-      nav.querySelectorAll(':scope > details.nav-group[open]').forEach(other=>{
+      nav.querySelectorAll('details.nav-group[open]').forEach(other=>{
         if(other!==group)other.open=false;
       });
       group.open=shouldOpen;
-      nav.querySelectorAll(':scope > details.nav-group').forEach(item=>{
+      nav.querySelectorAll('details.nav-group').forEach(item=>{
         item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
       });
     },true);
