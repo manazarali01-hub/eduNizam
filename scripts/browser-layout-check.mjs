@@ -1000,10 +1000,10 @@ try{
       // starts on the next paint. Waiting only for the loading class to be absent
       // races with that paint. Wait for the loader's own readiness contract instead,
       // then also require the global loading marker to be cleared.
-      await page.waitForFunction(()=>(
-        window.EDUNIZAM_FEATURE_LOADER?.isReady?.(roleCase.visible)===true &&
+      await page.waitForFunction(view=>(
+        window.EDUNIZAM_FEATURE_LOADER?.isReady?.(view)===true &&
         !document.documentElement.classList.contains('edu-feature-loading')
-      ),null,{timeout:9000});
+      ),roleCase.visible,{timeout:9000});
 
       const afterNav=await page.evaluate(()=>({
         active:document.querySelector('.view.active')?.id||'',
