@@ -72,7 +72,7 @@
       const openGroups=[...liveNav.querySelectorAll(':scope > .nav-group[open]')];
       if(openGroups.length<=1)return;
       const newlyOpened=records.map(record=>record.target)
-        .filter(group=>group.matches?.(':scope > .nav-group')&&group.open);
+        .filter(group=>group.matches?.('.nav-group')&&group.parentElement===liveNav&&group.open);
       const activeView=document.querySelector('.view.active')?.id||'dashboard';
       const activeTitle=groupMap.get(activeView);
       const keep=[...newlyOpened].reverse().find(group=>openGroups.includes(group)&&group.dataset.groupTitle===activeTitle)
