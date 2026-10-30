@@ -47,21 +47,39 @@
     // The app shell can rebuild navigation during workspace initialization;
     // a document-level guard keeps the accordion contract attached to the live
     // #nav element even if its contents or node are replaced.
-    document.addEventListener('click',event=>{
-      const summary=event.target.closest?.('#nav > .nav-group > summary');
-      if(!summary||window.innerWidth>950)return;
-      const liveNav=document.getElementById('nav');
-      const group=summary.parentElement;
-      if(!liveNav||group?.parentElement!==liveNav)return;
-      const shouldOpen=!group.open;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{other.open=false});
-      group.open=shouldOpen;
-      liveNav.querySelectorAll(':scope > .nav-group').forEach(item=>{
-        item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
+    // Bind the mobile accordion transition directly to each summary. A
+    // document-level capture listener can be bypassed by other shell-level
+    // capture handlers during authenticated drawer interactions; a target
+    // listener keeps the actual summary activation responsible for its state.
+    const bindSummary=summary=>{
+      if(!summary||summary.dataset.mobileAccordionClickBound==='1')return;
+      summary.dataset.mobileAccordionClickBound='1';
+      summary.addEventListener('click',event=>{
+        if(window.innerWidth>950)return;
+        const group=summary.parentElement;
+        if(!group?.matches('.nav-group')||group.parentElement!==nav)return;
+        const shouldOpen=!group.open;
+        event.preventDefault();
+        nav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{
+          if(other!==group)other.open=false;
+        });
+        group.open=shouldOpen;
+        syncSummaryState();
       });
-    },true);
+    };
+    nav.querySelectorAll(':scope > .nav-group > summary').forEach(bindSummary);
+    const summaryBindingObserver=new MutationObserver(records=>{
+      for(const record of records){
+        for(const node of record.addedNodes||[]){
+          if(node?.nodeType!==1)continue;
+          if(node.matches?.(':scope > summary'))bindSummary(node);
+          node.querySelectorAll?.(':scope > summary').forEach(bindSummary);
+          if(node.matches?.('.nav-group'))bindSummary(node.querySelector(':scope > summary'));
+          node.querySelectorAll?.('.nav-group > summary').forEach(bindSummary);
+        }
+      }
+    });
+    summaryBindingObserver.observe(nav,{childList:true,subtree:true});
     // Also normalize direct/programmatic open-state changes. This is important
     // during role/view restoration, where <details>.open can be assigned without
     // a click event. Keep the last newly-opened group, otherwise the active view.
