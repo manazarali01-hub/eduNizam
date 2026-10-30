@@ -1992,7 +1992,7 @@ try{
         const button=loginFlowPage.locator('.nav-item[data-view="'+view+'"]');
         const groupTitle=await button.evaluate(el=>el.closest('details.nav-group')?.dataset.groupTitle||'');
         if(!groupTitle)throw new Error('Navigation accordion group missing for '+view);
-        const group=loginFlowPage.locator('.nav-group[data-group-title="'+groupTitle+'"]');
+        const group=loginFlowPage.locator('.nav-group[data-group-title="'+groupTitle+'"]:not([hidden])');
         await group.waitFor({state:'attached',timeout:7000});
         const summary=group.locator(':scope > summary');
         // The drawer can be taller than the viewport and the target group may
