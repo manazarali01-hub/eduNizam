@@ -10,7 +10,9 @@ const begin=source.indexOf('let latestViewRequest=0;');
 const marker='window.EDUNIZAM_APP_NAV={setView};';
 const finish=source.indexOf(marker,begin);
 assert.ok(begin!==-1&&finish!==-1,'Request-scoped navigation function must exist');
-assert.match(source,/navRoot\?\.addEventListener\('click'/,'Dynamic navigation buttons must use click delegation');
+assert.match(source,/document\.addEventListener\('click'/,'Dynamic navigation buttons must use document-level click delegation');
+assert.match(source,/const liveNav=document\.getElementById\('nav'\)/,'Navigation delegation must resolve the current nav after shell replacement');
+assert.match(source,/!liveNav\?\.contains\(button\)/,'Navigation delegation must ignore buttons outside the live nav');
 assert.match(source,/if\(opened&&targetView==='students'\)/,'Jump shortcuts must await successful navigation');
 
 function deferred(){
