@@ -49,6 +49,18 @@
         }
       });
     });
+    // The initial desktop defaults include Overview + Daily Work. On mobile,
+    // normalize that initial state too, retaining the group for the active view.
+    // Otherwise two groups can remain open until the user toggles one manually.
+    if(window.innerWidth<=950){
+      const activeView=document.querySelector('.view.active')?.id||'dashboard';
+      const activeTitle=groupMap.get(activeView)||'Overview';
+      const activeGroup=findGroup(nav,activeTitle);
+      nav.querySelectorAll('.nav-group[open]').forEach(group=>{
+        if(group!==activeGroup)group.open=false;
+      });
+      if(activeGroup)activeGroup.open=true;
+    }
     const input=document.getElementById('navFeatureSearch');
     function filter(){const q=input.value.trim().toLowerCase();nav.querySelectorAll('.nav-group').forEach(g=>{let shown=0;g.querySelectorAll('.nav-item').forEach(b=>{const match=!q||b.textContent.toLowerCase().includes(q);b.classList.toggle('nav-search-hidden',!match);if(match&&!b.classList.contains('role-hidden'))shown++});g.hidden=shown===0;if(q&&shown)g.open=true})}
     input.addEventListener('input',filter);document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus();input.select()}if(e.key==='Escape'&&document.activeElement===input){input.value='';filter();input.blur()}});
