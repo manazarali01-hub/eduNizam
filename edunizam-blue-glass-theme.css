@@ -219,3 +219,28 @@ body.learning-sky .tab.active{
     width:100%!important;
   }
 }
+
+
+/* Keep the navigation viewport inside the fixed mobile drawer even when
+   legacy sidebar header blocks expand beyond the available flex height. */
+@media(max-width:950px){
+  body.page-app .sidebar{position:fixed!important;inset:0 auto 0 0!important;}
+  body.page-app .sidebar #nav.nav-groups{
+    position:absolute!important;
+    top:280px!important;
+    right:14px!important;
+    bottom:0!important;
+    left:14px!important;
+    width:auto!important;
+    height:auto!important;
+    max-height:none!important;
+    min-height:0!important;
+    flex:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-y!important;
+    padding-bottom:max(24px,env(safe-area-inset-bottom))!important;
+  }
+}
