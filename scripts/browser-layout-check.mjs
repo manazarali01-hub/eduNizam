@@ -512,7 +512,7 @@ try{
               [...group.querySelectorAll('.nav-group-items .nav-item')].some(el=>!el.hidden&&!el.classList.contains('role-hidden'))
             );
             const closedChild=[...(closedGroup?.querySelectorAll('.nav-group-items .nav-item')||[])].find(el=>!el.hidden&&!el.classList.contains('role-hidden'));
-            const collapsedChildrenHidden=!!closedChild&&getComputedStyle(closedChild).display==='none';
+            const collapsedChildrenHidden=!!closedChild&&closedChild.getClientRects().length===0;
             closedGroup?.querySelector('summary')?.click();
             const openGroupCount=sidebar.querySelectorAll('#nav > details.nav-group[open]').length;
             const label=sidebar.querySelector('.nav-item .premium-nav-label');
