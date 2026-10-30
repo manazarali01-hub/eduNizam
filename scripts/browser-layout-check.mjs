@@ -529,7 +529,7 @@ try{
             const labelWhiteSpace=label?getComputedStyle(label).whiteSpace:'missing';
             const result={
               missing:false,left:box.left,right:box.right,viewport,escaped,
-              collapsedChildrenHidden,openGroupCount,labelWhiteSpace
+              collapsedChildrenHidden,openGroupCount,openGroupTitles:[...sidebar.querySelectorAll('#nav > details.nav-group[open]')].map(g=>g.dataset.groupTitle||g.querySelector('summary strong')?.textContent||''),hiddenOpenGroupTitles:[...sidebar.querySelectorAll('#nav > details.nav-group[open][hidden]')].map(g=>g.dataset.groupTitle||''),labelWhiteSpace
             };
             sidebar.classList.remove('mobile-nav-open');
             return result;
@@ -677,7 +677,7 @@ try{
     await guestPage.waitForFunction(()=>/PECTAA Grade 5/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
     const grade5State=await guestPage.locator('#guestGradeResults').innerText();
     if(!/PECTAA Grade 5 Mathematics Curriculum/i.test(grade5State)||!/Grade 5/i.test(grade5State)){
-      pushFailure('guest learning','Grade 5 public resource filter did not return the official curriculum',grade5State.slice(0,500));
+      pushFailure('guest learning','Grade 5 public resource filter did not return the official curriculum',JSON.stringify({text:grade5State.slice(0,500),value:await guestPage.locator('#guestGradeSubject').inputValue(),type:await guestPage.locator('#guestGradeType').inputValue()}));
     }
     await guestPage.locator('#guestGrade').selectOption('8');
     await guestPage.waitForFunction(()=>/PECTAA Grade 8/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
@@ -685,7 +685,7 @@ try{
     await guestPage.waitForFunction(()=>/PECTAA Grade 8 Mathematics Model Paper/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
     const grade8State=await guestPage.locator('#guestGradeResults').innerText();
     if(!/PECTAA Grade 8 Mathematics Model Paper/i.test(grade8State)){
-      pushFailure('guest learning','Grade 8 Mathematics filter did not return the official model paper',grade8State.slice(0,500));
+      pushFailure('guest learning','Grade 8 Mathematics filter did not return the official model paper',JSON.stringify({text:grade8State.slice(0,500),value:await guestPage.locator('#guestGradeSubject').inputValue(),type:await guestPage.locator('#guestGradeType').inputValue()}));
     }
     console.log('Guest step PASS: Grade 5 / Grade 8 resource filters');
 
