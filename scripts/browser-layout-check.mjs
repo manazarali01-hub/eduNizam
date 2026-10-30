@@ -46,7 +46,7 @@ const launchOptions={headless:true};
 if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZAM_BROWSER;
 const browser=await chromium.launch(launchOptions);
 const failures=[];
-const widths=[360,375,390,412,430,768,1366];
+const widths=[320,360,375,390,412,430,768,1366];
 const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html','/pakistan-degree-accreditation-recognition.html','/pakistan-entry-tests-scholarships.html'];
 
 function routeNameForScreenshot(route){
@@ -508,7 +508,17 @@ try{
               const r=el.getBoundingClientRect();
               return {text:String(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,60),left:Math.round(r.left),right:Math.round(r.right),viewport};
             });
-            const result={missing:false,left:box.left,right:box.right,viewport,escaped};
+            const closedGroup=sidebar.querySelector('details.nav-group:not([open])');
+            const closedChild=closedGroup?.querySelector('.nav-group-items .nav-item');
+            const collapsedChildrenHidden=!!closedChild&&getComputedStyle(closedChild).display==='none';
+            closedGroup?.querySelector('summary')?.click();
+            const openGroupCount=sidebar.querySelectorAll('#nav > details.nav-group[open]').length;
+            const label=sidebar.querySelector('.nav-item .premium-nav-label');
+            const labelWhiteSpace=label?getComputedStyle(label).whiteSpace:'missing';
+            const result={
+              missing:false,left:box.left,right:box.right,viewport,escaped,
+              collapsedChildrenHidden,openGroupCount,labelWhiteSpace
+            };
             sidebar.classList.remove('mobile-nav-open');
             return result;
           });
@@ -516,6 +526,9 @@ try{
           else{
             if(drawer.left<-2||drawer.right>drawer.viewport+2)pushFailure(scope,'Open mobile sidebar escapes viewport',JSON.stringify(drawer));
             if(drawer.escaped.length)pushFailure(scope,'Open mobile sidebar controls escape viewport',JSON.stringify(drawer.escaped));
+            if(!drawer.collapsedChildrenHidden)pushFailure(scope,'Closed mobile accordion group still exposes feature buttons',JSON.stringify(drawer));
+            if(drawer.openGroupCount>1)pushFailure(scope,'Mobile sidebar allows multiple feature groups to stay expanded',JSON.stringify(drawer));
+            if(drawer.labelWhiteSpace!=='nowrap')pushFailure(scope,'Mobile feature labels can wrap into narrow vertical fragments',JSON.stringify(drawer));
           }
         }
         const critical=errors.filter(x=>!/adsbygoogle|Failed to fetch|supabase/i.test(x));
