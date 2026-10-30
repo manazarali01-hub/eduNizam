@@ -46,8 +46,7 @@ const launchOptions={headless:true};
 if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZAM_BROWSER;
 const browser=await chromium.launch(launchOptions);
 const failures=[];
-// Four representative breakpoints preserve narrow-phone, common-phone, tablet and desktop coverage.
-const widths=[320,390,768,1366];
+const widths=[320,360,375,390,412,430,768,1366];
 const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html','/pakistan-degree-accreditation-recognition.html','/pakistan-entry-tests-scholarships.html'];
 
 function routeNameForScreenshot(route){
