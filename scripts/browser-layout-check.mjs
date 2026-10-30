@@ -1940,7 +1940,7 @@ try{
     for(const view of ['students','attendance','fees','results','settings']){
       await loginStep('open '+view+' section',async()=>{
         await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
-        await loginFlowPage.waitForFunction(()=>{
+        await loginFlowPage.waitForFunction(({view})=>{
           const nav=document.querySelector('#nav.nav-groups');
           const target=document.querySelector('.nav-item[data-view="'+view+'"]');
           return !!nav&&!!target?.closest('details.nav-group');
