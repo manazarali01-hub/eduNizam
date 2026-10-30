@@ -225,12 +225,12 @@ function injectSectionExplorers(){
    const g=$('guestGrade').value,currentSubject=$('guestGradeSubject').value,currentType=$('guestGradeType').value;
    const base=data().filter(x=>!g||String(x.grade)===g);
    const subjects=[...new Set(base.flatMap(subjectParts))].sort();
-   $('guestGradeSubject').innerHTML='<option value="">All Subjects</option>'+subjects.map(x=>'<option>'+esc(x)+'</option>').join('');
+   $('guestGradeSubject').innerHTML='<option value="">All Subjects</option>'+subjects.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
    if(subjects.includes(currentSubject))$('guestGradeSubject').value=currentSubject;
    const s=norm($('guestGradeSubject').value);
    const typed=base.filter(x=>!s||norm(x.subject).includes(s)||norm(x.subject)==='all subjects');
    const types=[...new Set(typed.map(x=>x.type).filter(Boolean))].sort();
-   $('guestGradeType').innerHTML='<option value="">All Resources</option>'+types.map(x=>'<option>'+esc(x)+'</option>').join('');
+   $('guestGradeType').innerHTML='<option value="">All Resources</option>'+types.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
    if(types.includes(currentType))$('guestGradeType').value=currentType;
   };
   const run=()=>{
@@ -266,11 +266,11 @@ function injectSectionExplorers(){
    if(classes.includes(oldCl))clEl.value=oldCl;
    const base=data().filter(x=>!clEl.value||(x.classLevels||[]).map(String).includes(clEl.value));
    const subjects=[...new Set(base.flatMap(x=>parts(x.subject)))].sort();
-   subEl.innerHTML='<option value="">All Subjects</option>'+subjects.map(x=>'<option>'+esc(x)+'</option>').join('');
+   subEl.innerHTML='<option value="">All Subjects</option>'+subjects.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
    if(subjects.includes(oldSub))subEl.value=oldSub;
    const bySubject=base.filter(x=>!subEl.value||norm(x.subject).includes(norm(subEl.value))||norm(x.subject)==='all subjects');
    const types=[...new Set(bySubject.map(x=>x.type).filter(Boolean))].sort();
-   typeEl.innerHTML='<option value="">All Resources</option>'+types.map(x=>'<option>'+esc(x)+'</option>').join('');
+   typeEl.innerHTML='<option value="">All Resources</option>'+types.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
    if(types.includes(oldType))typeEl.value=oldType;
   };
   const run=()=>{
@@ -299,7 +299,7 @@ function injectSectionExplorers(){
    if(us.some(x=>x.id===oldId))idEl.value=oldId;
    const base=resources().filter(x=>!idEl.value||x.universityId===idEl.value);
    const types=[...new Set(base.map(x=>x.category).filter(Boolean))].sort();
-   typeEl.innerHTML='<option value="">All Resources</option>'+types.map(x=>'<option>'+esc(x)+'</option>').join('');
+   typeEl.innerHTML='<option value="">All Resources</option>'+types.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
    if(types.includes(oldType))typeEl.value=oldType;
   };
   const run=()=>{
@@ -647,7 +647,7 @@ function injectVUExplorer(){
  const refreshFilters=()=>{
   const typeEl=$('vuExplorerType'),catEl=$('vuExplorerCategory'),providerEl=$('vuExplorerProvider'),list=$('vuExplorerCourseList'),oldType=typeEl.value,oldCat=catEl.value,oldProvider=providerEl.value;
   const types=[...new Set(resources().map(x=>x.category).filter(Boolean).concat(window.EDUNIZAM_VU_MATERIALS?.types||[]))].sort();
-  typeEl.innerHTML='<option value="">All VU Resources</option>'+types.map(x=>'<option>'+esc(x)+'</option>').join('');if(types.includes(oldType))typeEl.value=oldType;
+  typeEl.innerHTML='<option value="">All VU Resources</option>'+types.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');if(types.includes(oldType))typeEl.value=oldType;
   const cats=[...new Set(catalog().map(x=>x.category).filter(Boolean))].sort();
   catEl.innerHTML='<option value="">All Categories</option>'+cats.map(x=>'<option>'+esc(x)+'</option>').join('');if(cats.includes(oldCat))catEl.value=oldCat;
   const providers=['Virtual University',...(window.EDUNIZAM_VU_MATERIALS?.providers||[])];
