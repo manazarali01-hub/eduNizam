@@ -1973,7 +1973,17 @@ try{
           const panel=document.querySelector('.nav-group[data-group-title="'+title+'"]');
           return !!panel?.open&&!!target&&target.getClientRects().length>0;
         },{view,title:groupTitle},{timeout:5000});
+        // The mobile drawer can reflow while its long navigation list scrolls.
+        // Re-assert the target accordion after the scroll, then wait for a real
+        // visible hit target before tapping; this avoids a stale visibility check.
+        await group.evaluate(el=>{el.hidden=false;el.open=true;});
         await button.scrollIntoViewIfNeeded();
+        await loginFlowPage.waitForFunction(({view,title})=>{
+          const target=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const panel=document.querySelector('.nav-group[data-group-title="'+title+'"]');
+          const rect=target?.getBoundingClientRect();
+          return !!panel?.open&&!panel.hidden&&!!target&&getComputedStyle(target).display!=='none'&&!!rect&&rect.width>0&&rect.height>0;
+        },{view,title:groupTitle},{timeout:5000});
         await button.tap({timeout:5000});
         await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
       });
