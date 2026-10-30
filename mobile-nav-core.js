@@ -5,10 +5,15 @@
   if(!window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__){
     window.addEventListener('click',event=>{
       if(window.innerWidth>950)return;
-      const summary=event.target?.closest?.('#nav > details.nav-group > summary');
-      const group=summary?.parentElement;
       const nav=document.getElementById('nav');
-      if(!group||!nav||group.parentElement!==nav)return;
+      // Resolve the actual summary from the composed event path. Some browser
+      // targets (icons/text nodes and nested inline elements) do not reliably
+      // match the full descendant selector through Element.closest().
+      const path=typeof event.composedPath==='function'?event.composedPath():[];
+      const summary=(path.find(node=>node instanceof Element&&node.matches('summary'))||
+        (event.target instanceof Element?event.target.closest('summary'):null));
+      const group=summary?.parentElement;
+      if(!nav||!summary||!group?.matches('details.nav-group')||group.parentElement!==nav)return;
       const shouldOpen=!group.open;
       event.preventDefault();
       event.stopImmediatePropagation();
