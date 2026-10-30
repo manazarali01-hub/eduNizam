@@ -14,7 +14,7 @@
 
 ## Authenticated workspace inventory
 
-The application shell currently declares **50 dashboard views**. The list below is the inventory baseline, not a completion claim.
+The application shell currently declares **49 dashboard views**. The `communication-center.js` bundle is referenced by the loader, but there is no matching `communication` view in the current shell; it is tracked separately below as an unmapped feature candidate. The list below is the inventory baseline, not a completion claim.
 
 | # | Area | View ID | Feature / subfeature | Current source mapping | Functional status |
 |---:|---|---|---|---|---|
@@ -67,7 +67,6 @@ The application shell currently declares **50 dashboard views**. The list below 
 | 47 | System | `datareadiness` | Data readiness checks | `school-data-readiness.js` | Pending verification |
 | 48 | System | `troubleshoot` | Troubleshooting tools | `app.html`, system scripts | Pending verification |
 | 49 | System | `settings` | Workspace and account settings | `app.html`, account/security scripts | Pending verification |
-| 50 | Communication | `communication` | Communication centre | `communication-center.js` | Pending verification |
 
 ## Public / guest-facing learning and information surfaces
 
