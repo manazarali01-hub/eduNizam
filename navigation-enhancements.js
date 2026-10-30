@@ -9,7 +9,7 @@
     ['Finance & Operations','₨',['fees','financecenter','inventorycenter','librarycenter','transportcenter']],
     ['Communication','✉',['noticeboard','functionscenter','inboxcenter','parentcomplaints','helpdeskcenter']],
     ['Pakistan Learning','🇵🇰',['pastpapers','practice','study','schoolassessments','universities','competitive','ecosystem','pathways','vu','admissions']],
-    ['System','⚙',['assistant','datareadiness','settings','troubleshoot','help']]
+    ['System','⚙',['assistant','auditcenter','datareadiness','settings','troubleshoot','help']]
   ];
   const groupMap=new Map(groups.flatMap(([title,,views])=>views.map(v=>[v,title])));
   function findGroup(nav,title){return [...nav.querySelectorAll(':scope > .nav-group')].find(g=>g.dataset.groupTitle===title)}
