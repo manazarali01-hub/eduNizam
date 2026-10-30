@@ -27,26 +27,27 @@
         group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
     };
+    // Bind once at document capture, not to a particular #nav node. The app
+    // shell may replace its navigation during workspace restoration; a listener
+    // attached to the old nav would leave the new accordion headings inert.
+    if(!window.__EDUNIZAM_MOBILE_ACCORDION_BOUND__){
+      window.__EDUNIZAM_MOBILE_ACCORDION_BOUND__=true;
+      document.addEventListener('click',event=>{
+        if(window.innerWidth>950)return;
+        const summary=event.target?.closest?.('details.nav-group > summary');
+        const liveNav=document.getElementById('nav');
+        const selected=summary?.parentElement;
+        if(!selected||selected.parentElement!==liveNav)return;
+        const shouldOpen=!selected.open;
+        event.preventDefault();
+        liveNav.querySelectorAll(':scope > details.nav-group').forEach(group=>{
+          group.open=group===selected&&shouldOpen;
+          group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
+        });
+      },true);
+    }
     if(nav.dataset.mobileAccordionBound==='1')return;
     nav.dataset.mobileAccordionBound='1';
-    // Handle mobile accordion intent on the live nav itself. Do not depend on
-    // the browser's default <summary> toggle: other shell click handlers and
-    // mobile hit-testing can cancel that default before the details state
-    // becomes observable. This capture handler changes only the clicked group.
-    nav.addEventListener('click',event=>{
-      if(window.innerWidth>950)return;
-      const path=typeof event.composedPath==='function'?event.composedPath():[];
-      const summary=path.find(node=>node?.matches?.(':scope > summary')&&node.parentElement?.matches?.('details.nav-group'))
-        ||event.target?.closest?.('details.nav-group > summary');
-      if(!summary||summary.parentElement?.parentElement!==nav)return;
-      const selected=summary.parentElement;
-      const shouldOpen=!selected.open;
-      event.preventDefault();
-      nav.querySelectorAll(':scope > details.nav-group').forEach(group=>{
-        group.open=group===selected&&shouldOpen;
-        group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
-      });
-    },true);
     const normalize=()=>{
       if(window.innerWidth>950)return;
       const groups=[...nav.querySelectorAll(':scope > .nav-group')];
