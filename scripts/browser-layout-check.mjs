@@ -314,7 +314,10 @@ try{
   for(const route of pages){
     console.log('Layout QA route:',route);
     const page=await browser.newPage({
-      javaScriptEnabled:false,
+      // The authenticated sidebar is progressively enhanced by its own
+      // navigation scripts. Keep public-page layout checks script-free, but
+      // exercise the real accordion and premium labels on the app route.
+      javaScriptEnabled:route==='/app.html',
       viewport:{width:widths[0],height:Math.max(760,Math.round(widths[0]*1.7))}
     });
     try{
@@ -494,7 +497,7 @@ try{
             return true;
           });
           if(sidebarExists)await page.waitForTimeout(650);
-          const drawer=await page.evaluate(()=>{
+          const drawer=await page.evaluate(async()=>{
             const sidebar=document.querySelector('.sidebar');
             if(!sidebar)return {missing:true};
             const viewport=document.documentElement.clientWidth;
@@ -514,6 +517,9 @@ try{
             const closedChild=[...(closedGroup?.querySelectorAll('.nav-group-items .nav-item')||[])].find(el=>!el.hidden&&!el.classList.contains('role-hidden'));
             const collapsedChildrenHidden=!!closedChild&&closedChild.getClientRects().length===0;
             closedGroup?.querySelector('summary')?.click();
+            // Native <details> toggle events are queued; allow the mobile
+            // single-open accordion listener to close the previous group.
+            await new Promise(resolve=>setTimeout(resolve,0));
             const openGroupCount=sidebar.querySelectorAll('#nav > details.nav-group[open]').length;
             const label=sidebar.querySelector('.nav-item .premium-nav-label');
             const labelWhiteSpace=label?getComputedStyle(label).whiteSpace:'missing';
