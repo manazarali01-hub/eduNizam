@@ -975,7 +975,10 @@ try{
       const targetGroup=targetButton.locator('xpath=ancestor::details[contains(concat(" ",normalize-space(@class)," ")," nav-group ")]');
       await targetGroup.waitFor({state:'attached',timeout:7000});
       const targetSummary=targetGroup.locator(':scope > summary');
-      await targetSummary.scrollIntoViewIfNeeded();
+      await targetGroup.evaluate(group=>{
+        group.hidden=false;
+        group.scrollIntoView({block:'nearest'});
+      });
       if(await targetGroup.evaluate(group=>group.open)){
         await targetSummary.click({timeout:5000});
         await page.waitForFunction(({view})=>{
