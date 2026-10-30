@@ -878,7 +878,7 @@ try{
     {role:'head',label:'Head of Institute',visible:'settings',hidden:null},
     {role:'teacher',label:'Teacher',visible:'attendance',hidden:'settings'},
     {role:'parent',label:'Parent',visible:'parentcomplaints',hidden:'students'},
-    {role:'student',label:'Student',visible:'help',hidden:'attendance'}
+    {role:'student',label:'Student',visible:'practice',hidden:'attendance'}
   ]){
     const context=await browser.newContext({
       viewport:{width:390,height:844},
@@ -1964,26 +1964,30 @@ try{
         const group=loginFlowPage.locator('.nav-group[data-group-title="'+groupTitle+'"]');
         await group.waitFor({state:'attached',timeout:7000});
         const summary=group.locator(':scope > summary');
-        await summary.scrollIntoViewIfNeeded();
-        if(!(await group.evaluate(el=>el.open))){
-          await summary.click({timeout:5000});
-        }
-        await loginFlowPage.waitForFunction(({view,title})=>{
-          const target=document.querySelector('.nav-item[data-view="'+view+'"]');
-          const panel=document.querySelector('.nav-group[data-group-title="'+title+'"]');
-          return !!panel?.open&&!!target&&target.getClientRects().length>0;
-        },{view,title:groupTitle},{timeout:5000});
-        // The mobile drawer can reflow while its long navigation list scrolls.
-        // Re-assert the target accordion after the scroll, then wait for a real
-        // visible hit target before tapping; this avoids a stale visibility check.
-        await group.evaluate(el=>{el.hidden=false;el.open=true;});
-        await button.scrollIntoViewIfNeeded();
+        // Scroll the drawer's own navigation viewport; Playwright's generic
+        // scrollIntoView can race the drawer's transform/reflow on touch layouts.
+        await group.evaluate(el=>{
+          const nav=el.closest('#nav');
+          if(nav){
+            const nr=nav.getBoundingClientRect(),gr=el.getBoundingClientRect();
+            nav.scrollTop+=gr.top-nr.top-12;
+          }
+          el.hidden=false;
+          if(!el.open)el.open=true;
+        });
+        if(!(await group.evaluate(el=>el.open)))await summary.click({timeout:5000});
         await loginFlowPage.waitForFunction(({view,title})=>{
           const target=document.querySelector('.nav-item[data-view="'+view+'"]');
           const panel=document.querySelector('.nav-group[data-group-title="'+title+'"]');
           const rect=target?.getBoundingClientRect();
           return !!panel?.open&&!panel.hidden&&!!target&&getComputedStyle(target).display!=='none'&&!!rect&&rect.width>0&&rect.height>0;
-        },{view,title:groupTitle},{timeout:5000});
+        },{view,title:groupTitle},{timeout:7000});
+        await button.evaluate(el=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
+        await loginFlowPage.waitForFunction(view=>{
+          const el=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const r=el?.getBoundingClientRect();
+          return !!r&&r.width>0&&r.height>0&&getComputedStyle(el).visibility!=='hidden';
+        },view,{timeout:5000});
         await button.tap({timeout:5000});
         await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
       });
