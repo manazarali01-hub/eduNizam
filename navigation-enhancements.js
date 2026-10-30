@@ -23,8 +23,8 @@
   function installMobileAccordion(nav){
     if(!nav||nav.dataset.mobileAccordionBound==='1')return;
     nav.dataset.mobileAccordionBound='1';
-    const syncSummaryState=()=>{
-      nav.querySelectorAll(':scope > .nav-group').forEach(group=>{
+    const syncSummaryState=(root=nav)=>{
+      root.querySelectorAll(':scope > .nav-group').forEach(group=>{
         group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
     };
@@ -48,15 +48,15 @@
       const summary=event.target?.closest?.('.nav-group > summary');
       const group=summary?.parentElement;
       const liveNav=document.getElementById('nav');
-      if(!group||liveNav!==nav||group.parentElement!==nav)return;
+      if(!group||!liveNav||group.parentElement!==liveNav)return;
       const shouldOpen=!group.open;
       event.preventDefault();
       event.stopImmediatePropagation();
-      nav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{
+      liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{
         if(other!==group)other.open=false;
       });
       group.open=shouldOpen;
-      syncSummaryState();
+      syncSummaryState(liveNav);
     };
     window.addEventListener('click',handleSummaryActivation,true);
     // Also normalize direct/programmatic open-state changes. This is important
