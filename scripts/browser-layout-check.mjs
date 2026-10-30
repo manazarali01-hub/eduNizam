@@ -1993,10 +1993,10 @@ try{
         await group.evaluate(el=>{
           el.hidden=false;
           if(!el.open)el.open=true;
-          const drawer=el.closest('.sidebar');
-          const drawerRect=drawer?.getBoundingClientRect();
+          const scroller=el.closest('.sidebar')?.querySelector('#nav');
+          const bounds=scroller?.getBoundingClientRect();
           const groupRect=el.getBoundingClientRect();
-          if(drawer&&drawerRect)drawer.scrollTop+=groupRect.top-drawerRect.top-12;
+          if(scroller&&bounds)scroller.scrollTop+=groupRect.top-bounds.top-12;
           else el.scrollIntoView({block:'nearest'});
         });
         if(!(await group.evaluate(el=>el.open)))await summary.click({timeout:5000});
@@ -2007,12 +2007,12 @@ try{
           return !!panel?.open&&!panel.hidden&&!!target&&getComputedStyle(target).display!=='none'&&!!rect&&rect.width>0&&rect.height>0;
         },{view,title:groupTitle},{timeout:7000});
         await button.evaluate(el=>{
-          const drawer=el.closest('.sidebar');
-          const drawerRect=drawer?.getBoundingClientRect();
+          const scroller=el.closest('.sidebar')?.querySelector('#nav');
+          const bounds=scroller?.getBoundingClientRect();
           const rect=el.getBoundingClientRect();
-          if(drawer&&drawerRect){
-            if(rect.bottom>drawerRect.bottom-8)drawer.scrollTop+=rect.bottom-drawerRect.bottom+16;
-            else if(rect.top<drawerRect.top+8)drawer.scrollTop-=drawerRect.top-rect.top+16;
+          if(scroller&&bounds){
+            if(rect.bottom>bounds.bottom-8)scroller.scrollTop+=rect.bottom-bounds.bottom+16;
+            else if(rect.top<bounds.top+8)scroller.scrollTop-=bounds.top-rect.top+16;
           }else el.scrollIntoView({block:'nearest',inline:'nearest'});
         });
         await loginFlowPage.waitForFunction(view=>{
