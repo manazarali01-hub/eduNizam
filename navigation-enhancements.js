@@ -27,27 +27,6 @@
         group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
     };
-    // #nav may be replaced during workspace restoration. A window-level
-    // handler must be installed once per document, not once per nav element:
-    // otherwise old and new handlers toggle the same <details> twice.
-    if(!window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__){
-      window.addEventListener('click',event=>{
-        if(window.innerWidth>950)return;
-        const summary=event.target?.closest?.('.nav-group > summary');
-        const group=summary?.parentElement;
-        const liveNav=document.getElementById('nav');
-        if(!group||!liveNav||group.parentElement!==liveNav)return;
-        const shouldOpen=!group.open;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{
-          if(other!==group)other.open=false;
-        });
-        group.open=shouldOpen;
-        syncSummaryState(liveNav);
-      },true);
-      window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__=true;
-    }
     if(nav.dataset.mobileAccordionBound==='1')return;
     nav.dataset.mobileAccordionBound='1';
     const normalize=()=>{
