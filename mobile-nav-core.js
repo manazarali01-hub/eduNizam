@@ -1,33 +1,7 @@
 (function(){
-  // Install the mobile accordion controller before the larger application
-  // scripts register document/window click handlers. This keeps summary taps
-  // reliable even when later shell handlers stop propagation.
-  if(!window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__){
-    window.addEventListener('click',event=>{
-      if(window.innerWidth>950)return;
-      // Auth/role hydration can replace the entire navigation element after
-      // this early capture listener is installed. Always resolve the live nav
-      // for each click rather than retaining a stale detached node.
-      const nav=document.getElementById('nav');
-      const path=typeof event.composedPath==='function'?event.composedPath():[];
-      const target=event.target instanceof Element?event.target:null;
-      const summary=target?.closest('#nav details.nav-group > summary')||
-        path.find(node=>node instanceof Element&&node.matches('#nav details.nav-group > summary'));
-      const group=summary?.closest('details.nav-group');
-      if(!nav||!summary||!group||!nav.contains(group))return;
-      const shouldOpen=!group.open;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      nav.querySelectorAll('details.nav-group[open]').forEach(other=>{
-        if(other!==group)other.open=false;
-      });
-      group.open=shouldOpen;
-      nav.querySelectorAll('details.nav-group').forEach(item=>{
-        item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
-      });
-    },true);
-    window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__=true;
-  }
+  // Native <details>/<summary> activation is intentionally preserved.
+  // navigation-enhancements.js observes open-state mutations and enforces
+  // the one-open-group rule without cancelling the browser's default action.
   const $=s=>document.querySelector(s);
   let controller=null;
 
