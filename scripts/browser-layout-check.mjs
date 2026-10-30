@@ -321,6 +321,25 @@ try{
       viewport:{width:widths[0],height:Math.max(760,Math.round(widths[0]*1.7))}
     });
     try{
+      // The app shell is protected by auth-bridge. Seed an explicit offline
+      // QA workspace before loading app.html so this layout pass measures the
+      // real sidebar instead of the intentional unauthenticated login gate.
+      // Dedicated role-workflow checks below separately cover all four roles.
+      if(route==='/app.html'){
+        await page.addInitScript(()=>{
+          Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false});
+          localStorage.clear();sessionStorage.clear();
+          localStorage.setItem('edunizam_session',JSON.stringify({
+            role:'head',identity:'head@example.test',source:'supabase',
+            institutionId:'school-qa-1',schoolName:'QA School',loginAt:Date.now()
+          }));
+          localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify({enabled:true,institutionId:'school-qa-1'}));
+          localStorage.setItem('edunizam_settings',JSON.stringify({schoolName:'QA School',schoolType:'School'}));
+          localStorage.setItem('edunizam_students',JSON.stringify([
+            {id:1,name:'QA Student',className:'5',sectionName:'A',studentId:'QA-1',authUserId:'student-user-1'}
+          ]));
+        });
+      }
       // Run the full responsive matrix on core entry points. Long-form public guides
       // get phone + desktop coverage; this keeps CI focused without dropping key breakpoints.
       const routeWidths=['/','/login.html','/learn.html','/app.html','/admission.html','/features.html'].includes(route)
