@@ -1,4 +1,27 @@
 (function(){
+  // Install the mobile accordion controller before the larger application
+  // scripts register document/window click handlers. This keeps summary taps
+  // reliable even when later shell handlers stop propagation.
+  if(!window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__){
+    window.addEventListener('click',event=>{
+      if(window.innerWidth>950)return;
+      const summary=event.target?.closest?.('#nav > details.nav-group > summary');
+      const group=summary?.parentElement;
+      const nav=document.getElementById('nav');
+      if(!group||!nav||group.parentElement!==nav)return;
+      const shouldOpen=!group.open;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      nav.querySelectorAll(':scope > details.nav-group[open]').forEach(other=>{
+        if(other!==group)other.open=false;
+      });
+      group.open=shouldOpen;
+      nav.querySelectorAll(':scope > details.nav-group').forEach(item=>{
+        item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
+      });
+    },true);
+    window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__=true;
+  }
   const $=s=>document.querySelector(s);
   let controller=null;
 
