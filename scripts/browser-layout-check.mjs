@@ -675,7 +675,7 @@ try{
     await guestPage.waitForSelector('#guestGrade',{state:'visible',timeout:5000});
     await guestPage.locator('#guestGrade').selectOption('5');
     await guestPage.waitForFunction(()=>/PECTAA Grade 5/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
-    const grade5State=await guestPage.locator('#guestGradeResults').innerText();
+    const grade5State=await guestPage.locator('#guestGradeResults').evaluate(el=>el.textContent||'');
     if(!/PECTAA Grade 5 Mathematics Curriculum/i.test(grade5State)||!/Grade 5/i.test(grade5State)){
       pushFailure('guest learning','Grade 5 public resource filter did not return the official curriculum',JSON.stringify({text:grade5State.slice(0,500),value:await guestPage.locator('#guestGradeSubject').inputValue(),type:await guestPage.locator('#guestGradeType').inputValue()}));
     }
@@ -683,7 +683,7 @@ try{
     await guestPage.waitForFunction(()=>/PECTAA Grade 8/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
     await guestPage.locator('#guestGradeSubject').selectOption({label:'Mathematics'});
     await guestPage.waitForFunction(()=>/PECTAA Grade 8 Mathematics Model Paper/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
-    const grade8State=await guestPage.locator('#guestGradeResults').innerText();
+    const grade8State=await guestPage.locator('#guestGradeResults').evaluate(el=>el.textContent||'');
     if(!/PECTAA Grade 8 Mathematics Model Paper/i.test(grade8State)){
       pushFailure('guest learning','Grade 8 Mathematics filter did not return the official model paper',JSON.stringify({text:grade8State.slice(0,500),value:await guestPage.locator('#guestGradeSubject').inputValue(),type:await guestPage.locator('#guestGradeType').inputValue()}));
     }
@@ -1025,6 +1025,7 @@ try{
         return !!group?.open&&!!target&&getComputedStyle(target).visibility==='visible'&&!!rect&&rect.width>0&&rect.height>0;
       },{view:roleCase.visible},{timeout:5000});
       await targetButton.waitFor({state:'visible',timeout:5000});
+      await targetButton.scrollIntoViewIfNeeded({timeout:5000});
       await targetButton.evaluate(button=>{
         const scroller=document.querySelector('.sidebar #nav');
         const rect=button.getBoundingClientRect();
@@ -2044,6 +2045,7 @@ try{
         // only after that layout has settled, then verify the target is inside
         // the actual #nav scrolling viewport before tapping it.
         await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        await button.scrollIntoViewIfNeeded({timeout:5000});
         await button.evaluate(el=>{
           const scroller=el.closest('.sidebar')?.querySelector('#nav');
           const bounds=scroller?.getBoundingClientRect();
