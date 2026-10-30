@@ -21,13 +21,35 @@
     if(box&&b.parentElement!==box)box.appendChild(b);
   }
   function installMobileAccordion(nav){
-    if(!nav||nav.dataset.mobileAccordionBound==='1')return;
-    nav.dataset.mobileAccordionBound='1';
-    const syncSummaryState=(root=nav)=>{
-      root.querySelectorAll(':scope > .nav-group').forEach(group=>{
+    if(!nav)return;
+    const syncSummaryState=(root)=>{
+      root?.querySelectorAll(':scope > .nav-group').forEach(group=>{
         group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
     };
+    // #nav may be replaced during workspace restoration. A window-level
+    // handler must be installed once per document, not once per nav element:
+    // otherwise old and new handlers toggle the same <details> twice.
+    if(!window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__){
+      window.addEventListener('click',event=>{
+        if(window.innerWidth>950)return;
+        const summary=event.target?.closest?.('.nav-group > summary');
+        const group=summary?.parentElement;
+        const liveNav=document.getElementById('nav');
+        if(!group||!liveNav||group.parentElement!==liveNav)return;
+        const shouldOpen=!group.open;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{
+          if(other!==group)other.open=false;
+        });
+        group.open=shouldOpen;
+        syncSummaryState(liveNav);
+      },true);
+      window.__EDUNIZAM_MOBILE_ACCORDION_HANDLER__=true;
+    }
+    if(nav.dataset.mobileAccordionBound==='1')return;
+    nav.dataset.mobileAccordionBound='1';
     const normalize=()=>{
       if(window.innerWidth>950)return;
       const groups=[...nav.querySelectorAll(':scope > .nav-group')];
@@ -43,22 +65,8 @@
     // Intercept summary activation at window capture, before document-level
     // shell handlers can stop propagation. A target/bubble listener is too late
     // when another shell handler intercepts mobile drawer clicks.
-    const handleSummaryActivation=event=>{
-      if(window.innerWidth>950)return;
-      const summary=event.target?.closest?.('.nav-group > summary');
-      const group=summary?.parentElement;
-      const liveNav=document.getElementById('nav');
-      if(!group||!liveNav||group.parentElement!==liveNav)return;
-      const shouldOpen=!group.open;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{
-        if(other!==group)other.open=false;
-      });
-      group.open=shouldOpen;
-      syncSummaryState(liveNav);
-    };
-    window.addEventListener('click',handleSummaryActivation,true);
+    // The singleton window capture handler above always resolves the live #nav.
+
     // Also normalize direct/programmatic open-state changes. This is important
     // during role/view restoration, where <details>.open can be assigned without
     // a click event. Keep the last newly-opened group, otherwise the active view.
@@ -189,12 +197,18 @@
     };
     // Feature navigation remains delegated separately; mobile summary
     // activation is handled by the window-capture accordion controller.
-    nav.addEventListener('click',e=>{
-      const b=e.target.closest('.nav-item');
-      if(!b)return;
-      const g=b.closest('.nav-group');if(g)g.open=true;
-      if(window.innerWidth<951)window.EDUNIZAM_MOBILE_NAV_CORE?.close?.();
-    });
+    // Delegate through document so navigation continues working if the app
+    // shell replaces #nav after authentication or workspace restoration.
+    if(!window.__EDUNIZAM_LIVE_NAV_ITEM_HANDLER__){
+      document.addEventListener('click',e=>{
+        const liveNav=document.getElementById('nav');
+        const b=e.target?.closest?.('.nav-item[data-view]');
+        if(!b||!liveNav?.contains(b))return;
+        const g=b.closest('.nav-group');if(g)g.open=true;
+        if(window.innerWidth<951)window.EDUNIZAM_MOBILE_NAV_CORE?.close?.();
+      });
+      window.__EDUNIZAM_LIVE_NAV_ITEM_HANDLER__=true;
+    }
     const observer=new MutationObserver(mutations=>{
       let changed=false;
       for(const m of mutations){
