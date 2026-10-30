@@ -523,6 +523,9 @@ if(!mobileNavCss.includes('.app-page .nav-group:not([open])>.nav-group-items{dis
 if(!mobileNavCss.includes('.app-page .nav-group[open]>.nav-group-items{display:grid!important;gap:6px!important}')) fail.push('Expanded mobile sidebar groups are missing their grid layout.');
 if(!mobileNavCss.includes('white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;')) fail.push('Mobile navigation labels can still break into narrow vertical fragments.');
 if(!navEnhancements.includes('if(window.innerWidth<=950)')||!navEnhancements.includes("nav.querySelectorAll('.nav-group[open]')")) fail.push('Mobile feature navigation is not enforced as a single-open accordion.');
+const mobileLayoutBrowserCheck=read('scripts/browser-layout-check.mjs');
+if(!mobileLayoutBrowserCheck.includes('const widths=[320,360,375,390,412,430,768,1366]')) fail.push('Mobile sidebar viewport regression sweep is missing a 320px and desktop check.');
+if(!mobileLayoutBrowserCheck.includes('Closed mobile accordion group still exposes feature buttons')) fail.push('Rendered mobile sidebar QA does not verify collapsed accordion visibility.');
 if(navEnhancements.includes("setTimeout(scheduleWarm,180)")) fail.push('Feature warm-up is still scheduled directly from the auth event.');
 if(navEnhancements.includes("filter();scheduleWarm()},900")) fail.push('Feature warm-up still starts during initial navigation mount.');
 if(!navEnhancements.includes("window.addEventListener('edunizam:workspace-ready',scheduleWarm)")) fail.push('Feature warm-up is not deferred until the workspace is ready.');
