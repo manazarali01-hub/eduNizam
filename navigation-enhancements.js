@@ -55,10 +55,10 @@
       group.open=shouldOpen;
       syncSummaryState();
     },true);
-    // Native details toggle events are queued by browsers. Normalize again
-    // after the final state change so stale queued events cannot leave two
-    // groups expanded, including groups hidden by role filtering.
-    nav.addEventListener('toggle',normalize,true);
+    // Do not normalize on queued native `toggle` events. Programmatic open-state
+    // changes also emit toggle asynchronously; re-selecting the active-view group
+    // here would immediately collapse the group the user just opened. The capture-
+    // phase summary handler already enforces one-open-at-a-time synchronously.
     normalize();
     window.addEventListener('resize',normalize,{passive:true});
   }
