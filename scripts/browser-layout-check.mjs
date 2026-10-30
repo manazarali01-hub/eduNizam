@@ -975,10 +975,7 @@ try{
       const targetGroup=targetButton.locator('xpath=ancestor::details[contains(concat(" ",normalize-space(@class)," ")," nav-group ")]');
       await targetGroup.waitFor({state:'attached',timeout:7000});
       const targetSummary=targetGroup.locator(':scope > summary');
-      await targetGroup.evaluate(group=>{
-        group.hidden=false;
-        if(!group.open)group.open=true;
-      });
+      await targetGroup.evaluate(group=>{group.hidden=false;});
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       // Preserve an already-open group; only tap the summary when it is closed.
       if(!(await targetGroup.evaluate(group=>group.open))){
@@ -1985,10 +1982,7 @@ try{
         const summary=group.locator(':scope > summary');
         // Scroll the drawer's own navigation viewport; Playwright's generic
         // scrollIntoView can race the drawer's transform/reflow on touch layouts.
-        await group.evaluate(el=>{
-          el.hidden=false;
-          if(!el.open)el.open=true;
-        });
+        await group.evaluate(el=>{el.hidden=false;});
         // Let the native details toggle and the one-open mobile accordion
         // listener settle before measuring the expanded panel.
         await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
