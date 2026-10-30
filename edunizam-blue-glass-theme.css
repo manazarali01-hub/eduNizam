@@ -402,6 +402,16 @@ body.page-app .sidebar #nav .nav-group-items{
   gap:4px!important;
   padding:4px 2px 3px!important;
 }
+
+/* Native accordion state must win over the generic grid presentation above.
+   Without this explicit closed-state rule, collapsed groups still expose every
+   feature button on mobile despite their <details> element being closed. */
+body.page-app .sidebar #nav .nav-group:not([open])>.nav-group-items{
+  display:none!important;
+}
+body.page-app .sidebar #nav .nav-group[open]>.nav-group-items{
+  display:grid!important;
+}
 body.page-app .sidebar #nav .nav-item{
   display:flex!important;
   align-items:center!important;
