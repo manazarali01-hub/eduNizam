@@ -126,7 +126,26 @@
       if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:5000});
       else setTimeout(run,4500);
     };
-    nav.addEventListener('click',e=>{const b=e.target.closest('.nav-item');if(!b)return;const g=b.closest('.nav-group');if(g)g.open=true;if(window.innerWidth<951)window.EDUNIZAM_MOBILE_NAV_CORE?.close?.()});
+    // Handle mobile accordion state synchronously on the summary click.
+    // Native <details> toggle events are queued and can arrive after another
+    // group has been opened, causing a stale event to collapse the user's
+    // current panel. Prevent the native toggle and apply one deterministic
+    // state transition instead; keyboard activation also emits a click.
+    nav.addEventListener('click',e=>{
+      const summary=e.target.closest('.nav-group > summary');
+      if(summary&&window.innerWidth<=950){
+        const group=summary.parentElement;
+        const shouldOpen=!group.open;
+        e.preventDefault();
+        nav.querySelectorAll(':scope > .nav-group[open]').forEach(other=>{other.open=false});
+        group.open=shouldOpen;
+        return;
+      }
+      const b=e.target.closest('.nav-item');
+      if(!b)return;
+      const g=b.closest('.nav-group');if(g)g.open=true;
+      if(window.innerWidth<951)window.EDUNIZAM_MOBILE_NAV_CORE?.close?.();
+    });
     const observer=new MutationObserver(mutations=>{
       let changed=false;
       for(const m of mutations){
