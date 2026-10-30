@@ -928,6 +928,13 @@ try{
       await page.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:7000});
       await page.waitForSelector('#roleSession',{state:'visible',timeout:7000});
       await page.waitForFunction(()=>!document.getElementById('cloudAuthScreen'),null,{timeout:4000});
+      // navigation-enhancements.js mounts the accordion asynchronously after the shell.
+      // Wait for its real DOM contract before attempting mobile user taps.
+      await page.waitForFunction(()=>{
+        const nav=document.querySelector('#nav.nav-groups');
+        const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
+        return !!nav&&!!help?.closest('details.nav-group');
+      },null,{timeout:7000});
 
       const startup=await page.evaluate(({visible,hidden,label})=>{
         const visibleBtn=document.querySelector('.nav-item[data-view="'+visible+'"]');
@@ -963,8 +970,11 @@ try{
 
       const helpButton=page.locator('.sidebar .nav-item[data-view="help"]');
       const helpGroup=page.locator('.sidebar .nav-group[data-group-title="AI & System"]');
+      await helpGroup.waitFor({state:'attached',timeout:7000});
+      const helpSummary=helpGroup.locator(':scope > summary');
+      await helpSummary.scrollIntoViewIfNeeded();
       const helpGroupOpen=await helpGroup.evaluate(group=>group.open);
-      if(!helpGroupOpen)await helpGroup.locator(':scope > summary').tap({timeout:5000});
+      if(!helpGroupOpen)await helpSummary.tap({timeout:5000});
       await page.waitForFunction(()=>{
         const group=document.querySelector('.sidebar .nav-group[data-group-title="AI & System"]');
         const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
@@ -1930,12 +1940,20 @@ try{
     for(const view of ['students','attendance','fees','results','settings']){
       await loginStep('open '+view+' section',async()=>{
         await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
+        await loginFlowPage.waitForFunction(()=>{
+          const nav=document.querySelector('#nav.nav-groups');
+          const target=document.querySelector('.nav-item[data-view="'+view+'"]');
+          return !!nav&&!!target?.closest('details.nav-group');
+        },{view},{timeout:7000});
         const button=loginFlowPage.locator('.nav-item[data-view="'+view+'"]');
         const groupTitle=await button.evaluate(el=>el.closest('details.nav-group')?.dataset.groupTitle||'');
         if(!groupTitle)throw new Error('Navigation accordion group missing for '+view);
         const group=loginFlowPage.locator('.nav-group[data-group-title="'+groupTitle+'"]');
+        await group.waitFor({state:'attached',timeout:7000});
+        const summary=group.locator(':scope > summary');
+        await summary.scrollIntoViewIfNeeded();
         if(!(await group.evaluate(el=>el.open))){
-          await group.locator(':scope > summary').tap({timeout:5000});
+          await summary.tap({timeout:5000});
         }
         await loginFlowPage.waitForFunction(({view,title})=>{
           const target=document.querySelector('.nav-item[data-view="'+view+'"]');
