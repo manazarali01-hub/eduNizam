@@ -958,11 +958,14 @@ try{
       }
 
       const helpButton=page.locator('.sidebar .nav-item[data-view="help"]');
-      await page.evaluate(()=>{
+      const helpGroup=page.locator('.sidebar .nav-group[data-group-title="AI & System"]');
+      const helpGroupOpen=await helpGroup.evaluate(group=>group.open);
+      if(!helpGroupOpen)await helpGroup.locator(':scope > summary').tap({timeout:5000});
+      await page.waitForFunction(()=>{
+        const group=document.querySelector('.sidebar .nav-group[data-group-title="AI & System"]');
         const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
-        const group=help?.closest('details.nav-group');
-        if(group)group.open=true;
-      });
+        return !!group?.open&&!!help&&help.getClientRects().length>0;
+      },null,{timeout:5000});
       await helpButton.waitFor({state:'visible',timeout:5000});
       await helpButton.scrollIntoViewIfNeeded();
       await helpButton.tap({timeout:5000});
@@ -1923,12 +1926,18 @@ try{
     for(const view of ['students','attendance','fees','results','settings']){
       await loginStep('open '+view+' section',async()=>{
         await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
-        await loginFlowPage.evaluate(view=>{
-          const button=document.querySelector('.nav-item[data-view="'+view+'"]');
-          const group=button?.closest('details');
-          if(group)group.open=true;
-        },view);
         const button=loginFlowPage.locator('.nav-item[data-view="'+view+'"]');
+        const groupTitle=await button.evaluate(el=>el.closest('details.nav-group')?.dataset.groupTitle||'');
+        if(!groupTitle)throw new Error('Navigation accordion group missing for '+view);
+        const group=loginFlowPage.locator('.nav-group[data-group-title="'+groupTitle+'"]');
+        if(!(await group.evaluate(el=>el.open))){
+          await group.locator(':scope > summary').tap({timeout:5000});
+        }
+        await loginFlowPage.waitForFunction(({view,title})=>{
+          const target=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const panel=document.querySelector('.nav-group[data-group-title="'+title+'"]');
+          return !!panel?.open&&!!target&&target.getClientRects().length>0;
+        },{view,title:groupTitle},{timeout:5000});
         await button.tap({timeout:5000});
         await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
       });
