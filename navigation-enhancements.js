@@ -133,7 +133,7 @@
           // after this menu mounts. Recompute group visibility when that
           // permission state changes, otherwise an empty accordion can stay
           // hidden even after an allowed role button becomes available.
-          const wasHidden=String(m.oldValue||'').split(/\\s+/).includes('role-hidden');
+          const wasHidden=String(m.oldValue||'').split(/\s+/).includes('role-hidden');
           const isHidden=m.target.classList.contains('role-hidden');
           if(wasHidden!==isHidden)changed=true;
         }
