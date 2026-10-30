@@ -223,6 +223,8 @@ jobs:
       - name: Run rendered mobile/layout regression checks
         timeout-minutes: 20
         run: node scripts/browser-layout-check.mjs
+      - name: Verify guest VU course-code search in a real browser
+        run: node scripts/vu-guest-search-browser-check.mjs
       - name: Run Teacher Student Parent workflow regressions
         run: node scripts/role-workflow-check.mjs
       - name: Upload Phase O visual QA screenshots
