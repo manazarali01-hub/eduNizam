@@ -975,7 +975,19 @@ try{
       const targetGroup=targetButton.locator('xpath=ancestor::details[contains(concat(" ",normalize-space(@class)," ")," nav-group ")]');
       await targetGroup.waitFor({state:'attached',timeout:7000});
       const targetSummary=targetGroup.locator(':scope > summary');
-      await targetGroup.evaluate(group=>{group.hidden=false;});
+      await targetGroup.evaluate(group=>{
+        group.hidden=false;
+        const scroller=group.closest('.sidebar')?.querySelector('#nav');
+        const bounds=scroller?.getBoundingClientRect();
+        const rect=group.querySelector(':scope > summary')?.getBoundingClientRect();
+        if(scroller&&bounds&&rect){
+          const delta=rect.top<bounds.top+8
+            ?rect.top-bounds.top-12
+            :rect.bottom>bounds.bottom-8
+              ?rect.bottom-bounds.bottom+12:0;
+          if(delta)scroller.scrollTop+=delta;
+        }
+      });
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       // Preserve an already-open group; only tap the summary when it is closed.
       if(!(await targetGroup.evaluate(group=>group.open))){
@@ -1980,11 +1992,23 @@ try{
         const group=loginFlowPage.locator('.nav-group[data-group-title="'+groupTitle+'"]');
         await group.waitFor({state:'attached',timeout:7000});
         const summary=group.locator(':scope > summary');
-        // Scroll the drawer's own navigation viewport; Playwright's generic
-        // scrollIntoView can race the drawer's transform/reflow on touch layouts.
-        await group.evaluate(el=>{el.hidden=false;});
-        // Let the native details toggle and the one-open mobile accordion
-        // listener settle before measuring the expanded panel.
+        // The drawer can be taller than the viewport and the target group may
+        // begin outside its own scrollport. Bring the SUMMARY into the drawer's
+        // visible area before clicking; otherwise Playwright can hit the
+        // surrounding ASIDE and the native <details> never toggles.
+        await group.evaluate(el=>{
+          el.hidden=false;
+          const scroller=el.closest('.sidebar')?.querySelector('#nav');
+          const bounds=scroller?.getBoundingClientRect();
+          const rect=el.querySelector(':scope > summary')?.getBoundingClientRect();
+          if(scroller&&bounds&&rect){
+            const delta=rect.top<bounds.top+8
+              ?rect.top-bounds.top-12
+              :rect.bottom>bounds.bottom-8
+                ?rect.bottom-bounds.bottom+12:0;
+            if(delta)scroller.scrollTop+=delta;
+          }
+        });
         await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
         if(!(await group.evaluate(el=>el.open)))await summary.click({timeout:5000});
         await loginFlowPage.waitForFunction(({view,title})=>{
