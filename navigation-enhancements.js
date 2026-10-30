@@ -45,22 +45,11 @@
     }
     if(byView.size){const details=document.createElement('details');details.className='nav-group';details.dataset.groupTitle='More';details.innerHTML='<summary><span>＋</span><strong>More</strong><small>›</small></summary><div class="nav-group-items"></div>';const box=details.lastElementChild;byView.forEach(b=>box.appendChild(b));nav.appendChild(details)}
     }
-    // Desktop groups may remain independently open. On mobile, keep one
-    // accordion panel open at a time so feature lists never flood the drawer.
-    nav.querySelectorAll('.nav-group').forEach(group=>{
-      group.addEventListener('toggle',()=>{
-        if(group.open){
-          group.dataset.userOpened='1';
-          if(window.innerWidth<=950){
-            nav.querySelectorAll('.nav-group[open]').forEach(other=>{
-              if(other!==group)other.open=false;
-            });
-          }
-        }else{
-          delete group.dataset.userOpened;
-        }
-      });
-    });
+    // Do not enforce accordion state from the asynchronous <details> toggle
+    // event: browsers queue that event, so a stale "opened" event can run after
+    // a later group has become active and collapse the user's current panel.
+    // Mobile summary clicks below apply the single-open transition synchronously.
+    // Desktop keeps native independent <details> behavior.
     // The initial desktop defaults include Overview + Daily Work. On mobile,
     // normalize that initial state too, retaining the group for the active view.
     // Otherwise two groups can remain open until the user toggles one manually.
