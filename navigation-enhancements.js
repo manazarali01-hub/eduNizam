@@ -56,14 +56,17 @@
       const summary=event.target?.closest?.('summary');
       const group=summary?.parentElement;
       if(!group?.classList?.contains('nav-group')||group.parentElement!==liveNav)return;
-      setTimeout(()=>{
-        if(!group.isConnected||window.innerWidth>950)return;
-        if(!group.open)group.open=true;
-        liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(item=>{
-          if(item!==group)item.open=false;
-        });
-        syncSummaryState(liveNav);
-      },0);
+      if(window.innerWidth>950)return;
+      // The app shell can cancel the native summary default action. Own the
+      // disclosure toggle in capture phase so the requested group opens
+      // synchronously, before drawer-level click handlers run.
+      event.preventDefault();
+      const shouldOpen=!group.open;
+      liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(item=>{
+        if(item!==group)item.open=false;
+      });
+      group.open=shouldOpen;
+      syncSummaryState(liveNav);
     },true);
     const normalize=()=>{
       if(window.innerWidth>950)return;
