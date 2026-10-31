@@ -29,7 +29,7 @@ assert.match(executable, /acl\.privilege_type\s*=\s*'TRUNCATE'/i, "Scope the foc
 assert.match(executable, /has_sequence_privilege\s*\(/i, "Audit effective browser-role sequence privileges");
 assert.match(executable, /c\.relkind\s*=\s*'S'/i, "Limit sequence audit to actual sequences");
 assert.match(executable, /'USAGE'[\s\S]*'SELECT'[\s\S]*'UPDATE'/i, "Review all three PostgreSQL sequence privileges");
-assert.match(executable, /Full browser-role default ACL inventory/i, "Document the expanded default ACL inventory");
+assert.match(sql, /Full browser-role default ACL inventory/i, "Document the expanded default ACL inventory");
 assert.match(executable, /d\.defaclobjtype\s+in\s*\('r',\s*'S',\s*'f'\)/i, "Audit table, sequence, and function defaults");
 assert.match(executable, /grantee\.rolname\s+in\s*\('anon',\s*'authenticated'\)/i, "Scope inventory to browser roles");
 assert.match(executable, /acl\.privilege_type/i, "Report individual default privilege types");
