@@ -93,8 +93,10 @@
         item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
       });
     });
-    accordionObserver.observe(nav,{subtree:false,childList:true});
-    accordionObserver.observe(nav,{subtree:true,attributes:true,attributeFilter:['open']});
+    // MutationObserver.observe() replaces the previous options for the same
+    // target. Keep child-list and open-attribute tracking in ONE registration
+    // so groups inserted after this script mounts also receive summary handlers.
+    accordionObserver.observe(nav,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});
     // Native summary activation opens/closes the selected details element.
     // The observer enforces one-open-at-a-time without cancelling the browser click.
     normalize();
