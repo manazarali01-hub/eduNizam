@@ -35,10 +35,13 @@
       window.__EDUNIZAM_MOBILE_ACCORDION_CLICK_BOUND__=true;
       window.addEventListener('click',event=>{
         if(window.innerWidth>950)return;
-        const summary=event.target?.closest?.('#nav > details.nav-group > summary');
         const liveNav=document.getElementById('nav');
+        // Resolve the nearest summary first, then validate its live parent.
+        // A compound :scope-style selector in closest() can fail in some
+        // embedded/mobile browser engines even when the summary is in #nav.
+        const summary=event.target?.closest?.('summary');
         const selected=summary?.parentElement;
-        if(!selected||selected.parentElement!==liveNav)return;
+        if(!liveNav||!selected?.matches?.('details.nav-group')||selected.parentElement!==liveNav)return;
         const shouldOpen=!selected.open;
         event.preventDefault();
         liveNav.querySelectorAll(':scope > details.nav-group').forEach(group=>{
