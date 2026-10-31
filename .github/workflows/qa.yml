@@ -39,6 +39,8 @@ jobs:
         run: node scripts/deploy-supabase-workflow-guard-check.mjs
       - name: Validate canonical titles and search/social metadata consistency
         run: node scripts/public-metadata-consistency-check.mjs
+      - name: Validate public sitemap pages and internal HTML links
+        run: node scripts/public-internal-link-check.mjs
       - name: Verify atomic AI quota reservation before provider spend
         run: node scripts/ai-quota-reservation-check.mjs
       - name: Verify AI usage sequence privilege migration contract
