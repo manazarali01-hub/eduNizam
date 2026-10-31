@@ -13,6 +13,13 @@ function meta(html, key, value) {
   return tag?.match(/\bcontent="([^"]*)"/i)?.[1] ?? null;
 }
 
+const homeHtml = fs.readFileSync('index.html', 'utf8');
+const jsonLdBlock = homeHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/i)?.[1];
+assert.ok(jsonLdBlock, 'index.html: missing JSON-LD block');
+const structuredData = JSON.parse(jsonLdBlock);
+assert.ok(structuredData['@graph']?.some((node) => node['@type'] === 'Organization' && node['@id'] === 'https://edunizam.online/#organization'), 'index.html: missing canonical Organization entity');
+assert.ok(structuredData['@graph'].some((node) => node['@type'] === 'Organization' && node.logo?.url === 'https://edunizam.online/assets/edunizam-premium-mark.svg'), 'index.html: Organization logo URL missing or incorrect');
+
 for (const page of pages) {
   const html = fs.readFileSync(page.file, 'utf8');
   const title = html.split('<title>')[1]?.split('</title>')[0]?.trim();
