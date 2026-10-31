@@ -1,0 +1,89 @@
+name: Repository Smoke Checks
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Run EduNizam smoke checks
+        run: node scripts/repo-smoke-check.mjs
+
+      - name: Validate reference-data completeness
+        run: node scripts/data-completion-check.mjs
+
+      - name: Validate paper-builder marks and dynamic school data
+        run: node scripts/paper-builder-data-check.mjs
+
+      - name: Verify Paper Builder exact school syllabus save and private draft isolation
+        run: node scripts/paper-school-save-gate-check.mjs
+
+      - name: Verify Lesson Syllabus prescribed textbook and chapter publication data
+        run: node scripts/lesson-textbook-traceability-check.mjs
+
+      - name: Verify Study Library subject options and official-resource filtering
+        run: node scripts/study-library-dropdown-check.mjs
+
+      - name: Verify Exam Center UUID report cards and authorized student selection
+        run: node scripts/exam-report-scoping-check.mjs
+
+      - name: Verify Exam Center current-school syllabus subject dropdown and refresh
+        run: node scripts/exam-syllabus-dropdown-check.mjs
+
+      - name: Verify School Work homework real class section and syllabus dropdowns
+        run: node scripts/homework-cloud-options-check.mjs
+
+      - name: Verify School Work Timetable complete period data and safe cloud save
+        run: node scripts/schoolwork-timetable-check.mjs
+
+      - name: Verify Result Dashboard role scope and UUID report isolation
+        run: node scripts/result-dashboard-scope-check.mjs
+
+      - name: Verify Practice Next Previous navigation and answer persistence
+        run: node scripts/practice-navigation-check.mjs
+
+      - name: Verify institution dependent class student and staff dropdown options
+        run: node scripts/school-dependent-dropdown-check.mjs
+
+      - name: Verify Student Parent Teacher and Admin profile isolation
+        run: node scripts/profile-role-visibility-check.mjs
+
+      - name: Verify class-section student pickers and authorized form submission
+        run: node scripts/student-form-picker-check.mjs
+
+      - name: Verify real academic class and syllabus dropdown dependencies
+        run: node scripts/academic-form-options-check.mjs
+
+      - name: Verify Timetable and Date Sheet scoped cloud class syllabus dropdowns
+        run: node scripts/schedule-cloud-directory-check.mjs
+
+      - name: Verify Daily Diary subject and chapter options use current school syllabus
+        run: node scripts/daily-diary-syllabus-dropdown-check.mjs
+
+      - name: Verify public Matric Annual Past Papers and indexed archive fallback
+        run: node scripts/guest-past-paper-search-check.mjs
+
+      - name: Verify school data readiness audit and grade catalog
+        run: node scripts/school-data-readiness-check.mjs
+
+      - name: Verify production Timetable schema and form column contract
+        run: node scripts/timetable-production-schema-check.mjs
+
+      - name: Verify cloud-first student staff and class bulk imports
+        run: node scripts/bulk-import-cloud-check.mjs

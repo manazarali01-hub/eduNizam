@@ -1,0 +1,248 @@
+(function(){
+  const KEY='edunizam_cloud_runtime_config';
+  const get=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}};
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
+  const isHead=()=>{const r=session()?.role||'';return r==='head'||r==='admin'};
+
+  function useInstitution(inst,reload=false){
+    if(!inst?.id)return false;
+    const current=get();
+    current.enabled=true;
+    current.institutionId=inst.id;
+    localStorage.setItem(KEY,JSON.stringify(current));
+    if(window.EDUNIZAM_CLOUD_CONFIG){
+      window.EDUNIZAM_CLOUD_CONFIG.enabled=true;
+      window.EDUNIZAM_CLOUD_CONFIG.institutionId=inst.id;
+    }
+
+    let session=null;
+    try{session=JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch(_){}
+    if(session){
+      session.institutionId=inst.id;
+      session.schoolName=inst.name||session.schoolName||'';
+      localStorage.setItem('edunizam_session',JSON.stringify(session));
+    }
+
+    let settings={};
+    try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(_){}
+    settings.schoolName=inst.name||settings.schoolName||'My School';
+    settings.schoolType=inst.institution_type||settings.schoolType||'School';
+    localStorage.setItem('edunizam_settings',JSON.stringify(settings));
+
+    const schoolName=document.getElementById('school-name');
+    if(schoolName)schoolName.textContent=[settings.schoolName,settings.session].filter(Boolean).join(' · ');
+    if(reload)location.reload();
+    return true;
+  }
+
+  async function ensureInstitution(){
+    const cloud=window.EDUNIZAM_CLOUD;
+    if(!cloud?.state?.user||!cloud?.listAuthorizedWorkspaces)return false;
+
+    try{
+      const current=get();
+      const localSession=session();
+      const selectedId=String(localSession?.institutionId||current.institutionId||'').trim();
+      const selectedName=String(localSession?.schoolName||'').trim().toLowerCase();
+      const rows=await cloud.listAuthorizedWorkspaces(false);
+      const schools=(rows||[]).map(x=>({
+        id:x.id,
+        name:x.name,
+        institution_type:x.institution_type,
+        school_registration_code:x.school_registration_code,
+        registration_number:x.registration_number,
+        role:x.workspace_role||x._membership_role
+      }));
+      const preferred=
+        schools.find(x=>String(x.id)===selectedId) ||
+        (selectedName?schools.find(x=>String(x.name||'').trim().toLowerCase()===selectedName):null) ||
+        (schools.length===1?schools[0]:null);
+      if(!preferred){
+        if(schools.length>1)window.dispatchEvent(new CustomEvent('edunizam:school-selection-required',{detail:{schools}}));
+        return false;
+      }
+      useInstitution(preferred,false);
+      return true;
+    }catch(error){
+      console.warn('Institution resolution:',error?.message||error);
+      throw error;
+    }
+  }
+
+  function overlayBase(id,title,body){
+    document.getElementById(id)?.remove();
+    const box=document.createElement('div');
+    box.id=id;
+    box.className='cloud-auth-screen';
+    box.innerHTML='<div class="cloud-auth-card"><div class="academic-kicker">EduNizam Cloud</div><h1>'+title+'</h1>'+body+'</div>';
+    document.body.appendChild(box);
+    return box;
+  }
+
+  function showConnectionWizard(){
+    document.getElementById('cloudPublicWizard')?.remove();
+    const current=Object.assign({},window.EDUNIZAM_CLOUD_CONFIG||{},get());
+    const box=overlayBase(
+      'cloudPublicWizard',
+      'Connect EduNizam Cloud',
+      '<p>Configure the Supabase project used by EduNizam.</p>'+
+      '<div class="cloud-auth-grid">'+
+      '<input id="publicCloudUrl" placeholder="Supabase Project URL" value="'+esc(current.supabaseUrl||'')+'">'+
+      '<input id="publicCloudKey" type="password" placeholder="Supabase Publishable Key" value="'+esc(current.supabasePublishableKey||'')+'">'+
+      '<div class="cloud-auth-actions"><button id="publicCloudTest">Test Connection</button><button id="publicCloudSave">Save & Reload</button><button id="publicCloudCancel" class="secondary">Cancel</button></div>'+
+      '<div id="publicCloudMsg" class="coverage-note">Use a publishable browser key only. Never paste a service-role key here.</div>'+
+      '</div>'
+    );
+    const msg=t=>{const el=box.querySelector('#publicCloudMsg');if(el)el.textContent=t};
+
+    box.querySelector('#publicCloudTest').onclick=async()=>{
+      const url=box.querySelector('#publicCloudUrl').value.trim().replace(/\/$/,'');
+      const key=box.querySelector('#publicCloudKey').value.trim();
+      if(!/^https:\/\/.+\.supabase\.co$/i.test(url))return msg('Enter a valid Supabase Project URL.');
+      if(key.length<20)return msg('Enter a valid publishable key.');
+      try{
+        msg('Testing connection...');
+        const r=await fetch(url+'/auth/v1/settings',{headers:{apikey:key,Authorization:'Bearer '+key}});
+        if(!r.ok)throw new Error('HTTP '+r.status);
+        msg('Connection successful.');
+      }catch(e){msg('Connection failed: '+(e.message||e))}
+    };
+
+    box.querySelector('#publicCloudSave').onclick=()=>{
+      const url=box.querySelector('#publicCloudUrl').value.trim().replace(/\/$/,'');
+      const key=box.querySelector('#publicCloudKey').value.trim();
+      if(!/^https:\/\/.+\.supabase\.co$/i.test(url))return msg('Enter a valid Supabase Project URL.');
+      if(key.length<20)return msg('Publishable key is required.');
+      localStorage.setItem(KEY,JSON.stringify({
+        enabled:true,
+        provider:'supabase',
+        supabaseUrl:url,
+        supabasePublishableKey:key,
+        institutionId:'',
+        admissionsStorageBucket:'admission-documents',
+        complaintStorageBucket:'parent-complaints',
+        paymentApiBaseUrl:''
+      }));
+      location.reload();
+    };
+
+    box.querySelector('#publicCloudCancel').onclick=()=>box.remove();
+  }
+
+  function mount(){
+    const settings=document.getElementById('settings');
+    if(!settings||document.getElementById('cloudSetupCard'))return;
+
+    const cfg=Object.assign({},window.EDUNIZAM_CLOUD_CONFIG||{},get());
+    const card=document.createElement('article');
+    card.className='card';
+    card.id='cloudSetupCard';
+    card.innerHTML='<div class="section-head"><div><h2>EduNizam Cloud Setup</h2><p class="muted">Supabase connection used by this app.</p></div><span class="badge">'+(cfg.enabled?'Enabled':'Local Mode')+'</span></div>'+
+      '<div class="form-grid">'+
+      '<input id="cloudSetupUrl" placeholder="Supabase Project URL" value="'+esc(cfg.supabaseUrl||'')+'">'+
+      '<input id="cloudSetupKey" type="password" placeholder="Supabase Publishable Key" value="'+esc(cfg.supabasePublishableKey||'')+'">'+
+      '<label class="check-option"><input id="cloudSetupEnabled" type="checkbox" '+(cfg.enabled?'checked':'')+'> Enable cloud backend</label>'+
+      '</div>'+
+      '<div class="quick-actions"><button id="cloudSetupTest" class="secondary">Test Connection</button><button id="cloudSetupSave">Save & Reload</button></div>'+
+      '<div id="cloudSetupMessage" class="coverage-note">Use a publishable key only.</div>';
+
+    settings.prepend(card);
+    const msg=t=>document.getElementById('cloudSetupMessage').textContent=t;
+
+    const schoolCard=document.createElement('article');
+    schoolCard.className='card';
+    if(!isHead())schoolCard.style.display='none';
+    schoolCard.id='multiSchoolCard';
+    schoolCard.innerHTML='<div class="section-head"><div><h2>My Schools / Institutes</h2><p class="muted">Ek hi Admin account se multiple schools manage karein. Parent/Student school select karke approval request bhejte hain; Admin ko code share karne ki zarurat nahi.</p></div><button id="refreshSchoolsBtn" class="secondary">Refresh</button></div>'+
+      '<div id="ownedSchoolsList" class="list"><div class="muted">Loading schools...</div></div>'+
+      '<hr><h3>Add another school</h3><div class="form-grid"><input id="newOwnedSchoolName" placeholder="School / Institute name"><input id="newOwnedSchoolRegistration" placeholder="Registration No. (optional)"><input id="newOwnedSchoolPhone" placeholder="Contact number (optional)"><button id="addOwnedSchoolBtn">Add School</button></div><div class="muted">Registration No. sirf display ke liye hai. Parent/Student approval school selection aur profile verification se hota hai.</div>'+
+      '<div id="multiSchoolMsg" class="coverage-note"></div>';
+    card.after(schoolCard);
+
+    async function loadOwnedSchools(force=false){
+      const cloud=window.EDUNIZAM_CLOUD,box=document.getElementById('ownedSchoolsList');
+      if(!cloud?.state?.user||!cloud?.listAuthorizedWorkspaces){box.innerHTML='<div class="muted">Please sign in first.</div>';return}
+      box.innerHTML='<div class="muted">Loading schools…</div>';
+      try{
+        const rows=await cloud.listAuthorizedWorkspaces(force);
+        const data=(rows||[]).filter(x=>(x.workspace_role||x._membership_role)==='head_of_institute');
+        const current=get().institutionId||'';
+        box.innerHTML=data.length?data.map(s=>'<div class="row"><strong>'+esc(s.name)+'</strong><span><small>Registration No.</small><br><strong>'+esc(s.registration_number||'Not provided')+'</strong></span><span>'+(s.id===current?'<span class="badge">Current</span>':'<button class="secondary" data-school-id="'+esc(s.id)+'">Switch</button>')+'</span></div>').join(''):'<div class="muted">No owned school found.</div>';
+        box.querySelectorAll('[data-school-id]').forEach(btn=>btn.onclick=()=>{
+          const school=data.find(x=>x.id===btn.dataset.schoolId);
+          if(school)useInstitution(school,true);
+        });
+      }catch(error){
+        box.innerHTML='<div class="muted">'+esc(error?.message||'School list could not load.')+'</div>';
+      }
+    }
+
+    document.getElementById('refreshSchoolsBtn').onclick=()=>loadOwnedSchools(true);
+    const addOwnedSchoolButton=document.getElementById('addOwnedSchoolBtn');
+    let ownedSchoolCreateInFlight=false;
+    addOwnedSchoolButton.onclick=async()=>{
+      if(!isHead()||ownedSchoolCreateInFlight)return;
+      const cloud=window.EDUNIZAM_CLOUD,msgBox=document.getElementById('multiSchoolMsg');
+      if(!cloud?.state?.client||!cloud?.state?.user){msgBox.textContent='Please sign in first.';return}
+      const name=document.getElementById('newOwnedSchoolName').value.trim();
+      const registration=document.getElementById('newOwnedSchoolRegistration').value.trim();
+      const phone=document.getElementById('newOwnedSchoolPhone').value.trim();
+      if(!name){msgBox.textContent='School name is required.';return}
+      ownedSchoolCreateInFlight=true;
+      addOwnedSchoolButton.disabled=true;
+      msgBox.textContent='Adding school...';
+      try{
+        const {data,error}=await cloud.state.client.rpc('create_owned_institution_v2',{p_school_name:name,p_registration_number:registration,p_phone:phone});
+        if(error)throw error;
+        const school=Array.isArray(data)?data[0]:data;
+        if(!school?.id)throw new Error('The server did not confirm the new school ID.');
+        msgBox.textContent='School added successfully. '+(registration?'Registration No. saved for display. ':'')+'Parent/Student can now find this school by name and request approval.';
+        document.getElementById('newOwnedSchoolName').value='';
+        document.getElementById('newOwnedSchoolRegistration').value='';
+        document.getElementById('newOwnedSchoolPhone').value='';
+        useInstitution(school,true);
+      }catch(error){
+        msgBox.textContent='School creation was not confirmed: '+String(error?.message||error)+'. Refresh My Schools before retrying.';
+      }finally{
+        ownedSchoolCreateInFlight=false;
+        if(addOwnedSchoolButton?.isConnected!==false)addOwnedSchoolButton.disabled=false;
+      }
+    };
+    // School lists are loaded only when the Admin explicitly requests them.
+    // This keeps Settings data off the login/dashboard startup request budget.
+
+    document.getElementById('cloudSetupTest').onclick=async()=>{
+      const url=document.getElementById('cloudSetupUrl').value.trim().replace(/\/$/,'');
+      const key=document.getElementById('cloudSetupKey').value.trim();
+      if(!/^https:\/\/.+\.supabase\.co$/i.test(url))return msg('Enter a valid Supabase Project URL.');
+      if(key.length<20)return msg('Enter a valid publishable key.');
+      try{
+        msg('Testing connection...');
+        const r=await fetch(url+'/auth/v1/settings',{headers:{apikey:key,Authorization:'Bearer '+key}});
+        if(!r.ok)throw new Error('HTTP '+r.status);
+        msg('Connection successful.');
+      }catch(e){msg('Connection failed: '+(e.message||e))}
+    };
+
+    document.getElementById('cloudSetupSave').onclick=()=>{
+      const next={
+        enabled:document.getElementById('cloudSetupEnabled').checked,
+        provider:'supabase',
+        supabaseUrl:document.getElementById('cloudSetupUrl').value.trim().replace(/\/$/,''),
+        supabasePublishableKey:document.getElementById('cloudSetupKey').value.trim(),
+        institutionId:cfg.institutionId||'',
+        admissionsStorageBucket:'admission-documents',
+        complaintStorageBucket:'parent-complaints',
+        paymentApiBaseUrl:(window.EDUNIZAM_CLOUD_CONFIG||{}).paymentApiBaseUrl||''
+      };
+      if(next.enabled&&(!next.supabaseUrl||!next.supabasePublishableKey))return msg('URL and publishable key are required.');
+      localStorage.setItem(KEY,JSON.stringify(next));
+      location.reload();
+    };
+  }
+
+  setTimeout(mount,0);
+  setTimeout(mount,400);
+  window.EDUNIZAM_CLOUD_SETUP={mount,get,ensureInstitution,showConnectionWizard};
+})();

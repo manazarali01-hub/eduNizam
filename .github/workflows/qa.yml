@@ -1,0 +1,430 @@
+name: EduNizam QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, fix/mobile-sidebar-accordion-final-20261030]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run EduNizam QA
+        run: node qa-check.mjs
+      - name: Verify Supabase Data API grants checklist contract
+        run: node scripts/data-api-table-grants-checklist-check.mjs
+      - name: Verify public TRUNCATE hardening contract
+        run: node scripts/public-truncate-hardening-check.mjs
+      - name: Verify read-only Supabase privilege audit contract
+        run: node scripts/supabase-readonly-privilege-audit-check.mjs
+      - name: Test production migration history deployment guard
+        run: node scripts/deploy-migration-history-guard-test.mjs
+      - name: Verify production deployment guard ordering
+        run: node scripts/deploy-supabase-workflow-guard-check.mjs
+      - name: Validate canonical titles and search/social metadata consistency
+        run: node scripts/public-metadata-consistency-check.mjs
+      - name: Verify atomic AI quota reservation before provider spend
+        run: node scripts/ai-quota-reservation-check.mjs
+      - name: Verify AI usage sequence privilege migration contract
+        run: node scripts/ai-usage-sequence-privilege-check.mjs
+      - name: Verify navigation load races and dynamic action binding
+        run: node scripts/navigation-request-race-check.mjs
+      - name: Validate public homepage feedback intake and submission safeguards
+        run: node scripts/public-feedback-check.mjs
+      - name: Reproduce logout/session restore races and backup isolation
+        run: node scripts/auth-session-race-check.mjs
+      - name: Verify default school is preserved on multi-school approval
+        run: node scripts/default-school-approval-migration-check.mjs
+      - name: Verify student record claim stays within an authorized school
+        run: node scripts/student-record-claim-scope-check.mjs
+      - name: Verify parent student-link authorization fails closed
+        run: node scripts/parent-student-link-security-check.mjs
+      - name: Validate reference-data completeness
+        run: node scripts/data-completion-check.mjs
+      - name: Validate paper-builder marks and dynamic school data
+        run: node scripts/paper-builder-data-check.mjs
+
+      - name: Validate OCR source PDFs and photos, reviewed question staging and opt-in AI boundaries
+        run: node scripts/paper-source-import-check.mjs
+
+      - name: Reproduce Class 5 Science dropdowns, marks, pattern, and concept-only preview
+        run: node scripts/paper-builder-class5-form-check.mjs
+
+      - name: Verify manual Question Bank save is duplicate-safe and scoped across sessions
+        run: node scripts/question-single-save-race-check.mjs
+
+      - name: Verify Class 5 Science reviewed question import saves atomically
+        run: node scripts/question-import-atomic-check.mjs
+
+      - name: Verify comma/Unicode school chapter selection through paper save
+        run: node scripts/paper-builder-chapter-punctuation-check.mjs
+
+      - name: Verify Paper Builder renders before teacher preferences and question bank load
+        run: node scripts/paper-builder-first-render-check.mjs
+
+      - name: Verify complete paginated Paper Builder school data and fail-closed reads
+        run: node scripts/paper-cloud-pagination-check.mjs
+
+      - name: Verify saved paper edits and deletes confirm actual school-owner database rows
+        run: node scripts/paper-write-confirmation-check.mjs
+
+      - name: Verify saved Paper Builder lists do not leak across account switches
+        run: node scripts/paper-saved-list-race-check.mjs
+      - name: Verify complete saved paper history, older search and immediate school switch purge
+        run: node scripts/paper-saved-list-pagination-check.mjs
+
+      - name: Verify Paper Builder exact school setup readiness
+        run: node scripts/paper-school-readiness-check.mjs
+
+      - name: Verify teacher Question Bank uses active school section textbook rather than paper wizard selection
+        run: node scripts/paper-question-bank-section-check.mjs
+
+      - name: Verify school section syllabus isolation
+        run: node scripts/paper-builder-section-check.mjs
+
+      - name: Verify Paper Builder exact school syllabus save and private draft isolation
+        run: node scripts/paper-school-save-gate-check.mjs
+
+      - name: Verify sourced Class 5 Science chapter review and book-aligned blank questions
+        run: node scripts/class5-science-reference-workflow-check.mjs
+
+      - name: Verify school syllabus CSV importer validation
+        run: node scripts/school-syllabus-csv-check.mjs
+
+      - name: Verify school Academic Groups reviewed CSV importer
+        run: node scripts/academic-groups-csv-check.mjs
+
+      - name: Verify complete Academic Groups to syllabus questions and saved-paper integration
+        run: node scripts/school-exam-setup-chain-check.mjs
+
+      - name: Verify complete Lesson class, textbook chapter and plan pagination
+        run: node scripts/lesson-syllabus-pages-check.mjs
+
+      - name: Verify Lesson Syllabus prescribed textbook and chapter publication data
+        run: node scripts/lesson-textbook-traceability-check.mjs
+
+      - name: Verify Study Library subject options and official-resource filtering
+        run: node scripts/study-library-dropdown-check.mjs
+
+      - name: Verify Exam Center UUID report cards and authorized student selection
+        run: node scripts/exam-report-scoping-check.mjs
+
+      - name: Verify Exam Center current-school syllabus subject dropdown and refresh
+        run: node scripts/exam-syllabus-dropdown-check.mjs
+
+      - name: Verify School Work homework real class section and syllabus dropdowns
+        run: node scripts/homework-cloud-options-check.mjs
+
+      - name: Verify School Work Timetable complete period data and safe cloud save
+        run: node scripts/schoolwork-timetable-check.mjs
+
+      - name: Verify Result Dashboard role scope and UUID report isolation
+        run: node scripts/result-dashboard-scope-check.mjs
+
+      - name: Verify Practice Next Previous navigation and answer persistence
+        run: node scripts/practice-document-upload-check.mjs
+
+      - name: Verify Practice dropdown refresh, real-question chapter coverage and dependent selections
+        run: node scripts/practice-dropdown-reload-check.mjs
+
+      - name: Verify existing Practice Next Previous navigation
+        run: node scripts/practice-navigation-check.mjs
+
+      - name: Verify VU course selectors and catalog-only study workflows
+        run: node scripts/vu-course-dropdown-check.mjs
+
+      - name: Verify institution dependent class student and staff dropdown options
+        run: node scripts/school-dependent-dropdown-check.mjs
+
+      - name: Verify Student Parent Teacher and Admin profile isolation
+        run: node scripts/profile-role-visibility-check.mjs
+
+      - name: Verify class-section student pickers and authorized form submission
+        run: node scripts/student-form-picker-check.mjs
+
+      - name: Verify first-time Academic Groups setup without preloaded staff
+        run: node scripts/class-section-first-setup-check.mjs
+
+      - name: Verify class section cloud-only saves, renames, student assignment and school cache isolation
+        run: node scripts/class-section-cloud-integrity-check.mjs
+
+      - name: Verify real academic class and syllabus dropdown dependencies
+        run: node scripts/academic-form-options-check.mjs
+
+      - name: Verify Timetable and Date Sheet scoped cloud class syllabus dropdowns
+        run: node scripts/schedule-cloud-directory-check.mjs
+
+      - name: Verify Daily Diary subject and chapter options use current school syllabus
+        run: node scripts/daily-diary-syllabus-dropdown-check.mjs
+
+      - name: Verify Lesson Planner direct-open cloud class options and school isolation
+        run: node scripts/lesson-cloud-class-options-check.mjs
+
+      - name: Verify public Matric Annual Past Papers and indexed archive fallback
+        run: node scripts/guest-past-paper-search-check.mjs
+
+      - name: Verify school data readiness audit and grade catalog
+        run: node scripts/school-data-readiness-check.mjs
+
+      - name: Verify production Timetable schema and form column contract
+        run: node scripts/timetable-production-schema-check.mjs
+
+      - name: Validate teacher content UPDATE/DELETE policy migration contract
+        run: node scripts/teacher-content-update-policy-check.mjs
+
+      - name: Verify cloud-first student staff and class bulk imports
+        run: node scripts/bulk-import-cloud-check.mjs
+
+      - name: Validate teacher diary UPDATE/DELETE policy migration contract
+        run: node scripts/diary-write-policy-check.mjs
+
+  browser-layout:
+    runs-on: ubuntu-latest
+    needs: static-qa
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright runtime outside the repository
+        shell: bash
+        run: |
+          rm -rf /tmp/edunizam-pw
+          npm install --prefix /tmp/edunizam-pw --no-save playwright@1.55.0
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$CHROME" ]; then
+            echo "EDUNIZAM_BROWSER=$CHROME" >> "$GITHUB_ENV"
+          else
+            node /tmp/edunizam-pw/node_modules/playwright/cli.js install --with-deps chromium
+          fi
+          echo "PLAYWRIGHT_MODULE=file:///tmp/edunizam-pw/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+      - name: Build optimized CC0 clay icon assets
+        shell: bash
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 scripts/build-clay-icons.py
+      - name: Run rendered mobile/layout regression checks
+        timeout-minutes: 20
+        run: node scripts/browser-layout-check.mjs
+      - name: Run Teacher Student Parent workflow regressions
+        run: node scripts/role-workflow-check.mjs
+      - name: Upload Phase O visual QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-o-rendered-screenshots
+          path: artifacts/visual-qa
+          if-no-files-found: warn
+          retention-days: 7
+
+
+  diary-rls-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Apply diary migration to disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/diary-rls-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016130000_scope_diary_write_policies.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/diary-write-policy-integration.sql
+
+  teacher-content-rls-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Apply teacher content migration to disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/teacher-content-rls-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016110000_scope_teacher_content_updates.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/teacher-content-rls-integration.sql
+
+  invite-claim-role-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Test invite role transitions on disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/invite-claim-role-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020050000_harden_invite_claim_role_consistency.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/invite-claim-role-integration.sql
+
+  default-school-preservation-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Test default-school preservation migration and behavior
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/default-school-preservation-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020100000_preserve_default_school_on_access_approval.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/default-school-preservation-integration.sql
+
+  ai-usage-sequence-privilege-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify AI usage sequence grants on disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/ai-usage-sequence-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020080000_revoke_ai_usage_sequence_app_privileges.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/ai-usage-sequence-privilege-integration.sql
+
+  public-truncate-hardening-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify public TRUNCATE hardening on disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-hardening-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261021100000_revoke_public_truncate_app_roles.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-hardening-integration.sql
+

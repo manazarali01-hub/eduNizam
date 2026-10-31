@@ -1,0 +1,503 @@
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const port=4174;
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8'};
+const server=http.createServer((req,res)=>{
+  try{
+    const u=new URL(req.url,'http://127.0.0.1');
+    if(u.pathname==='/role-harness'){
+      res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
+      res.end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="mount"></main></body></html>');
+      return;
+    }
+    let rel=decodeURIComponent(u.pathname).replace(/^\/+/, '');
+    const file=path.resolve(root,rel);
+    if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){
+      res.writeHead(404,{'content-type':'text/plain'});res.end('Not found');return;
+    }
+    res.writeHead(200,{'content-type':mime[path.extname(file).toLowerCase()]||'application/octet-stream','cache-control':'no-store'});
+    fs.createReadStream(file).pipe(res);
+  }catch(error){
+    res.writeHead(500,{'content-type':'text/plain'});res.end(String(error?.message||error));
+  }
+});
+await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve)});
+
+const moduleUrl=process.env.PLAYWRIGHT_MODULE||'playwright';
+const {chromium}=await import(moduleUrl);
+const launchOptions={headless:true};
+if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZAM_BROWSER;
+const browser=await chromium.launch(launchOptions);
+const failures=[];
+
+function fail(scope,message,detail=''){failures.push({scope,message,detail})}
+async function newPage(){
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+  const page=await context.newPage();
+  page.setDefaultTimeout(6000);
+  page.setDefaultNavigationTimeout(9000);
+  await page.route('**/*',route=>{
+    const u=new URL(route.request().url());
+    if(u.hostname==='127.0.0.1')route.continue(); else route.abort();
+  });
+  await page.addInitScript(()=>{
+    window.alert=(message)=>{sessionStorage.setItem('qa_last_alert',String(message||''))};
+    window.confirm=()=>true;
+    window.prompt=()=> 'QA resolution';
+  });
+  return {context,page};
+}
+
+async function teacherLeave(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      document.getElementById('mount').innerHTML='<div id="leaveCenterApp"></div>';
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'teacher',identity:'teacher@example.test'}));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:false,institutionId:''};
+      window.EDUNIZAM_CLOUD={state:{client:null,user:null}};
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/leave-center.js'});
+    await page.waitForSelector('#submitLeave',{state:'visible'});
+    await page.locator('#leaveReason').fill('Medical appointment');
+    await page.locator('#leaveGuardianNote').fill('QA teacher leave');
+    await page.locator('#submitLeave').tap();
+    await page.waitForFunction(()=>{
+      try{return (JSON.parse(localStorage.getItem('edunizam_leave_requests_v3')||'[]')).length>0}catch(_){return false}
+    });
+    const state=await page.evaluate(()=>{
+      const rows=JSON.parse(localStorage.getItem('edunizam_leave_requests_v3')||'[]');
+      return {row:rows[0]||null,disabled:document.getElementById('submitLeave')?.disabled||false,alert:sessionStorage.getItem('qa_last_alert')||''};
+    });
+    if(!state.row||state.row.leaveFor!=='staff'||state.row.submittedRole!=='teacher'||state.row.status!=='Pending'||state.disabled){
+      fail('teacher leave','Teacher leave did not persist as a usable Pending request',JSON.stringify(state));
+    }
+  }catch(error){fail('teacher leave','Teacher leave interaction failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+async function teacherDiary(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      document.getElementById('mount').innerHTML='<div id="dailyDiaryApp"></div>';
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'teacher',identity:'teacher@example.test',institutionId:'school-1',source:'supabase'}));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
+      const user={id:'teacher-1',email:'teacher@example.test'};
+      const makeQuery=(table)=>{
+        const q={
+          select(){return q},eq(){return q},gte(){return q},lte(){return q},in(){return q},order(){return q},limit(){return q},
+          maybeSingle(){return Promise.resolve({data:null,error:null})},
+          update(payload){sessionStorage.setItem('qa_diary_update',JSON.stringify(payload));return q},
+          delete(){return q},
+          upsert(payload,options){
+            const count=Number(sessionStorage.getItem('qa_diary_upsert_count')||'0')+1;
+            sessionStorage.setItem('qa_diary_upsert_count',String(count));
+            sessionStorage.setItem('qa_diary_upsert',JSON.stringify({payload,options}));
+            return new Promise(resolve=>setTimeout(()=>resolve({data:null,error:null}),250));
+          },
+          then(resolve,reject){
+            let data=[];
+            if(table==='class_sections')data=[{class_name:'5',section_name:'A'}];
+            return Promise.resolve({data,error:null}).then(resolve,reject);
+          }
+        };
+        return q;
+      };
+      window.EDUNIZAM_CLOUD={state:{client:{from:table=>makeQuery(table)},user,initialized:true},user};
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/daily-class-diary.js'});
+    await page.waitForFunction(()=>document.querySelectorAll('#diaryClass option').length>1);
+    await page.locator('#diaryClass').selectOption('5|A');
+    await page.locator('#diarySubject').fill('Mathematics');
+    await page.locator('#diaryTopic').fill('Fractions');
+    await page.locator('#diaryHomework').fill('Exercise 4');
+    await page.locator('#saveDiary').tap();
+    await page.waitForFunction(()=>document.getElementById('saveDiary')?.disabled===true);
+    await page.evaluate(()=>document.getElementById('saveDiary')?.click());
+    await page.waitForFunction(()=>!!sessionStorage.getItem('qa_diary_upsert'));
+    await page.waitForFunction(()=>document.getElementById('saveDiary')?.disabled===false);
+    const state=await page.evaluate(()=>({
+      saved:JSON.parse(sessionStorage.getItem('qa_diary_upsert')||'null'),
+      upsertCount:Number(sessionStorage.getItem('qa_diary_upsert_count')||'0'),
+      disabled:document.getElementById('saveDiary')?.disabled||false,
+      buttonText:document.getElementById('saveDiary')?.textContent||'',
+      alert:sessionStorage.getItem('qa_last_alert')||''
+    }));
+    const p=state.saved?.payload;
+    if(!p||p.institution_id!=='school-1'||p.teacher_user_id!=='teacher-1'||p.class_name!=='5'||p.section_name!=='A'||p.subject!=='Mathematics'||p.topic!=='Fractions'||state.upsertCount!==1||state.disabled){
+      fail('teacher diary','Teacher diary save payload or duplicate-submit recovery failed',JSON.stringify(state));
+    }
+  }catch(error){fail('teacher diary','Teacher diary interaction failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+async function studentSubmission(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      document.getElementById('mount').innerHTML='<div id="schoolWorkApp"></div>';
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'student',identity:'student@example.test'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([{id:1,name:'QA Student',className:'5',sectionName:'A'}]));
+      // Student homework must be scoped to this enrolled student; absence of
+      // role scope intentionally fails closed in production.
+      window.EDUNIZAM_ROLE_SCOPE={getVisibleStudents:list=>list.filter(s=>String(s.id)==='1')};
+      localStorage.setItem('edunizam_school_work_v1',JSON.stringify({
+        announcements:[],
+        homework:[{id:'hw-1',className:'5',sectionName:'A',subject:'Science',title:'Plants Project',details:'Write notes',dueDate:'2099-12-31',assignmentType:'homework',maxMarks:20,allowSubmission:true,allowLateSubmission:true,createdBy:'teacher@example.test',createdRole:'teacher',createdAt:new Date().toISOString()}],
+        submissions:[],
+        timetable:[]
+      }));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:false,institutionId:''};
+      window.EDUNIZAM_CLOUD={state:{client:null,user:null}};
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/school-work.js'});
+    await page.waitForSelector('[data-sw-tab="homework"]',{state:'visible'});
+    await page.locator('[data-sw-tab="homework"]').tap();
+    await page.waitForSelector('[data-sw-submit="hw-1"]',{state:'visible'});
+    await page.locator('[data-sw-submit-text="hw-1"]').fill('My project answer');
+    await page.locator('[data-sw-submit="hw-1"]').tap();
+    await page.waitForFunction(()=>{
+      try{return (JSON.parse(localStorage.getItem('edunizam_school_work_v1')||'{}').submissions||[]).length>0}catch(_){return false}
+    });
+    const state=await page.evaluate(()=>{
+      const d=JSON.parse(localStorage.getItem('edunizam_school_work_v1')||'{}');
+      return {row:d.submissions?.[0]||null,alert:sessionStorage.getItem('qa_last_alert')||''};
+    });
+    if(!state.row||String(state.row.homeworkId)!=='hw-1'||String(state.row.studentId)!=='1'||state.row.status!=='submitted'||state.row.text!=='My project answer'){
+      fail('student homework','Student assignment submission did not persist correctly',JSON.stringify(state));
+    }
+  }catch(error){fail('student homework','Student assignment interaction failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+async function parentPrivateComplaint(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      document.getElementById('mount').innerHTML='<div id="parentComplaintApp"></div>';
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'parent',identity:'parent@example.test',institutionId:'school-1',source:'supabase'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([{id:1,name:'QA Child',className:'5',sectionName:'A'}]));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1',complaintStorageBucket:'parent-complaints'};
+      const user={id:'parent-1',email:'parent@example.test'};
+      const makeQuery=()=> {
+        const q={
+          select(){return q},eq(){return q},in(){return q},order(){return q},insert(){return q},
+          single(){return Promise.resolve({data:{id:'row-1'},error:null})},
+          maybeSingle(){return Promise.resolve({data:null,error:null})},
+          then(resolve,reject){return Promise.resolve({data:[],error:null}).then(resolve,reject)}
+        };
+        return q;
+      };
+      const client={
+        rpc:(name,args={})=>{
+          if(name==='list_parent_teacher_directory_v1')return Promise.resolve({data:[],error:null});
+          if(name==='create_parent_admin_complaint_v1'){
+            const count=Number(sessionStorage.getItem('qa_parent_admin_rpc_count')||'0')+1;
+            sessionStorage.setItem('qa_parent_admin_rpc_count',String(count));
+            sessionStorage.setItem('qa_parent_admin_rpc',JSON.stringify(args));
+            return new Promise(resolve=>setTimeout(()=>resolve({data:{id:'pa-1'},error:null}),250));
+          }
+          return Promise.resolve({data:null,error:null});
+        },
+        from:()=>makeQuery(),
+        storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),upload:()=>Promise.resolve({error:null}),remove:()=>Promise.resolve({error:null})})}
+      };
+      window.EDUNIZAM_CLOUD={state:{client,user,initialized:true}};
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/parent-complaint-center.js'});
+    await page.waitForSelector('#paSend',{state:'visible'});
+    await page.locator('#paSubject').fill('Transport concern');
+    await page.locator('#paMessage').fill('Please review the pickup timing.');
+    await page.locator('#paSend').tap();
+    await page.waitForFunction(()=>document.getElementById('paSend')?.disabled===true);
+    await page.evaluate(()=>document.getElementById('paSend')?.click());
+    await page.waitForFunction(()=>!!sessionStorage.getItem('qa_parent_admin_rpc'));
+    await page.waitForFunction(()=>document.getElementById('paSend')&&!document.getElementById('paSend').disabled);
+    const state=await page.evaluate(()=>({
+      rpc:JSON.parse(sessionStorage.getItem('qa_parent_admin_rpc')||'null'),
+      rpcCount:Number(sessionStorage.getItem('qa_parent_admin_rpc_count')||'0'),
+      disabled:document.getElementById('paSend')?.disabled||false,
+      alert:sessionStorage.getItem('qa_last_alert')||''
+    }));
+    if(state.rpc?.p_institution_id!=='school-1'||state.rpc?.p_subject!=='Transport concern'||state.rpc?.p_message!=='Please review the pickup timing.'||state.rpcCount!==1||state.disabled){
+      fail('parent complaint','Parent private complaint duplicate-submit guard or control recovery failed',JSON.stringify(state));
+    }
+  }catch(error){fail('parent complaint','Parent private complaint interaction failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+
+async function helpdeskDuplicateSubmitBlocked(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      document.getElementById('mount').innerHTML='<div id="helpdeskCenterApp"></div>';
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'parent',identity:'parent@example.test',institutionId:'school-1',source:'supabase'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([]));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
+      const user={id:'parent-1',email:'parent@example.test'};
+      const makeQuery=()=>{
+        const q={
+          select(){return q},eq(){return q},in(){return q},order(){return q},
+          maybeSingle(){return Promise.resolve({data:null,error:null})},
+          then(resolve,reject){return Promise.resolve({data:[],error:null}).then(resolve,reject)}
+        };
+        return q;
+      };
+      const client={
+        rpc:(name,args={})=>{
+          if(name==='create_helpdesk_ticket'){
+            const count=Number(sessionStorage.getItem('qa_helpdesk_rpc_count')||'0')+1;
+            sessionStorage.setItem('qa_helpdesk_rpc_count',String(count));
+            sessionStorage.setItem('qa_helpdesk_rpc_args',JSON.stringify(args));
+            return new Promise(resolve=>setTimeout(()=>resolve({data:{id:'hd-1'},error:null}),250));
+          }
+          return Promise.resolve({data:null,error:null});
+        },
+        from:()=>makeQuery(),
+        storage:{from:()=>({createSignedUrl:()=>Promise.resolve({data:{signedUrl:''},error:null}),upload:()=>Promise.resolve({error:null}),remove:()=>Promise.resolve({error:null})})}
+      };
+      window.EDUNIZAM_CLOUD={state:{client,user,initialized:true}};
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/helpdesk-center.js'});
+    await page.waitForSelector('#hdSubmit',{state:'visible'});
+    await page.locator('#hdSubject').fill('QA helpdesk issue');
+    await page.locator('#hdDescription').fill('QA verifies duplicate submit protection.');
+    await page.locator('#hdSubmit').tap();
+    await page.waitForFunction(()=>document.getElementById('hdSubmit')?.disabled===true);
+    await page.evaluate(()=>document.getElementById('hdSubmit')?.click());
+    await page.waitForFunction(()=>Number(sessionStorage.getItem('qa_helpdesk_rpc_count')||'0')===1);
+    await page.waitForFunction(()=>document.getElementById('hdSubmit')&&!document.getElementById('hdSubmit').disabled);
+    const state=await page.evaluate(()=>({
+      count:Number(sessionStorage.getItem('qa_helpdesk_rpc_count')||'0'),
+      args:JSON.parse(sessionStorage.getItem('qa_helpdesk_rpc_args')||'null'),
+      disabled:document.getElementById('hdSubmit')?.disabled||false
+    }));
+    if(state.count!==1||state.disabled||state.args?.p_institution_id!=='school-1'||state.args?.p_subject!=='QA helpdesk issue'){
+      fail('helpdesk duplicate submit','Helpdesk duplicate-submit guard failed',JSON.stringify(state));
+    }
+  }catch(error){fail('helpdesk duplicate submit','Helpdesk duplicate-submit browser test failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+
+async function feeCloudFailureDoesNotPersist(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      document.getElementById('mount').innerHTML='<section id="fees"></section>';
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'head',identity:'admin@example.test'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([{id:1,name:'QA Student',className:'5',studentId:'STU-QA'}]));
+      localStorage.setItem('edunizam_class_fees',JSON.stringify({'5':1000}));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:false,institutionId:''};
+      window.EDUNIZAM_CLOUD={state:{client:null,user:null}};
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/fee-center.js'});
+    await page.waitForSelector('#fcGenerate',{state:'visible'});
+    await page.locator('#fcStudent').selectOption('1');
+    await page.locator('#fcBase').fill('1000');
+    await page.locator('#fcMonth').fill('2026-10');
+    await page.locator('#fcDue').fill('2026-10-15');
+    await page.evaluate(()=>{
+      const makeQuery=table=>{
+        const q={
+          select(){return q},eq(){return q},not(){return q},order(){return q},insert(){return q},
+          maybeSingle(){
+            if(table==='core_students')return Promise.resolve({data:{id:'student-cloud-1',local_id:1,name:'QA Student',class_name:'5',student_code:'STU-QA',auth_user_id:'student-user-1'},error:null});
+            return Promise.resolve({data:null,error:null});
+          },
+          single(){
+            if(table==='fee_records')return Promise.resolve({data:null,error:{message:'QA fee cloud failure'}});
+            return Promise.resolve({data:null,error:null});
+          },
+          then(resolve,reject){return Promise.resolve({data:[],error:null}).then(resolve,reject)}
+        };
+        return q;
+      };
+      const client={from:table=>makeQuery(table),rpc:()=>Promise.resolve({data:null,error:null})};
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
+      window.EDUNIZAM_CLOUD={state:{client,user:{id:'head-1'}}};
+    });
+    await page.locator('#fcGenerate').tap();
+    await page.waitForFunction(()=>(sessionStorage.getItem('qa_last_alert')||'').includes('Nothing was saved locally'));
+    const state=await page.evaluate(()=>({
+      rows:JSON.parse(localStorage.getItem('edunizam_fee_challans_v1')||'[]'),
+      disabled:document.getElementById('fcGenerate')?.disabled||false,
+      alert:sessionStorage.getItem('qa_last_alert')||''
+    }));
+    if(state.rows.length!==0||state.disabled||!state.alert.includes('QA fee cloud failure')){
+      fail('fee cloud failure','Failed cloud challan was incorrectly persisted locally or control stayed disabled',JSON.stringify(state));
+    }
+  }catch(error){fail('fee cloud failure','Cloud-authoritative fee challan test failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+
+async function resultCloudFailureDoesNotPersist(){
+  const {context,page}=await newPage();
+  try{
+    await context.addInitScript(()=>{
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'head',identity:'admin@example.test'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([{id:1,name:'QA Student',className:'5',studentId:'STU-QA'}]));
+      localStorage.setItem('edunizam_results','[]');
+    });
+    const emptyJs=route=>route.fulfill({status:200,contentType:'text/javascript',body:''});
+    await page.route('**/cloud-setup.js*',emptyJs);
+    await page.route('**/admissions-cloud.js*',emptyJs);
+    await page.route('**/auth-bridge.js*',emptyJs);
+    await page.route('**/account-security.js*',emptyJs);
+    await page.route('**/core-cloud.js*',route=>route.fulfill({
+      status:200,
+      contentType:'text/javascript',
+      body:"window.EDUNIZAM_CORE_CLOUD={ready:()=>true,saveResultRecord:()=>Promise.reject(new Error('QA result cloud failure'))};"
+    }));
+    await page.goto('http://127.0.0.1:'+port+'/app.html',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#saveResultBtn',{state:'attached'});
+    await page.waitForFunction(()=>document.querySelector('#resultStudent')?.options?.length>1);
+    await page.evaluate(()=>{
+      document.getElementById('resultStudent').value='1';
+      document.getElementById('resultSubject').value='Mathematics';
+      document.getElementById('resultMarks').value='80';
+      document.getElementById('resultTotal').value='100';
+      document.getElementById('resultExamType').value='Monthly Test';
+      document.getElementById('saveResultBtn').click();
+    });
+    await page.waitForFunction(()=>(sessionStorage.getItem('qa_last_alert')||'').includes('Nothing was saved locally'));
+    const state=await page.evaluate(()=>({
+      rows:JSON.parse(localStorage.getItem('edunizam_results')||'[]'),
+      disabled:document.getElementById('saveResultBtn')?.disabled||false,
+      alert:sessionStorage.getItem('qa_last_alert')||''
+    }));
+    if(state.rows.length!==0||state.disabled||!state.alert.includes('QA result cloud failure')){
+      fail('result cloud failure','Failed cloud result was incorrectly persisted locally or control stayed disabled',JSON.stringify(state));
+    }
+  }catch(error){fail('result cloud failure','Cloud-authoritative result browser test failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+async function cloudMeetingFailureDoesNotPersist(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'teacher',identity:'teacher@example.test'}));
+      localStorage.setItem('edunizam_students',JSON.stringify([{id:1,name:'QA Student',className:'5',authUserId:'student-1'}]));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
+      window.EDUNIZAM_ROLE_SCOPE={getVisibleStudents:list=>list};
+      window.EDUNIZAM_COMMUNICATION_CLOUD={
+        ready:()=>true,
+        create:()=>Promise.reject(new Error('QA cloud failure')),
+        list:()=>Promise.resolve([]),
+        map:x=>x,
+        updateStatus:()=>Promise.resolve(null),
+        remove:()=>Promise.resolve(true)
+      };
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/communication-center.js'});
+    await page.waitForSelector('#saveMeeting',{state:'visible'});
+    await page.locator('#meetPerson').selectOption('1');
+    await page.locator('#meetTitle').fill('QA Cloud Failure Meeting');
+    await page.locator('#meetDate').fill('2026-10-10');
+    await page.locator('#meetTime').fill('10:00');
+    await page.locator('#saveMeeting').tap();
+    await page.waitForFunction(()=>(sessionStorage.getItem('qa_last_alert')||'').includes('Meeting save failed'));
+    const state=await page.evaluate(()=>({
+      rows:JSON.parse(localStorage.getItem('edunizam_meetings')||'[]'),
+      disabled:document.getElementById('saveMeeting')?.disabled||false,
+      alert:sessionStorage.getItem('qa_last_alert')||''
+    }));
+    if(state.rows.length!==0||state.disabled||!state.alert.includes('QA cloud failure')){
+      fail('cloud meeting failure','Failed cloud meeting was incorrectly persisted or control stayed disabled',JSON.stringify(state));
+    }
+  }catch(error){fail('cloud meeting failure','Cloud-authoritative meeting failure test failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+async function parentCloudMeetingVisible(){
+  const {context,page}=await newPage();
+  try{
+    await page.goto('http://127.0.0.1:'+port+'/role-harness',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>{
+      localStorage.clear();sessionStorage.clear();
+      localStorage.setItem('edunizam_session',JSON.stringify({role:'parent',identity:'parent@example.test'}));
+      window.EDUNIZAM_CLOUD_CONFIG={enabled:true,institutionId:'school-1'};
+      window.EDUNIZAM_COMMUNICATION_CLOUD={
+        ready:()=>true,
+        list:()=>Promise.resolve([{
+          id:'00000000-0000-4000-8000-000000000777',
+          institution_id:'school-1',
+          created_by_role:'head_of_institute',
+          participant_role:'parent',
+          participant_user_id:'parent-1',
+          student_user_id:'student-1',
+          title:'Parent QA Meeting',
+          scheduled_for:'2026-10-10T10:00:00+05:00',
+          meet_url:'',
+          status:'scheduled'
+        }]),
+        map:row=>({
+          id:row.id,institutionId:row.institution_id,kind:'head-parent',
+          personId:row.student_user_id||row.participant_user_id||'',
+          personName:'Parent / Guardian',participantRole:'parent',viewerRole:'parent',
+          title:row.title,date:'2026-10-10',time:'10:00',url:'',status:'Scheduled',
+          createdByRole:'head',source:'cloud'
+        }),
+        create:()=>Promise.resolve(null),
+        updateStatus:()=>Promise.resolve(null),
+        remove:()=>Promise.resolve(true)
+      };
+    });
+    await page.addScriptTag({url:'http://127.0.0.1:'+port+'/communication-center.js'});
+    await page.waitForFunction(()=>document.body.textContent.includes('Parent QA Meeting'));
+    const state=await page.evaluate(()=>({
+      text:document.getElementById('meetingList')?.textContent||'',
+      rows:JSON.parse(localStorage.getItem('edunizam_meetings')||'[]')
+    }));
+    if(!state.text.includes('Parent QA Meeting')||state.rows.length!==1||state.rows[0]?.institutionId!=='school-1'){
+      fail('parent cloud meeting','RLS-approved Parent cloud meeting was not rendered from cloud snapshot',JSON.stringify(state));
+    }
+  }catch(error){fail('parent cloud meeting','Parent cloud meeting visibility test failed',error?.message||String(error))}
+  finally{await context.close()}
+}
+
+try{
+  await teacherLeave();
+  await teacherDiary();
+  await studentSubmission();
+  await parentPrivateComplaint();
+  await helpdeskDuplicateSubmitBlocked();
+  await feeCloudFailureDoesNotPersist();
+  await resultCloudFailureDoesNotPersist();
+  await cloudMeetingFailureDoesNotPersist();
+  await parentCloudMeetingVisible();
+}finally{
+  await browser.close().catch(()=>{});
+  server.closeAllConnections?.();
+  await new Promise(resolve=>server.close(()=>resolve()));
+}
+
+if(failures.length){
+  console.error('EduNizam role workflow QA FAILED');
+  for(const f of failures)console.error('FAIL',f.scope,'-',f.message,f.detail||'');
+  process.exit(1);
+}
+console.log('EduNizam role workflow QA passed: Teacher leave, Teacher diary, Student assignment, Parent private complaint, helpdesk duplicate guard, cloud-authoritative fees, results and meetings.');

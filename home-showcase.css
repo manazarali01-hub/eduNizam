@@ -1,0 +1,748 @@
+/* EduNizam homepage bold visual identity · 2026-10-06
+   Loaded after the canonical visual system so homepage-specific presentation wins. */
+
+.page-home .public-hero.premium-public-hero{
+  border:2px solid #b9dcec!important;
+  background:
+    radial-gradient(circle at 84% 12%,rgba(255,194,76,.28),transparent 19rem),
+    radial-gradient(circle at 12% 10%,rgba(91,184,246,.34),transparent 22rem),
+    linear-gradient(135deg,#eaf7ff 0%,#f7fbff 48%,#fff0c8 100%)!important;
+  box-shadow:0 34px 84px rgba(27,81,121,.18)!important;
+}
+.page-home .hero-image-wrap{
+  border:7px solid #ffffff!important;
+  box-shadow:0 26px 66px rgba(17,67,104,.24)!important;
+}
+.page-home .hero-image-wrap:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  box-shadow:inset 0 0 0 3px rgba(214,169,77,.26);
+  border-radius:inherit;
+}
+.page-home .hero-image-wrap img{
+  object-position:center 38%!important;
+  transform:scale(1.14)!important;
+  transform-origin:center 38%!important;
+}
+.page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.16)!important}
+.page-home .quick-access-card{
+  border:1px solid #c5dcec!important;
+  box-shadow:0 22px 55px rgba(12,54,85,.30)!important;
+}
+
+.page-home .experience-strip{
+  gap:10px!important;
+  padding:13px!important;
+  border:2px solid #bedbec!important;
+  border-radius:24px!important;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(91,184,246,.22),transparent 18rem),
+    linear-gradient(135deg,#eaf7ff 0%,#f8fbff 52%,#fff0c8 100%)!important;
+  box-shadow:0 22px 54px rgba(24,82,124,.14)!important;
+}
+.page-home .experience-strip article{
+  border:1px solid rgba(166,198,219,.95)!important;
+  border-radius:18px!important;
+  box-shadow:0 9px 23px rgba(31,83,121,.09)!important;
+}
+.page-home .experience-strip article:nth-child(1){background:linear-gradient(145deg,#dff1ff,#f8fcff)!important}
+.page-home .experience-strip article:nth-child(2){background:linear-gradient(145deg,#dff5e8,#fbfffd)!important}
+.page-home .experience-strip article:nth-child(3){background:linear-gradient(145deg,#ffe8ad,#fffaf0)!important}
+.page-home .experience-strip article:nth-child(4){background:linear-gradient(145deg,#e8ddff,#fbf9ff)!important}
+.page-home .experience-strip article:nth-child(5){background:linear-gradient(145deg,#ffdcd3,#fff9f6)!important}
+.page-home .experience-strip article:nth-child(6){background:linear-gradient(145deg,#d9f3f1,#faffff)!important}
+.page-home .experience-strip article:nth-child(1) .feature-icon{background:#d2ecff!important}
+.page-home .experience-strip article:nth-child(2) .feature-icon{background:#d4f0df!important}
+.page-home .experience-strip article:nth-child(3) .feature-icon{background:#ffe39d!important}
+.page-home .experience-strip article:nth-child(4) .feature-icon{background:#e2d5ff!important}
+.page-home .experience-strip article:nth-child(5) .feature-icon{background:#ffd3c9!important}
+.page-home .experience-strip article:nth-child(6) .feature-icon{background:#cef0ed!important}
+
+.page-home .role-showcase{
+  position:relative;
+  overflow:hidden;
+  padding:42px!important;
+  border:2px solid #9fd2c4!important;
+  border-radius:32px!important;
+  background:
+    radial-gradient(circle at 88% 6%,rgba(46,155,127,.25),transparent 22rem),
+    radial-gradient(circle at 5% 92%,rgba(91,184,246,.22),transparent 19rem),
+    linear-gradient(135deg,#dff5eb 0%,#eaf8f6 50%,#eef8ff 100%)!important;
+  box-shadow:0 25px 64px rgba(25,87,101,.15)!important;
+}
+.page-home .role-showcase:before{
+  content:"ROLE EXPERIENCES";
+  position:absolute;
+  top:16px;
+  right:20px;
+  color:#237b70;
+  font-size:.62rem;
+  font-weight:900;
+  letter-spacing:.16em;
+  opacity:.58;
+}
+.page-home .role-showcase .eyebrow{color:#176f64!important}
+.page-home .role-showcase .role-demo{
+  border:1px solid #b7dcd5!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 18px 42px rgba(28,91,102,.12)!important;
+}
+.page-home .role-showcase .role-tab:not(.is-active){background:#f1faf7!important}
+
+.page-home .value-section{
+  position:relative;
+  overflow:hidden;
+  padding:42px!important;
+  border:2px solid #e3bf75!important;
+  border-radius:32px!important;
+  background:
+    radial-gradient(circle at 92% 8%,rgba(214,169,77,.28),transparent 21rem),
+    radial-gradient(circle at 4% 92%,rgba(255,155,95,.15),transparent 18rem),
+    linear-gradient(135deg,#fff2d5 0%,#fff7e9 54%,#fffdf7 100%)!important;
+  box-shadow:0 25px 64px rgba(112,82,35,.14)!important;
+}
+.page-home .value-section:before{
+  content:"SMARTER WORKFLOWS";
+  position:absolute;
+  top:16px;
+  right:20px;
+  color:#96641d;
+  font-size:.62rem;
+  font-weight:900;
+  letter-spacing:.16em;
+  opacity:.58;
+}
+.page-home .value-section .eyebrow{color:#8f5e13!important}
+.page-home .value-section .public-card{
+  box-shadow:0 14px 32px rgba(84,65,38,.10)!important;
+}
+.page-home .value-section .public-card:nth-child(1){
+  border-color:#a9d4eb!important;
+  background:linear-gradient(155deg,#dff2ff 0%,#ffffff 84%)!important;
+}
+.page-home .value-section .public-card:nth-child(2){
+  border-color:#a9dabc!important;
+  background:linear-gradient(155deg,#def5e6 0%,#ffffff 84%)!important;
+}
+.page-home .value-section .public-card:nth-child(3){
+  border-color:#dfbc70!important;
+  background:linear-gradient(155deg,#ffe7aa 0%,#ffffff 84%)!important;
+}
+.page-home .value-section .public-card:nth-child(1):before{background:linear-gradient(90deg,#2f80ed,#78c6f4)!important}
+.page-home .value-section .public-card:nth-child(2):before{background:linear-gradient(90deg,#2e9b7f,#74cbb2)!important}
+.page-home .value-section .public-card:nth-child(3):before{background:linear-gradient(90deg,#d6a94d,#efc978)!important}
+
+.page-home .learning-band{
+  border:2px solid #6b78ce!important;
+  background:
+    radial-gradient(circle at 86% 8%,rgba(139,213,255,.28),transparent 18rem),
+    radial-gradient(circle at 14% 92%,rgba(151,125,255,.30),transparent 21rem),
+    linear-gradient(135deg,#082b4e 0%,#234f94 44%,#5d67ca 118%)!important;
+  box-shadow:0 30px 76px rgba(31,65,128,.30)!important;
+}
+.page-home .learning-band .resource-card{
+  border-width:2px!important;
+  box-shadow:0 18px 42px rgba(7,40,65,.24)!important;
+}
+.page-home .resource-card.r1{background:linear-gradient(145deg,#ddecff,#ffffff)!important}
+.page-home .resource-card.r2{background:linear-gradient(145deg,#e9e2ff,#ffffff)!important}
+.page-home .resource-card.r3{background:linear-gradient(145deg,#dff4e7,#ffffff)!important}
+
+.page-home .public-disclaimer .public-note{
+  border:2px solid #d7b45f!important;
+  border-left:8px solid #c58d22!important;
+  background:linear-gradient(135deg,#ffe9ae,#fff8e8)!important;
+  color:#654f2e!important;
+  box-shadow:0 14px 34px rgba(122,89,37,.11)!important;
+}
+.page-home .public-footer{
+  background:
+    radial-gradient(circle at 12% 0%,rgba(91,184,246,.16),transparent 17rem),
+    linear-gradient(135deg,#081f33,#123d61 58%,#1b537d)!important;
+}
+
+@media(max-width:900px){
+  .page-home .hero-image-wrap img{transform:scale(1.11)!important}
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.12)!important}
+}
+@media(max-width:680px){
+  .page-home .role-showcase,
+  .page-home .value-section{padding:28px 18px!important;border-radius:25px!important}
+  .page-home .role-showcase:before,
+  .page-home .value-section:before{display:none}
+  .page-home .experience-strip{gap:7px!important;padding:9px!important}
+  .page-home .hero-image-wrap img{transform:scale(1.09)!important}
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.10)!important}
+}
+@media(max-width:360px){
+  .page-home .role-showcase,
+  .page-home .value-section{padding:22px 13px!important;border-radius:21px!important}
+}
+
+/* ===== Appearance Depth Pass · Phase I · 2026-10-07 ===== */
+/* Homepage depth, hierarchy and mobile composition refinement. */
+.page-home .premium-public-hero{
+  column-gap:clamp(34px,4.6vw,70px)!important;
+}
+.page-home .hero-copy{
+  align-self:center;
+}
+.page-home .hero-copy .public-kicker{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:8px 12px!important;
+  border:1px solid #b9d8e9!important;
+  border-radius:999px!important;
+  color:#155f73!important;
+  background:rgba(241,250,253,.90)!important;
+  box-shadow:0 8px 22px rgba(23,86,119,.07)!important;
+}
+.page-home .hero-actions{
+  margin-top:24px!important;
+  gap:12px!important;
+}
+.page-home .hero-actions .public-cta{
+  min-height:54px!important;
+  padding-inline:22px!important;
+  font-weight:850!important;
+}
+.page-home .public-proof{
+  margin-top:20px!important;
+  gap:10px!important;
+}
+.page-home .public-proof span{
+  min-height:37px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  padding:8px 11px!important;
+  border:1px solid #d0e2ec!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.86)!important;
+  color:#41647b!important;
+  font-weight:760!important;
+}
+.page-home .hero-image-wrap{
+  min-height:540px!important;
+}
+.page-home .portrait-caption{
+  border:1px solid rgba(255,255,255,.20)!important;
+  background:linear-gradient(180deg,rgba(7,40,65,.16),rgba(7,40,65,.82))!important;
+  backdrop-filter:blur(4px);
+}
+.page-home .quick-access-card{
+  border-top:5px solid #2b8cc4!important;
+}
+.page-home .quick-card-top strong{color:#123b58!important}
+.page-home .quick-card-top small{color:#657e91!important}
+
+/* Make role selection read as four distinct destinations while retaining one system. */
+.page-home .role-selector{
+  padding:7px!important;
+  border:1px solid #c8e1dc!important;
+  border-radius:18px!important;
+  background:#f7fcfa!important;
+}
+.page-home .role-tab{
+  min-height:48px!important;
+  border:1px solid transparent!important;
+  border-radius:13px!important;
+  font-weight:850!important;
+}
+.page-home .role-tab[data-role="admin"]{color:#1769aa!important}
+.page-home .role-tab[data-role="teacher"]{color:#19745f!important}
+.page-home .role-tab[data-role="student"]{color:#5d61ae!important}
+.page-home .role-tab[data-role="parent"]{color:#96641d!important}
+.page-home .role-tab.is-active[data-role="admin"]{color:#fff!important;background:linear-gradient(135deg,#1769aa,#3c91d1)!important}
+.page-home .role-tab.is-active[data-role="teacher"]{color:#fff!important;background:linear-gradient(135deg,#19745f,#36a486)!important}
+.page-home .role-tab.is-active[data-role="student"]{color:#fff!important;background:linear-gradient(135deg,#5d61ae,#867bd1)!important}
+.page-home .role-tab.is-active[data-role="parent"]{color:#fff!important;background:linear-gradient(135deg,#96641d,#c99742)!important}
+.page-home .preview-window{
+  border:1px solid #c8dfe8!important;
+  border-radius:22px!important;
+  box-shadow:0 20px 48px rgba(19,77,105,.13)!important;
+  overflow:hidden!important;
+}
+.page-home .preview-topbar{
+  background:linear-gradient(90deg,#0e3454,#185f83)!important;
+  color:#fff!important;
+}
+.page-home .preview-brand strong,.page-home .preview-role{color:#fff!important}
+.page-home .preview-content{
+  background:
+    radial-gradient(circle at 92% 8%,rgba(91,184,246,.13),transparent 18rem),
+    linear-gradient(145deg,#f7fbfe,#eef7fb)!important;
+}
+.page-home .preview-cards span:nth-child(4n+1){background:#e3f3ff!important;border-color:#b8d8eb!important}
+.page-home .preview-cards span:nth-child(4n+2){background:#e4f6ec!important;border-color:#badfc9!important}
+.page-home .preview-cards span:nth-child(4n+3){background:#fff1d2!important;border-color:#ead28f!important}
+.page-home .preview-cards span:nth-child(4n){background:#eee9ff!important;border-color:#cec3ed!important}
+
+/* Add depth and a visible hierarchy inside the value cards. */
+.page-home .value-section .public-card{
+  position:relative!important;
+  overflow:hidden!important;
+  min-height:255px!important;
+  padding-top:34px!important;
+}
+.page-home .value-section .public-card:after{
+  content:"";
+  position:absolute;
+  width:120px;height:120px;right:-46px;bottom:-54px;border-radius:50%;
+  background:rgba(255,255,255,.58);
+  pointer-events:none;
+}
+.page-home .value-section .card-index{
+  width:40px!important;height:40px!important;
+  display:grid!important;place-items:center!important;
+  border-radius:13px!important;
+  color:#123b58!important;
+  background:rgba(255,255,255,.82)!important;
+  border:1px solid rgba(157,190,210,.64)!important;
+  box-shadow:0 7px 18px rgba(31,79,109,.08)!important;
+}
+.page-home .value-section .public-card h3{
+  font-size:23px!important;
+  margin-top:17px!important;
+}
+.page-home .value-section .public-card a{
+  margin-top:auto!important;
+  font-weight:850!important;
+}
+
+/* Learning band gets card-level colour identity and clearer readability. */
+.page-home .learning-band{
+  padding:clamp(34px,4.5vw,58px)!important;
+}
+.page-home .learning-copy p{max-width:62ch!important}
+.page-home .learning-visual{gap:13px!important}
+.page-home .learning-band .resource-card{
+  min-height:138px!important;
+  padding:18px!important;
+  border-radius:18px!important;
+}
+.page-home .learning-band .resource-card small{
+  color:#536c80!important;
+  font-weight:900!important;
+}
+.page-home .learning-band .resource-card strong{
+  color:#11344f!important;
+  font-size:18px!important;
+}
+.page-home .learning-band .resource-card span{color:#657f92!important}
+
+/* Stronger section rhythm — enough separation to read each block as intentional. */
+.page-home .role-showcase,
+.page-home .value-section,
+.page-home .learning-band{
+  margin-top:26px!important;
+}
+.page-home .section-heading h2{letter-spacing:-.035em!important}
+.page-home .section-heading p{max-width:62ch!important}
+
+@media(max-width:900px){
+  .page-home .hero-image-wrap{min-height:450px!important}
+  .page-home .value-section .public-card{min-height:225px!important}
+}
+@media(max-width:680px){
+  .page-home .hero-image-wrap{min-height:315px!important}
+  .page-home .hero-actions{display:grid!important;grid-template-columns:1fr!important}
+  .page-home .hero-actions .public-cta,
+  .page-home .hero-actions .hero-text-link{width:100%!important;justify-content:center!important;text-align:center!important}
+  .page-home .public-proof{display:grid!important;grid-template-columns:1fr!important}
+  .page-home .public-proof span{justify-content:center!important;text-align:center!important}
+  .page-home .role-selector{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .page-home .role-tab{width:100%!important}
+  .page-home .preview-sidebar{display:none!important}
+  .page-home .preview-body{grid-template-columns:1fr!important}
+  .page-home .preview-cards{grid-template-columns:1fr!important}
+  .page-home .value-section .public-card{min-height:0!important}
+  .page-home .learning-band{padding:28px 18px!important}
+}
+@media(max-width:430px){
+  .page-home .hero-image-wrap{min-height:285px!important}
+  .page-home .role-selector{gap:7px!important}
+  .page-home .role-tab{min-height:45px!important;font-size:14.5px!important}
+  .page-home .learning-band{padding:24px 15px!important}
+}
+
+
+/* ===== Appearance Consistency Pass · Phase L · 2026-10-07 ===== */
+/* Last-mile homepage chrome, navigation, footer and interaction polish. */
+.page-home .public-nav{
+  position:sticky!important;
+  top:10px!important;
+  z-index:80!important;
+  border-color:#b9d9e9!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 16px 42px rgba(19,70,103,.12)!important;
+}
+.page-home .public-brand{
+  min-width:0!important;
+}
+.page-home .public-links a{
+  position:relative!important;
+  color:#345a73!important;
+  font-weight:800!important;
+  border:1px solid transparent!important;
+}
+.page-home .public-links a:hover{
+  color:#0f5f98!important;
+  border-color:#c9e0ec!important;
+  background:#f1f9fd!important;
+}
+.page-home .public-links .nav-primary{
+  color:#fff!important;
+  border-color:transparent!important;
+  background:linear-gradient(135deg,#1769aa,#21836e)!important;
+  box-shadow:0 8px 20px rgba(23,105,170,.17)!important;
+}
+.page-home .public-links .nav-primary:hover{
+  color:#fff!important;
+  background:linear-gradient(135deg,#125d98,#19745f)!important;
+}
+.page-home .section-heading .eyebrow{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:31px!important;
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  border:1px solid currentColor!important;
+  opacity:.88;
+  background:rgba(255,255,255,.62)!important;
+}
+.page-home .experience-strip article{
+  transition:transform .18s ease,box-shadow .22s ease,border-color .18s ease!important;
+}
+@media(hover:hover){
+  .page-home .experience-strip article:hover{
+    transform:translateY(-3px)!important;
+    box-shadow:0 15px 30px rgba(27,79,111,.13)!important;
+  }
+  .page-home .quick-actions a:hover,
+  .page-home .quick-actions button:hover{
+    transform:translateY(-2px)!important;
+  }
+}
+.page-home .quick-actions a,
+.page-home .quick-actions button{
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important;
+}
+.page-home .quick-actions a:not(.quick-main):hover,
+.page-home .quick-actions button:hover{
+  border-color:#a9d1e5!important;
+  box-shadow:0 10px 22px rgba(23,78,108,.09)!important;
+}
+.page-home .public-disclaimer{
+  padding-top:24px!important;
+}
+.page-home .public-disclaimer .public-note{
+  border-left-width:6px!important;
+  font-size:14.5px!important;
+  line-height:1.62!important;
+}
+.page-home .public-footer{
+  width:min(1420px,calc(100% - 44px))!important;
+  margin:28px auto 22px!important;
+  padding:24px 26px!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  border-radius:26px!important;
+  box-shadow:0 24px 58px rgba(8,38,62,.21)!important;
+}
+.page-home .public-footer>div strong{
+  color:#fff!important;
+  font-size:20px!important;
+}
+.page-home .public-footer>div span,
+.page-home .public-footer small{
+  color:#bfd7e5!important;
+}
+.page-home .public-footer nav{
+  display:flex!important;
+  gap:7px!important;
+  flex-wrap:wrap!important;
+}
+.page-home .public-footer nav a{
+  min-height:40px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  padding:8px 11px!important;
+  border-radius:10px!important;
+  color:#e7f4fa!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  background:rgba(255,255,255,.055)!important;
+}
+.page-home .public-footer nav a:hover{
+  color:#fff!important;
+  border-color:rgba(255,255,255,.18)!important;
+  background:rgba(255,255,255,.10)!important;
+}
+@media(max-width:720px){
+  .page-home .public-nav,
+  .page-home .public-nav.is-scrolled{
+    position:relative!important;
+    top:auto!important;
+  }
+  .page-home .public-footer{
+    width:calc(100% - 16px)!important;
+    padding:20px 16px!important;
+    border-radius:20px!important;
+  }
+  .page-home .public-footer nav{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .page-home .public-footer nav a{
+    justify-content:center!important;
+    text-align:center!important;
+  }
+}
+@media(max-width:430px){
+  .page-home .public-footer{width:calc(100% - 12px)!important}
+  .page-home .public-footer nav{grid-template-columns:1fr!important}
+}
+
+
+/* ===== Live Visual QA + Final Surface Correction · Phase O · 2026-10-07 ===== */
+/* Keep every public destination reachable on phones, strengthen the preferred
+   student-photo crop, and remove the last small-screen compression points. */
+
+/* Stronger hero crop without changing the selected student photograph. */
+.page-home .hero-image-wrap img{
+  transform:scale(1.18)!important;
+  transform-origin:center 38%!important;
+}
+@media(hover:hover){
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.20)!important}
+}
+
+/* Keep the full public navigation visible instead of silently hiding links. */
+@media(max-width:720px){
+  .page-home .public-links{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    overflow:visible!important;
+    padding:0!important;
+  }
+  .page-home .public-links a,
+  .page-home .public-links a:nth-child(n+3){
+    display:flex!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:44px!important;
+    padding:10px 9px!important;
+    justify-content:center!important;
+    text-align:center!important;
+    white-space:normal!important;
+    line-height:1.25!important;
+  }
+
+  /* Preserve the photo as a focal point, but avoid text/caption collisions. */
+  .page-home .hero-image-wrap{
+    min-height:330px!important;
+  }
+  .page-home .hero-image-wrap img{
+    transform:scale(1.14)!important;
+    object-position:center 38%!important;
+  }
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.14)!important}
+  .page-home .portrait-caption{
+    left:14px!important;
+    right:14px!important;
+    bottom:14px!important;
+    max-width:calc(100% - 28px)!important;
+    padding:14px 15px!important;
+    border-radius:15px!important;
+  }
+  .page-home .portrait-caption strong{
+    max-width:22ch!important;
+    line-height:1.24!important;
+  }
+
+  /* Make section transitions feel deliberate rather than compressed. */
+  .page-home .role-showcase,
+  .page-home .value-section,
+  .page-home .learning-band{
+    margin-top:18px!important;
+  }
+  .page-home .section-heading{
+    gap:12px!important;
+  }
+  .page-home .section-heading p{
+    margin-top:0!important;
+  }
+}
+
+@media(max-width:430px){
+  .page-home .public-links{gap:7px!important}
+  .page-home .public-links a,
+  .page-home .public-links a:nth-child(n+3){
+    min-height:42px!important;
+    padding:9px 7px!important;
+    font-size:13.5px!important;
+  }
+  .page-home .hero-image-wrap{min-height:295px!important}
+  .page-home .hero-image-wrap img{transform:scale(1.12)!important}
+  .page-home .public-hero:hover .hero-image-wrap img{transform:scale(1.12)!important}
+  .page-home .portrait-caption{padding:12px 13px!important}
+  .page-home .portrait-caption span{font-size:11.5px!important}
+  .page-home .portrait-caption strong{font-size:1.06rem!important}
+}
+
+@media(max-width:360px){
+  .page-home .public-links a,
+  .page-home .public-links a:nth-child(n+3){
+    font-size:13px!important;
+    padding-inline:6px!important;
+  }
+  .page-home .hero-image-wrap{min-height:276px!important}
+}
+
+
+/* ===== Homepage Performance-Safe Polish · Phase P · 2026-10-07 ===== */
+.page-home{background-attachment:scroll!important}
+@media(max-width:720px){
+  .page-home .public-nav,
+  .page-home .experience-strip,
+  .page-home .portrait-caption{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  .page-home .public-nav{background:rgba(255,255,255,.98)!important}
+  .page-home .experience-strip{background:rgba(255,255,255,.94)!important}
+  .page-home .portrait-caption{background:rgba(7,40,65,.78)!important}
+}
+@media(hover:none){
+  .page-home .experience-strip article:hover,
+  .page-home .quick-actions a:hover,
+  .page-home .quick-actions button:hover{
+    transform:none!important;
+  }
+}
+
+
+/* ===== Final Visual Defect Hunt · Phase T-U · 2026-10-07 =====
+   Reconcile the homepage's last-loaded showcase layer with the final luxury
+   composition so the rendered page, not just the canonical system, keeps the
+   intended spacing and typography. */
+.page-home .premium-public-hero{
+  padding:clamp(32px,4.8vw,64px)!important;
+}
+.page-home .hero-copy h1{
+  max-width:14.5ch!important;
+  line-height:.98!important;
+  letter-spacing:-.052em!important;
+}
+.page-home .hero-copy>p{
+  max-width:62ch!important;
+  font-size:clamp(1rem,1.3vw,1.13rem)!important;
+  line-height:1.72!important;
+}
+.page-home .experience-strip{
+  margin-top:clamp(28px,4vw,48px)!important;
+}
+.page-home .experience-strip article{
+  min-height:154px!important;
+  padding:clamp(17px,2vw,24px)!important;
+}
+.page-home .experience-strip article h3{
+  margin:12px 0 6px!important;
+  font-size:1rem!important;
+  line-height:1.25!important;
+}
+.page-home .experience-strip article p{
+  margin:0!important;
+  line-height:1.6!important;
+}
+.page-home .role-showcase,
+.page-home .value-section,
+.page-home .learning-band{
+  margin-top:clamp(34px,5vw,64px)!important;
+}
+.page-home .section-heading{
+  margin-bottom:clamp(20px,2.7vw,32px)!important;
+}
+.page-home .section-heading h2{
+  max-width:19ch!important;
+  font-size:clamp(1.95rem,4vw,3.05rem)!important;
+  line-height:1.05!important;
+  letter-spacing:-.035em!important;
+}
+.page-home .section-heading p{
+  max-width:67ch!important;
+  line-height:1.72!important;
+}
+.page-home :is(.role-showcase,.value-section) .public-card{
+  padding:clamp(20px,2.4vw,30px)!important;
+}
+.page-home .learning-band{
+  padding:clamp(28px,4.2vw,52px)!important;
+}
+.page-home .public-cta{
+  min-height:50px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1.25!important;
+}
+
+/* Defect guards for the hero visual/caption and the mobile public navigation. */
+.page-home .hero-visual,
+.page-home .hero-image-wrap,
+.page-home .quick-access-card{
+  min-width:0!important;
+}
+.page-home .portrait-caption{
+  max-width:min(420px,calc(100% - 30px))!important;
+}
+.page-home .portrait-caption :is(span,strong){
+  overflow-wrap:anywhere;
+}
+.page-home .quick-access-card{
+  width:min(430px,100%)!important;
+  max-width:100%!important;
+}
+.page-home .public-links a{
+  overflow-wrap:anywhere;
+}
+
+/* Prevent the final showcase stylesheet from re-compressing sections on phones. */
+@media(max-width:720px){
+  .page-home .premium-public-hero{padding:26px 18px!important}
+  .page-home .hero-copy h1{
+    max-width:17ch!important;
+    font-size:clamp(2.15rem,10vw,3.15rem)!important;
+  }
+  .page-home .hero-copy>p{font-size:1rem!important}
+  .page-home .experience-strip{margin-top:26px!important}
+  .page-home .experience-strip article{
+    min-height:auto!important;
+    padding:16px!important;
+  }
+  .page-home .role-showcase,
+  .page-home .value-section,
+  .page-home .learning-band{
+    margin-top:32px!important;
+  }
+  .page-home .section-heading{
+    margin-bottom:18px!important;
+  }
+  .page-home .section-heading h2{
+    font-size:clamp(1.75rem,8vw,2.45rem)!important;
+  }
+  .page-home .learning-band{padding:24px 18px!important}
+  .page-home .quick-access-card{width:100%!important}
+}
+@media(max-width:430px){
+  .page-home .role-showcase,
+  .page-home .value-section,
+  .page-home .learning-band{
+    margin-top:28px!important;
+  }
+  .page-home .portrait-caption{
+    max-width:calc(100% - 28px)!important;
+  }
+}
