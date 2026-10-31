@@ -27,33 +27,28 @@
         group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
     };
-    // Explicitly control mobile disclosure activation. Some app-shell click
-    // handlers and touch automation can prevent the native <summary> default
-    // action; toggle the details state ourselves before those handlers run.
-    // The handler is delegated so it survives auth/workspace nav replacement.
-    if(!window.__EDUNIZAM_MOBILE_ACCORDION_CLICK_BOUND__){
-      window.__EDUNIZAM_MOBILE_ACCORDION_CLICK_BOUND__=true;
-      window.addEventListener('click',event=>{
-        if(window.innerWidth>950)return;
-        const liveNav=document.getElementById('nav');
-        // Resolve the nearest summary first, then validate its live parent.
-        // A compound :scope-style selector in closest() can fail in some
-        // embedded/mobile browser engines even when the summary is in #nav.
-        const summary=event.target?.closest?.('summary');
-        const selected=summary?.parentElement;
-        if(!liveNav||!selected?.matches?.('details.nav-group')||selected.parentElement!==liveNav)return;
-        const shouldOpen=!selected.open;
-        event.preventDefault();
-        liveNav.querySelectorAll(':scope > details.nav-group').forEach(group=>{
-          group.open=group===selected&&shouldOpen;
-          group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
+    // Bind disclosure activation directly to each live summary. A global
+    // capture handler can miss touch/forced clicks when the mobile drawer is
+    // transformed or scroll-clipped; the summary listener receives activation
+    // at the actual disclosure control and does not depend on event.target.
+    const bindSummaryActivation=(root)=>{
+      root?.querySelectorAll(':scope > .nav-group').forEach(group=>{
+        const summary=group.querySelector(':scope > summary');
+        if(!summary||summary.dataset.mobileAccordionClickBound==='1')return;
+        summary.dataset.mobileAccordionClickBound='1';
+        summary.setAttribute('aria-expanded',String(group.open));
+        summary.addEventListener('click',event=>{
+          if(window.innerWidth>950)return;
+          const shouldOpen=!group.open;
+          event.preventDefault();
+          root.querySelectorAll(':scope > details.nav-group').forEach(item=>{
+            item.open=item===group&&shouldOpen;
+            item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
+          });
         });
-      },true);
-    }
-    // Keep native <details>/<summary> activation intact. The MutationObserver
-    // below enforces the one-open-group rule after the browser toggles the
-    // selected group; intercepting click events here can suppress native
-    // disclosure behavior in mobile drawers and automated touch browsers.
+      });
+    };
+    bindSummaryActivation(nav);
     if(nav.dataset.mobileAccordionBound==='1')return;
     nav.dataset.mobileAccordionBound='1';
     const normalize=()=>{
@@ -77,9 +72,10 @@
     // during role/view restoration, where <details>.open can be assigned without
     // a click event. Keep the last newly-opened group, otherwise the active view.
     const accordionObserver=new MutationObserver(records=>{
-      if(window.innerWidth>950)return;
       const liveNav=document.getElementById('nav');
       if(liveNav!==nav)return;
+      bindSummaryActivation(liveNav);
+      if(window.innerWidth>950)return;
       const openGroups=[...liveNav.querySelectorAll(':scope > .nav-group[open]')];
       if(openGroups.length<=1)return;
       const newlyOpened=records.map(record=>record.target)
