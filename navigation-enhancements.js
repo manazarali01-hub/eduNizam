@@ -49,7 +49,10 @@
     // live navigation root so this remains valid if authentication replaces it.
     window.addEventListener('click',event=>{
       const liveNav=document.getElementById('nav');
-      if(liveNav!==nav)return;
+      // The authenticated shell may replace #nav after this listener is installed.
+      // Resolve the live root on every tap instead of comparing it with the stale
+      // root captured at mount time.
+      if(!liveNav)return;
       const summary=event.target?.closest?.('summary');
       const group=summary?.parentElement;
       if(!group?.classList?.contains('nav-group')||group.parentElement!==liveNav)return;
