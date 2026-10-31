@@ -469,3 +469,36 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f scripts/class-teacher-leave-trigger-test-fixture.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261031120000_allow_class_teacher_leave_review_trigger.sql
           psql -v ON_ERROR_STOP=1 -f scripts/class-teacher-leave-trigger-integration.sql
+
+
+  supabase-admin-default-truncate-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --start-period 5s
+          --retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Test guarded Supabase admin future-table defaults
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        shell: bash
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/supabase-admin-default-truncate-integration.sql
