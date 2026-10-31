@@ -13,6 +13,13 @@ const pages = [
   { file: 'pakistan-education-services.html', canonical: 'https://edunizam.online/pakistan-education-services.html' },
   { file: 'pakistan-degree-accreditation-recognition.html', canonical: 'https://edunizam.online/pakistan-degree-accreditation-recognition.html' },
   { file: 'pakistan-textbooks-curriculum-research.html', canonical: 'https://edunizam.online/pakistan-textbooks-curriculum-research.html' },
+  { file: 'online-school-admissions.html', canonical: 'https://edunizam.online/online-school-admissions.html' },
+  { file: 'about.html', canonical: 'https://edunizam.online/about.html' },
+  { file: 'privacy.html', canonical: 'https://edunizam.online/privacy.html' },
+  { file: 'css-ppsc-fpsc-pakistan.html', canonical: 'https://edunizam.online/css-ppsc-fpsc-pakistan.html' },
+  { file: 'pakistan-entry-tests-scholarships.html', canonical: 'https://edunizam.online/pakistan-entry-tests-scholarships.html' },
+  { file: 'technical-vocational-digital-skills-pakistan.html', canonical: 'https://edunizam.online/technical-vocational-digital-skills-pakistan.html' },
+  { file: 'pakistan-exam-study-pathways.html', canonical: 'https://edunizam.online/pakistan-exam-study-pathways.html' },
 ];
 
 function meta(html, key, value) {
@@ -41,11 +48,15 @@ for (const page of pages) {
   assert.equal(canonical, page.canonical, page.file + ': canonical URL mismatch');
   const ogTitle = meta(html, 'property', 'og:title');
   const ogDescription = meta(html, 'property', 'og:description');
-  if (ogTitle !== null) assert.equal(ogTitle, title, page.file + ': Open Graph title must match page title');
+  assert.equal(ogTitle, title, page.file + ': Open Graph title must match page title');
   const twitterTitle = meta(html, 'name', 'twitter:title');
   const twitterDescription = meta(html, 'name', 'twitter:description');
-  if (twitterTitle !== null) assert.equal(twitterTitle, title, page.file + ': Twitter title must match page title');
-  if (twitterDescription !== null) assert.equal(twitterDescription, description, page.file + ': Twitter description must match meta description');
-  if (ogDescription !== null) assert.equal(ogDescription, description, page.file + ': Open Graph description must match meta description');
+  assert.equal(twitterTitle, title, page.file + ': Twitter title must match page title');
+  assert.equal(twitterDescription, description, page.file + ': Twitter description must match meta description');
+  assert.equal(ogDescription, description, page.file + ': Open Graph description must match meta description');
+  assert.equal(meta(html, 'property', 'og:url'), canonical, page.file + ': Open Graph URL must match canonical');
+  assert.ok(meta(html, 'property', 'og:image'), page.file + ': missing Open Graph image');
+  assert.equal(meta(html, 'name', 'twitter:card'), 'summary_large_image', page.file + ': missing large-image Twitter card');
+  assert.ok(meta(html, 'name', 'twitter:image'), page.file + ': missing Twitter image');
   console.log('PASS ' + page.file + ': title, descriptions, canonical and social metadata aligned');
 }
