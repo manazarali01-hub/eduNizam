@@ -1194,6 +1194,11 @@ for(const marker of ['V5.2 · COOL NATURE','--v52-mist:','--v52-sun:','--v52-for
 if(!read('assets/IMAGE-CREDITS.md').includes('Cool Nature Glass V5.2'))fail.push('Cool Nature V5.2 image provenance missing.');
 for(const token of ['V5.3 · NATURAL VARIETY','--v53-sky:','--v53-ivory:','--v53-sage:','--v53-cloud:'])if(!realGlass.includes(token))fail.push('Natural Variety V5.3 missing CSS: '+token);
 
+const educationHubs=read('education-hubs.js');
+if(educationHubs.includes('Exact Indexed Resource'))fail.push('University directory must not claim every generic source page is an exact indexed resource.');
+if(!educationHubs.includes('Source Listing'))fail.push('University directory source-listing label is missing.');
+if(!educationHubs.includes("arr.length+' matching resources · '+S.resources.length+' total'"))fail.push('Grade 5/8 resource count must reflect active filters and total inventory.');
+
 
 const guestLearning=read('guest-learning-premium.js');
 if(!guestLearning.includes("replace(/[\\s-]+/g,''"))fail.push('Guest VU course-code normalization must remove whitespace and hyphens.');
