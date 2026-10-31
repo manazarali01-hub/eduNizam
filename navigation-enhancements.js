@@ -27,6 +27,26 @@
         group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
     };
+    // Explicitly control mobile disclosure activation. Some app-shell click
+    // handlers and touch automation can prevent the native <summary> default
+    // action; toggle the details state ourselves before those handlers run.
+    // The handler is delegated so it survives auth/workspace nav replacement.
+    if(!window.__EDUNIZAM_MOBILE_ACCORDION_CLICK_BOUND__){
+      window.__EDUNIZAM_MOBILE_ACCORDION_CLICK_BOUND__=true;
+      window.addEventListener('click',event=>{
+        if(window.innerWidth>950)return;
+        const summary=event.target?.closest?.('#nav > details.nav-group > summary');
+        const liveNav=document.getElementById('nav');
+        const selected=summary?.parentElement;
+        if(!selected||selected.parentElement!==liveNav)return;
+        const shouldOpen=!selected.open;
+        event.preventDefault();
+        liveNav.querySelectorAll(':scope > details.nav-group').forEach(group=>{
+          group.open=group===selected&&shouldOpen;
+          group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
+        });
+      },true);
+    }
     // Keep native <details>/<summary> activation intact. The MutationObserver
     // below enforces the one-open-group rule after the browser toggles the
     // selected group; intercepting click events here can suppress native
