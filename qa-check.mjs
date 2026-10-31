@@ -1209,6 +1209,10 @@ if(!mobileNavCore.includes('window.innerWidth<=1100 && !!window.matchMedia'))fai
 if(!blueGlassTheme.includes('@media (hover:none) and (pointer:coarse) and (max-width:1100px)'))fail.push('Touch-device compact drawer CSS breakpoint is missing.');
 if(!blueGlassTheme.includes('body.page-app .app-shell{display:block!important;grid-template-columns:minmax(0,1fr)!important'))fail.push('Touch-device app shell must use a single-column mobile layout.');
 
+const sidebarTheme=read('edunizam-blue-glass-theme.css');
+if(!sidebarTheme.includes('SIDEBAR TEXT CONTRAST HOTFIX'))fail.push('Sidebar text contrast hotfix is missing.');
+if(!sidebarTheme.includes('-webkit-text-fill-color:#173b5b!important'))fail.push('Sidebar navigation labels must explicitly use readable dark text.');
+if(!sidebarTheme.includes('body.page-app .sidebar #nav .nav-item.active'))fail.push('Active sidebar item contrast override is missing.');
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
