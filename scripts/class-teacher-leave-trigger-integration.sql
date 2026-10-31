@@ -1,5 +1,8 @@
 \set ON_ERROR_STOP on
 begin;
+create trigger guard_leave_review_before_update
+before update on public.leave_requests
+for each row execute function private.guard_leave_review_v2();
 insert into public.institution_members values
 ('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','teacher'),
 ('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000002','teacher'),
