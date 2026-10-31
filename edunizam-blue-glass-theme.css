@@ -479,3 +479,51 @@ body:is(.page-app,.auth-page,.page-home,.premium-public-page,.learning-sky,.admi
   background:linear-gradient(125deg,#155f9e,#1d73bd 56%,#338ee6)!important;
   box-shadow:0 9px 24px rgba(21,95,158,.20)!important;
 }
+
+
+/* TOUCH DESKTOP-VIEWPORT DRAWER FIX
+   Android Chrome Desktop site can expose a ~980px layout viewport. */
+@media (hover:none) and (pointer:coarse) and (max-width:1100px){
+  body.page-app .app-shell{display:block!important;grid-template-columns:minmax(0,1fr)!important;min-height:100dvh!important}
+  body.page-app .sidebar,
+  body.page-app .sidebar.mobile-nav-open{
+    position:fixed!important;inset:0 auto 0 0!important;z-index:1002!important;
+    display:flex!important;flex-direction:column!important;
+    width:min(330px,88vw)!important;max-width:88vw!important;height:100dvh!important;
+    min-height:0!important;overflow:hidden!important;
+    transform:translateX(-105%)!important;transition:transform .22s ease!important;
+  }
+  body.page-app .sidebar.mobile-nav-open{transform:translateX(0)!important}
+  body.page-app .sidebar #nav,
+  body.page-app .sidebar .nav-groups{
+    display:block!important;flex:1 1 auto!important;min-height:0!important;
+    overflow-y:auto!important;overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain!important;
+  }
+  body.page-app .main{display:block!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important}
+  body.page-app .mobile-menu-btn{display:inline-grid!important;place-items:center!important}
+  body.page-app .mobile-nav-close{display:grid!important}
+}
+
+
+/* SIDEBAR TEXT CONTRAST HOTFIX — explicitly override legacy white text tokens. */
+body.page-app .sidebar #nav .nav-group>summary,
+body.page-app .sidebar #nav .nav-group>summary>strong,
+body.page-app .sidebar #nav .nav-group>summary>small,
+body.page-app .sidebar #nav .nav-item,
+body.page-app .sidebar #nav .nav-item :is(span,strong,small){
+  color:#173b5b!important;
+  -webkit-text-fill-color:#173b5b!important;
+  opacity:1!important;
+  text-shadow:none!important;
+  filter:none!important;
+}
+body.page-app .sidebar #nav .nav-item.active,
+body.page-app .sidebar #nav .nav-item.active :is(span,strong,small){
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+body.page-app .sidebar #nav .nav-group>summary{background:rgba(255,255,255,.72)!important}
+body.page-app .sidebar #nav .nav-item{background:rgba(255,255,255,.28)!important}
+body.page-app .sidebar #nav .nav-item:hover{background:rgba(255,255,255,.88)!important}
+body.page-app .sidebar #nav .nav-item.active{background:linear-gradient(110deg,#287bc0,#4199df)!important}
