@@ -27,26 +27,31 @@
         group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
     };
-    // Bind disclosure activation directly to each live summary. A global
-    // capture handler can miss touch/forced clicks when the mobile drawer is
-    // transformed or scroll-clipped; the summary listener receives activation
-    // at the actual disclosure control and does not depend on event.target.
+    // Use one capture-phase handler and the composed event path. This survives
+    // touch/forced clicks and shell listeners that stop propagation later in
+    // the event path. Explicitly set details.open before the browser default
+    // action so a disclosure cannot remain collapsed after a mobile tap.
     const bindSummaryActivation=(root)=>{
-      root?.querySelectorAll(':scope > .nav-group').forEach(group=>{
-        const summary=group.querySelector(':scope > summary');
-        if(!summary||summary.dataset.mobileAccordionClickBound==='1')return;
-        summary.dataset.mobileAccordionClickBound='1';
-        summary.setAttribute('aria-expanded',String(group.open));
-        summary.addEventListener('click',event=>{
-          if(window.innerWidth>950)return;
-          const shouldOpen=!group.open;
-          event.preventDefault();
-          root.querySelectorAll(':scope > details.nav-group').forEach(item=>{
-            item.open=item===group&&shouldOpen;
-            item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
-          });
-        });
+      if(!root||window.__EDUNIZAM_MOBILE_ACCORDION_CAPTURE__)return;
+      window.__EDUNIZAM_MOBILE_ACCORDION_CAPTURE__=true;
+      root.querySelectorAll(':scope > .nav-group').forEach(group=>{
+        group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
+      window.addEventListener('click',event=>{
+        if(window.innerWidth>950)return;
+        const path=typeof event.composedPath==='function'?event.composedPath():[event.target];
+        const summary=path.find(node=>node instanceof Element&&node.matches?.('details.nav-group > summary'));
+        if(!summary)return;
+        const group=summary.parentElement;
+        const liveNav=document.getElementById('nav');
+        if(!liveNav||!liveNav.contains(group))return;
+        event.preventDefault();
+        const shouldOpen=!group.open;
+        liveNav.querySelectorAll(':scope > details.nav-group').forEach(item=>{
+          item.open=item===group&&shouldOpen;
+          item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
+        });
+      },true);
     };
     bindSummaryActivation(nav);
     if(nav.dataset.mobileAccordionBound==='1')return;
