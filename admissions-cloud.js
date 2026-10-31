@@ -231,7 +231,9 @@
     if(!state.client||!state.user)return[];
     const uid=String(state.user.id||'');
     if(institutionsCache.userId!==uid){
-      identityCacheRevision++;
+      // A non-empty previous owner means the cache changed identity without
+      // the normal auth-event invalidation path; empty is a fresh cache owner.
+      if(institutionsCache.userId)identityCacheRevision++;
       institutionsCache.userId=uid;
       institutionsCache.value=null;
       institutionsCache.at=0;
