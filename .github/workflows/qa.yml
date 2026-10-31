@@ -431,3 +431,35 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261021100000_revoke_public_truncate_app_roles.sql
           psql -v ON_ERROR_STOP=1 -f scripts/public-truncate-hardening-integration.sql
 
+
+  class-teacher-leave-trigger-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify class-teacher leave-review trigger behavior on disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/class-teacher-leave-trigger-test-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261031120000_allow_class_teacher_leave_review_trigger.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/class-teacher-leave-trigger-integration.sql
