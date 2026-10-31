@@ -31,6 +31,8 @@ jobs:
         run: node scripts/data-api-table-grants-checklist-check.mjs
       - name: Verify public TRUNCATE hardening contract
         run: node scripts/public-truncate-hardening-check.mjs
+      - name: Verify Supabase admin default TRUNCATE remediation contract
+        run: node scripts/supabase-admin-default-truncate-check.mjs
       - name: Verify read-only Supabase privilege audit contract
         run: node scripts/supabase-readonly-privilege-audit-check.mjs
       - name: Test production migration history deployment guard
@@ -492,6 +494,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Verify owner-only remediation rejects postgres executor
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        shell: bash
+        run: |
+          if psql -v ON_ERROR_STOP=1 -f supabase/manual/revoke-supabase-admin-default-truncate.sql > /tmp/owner-remediation-guard.log 2>&1; then
+            cat /tmp/owner-remediation-guard.log
+            echo "ERROR: owner remediation unexpectedly succeeded as postgres"
+            exit 1
+          fi
+          grep -F "Must run as supabase_admin" /tmp/owner-remediation-guard.log
       - name: Test guarded Supabase admin future-table defaults
         env:
           PGHOST: localhost
