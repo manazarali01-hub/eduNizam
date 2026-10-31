@@ -22,48 +22,100 @@
   }
   function installMobileAccordion(nav){
     if(!nav)return;
-    // One document-wide capture handler survives the authenticated shell
-    // replacing #nav. Use contains() rather than parent equality so harmless
-    // wrapper changes cannot silently disable mobile disclosure.
-    if(!window.__EDUNIZAM_MOBILE_ACCORDION_CAPTURE__){
-      window.addEventListener('click',event=>{
-        if(window.innerWidth>950)return;
-        const summary=event.target?.closest?.('#nav details.nav-group > summary');
-        if(!summary)return;
-        const group=summary.parentElement;
-        const liveNav=document.getElementById('nav');
-        if(!liveNav||!liveNav.contains(group))return;
-        event.preventDefault();
-        const shouldOpen=!group.open;
-        liveNav.querySelectorAll('details.nav-group[open]').forEach(item=>{
-          if(item!==group)item.open=false;
-        });
-        group.open=shouldOpen;
-        liveNav.querySelectorAll('details.nav-group').forEach(item=>{
-          item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
-        });
-      },true);
-      window.__EDUNIZAM_MOBILE_ACCORDION_CAPTURE__=true;
-    }
-    const sync=()=>nav.querySelectorAll(':scope > .nav-group').forEach(group=>{
-      group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
-    });
-    sync();
+    const syncSummaryState=(root)=>{
+      root?.querySelectorAll(':scope > .nav-group').forEach(group=>{
+        group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
+      });
+    };
+    // Native <summary> activation is the most reliable touch interaction.
+    // Do not cancel its default action or toggle details.open during click
+    // capture: doing so races the browser disclosure algorithm and can leave
+    // mobile groups closed after a tap. The observer below enforces the
+    // single-open accordion state after the native open-attribute mutation.
+    const bindSummaryActivation=(root)=>{
+      if(!root)return;
+      syncSummaryState(root);
+    };
+    bindSummaryActivation(nav);
     if(nav.dataset.mobileAccordionBound==='1')return;
     nav.dataset.mobileAccordionBound='1';
-    const observer=new MutationObserver(sync);
-    observer.observe(nav,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});
+    // Some mobile browser/WebView combinations deliver a summary click but
+    // fail to apply the native details disclosure when the drawer is scrolling.
+    // Let the native default action run first, then reconcile the requested
+    // group as a fallback. This keeps keyboard/native activation intact while
+    // ensuring a real tap can never leave its submenu collapsed.
+    // Use window capture rather than nav bubbling: the app shell may stop
+    // propagation on the summary before the event reaches #nav. Resolve the
+    // live navigation root so this remains valid if authentication replaces it.
+    window.addEventListener('click',event=>{
+      const liveNav=document.getElementById('nav');
+      // The authenticated shell may replace #nav after this listener is installed.
+      // Resolve the live root on every tap instead of comparing it with the stale
+      // root captured at mount time.
+      if(!liveNav)return;
+      const summary=event.target?.closest?.('summary');
+      const group=summary?.parentElement;
+      if(!group?.classList?.contains('nav-group')||group.parentElement!==liveNav)return;
+      setTimeout(()=>{
+        if(!group.isConnected||window.innerWidth>950)return;
+        if(!group.open)group.open=true;
+        liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(item=>{
+          if(item!==group)item.open=false;
+        });
+        syncSummaryState(liveNav);
+      },0);
+    },true);
     const normalize=()=>{
       if(window.innerWidth>950)return;
       const groups=[...nav.querySelectorAll(':scope > .nav-group')];
       const open=groups.filter(group=>group.open);
-      if(open.length<=1){sync();return;}
+      if(open.length<=1){syncSummaryState(nav);return;}
       const activeView=document.querySelector('.view.active')?.id||'dashboard';
       const activeTitle=groupMap.get(activeView);
       const keep=open.find(group=>group.dataset.groupTitle===activeTitle)||open[0];
       open.forEach(group=>{if(group!==keep)group.open=false});
-      sync();
+      if(keep)keep.open=true;
+      syncSummaryState(nav);
     };
+    // Intercept summary activation at window capture, before document-level
+    // shell handlers can stop propagation. A target/bubble listener is too late
+    // when another shell handler intercepts mobile drawer clicks.
+    // The singleton window capture handler above always resolves the live #nav.
+
+    // Also normalize direct/programmatic open-state changes. This is important
+    // during role/view restoration, where <details>.open can be assigned without
+    // a click event. Keep the last newly-opened group, otherwise the active view.
+    const accordionObserver=new MutationObserver(records=>{
+      const liveNav=document.getElementById('nav');
+      if(liveNav!==nav)return;
+      bindSummaryActivation(liveNav);
+      if(window.innerWidth>950)return;
+      const openGroups=[...liveNav.querySelectorAll(':scope > .nav-group[open]')];
+      if(openGroups.length<=1){
+        syncSummaryState(liveNav);
+        return;
+      }
+      const newlyOpened=records.map(record=>record.target)
+        .filter(group=>group.matches?.('.nav-group')&&group.parentElement===liveNav&&group.open);
+      const activeView=document.querySelector('.view.active')?.id||'dashboard';
+      const activeTitle=groupMap.get(activeView);
+      // A newly opened group represents the user's latest navigation intent.
+      // Prefer it over the active-view group: otherwise opening another section
+      // while the dashboard is active immediately collapses the requested group.
+      const keep=[...newlyOpened].reverse().find(group=>openGroups.includes(group))
+        ||openGroups.find(group=>group.dataset.groupTitle===activeTitle)
+        ||openGroups[0];
+      openGroups.forEach(group=>{if(group!==keep)group.open=false});
+      liveNav.querySelectorAll(':scope > .nav-group').forEach(item=>{
+        item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
+      });
+    });
+    // MutationObserver.observe() replaces the previous options for the same
+    // target. Keep child-list and open-attribute tracking in ONE registration
+    // so groups inserted after this script mounts also receive summary handlers.
+    accordionObserver.observe(nav,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});
+    // Native summary activation opens/closes the selected details element.
+    // The observer enforces one-open-at-a-time without cancelling the browser click.
     normalize();
     window.addEventListener('resize',normalize,{passive:true});
   }
@@ -210,14 +262,5 @@
     nav.querySelectorAll('.nav-item').forEach(b=>placeButton(nav,b));
     filter();
   }
-  // The authenticated shell can replace #nav after login. Rebind direct
-  // summary handlers whenever a new navigation root enters the document.
-  const navRootObserver=new MutationObserver(records=>{
-    const replaced=records.some(record=>[...record.addedNodes].some(node=>
-      node.nodeType===1&&(node.id==='nav'||node.querySelector?.('#nav'))
-    ));
-    if(replaced)mount();
-  });
-  navRootObserver.observe(document.documentElement,{childList:true,subtree:true});
   setTimeout(mount,0);setTimeout(mount,800);window.EDUNIZAM_NAVIGATION={mount};
 })();
