@@ -7,7 +7,8 @@
   // Supabase auth events are authoritative. A stale getSession promise must
   // never resurrect a signed-out user or replace a newer signed-in account.
   let authRevision=0;
-  function clearIdentityCaches(){roleCache.key='';roleCache.value=null;roleCache.at=0;roleCache.inflight=null;institutionsCache.userId='';institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
+  let identityCacheRevision=0;
+  function clearIdentityCaches(){identityCacheRevision++;roleCache.key='';roleCache.value=null;roleCache.at=0;roleCache.inflight=null;institutionsCache.userId='';institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
   async function boundedRead(key,builder,{timeout=6500,retries=1,cacheMs=15000,label='School data'}={}){
     const execute=async({signal}={})=>{
       let request=builder();
@@ -229,9 +230,16 @@
   async function listAuthorizedWorkspaces(force=false){
     if(!state.client||!state.user)return[];
     const uid=String(state.user.id||'');
-    if(institutionsCache.userId!==uid){institutionsCache.userId=uid;institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
+    if(institutionsCache.userId!==uid){
+      identityCacheRevision++;
+      institutionsCache.userId=uid;
+      institutionsCache.value=null;
+      institutionsCache.at=0;
+      institutionsCache.inflight=null;
+    }
     if(!force&&institutionsCache.value&&Date.now()-institutionsCache.at<60000)return institutionsCache.value;
     if(institutionsCache.inflight)return institutionsCache.inflight;
+    const requestRevision=identityCacheRevision;
     const runner=async({signal}={})=>{
       let request=state.client.rpc('my_authorized_workspaces');
       if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
@@ -248,14 +256,26 @@
       }));
     };
     const runtime=window.EDUNIZAM_DATA_RUNTIME;
-    institutionsCache.inflight=runtime
+    const pending=runtime
       ?runtime.run('authorized-workspaces:'+uid,context=>runner(context),{timeout:6500,retries:1,cacheMs:60000,label:'School access'})
       :runner();
+    institutionsCache.inflight=pending;
     try{
-      const value=await institutionsCache.inflight;
-      institutionsCache.value=value;institutionsCache.at=Date.now();
+      const value=await pending;
+      // A response belongs only to the identity and cache generation that
+      // started it. Never attach an old account's school list to a new account.
+      if(identityCacheRevision!==requestRevision
+        ||String(state.user?.id||'')!==uid
+        ||institutionsCache.userId!==uid)return[];
+      institutionsCache.value=value;
+      institutionsCache.at=Date.now();
       return value;
-    }finally{institutionsCache.inflight=null}
+    }finally{
+      // A stale request must not clear a newer account's in-flight request.
+      if(institutionsCache.inflight===pending
+        &&identityCacheRevision===requestRevision
+        &&String(state.user?.id||'')===uid)institutionsCache.inflight=null;
+    }
   }
   async function verifyWorkspaceAccess(institutionId,expectedRole='',force=false){
     const id=String(institutionId||'').trim();
@@ -270,23 +290,37 @@
   }
   async function getMyRole(force=false){
     if(!state.client||!state.user)return null;
-    const key=String(state.user.id||'')+'|'+String(cfg.institutionId||'');
+    const uid=String(state.user.id||'');
+    const key=uid+'|'+String(cfg.institutionId||'');
     if(roleCache.key!==key){roleCache.key=key;roleCache.value=null;roleCache.at=0;roleCache.inflight=null}
     if(!force&&roleCache.at&&Date.now()-roleCache.at<60000)return roleCache.value;
     if(roleCache.inflight)return roleCache.inflight;
-    roleCache.inflight=(async()=>{
+    const requestRevision=identityCacheRevision;
+    const pending=(async()=>{
       const rows=await listAuthorizedWorkspaces(force);
+      if(String(state.user?.id||'')!==uid||identityCacheRevision!==requestRevision)return null;
       if(cfg.institutionId){
         const match=rows.find(x=>String(x.id)===String(cfg.institutionId));
         return match?.workspace_role||null;
       }
       return rows.length===1?(rows[0].workspace_role||null):null;
     })();
+    roleCache.inflight=pending;
     try{
-      const value=await roleCache.inflight;
-      roleCache.value=value;roleCache.at=Date.now();
+      const value=await pending;
+      if(identityCacheRevision!==requestRevision
+        ||String(state.user?.id||'')!==uid
+        ||roleCache.key!==key)return null;
+      roleCache.value=value;
+      roleCache.at=Date.now();
       return value;
-    }finally{roleCache.inflight=null}
+    }finally{
+      // Do not let a previous account's promise clear the current role lookup.
+      if(roleCache.inflight===pending
+        &&identityCacheRevision===requestRevision
+        &&String(state.user?.id||'')===uid
+        &&roleCache.key===key)roleCache.inflight=null;
+    }
   }
   async function listMyInstitutions(force=false){
     return listAuthorizedWorkspaces(force);
