@@ -37,16 +37,16 @@ order by c.relname;
 select
   n.nspname as schema_name,
   owner_role.rolname as object_owner,
-  grantee.rolname as grantee_role,
+  coalesce(grantee.rolname, 'PUBLIC') as grantee_role,
   acl.privilege_type,
   acl.is_grantable
 from pg_default_acl d
 join pg_namespace n on n.oid = d.defaclnamespace
 join pg_roles owner_role on owner_role.oid = d.defaclrole
 cross join lateral aclexplode(d.defaclacl) acl
-join pg_roles grantee on grantee.oid = acl.grantee
+left join pg_roles grantee on grantee.oid = acl.grantee
 where n.nspname in ('public', 'storage', 'graphql', 'graphql_public')
-  and grantee.rolname in ('anon', 'authenticated')
+  and (grantee.rolname in ('anon', 'authenticated') or acl.grantee = 0)
   and acl.privilege_type = 'TRUNCATE'
 order by n.nspname, owner_role.rolname, grantee.rolname;
 
