@@ -527,3 +527,29 @@ body.page-app .sidebar #nav .nav-group>summary{background:rgba(255,255,255,.72)!
 body.page-app .sidebar #nav .nav-item{background:rgba(255,255,255,.28)!important}
 body.page-app .sidebar #nav .nav-item:hover{background:rgba(255,255,255,.88)!important}
 body.page-app .sidebar #nav .nav-item.active{background:linear-gradient(110deg,#287bc0,#4199df)!important}
+
+
+/* Phase 20: visible close control on the light glass mobile drawer. */
+@media(max-width:950px){
+  body.page-app .sidebar .mobile-nav-close{
+    display:grid!important;
+    place-items:center!important;
+    width:44px!important;
+    height:44px!important;
+    min-width:44px!important;
+    min-height:44px!important;
+    color:#174b75!important;
+    -webkit-text-fill-color:#174b75!important;
+    background:rgba(218,237,252,.94)!important;
+    border:1px solid rgba(48,119,174,.34)!important;
+    border-radius:12px!important;
+    box-shadow:0 3px 10px rgba(31,83,124,.12)!important;
+    font-size:25px!important;
+    font-weight:700!important;
+    line-height:1!important;
+  }
+  body.page-app .sidebar .mobile-nav-close:focus-visible{
+    outline:3px solid #338ee6!important;
+    outline-offset:2px!important;
+  }
+}
