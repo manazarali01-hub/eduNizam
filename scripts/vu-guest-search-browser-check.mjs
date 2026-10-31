@@ -43,7 +43,7 @@ let browser;
 try {
   const moduleUrl = process.env.PLAYWRIGHT_MODULE || pathToFileURL('/tmp/edunizam-pw/node_modules/playwright/index.mjs').href;
   const { chromium } = await import(moduleUrl);
-  browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+  browser = await chromium.launch({ headless: true, executablePath: process.env.EDUNIZAM_BROWSER || undefined, args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   page.setDefaultTimeout(10000);
   await page.route('**/*', route => {
