@@ -27,25 +27,10 @@
         group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
     };
-    // Bind once at document capture, not to a particular #nav node. The app
-    // shell may replace its navigation during workspace restoration; a listener
-    // attached to the old nav would leave the new accordion headings inert.
-    if(!window.__EDUNIZAM_MOBILE_ACCORDION_BOUND__){
-      window.__EDUNIZAM_MOBILE_ACCORDION_BOUND__=true;
-      window.addEventListener('click',event=>{
-        if(window.innerWidth>950)return;
-        const summary=event.target?.closest?.('details.nav-group > summary');
-        const liveNav=document.getElementById('nav');
-        const selected=summary?.parentElement;
-        if(!selected||selected.parentElement!==liveNav)return;
-        const shouldOpen=!selected.open;
-        event.preventDefault();
-        liveNav.querySelectorAll(':scope > details.nav-group').forEach(group=>{
-          group.open=group===selected&&shouldOpen;
-          group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
-        });
-      },true);
-    }
+    // Keep native <details>/<summary> activation intact. The MutationObserver
+    // below enforces the one-open-group rule after the browser toggles the
+    // selected group; intercepting click events here can suppress native
+    // disclosure behavior in mobile drawers and automated touch browsers.
     if(nav.dataset.mobileAccordionBound==='1')return;
     nav.dataset.mobileAccordionBound='1';
     const normalize=()=>{
@@ -91,10 +76,8 @@
     });
     accordionObserver.observe(nav,{subtree:false,childList:true});
     accordionObserver.observe(nav,{subtree:true,attributes:true,attributeFilter:['open']});
-    // Do not normalize on queued native `toggle` events. Programmatic open-state
-    // changes also emit toggle asynchronously; re-selecting the active-view group
-    // here would immediately collapse the group the user just opened. The window-
-    // capture summary handler enforces one-open-at-a-time synchronously.
+    // Native summary activation opens/closes the selected details element.
+    // The observer enforces one-open-at-a-time without cancelling the browser click.
     normalize();
     window.addEventListener('resize',normalize,{passive:true});
   }
@@ -128,7 +111,7 @@
     // Do not enforce accordion state from the asynchronous <details> toggle
     // event: browsers queue that event, so a stale "opened" event can run after
     // a later group has become active and collapse the user's current panel.
-    // Mobile summary clicks below apply the single-open transition synchronously.
+    // Mobile disclosure state remains native and accessible.
     // Desktop keeps native independent <details> behavior.
     // The initial desktop defaults include Overview + Daily Work. On mobile,
     // normalize that initial state too, retaining the group for the active view.
