@@ -1195,6 +1195,13 @@ if(!read('assets/IMAGE-CREDITS.md').includes('Cool Nature Glass V5.2'))fail.push
 for(const token of ['V5.3 · NATURAL VARIETY','--v53-sky:','--v53-ivory:','--v53-sage:','--v53-cloud:'])if(!realGlass.includes(token))fail.push('Natural Variety V5.3 missing CSS: '+token);
 
 
+const guestLearning=read('guest-learning-premium.js');
+if(!guestLearning.includes("replace(/[\\s-]+/g,''"))fail.push('Guest VU course-code normalization must remove whitespace and hyphens.');
+if(!guestLearning.includes("/^[A-Z]{2,5}\\d{3,4}[A-Z]?$/"))fail.push('Guest VU course-code validation must match numeric course suffixes.');
+const normalizeVuCourseCode=value=>String(value||'').toUpperCase().replace(/[\s-]+/g,'');
+const validVuCourseCode=value=>/^[A-Z]{2,5}\d{3,4}[A-Z]?$/.test(value);
+if(normalizeVuCourseCode(' cs-101 ')!=='CS101'||!validVuCourseCode(normalizeVuCourseCode('CS-101'))||validVuCourseCode('CS-ABC'))fail.push('Guest VU course-code search regression examples failed.');
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);

@@ -663,8 +663,8 @@ function injectVUExplorer(){
  const run=()=>{
   const query=norm($('vuExplorerQuery').value),typeValue=$('vuExplorerType').value,type=norm(typeValue),category=$('vuExplorerCategory').value,source=$('vuExplorerSource').value,provider=$('vuExplorerProvider').value,access=$('vuExplorerAccess').value;
   const rawInput=String($('vuExplorerQuery').value||'').trim();
-  const rawCode=rawInput.toUpperCase().replace(/[\\s-]+/g,'');
-  const validCourseCode=/^[A-Z]{2,5}\\d{3,4}[A-Z]?$/.test(rawCode);
+  const rawCode=rawInput.toUpperCase().replace(/[\s-]+/g,'');
+  const validCourseCode=/^[A-Z]{2,5}\d{3,4}[A-Z]?$/.test(rawCode);
   const lookupQuery=validCourseCode?norm(rawCode):query;
   const courseMatches=lookupQuery?catalog().filter(x=>norm(x.code+' '+x.title+' '+x.category).includes(lookupQuery)).slice(0,30):[];
   const exactCourse=catalog().find(x=>norm(x.code)===lookupQuery);
