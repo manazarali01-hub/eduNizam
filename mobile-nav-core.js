@@ -2,6 +2,8 @@
   const $=s=>document.querySelector(s);
   let controller=null;
 
+  const isCompactNav=()=>window.innerWidth<=950 || (window.innerWidth<=1100 && !!window.matchMedia?.('(hover: none) and (pointer: coarse)').matches);
+
   function mount(){
     const sidebar=$('.sidebar'),topbar=$('.topbar');
     if(!sidebar||!topbar)return null;
@@ -43,7 +45,7 @@
     }
 
     const setOpen=open=>{
-      const shouldOpen=!!open&&window.innerWidth<=950;
+      const shouldOpen=!!open&&isCompactNav();
       sidebar.classList.toggle('mobile-nav-open',shouldOpen);
       backdrop.classList.toggle('show',shouldOpen);
       backdrop.style.display=shouldOpen?'block':'none';
@@ -73,7 +75,7 @@
     if(sidebar.dataset.mobileCore!=='1'){
       sidebar.dataset.mobileCore='1';
       sidebar.addEventListener('click',event=>{
-        if(event.target.closest('.nav-item')&&window.innerWidth<=950)setOpen(false);
+        if(event.target.closest('.nav-item')&&isCompactNav())setOpen(false);
       });
     }
 
@@ -81,7 +83,7 @@
       open:()=>setOpen(true),
       close:()=>setOpen(false),
       toggle:()=>setOpen(!sidebar.classList.contains('mobile-nav-open')),
-      reconcile:()=>setOpen(window.innerWidth<=950&&sidebar.classList.contains('mobile-nav-open'))
+      reconcile:()=>setOpen(isCompactNav()&&sidebar.classList.contains('mobile-nav-open'))
     };
     // Re-mounts during auth/background loading must not close an open drawer.
     setOpen(sidebar.classList.contains('mobile-nav-open'));
