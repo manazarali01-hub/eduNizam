@@ -44,19 +44,24 @@
     // Let the native default action run first, then reconcile the requested
     // group as a fallback. This keeps keyboard/native activation intact while
     // ensuring a real tap can never leave its submenu collapsed.
-    nav.addEventListener('click',event=>{
+    // Use window capture rather than nav bubbling: the app shell may stop
+    // propagation on the summary before the event reaches #nav. Resolve the
+    // live navigation root so this remains valid if authentication replaces it.
+    window.addEventListener('click',event=>{
+      const liveNav=document.getElementById('nav');
+      if(liveNav!==nav)return;
       const summary=event.target?.closest?.('summary');
       const group=summary?.parentElement;
-      if(!group?.matches?.(':scope.nav-group')||group.parentElement!==nav)return;
+      if(!group?.classList?.contains('nav-group')||group.parentElement!==liveNav)return;
       setTimeout(()=>{
         if(!group.isConnected||window.innerWidth>950)return;
         if(!group.open)group.open=true;
-        nav.querySelectorAll(':scope > .nav-group[open]').forEach(item=>{
+        liveNav.querySelectorAll(':scope > .nav-group[open]').forEach(item=>{
           if(item!==group)item.open=false;
         });
-        syncSummaryState(nav);
+        syncSummaryState(liveNav);
       },0);
-    });
+    },true);
     const normalize=()=>{
       if(window.innerWidth>950)return;
       const groups=[...nav.querySelectorAll(':scope > .nav-group')];
