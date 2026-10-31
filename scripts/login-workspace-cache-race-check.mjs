@@ -29,7 +29,7 @@ assert.equal(requests.length,2,'Account switch must start a fresh request');
 requests[1].resolve(rows('school-B','School B','teacher'));
 assert.equal((await bCurrent)[0].id,'school-B');
 requests[0].resolve(rows('school-A','School A','head_of_institute'));
-assert.deepEqual(await aOld,[],'Stale account response must not be returned');
+assert.equal((await aOld).length,0,'Stale account response must not be returned');
 assert.equal((await list({id:'account-B'}))[0].id,'school-B','Stale response must not overwrite current cache');
 
 // Switching back to A must not let its older generation be mistaken for current.
