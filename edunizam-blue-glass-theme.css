@@ -504,3 +504,26 @@ body:is(.page-app,.auth-page,.page-home,.premium-public-page,.learning-sky,.admi
   body.page-app .mobile-menu-btn{display:inline-grid!important;place-items:center!important}
   body.page-app .mobile-nav-close{display:grid!important}
 }
+
+
+/* SIDEBAR TEXT CONTRAST HOTFIX — explicitly override legacy white text tokens. */
+body.page-app .sidebar #nav .nav-group>summary,
+body.page-app .sidebar #nav .nav-group>summary>strong,
+body.page-app .sidebar #nav .nav-group>summary>small,
+body.page-app .sidebar #nav .nav-item,
+body.page-app .sidebar #nav .nav-item :is(span,strong,small){
+  color:#173b5b!important;
+  -webkit-text-fill-color:#173b5b!important;
+  opacity:1!important;
+  text-shadow:none!important;
+  filter:none!important;
+}
+body.page-app .sidebar #nav .nav-item.active,
+body.page-app .sidebar #nav .nav-item.active :is(span,strong,small){
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+body.page-app .sidebar #nav .nav-group>summary{background:rgba(255,255,255,.72)!important}
+body.page-app .sidebar #nav .nav-item{background:rgba(255,255,255,.28)!important}
+body.page-app .sidebar #nav .nav-item:hover{background:rgba(255,255,255,.88)!important}
+body.page-app .sidebar #nav .nav-item.active{background:linear-gradient(110deg,#287bc0,#4199df)!important}
