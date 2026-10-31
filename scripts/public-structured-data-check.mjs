@@ -29,7 +29,7 @@ function nodesFor(data) {
 
 for (const [file, expectedType] of Object.entries(expected)) {
   const html = fs.readFileSync(file, 'utf8');
-  const blocks = [...html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)];
+  const blocks = [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
   assert.equal(blocks.length, 1, file + ': expected exactly one JSON-LD block');
   const data = JSON.parse(blocks[0][1]);
   assert.equal(data['@context'], 'https://schema.org', file + ': Schema.org context missing');
@@ -37,7 +37,7 @@ for (const [file, expectedType] of Object.entries(expected)) {
   const types = nodes.flatMap((node) => Array.isArray(node['@type']) ? node['@type'] : [node['@type']]).filter(Boolean);
   assert.ok(types.includes(expectedType), file + ': expected ' + expectedType + ' schema');
   assert.ok(!types.includes('Article') || expectedType === 'Article', file + ': do not add generic Article schema to this page');
-  const canonical = html.match(/<link\\b(?=[^>]*rel=["']canonical["'])(?=[^>]*href=["']([^"']*)["'])[^>]*>/i)?.[1];
+  const canonical = html.match(/<link\b(?=[^>]*rel=["']canonical["'])(?=[^>]*href=["']([^"']*)["'])[^>]*>/i)?.[1];
   assert.ok(canonical, file + ': canonical URL missing');
   if (file !== 'index.html') {
     const pageNode = nodes.find((node) => node['@type'] === expectedType);
