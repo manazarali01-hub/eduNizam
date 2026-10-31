@@ -32,6 +32,9 @@ assert.match(executable, /'USAGE'[\s\S]*'SELECT'[\s\S]*'UPDATE'/i, "Review all t
 assert.match(sql, /Full browser-role default ACL inventory/i, "Document the expanded default ACL inventory");
 assert.match(executable, /d\.defaclobjtype\s+in\s*\('r',\s*'S',\s*'f'\)/i, "Audit table, sequence, and function defaults");
 assert.match(executable, /grantee\.rolname\s+in\s*\('anon',\s*'authenticated'\)/i, "Scope inventory to browser roles");
+assert.match(executable, /left\s+join\s+pg_roles\s+grantee/i, "Retain PUBLIC default ACL entries");
+assert.match(executable, /acl\.grantee\s*=\s*0/i, "Include PUBLIC grants in the full default ACL inventory");
+assert.match(executable, /coalesce\(grantee\.rolname,\s*'PUBLIC'\)/i, "Label PUBLIC default ACL entries clearly");
 assert.match(executable, /acl\.privilege_type/i, "Report individual default privilege types");
 
 assert.equal(statements.length, 5, "Audit should contain five read-only queries");
