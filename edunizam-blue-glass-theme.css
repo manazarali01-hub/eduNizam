@@ -719,3 +719,27 @@ body.page-app .sidebar #nav .nav-group[open]>summary{
   body.page-app .sidebar #nav .nav-group>summary{min-height:50px!important}
   body.page-app .sidebar #nav .nav-group>summary>strong{font-size:12px!important}
 }
+
+
+/* Phase 24 QA correction: reserve a real text track for category headings.
+   Some narrow intrinsic sizing contexts collapsed the previous 1fr track. */
+body.page-app .sidebar #nav.nav-groups,
+body.page-app .sidebar #nav{
+  width:100%!important;
+  min-width:0!important;
+}
+body.page-app .sidebar #nav .nav-group{
+  width:100%!important;
+  min-width:0!important;
+}
+body.page-app .sidebar #nav .nav-group>summary{
+  width:100%!important;
+  box-sizing:border-box!important;
+  grid-template-columns:22px minmax(70px,1fr) 16px!important;
+}
+body.page-app .sidebar #nav .nav-group>summary>strong{
+  grid-column:2!important;
+  justify-self:stretch!important;
+  width:auto!important;
+  min-width:70px!important;
+}
