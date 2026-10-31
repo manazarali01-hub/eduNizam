@@ -39,17 +39,35 @@
     bindSummaryActivation(nav);
     if(nav.dataset.mobileAccordionBound==='1')return;
     nav.dataset.mobileAccordionBound='1';
+    // Some mobile browser/WebView combinations deliver a summary click but
+    // fail to apply the native details disclosure when the drawer is scrolling.
+    // Let the native default action run first, then reconcile the requested
+    // group as a fallback. This keeps keyboard/native activation intact while
+    // ensuring a real tap can never leave its submenu collapsed.
+    nav.addEventListener('click',event=>{
+      const summary=event.target?.closest?.('summary');
+      const group=summary?.parentElement;
+      if(!group?.matches?.(':scope.nav-group')||group.parentElement!==nav)return;
+      setTimeout(()=>{
+        if(!group.isConnected||window.innerWidth>950)return;
+        if(!group.open)group.open=true;
+        nav.querySelectorAll(':scope > .nav-group[open]').forEach(item=>{
+          if(item!==group)item.open=false;
+        });
+        syncSummaryState(nav);
+      },0);
+    });
     const normalize=()=>{
       if(window.innerWidth>950)return;
       const groups=[...nav.querySelectorAll(':scope > .nav-group')];
       const open=groups.filter(group=>group.open);
-      if(open.length<=1){syncSummaryState();return;}
+      if(open.length<=1){syncSummaryState(nav);return;}
       const activeView=document.querySelector('.view.active')?.id||'dashboard';
       const activeTitle=groupMap.get(activeView);
       const keep=open.find(group=>group.dataset.groupTitle===activeTitle)||open[0];
       open.forEach(group=>{if(group!==keep)group.open=false});
       if(keep)keep.open=true;
-      syncSummaryState();
+      syncSummaryState(nav);
     };
     // Intercept summary activation at window capture, before document-level
     // shell handlers can stop propagation. A target/bubble listener is too late
