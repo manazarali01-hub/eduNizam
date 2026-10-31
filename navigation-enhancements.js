@@ -32,7 +32,7 @@
     // attached to the old nav would leave the new accordion headings inert.
     if(!window.__EDUNIZAM_MOBILE_ACCORDION_BOUND__){
       window.__EDUNIZAM_MOBILE_ACCORDION_BOUND__=true;
-      document.addEventListener('click',event=>{
+      window.addEventListener('click',event=>{
         if(window.innerWidth>950)return;
         const summary=event.target?.closest?.('details.nav-group > summary');
         const liveNav=document.getElementById('nav');
