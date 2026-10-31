@@ -610,4 +610,85 @@ assert.ok(read('pwa-install.js').includes('sw.js?v=20261020-auth-event-guard-v2'
   assert.equal(JSON.parse(e.localStorage.getItem('edunizam_session')).identity,'second@example.test');
 }
 
-console.log('Auth isolation, sign-out races, school-switch races and PWA cache checks passed.');
+
+// Regression 17: a late authorized-workspaces response from a previous
+// account must not overwrite the current account's school cache or in-flight lock.
+function makeAuthorizedWorkspaceRace(){
+  let authHandler=null,currentUserId='';
+  const requests=[];
+  const client={
+    auth:{
+      onAuthStateChange(handler){authHandler=handler;return{data:{subscription:{unsubscribe(){}}}}},
+      getSession:async()=>({data:{session:null},error:null})
+    },
+    rpc(name){
+      assert.equal(name,'my_authorized_workspaces');
+      const pending=deferred();
+      requests.push({userId:currentUserId,pending});
+      return pending.promise;
+    }
+  };
+  const win={
+    EDUNIZAM_CLOUD_CONFIG:{enabled:true,provider:'supabase',supabaseUrl:'https://example.supabase.co',supabasePublishableKey:'test-public-key'},
+    supabase:{createClient:()=>client},
+    dispatchEvent(){}
+  };
+  const context={window:win,console,Date,
+    CustomEvent:class {constructor(type,options={}){this.type=type;this.detail=options.detail}},
+    setTimeout,clearTimeout
+  };
+  vm.runInNewContext(read('admissions-cloud.js'),context,{filename:'admissions-cloud.js'});
+  return{
+    api:win.EDUNIZAM_CLOUD,requests,
+    auth(id){
+      currentUserId=id;
+      authHandler('SIGNED_IN',{user:{id,email:id+'@example.test'}});
+    }
+  };
+}
+{
+  const e=makeAuthorizedWorkspaceRace();
+  await e.api.whenReady();
+  e.auth('account-A');
+  const oldRequest=e.api.listAuthorizedWorkspaces();
+  await flush();
+  e.auth('account-B');
+  const newRequest=e.api.listAuthorizedWorkspaces();
+  await flush();
+  assert.deepEqual(e.requests.map(x=>x.userId),['account-A','account-B']);
+  e.requests[1].pending.resolve({data:[{
+    institution_id:'school-B',institution_name:'School B',workspace_role:'teacher'
+  }],error:null});
+  const newRows=await newRequest;
+  assert.equal(newRows[0]?.id,'school-B');
+  e.requests[0].pending.resolve({data:[{
+    institution_id:'school-A',institution_name:'School A',workspace_role:'head_of_institute'
+  }],error:null});
+  const staleRows=await oldRequest;
+  assert.equal(staleRows.length,0,'Stale account workspace response was returned after account switch');
+  const cachedRows=await e.api.listAuthorizedWorkspaces();
+  assert.equal(cachedRows[0]?.id,'school-B','Old account workspace response overwrote the new account cache');
+  assert.equal(e.requests.length,2,'Current account cache was discarded by a stale request');
+}
+{
+  const e=makeAuthorizedWorkspaceRace();
+  await e.api.whenReady();
+  e.auth('role-A');
+  const oldRole=e.api.getMyRole();
+  await flush();
+  e.auth('role-B');
+  const newRole=e.api.getMyRole();
+  await flush();
+  assert.deepEqual(e.requests.map(x=>x.userId),['role-A','role-B']);
+  e.requests[1].pending.resolve({data:[{
+    institution_id:'school-B',institution_name:'School B',workspace_role:'teacher'
+  }],error:null});
+  assert.equal(await newRole,'teacher');
+  e.requests[0].pending.resolve({data:[{
+    institution_id:'school-A',institution_name:'School A',workspace_role:'head_of_institute'
+  }],error:null});
+  assert.equal(await oldRole,null,'Stale role response was accepted for the previous account');
+  assert.equal(await e.api.getMyRole(),'teacher','Old account role response overwrote the current role cache');
+}
+
+console.log('Auth isolation, sign-out races, school-switch races, workspace-cache account races and PWA cache checks passed.');
