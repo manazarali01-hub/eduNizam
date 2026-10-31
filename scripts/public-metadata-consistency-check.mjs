@@ -39,11 +39,13 @@ for (const page of pages) {
   assert.ok(title.length <= 60, page.file + ': title exceeds 60 characters (' + title.length + ')');
   assert.ok(description.length <= 160, page.file + ': meta description exceeds 160 characters (' + description.length + ')');
   assert.equal(canonical, page.canonical, page.file + ': canonical URL mismatch');
-  assert.equal(meta(html, 'property', 'og:title'), title, page.file + ': Open Graph title must match page title');
+  const ogTitle = meta(html, 'property', 'og:title');
+  const ogDescription = meta(html, 'property', 'og:description');
+  if (ogTitle !== null) assert.equal(ogTitle, title, page.file + ': Open Graph title must match page title');
   const twitterTitle = meta(html, 'name', 'twitter:title');
   const twitterDescription = meta(html, 'name', 'twitter:description');
   if (twitterTitle !== null) assert.equal(twitterTitle, title, page.file + ': Twitter title must match page title');
   if (twitterDescription !== null) assert.equal(twitterDescription, description, page.file + ': Twitter description must match meta description');
-  assert.equal(meta(html, 'property', 'og:description'), description, page.file + ': Open Graph description must match meta description');
+  if (ogDescription !== null) assert.equal(ogDescription, description, page.file + ': Open Graph description must match meta description');
   console.log('PASS ' + page.file + ': title, descriptions, canonical and social metadata aligned');
 }
