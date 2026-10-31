@@ -229,7 +229,9 @@ jobs:
       - name: Run rendered mobile/layout regression checks
         timeout-minutes: 20
         run: node scripts/browser-layout-check.mjs
-      - name: Verify mobile sidebar open/close, visibility and readable close control\n        run: node scripts/mobile-sidebar-browser-check.mjs\n      - name: Verify guest VU course-code search in a real browser\n        run: node scripts/vu-guest-search-browser-check.mjs
+      - name: Verify mobile sidebar open/close, visibility and readable close control
+        run: node scripts/mobile-sidebar-browser-check.mjs
+      - name: Verify guest VU course-code search in a real browser\n        run: node scripts/vu-guest-search-browser-check.mjs
       - name: Run Teacher Student Parent workflow regressions
         run: node scripts/role-workflow-check.mjs
       - name: Upload Phase O visual QA screenshots
