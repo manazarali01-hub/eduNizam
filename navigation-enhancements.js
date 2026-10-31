@@ -27,31 +27,14 @@
         group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
       });
     };
-    // Use one capture-phase handler and the composed event path. This survives
-    // touch/forced clicks and shell listeners that stop propagation later in
-    // the event path. Explicitly set details.open before the browser default
-    // action so a disclosure cannot remain collapsed after a mobile tap.
+    // Native <summary> activation is the most reliable touch interaction.
+    // Do not cancel its default action or toggle details.open during click
+    // capture: doing so races the browser disclosure algorithm and can leave
+    // mobile groups closed after a tap. The observer below enforces the
+    // single-open accordion state after the native open-attribute mutation.
     const bindSummaryActivation=(root)=>{
-      if(!root||window.__EDUNIZAM_MOBILE_ACCORDION_CAPTURE__)return;
-      window.__EDUNIZAM_MOBILE_ACCORDION_CAPTURE__=true;
-      root.querySelectorAll(':scope > .nav-group').forEach(group=>{
-        group.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(group.open));
-      });
-      window.addEventListener('click',event=>{
-        if(window.innerWidth>950)return;
-        const path=typeof event.composedPath==='function'?event.composedPath():[event.target];
-        const summary=path.find(node=>node instanceof Element&&node.matches?.('details.nav-group > summary'));
-        if(!summary)return;
-        const group=summary.parentElement;
-        const liveNav=document.getElementById('nav');
-        if(!liveNav||!liveNav.contains(group))return;
-        event.preventDefault();
-        const shouldOpen=!group.open;
-        liveNav.querySelectorAll(':scope > details.nav-group').forEach(item=>{
-          item.open=item===group&&shouldOpen;
-          item.querySelector(':scope > summary')?.setAttribute('aria-expanded',String(item.open));
-        });
-      },true);
+      if(!root)return;
+      syncSummaryState(root);
     };
     bindSummaryActivation(nav);
     if(nav.dataset.mobileAccordionBound==='1')return;
@@ -82,7 +65,10 @@
       bindSummaryActivation(liveNav);
       if(window.innerWidth>950)return;
       const openGroups=[...liveNav.querySelectorAll(':scope > .nav-group[open]')];
-      if(openGroups.length<=1)return;
+      if(openGroups.length<=1){
+        syncSummaryState(liveNav);
+        return;
+      }
       const newlyOpened=records.map(record=>record.target)
         .filter(group=>group.matches?.('.nav-group')&&group.parentElement===liveNav&&group.open);
       const activeView=document.querySelector('.view.active')?.id||'dashboard';
