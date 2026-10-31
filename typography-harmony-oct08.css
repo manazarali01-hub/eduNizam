@@ -1,0 +1,148 @@
+/* EduNizam: typography, color harmony and clean text depth — 2026-10-08.
+   Last stylesheet on all pages. No photo, layout, card-background or control
+   behavior changes. Display headings are editorial; data and navigation stay sans. */
+:root{
+ --edu-type-serif:"Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Noto Serif",serif;
+ --edu-type-sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+ --edu-type-ink:#183f36;
+ --edu-type-copy:#385950;
+ --edu-type-leaf:#17694f;
+ --edu-type-sky:#285f8c;
+ --edu-type-gold:#956520;
+ --edu-type-plum:#705080;
+}
+body:is(.page-home,.premium-public-page,.page-app,.learning-sky,.auth-page,.admission-premium,.page-404){
+ font-kerning:normal;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;
+}
+/* Display headlines: restrained calligraphic feel without turning labels into scripts. */
+body.page-home .public-hero h1,
+body.premium-public-page .public-hero h1,
+body.learning-sky .hero-card h1,
+body.auth-page .story h1,
+body.admission-premium h1,
+body.page-app .campus-hero h2,
+body.page-app .main .view.active>.section-head h2,
+body.page-app .main .view.active .pp-hero h2{
+ font-family:var(--edu-type-serif)!important;
+ font-weight:700!important;line-height:1.19!important;
+ letter-spacing:-.024em!important;text-wrap:balance;
+}
+body.page-home .hero-copy h1 .hero-gold{font-style:italic!important;}
+/* Depth only on dark-on-light headings. Dark photo/blue panels retain
+   their established white text/shadow, and the natural photos are untouched. */
+body.page-home :is(.hero-copy h1,.section-heading h2),
+body.premium-public-page .public-section>h2,
+body.page-app .main .view.active :is(.section-head h2,.card>h2),
+body.learning-sky :is(.hero-card h1,.section-head h2,.quick-card h2),
+body.auth-page .main :is(.card h2,.head h2),
+body.admission-premium .card h2{
+ text-shadow:0 1px 0 rgba(255,255,255,.82),0 5px 17px rgba(23,74,61,.12)!important;
+ opacity:1!important;
+}
+body.premium-public-page .public-section>h2,
+body.page-app .main .view.active :is(.section-head h2,.card>h2),
+body.learning-sky :is(.section-head h2,.quick-card h2),
+body.auth-page .main :is(.card h2,.head h2),
+body.admission-premium .card h2{
+ color:var(--edu-type-ink)!important;-webkit-text-fill-color:var(--edu-type-ink)!important;
+}
+/* Faded labels and descriptions: crisp muted ink on light glass.
+   Do not target dark hero copy, sidebar, active buttons, tabs or pictorial cards. */
+body.page-home :is(.experience-strip article,.quick-access-card,.role-demo) :is(p,small),
+body.premium-public-page :is(.public-card,.public-list li,.public-note) :is(p,small),
+body.page-app .main .view.active :is(.card,.paper-card,.pp-stats article,.dashboard-panel) :is(p,.muted),
+body.learning-sky :is(.grid .card,.quick-card,.section-head) :is(p,small),
+body.auth-page .main .card :is(p,.help,.subtitle),
+body.admission-premium :is(.card,.doc) :is(p,small,.muted){
+ color:var(--edu-type-copy)!important;-webkit-text-fill-color:var(--edu-type-copy)!important;
+ opacity:1!important;text-shadow:none!important;
+}
+/* Small labels: intentional letterspacing, never blurry artificial glow. */
+body:is(.page-home,.premium-public-page,.page-app,.learning-sky,.auth-page,.admission-premium)
+:is(.public-kicker,.academic-kicker,.campus-label,.eyebrow,.kicker,.section-kicker){
+ font-family:var(--edu-type-sans)!important;font-weight:850!important;
+ line-height:1.35!important;letter-spacing:.065em;
+ opacity:1!important;text-shadow:0 1px 0 rgba(255,255,255,.45);
+}
+body.page-home .public-kicker,
+body.page-home .section-heading .eyebrow,
+body.page-app .main .view.active .section-head .academic-kicker{
+ color:var(--edu-type-leaf)!important;-webkit-text-fill-color:var(--edu-type-leaf)!important;
+}
+body.premium-public-page .public-kicker{
+ color:var(--edu-type-gold)!important;-webkit-text-fill-color:var(--edu-type-gold)!important;
+}
+body.learning-sky :is(.hero-card,.quick-card) .kicker{
+ color:var(--edu-type-sky)!important;-webkit-text-fill-color:var(--edu-type-sky)!important;
+}
+body.auth-page .main .eyebrow{
+ color:var(--edu-type-plum)!important;-webkit-text-fill-color:var(--edu-type-plum)!important;
+}
+/* Preserve high-contrast white and gold in the Past Papers blue hero. */
+body.page-app .main .view.active .pp-hero :is(h2,p){opacity:1!important;}
+body.page-app .main .view.active .pp-hero .eyebrow{
+ color:#ffe8a6!important;-webkit-text-fill-color:#ffe8a6!important;
+ text-shadow:0 1px 3px rgba(8,34,64,.42)!important;
+}
+/* Form labels and placeholders: consistent readability. */
+body.page-app .main .view.active :is(.field,.form-grid,.form-row,.filter-row) label,
+body.auth-page .main .field label,
+body.admission-premium :is(.field,.doc,.grid) label,
+body.learning-sky :is(.paper-filters,.filter-row) label{
+ color:#264d43!important;-webkit-text-fill-color:#264d43!important;
+ font-family:var(--edu-type-sans)!important;font-weight:750!important;
+ line-height:1.42!important;letter-spacing:0;
+ opacity:1!important;text-shadow:none!important;
+}
+body:is(.page-app,.learning-sky,.auth-page,.admission-premium) :is(input,textarea)::placeholder{
+ color:#617a76!important;opacity:1!important;text-shadow:none!important;
+}
+body:is(.page-app,.learning-sky,.auth-page,.admission-premium) :is(input,select,textarea){
+ font-family:var(--edu-type-sans);letter-spacing:0;font-variant-numeric:tabular-nums;
+}
+/* Never shade readable controls, menu labels or navigation. */
+body.page-app .sidebar :is(.nav-item,.nav-group summary,.premium-nav-label),
+body.page-app .premium-mobile-dock :is(strong,span),
+body.learning-sky .tabs .tab,
+body.premium-public-page .public-links a,
+body.auth-page :is(.role strong,.role small,.tab){text-shadow:none!important;}
+/* Four deliberate accents on card titles, not one monotonous color everywhere. */
+body.premium-public-page .public-grid>.public-card:nth-child(4n+1) h3,
+body.learning-sky .grid>.card:nth-child(4n+1) h3{
+ color:var(--edu-type-leaf)!important;-webkit-text-fill-color:var(--edu-type-leaf)!important;
+}
+body.premium-public-page .public-grid>.public-card:nth-child(4n+2) h3,
+body.learning-sky .grid>.card:nth-child(4n+2) h3{
+ color:var(--edu-type-sky)!important;-webkit-text-fill-color:var(--edu-type-sky)!important;
+}
+body.premium-public-page .public-grid>.public-card:nth-child(4n+3) h3,
+body.learning-sky .grid>.card:nth-child(4n+3) h3{
+ color:var(--edu-type-gold)!important;-webkit-text-fill-color:var(--edu-type-gold)!important;
+}
+body.premium-public-page .public-grid>.public-card:nth-child(4n) h3,
+body.learning-sky .grid>.card:nth-child(4n) h3{
+ color:var(--edu-type-plum)!important;-webkit-text-fill-color:var(--edu-type-plum)!important;
+}
+/* Numeric and overline labeling consistent across analytics, stats and papers. */
+body.page-app .main .view.active :is(.pp-stats,.cards,.admin-daily-stats,.analytics-grid) strong,
+body.learning-sky .stats .stat strong{font-variant-numeric:tabular-nums;letter-spacing:-.016em;}
+body.page-app .main .view.active :is(.pp-stats article,.admin-daily-stats>div) span,
+body.learning-sky .stats .stat span{
+ font-family:var(--edu-type-sans);font-weight:750!important;
+ line-height:1.4!important;letter-spacing:.01em;opacity:1!important;
+}
+body:is(.page-home,.premium-public-page,.learning-sky,.page-app,.auth-page,.admission-premium)
+:is(a,button,input,select,textarea):focus-visible{
+ outline:3px solid #b8883a!important;outline-offset:2px!important;
+}
+@media(max-width:760px){
+ body:is(.page-home,.premium-public-page,.learning-sky,.auth-page)
+ :is(.public-hero h1,.hero-card h1,.story h1){
+  line-height:1.2!important;letter-spacing:-.016em!important;
+  word-break:normal!important;hyphens:none!important;
+ }
+ body.page-app .main .view.active :is(.section-head h2,.card>h2),
+ body.learning-sky .section-head h2{
+  line-height:1.26!important;word-break:normal!important;hyphens:none!important;
+ }
+}

@@ -1,0 +1,246 @@
+(function(){
+  const CONV_KEY='edunizam_local_conversations_v1';
+  const MSG_KEY='edunizam_local_messages_v1';
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
+  const role=()=>session()?.role||'student';
+  const identity=()=>String(session()?.identity||'').trim().toLowerCase();
+  const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
+  const cloud=()=>window.EDUNIZAM_CLOUD;
+  const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
+  const uid=()=>cloud()?.state?.user?.id||'';
+  function read(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}}
+  function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
+  function students(){try{return JSON.parse(localStorage.getItem('edunizam_students')||'[]')}catch{return[]}}
+  function staff(){try{return JSON.parse(localStorage.getItem('edunizam_staff_profiles_v1')||'[]')}catch{return[]}}
+  function visibleStudents(){return window.EDUNIZAM_ROLE_SCOPE?.getVisibleStudents?.(students())||students()}
+  let contacts=[],conversations=[],activeId='',messages=[],unreadByConversation={};
+  let conversationSearch='',unreadOnly=false,messageSearch='';
+  let contactsInFlight=null,contactsLoadedAt=0,contactsLoadKey='',conversationsInFlight=null,conversationsLoadedAt=0,conversationsLoadKey='';
+  let messagingStartInFlight=false,messagingSendInFlight=false,threadLoadInFlight=null;
+  function setBusy(btn,busy,label='Working...'){
+    if(!btn)return;
+    if(busy){if(!btn.dataset.busyLabel)btn.dataset.busyLabel=btn.textContent||'';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent=label}
+    else{btn.disabled=false;btn.removeAttribute('aria-busy');if(btn.dataset.busyLabel!==undefined){btn.textContent=btn.dataset.busyLabel;delete btn.dataset.busyLabel}}
+  }
+  function withSignal(q,signal){return signal&&typeof q?.abortSignal==='function'?q.abortSignal(signal):q}
+  async function runCloud(key,label,factory,{timeout=7000,retries=1,cacheMs=0}={}){
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,factory,{timeout,retries,cacheMs,label}):factory({});
+  }
+
+  function roleLabel(r){return ({head:'Head of Institute',teacher:'Teacher',parent:'Parent / Guardian',student:'Student'}[r]||r)}
+  function localUserKey(){return role()+':'+(identity()||'local')}
+  function localContacts(){
+    const r=role(),list=visibleStudents(),all=students(),rows=[];
+    if(r==='head'){
+      all.forEach(s=>rows.push({targetKey:'parent:'+s.id,targetRole:'parent',displayName:s.father||('Parent of '+s.name),studentKey:String(s.id),studentName:s.name,conversationType:'head-parent'}));
+    }else if(r==='teacher'){
+      list.forEach(s=>{
+        rows.push({targetKey:'student:'+s.id,targetRole:'student',displayName:s.name,studentKey:String(s.id),studentName:s.name,conversationType:'teacher-student'});
+        rows.push({targetKey:'parent:'+s.id,targetRole:'parent',displayName:s.father||('Parent of '+s.name),studentKey:String(s.id),studentName:s.name,conversationType:'teacher-parent'});
+      });
+    }else if(r==='parent'){
+      list.forEach(s=>rows.push({targetKey:'head:'+s.id,targetRole:'head',displayName:'Head of Institute',studentKey:String(s.id),studentName:s.name,conversationType:'head-parent'}));
+    }else if(r==='student'){
+      const teacher=staff().find(x=>x.status!=='inactive');
+      list.forEach(s=>{if(teacher)rows.push({targetKey:'teacher:'+teacher.id,targetRole:'teacher',displayName:teacher.fullName,studentKey:String(s.id),studentName:s.name,conversationType:'teacher-student'})});
+    }
+    const seen=new Set();return rows.filter(x=>{const k=x.targetKey+'|'+x.studentKey+'|'+x.conversationType;if(seen.has(k))return false;seen.add(k);return true});
+  }
+  async function loadContacts(force=false){
+    if(!cloudReady()){contacts=localContacts();return contacts}
+    const loadKey=[cfg().institutionId,uid()].join('|');
+    if(contactsInFlight)return contactsInFlight;
+    if(!force&&contactsLoadKey===loadKey&&contactsLoadedAt&&Date.now()-contactsLoadedAt<60000)return contacts;
+    contactsInFlight=(async()=>{
+      const result=await runCloud('messages-contacts:'+loadKey,'Message contacts',async({signal}={})=>{
+        let q=cloud().state.client.rpc('list_message_contacts');q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out;
+      },{timeout:6500,retries:1,cacheMs:30000});
+      contacts=(result.data||[]).map(x=>({targetUserId:x.target_user_id,targetRole:x.target_role,displayName:x.display_name,studentUserId:x.student_user_id,studentName:x.student_name,conversationType:x.conversation_type}));
+      contactsLoadKey=loadKey;
+      contactsLoadedAt=Date.now();
+      return contacts;
+    })();
+    try{return await contactsInFlight}finally{contactsInFlight=null}
+  }
+  function localVisibleConversation(c){
+    const me=localUserKey();
+    if(c.participantAKey===me||c.participantBKey===me)return true;
+    const id=identity();
+    if(!id)return false;
+    const targetStudent=students().find(s=>[s.id,s.studentId,s.rollNo,s.phone].some(v=>String(v??'').trim().toLowerCase()===id));
+    if(!targetStudent)return false;
+    if(role()==='parent')return c.conversationType==='head-parent'||c.conversationType==='teacher-parent' ? String(c.studentKey)===String(targetStudent.id):false;
+    if(role()==='student')return c.conversationType==='teacher-student'&&String(c.studentKey)===String(targetStudent.id);
+    return false;
+  }
+  async function loadConversations(force=false){
+    if(!cloudReady()){
+      conversations=read(CONV_KEY).filter(localVisibleConversation).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
+      const allMsgs=read(MSG_KEY),me=localUserKey();unreadByConversation={};
+      allMsgs.filter(m=>!m.readAt&&m.senderKey!==me).forEach(m=>unreadByConversation[m.conversationId]=(unreadByConversation[m.conversationId]||0)+1);
+      return conversations;
+    }
+    const loadKey=[cfg().institutionId,uid()].join('|');
+    if(conversationsInFlight)return conversationsInFlight;
+    if(!force&&conversationsLoadKey===loadKey&&conversationsLoadedAt&&Date.now()-conversationsLoadedAt<3000)return conversations;
+    conversationsInFlight=(async()=>{
+      const c=cloud().state.client;
+      const cr=await runCloud('messages-conversations:'+loadKey,'Message conversations',async({signal}={})=>{
+        let q=c.from('school_conversations').select('*').eq('institution_id',cfg().institutionId).order('updated_at',{ascending:false});
+        q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+      },{timeout:7000,retries:1});
+      conversations=cr.data||[];
+      unreadByConversation={};
+      const ids=conversations.map(x=>x.id).filter(Boolean);
+      for(let start=0;start<ids.length;start+=100){
+        const batch=ids.slice(start,start+100);
+        const mr=await runCloud('messages-unread:'+loadKey+':'+start,'Unread messages',async({signal}={})=>{
+          let q=c.from('school_messages').select('conversation_id,sender_user_id,read_at').in('conversation_id',batch).neq('sender_user_id',uid());
+          q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+        },{timeout:6500,retries:1});
+        (mr.data||[]).filter(m=>!m.read_at).forEach(m=>{
+          unreadByConversation[m.conversation_id]=(unreadByConversation[m.conversation_id]||0)+1;
+        });
+      }
+      conversationsLoadKey=loadKey;
+      conversationsLoadedAt=Date.now();
+      return conversations;
+    })();
+    try{return await conversationsInFlight}finally{conversationsInFlight=null}
+  }
+  function conversationOtherName(c){
+    if(!cloudReady()){
+      const me=localUserKey();return c.participantAKey===me?c.participantBLabel:c.participantALabel;
+    }
+    return c.participant_a===uid()?c.participant_b_label:c.participant_a_label;
+  }
+  async function openConversation(id){
+    const requestedId=String(id);activeId=requestedId;
+    if(threadLoadInFlight&&threadLoadInFlight.id===requestedId)return threadLoadInFlight.promise;
+    if(!cloudReady()){
+      const me=localUserKey(),all=read(MSG_KEY);
+      messages=all.filter(m=>String(m.conversationId)===activeId).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
+      let changed=false;all.forEach(m=>{if(String(m.conversationId)===activeId&&m.senderKey!==me&&!m.readAt){m.readAt=new Date().toISOString();changed=true}});if(changed)write(MSG_KEY,all);
+    }else{
+      const promise=(async()=>{
+        const result=await runCloud('messages-thread:'+requestedId,'Message thread',async({signal}={})=>{
+          let q=cloud().state.client.from('school_messages').select('*').eq('conversation_id',requestedId).order('created_at');
+          q=withSignal(q,signal);const out=await q;if(out.error)throw out.error;return out;
+        },{timeout:7000,retries:1});
+        if(activeId!==requestedId)return;
+        messages=result.data||[];
+        runCloud('messages-read:'+requestedId,'Mark messages read',async({signal}={})=>{
+          let q=cloud().state.client.rpc('mark_school_messages_read',{p_conversation_id:requestedId});q=withSignal(q,signal);
+          const out=await q;if(out.error)throw out.error;return out;
+        },{timeout:5000,retries:1}).catch(e=>console.warn('Mark messages read:',e.message||e));
+      })();
+      threadLoadInFlight={id:requestedId,promise};
+      try{await promise}finally{if(threadLoadInFlight?.id===requestedId)threadLoadInFlight=null}
+    }
+    await loadConversations(true);if(activeId===requestedId)renderUI();
+  }
+  async function startConversation(){
+    const btn=$('msgStart');if(messagingStartInFlight||btn?.disabled)return;
+    const key=$('msgContact')?.value,subject=$('msgSubject')?.value.trim()||'General';
+    if(!key)return alert('Contact select karein.');
+    const contact=contacts[Number(key)];if(!contact)return;
+    if(!cloudReady()){
+      const me=localUserKey(),myLabel=roleLabel(role()),targetKey=contact.targetKey;
+      const c={id:String(Date.now()),conversationType:contact.conversationType,studentKey:contact.studentKey,studentName:contact.studentName,participantAKey:me,participantBKey:targetKey,participantALabel:myLabel,participantBLabel:contact.displayName,subject,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+      const arr=read(CONV_KEY);arr.unshift(c);write(CONV_KEY,arr);await loadConversations();await openConversation(c.id);return;
+    }
+    messagingStartInFlight=true;setBusy(btn,true,'Starting...');
+    try{
+      const result=await runCloud('messages-start:'+cfg().institutionId+':'+contact.targetUserId+':'+String(contact.studentUserId||'')+':'+contact.conversationType,'Start conversation',async({signal}={})=>{
+        let q=cloud().state.client.rpc('create_school_conversation',{
+          p_target_user_id:contact.targetUserId,p_student_user_id:contact.studentUserId,p_conversation_type:contact.conversationType,p_subject:subject
+        });q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out;
+      },{timeout:8000,retries:1});
+      const row=Array.isArray(result.data)?result.data[0]:result.data;if(!row?.id)return alert('Conversation create nahi hui.');
+      await loadConversations(true);await openConversation(row.id);
+    }catch(e){alert('Conversation start failed: '+(e.message||e))}
+    finally{messagingStartInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
+  }
+  async function sendMessage(){
+    const btn=$('msgSend');if(messagingSendInFlight||btn?.disabled)return;
+    const body=$('msgBody')?.value.trim();if(!activeId||!body)return;
+    if(body.length>4000)return alert('Message 4000 characters se chhota rakhein.');
+    if(!cloudReady()){
+      const arr=read(MSG_KEY);arr.push({id:String(Date.now()),conversationId:activeId,senderKey:localUserKey(),senderLabel:roleLabel(role()),body,createdAt:new Date().toISOString(),readAt:null});write(MSG_KEY,arr);
+      const cs=read(CONV_KEY),c=cs.find(x=>String(x.id)===activeId);if(c)c.updatedAt=new Date().toISOString();write(CONV_KEY,cs);$('msgBody').value='';await openConversation(activeId);return;
+    }
+    const conversationId=activeId;messagingSendInFlight=true;setBusy(btn,true,'Sending...');
+    try{
+      await runCloud('messages-send:'+conversationId,'Send message',async({signal}={})=>{
+        let q=cloud().state.client.rpc('send_school_message',{p_conversation_id:conversationId,p_body:body});q=withSignal(q,signal);
+        const out=await q;if(out.error)throw out.error;return out;
+      },{timeout:8000,retries:0});
+      if($('msgBody'))$('msgBody').value='';await openConversation(conversationId);
+    }catch(e){
+      try{await openConversation(conversationId)}catch(_){}
+      alert('Message send status refreshed after failure. Check the thread before sending again: '+(e.message||e));
+    }finally{messagingSendInFlight=false;if(btn?.isConnected)setBusy(btn,false)}
+  }
+  function filteredConversations(){
+    const q=conversationSearch.trim().toLowerCase();
+    return conversations.filter(c=>{
+      const unread=unreadByConversation[c.id]||0;
+      if(unreadOnly&&!unread)return false;
+      if(!q)return true;
+      const student=cloudReady()?c.student_name:c.studentName,subject=c.subject||'General',type=cloudReady()?c.conversation_type:c.conversationType;
+      return [conversationOtherName(c),student,subject,type].join(' ').toLowerCase().includes(q);
+    });
+  }
+  function conversationList(){
+    const rows=filteredConversations();
+    return rows.length?rows.map(c=>{
+      const unread=unreadByConversation[c.id]||0;
+      const student=cloudReady()?c.student_name:c.studentName,subject=c.subject||'General',type=cloudReady()?c.conversation_type:c.conversationType;
+      return '<button class="msg-conv '+(String(c.id)===activeId?'active':'')+'" data-msg-open="'+esc(c.id)+'"><strong>'+esc(conversationOtherName(c))+(unread?'<span class="badge" style="margin-left:6px">'+unread+'</span>':'')+'</strong><span>'+esc(subject)+'</span><small>'+esc(type.replace(/-/g,' ↔ '))+' · '+esc(student||'Student')+(unread?' · unread':'')+'</small></button>';
+    }).join(''):'<div class="muted">No conversation matches this filter.</div>';
+  }
+  function thread(){
+    if(!activeId)return '<div class="msg-empty">Conversation select karein ya nayi conversation start karein.</div>';
+    const c=conversations.find(x=>String(x.id)===activeId);
+    if(!c)return '<div class="msg-empty">Conversation unavailable.</div>';
+    const me=cloudReady()?uid():localUserKey(),q=messageSearch.trim().toLowerCase();
+    const filtered=messages.filter(m=>!q||String(m.body||'').toLowerCase().includes(q));
+    const rows=filtered.map(m=>{
+      const mine=cloudReady()?m.sender_user_id===me:m.senderKey===me;
+      const body=m.body,created=cloudReady()?m.created_at:m.createdAt,readAt=cloudReady()?m.read_at:m.readAt;
+      return '<div class="msg-line '+(mine?'mine':'theirs')+'"><div>'+esc(body)+'</div><small>'+new Date(created).toLocaleString()+(mine?(readAt?' · Read':' · Sent'):'')+'</small></div>';
+    }).join('');
+    return '<div class="msg-thread-head"><div><strong>'+esc(conversationOtherName(c))+'</strong><div class="muted">'+esc(c.subject||'General')+'</div></div><input id="msgSearchThread" type="search" value="'+esc(messageSearch)+'" placeholder="Search messages"></div><div class="msg-thread">'+(rows||'<div class="msg-empty">'+(q?'No message matched this search.':'No messages yet.')+'</div>')+'</div><div class="msg-compose"><textarea id="msgBody" rows="3" maxlength="4000" placeholder="Write a message... (Ctrl+Enter to send)"></textarea><button id="msgSend">Send</button></div>';
+  }
+  function createPanel(){
+    const note=cloudReady()?'Contacts are based on approved links and assignments.':'Local demo mode: secure cross-device messaging activates with Cloud Mode.';
+    return '<article class="card"><h3>New Conversation</h3><p class="muted">'+esc(note)+'</p><div class="form-grid"><select id="msgContact"><option value="">Select linked contact</option>'+contacts.map((x,i)=>'<option value="'+i+'">'+esc(x.displayName)+' · '+esc(x.conversationType.replace(/-/g,' ↔ '))+' · '+esc(x.studentName||'')+'</option>').join('')+'</select><input id="msgSubject" placeholder="Subject" value="General"><button id="msgStart">Start Conversation</button></div></article>';
+  }
+  function renderUI(){
+    const root=$('inboxCenterApp');if(!root)return;
+    root.innerHTML='<style>.msg-layout{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(360px,1.5fr);gap:16px}.msg-list{display:grid;gap:8px}.msg-conv{display:grid;gap:4px;text-align:left;padding:12px;border:1px solid #dce6eb;border-radius:12px;background:#fff;color:inherit}.msg-conv.active{outline:2px solid #0f766e;background:#eef9f7}.msg-conv span,.msg-conv small{color:#667}.msg-thread-wrap{min-height:420px;display:flex;flex-direction:column}.msg-thread-head{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e6edef;padding-bottom:10px}.msg-thread{display:flex;flex-direction:column;gap:9px;min-height:280px;max-height:480px;overflow:auto;padding:14px 0}.msg-line{max-width:78%;padding:10px 12px;border-radius:14px;background:#edf2f5}.msg-line.mine{align-self:flex-end;background:#dff3ef}.msg-line.theirs{align-self:flex-start}.msg-line small{display:block;color:#697b86;font-size:11px;margin-top:5px}.msg-compose{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:auto}.msg-compose textarea{width:100%;box-sizing:border-box}.msg-empty{padding:40px 12px;text-align:center;color:#6a7b88}@media(max-width:800px){.msg-layout{grid-template-columns:1fr}.msg-compose{grid-template-columns:1fr}}</style>'+
+      '<div class="section-head"><div><span class="academic-pill">'+(cloudReady()?'Secure Cloud Inbox':'Local Demo Mode')+'</span><p class="muted">'+conversations.length+' conversation'+(conversations.length===1?'':'s')+' · '+Object.values(unreadByConversation).reduce((a,n)=>a+Number(n||0),0)+' unread message'+(Object.values(unreadByConversation).reduce((a,n)=>a+Number(n||0),0)===1?'':'s')+'</p></div></div>'+createPanel()+
+      '<div class="msg-layout" style="margin-top:16px"><article class="card"><div class="section-head"><div><h3>Conversations</h3><p class="muted">'+filteredConversations().length+' shown</p></div><button id="msgRefresh" class="secondary">Refresh</button></div><div class="form-grid"><input id="msgConversationSearch" type="search" value="'+esc(conversationSearch)+'" placeholder="Search contact, subject or student"><label class="coverage-note"><input id="msgUnreadOnly" type="checkbox" '+(unreadOnly?'checked':'')+'> Unread only</label></div><div class="msg-list" style="margin-top:10px">'+conversationList()+'</div></article><article class="card msg-thread-wrap">'+thread()+'</article></div>';
+    $('msgStart')?.addEventListener('click',startConversation);$('msgRefresh')?.addEventListener('click',()=>render(true));
+    $('msgSend')?.addEventListener('click',sendMessage);
+    $('msgConversationSearch')?.addEventListener('input',e=>{conversationSearch=e.target.value;clearTimeout(renderUI.searchTimer);renderUI.searchTimer=setTimeout(renderUI,140)});
+    $('msgUnreadOnly')?.addEventListener('change',e=>{unreadOnly=e.target.checked;renderUI()});
+    $('msgSearchThread')?.addEventListener('input',e=>{messageSearch=e.target.value;clearTimeout(renderUI.threadTimer);renderUI.threadTimer=setTimeout(renderUI,140)});
+    $('msgBody')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();sendMessage()}});
+    document.querySelectorAll('[data-msg-open]').forEach(b=>b.onclick=()=>{messageSearch='';openConversation(b.dataset.msgOpen)});
+  }
+  async function render(force=false){
+    const root=$('inboxCenterApp');if(!root)return;
+    root.innerHTML='<div class="coverage-note">Inbox loading...</div>';
+    try{await Promise.all([loadContacts(force===true),loadConversations(force===true)]);if(activeId){const exists=conversations.some(x=>String(x.id)===activeId);if(!exists){activeId='';messages=[]}}renderUI()}
+    catch(e){root.innerHTML='<div class="empty-state">Inbox error: '+esc(e.message||e)+'</div>'}
+  }
+  window.addEventListener('edunizam:auth',()=>{activeId='';messages=[];contactsLoadedAt=0;contactsLoadKey='';conversationsLoadedAt=0;conversationsLoadKey='';render(true)});
+  setTimeout(render,0);setTimeout(render,900);
+  window.EDUNIZAM_MESSAGING_CENTER={render,openConversation,cloudReady};
+})();

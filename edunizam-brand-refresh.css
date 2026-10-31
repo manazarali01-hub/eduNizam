@@ -1,0 +1,147 @@
+/* EduNizam Design System · canonical tokens · 2026-10-04
+   Shared by public, auth, app and learning surfaces.
+   This file intentionally contains tokens only; page-specific styling belongs in its own stylesheet. */
+:root{
+  color-scheme:light;
+
+  /* Brand */
+  --en-navy-950:#081f33;
+  --en-navy-900:#102a43;
+  --en-navy-800:#163d5c;
+  --en-blue-700:#145f9c;
+  --en-blue-600:#1769aa;
+  --en-blue-500:#2f80ed;
+  --en-sky-500:#5bb8f6;
+  --en-sky-300:#9edcff;
+  --en-sky-100:#eaf6ff;
+  --en-sky-050:#f6fbff;
+  --en-gold-600:#b98427;
+  --en-gold-500:#d6a94d;
+  --en-gold-100:#fff3d6;
+
+  /* Semantic */
+  --en-success:#157a5a;
+  --en-success-bg:#edf9f4;
+  --en-warning:#986515;
+  --en-warning-bg:#fff7e7;
+  --en-danger:#b23a35;
+  --en-danger-bg:#fff2f1;
+  --en-info:#1769aa;
+  --en-info-bg:#edf7ff;
+
+  /* Surfaces */
+  --en-bg:#f4f9fd;
+  --en-bg-soft:#f8fcff;
+  --en-surface:#ffffff;
+  --en-surface-soft:#f7fbfe;
+  --en-surface-tint:#eef8ff;
+  --en-border:#d9e7f1;
+  --en-border-strong:#bfd7e7;
+
+  /* Text */
+  --en-text:#17324d;
+  --en-text-strong:#102a43;
+  --en-text-muted:#667d91;
+  --en-text-soft:#8295a5;
+  --en-on-dark:#f7fbff;
+
+  /* Typography */
+  --en-font-sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  --en-font-display:var(--en-font-sans);
+  --en-text-xs:.75rem;
+  --en-text-sm:.875rem;
+  --en-text-md:1rem;
+  --en-text-lg:1.125rem;
+  --en-text-xl:1.375rem;
+  --en-text-2xl:1.75rem;
+  --en-text-3xl:2.25rem;
+
+  /* Spacing */
+  --en-space-1:.25rem;
+  --en-space-2:.5rem;
+  --en-space-3:.75rem;
+  --en-space-4:1rem;
+  --en-space-5:1.25rem;
+  --en-space-6:1.5rem;
+  --en-space-8:2rem;
+  --en-space-10:2.5rem;
+  --en-space-12:3rem;
+  --en-space-16:4rem;
+
+  /* Radius */
+  --en-radius-sm:10px;
+  --en-radius-md:14px;
+  --en-radius-lg:20px;
+  --en-radius-xl:28px;
+  --en-radius-pill:999px;
+
+  /* Elevation */
+  --en-shadow-xs:0 2px 8px rgba(22,61,92,.045);
+  --en-shadow-sm:0 8px 24px rgba(22,61,92,.07);
+  --en-shadow-md:0 16px 42px rgba(22,61,92,.10);
+  --en-shadow-lg:0 28px 72px rgba(14,53,84,.14);
+
+  /* Motion */
+  --en-ease:cubic-bezier(.2,.8,.2,1);
+  --en-fast:140ms;
+  --en-normal:220ms;
+  --en-slow:420ms;
+
+  /* Focus */
+  --en-focus:0 0 0 4px rgba(91,184,246,.22);
+
+  /* Layout */
+  --en-content:1240px;
+  --en-reading:760px;
+
+  /* Compatibility aliases used by older EduNizam modules */
+  --edu-navy:var(--en-navy-900);
+  --edu-navy-2:var(--en-navy-950);
+  --edu-teal:var(--en-blue-600);
+  --edu-teal-soft:var(--en-sky-100);
+  --edu-gold:var(--en-gold-500);
+  --edu-ink:var(--en-text);
+  --edu-muted:var(--en-text-muted);
+  --edu-line:var(--en-border);
+  --edu-bg:var(--en-bg);
+  --edu-card:var(--en-surface);
+
+  --premium-navy:var(--en-navy-900);
+  --premium-navy-2:var(--en-navy-800);
+  --premium-teal:var(--en-blue-600);
+  --premium-teal-2:var(--en-blue-500);
+  --premium-gold:var(--en-gold-500);
+  --premium-gold-soft:var(--en-gold-100);
+  --premium-bg:var(--en-bg);
+  --premium-surface:var(--en-surface);
+  --premium-line:var(--en-border);
+  --premium-ink:var(--en-text);
+  --premium-muted:var(--en-text-muted);
+  --premium-success:var(--en-success);
+  --premium-danger:var(--en-danger);
+  --premium-radius:var(--en-radius-lg);
+  --premium-shadow:var(--en-shadow-sm);
+  --premium-shadow-lg:var(--en-shadow-lg);
+
+  --pa-navy:var(--en-navy-900);
+  --pa-navy2:var(--en-navy-800);
+  --pa-teal:var(--en-blue-600);
+  --pa-teal2:var(--en-blue-500);
+  --pa-gold:var(--en-gold-500);
+  --pa-line:var(--en-border);
+  --pa-ink:var(--en-text);
+  --pa-muted:var(--en-text-muted);
+
+  --global-blue:var(--en-blue-500);
+  --global-navy:var(--en-navy-900);
+  --global-teal:var(--en-blue-600);
+  --global-gold:var(--en-gold-500);
+}
+
+@media (prefers-reduced-motion:reduce){
+  :root{
+    --en-fast:0ms;
+    --en-normal:0ms;
+    --en-slow:0ms;
+  }
+}

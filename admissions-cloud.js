@@ -1,0 +1,760 @@
+(function(){
+  const cfg=window.EDUNIZAM_CLOUD_CONFIG||{};
+  const state={enabled:false,client:null,user:null,session:null,initialized:false,authEvent:'BOOTING',sessionRestoreStatus:'pending',sessionRestoreError:null};
+  const roleCache={key:'',value:null,at:0,inflight:null};
+  const institutionsCache={userId:'',value:null,at:0,inflight:null};
+  const SESSION_RESTORE_TIMEOUT_MS=3500;
+  // Supabase auth events are authoritative. A stale getSession promise must
+  // never resurrect a signed-out user or replace a newer signed-in account.
+  let authRevision=0;
+  function clearIdentityCaches(){roleCache.key='';roleCache.value=null;roleCache.at=0;roleCache.inflight=null;institutionsCache.userId='';institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
+  async function boundedRead(key,builder,{timeout=6500,retries=1,cacheMs=15000,label='School data'}={}){
+    const execute=async({signal}={})=>{
+      let request=builder();
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;
+      if(result?.error)throw result.error;
+      return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime
+      ?runtime.run('cloud-read:'+key,execute,{timeout,retries,cacheMs,label})
+      :execute({});
+  }
+
+  function ready(){
+    return !!(cfg.enabled&&cfg.provider==='supabase'&&cfg.supabaseUrl&&cfg.supabasePublishableKey&&window.supabase?.createClient);
+  }
+  let initPromise=null;
+  async function init(){
+    if(initPromise)return initPromise;
+    initPromise=(async()=>{
+      if(!ready()){state.sessionRestoreStatus='unavailable';state.initialized=true;window.dispatchEvent(new CustomEvent('edunizam:cloud-ready'));return api}
+      state.client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+      state.enabled=true;
+
+      state.client.auth.onAuthStateChange((event,session)=>{
+        const previousUserId=state.user?.id||'';
+        const nextUser=session?.user||null;
+        state.session=session||null;
+        state.user=nextUser;
+        state.authEvent=event;
+        authRevision++;
+        if(session){state.sessionRestoreStatus='active';state.sessionRestoreError=null}
+        else if(event==='INITIAL_SESSION'||event==='SIGNED_OUT'){state.sessionRestoreStatus='absent';state.sessionRestoreError=null}
+        state.initialized=true;
+        const nextUserId=nextUser?.id||'';
+        if(previousUserId!==nextUserId||event==='SIGNED_OUT')clearIdentityCaches();
+        // INITIAL_SESSION / SIGNED_IN / SIGNED_OUT are meaningful lifecycle
+        // events. TOKEN_REFRESHED must not remount the whole application.
+        if(['INITIAL_SESSION','SIGNED_IN','SIGNED_OUT','USER_UPDATED'].includes(event)){
+          window.dispatchEvent(new CustomEvent('edunizam:auth',{detail:{event,user:state.user,session:state.session}}));
+        }
+        window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event,user:state.user}}));
+      });
+
+      // getSession restores the browser-persisted session and usually reads local
+      // storage. It may refresh an expired token, so it is never used as a UI gate.
+      // Keep restore certainty explicit: a transient refresh failure is not the same
+      // thing as an authoritative signed-out browser session.
+      state.sessionRestoreStatus='pending';
+      state.sessionRestoreError=null;
+      const restoreRevision=authRevision;
+      const restorePromise=Promise.resolve().then(()=>state.client.auth.getSession());
+      let restoreTimer=0;
+      try{
+        const outcome=await Promise.race([
+          restorePromise.then(value=>({kind:'result',value}),error=>({kind:'error',error})),
+          new Promise(resolve=>{restoreTimer=setTimeout(()=>resolve({kind:'timeout'}),SESSION_RESTORE_TIMEOUT_MS)})
+        ]);
+        clearTimeout(restoreTimer);
+        if(outcome.kind==='error')throw outcome.error;
+        if(outcome.kind==='timeout'){
+          if(state.sessionRestoreStatus==='pending'){
+            const error=new Error('Session restore exceeded '+SESSION_RESTORE_TIMEOUT_MS+'ms; continuing with the local workspace shell.');
+            error.code='SESSION_RESTORE_TIMEOUT';
+            state.sessionRestoreStatus='timeout';
+            state.sessionRestoreError=error;
+            console.warn('EduNizam session restore:',error.message);
+          }
+          // Supabase may still finish an expired-token refresh later. Keep that
+          // result useful without allowing the unresolved request to own app startup.
+          restorePromise.then(({data,error})=>{
+            if(authRevision!==restoreRevision)return;
+            if(error)throw error;
+            state.session=data?.session||state.session||null;
+            state.user=state.session?.user||null;
+            state.sessionRestoreStatus=state.session?'active':'absent';
+            state.sessionRestoreError=null;
+            window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event:'LATE_SESSION_RESTORE',user:state.user}}));
+          }).catch(e=>{
+            if(authRevision!==restoreRevision)return;
+            if(state.sessionRestoreStatus!=='active'){
+              state.sessionRestoreStatus='error';
+              state.sessionRestoreError=e;
+            }
+            console.warn('EduNizam late session restore:',e.message||e);
+            window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event:'LATE_SESSION_RESTORE_ERROR',user:state.user}}));
+          });
+        }else{
+          const {data,error}=outcome.value||{};
+          if(error)throw error;
+          if(authRevision===restoreRevision){
+            state.session=data?.session||null;
+            state.user=state.session?.user||null;
+            state.sessionRestoreStatus=state.session?'active':'absent';
+            state.sessionRestoreError=null;
+          }
+        }
+      }catch(e){
+        clearTimeout(restoreTimer);
+        if(authRevision===restoreRevision){
+          if(state.sessionRestoreStatus!=='active'){
+            state.sessionRestoreStatus='error';
+            state.sessionRestoreError=e;
+          }
+          console.warn('EduNizam session restore:',e.message||e);
+        }
+      }finally{
+        state.initialized=true;
+        window.dispatchEvent(new CustomEvent('edunizam:cloud-ready',{detail:{event:'INIT_COMPLETE',user:state.user}}));
+      }
+      return api;
+    })();
+    return initPromise;
+  }
+  function whenReady(){return initPromise||init()}
+  async function signUp(email,password,accountRole='student',fullName=''){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    const safeRole=['student','parent'].includes(accountRole)?accountRole:'student';
+    return state.client.auth.signUp({email,password,options:{emailRedirectTo:'https://edunizam.online/login.html?verified=1',data:{account_role:safeRole,full_name:fullName}}});
+  }
+  async function resendSignupConfirmation(email){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    return state.client.auth.resend({
+      type:'signup',
+      email,
+      options:{emailRedirectTo:'https://edunizam.online/login.html?verified=1'}
+    });
+  }
+  async function signIn(email,password){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    return state.client.auth.signInWithPassword({email,password});
+  }
+  async function signOut(){
+    if(!state.client)return;return state.client.auth.signOut();
+  }
+  async function sendMagicLink(email){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    return state.client.auth.signInWithOtp({
+      email,
+      options:{shouldCreateUser:false,emailRedirectTo:window.location.href.split('#')[0]}
+    });
+  }
+  async function sendPasswordReset(email){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    return state.client.auth.resetPasswordForEmail(email,{redirectTo:'https://edunizam.online/login.html?reset=1'});
+  }
+  function mapApplication(row){
+    return {
+      institution_id:cfg.institutionId,
+      applicant_user_id:state.user?.id||null,
+      application_no:row.applicationId,
+      status:row.status||'Submitted',
+      applicant_name:row.applicantName,
+      father_name:row.fatherName||null,
+      cnic:row.cnic||null,
+      dob:row.dob||null,
+      gender:row.gender||null,
+      phone:row.phone||null,
+      email:row.email||state.user?.email||null,
+      address:row.address||null,
+      city:row.city||null,
+      district:row.district||null,
+      program:row.program||null,
+      quota:row.quota||null,
+      qualification:row.qualification||null,
+      previous_institute:row.previousInstitute||null,
+      obtained_marks:row.obtainedMarks||null,
+      total_marks:row.totalMarks||null,
+      percentage:row.percentage||null,
+      payment_method:row.paymentMethod||null,
+      fee_status:row.feeStatus||'Unpaid',
+      fee_reference:row.feeReference||null,
+      fee_date:row.feeDate||null,
+      test_marks:row.testMarks||null,
+      interview_marks:row.interviewMarks||null,
+      academic_weight:row.academicWeight??70,
+      test_weight:row.testWeight??20,
+      interview_weight:row.interviewWeight??10,
+      merit_score:row.meritScore||null,
+      admin_note:row.adminNote||null,
+      metadata:{localCreatedAt:row.createdAt||null,quota:row.quota||null,fee_snapshot:row.feeSnapshot||null}
+    };
+  }
+  async function createApplication(row){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    if(!state.user)throw new Error('Sign in first.');
+    if(!cfg.institutionId)throw new Error('Cloud institutionId is not configured.');
+    const payload=mapApplication(row);
+    const {data,error}=await state.client.from('applications').insert(payload).select().single();
+    if(error)throw error;return data;
+  }
+  async function syncLocalApplication(row){
+    if(!state.client||!state.user||!cfg.institutionId)return null;
+    const payload=mapApplication(row);
+    const {data,error}=await state.client.from('applications')
+      .upsert(payload,{onConflict:'institution_id,application_no'})
+      .select().single();
+    if(error)throw error;return data;
+  }
+  async function listMyApplications(){
+    if(!state.client||!state.user)return[];
+    const {data,error}=await state.client.from('applications').select('*').eq('applicant_user_id',state.user.id).order('created_at',{ascending:false});
+    if(error)throw error;return data||[];
+  }
+  async function requireHeadRole(){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const r=await getMyRole();
+    if(r!=='head_of_institute')throw new Error('School Admin access required.');
+    return true;
+  }
+  async function listInstitutionApplications(){
+    if(!state.client)return[];
+    await requireHeadRole();
+    let q=state.client.from('applications').select('*').order('created_at',{ascending:false});
+    if(cfg.institutionId)q=q.eq('institution_id',cfg.institutionId);
+    const {data,error}=await q;if(error)throw error;return data||[];
+  }
+  async function listAuthorizedWorkspaces(force=false){
+    if(!state.client||!state.user)return[];
+    const uid=String(state.user.id||'');
+    if(institutionsCache.userId!==uid){institutionsCache.userId=uid;institutionsCache.value=null;institutionsCache.at=0;institutionsCache.inflight=null}
+    if(!force&&institutionsCache.value&&Date.now()-institutionsCache.at<60000)return institutionsCache.value;
+    if(institutionsCache.inflight)return institutionsCache.inflight;
+    const runner=async({signal}={})=>{
+      let request=state.client.rpc('my_authorized_workspaces');
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const {data,error}=await request;
+      if(error)throw error;
+      return (data||[]).map(row=>({
+        id:row.institution_id,
+        name:row.institution_name,
+        institution_type:row.institution_type,
+        registration_number:row.registration_number,
+        school_registration_code:row.school_registration_code,
+        _membership_role:row.workspace_role==='head_of_institute'?'head':row.workspace_role,
+        workspace_role:row.workspace_role
+      }));
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    institutionsCache.inflight=runtime
+      ?runtime.run('authorized-workspaces:'+uid,context=>runner(context),{timeout:6500,retries:1,cacheMs:60000,label:'School access'})
+      :runner();
+    try{
+      const value=await institutionsCache.inflight;
+      institutionsCache.value=value;institutionsCache.at=Date.now();
+      return value;
+    }finally{institutionsCache.inflight=null}
+  }
+  async function verifyWorkspaceAccess(institutionId,expectedRole='',force=false){
+    const id=String(institutionId||'').trim();
+    if(!id||!state.user)return null;
+    const rows=await listAuthorizedWorkspaces(force);
+    const row=rows.find(x=>String(x.id)===id)||null;
+    if(!row)return null;
+    const role=row.workspace_role||row._membership_role||'';
+    const normalizedExpected=expectedRole==='head'?'head_of_institute':expectedRole;
+    if(normalizedExpected&&role!==normalizedExpected)return null;
+    return {...row,workspace_role:role};
+  }
+  async function getMyRole(force=false){
+    if(!state.client||!state.user)return null;
+    const key=String(state.user.id||'')+'|'+String(cfg.institutionId||'');
+    if(roleCache.key!==key){roleCache.key=key;roleCache.value=null;roleCache.at=0;roleCache.inflight=null}
+    if(!force&&roleCache.at&&Date.now()-roleCache.at<60000)return roleCache.value;
+    if(roleCache.inflight)return roleCache.inflight;
+    roleCache.inflight=(async()=>{
+      const rows=await listAuthorizedWorkspaces(force);
+      if(cfg.institutionId){
+        const match=rows.find(x=>String(x.id)===String(cfg.institutionId));
+        return match?.workspace_role||null;
+      }
+      return rows.length===1?(rows[0].workspace_role||null):null;
+    })();
+    try{
+      const value=await roleCache.inflight;
+      roleCache.value=value;roleCache.at=Date.now();
+      return value;
+    }finally{roleCache.inflight=null}
+  }
+  async function listMyInstitutions(force=false){
+    return listAuthorizedWorkspaces(force);
+  }
+  async function createInstitution(){
+    throw new Error('Create the school account from the Admin Sign Up screen.');
+  }
+  async function getLinkedStudents(){
+    if(!state.client||!state.user)return[];
+    const uid=String(state.user.id||'');
+    const {data}=await boundedRead('linked-students:'+uid,()=>state.client.from('parent_student_links')
+      .select('student_user_id,status,user_profiles!parent_student_links_student_user_id_fkey(user_id,full_name,account_role)')
+      .eq('parent_user_id',state.user.id).eq('status','approved'),{cacheMs:15000,label:'Linked students'});
+    return data||[];
+  }
+  async function requestParentStudentLink(){
+    throw new Error('Use the Student Code link flow so the child is verified inside the same school.');
+  }
+  async function listParentStudentLinks(){
+    if(!state.client||!cfg.institutionId)return[];
+    const {data:links,error}=await state.client.from('parent_student_links').select('*').eq('institution_id',cfg.institutionId).order('created_at',{ascending:false});
+    if(error)throw error;
+    if(!links?.length)return[];
+    const parentIds=[...new Set(links.map(x=>x.parent_user_id).filter(Boolean))];
+    const studentIds=[...new Set(links.map(x=>x.student_user_id).filter(Boolean))];
+    const [parentsRes,studentsRes]=await Promise.all([
+      parentIds.length?state.client.from('school_access_requests').select('requester_user_id,full_name').eq('institution_id',cfg.institutionId).eq('requested_role','parent').eq('status','approved').in('requester_user_id',parentIds):Promise.resolve({data:[],error:null}),
+      studentIds.length?state.client.from('core_students').select('auth_user_id,name,class_name,student_code').eq('institution_id',cfg.institutionId).in('auth_user_id',studentIds):Promise.resolve({data:[],error:null})
+    ]);
+    if(parentsRes.error)throw parentsRes.error;
+    if(studentsRes.error)throw studentsRes.error;
+    const pm=new Map((parentsRes.data||[]).map(x=>[x.requester_user_id,x.full_name||'Parent']));
+    const sm=new Map((studentsRes.data||[]).map(x=>[x.auth_user_id,x]));
+    return links.map(x=>({
+      ...x,
+      parent_name:pm.get(x.parent_user_id)||'Parent / Guardian',
+      student_name:sm.get(x.student_user_id)?.name||'Student',
+      student_class:sm.get(x.student_user_id)?.class_name||'',
+      student_code:sm.get(x.student_user_id)?.student_code||''
+    }));
+  }
+  async function updateParentStudentLink(parentUserId,studentUserId,status){
+    if(!state.client||!cfg.institutionId)throw new Error('Cloud institution is not configured.');
+    const {data,error}=await state.client.from('parent_student_links').update({status})
+      .eq('institution_id',cfg.institutionId)
+      .eq('parent_user_id',parentUserId).eq('student_user_id',studentUserId).select().single();
+    if(error)throw error;return data;
+  }
+  async function assignInstitutionRole(){
+    throw new Error('Direct staff-role assignment is disabled. Teacher access must be approved by the School Admin.');
+  }
+  async function claimInstitutionInvite(code){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('claim_institution_invite',{p_code:String(code||'').trim()});
+    if(error)throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if(row?.institution_id){
+      cfg.institutionId=row.institution_id;
+      try{
+        const saved=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}');
+        saved.institutionId=row.institution_id;saved.enabled=true;
+        localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify(saved));
+      }catch(_){}
+    }
+    return row||null;
+  }
+  async function requestTeacherAccess(inviteCode,staffCode){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('request_teacher_access',{
+      p_invite_code:String(inviteCode||'').trim(),
+      p_staff_code:String(staffCode||'').trim()
+    });
+    if(error)throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if(row?.institution_id){
+      cfg.institutionId=row.institution_id;
+      try{
+        const saved=JSON.parse(localStorage.getItem('edunizam_cloud_runtime_config')||'{}');
+        saved.institutionId=row.institution_id;saved.enabled=true;
+        localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify(saved));
+      }catch(_){}
+    }
+    return row||null;
+  }
+  async function listTeacherAccessRequests(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    const {data,error}=await state.client.rpc('list_teacher_access_requests',{p_institution_id:cfg.institutionId});
+    if(error)throw error;return data||[];
+  }
+  async function decideTeacherAccess(requestId,approve,note=''){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('decide_teacher_access',{
+      p_request_id:requestId,p_approve:!!approve,p_note:String(note||'')
+    });
+    if(error)throw error;return Array.isArray(data)?data[0]:data;
+  }
+  async function createInstitutionInvite(targetRole,maxUses=1,validDays=7){
+    if(!state.client||!state.user||!cfg.institutionId)throw new Error('Cloud institution is not configured.');
+    if(!['teacher','student','parent'].includes(targetRole))throw new Error('Invalid invite role.');
+    const code='EN-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    const expires=new Date(Date.now()+Math.max(1,Number(validDays||7))*86400000).toISOString();
+    const {data,error}=await state.client.from('institution_invites').insert({
+      institution_id:cfg.institutionId,code,target_role:targetRole,created_by:state.user.id,
+      expires_at:expires,max_uses:Math.max(1,Number(maxUses||1))
+    }).select().single();
+    if(error)throw error;return data;
+  }
+  async function listInstitutionInvites(){
+    if(!state.client||!cfg.institutionId)return[];
+    const {data,error}=await state.client.from('institution_invites').select('*').eq('institution_id',cfg.institutionId).order('created_at',{ascending:false}).limit(50);
+    if(error)throw error;return data||[];
+  }
+  async function searchSchoolDirectory(query){
+    if(!state.client)return[];
+    const q=String(query||'').trim();
+    if(q.length<2)return[];
+    const {data,error}=await state.client.rpc('search_school_directory_v1',{p_query:q});
+    if(error)throw error;
+    return data||[];
+  }
+  async function submitSchoolAccessRequest(payload){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const p=payload||{};
+    const {data,error}=await state.client.rpc('submit_school_access_request_v1',{
+      p_institution_id:p.institutionId,
+      p_role:p.role,
+      p_full_name:String(p.fullName||'').trim(),
+      p_phone:String(p.phone||'').trim(),
+      p_student_name:String(p.studentName||'').trim()||null,
+      p_guardian_name:String(p.guardianName||'').trim()||null,
+      p_class_name:String(p.className||'').trim()||null,
+      p_section_name:String(p.sectionName||'').trim()||null,
+      p_admission_no:String(p.admissionNo||'').trim()||null,
+      p_date_of_birth:p.dateOfBirth||null,
+      p_relationship:String(p.relationship||'').trim()||null
+    });
+    if(error)throw error;
+    return data||null;
+  }
+  async function getMySchoolAccessRequest(requestedRole){
+    if(!state.client||!state.user)return null;
+    let q=state.client.from('school_access_requests')
+      .select('id,institution_id,requested_role,status,review_note,created_at,updated_at')
+      .eq('requester_user_id',state.user.id)
+      .order('updated_at',{ascending:false})
+      .limit(1);
+    if(requestedRole)q=q.eq('requested_role',requestedRole);
+    const {data,error}=await q.maybeSingle();
+    if(error)throw error;
+    return data||null;
+  }
+  async function listSchoolAccessRequests(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    const {data,error}=await state.client.from('school_access_requests')
+      .select('id,requester_user_id,requested_role,full_name,phone,student_name,guardian_name,class_name,section_name,admission_no,date_of_birth,relationship,status,review_note,created_at,updated_at')
+      .eq('institution_id',cfg.institutionId)
+      .order('created_at',{ascending:false});
+    if(error)throw error;
+    return data||[];
+  }
+  async function decideSchoolAccessRequest(requestId,approve,note=''){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('decide_school_access_request_v1',{
+      p_request_id:requestId,
+      p_approve:!!approve,
+      p_note:String(note||'')
+    });
+    if(error)throw error;
+    return Array.isArray(data)?data[0]:data;
+  }
+  async function decideTeacherSchoolRequest(requestId,approve,note=''){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('decide_teacher_school_request_v1',{
+      p_request_id:requestId,
+      p_approve:!!approve,
+      p_note:String(note||'')
+    });
+    if(error)throw error;
+    return Array.isArray(data)?data[0]:data;
+  }
+  async function resolveSchoolAccessLink(requestId,coreStudentId){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('resolve_school_access_link_v1',{
+      p_request_id:requestId,
+      p_core_student_id:coreStudentId
+    });
+    if(error)throw error;
+    return Array.isArray(data)?data[0]:data;
+  }
+  async function listAccessLinkIssues(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    const {data:requests,error:reqErr}=await state.client.from('school_access_requests')
+      .select('id,requester_user_id,requested_role,full_name,student_name,class_name,section_name,admission_no,status,updated_at')
+      .eq('institution_id',cfg.institutionId)
+      .eq('status','approved')
+      .in('requested_role',['student','parent'])
+      .order('updated_at',{ascending:false});
+    if(reqErr)throw reqErr;
+    const {data:students,error:stuErr}=await state.client.from('core_students')
+      .select('id,auth_user_id,name,class_name,section_name,admission_no')
+      .eq('institution_id',cfg.institutionId)
+      .order('name');
+    if(stuErr)throw stuErr;
+    const {data:links,error:linkErr}=await state.client.from('parent_student_links')
+      .select('parent_user_id,student_user_id,status')
+      .eq('institution_id',cfg.institutionId)
+      .eq('status','approved');
+    if(linkErr)throw linkErr;
+    const studentByAuth=new Map((students||[]).filter(x=>x.auth_user_id).map(x=>[x.auth_user_id,x]));
+    const parentLinked=new Set((links||[]).map(x=>x.parent_user_id));
+    const issues=(requests||[]).filter(x=>{
+      if(x.requested_role==='student')return !studentByAuth.has(x.requester_user_id);
+      return !parentLinked.has(x.requester_user_id);
+    });
+    return {issues,students:students||[]};
+  }
+
+  async function requestParentLinkByStudentCode(studentCode){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    if(!cfg.institutionId)throw new Error('Select the school workspace first.');
+    const {data,error}=await state.client.rpc('request_parent_link_by_student_code_v2',{
+      p_institution_id:cfg.institutionId,
+      p_student_code:String(studentCode||'').trim()
+    });
+    if(error)throw error;return data;
+  }
+  async function claimStudentRecord(studentCode){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('claim_student_account_v1',{p_student_code:String(studentCode||'').trim()});
+    if(error)throw error;return Array.isArray(data)?data[0]:data;
+  }
+  async function listInstitutionAccounts(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    const {data:members,error}=await state.client.from('institution_members')
+      .select('user_id,role,created_at')
+      .eq('institution_id',cfg.institutionId)
+      .order('created_at',{ascending:true});
+    if(error)throw error;
+    const ids=[...new Set((members||[]).map(x=>x.user_id).filter(Boolean))];
+    if(!ids.length)return[];
+    const [accessRes,staffRes,studentRes,profileRes]=await Promise.all([
+      state.client.from('school_access_requests').select('requester_user_id,requested_role,full_name,phone').eq('institution_id',cfg.institutionId).eq('status','approved').in('requester_user_id',ids),
+      state.client.from('staff_profiles').select('user_id,full_name,phone,designation').eq('institution_id',cfg.institutionId).in('user_id',ids),
+      state.client.from('core_students').select('auth_user_id,name,phone').eq('institution_id',cfg.institutionId).in('auth_user_id',ids),
+      state.client.from('user_profiles').select('user_id,full_name,phone,account_role').in('user_id',ids)
+    ]);
+    if(accessRes.error)throw accessRes.error;
+    if(staffRes.error)throw staffRes.error;
+    if(studentRes.error)throw studentRes.error;
+    const accessMap=new Map((accessRes.data||[]).map(x=>[x.requester_user_id,x]));
+    const staffMap=new Map((staffRes.data||[]).filter(x=>x.user_id).map(x=>[x.user_id,x]));
+    const studentMap=new Map((studentRes.data||[]).filter(x=>x.auth_user_id).map(x=>[x.auth_user_id,x]));
+    const profileMap=new Map((profileRes.data||[]).map(x=>[x.user_id,x]));
+    return (members||[]).map(x=>{
+      const access=accessMap.get(x.user_id),staff=staffMap.get(x.user_id),student=studentMap.get(x.user_id),profile=profileMap.get(x.user_id);
+      return {
+        ...x,
+        full_name:staff?.full_name||student?.name||access?.full_name||profile?.full_name||'',
+        phone:staff?.phone||student?.phone||access?.phone||profile?.phone||'',
+        account_role:x.role
+      };
+    });
+  }
+  async function listInstitutionTeachers(){
+    if(!state.client||!cfg.institutionId)return[];
+    const inst=String(cfg.institutionId);
+    const {data:members}=await boundedRead('institution-teachers-members:'+inst,()=>state.client.from('institution_members')
+      .select('user_id,role').eq('institution_id',cfg.institutionId).eq('role','teacher'),{cacheMs:20000,label:'Teacher accounts'});
+    const ids=(members||[]).map(x=>x.user_id).filter(Boolean);
+    if(!ids.length)return[];
+    const {data:staff}=await boundedRead('institution-teachers-profiles:'+inst+':'+ids.slice().sort().join(','),()=>state.client.from('staff_profiles')
+      .select('user_id,full_name').eq('institution_id',cfg.institutionId).in('user_id',ids),{cacheMs:20000,label:'Teacher profiles'});
+    const names=new Map((staff||[]).filter(x=>x.user_id).map(x=>[x.user_id,x.full_name||'']));
+    return (members||[]).map(x=>({user_id:x.user_id,role:x.role,full_name:names.get(x.user_id)||'Teacher'}));
+  }
+  async function listLinkedCoreStudents(){
+    if(!state.client||!cfg.institutionId)return[];
+    const {data,error}=await state.client.from('core_students')
+      .select('id,auth_user_id,name,class_name,section_name,admission_no,student_code')
+      .eq('institution_id',cfg.institutionId).not('auth_user_id','is',null).order('name');
+    if(error)throw error;return data||[];
+  }
+  async function listTeacherStudentLinks(){
+    if(!state.client||!cfg.institutionId)return[];
+    const {data,error}=await state.client.from('teacher_student_links')
+      .select('teacher_user_id,student_user_id').eq('institution_id',cfg.institutionId);
+    if(error)throw error;
+    const [teachers,students]=await Promise.all([listInstitutionTeachers(),listLinkedCoreStudents()]);
+    const tm=new Map(teachers.map(x=>[x.user_id,x.full_name||x.user_id]));
+    const sm=new Map(students.map(x=>[x.auth_user_id,x.name||x.auth_user_id]));
+    return (data||[]).map(x=>({...x,teacher_name:tm.get(x.teacher_user_id),student_name:sm.get(x.student_user_id)}));
+  }
+  async function assignTeacherStudent(teacherUserId,studentUserId){
+    if(!state.client||!state.user||!cfg.institutionId)throw new Error('Cloud institution is not configured.');
+    const [teachers,students]=await Promise.all([listInstitutionTeachers(),listLinkedCoreStudents()]);
+    if(!teachers.some(x=>x.user_id===teacherUserId))throw new Error('Selected teacher is not linked to this school.');
+    if(!students.some(x=>x.auth_user_id===studentUserId))throw new Error('Selected student is not linked to this school.');
+    const {data,error}=await state.client.from('teacher_student_links').upsert({
+      institution_id:cfg.institutionId,teacher_user_id:teacherUserId,student_user_id:studentUserId,assigned_by:state.user.id
+    },{onConflict:'teacher_user_id,student_user_id'}).select().single();
+    if(error)throw error;return data;
+  }
+  async function removeTeacherStudentLink(teacherUserId,studentUserId){
+    if(!state.client||!cfg.institutionId)throw new Error('Cloud backend is not configured.');
+    const {error}=await state.client.from('teacher_student_links').delete()
+      .eq('institution_id',cfg.institutionId)
+      .eq('teacher_user_id',teacherUserId)
+      .eq('student_user_id',studentUserId);
+    if(error)throw error;return true;
+  }
+  async function listMyTeacherAssignments(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    const uid=String(state.user.id||''),inst=String(cfg.institutionId);
+    const {data}=await boundedRead('teacher-assignments:'+inst+':'+uid,()=>state.client.from('teacher_student_links')
+      .select('student_user_id').eq('institution_id',cfg.institutionId).eq('teacher_user_id',state.user.id),{cacheMs:15000,label:'Teacher assignments'});
+    return (data||[]).map(x=>x.student_user_id);
+  }
+  async function listApprovedParentsForStudent(studentUserId){
+    if(!state.client||!cfg.institutionId||!studentUserId)return[];
+    const {data,error}=await state.client.from('parent_student_links')
+      .select('parent_user_id').eq('institution_id',cfg.institutionId)
+      .eq('student_user_id',studentUserId).eq('status','approved');
+    if(error)throw error;return (data||[]).map(x=>x.parent_user_id);
+  }
+  async function listMyNotifications(){
+    if(!state.client||!state.user)return[];
+    const {data,error}=await state.client.from('user_notifications').select('*')
+      .eq('recipient_user_id',state.user.id).order('created_at',{ascending:false}).limit(100);
+    if(error)throw error;return data||[];
+  }
+  async function markNotificationRead(id){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.from('user_notifications').update({read_at:new Date().toISOString()})
+      .eq('id',id).eq('recipient_user_id',state.user.id).select().single();
+    if(error)throw error;return data;
+  }
+  async function sendNotification(recipientUserId,title,body,category='general'){
+    if(!state.client||!state.user||!cfg.institutionId)throw new Error('Cloud institution is not configured.');
+    const {data,error}=await state.client.from('user_notifications').insert({
+      institution_id:cfg.institutionId,recipient_user_id:recipientUserId,created_by:state.user.id,
+      title:String(title||'Notification'),body:String(body||''),category:String(category||'general')
+    }).select().single();
+    if(error)throw error;return data;
+  }
+  async function createSignedDocumentUrl(path,expiresIn=300){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    const {data,error}=await state.client.storage.from(cfg.admissionsStorageBucket||'admission-documents').createSignedUrl(path,expiresIn);
+    if(error)throw error;return data?.signedUrl||null;
+  }
+  async function logAudit(action,entityType,entityId,details={}){
+    if(!state.client||!state.user||!cfg.institutionId)return null;
+    await requireHeadRole();
+    const {data,error}=await state.client.from('audit_logs').insert({
+      institution_id:cfg.institutionId,user_id:state.user.id,action,entity_type:entityType,entity_id:String(entityId||''),details
+    }).select().single();
+    if(error)throw error;return data;
+  }
+  async function uploadDocument(applicationId,kind,file){
+    if(!state.client)throw new Error('Cloud backend is not configured.');
+    const path=(cfg.institutionId||'institution')+'/'+applicationId+'/'+Date.now()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const {error:upErr}=await state.client.storage.from(cfg.admissionsStorageBucket||'admission-documents').upload(path,file,{upsert:false});
+    if(upErr)throw upErr;
+    const {data,error}=await state.client.from('application_documents').insert({
+      application_id:applicationId,uploaded_by:state.user?.id||null,kind,storage_path:path,original_name:file.name,mime_type:file.type,size_bytes:file.size
+    }).select().single();
+    if(error)throw error;return data;
+  }
+  async function listApplicationDocuments(applicationId){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.from('application_documents').select('*').eq('application_id',applicationId).order('created_at',{ascending:true});
+    if(error)throw error;return data||[];
+  }
+  async function listPayments(){
+    if(!state.client)return[];
+    await requireHeadRole();
+    const {data,error}=await state.client.from('payment_records')
+      .select('*,applications(application_no,applicant_name,institution_id)')
+      .order('created_at',{ascending:false});
+    if(error)throw error;return data||[];
+  }
+  async function issueAdmissionChallan(applicationId,amount){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    await requireHeadRole();
+    const {data,error}=await state.client.rpc('issue_admission_challan_v2',{p_application_id:applicationId,p_amount:Number(amount||0)});
+    if(error)throw error;return data;
+  }
+  async function submitAdmissionPayment({applicationId,method,reference,amount,proofStoragePath=null}){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    const {data,error}=await state.client.rpc('submit_admission_payment_v2',{
+      p_application_id:applicationId,p_method:method,p_reference:reference||'',p_amount:Number(amount||0),p_proof_storage_path:proofStoragePath
+    });
+    if(error)throw error;return data;
+  }
+  async function verifyAdmissionPayment(id,decision,note=''){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    await requireHeadRole();
+    const normalized=decision==='Failed'?'Rejected':decision;
+    const {data,error}=await state.client.rpc('verify_admission_payment_v2',{p_payment_id:id,p_decision:normalized,p_note:note||''});
+    if(error)throw error;return data;
+  }
+  async function listAdmissionSections(){
+    if(!state.client||!state.user||!cfg.institutionId)return[];
+    await requireHeadRole();
+    const [sectionsRes,studentsRes]=await Promise.all([
+      state.client.from('class_sections')
+        .select('id,class_name,section_name,class_teacher_user_id,class_teacher_name,room_label,capacity,active')
+        .eq('institution_id',cfg.institutionId)
+        .eq('active',true)
+        .order('class_name')
+        .order('section_name'),
+      state.client.from('core_students')
+        .select('class_name,section_name')
+        .eq('institution_id',cfg.institutionId)
+    ]);
+    if(sectionsRes.error)throw sectionsRes.error;
+    if(studentsRes.error)throw studentsRes.error;
+    const counts=new Map();
+    (studentsRes.data||[]).forEach(s=>{
+      const k=String(s.class_name||'').trim().toLowerCase()+'|'+String(s.section_name||'').trim().toLowerCase();
+      counts.set(k,(counts.get(k)||0)+1);
+    });
+    return (sectionsRes.data||[]).map(s=>{
+      const k=String(s.class_name||'').trim().toLowerCase()+'|'+String(s.section_name||'').trim().toLowerCase();
+      return {...s,enrolled:counts.get(k)||0};
+    });
+  }
+  async function confirmAdmission(applicationId,options={}){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    await requireHeadRole();
+    const {data,error}=await state.client.rpc('confirm_admission_v3',{
+      p_application_id:applicationId,
+      p_section_name:options.sectionName||null,
+      p_roll_no:options.rollNo||null
+    });
+    if(error)throw error;
+    return Array.isArray(data)?(data[0]||null):data;
+  }
+  async function updatePaymentStatus(id,status){
+    return verifyAdmissionPayment(id,status,'');
+  }
+  async function listAuditLogs(limit=50){
+    if(!state.client)return[];
+    await requireHeadRole();
+    let q=state.client.from('audit_logs').select('*').order('created_at',{ascending:false}).limit(limit);
+    if(cfg.institutionId)q=q.eq('institution_id',cfg.institutionId);
+    const {data,error}=await q;if(error)throw error;return data||[];
+  }
+  async function updateCloudApplicationStatus(id,status,note){
+    if(!state.client||!state.user)throw new Error('Sign in first.');
+    await requireHeadRole();
+    const payload={status,updated_at:new Date().toISOString()};
+    if(note!==undefined)payload.admin_note=note;
+    const {data,error}=await state.client.from('applications').update(payload).eq('id',id).select().single();
+    if(error)throw error;return data;
+  }
+  async function createPaymentIntent({applicationId,method,amount,currency='PKR'}){
+    if(!cfg.paymentApiBaseUrl)throw new Error('Live payment gateway is not connected.');
+    const token=(await state.client?.auth.getSession())?.data?.session?.access_token||'';
+    const r=await fetch(cfg.paymentApiBaseUrl.replace(/\/$/,'')+'/payments/create',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({applicationId,method,amount,currency})
+    });
+    if(!r.ok)throw new Error('Payment request failed.');return r.json();
+  }
+
+  const api={state,config:cfg,ready,init,whenReady,signUp,resendSignupConfirmation,signIn,signOut,sendMagicLink,sendPasswordReset,mapApplication,createApplication,syncLocalApplication,listMyApplications,listInstitutionApplications,getMyRole,listMyInstitutions,listAuthorizedWorkspaces,verifyWorkspaceAccess,createInstitution,claimInstitutionInvite,requestTeacherAccess,listTeacherAccessRequests,decideTeacherAccess,createInstitutionInvite,listInstitutionInvites,searchSchoolDirectory,submitSchoolAccessRequest,getMySchoolAccessRequest,listSchoolAccessRequests,decideSchoolAccessRequest,decideTeacherSchoolRequest,resolveSchoolAccessLink,listAccessLinkIssues,requestParentLinkByStudentCode,claimStudentRecord,listInstitutionAccounts,listInstitutionTeachers,listLinkedCoreStudents,listTeacherStudentLinks,assignTeacherStudent,removeTeacherStudentLink,listMyTeacherAssignments,listApprovedParentsForStudent,listMyNotifications,markNotificationRead,sendNotification,uploadDocument,listApplicationDocuments,createSignedDocumentUrl,logAudit,getLinkedStudents,requestParentStudentLink,listParentStudentLinks,updateParentStudentLink,assignInstitutionRole,listPayments,issueAdmissionChallan,submitAdmissionPayment,verifyAdmissionPayment,listAdmissionSections,confirmAdmission,updatePaymentStatus,listAuditLogs,updateCloudApplicationStatus,createPaymentIntent};
+  // Expose the single shared app client immediately. Session restoration continues
+  // asynchronously and never owns the UI loading state.
+  window.EDUNIZAM_CLOUD=api;
+  init().catch(e=>console.warn('EduNizam cloud init:',e.message||e));
+})();

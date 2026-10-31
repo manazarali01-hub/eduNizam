@@ -1,0 +1,352 @@
+(function(){
+  const KEY='edunizam_staff_profiles_v2';
+  const LEGACY_KEY='edunizam_staff_profiles_v1';
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const session=()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')}catch{return null}};
+  const role=()=>session()?.role||'student';
+  const identity=()=>String(session()?.identity||'').trim();
+  const cfg=()=>window.EDUNIZAM_CLOUD_CONFIG||{};
+  const cloud=()=>window.EDUNIZAM_CLOUD;
+  const cloudReady=()=>!!(cfg().enabled&&cfg().institutionId&&cloud()?.state?.client&&cloud()?.state?.user);
+  const currentUserId=()=>cloud()?.state?.user?.id||'';
+  const isHead=()=>role()==='head';
+  const staffDeleteInFlight=new Set();
+  let formSchoolClasses=[],formSchoolScope='',formSchoolError='';
+  async function boundedRead(key,builder,{timeout=7000,retries=1,cacheMs=0,label='Staff Directory'}={}){
+    const execute=async({signal}={})=>{
+      let request=builder();
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;
+      if(result?.error)throw result.error;
+      return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    return runtime?runtime.run(key,execute,{timeout,retries,cacheMs,label}):execute({});
+  }
+  function read(){
+    try{
+      const rows=JSON.parse(localStorage.getItem(KEY)||'null');
+      if(Array.isArray(rows))return rows;
+      const legacy=JSON.parse(localStorage.getItem(LEGACY_KEY)||'[]');
+      if(Array.isArray(legacy)){write(legacy);return legacy}
+    }catch(_){}
+    return[];
+  }
+  function write(v){
+    const json=JSON.stringify(v);
+    localStorage.setItem(KEY,json);
+    localStorage.setItem(LEGACY_KEY,json);
+  }
+  function splitList(v){return String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
+  function profile(x){return x?.profileDetails||{}}
+  function visibleLocal(rows){
+    if(isHead())return rows;
+    const uid=currentUserId(),id=identity().toLowerCase();
+    return rows.filter(x=>(uid&&String(x.userId||'')===uid)||[x.email,x.staffCode,x.phone,x.fullName].some(v=>String(v||'').trim().toLowerCase()===id));
+  }
+  function badgeStatus(x){return x==='active'?'good':x==='inactive'?'high':'medium'}
+  function initials(name){return String(name||'?').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()}
+
+  function mapCloud(x){
+    const p=x.profile_details||{};
+    return {
+      id:x.id,userId:x.user_id||'',staffCode:x.staff_code,fullName:x.full_name,
+      designation:x.designation||'Teacher',phone:x.phone||'',subjects:x.subjects||[],
+      classes:x.classes||[],joiningDate:x.joining_date||'',status:x.employment_status||'active',
+      photoPath:x.photo_path||'',profileDetails:p,
+      cnic:p.cnic||'',email:p.email||'',gender:p.gender||'',dateOfBirth:p.date_of_birth||'',
+      qualification:p.qualification||'',professionalQualification:p.professional_qualification||'',
+      specialization:p.specialization||'',experience:p.experience||'',employeeId:p.employee_id||'',
+      address:p.address||'',city:p.city||'',emergencyContact:p.emergency_contact||'',
+      certificates:p.certificates||'',remarks:p.remarks||'',createdAt:x.created_at
+    };
+  }
+
+  async function pullCloud(){
+    if(!cloudReady())return read();
+    const inst=String(cfg().institutionId||''),uid=String(cloud()?.state?.user?.id||'');
+    const {data}=await boundedRead('staff-directory:'+inst+':'+uid,()=>cloud().state.client.from('staff_profiles').select('*')
+      .eq('institution_id',cfg().institutionId).order('full_name'),{timeout:7000,retries:1,cacheMs:10000,label:'Staff Directory'});
+    const rows=(data||[]).map(mapCloud);write(rows);return rows;
+  }
+  async function listTeacherAccounts(){
+    if(!cloudReady()||!isHead()||!cloud()?.listInstitutionTeachers)return[];
+    try{return await cloud().listInstitutionTeachers()}catch{return[]}
+  }
+  function cloudPayload(item){
+    return {
+      institution_id:cfg().institutionId,user_id:item.userId||null,staff_code:item.staffCode,
+      full_name:item.fullName,designation:item.designation||'Teacher',phone:item.phone||null,
+      subjects:item.subjects||[],classes:item.classes||[],joining_date:item.joiningDate||null,
+      employment_status:item.status||'active',photo_path:item.photoPath||null,
+      profile_details:{
+        ...(item.profileDetails||{}),cnic:item.cnic||null,email:item.email||null,gender:item.gender||null,
+        date_of_birth:item.dateOfBirth||null,qualification:item.qualification||null,
+        professional_qualification:item.professionalQualification||null,specialization:item.specialization||null,
+        experience:item.experience||null,employee_id:item.employeeId||null,address:item.address||null,city:item.city||null,
+        emergency_contact:item.emergencyContact||null,certificates:item.certificates||null,remarks:item.remarks||null
+      },
+      created_by:cloud().state.user.id,updated_at:new Date().toISOString()
+    };
+  }
+  async function upsertCloud(item){
+    if(!cloudReady())return null;
+    const {data,error}=await cloud().state.client.from('staff_profiles')
+      .upsert(cloudPayload(item),{onConflict:'institution_id,staff_code'}).select().single();
+    if(error)throw error;return data;
+  }
+  async function uploadPhoto(row,file){
+    if(!file)return row;
+    if(!cloudReady())throw new Error('Cloud Mode is required for profile pictures.');
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Profile picture must be JPG, PNG or WEBP.');
+    if(file.size>2*1024*1024)throw new Error('Profile picture must be 2 MB or smaller.');
+    const client=cloud().state.client,oldPath=row.photo_path||'',ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').slice(0,6)||'jpg';
+    const path=cfg().institutionId+'/staff/'+row.id+'/'+Date.now()+'.'+ext;
+    const {error:upError}=await client.storage.from('school-profile-photos').upload(path,file,{upsert:false,contentType:file.type});
+    if(upError)throw upError;
+    const {data,error}=await client.from('staff_profiles').update({photo_path:path,updated_at:new Date().toISOString()}).eq('id',row.id).select().single();
+    if(error){
+      await client.storage.from('school-profile-photos').remove([path]).catch(()=>{});
+      throw error;
+    }
+    if(oldPath&&oldPath!==path)client.storage.from('school-profile-photos').remove([oldPath]).catch(()=>{});
+    return data;
+  }
+  async function signedPhoto(path){
+    if(!path||!cloudReady())return null;
+    const {data,error}=await cloud().state.client.storage.from('school-profile-photos').createSignedUrl(path,1800);
+    if(error)throw error;return data?.signedUrl||null;
+  }
+  function selfEditorHtml(item){
+    if(!item)return '<div class="coverage-note">Your approved Teacher account is active, but a linked staff profile was not found. Ask the School Admin to review your Staff & Teacher record.</div>';
+    return '<article class="card"><div class="section-head"><div><h3>My Profile Details</h3><p class="muted">Update your personal contact details and photo. School-controlled employment fields remain locked.</p></div><span class="academic-pill">Teacher Self-Service</span></div>'+
+      '<div class="coverage-note"><strong>'+esc(item.fullName)+'</strong> · '+esc(item.designation||'Teacher')+(item.staffCode?' · Staff '+esc(item.staffCode):'')+(item.joiningDate?' · Joined '+esc(item.joiningDate):'')+'</div>'+
+      '<div class="form-grid">'+
+      '<input id="myStaffEmail" type="email" placeholder="Email (optional)" value="'+esc(item.email||'')+'">'+
+      '<input id="myStaffAddress" placeholder="Address (optional)" value="'+esc(item.address||'')+'">'+
+      '<input id="myStaffCity" placeholder="City (optional)" value="'+esc(item.city||'')+'">'+
+      '<input id="myStaffEmergency" placeholder="Emergency contact (optional)" value="'+esc(item.emergencyContact||'')+'">'+
+      '<label class="coverage-note"><strong>Profile picture (optional)</strong><input id="myStaffPhoto" type="file" accept="image/jpeg,image/png,image/webp"><span>JPG/PNG/WEBP · max 2 MB · private school storage</span></label>'+
+      '<button id="saveMyStaffProfile" type="button">Save My Profile</button></div></article>';
+  }
+  async function saveMyStaffProfile(){
+    if(isHead()||!cloudReady())return alert('Teacher self-service requires an approved signed-in Teacher account in Cloud Mode.');
+    const me=visibleLocal(read())[0];if(!me)return alert('Linked staff profile not found.');
+    const client=cloud().state.client,inst=cfg().institutionId,btn=$('saveMyStaffProfile');if(btn)btn.disabled=true;
+    try{
+      const {data,error}=await client.rpc('update_my_staff_profile_v1',{
+        p_institution_id:inst,
+        p_email:$('myStaffEmail')?.value.trim()||'',
+        p_address:$('myStaffAddress')?.value.trim()||'',
+        p_city:$('myStaffCity')?.value.trim()||'',
+        p_emergency_contact:$('myStaffEmergency')?.value.trim()||''
+      });
+      if(error)throw error;
+      let row=Array.isArray(data)?data[0]:data;
+      const file=$('myStaffPhoto')?.files?.[0]||null;
+      if(file){
+        if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Profile picture must be JPG, PNG or WEBP.');
+        if(file.size>2*1024*1024)throw new Error('Profile picture must be 2 MB or smaller.');
+        const {data:staffRow,error:findError}=await client.from('staff_profiles').select('id,photo_path').eq('institution_id',inst).eq('user_id',cloud().state.user.id).maybeSingle();
+        if(findError)throw findError;if(!staffRow)throw new Error('Linked staff profile not found.');
+        const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').slice(0,6)||'jpg';
+        const path=inst+'/staff/'+staffRow.id+'/'+Date.now()+'.'+ext;
+        const {error:uploadError}=await client.storage.from('school-profile-photos').upload(path,file,{upsert:false,contentType:file.type});
+        if(uploadError)throw uploadError;
+        const {data:photoRow,error:photoError}=await client.rpc('set_my_staff_photo_v1',{p_institution_id:inst,p_storage_path:path});
+        if(photoError){await client.storage.from('school-profile-photos').remove([path]).catch(()=>{});throw photoError}
+        row=Array.isArray(photoRow)?photoRow[0]:photoRow;
+        if(staffRow.photo_path&&staffRow.photo_path!==path)client.storage.from('school-profile-photos').remove([staffRow.photo_path]).catch(()=>{});
+      }
+      const item=mapCloud(row),rows=read().filter(x=>String(x.id)!==String(item.id));rows.push(item);write(rows);
+      window.EDUNIZAM_PREMIUM?.toast?.('Your profile was updated.','success');
+      render();
+    }catch(e){alert('Profile update failed: '+(e.message||e))}
+    finally{if(btn)btn.disabled=false}
+  }
+  async function deleteCloud(id){
+    if(!cloudReady())return;
+    const rows=read(),item=rows.find(x=>String(x.id)===String(id)),inst=String(cfg().institutionId||'');
+    const execute=async({signal}={})=>{
+      let request=cloud().state.client.from('staff_profiles').delete().eq('id',id);
+      if(signal&&typeof request?.abortSignal==='function')request=request.abortSignal(signal);
+      const result=await request;
+      if(result?.error)throw result.error;
+      return result;
+    };
+    const runtime=window.EDUNIZAM_DATA_RUNTIME;
+    if(runtime)await runtime.run('staff-delete:'+inst+':'+String(id),execute,{timeout:8000,retries:1,label:'Delete staff profile'});
+    else await execute({});
+    if(item?.photoPath)cloud().state.client.storage.from('school-profile-photos').remove([item.photoPath]).catch(()=>{});
+  }
+
+  function card(x){
+    const actions=isHead()?'<button data-staff-edit="'+esc(x.id)+'">Edit</button><button class="secondary" data-staff-delete="'+esc(x.id)+'">Delete</button>':'';
+    const p=profile(x),secondary=[x.qualification||p.qualification,x.specialization||p.specialization,x.email||p.email].filter(Boolean).join(' · ');
+    return '<article class="paper-card"><div class="paper-card-top"><div style="display:flex;align-items:center;gap:10px"><span data-staff-avatar="'+esc(x.photoPath||'')+'" style="width:48px;height:48px;border-radius:50%;display:inline-grid;place-items:center;background:#e8f4f0;color:#075347;font-weight:900;overflow:hidden">'+esc(initials(x.fullName))+'</span><div><span class="mini-badge">'+esc(x.staffCode)+'</span><h3 style="margin:5px 0 0">'+esc(x.fullName)+'</h3></div></div><span data-risk="'+badgeStatus(x.status)+'">'+esc(x.status)+'</span></div>'+
+      '<p class="muted">'+esc(x.designation||'Teacher')+(x.phone?' · '+esc(x.phone):'')+'</p>'+
+      (secondary?'<p class="muted">'+esc(secondary)+'</p>':'')+
+      '<p><strong>Subjects:</strong> '+esc((x.subjects||[]).join(', ')||'—')+'</p>'+
+      '<p><strong>Classes:</strong> '+esc((x.classes||[]).join(', ')||'—')+'</p>'+
+      '<p class="muted">Joining: '+esc(x.joiningDate||'Not set')+(x.employeeId?' · Employee ID '+esc(x.employeeId):'')+(x.userId?' · Cloud account linked':'')+'</p>'+
+      '<div class="paper-actions">'+actions+'</div></article>';
+  }
+
+  async function schoolClassChoices(){
+    const form=window.EDUNIZAM_SCHOOL_FORM_OPTIONS;
+    if(!form)return[];
+    if(!cloudReady()){
+      let local=[];try{local=JSON.parse(localStorage.getItem('edunizam_class_sections_v1')||'[]')}catch(_){}
+      formSchoolClasses=form.classes(local);formSchoolScope='local';formSchoolError='';
+      return formSchoolClasses;
+    }
+    const scope=String(cfg().institutionId||'')+'|'+String(currentUserId());
+    if(formSchoolScope===scope)return formSchoolClasses;
+    // Never reuse a former school's class dropdown in a new institution.
+    formSchoolScope='';formSchoolClasses=[];formSchoolError='';
+    try{
+      const inst=cfg().institutionId;
+      const result=await boundedRead('staff-form-classes:'+scope,()=>cloud().state.client.from('class_sections')
+        .select('class_name,section_name,active').eq('institution_id',inst).eq('active',true),
+        {timeout:6000,retries:0,cacheMs:5000,label:'School Class Options'});
+      if(scope!==String(cfg().institutionId||'')+'|'+String(currentUserId()))return[];
+      formSchoolClasses=form.classes(result.data||[]);
+    }catch(error){
+      formSchoolError='School classes could not be fetched. Enter known class names carefully and verify your connection.';
+      formSchoolClasses=[];
+    }
+    formSchoolScope=scope;return formSchoolClasses;
+  }
+  function refreshStaffPickers(){
+    const form=window.EDUNIZAM_SCHOOL_FORM_OPTIONS;
+    if(!form)return;
+    const selector=$('staffAddClass'),subject=$('staffAddSubject');
+    if(selector){
+      const old=selector.value;
+      selector.innerHTML='<option value="">Choose registered class</option>'+formSchoolClasses.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+      if(formSchoolClasses.includes(old))selector.value=old;
+    }
+    if(subject){
+      const old=subject.value,chosen=String($('staffClasses')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);
+      const current=String($('staffSubjects')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);
+      const available=form.subjects(chosen,window.EDUNIZAM_ACADEMIC_OPTION_CATALOG?.subjects||{},current);
+      subject.innerHTML='<option value="">Choose suggested subject</option>'+available.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+      if(available.includes(old))subject.value=old;
+    }
+  }
+  function addStaffFormOption(kind){
+    const form=window.EDUNIZAM_SCHOOL_FORM_OPTIONS;
+    if(!form)return;
+    const source=kind==='class'?'staffAddClass':'staffAddSubject',target=kind==='class'?'staffClasses':'staffSubjects';
+    const value=$(source)?.value||'',input=$(target);
+    if(!input||!value)return;
+    input.value=form.append(input.value,value);
+    refreshStaffPickers();
+  }
+  async function editorHtml(edit=null){
+    if(!isHead())return selfEditorHtml(visibleLocal(read())[0]||null);
+    const [teachers]=await Promise.all([listTeacherAccounts(),schoolClassChoices()]);
+    const options='<option value="">No linked cloud account</option>'+teachers.map(t=>'<option value="'+esc(t.user_id)+'" '+(edit?.userId===t.user_id?'selected':'')+'>'+esc(t.full_name||t.user_id)+'</option>').join('');
+    return '<article class="card"><div class="section-head"><div><h3>'+(edit?'Edit Staff / Teacher Profile':'Add Staff / Teacher Profile')+'</h3><p class="muted">Required: staff code, full name, designation, phone and joining date. Other professional fields are optional.</p></div></div>'+
+      '<input id="staffEditId" type="hidden" value="'+esc(edit?.id||'')+'"><div class="form-grid">'+
+      '<input id="staffCode" placeholder="Staff code *" value="'+esc(edit?.staffCode||'')+'">'+
+      '<input id="staffName" placeholder="Full name *" value="'+esc(edit?.fullName||'')+'">'+
+      '<input id="staffDesignation" placeholder="Designation *" value="'+esc(edit?.designation||'Teacher')+'">'+
+      '<input id="staffPhone" placeholder="Phone *" value="'+esc(edit?.phone||'')+'">'+
+      '<input id="staffEmail" type="email" placeholder="Email (optional)" value="'+esc(edit?.email||'')+'">'+
+      '<input id="staffCnic" placeholder="CNIC (optional)" value="'+esc(edit?.cnic||'')+'">'+
+      '<select id="staffGender"><option value="">Gender (optional)</option><option '+(edit?.gender==='Male'?'selected':'')+'>Male</option><option '+(edit?.gender==='Female'?'selected':'')+'>Female</option><option '+(edit?.gender==='Other / Prefer not to say'?'selected':'')+'>Other / Prefer not to say</option></select>'+
+      '<label>Date of Birth (optional)<input id="staffDob" type="date" value="'+esc(edit?.dateOfBirth||'')+'"></label>'+
+      '<input id="staffQualification" placeholder="Qualification (optional)" value="'+esc(edit?.qualification||'')+'">'+
+      '<input id="staffProfessionalQualification" placeholder="Professional qualification (optional)" value="'+esc(edit?.professionalQualification||'')+'">'+
+      '<input id="staffSpecialization" placeholder="Subject specialization (optional)" value="'+esc(edit?.specialization||'')+'">'+
+      '<input id="staffExperience" placeholder="Experience e.g. 7 years (optional)" value="'+esc(edit?.experience||'')+'">'+
+      '<input id="staffEmployeeId" placeholder="Employee ID (optional)" value="'+esc(edit?.employeeId||'')+'">'+
+      '<label>Assigned Classes (comma separated)<input id="staffClasses" placeholder="Choose registered classes below or enter carefully" value="'+esc((edit?.classes||[]).join(', '))+'"></label>'+
+      '<div class="paper-actions"><select id="staffAddClass" aria-label="Registered school class"><option value="">Choose registered class</option>'+formSchoolClasses.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select><button id="staffAddClassBtn" type="button" class="secondary">Add Class</button></div>'+
+      '<label>Assigned Subjects (comma separated)<input id="staffSubjects" placeholder="Choose subjects below or enter prescribed subject" value="'+esc((edit?.subjects||[]).join(', '))+'"></label>'+
+      '<div class="paper-actions"><select id="staffAddSubject" aria-label="Grade-wise subject suggestion"><option value="">Choose suggested subject</option></select><button id="staffAddSubjectBtn" type="button" class="secondary">Add Subject</button></div>'+
+      '<p id="staffSchoolClassNotice" class="coverage-note">'+esc(formSchoolError||(!formSchoolClasses.length?'No active school classes configured. Create real classes in Academic Groups. Subjects listed are reference suggestions, not verified textbook subjects.':formSchoolClasses.length+' active school class(es) available. Use actual teacher assignments; verify subject names against your school syllabus.'))+'</p>'+
+      '<label>Joining Date *<input id="staffJoining" type="date" value="'+esc(edit?.joiningDate||'')+'"></label>'+
+      '<input id="staffAddress" placeholder="Address (optional)" value="'+esc(edit?.address||'')+'">'+
+      '<input id="staffCity" placeholder="City (optional)" value="'+esc(edit?.city||'')+'">'+
+      '<input id="staffEmergency" placeholder="Emergency contact (optional)" value="'+esc(edit?.emergencyContact||'')+'">'+
+      '<input id="staffCertificates" placeholder="Certificates / training references (optional)" value="'+esc(edit?.certificates||'')+'">'+
+      '<textarea id="staffRemarks" rows="2" placeholder="Remarks (optional)">'+esc(edit?.remarks||'')+'</textarea>'+
+      '<select id="staffStatus"><option value="active" '+(edit?.status!=='inactive'?'selected':'')+'>Active</option><option value="inactive" '+(edit?.status==='inactive'?'selected':'')+'>Inactive</option></select>'+
+      '<select id="staffUserId">'+options+'</select>'+
+      '<label class="coverage-note"><strong>Profile picture (optional)</strong><input id="staffPhotoFile" type="file" accept="image/jpeg,image/png,image/webp"><span>JPG/PNG/WEBP · max 2 MB · private cloud storage</span></label>'+
+      '<button id="saveStaffProfile">'+(edit?'Update Profile':'Save Profile')+'</button>'+(edit?'<button id="cancelStaffEdit" class="secondary">Cancel</button>':'')+
+      '</div></article>';
+  }
+
+  async function save(){
+    const staffCode=$('staffCode')?.value.trim(),fullName=$('staffName')?.value.trim(),designation=$('staffDesignation')?.value.trim(),phone=$('staffPhone')?.value.trim(),joiningDate=$('staffJoining')?.value||'';
+    const missing=[];if(!staffCode)missing.push('Staff code');if(!fullName)missing.push('Full name');if(!designation)missing.push('Designation');if(!phone)missing.push('Phone');if(!joiningDate)missing.push('Joining date');
+    if(missing.length)return alert('Required fields complete karein: '+missing.join(', '));
+    const file=$('staffPhotoFile')?.files?.[0]||null;if(file&&(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>2*1024*1024))return alert('Profile picture JPG/PNG/WEBP aur max 2 MB honi chahiye.');
+    const current=read(),editId=$('staffEditId')?.value||'',existing=current.find(x=>String(x.id)===String(editId));
+    let item={
+      ...(existing||{}),id:editId||String(Date.now()),userId:$('staffUserId')?.value||'',staffCode,fullName,designation,phone,
+      email:$('staffEmail')?.value.trim()||'',cnic:$('staffCnic')?.value.trim()||'',gender:$('staffGender')?.value||'',dateOfBirth:$('staffDob')?.value||'',
+      qualification:$('staffQualification')?.value.trim()||'',professionalQualification:$('staffProfessionalQualification')?.value.trim()||'',
+      specialization:$('staffSpecialization')?.value.trim()||'',experience:$('staffExperience')?.value.trim()||'',employeeId:$('staffEmployeeId')?.value.trim()||'',
+      subjects:splitList($('staffSubjects')?.value),classes:splitList($('staffClasses')?.value),joiningDate,
+      address:$('staffAddress')?.value.trim()||'',city:$('staffCity')?.value.trim()||'',emergencyContact:$('staffEmergency')?.value.trim()||'',
+      certificates:$('staffCertificates')?.value.trim()||'',remarks:$('staffRemarks')?.value.trim()||'',status:$('staffStatus')?.value||'active',
+      photoPath:existing?.photoPath||'',createdAt:existing?.createdAt||new Date().toISOString()
+    };
+    const duplicate=current.find(x=>String(x.staffCode||'').toLowerCase()===staffCode.toLowerCase()&&String(x.id)!==String(editId));if(duplicate)return alert('Ye staff code already use ho raha hai.');
+    const btn=$('saveStaffProfile');if(btn?.disabled)return;if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
+    try{
+      if(cloudReady()){
+        let row;
+        try{row=await upsertCloud(item)}
+        catch(e){alert('Cloud staff save failed. Nothing was saved locally: '+(e.message||e));return}
+        item=mapCloud(row);
+        if(file){
+          try{row=await uploadPhoto(row,file);item=mapCloud(row)}
+          catch(e){alert('Staff profile text was saved, but profile photo upload failed: '+(e.message||e))}
+        }
+      }else if(file){
+        alert('Profile text local mode mein save ho gaya, lekin picture upload ke liye Cloud Mode required hai.');
+      }
+      const next=current.filter(x=>String(x.id)!==String(editId)&&String(x.staffCode||'').toLowerCase()!==staffCode.toLowerCase());next.push(item);write(next);render();
+    }finally{
+      if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy')}
+    }
+  }
+
+  async function remove(id,btn){
+    if(!isHead())return;const key=String(id||'');if(staffDeleteInFlight.has(key)||btn?.disabled)return;
+    const rows=read(),item=rows.find(x=>String(x.id)===key);if(!item)return;
+    if(!confirm('Delete staff profile for '+item.fullName+'?'))return;
+    staffDeleteInFlight.add(key);if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true')}
+    try{
+      await deleteCloud(id);
+      write(rows.filter(x=>String(x.id)!==key));render();
+    }catch(e){if(cloudReady())alert('Cloud delete failed: '+(e.message||e))}
+    finally{
+      staffDeleteInFlight.delete(key);
+      if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy')}
+    }
+  }
+  async function edit(id){if(!isHead())return;const item=read().find(x=>String(x.id)===String(id));if(!item)return;const box=$('staffEditor');if(box)box.innerHTML=await editorHtml(item);bindEditor();window.scrollTo({top:box?.offsetTop||0,behavior:'smooth'})}
+  function bindEditor(){if($('staffAddClassBtn'))$('staffAddClassBtn').onclick=()=>addStaffFormOption('class');if($('staffAddSubjectBtn'))$('staffAddSubjectBtn').onclick=()=>addStaffFormOption('subject');$('staffClasses')?.addEventListener('input',refreshStaffPickers);refreshStaffPickers();if($('saveStaffProfile'))$('saveStaffProfile').onclick=save;if($('saveMyStaffProfile'))$('saveMyStaffProfile').onclick=saveMyStaffProfile;if($('cancelStaffEdit'))$('cancelStaffEdit').onclick=render}
+  function bindCards(){document.querySelectorAll('[data-staff-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.staffEdit));document.querySelectorAll('[data-staff-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.staffDelete,b))}
+  async function hydrateAvatars(){
+    if(!cloudReady())return;
+    await Promise.all([...document.querySelectorAll('[data-staff-avatar]')].filter(n=>n.dataset.staffAvatar).map(async n=>{try{const url=await signedPhoto(n.dataset.staffAvatar);if(url)n.innerHTML='<img src="'+esc(url)+'" alt="Staff profile" style="width:100%;height:100%;object-fit:cover">'}catch(_){}}));
+  }
+  async function render(){
+    const root=$('staffCenterApp');if(!root)return;let rows=read();
+    if(cloudReady()&&!root.dataset.cloudLoaded){root.dataset.cloudLoaded='1';try{rows=await pullCloud()}catch(e){root.dataset.cloudLoaded='';console.warn('Staff cloud sync:',e.message)}}
+    rows=visibleLocal(rows).sort((a,b)=>String(a.fullName).localeCompare(String(b.fullName)));
+    root.innerHTML='<div class="section-head"><span class="academic-pill">'+(cloudReady()?'Cloud Sync':'Local Mode')+'</span></div><div id="staffEditor">'+await editorHtml()+'</div><div class="section-head" style="margin-top:18px"><div><h3>'+(isHead()?'Staff Directory':'My Professional Profile')+'</h3><p class="muted">'+(isHead()?'Institute teacher/staff profiles, qualifications and photos.':'Aap ka linked professional profile.')+'</p></div></div><div class="paper-grid">'+(rows.length?rows.map(card).join(''):'<div class="empty-state">'+(isHead()?'Abhi koi staff profile nahi hai.':'Aap ke login se linked staff profile nahi mila.')+'</div>')+'</div>';
+    bindEditor();bindCards();hydrateAvatars();
+  }
+  window.addEventListener('edunizam:auth',()=>{formSchoolScope='';formSchoolClasses=[];const root=$('staffCenterApp');if(root)delete root.dataset.cloudLoaded;render()});
+  setTimeout(render,0);setTimeout(render,800);
+  window.EDUNIZAM_STAFF_CENTER={render,read,pullCloud,cloudReady};
+})();
