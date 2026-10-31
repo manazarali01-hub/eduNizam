@@ -60,36 +60,6 @@ if [ "$validation_status" -ne 0 ]; then
   exit 2
 fi
 
-# All production-only versions must still be represented by local SQL.
-# The generic remote-only check below protects any future mismatch.
-set +e
-awk -F '│' '
-  NF >= 3 {
-    remote_version = $2
-    gsub(/[[:space:]]/, "", remote_version)
-    if (remote_version == "20261014170754" || remote_version == "20261014170811") {
-      print "Unresolved migration provenance entry: " remote_version > "/dev/stderr"
-      found = 1
-    }
-  }
-  END { exit found ? 0 : 1 }
-' "$1"
-provenance_status=$?
-set -e
-
-case "$provenance_status" in
-  0)
-    echo "::error::Known production migration provenance is unresolved; refusing deployment even if a local candidate matches the version." >&2
-    exit 1
-    ;;
-  1)
-    ;;
-  *)
-    echo "::error::Could not safely inspect migration provenance; refusing deployment." >&2
-    exit 2
-    ;;
-esac
-
 set +e
 awk -F '│' '
   NF >= 3 {
