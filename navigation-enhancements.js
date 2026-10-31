@@ -262,5 +262,14 @@
     nav.querySelectorAll('.nav-item').forEach(b=>placeButton(nav,b));
     filter();
   }
+  // The authenticated shell can replace #nav after login. Rebind direct
+  // summary handlers whenever a new navigation root enters the document.
+  const navRootObserver=new MutationObserver(records=>{
+    const replaced=records.some(record=>[...record.addedNodes].some(node=>
+      node.nodeType===1&&(node.id==='nav'||node.querySelector?.('#nav'))
+    ));
+    if(replaced)mount();
+  });
+  navRootObserver.observe(document.documentElement,{childList:true,subtree:true});
   setTimeout(mount,0);setTimeout(mount,800);window.EDUNIZAM_NAVIGATION={mount};
 })();
