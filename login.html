@@ -336,14 +336,21 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
       });
     });
   }
-  const workspaceCache={userId:'',rows:null,at:0,inflight:null};
+  const workspaceCache={userId:'',rows:null,at:0,inflight:null,generation:0};
   async function authorizedWorkspaces(user,force=false){
     const uid=String(user?.id||'');
     if(!uid)return[];
-    if(workspaceCache.userId!==uid){workspaceCache.userId=uid;workspaceCache.rows=null;workspaceCache.at=0;workspaceCache.inflight=null}
+    if(workspaceCache.userId!==uid){
+      workspaceCache.generation++;
+      workspaceCache.userId=uid;
+      workspaceCache.rows=null;
+      workspaceCache.at=0;
+      workspaceCache.inflight=null;
+    }
     if(!force&&workspaceCache.rows&&Date.now()-workspaceCache.at<15000)return workspaceCache.rows;
-    if(workspaceCache.inflight)return workspaceCache.inflight;
-    workspaceCache.inflight=(async()=>{
+    if(workspaceCache.inflight?.userId===uid)return workspaceCache.inflight.promise;
+    const generation=workspaceCache.generation;
+    const pending=(async()=>{
       const {data,error}=await client.rpc('my_authorized_workspaces');
       if(error)throw error;
       return (data||[]).map(row=>({
@@ -355,11 +362,17 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
         workspace_role:row.workspace_role
       }));
     })();
+    const request={userId:uid,generation,promise:pending};
+    workspaceCache.inflight=request;
     try{
-      const rows=await workspaceCache.inflight;
-      workspaceCache.rows=rows;workspaceCache.at=Date.now();
+      const rows=await pending;
+      if(workspaceCache.userId!==uid||workspaceCache.generation!==generation)return[];
+      workspaceCache.rows=rows;
+      workspaceCache.at=Date.now();
       return rows;
-    }finally{workspaceCache.inflight=null}
+    }finally{
+      if(workspaceCache.inflight===request)workspaceCache.inflight=null;
+    }
   }
   async function resolveInstitution(user,requestedName='',role='',requestedInstitutionId=''){
     const wanted=normalizeInstituteName(requestedName);

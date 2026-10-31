@@ -53,6 +53,8 @@ jobs:
         run: node scripts/public-feedback-check.mjs
       - name: Reproduce logout/session restore races and backup isolation
         run: node scripts/auth-session-race-check.mjs
+      - name: Verify login workspace cache account-switch isolation
+        run: node scripts/login-workspace-cache-race-check.mjs
       - name: Verify default school is preserved on multi-school approval
         run: node scripts/default-school-approval-migration-check.mjs
       - name: Verify student record claim stays within an authorized school
