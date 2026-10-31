@@ -60,8 +60,8 @@ if [ "$validation_status" -ne 0 ]; then
   exit 2
 fi
 
-# These production versions have no independently verified original SQL.
-# Block them even if a candidate file with the same version is later added locally.
+# All production-only versions must still be represented by local SQL.
+# The generic remote-only check below protects any future mismatch.
 set +e
 awk -F '│' '
   NF >= 3 {
