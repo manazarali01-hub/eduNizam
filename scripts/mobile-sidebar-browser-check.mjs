@@ -35,11 +35,19 @@ try{
   const openState=await page.evaluate(()=>{
     const side=document.querySelector('.sidebar'),nav=document.querySelector('.sidebar #nav'),close=document.querySelector('#eduMobileNavClose'),cs=getComputedStyle(close),r=close.getBoundingClientRect();
     const group=nav?.querySelector('.nav-group summary strong');
-    return {expanded:document.querySelector('#eduMobileMenuBtn')?.getAttribute('aria-expanded'),backdrop:document.querySelector('#eduMobileNavBackdrop')?.classList.contains('show'),drawerWidth:side?.getBoundingClientRect().width,navHeight:nav?.clientHeight,navScrollHeight:nav?.scrollHeight,closeVisible:!!r.width&&!!r.height,closeColor:cs.color,closeBackground:cs.backgroundColor,closeWidth:r.width,groupText:group?.textContent?.trim()};
+    const feature=nav?.querySelector('.nav-item[data-view]');
+    const label=feature?.querySelector('.premium-nav-label');
+    const icon=feature?.querySelector('.premium-nav-icon');
+    const labelStyle=label?getComputedStyle(label):null;
+    const iconRect=icon?.getBoundingClientRect();
+    const groupStyle=group?getComputedStyle(group):null;
+    return {expanded:document.querySelector('#eduMobileMenuBtn')?.getAttribute('aria-expanded'),backdrop:document.querySelector('#eduMobileNavBackdrop')?.classList.contains('show'),drawerWidth:side?.getBoundingClientRect().width,navHeight:nav?.clientHeight,navScrollHeight:nav?.scrollHeight,closeVisible:!!r.width&&!!r.height,closeColor:cs.color,closeBackground:cs.backgroundColor,closeWidth:r.width,groupText:group?.textContent?.trim(),featureText:label?.textContent?.trim(),featureLabelWrap:labelStyle?.whiteSpace,featureLabelOverflow:label?label.scrollWidth>label.clientWidth:false,iconWidth:iconRect?.width,groupGap:groupStyle?.marginBottom,sidebarBackground: getComputedStyle(side).backgroundColor};
   });
   if(openState.expanded!=='true'||!openState.backdrop)throw new Error('Drawer did not expose expanded state and backdrop: '+JSON.stringify(openState));
   if(!openState.closeVisible||openState.closeWidth<44||openState.closeColor==='rgb(255, 255, 255)')throw new Error('Mobile close control is not visibly readable/tappable: '+JSON.stringify(openState));
   if(!openState.groupText||openState.navHeight<100)throw new Error('Sidebar navigation content/scroll viewport missing: '+JSON.stringify(openState));
+  if(!openState.featureText||openState.featureLabelWrap!=='normal'||openState.featureLabelOverflow)throw new Error('Feature name is clipped instead of readable/wrapping: '+JSON.stringify(openState));
+  if(openState.iconWidth>18)throw new Error('Navigation icon was not reduced to approximately half size: '+JSON.stringify(openState));
   await page.locator('#eduMobileNavClose').click();
   await page.waitForFunction(()=>!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
   const closed=await page.locator('#eduMobileMenuBtn').getAttribute('aria-expanded');
