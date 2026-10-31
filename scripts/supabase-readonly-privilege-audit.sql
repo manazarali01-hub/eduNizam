@@ -85,18 +85,18 @@ select
     when 'f' then 'function'
     else d.defaclobjtype::text
   end as object_type,
-  grantee.rolname as grantee_role,
+  coalesce(grantee.rolname, 'PUBLIC') as grantee_role,
   acl.privilege_type,
   acl.is_grantable
 from pg_default_acl d
 join pg_namespace n on n.oid = d.defaclnamespace
 join pg_roles owner_role on owner_role.oid = d.defaclrole
 cross join lateral aclexplode(d.defaclacl) acl
-join pg_roles grantee on grantee.oid = acl.grantee
+left join pg_roles grantee on grantee.oid = acl.grantee
 where n.nspname in ('public', 'storage', 'graphql', 'graphql_public')
   and d.defaclobjtype in ('r', 'S', 'f')
-  and grantee.rolname in ('anon', 'authenticated')
-order by n.nspname, owner_role.rolname, object_type, grantee.rolname, acl.privilege_type;
+  and (grantee.rolname in ('anon', 'authenticated') or acl.grantee = 0)
+order by n.nspname, owner_role.rolname, object_type, grantee_role, acl.privilege_type;
 
 -- Do not infer that RLS protects TRUNCATE: table-wide privileges are separate.
 -- Do not change Supabase-managed Storage grants without a separate reviewed plan.
