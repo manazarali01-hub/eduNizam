@@ -518,6 +518,14 @@ if(/auth\.getSession\s*\(/.test(repairCloudStateSource)) fail.push('Reliability 
 if(!login.includes('global:{fetch:supabaseFetch}')||!login.includes('setTimeout(()=>controller.abort(),12000)')) fail.push('Login Supabase network requests have no finite deadline.');
 if(!authBridgeE2E.includes('refreshScopedRoleCache')) fail.push('Role-scoped cache refresh missing after member login.');
 const navEnhancements=read('navigation-enhancements.js');
+const mobileNavCss=read('edunizam-visual-system.css');
+if(!mobileNavCss.includes('.app-page .nav-group:not([open])>.nav-group-items{display:none!important}')) fail.push('Collapsed mobile sidebar groups can still expose their feature buttons.');
+if(!mobileNavCss.includes('.app-page .nav-group[open]>.nav-group-items{display:grid!important;gap:6px!important}')) fail.push('Expanded mobile sidebar groups are missing their grid layout.');
+if(!mobileNavCss.includes('white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;')) fail.push('Mobile navigation labels can still break into narrow vertical fragments.');
+if(!navEnhancements.includes('if(window.innerWidth<=950)')||!navEnhancements.includes("nav.querySelectorAll('.nav-group[open]')")) fail.push('Mobile feature navigation is not enforced as a single-open accordion.');
+const mobileLayoutBrowserCheck=read('scripts/browser-layout-check.mjs');
+if(!mobileLayoutBrowserCheck.includes('const widths=[320,360,375,390,412,430,768,1366]')) fail.push('Mobile sidebar viewport regression sweep is missing a 320px and desktop check.');
+if(!mobileLayoutBrowserCheck.includes('Closed mobile accordion group still exposes feature buttons')) fail.push('Rendered mobile sidebar QA does not verify collapsed accordion visibility.');
 if(navEnhancements.includes("setTimeout(scheduleWarm,180)")) fail.push('Feature warm-up is still scheduled directly from the auth event.');
 if(navEnhancements.includes("filter();scheduleWarm()},900")) fail.push('Feature warm-up still starts during initial navigation mount.');
 if(!navEnhancements.includes("window.addEventListener('edunizam:workspace-ready',scheduleWarm)")) fail.push('Feature warm-up is not deferred until the workspace is ready.');
@@ -711,7 +719,28 @@ const visualSystem=read('edunizam-visual-system.css');
 if(!visualSystem.includes('APP BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push('Visible authenticated app background fix is missing.');
 if(!visualSystem.includes('pexels-photo-36159720.jpeg')||!visualSystem.includes('pexels-photo-5833.jpeg')) fail.push('Authenticated app backgrounds are not using bundled local education images.');
 if(!visualSystem.includes('.page-app .view.active > .section-head:first-child')||!visualSystem.includes('min-height:132px')) fail.push('Authenticated view opening banners are not visibly image-backed.');
-if(!read('app.html').includes('edunizam-visual-system.css?v=20261009-readiness-v1')) fail.push('App visual-system cache token does not match the latest Data Readiness appearance release.');
+if(!read('app.html').includes('edunizam-visual-system.css?v=20261030-mobile-accordion-v1')) fail.push('App visual-system cache token does not match the latest mobile sidebar release.');
+const blueGlassTheme=read('edunizam-blue-glass-theme.css');
+if(!exists('edunizam-blue-glass-theme.css')) fail.push('Premium blue glass theme stylesheet is missing.');
+for(const page of ['app.html','index.html','login.html','learn.html']){
+  const source=read(page);
+  const themeHref='edunizam-blue-glass-theme.css?v=20261030-blue-glass-v1';
+  if(!source.includes(themeHref)) fail.push('Blue glass theme is not linked on '+page+'.');
+  if(source.lastIndexOf('edunizam-blue-glass-theme.css')<source.lastIndexOf('true-photo-glass-v5.css')) fail.push('Blue glass theme must load after the shared frosted-glass layer on '+page+'.');
+}
+if(!blueGlassTheme.includes('--v52-line:rgba(51,142,230,.42)')||!blueGlassTheme.includes('--v5-glass-light:linear-gradient(130deg,rgba(253,254,255,.87),rgba(231,244,255,.75))')) fail.push('Blue glass palette tokens or translucent surface contract are missing.');
+if(!blueGlassTheme.includes('backdrop-filter:blur(16px) saturate(138%)')) fail.push('Sidebar blue glass blur/transparency contract is missing.');
+
+for(const page of htmlFiles){
+  const source=read(page);
+  const body=source.match(/<body[^>]*>/i)?.[0]||'';
+  if(/\b(premium-public-page|admission-premium|page-home|learning-sky|auth-page|page-app)\b/.test(body)){
+    if(!source.includes('edunizam-blue-glass-theme.css?v=20261030-blue-glass-v1')) fail.push('Blue glass brand layer is missing from '+page+'.');
+    if(source.lastIndexOf('edunizam-blue-glass-theme.css')<source.lastIndexOf('true-photo-glass-v5.css')) fail.push('Blue glass layer must load after the frosted-glass layer on '+page+'.');
+  }
+}
+
+
 if(!visualSystem.includes('HOME + PUBLIC BACKGROUND VISIBILITY FIX 2026-10-07')) fail.push('Visible home/public background fix is missing.');
 if(!read('index.html').includes('edunizam-visual-system.css?v=20261007-premium1')) fail.push('Homepage visual-system cache token was not bumped for premium appearance deployment.');
 if(!visualSystem.includes('body.gold-home')||!visualSystem.includes('pexels-photo-36159720.jpeg')) fail.push('Homepage page-wide local background image is missing.');

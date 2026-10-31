@@ -1,8 +1,9 @@
 name: EduNizam QA
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, fix/mobile-sidebar-accordion-final-20261030]
   pull_request:
     branches: [main]
 

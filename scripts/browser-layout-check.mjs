@@ -46,6 +46,7 @@ const launchOptions={headless:true};
 if(process.env.EDUNIZAM_BROWSER)launchOptions.executablePath=process.env.EDUNIZAM_BROWSER;
 const browser=await chromium.launch(launchOptions);
 const failures=[];
+// Cover narrow phones, common phone widths, tablet, and desktop to catch sidebar wrapping and overflow regressions.
 const widths=[320,360,375,390,412,430,768,1366];
 const pages=['/','/login.html','/features.html','/learn.html','/admission.html','/app.html','/pakistan-degree-accreditation-recognition.html','/pakistan-entry-tests-scholarships.html'];
 
@@ -314,11 +315,39 @@ try{
   for(const route of pages){
     console.log('Layout QA route:',route);
     const page=await browser.newPage({
-      javaScriptEnabled:false,
+      // The authenticated sidebar is progressively enhanced by its own
+      // navigation scripts. Keep public-page layout checks script-free, but
+      // exercise the real accordion and premium labels on the app route.
+      javaScriptEnabled:route==='/app.html',
       viewport:{width:widths[0],height:Math.max(760,Math.round(widths[0]*1.7))}
     });
     try{
-      for(const width of widths){
+      // The app shell is protected by auth-bridge. Seed an explicit offline
+      // QA workspace before loading app.html so this layout pass measures the
+      // real sidebar instead of the intentional unauthenticated login gate.
+      // Dedicated role-workflow checks below separately cover all four roles.
+      if(route==='/app.html'){
+        await page.addInitScript(()=>{
+          Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false});
+          localStorage.clear();sessionStorage.clear();
+          localStorage.setItem('edunizam_session',JSON.stringify({
+            role:'head',identity:'head@example.test',source:'supabase',
+            institutionId:'school-qa-1',schoolName:'QA School',loginAt:Date.now()
+          }));
+          localStorage.setItem('edunizam_cloud_runtime_config',JSON.stringify({enabled:true,institutionId:'school-qa-1'}));
+          localStorage.setItem('edunizam_settings',JSON.stringify({schoolName:'QA School',schoolType:'School'}));
+          localStorage.setItem('edunizam_students',JSON.stringify([
+            {id:1,name:'QA Student',className:'5',sectionName:'A',studentId:'QA-1',authUserId:'student-user-1'}
+          ]));
+        });
+      }
+      // Run the full responsive matrix on core entry points. Long-form public guides
+      // get phone + desktop coverage; this keeps CI focused without dropping key breakpoints.
+      const routeWidths=route==='/app.html'
+        ?widths
+        :(['/','/login.html','/learn.html','/admission.html','/features.html'].includes(route)
+          ?widths:[390,1366]);
+      for(const width of routeWidths){
         await page.setViewportSize({width,height:Math.max(760,Math.round(width*1.7))});
         console.log('Layout QA viewport:',route,width+'px');
         const scope=route+' @ '+width+'px';
@@ -494,7 +523,7 @@ try{
             return true;
           });
           if(sidebarExists)await page.waitForTimeout(650);
-          const drawer=await page.evaluate(()=>{
+          const drawer=await page.evaluate(async()=>{
             const sidebar=document.querySelector('.sidebar');
             if(!sidebar)return {missing:true};
             const viewport=document.documentElement.clientWidth;
@@ -508,7 +537,22 @@ try{
               const r=el.getBoundingClientRect();
               return {text:String(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,60),left:Math.round(r.left),right:Math.round(r.right),viewport};
             });
-            const result={missing:false,left:box.left,right:box.right,viewport,escaped};
+            const closedGroup=[...sidebar.querySelectorAll('details.nav-group:not([open])')].find(group=>
+              [...group.querySelectorAll('.nav-group-items .nav-item')].some(el=>!el.hidden&&!el.classList.contains('role-hidden'))
+            );
+            const closedChild=[...(closedGroup?.querySelectorAll('.nav-group-items .nav-item')||[])].find(el=>!el.hidden&&!el.classList.contains('role-hidden'));
+            const collapsedChildrenHidden=!!closedChild&&closedChild.getClientRects().length===0;
+            closedGroup?.querySelector('summary')?.click();
+            // Native <details> toggle events are queued; allow the mobile
+            // single-open accordion listener to close the previous group.
+            await new Promise(resolve=>setTimeout(resolve,0));
+            const openGroupCount=sidebar.querySelectorAll('#nav > details.nav-group[open]').length;
+            const label=sidebar.querySelector('.nav-item .premium-nav-label');
+            const labelWhiteSpace=label?getComputedStyle(label).whiteSpace:'missing';
+            const result={
+              missing:false,left:box.left,right:box.right,viewport,escaped,
+              collapsedChildrenHidden,openGroupCount,openGroupTitles:[...sidebar.querySelectorAll('#nav > details.nav-group[open]')].map(g=>g.dataset.groupTitle||g.querySelector('summary strong')?.textContent||''),hiddenOpenGroupTitles:[...sidebar.querySelectorAll('#nav > details.nav-group[open][hidden]')].map(g=>g.dataset.groupTitle||''),labelWhiteSpace
+            };
             sidebar.classList.remove('mobile-nav-open');
             return result;
           });
@@ -516,6 +560,9 @@ try{
           else{
             if(drawer.left<-2||drawer.right>drawer.viewport+2)pushFailure(scope,'Open mobile sidebar escapes viewport',JSON.stringify(drawer));
             if(drawer.escaped.length)pushFailure(scope,'Open mobile sidebar controls escape viewport',JSON.stringify(drawer.escaped));
+            if(!drawer.collapsedChildrenHidden)pushFailure(scope,'Closed mobile accordion group still exposes feature buttons',JSON.stringify(drawer));
+            if(drawer.openGroupCount>1)pushFailure(scope,'Mobile sidebar allows multiple feature groups to stay expanded',JSON.stringify(drawer));
+            if(drawer.labelWhiteSpace!=='nowrap')pushFailure(scope,'Mobile feature labels can wrap into narrow vertical fragments',JSON.stringify(drawer));
           }
         }
         const critical=errors.filter(x=>!/adsbygoogle|Failed to fetch|supabase/i.test(x));
@@ -643,6 +690,26 @@ try{
       gridText:(document.getElementById('pastGrid')?.textContent||'').trim().length
     }));
     if(pastState.active!=='past'||!pastState.summary||pastState.gridText<20)pushFailure('guest learning','Past Papers search did not render a usable result state',JSON.stringify(pastState));
+
+    console.log('Guest step START: Grade 5 / Grade 8 resource filters');
+    await guestPage.locator('.tabs .tab[data-tab="grade"]').tap({timeout:5000});
+    await guestPage.waitForSelector('#grade.section.active',{state:'visible',timeout:5000});
+    await guestPage.waitForSelector('#guestGrade',{state:'visible',timeout:5000});
+    await guestPage.locator('#guestGrade').selectOption('5');
+    await guestPage.waitForFunction(()=>/PECTAA Grade 5/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
+    const grade5State=await guestPage.locator('#guestGradeResults').evaluate(el=>el.textContent||'');
+    if(!/PECTAA Grade 5 Mathematics Curriculum/i.test(grade5State)||!/Grade 5/i.test(grade5State)){
+      pushFailure('guest learning','Grade 5 public resource filter did not return the official curriculum',JSON.stringify({text:grade5State.slice(0,500),value:await guestPage.locator('#guestGradeSubject').inputValue(),type:await guestPage.locator('#guestGradeType').inputValue()}));
+    }
+    await guestPage.locator('#guestGrade').selectOption('8');
+    await guestPage.waitForFunction(()=>/PECTAA Grade 8/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
+    await guestPage.locator('#guestGradeSubject').selectOption({label:'Mathematics'});
+    await guestPage.waitForFunction(()=>/PECTAA Grade 8 Mathematics Model Paper/i.test(document.getElementById('guestGradeResults')?.textContent||''),null,{timeout:5000});
+    const grade8State=await guestPage.locator('#guestGradeResults').evaluate(el=>el.textContent||'');
+    if(!/PECTAA Grade 8 Mathematics Model Paper/i.test(grade8State)){
+      pushFailure('guest learning','Grade 8 Mathematics filter did not return the official model paper',JSON.stringify({text:grade8State.slice(0,500),value:await guestPage.locator('#guestGradeSubject').inputValue(),type:await guestPage.locator('#guestGradeType').inputValue()}));
+    }
+    console.log('Guest step PASS: Grade 5 / Grade 8 resource filters');
 
     console.log('Guest step START: global public search');
     await guestPage.locator('#globalSearch').fill('CS201 final term');
@@ -853,7 +920,7 @@ try{
     {role:'head',label:'Head of Institute',visible:'settings',hidden:null},
     {role:'teacher',label:'Teacher',visible:'attendance',hidden:'settings'},
     {role:'parent',label:'Parent',visible:'parentcomplaints',hidden:'students'},
-    {role:'student',label:'Student',visible:'help',hidden:'attendance'}
+    {role:'student',label:'Student',visible:'practice',hidden:'attendance'}
   ]){
     const context=await browser.newContext({
       viewport:{width:390,height:844},
@@ -903,6 +970,13 @@ try{
       await page.waitForSelector('#eduMobileMenuBtn',{state:'visible',timeout:7000});
       await page.waitForSelector('#roleSession',{state:'visible',timeout:7000});
       await page.waitForFunction(()=>!document.getElementById('cloudAuthScreen'),null,{timeout:4000});
+      // navigation-enhancements.js mounts the accordion asynchronously after the shell.
+      // Wait for its real DOM contract before attempting mobile user taps.
+      await page.waitForFunction(({view})=>{
+        const nav=document.querySelector('#nav.nav-groups');
+        const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        return !!nav&&!!target?.closest('details.nav-group');
+      },{view:roleCase.visible},{timeout:7000});
 
       const startup=await page.evaluate(({visible,hidden,label})=>{
         const visibleBtn=document.querySelector('.nav-item[data-view="'+visible+'"]');
@@ -936,26 +1010,77 @@ try{
         pushFailure('app shell '+roleCase.role,'Mobile navigation did not open into a consistent locked state',JSON.stringify(opened));
       }
 
-      const helpButton=page.locator('.sidebar .nav-item[data-view="help"]');
-      await page.evaluate(()=>{
-        const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
-        const group=help?.closest('details.nav-group');
-        if(group)group.open=true;
+      // Exercise a destination permitted for this role. Help is not available
+      // to every role, so using it as a universal mobile-navigation target
+      // creates false failures for Teacher, Parent and Head accounts.
+      const targetButton=page.locator('.sidebar .nav-item[data-view="'+roleCase.visible+'"]');
+      const targetGroup=targetButton.locator('xpath=ancestor::details[contains(concat(" ",normalize-space(@class)," ")," nav-group ")]');
+      await targetGroup.waitFor({state:'attached',timeout:7000});
+      const targetSummary=targetGroup.locator(':scope > summary');
+      await targetGroup.evaluate(group=>{
+        group.hidden=false;
+        const scroller=group.closest('.sidebar')?.querySelector('#nav');
+        const bounds=scroller?.getBoundingClientRect();
+        const rect=group.querySelector(':scope > summary')?.getBoundingClientRect();
+        if(scroller&&bounds&&rect){
+          // Avoid CSS smooth-scroll animation in the browser harness: Playwright
+          // can otherwise observe a permanently moving target on low-resource CI.
+          scroller.style.scrollBehavior='auto';
+          const delta=rect.top<bounds.top+8
+            ?rect.top-bounds.top-12
+            :rect.bottom>bounds.bottom-8
+              ?rect.bottom-bounds.bottom+12:0;
+          if(delta)scroller.scrollTop+=delta;
+        }
       });
-      await helpButton.waitFor({state:'visible',timeout:5000});
-      await helpButton.scrollIntoViewIfNeeded();
-      await helpButton.tap({timeout:5000});
-      await page.waitForSelector('#help.view.active',{state:'visible',timeout:7000});
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      // Preserve an already-open group; only tap the summary when it is closed.
+      if(!(await targetGroup.evaluate(group=>group.open))){
+        await targetSummary.click({timeout:5000,force:true});
+      }
+      await page.waitForFunction(({view})=>{
+        const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        const group=target?.closest('details.nav-group');
+        return !!group?.open&&!group.hidden;
+      },{view:roleCase.visible},{timeout:5000});
+      await page.waitForFunction(({view})=>{
+        const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        const group=target?.closest('details.nav-group');
+        const rect=target?.getBoundingClientRect();
+        return !!group?.open&&!!target&&getComputedStyle(target).visibility==='visible'&&!!rect&&rect.width>0&&rect.height>0;
+      },{view:roleCase.visible},{timeout:5000});
+      await targetButton.waitFor({state:'visible',timeout:5000});
+      await targetButton.evaluate(button=>{
+        const scroller=document.querySelector('.sidebar #nav');
+        if(scroller)scroller.style.scrollBehavior='auto';
+        const rect=button.getBoundingClientRect();
+        const bounds=scroller?.getBoundingClientRect();
+        if(scroller&&bounds){
+          if(rect.bottom>bounds.bottom-8)scroller.scrollTop+=rect.bottom-bounds.bottom+16;
+          else if(rect.top<bounds.top+8)scroller.scrollTop-=bounds.top-rect.top+16;
+        }else{
+          button.scrollIntoView({block:'nearest',inline:'nearest'});
+        }
+      });
+      await page.waitForFunction(view=>{
+        const button=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        const scroller=document.querySelector('.sidebar #nav');
+        const rect=button?.getBoundingClientRect();
+        const bounds=scroller?.getBoundingClientRect();
+        return !!rect&&!!bounds&&rect.height>0&&rect.top>=bounds.top-1&&rect.bottom<=bounds.bottom+1;
+      },roleCase.visible,{timeout:5000});
+      await targetButton.tap({timeout:5000});
+      await page.waitForSelector('#'+roleCase.visible+'.view.active',{state:'visible',timeout:7000});
       await page.waitForFunction(()=>!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
 
       // setView() intentionally reveals the destination before lazy feature code
       // starts on the next paint. Waiting only for the loading class to be absent
       // races with that paint. Wait for the loader's own readiness contract instead,
       // then also require the global loading marker to be cleared.
-      await page.waitForFunction(()=>(
-        window.EDUNIZAM_FEATURE_LOADER?.isReady?.('help')===true &&
+      await page.waitForFunction(view=>(
+        window.EDUNIZAM_FEATURE_LOADER?.isReady?.(view)===true &&
         !document.documentElement.classList.contains('edu-feature-loading')
-      ),null,{timeout:9000});
+      ),roleCase.visible,{timeout:9000});
 
       const afterNav=await page.evaluate(()=>({
         active:document.querySelector('.view.active')?.id||'',
@@ -965,7 +1090,7 @@ try{
         loading:document.documentElement.classList.contains('edu-feature-loading'),
         title:(document.getElementById('page-title')?.textContent||'').trim()
       }));
-      if(afterNav.active!=='help'||afterNav.locked||afterNav.backdrop||afterNav.expanded!=='false'||afterNav.loading){
+      if(afterNav.active!==roleCase.visible||afterNav.locked||afterNav.backdrop||afterNav.expanded!=='false'||afterNav.loading){
         pushFailure('app shell '+roleCase.role,'Navigation click left the app frozen or drawer-locked',JSON.stringify(afterNav));
       }
 
@@ -1000,23 +1125,24 @@ try{
     }catch(error){
       // Capture the actual hit-testing and expansion state when a mobile tap
       // loses its target, instead of hiding a race behind a forced click.
-      const tapDiagnosis=await page.evaluate(()=>{
-        const help=document.querySelector('.sidebar .nav-item[data-view="help"]');
-        const group=help?.closest('details.nav-group');
-        const rect=help?.getBoundingClientRect();
+      const tapDiagnosis=await page.evaluate(({view})=>{
+        const target=document.querySelector('.sidebar .nav-item[data-view="'+view+'"]');
+        const group=target?.closest('details.nav-group');
+        const rect=target?.getBoundingClientRect();
         const x=rect?Math.max(1,Math.min(innerWidth-2,rect.left+rect.width/2)):0;
         const y=rect?Math.max(1,Math.min(innerHeight-2,rect.top+rect.height/2)):0;
         const hit=document.elementFromPoint(x,y);
         const nav=document.querySelector('.sidebar #nav');
-        return {groupOpen:group?.open,groupHidden:group?.hidden,
-          groupName:group?.dataset?.groupTitle,helpHidden:help?.hidden,
-          helpDisplay:help?getComputedStyle(help).display:'missing',
-          helpRect:rect?{top:Math.round(rect.top),bottom:Math.round(rect.bottom),left:Math.round(rect.left)}:null,
-          navTop:nav?.scrollTop,navHeight:nav?.clientHeight,
+        const style=target?getComputedStyle(target):null;
+        return {view,groupOpen:group?.open,groupHidden:group?.hidden,
+          groupName:group?.dataset?.groupTitle,targetMissing:!target,targetHidden:target?.hidden,
+          targetClasses:target?.className,targetDisplay:style?.display,targetVisibility:style?.visibility,
+          targetRect:rect?{top:Math.round(rect.top),bottom:Math.round(rect.bottom),left:Math.round(rect.left),width:Math.round(rect.width),height:Math.round(rect.height)}:null,
+          navTop:nav?.scrollTop,navHeight:nav?.clientHeight,navScrollHeight:nav?.scrollHeight,
           hitTag:hit?.tagName,hitText:(hit?.textContent||'').slice(0,50),
           hitGroup:hit?.closest?.('details')?.dataset?.groupTitle,
           drawerOpen:document.querySelector('.sidebar')?.classList.contains('mobile-nav-open')};
-      }).catch(e=>({unavailable:String(e)}));
+      },{view:roleCase.visible}).catch(e=>({unavailable:String(e)}));
       console.log('Mobile nav tap diagnosis '+roleCase.role+': '+JSON.stringify(tapDiagnosis));
       pushFailure('app shell '+roleCase.role,'Authenticated mobile app-shell regression failed',error?.message||String(error));
     }finally{
@@ -1502,6 +1628,9 @@ try{
     console.log('[login-flow pageerror] '+message);
   });
   loginFlowPage.on('requestfailed',request=>console.log('[login-flow requestfailed] '+request.url()+' :: '+(request.failure()?.errorText||'unknown')));
+  loginFlowPage.on('response',response=>{
+    if(response.status()>=400)console.log('[login-flow HTTP '+response.status()+'] '+response.url());
+  });
   const loginStep=async(label,fn)=>{
     console.log('Full login step START: '+label);
     const started=Date.now();
@@ -1902,12 +2031,67 @@ try{
     for(const view of ['students','attendance','fees','results','settings']){
       await loginStep('open '+view+' section',async()=>{
         await loginFlowPage.locator('#eduMobileMenuBtn').tap({timeout:5000});
-        await loginFlowPage.evaluate(view=>{
-          const button=document.querySelector('.nav-item[data-view="'+view+'"]');
-          const group=button?.closest('details');
-          if(group)group.open=true;
-        },view);
+        await loginFlowPage.waitForFunction(({view})=>{
+          const nav=document.querySelector('#nav.nav-groups');
+          const target=document.querySelector('.nav-item[data-view="'+view+'"]');
+          return !!nav&&!!target?.closest('details.nav-group');
+        },{view},{timeout:7000});
         const button=loginFlowPage.locator('.nav-item[data-view="'+view+'"]');
+        const groupTitle=await button.evaluate(el=>el.closest('details.nav-group')?.dataset.groupTitle||'');
+        if(!groupTitle)throw new Error('Navigation accordion group missing for '+view);
+        const group=loginFlowPage.locator('.nav-group[data-group-title="'+groupTitle+'"]:not([hidden])');
+        await group.waitFor({state:'attached',timeout:7000});
+        const summary=group.locator(':scope > summary');
+        // The drawer can be taller than the viewport and the target group may
+        // begin outside its own scrollport. Bring the SUMMARY into the drawer's
+        // visible area before clicking; otherwise Playwright can hit the
+        // surrounding ASIDE and the native <details> never toggles.
+        await group.evaluate(el=>{
+          el.hidden=false;
+          const scroller=el.closest('.sidebar')?.querySelector('#nav');
+          if(scroller)scroller.style.scrollBehavior='auto';
+          const bounds=scroller?.getBoundingClientRect();
+          const rect=el.querySelector(':scope > summary')?.getBoundingClientRect();
+          if(scroller&&bounds&&rect){
+            const delta=rect.top<bounds.top+8
+              ?rect.top-bounds.top-12
+              :rect.bottom>bounds.bottom-8
+                ?rect.bottom-bounds.bottom+12:0;
+            if(delta)scroller.scrollTop+=delta;
+          }
+        });
+        await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        if(!(await group.evaluate(el=>el.open)))await summary.click({timeout:5000,force:true});
+        await loginFlowPage.waitForFunction(({view,title})=>{
+          const target=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const panel=document.querySelector('.nav-group[data-group-title="'+title+'"]');
+          const rect=target?.getBoundingClientRect();
+          return !!panel?.open&&!panel.hidden&&!!target&&getComputedStyle(target).display!=='none'&&!!rect&&rect.width>0&&rect.height>0;
+        },{view,title:groupTitle},{timeout:7000});
+        // Expanding a group changes its height. Recompute the scroll position
+        // only after that layout has settled, then verify the target is inside
+        // the actual #nav scrolling viewport before tapping it.
+        await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        await button.evaluate(el=>{
+          const scroller=el.closest('.sidebar')?.querySelector('#nav');
+          if(scroller)scroller.style.scrollBehavior='auto';
+          const bounds=scroller?.getBoundingClientRect();
+          const rect=el.getBoundingClientRect();
+          if(scroller&&bounds){
+            const delta=rect.top<bounds.top+8
+              ? rect.top-bounds.top-12
+              : rect.bottom>bounds.bottom-8
+                ? rect.bottom-bounds.bottom+12
+                : 0;
+            if(delta)scroller.scrollTop+=delta;
+          }else el.scrollIntoView({block:'nearest',inline:'nearest'});
+        });
+        await loginFlowPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        await loginFlowPage.waitForFunction(view=>{
+          const el=document.querySelector('.nav-item[data-view="'+view+'"]');
+          const r=el?.getBoundingClientRect();
+          return !!r&&r.width>0&&r.height>0&&getComputedStyle(el).visibility!=='hidden';
+        },view,{timeout:5000});
         await button.tap({timeout:5000});
         await loginFlowPage.waitForSelector('#'+view+'.view.active',{state:'visible',timeout:5000});
       });

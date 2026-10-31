@@ -1,4 +1,7 @@
 (function(){
+  // Native <details>/<summary> activation is intentionally preserved.
+  // navigation-enhancements.js observes open-state mutations and enforces
+  // the one-open-group rule without cancelling the browser's default action.
   const $=s=>document.querySelector(s);
   let controller=null;
 
