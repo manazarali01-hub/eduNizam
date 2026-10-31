@@ -3,7 +3,7 @@
 -- This script deliberately fails closed when run as postgres or another role.
 -- It changes only future-table TRUNCATE defaults; existing object ACLs, RLS,
 -- ordinary CRUD grants, and Supabase-managed table data are not modified.
-\\set ON_ERROR_STOP on
+\set ON_ERROR_STOP on
 begin;
 
 do $guard$
