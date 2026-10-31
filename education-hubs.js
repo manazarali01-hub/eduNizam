@@ -16,7 +16,7 @@
   function renderSchool(){
     const grade=$('schoolAssessGrade').value,sub=$('schoolAssessSubject').value,year=$('schoolAssessYear').value,src=$('schoolAssessSource').value;
     const arr=S.resources.filter(x=>(!grade||String(x.grade)===grade)&&(!sub||String(x.subject).includes(sub))&&(!year||String(x.year)===year)&&(!src||x.source===src));
-    $('schoolAssessCount').textContent=S.resources.length+' Resources';
+    $('schoolAssessCount').textContent=arr.length+' matching resources · '+S.resources.length+' total';
     $('schoolAssessLibrary').innerHTML=arr.length?arr.map(x=>{
       const badge=x.source==='official'?'<span class="trust-badge trust-official">Official PECTAA</span>':'<span class="trust-badge trust-verified">Historical / Verified</span>';
       const pdf=x.fileUrl?'<a class="secondary-link" target="_blank" rel="noopener" href="'+esc(x.fileUrl)+'">Download / Print PDF</a>':'';
@@ -60,7 +60,7 @@
   function uniCard(r){
     const u=U.universities.find(x=>x.id===r.universityId);
     const badge=r.source==='official'?'<span class="trust-badge trust-official">Official</span>':'<span class="trust-badge trust-verified">Verified Community</span>';
-    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">Exact Indexed Resource</span> <span class="mini-badge">'+esc(r.category)+'</span> '+badge+'</div></div><h3>'+esc(r.title)+'</h3><p class="muted">'+esc(u?.name||'')+'</p><p class="coverage-note">'+esc(r.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(r.url)+'">Open Resource</a></div></article>';
+    return '<article class="paper-card"><div class="paper-card-top"><div><span class="mini-badge">Source Listing</span> <span class="mini-badge">'+esc(r.category)+'</span> '+badge+'</div></div><h3>'+esc(r.title)+'</h3><p class="muted">'+esc(u?.name||'')+'</p><p class="coverage-note">'+esc(r.note||'')+'</p><div class="paper-actions"><a class="primary-link" target="_blank" rel="noopener" href="'+esc(r.url)+'">Open Resource</a></div></article>';
   }
   function universityFallbackCard(u,q){
     const base=U.resources.find(r=>r.universityId===u.id&&r.category==='Past Papers')||U.resources.find(r=>r.universityId===u.id);
