@@ -25,6 +25,8 @@ jobs:
           node-version: '22'
       - name: Run EduNizam QA
         run: node qa-check.mjs
+      - name: Verify class-teacher leave-review trigger migration contract
+        run: node scripts/class-teacher-leave-trigger-check.mjs
       - name: Verify Supabase Data API grants checklist contract
         run: node scripts/data-api-table-grants-checklist-check.mjs
       - name: Verify public TRUNCATE hardening contract
