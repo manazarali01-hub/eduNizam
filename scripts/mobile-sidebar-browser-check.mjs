@@ -44,11 +44,38 @@ try{
     return {expanded:document.querySelector('#eduMobileMenuBtn')?.getAttribute('aria-expanded'),backdrop:document.querySelector('#eduMobileNavBackdrop')?.classList.contains('show'),drawerWidth:side?.getBoundingClientRect().width,navHeight:nav?.clientHeight,navScrollHeight:nav?.scrollHeight,closeVisible:!!r.width&&!!r.height,closeColor:cs.color,closeBackground:cs.backgroundColor,closeWidth:r.width,groupText:group?.textContent?.trim(),groupLabelWidth:group?.getBoundingClientRect().width,groupLabelFontSize:groupStyle?.fontSize,groupLabelColor:groupStyle?.color,groupLabelOverflow:group?group.scrollWidth>group.clientWidth:false,featureText:label?.textContent?.trim(),featureLabelWrap:labelStyle?.whiteSpace,featureLabelOverflow:label?label.scrollWidth>label.clientWidth:false,iconWidth:iconRect?.width,groupGap:groupStyle?.marginBottom,sidebarBackground: getComputedStyle(side).backgroundColor};
   });
   if(openState.expanded!=='true'||!openState.backdrop)throw new Error('Drawer did not expose expanded state and backdrop: '+JSON.stringify(openState));
-  if(!openState.closeVisible||openState.closeWidth<44||openState.closeColor==='rgb(255, 255, 255)')throw new Error('Mobile close control is not visibly readable/tappable: '+JSON.stringify(openState));
+  if(!openState.closeVisible||openState.closeWidth<44||openState.closeColor!=='rgb(17, 17, 17)'||openState.closeBackground!=='rgba(255, 255, 255, 0.3)')throw new Error('Mobile close control is not visibly readable/tappable: '+JSON.stringify(openState));
   if(!openState.groupText||openState.navHeight<100)throw new Error('Sidebar navigation content/scroll viewport missing: '+JSON.stringify(openState));
-  if(!openState.groupText||openState.groupLabelWidth<70||openState.groupLabelFontSize!=='12px'||openState.groupLabelColor==='rgba(0, 0, 0, 0)'||openState.groupLabelOverflow)throw new Error('Category heading is too small, clipped or unreadable: '+JSON.stringify(openState));
+  if(!openState.groupText||openState.groupLabelWidth<70||(parseFloat(openState.groupLabelFontSize)<12||parseFloat(openState.groupLabelFontSize)>13)||openState.groupLabelColor==='rgba(0, 0, 0, 0)'||openState.groupLabelOverflow)throw new Error('Category heading is too small, clipped or unreadable: '+JSON.stringify(openState));
   if(!openState.featureText||openState.featureLabelWrap!=='normal'||openState.featureLabelOverflow)throw new Error('Feature name is clipped instead of readable/wrapping: '+JSON.stringify(openState));
   if(openState.iconWidth>18)throw new Error('Navigation icon was not reduced to approximately half size: '+JSON.stringify(openState));
+  // Exercise every category and every visible feature label, not only the first item.
+  const groupCount=await sidebar.locator('#nav .nav-group').count();
+  let checkedGroups=0,checkedFeatures=0;
+  for(let i=0;i<groupCount;i++){
+    const group=sidebar.locator('#nav .nav-group').nth(i);
+    const isOpen=await group.evaluate(node=>node.open);
+    if(!isOpen) await group.locator('summary').click();
+    await group.locator('.nav-item:not(.role-hidden):not(.nav-search-hidden)').first().waitFor({state:'visible',timeout:3000}).catch(()=>{});
+    const items=group.locator('.nav-item:not(.role-hidden):not(.nav-search-hidden):visible');
+    const itemCount=await items.count();
+    if(!itemCount)continue;
+    const metrics=await items.evaluateAll(nodes=>nodes.map(node=>{
+      const label=node.querySelector('.premium-nav-label');
+      const icon=node.querySelector('.premium-nav-icon svg');
+      const lr=label?.getBoundingClientRect();
+      const ir=icon?.getBoundingClientRect();
+      return {text:label?.textContent?.trim(),labelWidth:lr?.width||0,labelScroll:label?.scrollWidth||0,labelClient:label?.clientWidth||0,iconWidth:ir?.width||0};
+    }));
+    for(const m of metrics){
+      if(!m.text||m.labelWidth<45||m.labelScroll>m.labelClient+1)throw new Error('Feature label is missing or clipped in group '+i+': '+JSON.stringify(m));
+      if(m.iconWidth>13)throw new Error('Feature icon exceeds compact 12px target in group '+i+': '+JSON.stringify(m));
+      checkedFeatures++;
+    }
+    checkedGroups++;
+  }
+  if(checkedGroups<5||checkedFeatures<20)throw new Error('Sidebar coverage too small: '+JSON.stringify({checkedGroups,checkedFeatures}));
+  console.log('Full mobile sidebar coverage passed:',JSON.stringify({checkedGroups,checkedFeatures}));
   await page.locator('#eduMobileNavClose').click();
   await page.waitForFunction(()=>!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
   const closed=await page.locator('#eduMobileMenuBtn').getAttribute('aria-expanded');
