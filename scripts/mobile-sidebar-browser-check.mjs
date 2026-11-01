@@ -49,6 +49,31 @@ try{
   if(!openState.groupText||openState.groupLabelWidth<70||openState.groupLabelFontSize!=='12px'||openState.groupLabelColor==='rgba(0, 0, 0, 0)'||openState.groupLabelOverflow)throw new Error('Category heading is too small, clipped or unreadable: '+JSON.stringify(openState));
   if(!openState.featureText||openState.featureLabelWrap!=='normal'||openState.featureLabelOverflow)throw new Error('Feature name is clipped instead of readable/wrapping: '+JSON.stringify(openState));
   if(openState.iconWidth>18)throw new Error('Navigation icon was not reduced to approximately half size: '+JSON.stringify(openState));
+  // Exercise every category and every visible feature label, not only the first item.
+  const groupCount=await sidebar.locator('#nav .nav-group').count();
+  let checkedGroups=0,checkedFeatures=0;
+  for(let i=0;i<groupCount;i++){
+    const group=sidebar.locator('#nav .nav-group').nth(i);
+    const items=group.locator('.nav-item:not(.role-hidden):not(.nav-search-hidden)');
+    const itemCount=await items.count();
+    if(!itemCount)continue;
+    await group.locator('summary').click();
+    const metrics=await items.evaluateAll(nodes=>nodes.map(node=>{
+      const label=node.querySelector('.premium-nav-label');
+      const icon=node.querySelector('.premium-nav-icon svg');
+      const lr=label?.getBoundingClientRect();
+      const ir=icon?.getBoundingClientRect();
+      return {text:label?.textContent?.trim(),labelWidth:lr?.width||0,labelScroll:label?.scrollWidth||0,labelClient:label?.clientWidth||0,iconWidth:ir?.width||0};
+    }));
+    for(const m of metrics){
+      if(!m.text||m.labelWidth<45||m.labelScroll>m.labelClient+1)throw new Error('Feature label is missing or clipped in group '+i+': '+JSON.stringify(m));
+      if(m.iconWidth>13)throw new Error('Feature icon exceeds compact 12px target in group '+i+': '+JSON.stringify(m));
+      checkedFeatures++;
+    }
+    checkedGroups++;
+  }
+  if(checkedGroups<5||checkedFeatures<20)throw new Error('Sidebar coverage too small: '+JSON.stringify({checkedGroups,checkedFeatures}));
+  console.log('Full mobile sidebar coverage passed:',JSON.stringify({checkedGroups,checkedFeatures}));
   await page.locator('#eduMobileNavClose').click();
   await page.waitForFunction(()=>!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
   const closed=await page.locator('#eduMobileMenuBtn').getAttribute('aria-expanded');
