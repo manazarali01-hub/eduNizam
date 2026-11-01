@@ -283,3 +283,68 @@ body.page-app .sidebar #nav .nav-item.active{
     max-width:88vw!important;
   }
 }
+
+
+/* Phase 27 — mobile dashboard blue-glass correction.
+   High-specificity dashboard overrides neutralize older green photo-glass
+   rules without changing dashboard markup, live data or actions. */
+body.page-app .main{
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(0,153,255,.20),transparent 34rem),
+    radial-gradient(ellipse at 92% 24%,rgba(22,93,196,.22),transparent 38rem),
+    linear-gradient(145deg,#06172f 0%,#082f63 52%,#041a38 100%)!important;
+}
+body.page-app #dashboard.view.active{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+body.page-app #dashboard.view.active>.campus-hero{
+  color:#f4f8ff!important;
+  background:
+    radial-gradient(circle at 88% 16%,rgba(0,174,255,.30),transparent 19rem),
+    linear-gradient(125deg,rgba(8,55,112,.94),rgba(3,25,65,.91))!important;
+  background-image:
+    radial-gradient(circle at 88% 16%,rgba(0,174,255,.30),transparent 19rem),
+    linear-gradient(125deg,rgba(8,55,112,.94),rgba(3,25,65,.91))!important;
+  border:1px solid rgba(150,218,255,.62)!important;
+  box-shadow:0 20px 48px rgba(0,8,34,.34),inset 0 1px 0 rgba(255,255,255,.24),0 0 26px rgba(0,148,255,.14)!important;
+}
+body.page-app #dashboard.view.active>.campus-hero :is(h2,p,.campus-label){
+  color:#f4f8ff!important;-webkit-text-fill-color:#f4f8ff!important;
+}
+body.page-app #dashboard.view.active>.campus-hero .campus-visual{
+  background:linear-gradient(145deg,rgba(85,174,239,.24),rgba(4,31,77,.55))!important;
+  border:1px solid rgba(175,225,255,.48)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 0 24px rgba(0,157,255,.18)!important;
+}
+body.page-app #dashboard.view.active>.cards>.card.stat,
+body.page-app #dashboard.view.active>.grid-2>.card,
+body.page-app #dashboard.view.active .dashboard-panel{
+  color:#f1f7ff!important;
+  background:linear-gradient(145deg,rgba(23,91,157,.72),rgba(5,35,82,.72))!important;
+  border:1px solid rgba(157,216,255,.48)!important;
+  box-shadow:0 12px 30px rgba(0,8,35,.24),inset 0 1px 0 rgba(255,255,255,.20)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(140%)!important;
+  backdrop-filter:blur(18px) saturate(140%)!important;
+}
+body.page-app #dashboard.view.active>.cards>.card.stat :is(span,strong),
+body.page-app #dashboard.view.active>.grid-2>.card :is(h2,h3,p,strong,span){
+  color:#f1f7ff!important;-webkit-text-fill-color:#f1f7ff!important;
+}
+body.page-app .topbar{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  flex-wrap:wrap!important;gap:10px!important;
+}
+body.page-app .topbar-title{flex:1 1 150px!important;min-width:0!important}
+body.page-app .topbar-title h1{font-size:clamp(1.2rem,5vw,1.75rem)!important;line-height:1.15!important}
+body.page-app .topbar-actions{
+  display:flex!important;flex:0 1 auto!important;flex-wrap:wrap!important;
+  align-items:center!important;justify-content:flex-end!important;gap:7px!important;min-width:0!important;
+}
+body.page-app .topbar-actions>*{max-width:100%!important}
+@media(max-width:520px){
+  body.page-app .topbar{padding:9px!important;gap:7px!important}
+  body.page-app .topbar-title{flex-basis:100%!important}
+  body.page-app .topbar-actions{width:100%!important;justify-content:flex-start!important}
+}
