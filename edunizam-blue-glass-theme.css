@@ -928,3 +928,19 @@ body.page-app .sidebar #nav .nav-group>summary>strong{
     box-shadow: none !important;
   }
 }
+
+
+/* Phase 24 final neutral close control: no blue tint on the glass drawer. */
+@media (max-width: 1100px) {
+  body.page-app .sidebar .mobile-nav-close {
+    color: #111 !important;
+    -webkit-text-fill-color: #111 !important;
+    background: rgba(255,255,255,.30) !important;
+    border: 1px solid rgba(17,17,17,.14) !important;
+    box-shadow: 0 2px 8px rgba(20,30,40,.06) !important;
+  }
+  body.page-app .sidebar .mobile-nav-close:focus-visible {
+    outline: 2px solid rgba(17,17,17,.55) !important;
+    outline-offset: 2px !important;
+  }
+}
