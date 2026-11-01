@@ -54,10 +54,12 @@ try{
   let checkedGroups=0,checkedFeatures=0;
   for(let i=0;i<groupCount;i++){
     const group=sidebar.locator('#nav .nav-group').nth(i);
-    const items=group.locator('.nav-item:not(.role-hidden):not(.nav-search-hidden)');
+    const isOpen=await group.evaluate(node=>node.open);
+    if(!isOpen) await group.locator('summary').click();
+    await group.locator('.nav-item:not(.role-hidden):not(.nav-search-hidden)').first().waitFor({state:'visible',timeout:3000}).catch(()=>{});
+    const items=group.locator('.nav-item:not(.role-hidden):not(.nav-search-hidden):visible');
     const itemCount=await items.count();
     if(!itemCount)continue;
-    await group.locator('summary').click();
     const metrics=await items.evaluateAll(nodes=>nodes.map(node=>{
       const label=node.querySelector('.premium-nav-label');
       const icon=node.querySelector('.premium-nav-icon svg');
