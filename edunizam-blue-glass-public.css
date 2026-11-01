@@ -153,3 +153,76 @@ body.learning-sky .btn.primary{color:#fff!important;background:linear-gradient(1
   body.auth-page .main{background:transparent!important}
   body.learning-sky .topbar{background:var(--en-public-glass)!important}
 }
+
+
+/* Contrast correction from Phase 29 rendered screenshot review. */
+body.gold-home.page-home .hero-copy *,
+body.gold-home.page-home .hero-copy :is(h1,h2,h3,p,em,strong,span){
+  color:#f3f8ff!important;
+  -webkit-text-fill-color:#f3f8ff!important;
+  text-shadow:none!important;
+}
+body.gold-home.page-home .hero-copy .hero-gold,
+body.gold-home.page-home .hero-copy em{
+  color:#8bdcff!important;-webkit-text-fill-color:#8bdcff!important;
+}
+body.gold-home.page-home .role-preview *,
+body.gold-home.page-home .preview-window *,
+body.gold-home.page-home .quick-access-card :is(h2,h3,p,strong,small,span){
+  color:#f3f8ff!important;-webkit-text-fill-color:#f3f8ff!important;
+}
+body.auth-page{
+  min-height:100vh!important;
+  background:
+    radial-gradient(ellipse at 15% 10%,rgba(0,151,255,.25),transparent 32rem),
+    linear-gradient(145deg,#04132f 0%,#062b60 55%,#03152f 100%)!important;
+}
+body.auth-page .page,
+body.auth-page .main,
+body.auth-page .view,
+body.auth-page .roles,
+body.auth-page .fields,
+body.auth-page .head{background:transparent!important}
+body.auth-page .mobile-brand,
+body.auth-page .story,
+body.auth-page .card{
+  color:#f3f8ff!important;
+  background:linear-gradient(145deg,rgba(18,83,151,.88),rgba(5,30,75,.90))!important;
+  border:1px solid rgba(151,211,255,.48)!important;
+  box-shadow:0 16px 40px rgba(0,9,35,.28),inset 0 1px 0 rgba(255,255,255,.20)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+  backdrop-filter:blur(22px) saturate(145%)!important;
+}
+body.auth-page .roles .role,
+body.auth-page .role{
+  color:#f3f8ff!important;
+  background:linear-gradient(145deg,rgba(18,83,151,.78),rgba(5,30,75,.82))!important;
+  border:1px solid rgba(151,211,255,.58)!important;
+  box-shadow:0 8px 22px rgba(0,9,35,.20)!important;
+}
+body.auth-page .roles .role *,
+body.auth-page .role :is(strong,small,.icon){
+  color:#f3f8ff!important;-webkit-text-fill-color:#f3f8ff!important;
+}
+body.auth-page .mobile-brand :is(a,p,span,strong,small,h1,h2){color:#f3f8ff!important}
+body.auth-page .eyebrow,
+body.auth-page .subtitle,
+body.auth-page .role-guidance,
+body.auth-page .field label,
+body.auth-page .help{color:#e4f2ff!important}
+body.auth-page .tabs{background:rgba(4,28,68,.62)!important;border:1px solid rgba(151,211,255,.48)!important}
+body.auth-page .tab{color:#eaf5ff!important}
+body.auth-page .tab.active{color:#fff!important;background:linear-gradient(120deg,#087fe0,#0753b5)!important}
+body.auth-page .field input,
+body.auth-page .field select,
+body.auth-page input,
+body.auth-page select,
+body.auth-page textarea{
+  border:1px solid rgba(151,211,255,.65)!important;
+  box-shadow:0 5px 16px rgba(0,9,35,.14)!important;
+}
+@media(max-width:600px){
+  body.auth-page .page{background:transparent!important;box-shadow:none!important}
+  body.auth-page .mobile-brand{border-radius:20px!important}
+  body.auth-page .roles .role{min-height:118px!important}
+}
