@@ -1,0 +1,168 @@
+/* EduNizam Premium Blue Glass — approved site-wide visual direction.
+   Presentation layer only: preserve existing markup, data, routes, permissions and actions. */
+:root{
+  --en-glass-ink:#f3f8ff;
+  --en-glass-muted:#c4d7ed;
+  --en-glass-line:rgba(151,211,255,.42);
+  --en-glass-panel:linear-gradient(145deg,rgba(18,83,151,.78),rgba(5,30,75,.76));
+  --en-glass-shadow:0 14px 38px rgba(0,9,35,.32),inset 0 1px 0 rgba(255,255,255,.24);
+  --en-silver:#e8edf5;
+  --en-silver-bright:#fff;
+  --en-blue-glow:rgba(0,174,255,.58);
+}
+body.page-app,
+body.page-home{
+  color:var(--en-glass-ink)!important;
+  background:
+    radial-gradient(ellipse at 12% 8%,rgba(0,151,255,.22),transparent 34rem),
+    radial-gradient(ellipse at 88% 22%,rgba(0,82,196,.24),transparent 38rem),
+    linear-gradient(145deg,#04132f 0%,#062b60 48%,#03152f 100%)!important;
+  background-attachment:fixed!important;
+}
+body.page-app :is(h1,h2,h3,h4,.academic-kicker,.muted),
+body.page-home :is(h1,h2,h3,h4,.muted){color:var(--en-glass-ink)!important}
+body.page-app :is(p,label,small,.academic-pill,.campus-label),
+body.page-home :is(p,label,small){color:var(--en-glass-muted)}
+/* App frame and navigation */
+body.page-app .app-shell{background:transparent!important}
+body.page-app .sidebar,
+body.page-app .topbar,
+body.page-app .campus-hero,
+body.page-app .card,
+body.page-app .pp-hero,
+body.page-app .coverage-note,
+body.page-app .section-head,
+body.page-app .modal-content{
+  color:var(--en-glass-ink)!important;
+  background:var(--en-glass-panel)!important;
+  border:1px solid var(--en-glass-line)!important;
+  box-shadow:var(--en-glass-shadow),0 0 22px rgba(0,143,255,.10)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+  backdrop-filter:blur(22px) saturate(145%)!important;
+}
+body.page-app .sidebar{border-radius:0 22px 22px 0!important}
+body.page-app .sidebar .sidebar-wordmark strong,
+body.page-app .topbar-title h1,
+body.page-app .campus-hero h2,
+body.page-app .pp-hero h2{
+  color:var(--en-silver-bright)!important;
+  -webkit-text-fill-color:var(--en-silver-bright)!important;
+  text-shadow:0 2px 10px rgba(255,255,255,.32),0 0 18px rgba(130,205,255,.28)!important;
+}
+body.page-app .sidebar .brand-logo-img,
+body.page-home .brand-logo-img,
+body.page-app .brand img,
+body.page-home .brand img{filter:none!important}
+body.page-app .sidebar #nav .nav-group{
+  background:rgba(6,36,82,.34)!important;border:1px solid rgba(166,216,255,.18)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important
+}
+body.page-app .sidebar #nav .nav-group>summary,
+body.page-app .sidebar #nav .nav-item{
+  color:#f4f8ff!important;-webkit-text-fill-color:#f4f8ff!important;
+  background:rgba(38,119,195,.18)!important;border:1px solid rgba(165,218,255,.16)!important;
+  border-radius:12px!important
+}
+body.page-app .sidebar #nav .nav-group>summary>strong,
+body.page-app .sidebar #nav .nav-item .premium-nav-label{color:#f4f8ff!important;-webkit-text-fill-color:#f4f8ff!important}
+body.page-app .sidebar #nav .nav-item:is(:hover,:focus-visible,.active),
+body.page-app .sidebar #nav .nav-group[open]>summary{
+  background:linear-gradient(115deg,rgba(0,153,255,.54),rgba(21,83,175,.48))!important;
+  border-color:rgba(115,215,255,.72)!important;
+  box-shadow:0 0 18px rgba(0,164,255,.24),inset 0 1px 0 rgba(255,255,255,.30)!important
+}
+body.page-app .sidebar .sidebar-institute{
+  background:rgba(4,28,68,.42)!important;border:1px solid rgba(161,215,255,.22)!important;
+  border-radius:16px!important;color:#fff!important
+}
+body.page-app .main{background:transparent!important}
+body.page-app .topbar{border-radius:20px!important;margin:12px 14px 18px!important}
+body.page-app .academic-pill,
+body.page-app .campus-hero-actions button,
+body.page-app button:not(.nav-item):not(.icon-button),
+body.page-app .quick-actions button{
+  border-color:rgba(153,218,255,.58)!important;
+  box-shadow:0 7px 22px rgba(0,7,32,.25),inset 0 1px 0 rgba(255,255,255,.28)!important
+}
+body.page-app .campus-hero{
+  background:
+    radial-gradient(circle at 84% 18%,rgba(0,172,255,.26),transparent 18rem),
+    linear-gradient(125deg,rgba(13,72,139,.82),rgba(3,25,66,.78))!important;
+  border-radius:24px!important;overflow:hidden!important
+}
+body.page-app .campus-visual{
+  background:linear-gradient(145deg,rgba(56,151,226,.32),rgba(3,28,69,.48))!important;
+  border:1px solid rgba(184,226,255,.35)!important;border-radius:20px!important;
+  box-shadow:0 0 24px rgba(0,156,255,.18),inset 0 1px 0 rgba(255,255,255,.2)!important
+}
+body.page-app .card{border-radius:20px!important}
+body.page-app .card.stat strong{color:#fff!important;text-shadow:0 0 15px rgba(127,210,255,.5)!important}
+body.page-app .quick-actions button,
+body.page-app .list>*,body.page-app .activity-item{
+  background:rgba(104,177,235,.16)!important;border:1px solid rgba(177,224,255,.24)!important;
+  color:#f4f8ff!important;border-radius:13px!important
+}
+/* Inputs remain readable and accessible on dark glass. */
+body.page-app :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  color:#102c4b!important;background:rgba(238,247,255,.94)!important;
+  border:1px solid rgba(117,192,246,.7)!important
+}
+body.page-app :is(input,select,textarea)::placeholder{color:#617b96!important}
+body.page-app :is(input,select,textarea):focus{
+  outline:2px solid rgba(0,174,255,.5)!important;outline-offset:1px!important
+}
+/* Public homepage: same blue glass language, original logo colors retained. */
+body.page-home .public-nav,
+body.page-home .premium-public-hero,
+body.page-home .public-card,
+body.page-home .feature-card,
+body.page-home .resource-card,
+body.page-home .home-section-card{
+  color:#f4f8ff!important;
+  background:linear-gradient(145deg,rgba(14,75,143,.78),rgba(4,28,72,.76))!important;
+  border:1px solid rgba(159,218,255,.48)!important;
+  box-shadow:var(--en-glass-shadow),0 0 24px rgba(0,150,255,.14)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+  backdrop-filter:blur(22px) saturate(145%)!important
+}
+body.page-home .public-links a{color:#f1f6ff!important;text-shadow:0 1px 8px rgba(255,255,255,.2)!important}
+body.page-home .public-links .nav-primary,
+body.page-home :is(.btn-primary,.button-primary){
+  color:#fff!important;background:linear-gradient(120deg,#087fe0,#0753b5)!important;
+  border:1px solid rgba(164,224,255,.72)!important;box-shadow:0 0 18px rgba(0,160,255,.32)!important
+}
+body.page-home .premium-public-hero{
+  background:radial-gradient(circle at 78% 18%,rgba(0,177,255,.24),transparent 22rem),
+    linear-gradient(125deg,rgba(5,39,91,.82),rgba(4,20,55,.78))!important
+}
+body.page-home :is(.hero-copy,.hero-content,.public-section,.home-section){color:#f4f8ff!important}
+body.page-home :is(.hero-copy h1,.hero-content h1,.public-section h2,.home-section h2){
+  color:#f4f8ff!important;-webkit-text-fill-color:#f4f8ff!important;
+  text-shadow:0 2px 12px rgba(255,255,255,.24),0 0 20px rgba(112,199,255,.22)!important
+}
+body.page-home :is(.hero-copy p,.hero-content p,.public-section p){color:#d4e5f8!important}
+body.page-home .hero-image-wrap{border-color:rgba(193,226,255,.72)!important;box-shadow:0 18px 46px rgba(0,0,0,.32),0 0 24px rgba(0,158,255,.22)!important}
+/* Responsive refinements */
+@media(max-width:1100px){
+ body.page-app .sidebar,body.page-app .sidebar.mobile-nav-open{
+  width:min(340px,90vw)!important;max-width:90vw!important;
+  background:linear-gradient(155deg,rgba(8,52,111,.96),rgba(3,23,61,.97))!important;
+  border-right:1px solid rgba(163,220,255,.45)!important;
+  box-shadow:12px 0 38px rgba(0,0,0,.34),0 0 26px rgba(0,153,255,.16)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(150%)!important;backdrop-filter:blur(26px) saturate(150%)!important
+ }
+ body.page-app .sidebar #nav .nav-group>summary,
+ body.page-app .sidebar #nav .nav-item{min-height:44px!important}
+ body.page-app .topbar{margin:8px!important;border-radius:16px!important}
+ body.page-app .cards{gap:12px!important}
+ body.page-app .campus-hero,body.page-app .card{border-radius:17px!important}
+ body.page-home .public-nav{margin:8px!important;border-radius:16px!important}
+}
+@media(prefers-reduced-motion:no-preference){
+ body.page-app .card,body.page-app .campus-hero,body.page-home .public-nav,body.page-home .premium-public-hero{
+  transition:box-shadow .22s ease,border-color .22s ease,transform .22s ease
+ }
+ body.page-app .card:hover,body.page-home .public-nav:hover{
+  border-color:rgba(166,225,255,.72)!important;box-shadow:0 18px 42px rgba(0,8,35,.34),0 0 24px rgba(0,164,255,.18),inset 0 1px 0 rgba(255,255,255,.28)!important
+ }
+}
