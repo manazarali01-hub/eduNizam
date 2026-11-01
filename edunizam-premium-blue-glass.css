@@ -166,3 +166,120 @@ body.page-home .hero-image-wrap{border-color:rgba(193,226,255,.72)!important;box
   border-color:rgba(166,225,255,.72)!important;box-shadow:0 18px 42px rgba(0,8,35,.34),0 0 24px rgba(0,164,255,.18),inset 0 1px 0 rgba(255,255,255,.28)!important
  }
 }
+
+
+/* Phase 26 — sidebar readability and mobile drawer correction.
+   Keep the requested neutral frosted-glass sidebar above the site-wide blue
+   glass layer; navigation remains native, role-filtered and data-driven. */
+body.page-app .sidebar,
+body.page-app .sidebar.mobile-nav-open{
+  color:#172b3d!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.84),rgba(239,246,252,.72))!important;
+  border-right:1px solid rgba(255,255,255,.92)!important;
+  box-shadow:12px 0 34px rgba(16,42,65,.14),inset -1px 0 0 rgba(95,133,163,.12)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(128%)!important;
+  backdrop-filter:blur(26px) saturate(128%)!important;
+}
+body.page-app .sidebar .sidebar-wordmark :is(strong,.brand-edu,.brand-nizam),
+body.page-app .sidebar .sidebar-wordmark small,
+body.page-app .sidebar .sidebar-institute-copy :is(small,strong,span),
+body.page-app .sidebar .nav-search-wrap :is(span,kbd),
+body.page-app .sidebar #nav .nav-group>summary,
+body.page-app .sidebar #nav .nav-group>summary>strong,
+body.page-app .sidebar #nav .nav-item{
+  color:#172b3d!important;
+  -webkit-text-fill-color:#172b3d!important;
+}
+body.page-app .sidebar .sidebar-institute,
+body.page-app .sidebar .nav-search-wrap{
+  color:#172b3d!important;
+  background:rgba(255,255,255,.56)!important;
+  border:1px solid rgba(93,127,153,.20)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.92)!important;
+}
+body.page-app .sidebar #nav .nav-group{
+  background:rgba(255,255,255,.34)!important;
+  border:1px solid rgba(93,127,153,.18)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.78)!important;
+}
+body.page-app .sidebar #nav .nav-group>summary{
+  grid-template-columns:22px minmax(0,1fr) 18px!important;
+  min-height:40px!important;
+  gap:7px!important;
+  padding:7px 8px!important;
+  background:transparent!important;
+}
+body.page-app .sidebar #nav .nav-group>summary>span{
+  width:20px!important;height:20px!important;
+  font-size:9px!important;
+  color:#315c7d!important;
+  background:rgba(255,255,255,.72)!important;
+}
+body.page-app .sidebar #nav .nav-group>summary>strong{
+  font-size:12px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.page-app .sidebar #nav .nav-group>summary>small{
+  color:#49657d!important;
+}
+body.page-app .sidebar #nav .nav-group:not([open])>.nav-group-items{display:none!important}
+body.page-app .sidebar #nav .nav-group[open]>.nav-group-items{display:grid!important}
+body.page-app .sidebar #nav .nav-item{
+  min-height:36px!important;
+  padding:7px 9px!important;
+  font-size:11px!important;
+  line-height:1.3!important;
+  background:transparent!important;
+  border:1px solid transparent!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.page-app .sidebar #nav .nav-item::first-letter{font-size:8px!important}
+body.page-app .sidebar #nav .nav-item:hover{
+  color:#123f63!important;
+  background:rgba(255,255,255,.78)!important;
+  border-color:rgba(83,133,171,.20)!important;
+}
+body.page-app .sidebar #nav .nav-item.active{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:linear-gradient(110deg,#287bc0,#4199df)!important;
+  border-color:rgba(255,255,255,.72)!important;
+  box-shadow:0 6px 16px rgba(38,112,174,.20)!important;
+}
+@media(max-width:950px){
+  body.page-app .sidebar,
+  body.page-app .sidebar.mobile-nav-open{
+    width:min(320px,88vw)!important;
+    max-width:88vw!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  body.page-app .sidebar #nav.nav-groups{
+    position:relative!important;
+    inset:auto!important;
+    flex:1 1 auto!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-y!important;
+    padding:4px 10px max(24px,env(safe-area-inset-bottom))!important;
+  }
+}
+@media(max-width:430px){
+  body.page-app .sidebar,
+  body.page-app .sidebar.mobile-nav-open{
+    width:min(300px,88vw)!important;
+    max-width:88vw!important;
+  }
+}
