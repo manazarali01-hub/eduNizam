@@ -348,3 +348,50 @@ body.page-app .topbar-actions>*{max-width:100%!important}
   body.page-app .topbar-title{flex-basis:100%!important}
   body.page-app .topbar-actions{width:100%!important;justify-content:flex-start!important}
 }
+
+
+/* Phase 27 follow-up — win against legacy green/photo rules and stale mobile CSS.
+   This block intentionally uses the final cascade position and a fresh asset version. */
+body.app-page.page-app #appMain{
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(0,153,255,.22),transparent 34rem),
+    radial-gradient(ellipse at 92% 24%,rgba(22,93,196,.24),transparent 38rem),
+    linear-gradient(145deg,#06172f 0%,#082f63 52%,#041a38 100%)!important;
+  background-image:
+    radial-gradient(ellipse at 12% 0%,rgba(0,153,255,.22),transparent 34rem),
+    radial-gradient(ellipse at 92% 24%,rgba(22,93,196,.24),transparent 38rem),
+    linear-gradient(145deg,#06172f 0%,#082f63 52%,#041a38 100%)!important;
+}
+body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
+  color:#f4f8ff!important;
+  background:radial-gradient(circle at 88% 16%,rgba(0,174,255,.30),transparent 19rem),linear-gradient(125deg,rgba(8,55,112,.96),rgba(3,25,65,.94))!important;
+  background-color:#082f63!important;
+  background-image:radial-gradient(circle at 88% 16%,rgba(0,174,255,.30),transparent 19rem),linear-gradient(125deg,rgba(8,55,112,.96),rgba(3,25,65,.94))!important;
+  border:1px solid rgba(150,218,255,.68)!important;
+  outline:0!important;
+  box-shadow:0 20px 48px rgba(0,8,34,.34),inset 0 1px 0 rgba(255,255,255,.24),0 0 26px rgba(0,148,255,.16)!important;
+}
+body.app-page.page-app #appMain #dashboard.view.active>.campus-hero :is(h2,p,.campus-label){
+  color:#f4f8ff!important;-webkit-text-fill-color:#f4f8ff!important;text-shadow:0 1px 8px rgba(0,12,35,.42)!important;
+}
+body.app-page.page-app #appMain>.topbar{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;
+  gap:10px!important;color:#f4f8ff!important;
+  background:linear-gradient(145deg,rgba(18,83,151,.88),rgba(5,30,75,.88))!important;
+  border:1px solid rgba(151,211,255,.48)!important;
+  box-shadow:0 12px 30px rgba(0,9,35,.26),inset 0 1px 0 rgba(255,255,255,.20)!important;
+}
+body.app-page.page-app #appMain>.topbar :is(h1,p,.academic-kicker,.school-identity){
+  color:#f4f8ff!important;-webkit-text-fill-color:#f4f8ff!important;
+}
+body.app-page.page-app #appMain>.topbar .topbar-title{flex:1 1 180px!important;min-width:0!important}
+body.app-page.page-app #appMain>.topbar .topbar-actions{
+  display:flex!important;flex:0 1 auto!important;flex-wrap:wrap!important;align-items:center!important;
+  justify-content:flex-end!important;gap:7px!important;min-width:0!important;
+}
+@media(max-width:520px){
+  body.app-page.page-app #appMain>.topbar{align-items:flex-start!important;padding:10px!important}
+  body.app-page.page-app #appMain>.topbar .topbar-title{flex:1 1 100%!important}
+  body.app-page.page-app #appMain>.topbar .topbar-actions{width:100%!important;justify-content:flex-start!important}
+  body.app-page.page-app #appMain>.topbar .topbar-actions>*{max-width:100%!important}
+}
