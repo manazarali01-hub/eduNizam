@@ -2,6 +2,8 @@
   const $=s=>document.querySelector(s);
   let mountedSidebar=null;
   let mountedTopbar=null;
+  let sidebarHome=null;
+  let menuHome=null;
   let lastPointerActivationAt=0;
   const isCompactNav=()=>window.innerWidth<=950 || (window.innerWidth<=1100 && !!window.matchMedia?.('(hover: none) and (pointer: coarse)').matches);
 
@@ -10,7 +12,7 @@
     if(!sidebar||!topbar||!document.body)return null;
 
     let menu=$('#eduMobileMenuBtn');
-    if(!menu||!topbar.contains(menu)){
+    if(!menu){
       menu=document.createElement('button');
       menu.id='eduMobileMenuBtn';
       menu.className='mobile-menu-btn';
@@ -19,6 +21,12 @@
       menu.setAttribute('aria-expanded','false');
       menu.innerHTML='<span aria-hidden="true">☰</span>';
       topbar.insertBefore(menu,topbar.firstChild);
+    }
+    if(isCompactNav()&&menu.parentNode!==document.body){
+      if(!menuHome){menuHome=document.createComment('edu-mobile-menu-home');menu.parentNode?.insertBefore(menuHome,menu);}
+      document.body.appendChild(menu);
+    }else if(!isCompactNav()&&menuHome){
+      menuHome.parentNode?.insertBefore(menu,menuHome);menuHome.remove();menuHome=null;
     }
     if(menu.dataset.mobileCore!=='1'){
       menu.dataset.mobileCore='1';
@@ -29,8 +37,18 @@
       });
     }
     menu.style.touchAction='manipulation';
-    menu.style.position='relative';
-    menu.style.zIndex='4';
+    menu.style.position=isCompactNav()?'fixed':'relative';
+    menu.style.left=isCompactNav()?'14px':'';
+    menu.style.top=isCompactNav()?'14px':'';
+    menu.style.width=isCompactNav()?'48px':'';
+    menu.style.height=isCompactNav()?'48px':'';
+    menu.style.zIndex=isCompactNav()?'1105':'1006';
+    menu.style.pointerEvents='auto';
+    // Keep the interactive header above the dashboard content's stacking layer.
+    topbar.style.position='sticky';
+    topbar.style.top='0';
+    topbar.style.zIndex='1005';
+    topbar.style.isolation='isolate';
 
     let close=$('#eduMobileNavClose');
     if(!close||!sidebar.contains(close)){
@@ -60,9 +78,32 @@
   function setOpen(open){
     const nodes=ensureElements();
     if(!nodes)return false;
-    const {sidebar,menu,backdrop}=nodes;
+    const {sidebar,menu,close,backdrop}=nodes;
     const shouldOpen=!!open&&isCompactNav();
+    if(shouldOpen&&!sidebarHome){
+      sidebarHome=document.createComment('edu-mobile-sidebar-home');
+      sidebar.parentNode?.insertBefore(sidebarHome,sidebar);
+      document.body.appendChild(sidebar);
+    }
     sidebar.classList.toggle('mobile-nav-open',shouldOpen);
+    // Apply the drawer geometry directly as well as through CSS. This avoids
+    // transformed app-shell ancestors pushing the close control off-screen.
+    const set=(el,property,value)=>el.style.setProperty(property,value,'important');
+    if(shouldOpen){
+      set(sidebar,'position','fixed');set(sidebar,'left','0');set(sidebar,'top','0');
+      set(sidebar,'right','auto');set(sidebar,'bottom','0');
+      set(sidebar,'width','min(340px,90vw)');set(sidebar,'max-width','90vw');
+      set(sidebar,'height','100vh');set(sidebar,'max-height','100vh');
+      set(sidebar,'transform','translate3d(0,0,0)');set(sidebar,'visibility','visible');
+      set(sidebar,'z-index','1002');set(sidebar,'overflow-y','auto');
+      set(close,'position','absolute');set(close,'top','16px');set(close,'right','14px');
+      set(close,'display','grid');set(close,'visibility','visible');
+      set(close,'width','44px');set(close,'height','44px');set(close,'z-index','1004');
+      set(close,'pointer-events','auto');
+    }else{
+      ['position','left','top','right','bottom','width','max-width','height','max-height','transform','visibility','z-index','overflow-y'].forEach(p=>sidebar.style.removeProperty(p));
+      ['position','top','right','display','visibility','width','height','z-index','pointer-events'].forEach(p=>close.style.removeProperty(p));
+    }
     backdrop.classList.toggle('show',shouldOpen);
     backdrop.style.display=shouldOpen?'block':'none';
     backdrop.style.pointerEvents=shouldOpen?'auto':'none';
@@ -70,6 +111,11 @@
     backdrop.setAttribute('aria-hidden',String(!shouldOpen));
     document.body.classList.toggle('mobile-nav-lock',shouldOpen);
     document.body.classList.toggle('edu-mobile-nav-open',shouldOpen);
+    if(!shouldOpen&&sidebarHome){
+      sidebarHome.parentNode?.insertBefore(sidebar,sidebarHome);
+      sidebarHome.remove();
+      sidebarHome=null;
+    }
     menu.setAttribute('aria-expanded',String(shouldOpen));
     menu.setAttribute('aria-label',shouldOpen?'Close navigation':'Open navigation');
     return shouldOpen;
@@ -92,7 +138,7 @@
   if(!document.documentElement.dataset.eduMobileNavDelegated){
     document.documentElement.dataset.eduMobileNavDelegated='1';
     document.addEventListener('pointerdown',event=>{
-      const trigger=event.target.closest?.('#eduMobileMenuBtn');
+      const trigger=event.target.closest?.('#eduMobileMenuBtn,.mobile-menu-btn');
       if(!trigger)return;
       event.preventDefault();
       event.stopImmediatePropagation();
