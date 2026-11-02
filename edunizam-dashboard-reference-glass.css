@@ -851,3 +851,88 @@ html body.app-page.page-app #appMain #dashboard #dashboardAccessApprovalCard .co
   }
   html body.app-page.page-app footer.seo-footer nav a{max-width:100%!important;}
 }
+
+
+/* Phase 39 — screenshot-led premium dashboard finish.
+   Presentation-only: preserve live role data, existing controls and navigation. */
+body.app-page.page-app .sidebar{
+  border:1px solid rgba(117,218,255,.82)!important;
+  box-shadow:8px 0 34px rgba(0,0,0,.34),0 0 26px rgba(0,174,255,.34),inset 0 1px 0 rgba(255,255,255,.32)!important;
+}
+body.app-page.page-app .sidebar .brand-logo-frame{
+  filter:drop-shadow(0 0 12px rgba(0,194,255,.38));
+}
+body.app-page.page-app .sidebar .sidebar-wordmark strong{
+  text-shadow:0 2px 8px rgba(255,255,255,.35),0 0 20px rgba(0,190,255,.62)!important;
+}
+body.app-page.page-app .topbar{
+  position:relative!important;overflow:hidden!important;
+  border-color:rgba(155,229,255,.92)!important;
+  background:linear-gradient(105deg,rgba(8,76,145,.94),rgba(2,24,65,.96) 72%,rgba(4,55,112,.94))!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.30),0 0 24px rgba(0,165,255,.28),0 2px 0 rgba(255,211,107,.42),inset 0 1px 0 rgba(255,255,255,.38)!important;
+}
+body.app-page.page-app .topbar:before,
+body.app-page.page-app #appMain #dashboard>.campus-hero:before{
+  content:""!important;position:absolute!important;inset:0 0 auto!important;height:2px!important;
+  background:linear-gradient(90deg,transparent,#7ceaff,#fff,#ffd77a,#00bfff,transparent)!important;
+  box-shadow:0 0 16px rgba(0,203,255,.92)!important;pointer-events:none!important;
+}
+body.app-page.page-app #appMain #dashboard>.campus-hero{
+  border-color:rgba(145,226,255,.94)!important;
+  background:
+    radial-gradient(ellipse at 82% 18%,rgba(0,200,255,.42),transparent 22rem),
+    linear-gradient(120deg,rgba(8,82,161,.97),rgba(2,23,65,.97) 72%,rgba(4,54,111,.96))!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.32),0 0 30px rgba(0,156,255,.34),0 2px 0 rgba(255,214,107,.34),inset 0 1px 0 rgba(255,255,255,.42)!important;
+}
+body.app-page.page-app #appMain #dashboard>.campus-hero h2{
+  text-shadow:0 3px 14px rgba(0,0,0,.46),0 0 20px rgba(0,177,255,.58),0 2px 0 rgba(255,210,120,.55)!important;
+}
+body.app-page.page-app #appMain #dashboard .campus-visual{
+  background:radial-gradient(ellipse at 50% 30%,rgba(0,184,255,.30),transparent 68%),linear-gradient(145deg,rgba(35,139,219,.34),rgba(1,20,59,.78))!important;
+  border-color:rgba(174,231,255,.78)!important;
+}
+body.app-page.page-app #appMain #dashboard .card,
+body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,#familyDashboard,.family-dashboard,.dashboard-panel){
+  border-color:rgba(160,226,255,.78)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.27),0 0 18px rgba(0,150,255,.22),0 2px 0 rgba(255,214,107,.22),inset 0 1px 0 rgba(255,255,255,.34)!important;
+}
+body.app-page.page-app #appMain #dashboard .card.stat{
+  background:linear-gradient(150deg,rgba(34,122,197,.88),rgba(3,29,74,.96))!important;
+}
+body.app-page.page-app #appMain #dashboard .quick-actions button,
+body.app-page.page-app #appMain #dashboard .role-quick-actions button,
+body.app-page.page-app #appMain #dashboard [data-admin-jump]{
+  position:relative!important;overflow:hidden!important;
+  border-color:rgba(185,235,255,.88)!important;
+  background:linear-gradient(145deg,rgba(31,130,211,.94),rgba(3,48,111,.98))!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.24),0 0 12px rgba(0,167,255,.20),inset 0 1px 0 rgba(255,255,255,.40)!important;
+  transition:transform .18s ease,box-shadow .18s ease,filter .18s ease!important;
+}
+body.app-page.page-app #appMain #dashboard .quick-actions button:hover,
+body.app-page.page-app #appMain #dashboard .role-quick-actions button:hover,
+body.app-page.page-app #appMain #dashboard [data-admin-jump]:hover{
+  transform:translateY(-2px)!important;filter:brightness(1.12)!important;
+  box-shadow:0 10px 22px rgba(0,0,0,.28),0 0 20px rgba(0,183,255,.38),inset 0 1px 0 rgba(255,255,255,.48)!important;
+}
+body.app-page.page-app #appMain #dashboard>.grid-2>.card h2{
+  text-shadow:0 0 14px rgba(100,200,255,.54),0 1px 0 rgba(255,211,117,.28)!important;
+}
+body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
+  border-color:rgba(177,225,255,.30)!important;
+}
+@media(max-width:760px){
+  body.app-page.page-app .main{padding:10px!important}
+  body.app-page.page-app .topbar{
+    border-radius:17px!important;box-shadow:0 8px 22px rgba(0,0,0,.28),0 0 17px rgba(0,165,255,.22),inset 0 1px 0 rgba(255,255,255,.34)!important;
+  }
+  body.app-page.page-app #appMain #dashboard>.campus-hero{
+    padding:18px!important;border-radius:19px!important;gap:12px!important;
+  }
+  body.app-page.page-app #appMain #dashboard>.cards{gap:9px!important}
+  body.app-page.page-app #appMain #dashboard .card{border-radius:17px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.app-page.page-app #appMain #dashboard .quick-actions button,
+  body.app-page.page-app #appMain #dashboard .role-quick-actions button,
+  body.app-page.page-app #appMain #dashboard [data-admin-jump]{transition:none!important}
+}
