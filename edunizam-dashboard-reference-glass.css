@@ -440,3 +440,58 @@ body.app-page.page-app .sidebar #nav .nav-group[open]>summary::after{
     width:10px!important;height:10px!important;border-width:3px!important;
   }
 }
+
+
+/* Phase 28 — shared role dashboard finish.
+   The dashboard shell is shared by Admin, Teacher, Parent and Student.
+   Keep this visual layer role-agnostic: role-dashboard.js continues to supply
+   the correct live cards, shortcuts and activity for each signed-in role. */
+body.app-page.page-app #appMain #dashboard.view.active{
+  width:100%!important;max-width:none!important;min-width:0!important;
+}
+body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,#familyDashboard,.family-dashboard,.dashboard-panel){
+  color:#f4f9ff!important;
+  background:linear-gradient(145deg,rgba(20,91,160,.76),rgba(3,28,69,.88))!important;
+  border:1px solid rgba(159,221,255,.67)!important;border-radius:20px!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.24),0 0 16px rgba(0,150,255,.15),inset 0 1px 0 rgba(255,255,255,.25)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(145%)!important;
+  backdrop-filter:blur(18px) saturate(145%)!important;
+}
+body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,#familyDashboard,.family-dashboard) :is(h2,h3,h4,p,span,strong,small,label){
+  color:#f1f7ff!important;-webkit-text-fill-color:#f1f7ff!important;
+}
+body.app-page.page-app #appMain #dashboard .role-quick-actions button,
+body.app-page.page-app #appMain #dashboard [data-admin-jump]{
+  min-width:0!important;min-height:58px!important;padding:12px 14px!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  background:linear-gradient(145deg,rgba(25,113,194,.88),rgba(4,46,105,.94))!important;
+  border:1px solid rgba(190,232,255,.76)!important;border-radius:15px!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.30)!important;
+}
+body.app-page.page-app #appMain #dashboard .role-quick-actions button :is(strong,small),
+body.app-page.page-app #appMain #dashboard [data-admin-jump] :is(strong,small){
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+body.app-page.page-app #appMain #dashboard .dashboard-quick-head{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body.app-page.page-app #appMain #dashboard #activityList,
+body.app-page.page-app #appMain #dashboard #activityList *{
+  color:#e7f4ff!important;-webkit-text-fill-color:#e7f4ff!important;
+}
+body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,.family-dashboard) button{
+  border-radius:12px!important;
+}
+@media(max-width:760px){
+  body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,#familyDashboard,.family-dashboard){
+    padding:14px!important;border-radius:17px!important;
+  }
+  body.app-page.page-app #appMain #dashboard .role-quick-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:390px){
+  body.app-page.page-app #appMain #dashboard .role-quick-actions{
+    grid-template-columns:1fr!important;
+  }
+}
