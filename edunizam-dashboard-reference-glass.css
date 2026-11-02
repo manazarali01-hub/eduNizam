@@ -272,3 +272,17 @@ body.app-page.page-app #appMain #dashboard #activityList{
     z-index:1001!important;
   }
 }
+
+
+/* Student admission form: retain the approved blue-glass page while giving key fields
+   gentle, distinct pastel surfaces for faster scanning. Text contrast stays dark. */
+body.app-page.page-app #appMain :is(#studentName,#fatherName,#studentClass,#studentSection,#studentPhone,#studentBForm){
+  color:#102c4b!important;
+  border-color:rgba(126,174,220,.82)!important;
+}
+body.app-page.page-app #appMain #studentName{background-color:#edf6ff!important}
+body.app-page.page-app #appMain #fatherName{background-color:#f3efff!important}
+body.app-page.page-app #appMain #studentClass{background-color:#eaf8f1!important}
+body.app-page.page-app #appMain #studentSection{background-color:#fff4e8!important}
+body.app-page.page-app #appMain #studentPhone{background-color:#fff9df!important}
+body.app-page.page-app #appMain #studentBForm{background-color:#ffeff2!important}
