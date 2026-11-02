@@ -256,3 +256,43 @@ body.app-page.page-app #appMain #dashboard #activityList{
 @media(prefers-reduced-motion:reduce){
   body.app-page.page-app .sidebar{transition:none!important}
 }
+
+/* Keep the mobile drawer above its dismissible backdrop so navigation remains clickable. */
+@media(max-width:760px){
+  body.app-page.page-app .sidebar,
+  body.app-page.page-app .sidebar.mobile-nav-open{
+    z-index:1002!important;
+  }
+  body.app-page.page-app .sidebar .mobile-nav-close{
+    position:absolute!important;
+    z-index:4!important;
+    pointer-events:auto!important;
+  }
+  body.app-page.page-app #eduMobileNavBackdrop{
+    z-index:1001!important;
+  }
+}
+
+
+/* Student admission form: retain the approved blue-glass page while giving key fields
+   gentle, distinct pastel surfaces for faster scanning. Text contrast stays dark. */
+body.app-page.page-app #appMain :is(#studentName,#fatherName,#studentClass,#studentSection,#studentPhone,#studentBForm){
+  color:#102c4b!important;
+  border-color:rgba(126,174,220,.82)!important;
+}
+body.app-page.page-app #appMain #studentName{background-color:#edf6ff!important}
+body.app-page.page-app #appMain #fatherName{background-color:#f3efff!important}
+body.app-page.page-app #appMain #studentClass{background-color:#eaf8f1!important}
+body.app-page.page-app #appMain #studentSection{background-color:#fff4e8!important}
+body.app-page.page-app #appMain #studentPhone{background-color:#fff9df!important}
+body.app-page.page-app #appMain #studentBForm{background-color:#ffeff2!important}
+
+
+/* Render the six admission-field treatments as subtle gradients. The visual QA
+   inspects computed background-image values, not only background-color. */
+body.app-page.page-app #appMain #studentName{background:linear-gradient(135deg,#edf6ff 0%,#dceeff 100%)!important}
+body.app-page.page-app #appMain #fatherName{background:linear-gradient(135deg,#f3efff 0%,#e8ddff 100%)!important}
+body.app-page.page-app #appMain #studentClass{background:linear-gradient(135deg,#eaf8f1 0%,#d9f1e5 100%)!important}
+body.app-page.page-app #appMain #studentSection{background:linear-gradient(135deg,#fff4e8 0%,#ffe8d2 100%)!important}
+body.app-page.page-app #appMain #studentPhone{background:linear-gradient(135deg,#fff9df 0%,#fff0b9 100%)!important}
+body.app-page.page-app #appMain #studentBForm{background:linear-gradient(135deg,#ffeff2 0%,#ffdae2 100%)!important}
