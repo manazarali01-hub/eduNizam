@@ -399,3 +399,44 @@ body.app-page.page-app .sidebar #nav .nav-item.active{
   body.app-page.page-app .sidebar #nav .nav-group>summary>small,
   body.app-page.page-app .sidebar #nav .nav-item{transition:none!important}
 }
+
+
+/* Mobile accordion affordance: use a CSS-drawn chevron so it remains visible
+   even when inherited small-text styles or emoji fonts suppress the glyph. */
+body.app-page.page-app .sidebar #nav .nav-group>summary{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:30px minmax(0,1fr) 28px!important;
+  align-items:center!important;
+  padding-right:10px!important;
+  min-height:49px!important;
+}
+body.app-page.page-app .sidebar #nav .nav-group>summary>small{
+  display:none!important;
+}
+body.app-page.page-app .sidebar #nav .nav-group>summary::after{
+  content:""!important;
+  display:block!important;
+  justify-self:center!important;
+  width:9px!important;height:9px!important;
+  border-right:2.5px solid #8feaff!important;
+  border-bottom:2.5px solid #8feaff!important;
+  border-radius:1px!important;
+  transform:translateY(-2px) rotate(45deg)!important;
+  filter:drop-shadow(0 0 4px rgba(0,205,255,.85))!important;
+  transition:transform .2s ease,border-color .2s ease!important;
+  pointer-events:none!important;
+}
+body.app-page.page-app .sidebar #nav .nav-group[open]>summary::after{
+  transform:translateY(2px) rotate(225deg)!important;
+  border-color:#ffffff!important;
+}
+@media(max-width:760px){
+  body.app-page.page-app .sidebar #nav .nav-group>summary{
+    min-height:52px!important;
+    grid-template-columns:30px minmax(0,1fr) 30px!important;
+  }
+  body.app-page.page-app .sidebar #nav .nav-group>summary::after{
+    width:10px!important;height:10px!important;border-width:3px!important;
+  }
+}
