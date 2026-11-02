@@ -20,6 +20,14 @@
       menu.innerHTML='<span aria-hidden="true">☰</span>';
       topbar.insertBefore(menu,topbar.firstChild);
     }
+    if(menu.dataset.mobileCore!=='1'){
+      menu.dataset.mobileCore='1';
+      menu.addEventListener('click',event=>{
+        if(event.defaultPrevented)return;
+        event.preventDefault();
+        toggle();
+      });
+    }
     menu.style.touchAction='manipulation';
     menu.style.position='relative';
     menu.style.zIndex='4';
