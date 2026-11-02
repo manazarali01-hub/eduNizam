@@ -664,3 +664,44 @@ body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>
     grid-template-columns:1fr!important;
   }
 }
+
+
+/* Phase 31 — screenshot-driven contrast correction.
+   The earlier shared dashboard text rule targets every descendant and wins
+   against the first narrow override in some browser cascade combinations.
+   Match the full Admin desk selector chain and explicitly reset text paint. */
+html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button{
+  color:#12365b!important;
+  -webkit-text-fill-color:#12365b!important;
+  opacity:1!important;filter:none!important;text-shadow:none!important;
+}
+html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > strong,
+html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > small,
+html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > span:not(.admin-action-count){
+  color:#12365b!important;
+  -webkit-text-fill-color:#12365b!important;
+  opacity:1!important;filter:none!important;text-shadow:none!important;
+  mix-blend-mode:normal!important;
+}
+html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > strong{
+  display:block!important;font-size:14px!important;font-weight:800!important;line-height:1.25!important;
+}
+html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > small{
+  display:block!important;margin-top:4px!important;font-size:12px!important;font-weight:650!important;line-height:1.35!important;
+}
+html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > span:not(.admin-action-count){
+  color:#087ac7!important;-webkit-text-fill-color:#087ac7!important;
+}
+@media(max-width:760px){
+  html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button{
+    min-height:86px!important;padding:12px!important;
+  }
+}
+@media(max-width:390px){
+  html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions{
+    grid-template-columns:1fr!important;
+  }
+}
