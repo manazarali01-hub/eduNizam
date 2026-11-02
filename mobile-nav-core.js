@@ -60,9 +60,27 @@
   function setOpen(open){
     const nodes=ensureElements();
     if(!nodes)return false;
-    const {sidebar,menu,backdrop}=nodes;
+    const {sidebar,menu,close,backdrop}=nodes;
     const shouldOpen=!!open&&isCompactNav();
     sidebar.classList.toggle('mobile-nav-open',shouldOpen);
+    // Apply the drawer geometry directly as well as through CSS. This avoids
+    // transformed app-shell ancestors pushing the close control off-screen.
+    const set=(el,property,value)=>el.style.setProperty(property,value,'important');
+    if(shouldOpen){
+      set(sidebar,'position','fixed');set(sidebar,'left','0');set(sidebar,'top','0');
+      set(sidebar,'right','auto');set(sidebar,'bottom','0');
+      set(sidebar,'width','min(340px,90vw)');set(sidebar,'max-width','90vw');
+      set(sidebar,'height','100vh');set(sidebar,'max-height','100vh');
+      set(sidebar,'transform','translate3d(0,0,0)');set(sidebar,'visibility','visible');
+      set(sidebar,'z-index','1002');set(sidebar,'overflow-y','auto');
+      set(close,'position','absolute');set(close,'top','16px');set(close,'right','14px');
+      set(close,'display','grid');set(close,'visibility','visible');
+      set(close,'width','44px');set(close,'height','44px');set(close,'z-index','1004');
+      set(close,'pointer-events','auto');
+    }else{
+      ['position','left','top','right','bottom','width','max-width','height','max-height','transform','visibility','z-index','overflow-y'].forEach(p=>sidebar.style.removeProperty(p));
+      ['position','top','right','display','visibility','width','height','z-index','pointer-events'].forEach(p=>close.style.removeProperty(p));
+    }
     backdrop.classList.toggle('show',shouldOpen);
     backdrop.style.display=shouldOpen?'block':'none';
     backdrop.style.pointerEvents=shouldOpen?'auto':'none';
@@ -92,7 +110,7 @@
   if(!document.documentElement.dataset.eduMobileNavDelegated){
     document.documentElement.dataset.eduMobileNavDelegated='1';
     document.addEventListener('pointerdown',event=>{
-      const trigger=event.target.closest?.('#eduMobileMenuBtn');
+      const trigger=event.target.closest?.('#eduMobileMenuBtn,.mobile-menu-btn');
       if(!trigger)return;
       event.preventDefault();
       event.stopImmediatePropagation();
