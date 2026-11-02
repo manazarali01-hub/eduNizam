@@ -727,3 +727,38 @@ html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk
     margin-top:0!important;
   }
 }
+
+
+/* Phase 32 — make sidebar accordion arrows unmistakable at every size.
+   Native details/summary remains responsible for opening and closing groups. */
+body.app-page.page-app .sidebar #nav .nav-group>summary{
+  grid-template-columns:30px minmax(0,1fr) 34px!important;
+  min-height:52px!important;padding-right:5px!important;
+  border:1px solid transparent!important;
+  transition:background .18s ease,border-color .18s ease!important;
+}
+body.app-page.page-app .sidebar #nav .nav-group>summary:hover,
+body.app-page.page-app .sidebar #nav .nav-group>summary:focus-visible{
+  background:rgba(0,157,255,.20)!important;
+  border-color:rgba(143,226,255,.42)!important;outline:none!important;
+}
+body.app-page.page-app .sidebar #nav .nav-group>summary::after{
+  width:11px!important;height:11px!important;
+  border-right:3px solid #b8f1ff!important;border-bottom:3px solid #b8f1ff!important;
+  filter:drop-shadow(0 0 5px rgba(0,205,255,.95))!important;
+}
+body.app-page.page-app .sidebar #nav .nav-group[open]>summary{
+  background:linear-gradient(100deg,rgba(0,137,255,.28),rgba(0,81,173,.16))!important;
+  border-color:rgba(143,226,255,.32)!important;
+}
+body.app-page.page-app .sidebar #nav .nav-group[open]>summary::after{
+  border-color:#fff!important;filter:drop-shadow(0 0 6px rgba(255,255,255,.8))!important;
+}
+@media(max-width:760px){
+  body.app-page.page-app .sidebar #nav .nav-group>summary{
+    min-height:54px!important;grid-template-columns:32px minmax(0,1fr) 38px!important;
+  }
+  body.app-page.page-app .sidebar #nav .nav-group>summary::after{
+    width:12px!important;height:12px!important;border-width:3px!important;
+  }
+}
