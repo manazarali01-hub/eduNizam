@@ -3,12 +3,16 @@
   let controller=null;
   let activeSetOpen=null;
   let suppressMenuClickUntil=0;
+  let mountedSidebar=null;
+  let mountedTopbar=null;
 
   const isCompactNav=()=>window.innerWidth<=950 || (window.innerWidth<=1100 && !!window.matchMedia?.('(hover: none) and (pointer: coarse)').matches);
 
   function mount(){
     const sidebar=$('.sidebar'),topbar=$('.topbar');
     if(!sidebar||!topbar)return null;
+    mountedSidebar=sidebar;
+    mountedTopbar=topbar;
 
     let menu=$('#eduMobileMenuBtn');
     if(!menu){
@@ -116,6 +120,14 @@
   }
 
   const boot=()=>{controller=mount()||controller};
+  // Auth transitions can replace the dashboard shell after initial page load.
+  // Rebind the controller to the live sidebar/topbar instead of stale nodes.
+  const shellObserver=new MutationObserver(()=>{
+    const sidebar=$('.sidebar'),topbar=$('.topbar');
+    if(sidebar&&topbar&&(sidebar!==mountedSidebar||topbar!==mountedTopbar))boot();
+  });
+  const observeShell=()=>{if(document.body)shellObserver.observe(document.body,{childList:true,subtree:true})};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observeShell,{once:true});else observeShell();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   addEventListener('resize',()=>controller?.reconcile?.());
   addEventListener('pageshow',event=>{
