@@ -44,6 +44,23 @@ try{
     return {expanded:document.querySelector('#eduMobileMenuBtn')?.getAttribute('aria-expanded'),backdrop:document.querySelector('#eduMobileNavBackdrop')?.classList.contains('show'),drawerWidth:side?.getBoundingClientRect().width,navHeight:nav?.clientHeight,navScrollHeight:nav?.scrollHeight,closeVisible:!!r.width&&!!r.height,closeColor:cs.color,closeBackground:cs.backgroundColor,closeWidth:r.width,groupText:group?.textContent?.trim(),groupLabelWidth:group?.getBoundingClientRect().width,groupLabelFontSize:groupStyle?.fontSize,groupLabelColor:groupStyle?.color,groupLabelOverflow:group?group.scrollWidth>group.clientWidth:false,featureText:label?.textContent?.trim(),featureLabelWrap:labelStyle?.whiteSpace,featureLabelOverflow:label?label.scrollWidth>label.clientWidth:false,iconWidth:iconRect?.width,groupGap:groupStyle?.marginBottom,sidebarBackground: getComputedStyle(side).backgroundColor};
   });
   if(openState.expanded!=='true'||!openState.backdrop)throw new Error('Drawer did not expose expanded state and backdrop: '+JSON.stringify(openState));
+  // Verify the mobile accordion affordance is visibly rendered and the same
+  // heading can be tapped twice to open and close (not merely CSS-styled).
+  const firstSummary=sidebar.locator('#nav .nav-group').first().locator('summary');
+  const chevron=await firstSummary.evaluate(node=>{
+    const s=getComputedStyle(node,'::after');
+    return {content:s.content,width:parseFloat(s.width),height:parseFloat(s.height),rightColor:s.borderRightColor,bottomColor:s.borderBottomColor,display:s.display};
+  });
+  if(chevron.content==='none'||chevron.content==='normal'||chevron.width<7||chevron.height<7||chevron.rightColor==='rgba(0, 0, 0, 0)'||chevron.display==='none')
+    throw new Error('Mobile accordion chevron is not visibly rendered: '+JSON.stringify(chevron));
+  await firstSummary.click();
+  const closedGroup=await sidebar.locator('#nav .nav-group').first().evaluate(node=>node.open);
+  if(closedGroup)throw new Error('Tapping an open accordion heading did not close it');
+  await firstSummary.click();
+  const reopenedGroup=await sidebar.locator('#nav .nav-group').first().evaluate(node=>node.open);
+  if(!reopenedGroup)throw new Error('Tapping a closed accordion heading did not reopen it');
+  console.log('Mobile accordion chevron/toggle QA passed:',JSON.stringify(chevron));
+
   if(!openState.closeVisible||openState.closeWidth<44||openState.closeColor!=='rgb(17, 17, 17)'||openState.closeBackground!=='rgba(255, 255, 255, 0.3)')throw new Error('Mobile close control is not visibly readable/tappable: '+JSON.stringify(openState));
   if(!openState.groupText||openState.navHeight<100)throw new Error('Sidebar navigation content/scroll viewport missing: '+JSON.stringify(openState));
   if(!openState.groupText||openState.groupLabelWidth<70||(parseFloat(openState.groupLabelFontSize)<12||parseFloat(openState.groupLabelFontSize)>13)||openState.groupLabelColor==='rgba(0, 0, 0, 0)'||openState.groupLabelOverflow)throw new Error('Category heading is too small, clipped or unreadable: '+JSON.stringify(openState));
