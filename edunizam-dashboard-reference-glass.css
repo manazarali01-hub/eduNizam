@@ -796,3 +796,58 @@ body.app-page.page-app .sidebar #nav .nav-group[open]>summary::after{
     margin:0!important;
   }
 }
+
+
+/* Screenshot-driven mobile readability and footer alignment repair — 02 Nov 2026.
+   Keep the blue-glass shell, but give intentionally light information panels
+   dark readable text. The public footer must use the full mobile viewport. */
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts.admin-attendance-alerts{
+  color:#12365b!important;
+  background:linear-gradient(145deg,rgba(238,248,255,.96),rgba(205,229,249,.94))!important;
+  border:1px solid rgba(126,190,231,.78)!important;
+  border-top:3px solid #28a9e8!important;
+  box-shadow:0 10px 26px rgba(0,20,55,.18),inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts :is(h2,h3,p,.muted,.academic-kicker){
+  color:#173d60!important;-webkit-text-fill-color:#173d60!important;
+  opacity:1!important;text-shadow:none!important;
+}
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-counts>div,
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-columns>div{
+  background:rgba(255,255,255,.88)!important;
+  border:1px solid rgba(99,153,195,.35)!important;
+  color:#173d60!important;
+}
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-counts span,
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-person :is(strong,small),
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-columns .muted{
+  color:#496783!important;-webkit-text-fill-color:#496783!important;
+  opacity:1!important;text-shadow:none!important;
+}
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-counts strong,
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-columns h3,
+html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-person strong{
+  color:#12365b!important;-webkit-text-fill-color:#12365b!important;
+  opacity:1!important;text-shadow:none!important;
+}
+html body.app-page.page-app #appMain #dashboard #dashboardAccessApprovalCard{
+  color:#12365b!important;
+}
+html body.app-page.page-app #appMain #dashboard #dashboardAccessApprovalCard .coverage-note,
+html body.app-page.page-app #appMain #dashboard #dashboardAccessApprovalCard .coverage-note strong{
+  color:#496783!important;-webkit-text-fill-color:#496783!important;
+  opacity:1!important;text-shadow:none!important;
+}
+@media(max-width:760px){
+  html body.app-page.page-app footer.seo-footer{
+    display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+    width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+    margin:0!important;padding:18px 14px!important;gap:12px!important;
+    overflow-wrap:anywhere!important;
+  }
+  html body.app-page.page-app footer.seo-footer nav{
+    display:flex!important;flex-wrap:wrap!important;gap:10px 14px!important;
+    width:100%!important;min-width:0!important;
+  }
+  html body.app-page.page-app footer.seo-footer nav a{max-width:100%!important;}
+}
