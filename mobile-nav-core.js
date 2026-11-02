@@ -3,6 +3,7 @@
   let mountedSidebar=null;
   let mountedTopbar=null;
   let sidebarHome=null;
+  let menuHome=null;
   let lastPointerActivationAt=0;
   const isCompactNav=()=>window.innerWidth<=950 || (window.innerWidth<=1100 && !!window.matchMedia?.('(hover: none) and (pointer: coarse)').matches);
 
@@ -11,7 +12,7 @@
     if(!sidebar||!topbar||!document.body)return null;
 
     let menu=$('#eduMobileMenuBtn');
-    if(!menu||!topbar.contains(menu)){
+    if(!menu){
       menu=document.createElement('button');
       menu.id='eduMobileMenuBtn';
       menu.className='mobile-menu-btn';
@@ -20,6 +21,12 @@
       menu.setAttribute('aria-expanded','false');
       menu.innerHTML='<span aria-hidden="true">☰</span>';
       topbar.insertBefore(menu,topbar.firstChild);
+    }
+    if(isCompactNav()&&menu.parentNode!==document.body){
+      if(!menuHome){menuHome=document.createComment('edu-mobile-menu-home');menu.parentNode?.insertBefore(menuHome,menu);}
+      document.body.appendChild(menu);
+    }else if(!isCompactNav()&&menuHome){
+      menuHome.parentNode?.insertBefore(menu,menuHome);menuHome.remove();menuHome=null;
     }
     if(menu.dataset.mobileCore!=='1'){
       menu.dataset.mobileCore='1';
@@ -30,8 +37,12 @@
       });
     }
     menu.style.touchAction='manipulation';
-    menu.style.position='relative';
-    menu.style.zIndex='1006';
+    menu.style.position=isCompactNav()?'fixed':'relative';
+    menu.style.left=isCompactNav()?'14px':'';
+    menu.style.top=isCompactNav()?'14px':'';
+    menu.style.width=isCompactNav()?'48px':'';
+    menu.style.height=isCompactNav()?'48px':'';
+    menu.style.zIndex=isCompactNav()?'1105':'1006';
     menu.style.pointerEvents='auto';
     // Keep the interactive header above the dashboard content's stacking layer.
     topbar.style.position='sticky';
