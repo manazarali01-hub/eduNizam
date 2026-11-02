@@ -104,7 +104,9 @@ body.page-app .list>*,body.page-app .activity-item{
 }
 /* Inputs remain readable and accessible on dark glass. */
 body.page-app :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
-  color:#102c4b!important;background:rgba(238,247,255,.94)!important;
+  /* Keep the layered field gradients from premium-form-fields.css visible;
+     this rule only enforces readable blue-glass ink and border. */
+  color:#102c4b!important;
   border:1px solid rgba(117,192,246,.7)!important
 }
 body.page-app :is(input,select,textarea)::placeholder{color:#617b96!important}
