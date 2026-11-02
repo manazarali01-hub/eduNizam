@@ -59,6 +59,15 @@
     };
 
     activeSetOpen=setOpen;
+    // Retain a local click fallback for environments without Pointer Events.
+    if(menu.dataset.mobileCore!=='1'){
+      menu.dataset.mobileCore='1';
+      menu.addEventListener('click',event=>{
+        event.preventDefault();
+        event.stopPropagation();
+        setOpen(!sidebar.classList.contains('mobile-nav-open'));
+      });
+    }
     // Capture touch/pointer input at document level so later UI scripts or
     // overlapping topbar layers cannot swallow the mobile menu activation.
     if(!document.documentElement.dataset.eduMobileMenuCapture){
