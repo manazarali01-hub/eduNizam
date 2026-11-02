@@ -30,7 +30,13 @@
     }
     menu.style.touchAction='manipulation';
     menu.style.position='relative';
-    menu.style.zIndex='4';
+    menu.style.zIndex='1006';
+    menu.style.pointerEvents='auto';
+    // Keep the interactive header above the dashboard content's stacking layer.
+    topbar.style.position='sticky';
+    topbar.style.top='0';
+    topbar.style.zIndex='1005';
+    topbar.style.isolation='isolate';
 
     let close=$('#eduMobileNavClose');
     if(!close||!sidebar.contains(close)){
