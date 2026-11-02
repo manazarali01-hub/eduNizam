@@ -53,8 +53,12 @@ try{
   });
   if(chevron.content==='none'||chevron.content==='normal'||chevron.width<7||chevron.height<7||chevron.rightColor==='rgba(0, 0, 0, 0)'||chevron.display==='none')
     throw new Error('Mobile accordion chevron is not visibly rendered: '+JSON.stringify(chevron));
+  const firstGroup=sidebar.locator('#nav .nav-group').first();
+  if(!(await firstGroup.evaluate(node=>node.open))) await firstSummary.click();
+  const ensuredOpen=await firstGroup.evaluate(node=>node.open);
+  if(!ensuredOpen)throw new Error('Could not open the first accordion group before testing toggle');
   await firstSummary.click();
-  const closedGroup=await sidebar.locator('#nav .nav-group').first().evaluate(node=>node.open);
+  const closedGroup=await firstGroup.evaluate(node=>node.open);
   if(closedGroup)throw new Error('Tapping an open accordion heading did not close it');
   await firstSummary.click();
   const reopenedGroup=await sidebar.locator('#nav .nav-group').first().evaluate(node=>node.open);
