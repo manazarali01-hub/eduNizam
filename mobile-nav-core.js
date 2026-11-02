@@ -95,13 +95,17 @@
       set(sidebar,'width','min(340px,90vw)');set(sidebar,'max-width','90vw');
       set(sidebar,'height','100vh');set(sidebar,'max-height','100vh');
       set(sidebar,'transform','translate3d(0,0,0)');set(sidebar,'visibility','visible');
-      set(sidebar,'z-index','1002');set(sidebar,'overflow-y','auto');
+      set(sidebar,'z-index','1102');set(sidebar,'overflow-y','auto');
+      // The authenticated topbar must sit behind the drawer while open.
+      set(nodes.topbar,'z-index','999');
       set(close,'position','absolute');set(close,'top','16px');set(close,'right','14px');
       set(close,'display','grid');set(close,'visibility','visible');
       set(close,'width','44px');set(close,'height','44px');set(close,'z-index','1004');
       set(close,'pointer-events','auto');
     }else{
       ['position','left','top','right','bottom','width','max-width','height','max-height','transform','visibility','z-index','overflow-y'].forEach(p=>sidebar.style.removeProperty(p));
+      nodes.topbar.style.removeProperty('z-index');
+      nodes.topbar.style.zIndex='1005';
       ['position','top','right','display','visibility','width','height','z-index','pointer-events'].forEach(p=>close.style.removeProperty(p));
     }
     backdrop.classList.toggle('show',shouldOpen);
