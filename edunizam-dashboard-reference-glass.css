@@ -618,3 +618,49 @@ body.app-page.page-app #appMain #dashboard #familyDashboard>.section-head .badge
   body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions{grid-template-columns:1fr!important}
   body.app-page.page-app #appMain #dashboard #familyDashboard .pp-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
+
+
+/* Phase 30 — mobile dashboard visual QA repairs from 02 Nov screenshots.
+   Keep the open navigation drawer distinct from dashboard content and ensure
+   light Admin action tiles always use readable dark typography. */
+body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button,
+body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button :is(strong,small,span){
+  color:#12365b!important;-webkit-text-fill-color:#12365b!important;
+  text-shadow:none!important;opacity:1!important;
+}
+body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button>small{
+  color:#52708d!important;-webkit-text-fill-color:#52708d!important;
+  font-size:12px!important;font-weight:650!important;line-height:1.35!important;
+}
+body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button>strong{
+  color:#12365b!important;-webkit-text-fill-color:#12365b!important;
+  font-size:14px!important;font-weight:800!important;line-height:1.25!important;
+}
+body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button>span:not(.admin-action-count){
+  color:#087ac7!important;-webkit-text-fill-color:#087ac7!important;
+}
+@media(max-width:760px){
+  body.app-page.page-app #appMain{min-width:0!important;width:100%!important}
+  body.app-page.page-app .main{width:100%!important;min-width:0!important;overflow-x:clip!important}
+  body.app-page.page-app #appMain #dashboard,
+  body.app-page.page-app #appMain #dashboard>*{max-width:100%!important;min-width:0!important}
+  body.app-page.page-app.edu-mobile-nav-open #eduMobileNavBackdrop{
+    background:rgba(0,10,28,.68)!important;
+    -webkit-backdrop-filter:blur(3px)!important;backdrop-filter:blur(3px)!important;
+  }
+  body.app-page.page-app.edu-mobile-nav-open .sidebar.mobile-nav-open{
+    width:min(320px,86vw)!important;max-width:86vw!important;
+    box-shadow:12px 0 38px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.22)!important;
+  }
+  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button{
+    min-height:82px!important;padding:11px!important;overflow-wrap:anywhere!important;
+  }
+}
+@media(max-width:390px){
+  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions{
+    grid-template-columns:1fr!important;
+  }
+}
