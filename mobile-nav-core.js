@@ -1,6 +1,8 @@
 (function(){
   const $=s=>document.querySelector(s);
   let controller=null;
+  let activeSetOpen=null;
+  let suppressMenuClickUntil=0;
 
   const isCompactNav=()=>window.innerWidth<=950 || (window.innerWidth<=1100 && !!window.matchMedia?.('(hover: none) and (pointer: coarse)').matches);
 
@@ -56,13 +58,27 @@
       menu.setAttribute('aria-expanded',String(shouldOpen));
     };
 
-    if(menu.dataset.mobileCore!=='1'){
-      menu.dataset.mobileCore='1';
-      menu.addEventListener('click',event=>{
+    activeSetOpen=setOpen;
+    // Capture touch/pointer input at document level so later UI scripts or
+    // overlapping topbar layers cannot swallow the mobile menu activation.
+    if(!document.documentElement.dataset.eduMobileMenuCapture){
+      document.documentElement.dataset.eduMobileMenuCapture='1';
+      document.addEventListener('pointerdown',event=>{
+        const trigger=event.target.closest?.('#eduMobileMenuBtn');
+        if(!trigger||!activeSetOpen)return;
         event.preventDefault();
-        event.stopPropagation();
-        setOpen(!sidebar.classList.contains('mobile-nav-open'));
-      });
+        event.stopImmediatePropagation();
+        suppressMenuClickUntil=Date.now()+800;
+        activeSetOpen(!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'));
+      },true);
+      document.addEventListener('click',event=>{
+        const trigger=event.target.closest?.('#eduMobileMenuBtn');
+        if(!trigger||!activeSetOpen)return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if(Date.now()<suppressMenuClickUntil)return;
+        activeSetOpen(!document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'));
+      },true);
     }
     if(close.dataset.mobileCore!=='1'){
       close.dataset.mobileCore='1';
