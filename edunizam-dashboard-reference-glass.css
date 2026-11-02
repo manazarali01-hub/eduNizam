@@ -296,3 +296,28 @@ body.app-page.page-app #appMain #studentClass{background:linear-gradient(135deg,
 body.app-page.page-app #appMain #studentSection{background:linear-gradient(135deg,#fff4e8 0%,#ffe8d2 100%)!important}
 body.app-page.page-app #appMain #studentPhone{background:linear-gradient(135deg,#fff9df 0%,#fff0b9 100%)!important}
 body.app-page.page-app #appMain #studentBForm{background:linear-gradient(135deg,#ffeff2 0%,#ffdae2 100%)!important}
+
+
+/* Final-cascade mobile drawer state.
+   This file loads after the general Blue Glass theme, so the open-state
+   transform must be asserted here to override the compact closed transform. */
+@media (max-width:1100px) and (hover:none) and (pointer:coarse) {
+  body.app-page.page-app.edu-mobile-nav-open .sidebar.mobile-nav-open {
+    position:fixed!important;
+    left:0!important;top:0!important;right:auto!important;bottom:0!important;
+    width:min(340px,90vw)!important;max-width:90vw!important;
+    height:100dvh!important;max-height:100dvh!important;
+    transform:translate3d(0,0,0)!important;
+    visibility:visible!important;
+    z-index:1002!important;
+  }
+  body.app-page.page-app.edu-mobile-nav-open .sidebar .mobile-nav-close {
+    position:absolute!important;top:16px!important;right:14px!important;
+    display:grid!important;visibility:visible!important;
+    width:44px!important;height:44px!important;
+    z-index:1004!important;pointer-events:auto!important;
+  }
+  body.app-page.page-app.edu-mobile-nav-open #eduMobileNavBackdrop {
+    position:fixed!important;inset:0!important;z-index:1001!important;
+  }
+}
