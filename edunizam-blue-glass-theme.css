@@ -944,3 +944,29 @@ body.page-app .sidebar #nav .nav-group>summary>strong{
     outline-offset: 2px !important;
   }
 }
+
+
+/* Mobile drawer state: use a body-level state to win over legacy viewport transforms. */
+@media (max-width: 1100px) and (hover: none) and (pointer: coarse) {
+  body.page-app.edu-mobile-nav-open .sidebar,
+  body.app-page.page-app.edu-mobile-nav-open .sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: auto !important;
+    bottom: 0 !important;
+    transform: translate3d(0,0,0) !important;
+    visibility: visible !important;
+    z-index: 1002 !important;
+  }
+  body.page-app.edu-mobile-nav-open .sidebar .mobile-nav-close,
+  body.app-page.page-app.edu-mobile-nav-open .sidebar .mobile-nav-close {
+    position: absolute !important;
+    top: 16px !important;
+    right: 14px !important;
+    z-index: 1004 !important;
+    display: grid !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+}
