@@ -61,6 +61,7 @@ try{
   const closedGroup=await firstGroup.evaluate(node=>node.open);
   if(closedGroup)throw new Error('Tapping an open accordion heading did not close it');
   await firstSummary.click();
+  await page.waitForFunction(()=>document.querySelector('#nav .nav-group')?.open===true,null,{timeout:3000});
   const reopenedGroup=await sidebar.locator('#nav .nav-group').first().evaluate(node=>node.open);
   if(!reopenedGroup)throw new Error('Tapping a closed accordion heading did not reopen it');
   console.log('Mobile accordion chevron/toggle QA passed:',JSON.stringify(chevron));
