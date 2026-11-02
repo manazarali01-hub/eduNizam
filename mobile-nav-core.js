@@ -188,9 +188,16 @@
   const shellObserver=new MutationObserver(()=>{
     const nodes=ensureElements();
     if(!nodes)return;
+    // On compact screens the menu button is deliberately mounted directly
+    // under body, not inside the topbar. Treat that as the expected location;
+    // otherwise every observer pass calls boot(), which moves the button to
+    // body again and can create a continuous mutation/boot loop.
+    const menu=$('#eduMobileMenuBtn');
+    const menuMounted=isCompactNav()
+      ? menu?.parentNode===document.body
+      : nodes.topbar.contains(menu);
     if(nodes.sidebar!==mountedSidebar||nodes.topbar!==mountedTopbar||
-       !nodes.sidebar.contains($('#eduMobileNavClose'))||
-       !nodes.topbar.contains($('#eduMobileMenuBtn')))boot();
+       !nodes.sidebar.contains($('#eduMobileNavClose'))||!menuMounted)boot();
   });
   const observeShell=()=>{if(document.body)shellObserver.observe(document.body,{childList:true,subtree:true})};
   if(document.readyState==='loading'){
