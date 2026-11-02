@@ -705,3 +705,25 @@ html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk
     grid-template-columns:1fr!important;
   }
 }
+
+/* Phase 31 — remove the mobile dashboard's reserved sticky-header gap.
+   The topbar sits in normal flow on compact screens; the dashboard begins
+   immediately below it instead of leaving a tall blue-only strip above content. */
+@media(max-width:760px){
+  html body.app-page.page-app .main{
+    padding-top:8px!important;
+  }
+  html body.app-page.page-app #appMain>.topbar{
+    position:relative!important;
+    top:auto!important;
+    margin:0 0 12px!important;
+    min-height:60px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard.view.active{
+    margin-top:0!important;
+    padding-top:0!important;
+  }
+  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
+    margin-top:0!important;
+  }
+}
