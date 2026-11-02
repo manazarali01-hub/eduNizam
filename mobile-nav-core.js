@@ -2,6 +2,7 @@
   const $=s=>document.querySelector(s);
   let mountedSidebar=null;
   let mountedTopbar=null;
+  let sidebarHome=null;
   let lastPointerActivationAt=0;
   const isCompactNav=()=>window.innerWidth<=950 || (window.innerWidth<=1100 && !!window.matchMedia?.('(hover: none) and (pointer: coarse)').matches);
 
@@ -68,6 +69,11 @@
     if(!nodes)return false;
     const {sidebar,menu,close,backdrop}=nodes;
     const shouldOpen=!!open&&isCompactNav();
+    if(shouldOpen&&!sidebarHome){
+      sidebarHome=document.createComment('edu-mobile-sidebar-home');
+      sidebar.parentNode?.insertBefore(sidebarHome,sidebar);
+      document.body.appendChild(sidebar);
+    }
     sidebar.classList.toggle('mobile-nav-open',shouldOpen);
     // Apply the drawer geometry directly as well as through CSS. This avoids
     // transformed app-shell ancestors pushing the close control off-screen.
@@ -94,6 +100,11 @@
     backdrop.setAttribute('aria-hidden',String(!shouldOpen));
     document.body.classList.toggle('mobile-nav-lock',shouldOpen);
     document.body.classList.toggle('edu-mobile-nav-open',shouldOpen);
+    if(!shouldOpen&&sidebarHome){
+      sidebarHome.parentNode?.insertBefore(sidebar,sidebarHome);
+      sidebarHome.remove();
+      sidebarHome=null;
+    }
     menu.setAttribute('aria-expanded',String(shouldOpen));
     menu.setAttribute('aria-label',shouldOpen?'Close navigation':'Open navigation');
     return shouldOpen;
