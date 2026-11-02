@@ -59,6 +59,7 @@
       backdrop.style.visibility=shouldOpen?'visible':'hidden';
       backdrop.setAttribute('aria-hidden',String(!shouldOpen));
       document.body.classList.toggle('mobile-nav-lock',shouldOpen);
+      document.body.classList.toggle('edu-mobile-nav-open',shouldOpen);
       menu.setAttribute('aria-expanded',String(shouldOpen));
     };
 
