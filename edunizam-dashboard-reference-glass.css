@@ -286,3 +286,13 @@ body.app-page.page-app #appMain #studentClass{background-color:#eaf8f1!important
 body.app-page.page-app #appMain #studentSection{background-color:#fff4e8!important}
 body.app-page.page-app #appMain #studentPhone{background-color:#fff9df!important}
 body.app-page.page-app #appMain #studentBForm{background-color:#ffeff2!important}
+
+
+/* Render the six admission-field treatments as subtle gradients. The visual QA
+   inspects computed background-image values, not only background-color. */
+body.app-page.page-app #appMain #studentName{background:linear-gradient(135deg,#edf6ff 0%,#dceeff 100%)!important}
+body.app-page.page-app #appMain #fatherName{background:linear-gradient(135deg,#f3efff 0%,#e8ddff 100%)!important}
+body.app-page.page-app #appMain #studentClass{background:linear-gradient(135deg,#eaf8f1 0%,#d9f1e5 100%)!important}
+body.app-page.page-app #appMain #studentSection{background:linear-gradient(135deg,#fff4e8 0%,#ffe8d2 100%)!important}
+body.app-page.page-app #appMain #studentPhone{background:linear-gradient(135deg,#fff9df 0%,#fff0b9 100%)!important}
+body.app-page.page-app #appMain #studentBForm{background:linear-gradient(135deg,#ffeff2 0%,#ffdae2 100%)!important}
