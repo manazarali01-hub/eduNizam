@@ -1173,3 +1173,18 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     padding:4px 8px!important;
   }
 }
+
+
+/* Phase 44 — prevent the topbar itself from clipping the session chip.
+   Phase 43 removed clipping on the chip and action row, but Phase 39 left
+   overflow:hidden on the parent topbar. Keep the compact header and allow
+   the session controls to remain fully visible inside its lower edge. */
+@media(max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    position:relative!important;
+    z-index:2!important;
+  }
+}
