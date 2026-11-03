@@ -936,3 +936,511 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
   body.app-page.page-app #appMain #dashboard .role-quick-actions button,
   body.app-page.page-app #appMain #dashboard [data-admin-jump]{transition:none!important}
 }
+
+
+/* Phase 40 — compact authenticated mobile header.
+   The mobile menu control is fixed at 14px/14px by mobile-nav-core.js;
+   reserve its own lane so it never covers the page title. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:4px!important;
+    min-height:0!important;
+    height:auto!important;
+    margin:0 0 10px!important;
+    padding:10px 10px 10px 68px!important;
+    border-radius:15px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
+    display:flex!important;
+    flex:0 1 auto!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-width:0!important;
+    gap:2px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .academic-kicker{
+    margin:0!important;
+    font-size:9px!important;
+    line-height:1.2!important;
+    letter-spacing:.07em!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar #page-title{
+    margin:0!important;
+    font-size:clamp(20px,6vw,25px)!important;
+    line-height:1.12!important;
+    overflow-wrap:anywhere!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .school-identity{
+    margin:1px 0 0!important;
+    min-height:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .school-identity p{
+    margin:0!important;
+    font-size:11px!important;
+    line-height:1.2!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    display:flex!important;
+    flex:0 1 auto!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:6px!important;
+    width:auto!important;
+    height:30px!important;
+    min-height:30px!important;
+    max-height:30px!important;
+    min-width:0!important;
+    max-width:48%!important;
+    align-self:center!important;
+    overflow:visible!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #roleSession{
+    display:flex!important;
+    align-items:center!important;
+    gap:5px!important;
+    max-width:100%!important;
+    padding:5px 7px!important;
+    border-radius:12px!important;
+    font-size:11px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #roleSession button{
+    padding:3px 6px!important;
+    font-size:10px!important;
+    line-height:1.1!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #installBtn{
+    display:none!important;
+  }
+  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
+    margin-top:0!important;
+  }
+}
+
+/* Phase 41 — compact mobile header composition.
+   Keep the role/logout control visible while removing the stacked title rows
+   that caused the 248px mobile header. Hamburger remains in its fixed left lane. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-areas:"heading" "session"!important;
+    align-items:center!important;
+    justify-content:stretch!important;
+    gap:5px!important;
+    width:100%!important;
+    min-height:0!important;
+    height:auto!important;
+    padding:9px 10px 9px 68px!important;
+    margin:0 0 9px!important;
+    border-radius:14px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
+    grid-area:heading!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:1px!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .academic-kicker{
+    display:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar #page-title{
+    display:block!important;
+    margin:0!important;
+    font-size:clamp(19px,5.4vw,23px)!important;
+    line-height:1.08!important;
+    letter-spacing:-.025em!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .school-identity{
+    display:flex!important;
+    align-items:center!important;
+    min-height:0!important;
+    margin:1px 0 0!important;
+    gap:5px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .school-identity p{
+    display:block!important;
+    max-width:100%!important;
+    margin:0!important;
+    font-size:10px!important;
+    line-height:1.15!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    grid-area:session!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    width:100%!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>.academic-pill,
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#installBtn{
+    display:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:7px!important;
+    width:max-content!important;
+    max-width:100%!important;
+    min-height:25px!important;
+    margin:0!important;
+    padding:2px 7px!important;
+    border-radius:999px!important;
+    font-size:10px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>strong{
+    min-width:0!important;
+    max-width:190px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:10px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
+    flex:0 0 auto!important;
+    min-height:22px!important;
+    margin:0!important;
+    padding:3px 7px!important;
+    border-radius:999px!important;
+    font-size:10px!important;
+    line-height:1!important;
+  }
+  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
+    margin-top:0!important;
+  }
+}
+
+
+/* Phase 42 — constrain injected session controls to a single compact row.
+   Browser QA traced the remaining 205px header to .topbar-actions (144px tall),
+   not the title or hamburger. Keep the session chip from expanding that row. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex:0 0 30px!important;
+    height:30px!important;
+    min-height:30px!important;
+    max-height:30px!important;
+    align-self:start!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    flex-direction:row!important;
+    overflow:hidden!important;
+    padding:0!important;
+    margin:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    box-sizing:border-box!important;
+    display:inline-flex!important;
+    flex:0 0 auto!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    height:26px!important;
+    min-height:26px!important;
+    max-height:26px!important;
+    padding:2px 7px!important;
+    margin:0!important;
+    line-height:1!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
+    flex:0 0 auto!important;
+    min-height:0!important;
+    max-height:22px!important;
+    margin-top:0!important;
+    margin-bottom:0!important;
+    line-height:1.1!important;
+  }
+}
+
+
+/* Phase 43 — keep injected mobile session controls fully readable.
+   Phase 42 fixed the header height; the screenshot then exposed child controls
+   being clipped by the 22px max-height inherited from the compact chip rule. */
+@media(max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    overflow:visible!important;
+    height:auto!important;
+    min-height:28px!important;
+    max-height:none!important;
+    align-items:center!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
+    height:auto!important;
+    min-height:24px!important;
+    max-height:none!important;
+    line-height:1.15!important;
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
+    min-height:24px!important;
+    padding:4px 8px!important;
+  }
+}
+
+
+/* Phase 44 — prevent the topbar itself from clipping the session chip.
+   Phase 43 removed clipping on the chip and action row, but Phase 39 left
+   overflow:hidden on the parent topbar. Keep the compact header and allow
+   the session controls to remain fully visible inside its lower edge. */
+@media(max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    position:relative!important;
+    z-index:2!important;
+  }
+}
+
+
+/* Phase 45 — keep the authenticated role/logout chip inside the mobile header.
+   The previous compact rules left .topbar-actions participating in an inherited
+   positioned layout, so the injected chip painted over the dashboard hero.
+   Restore it to normal grid flow and reserve a dedicated session row. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-areas:"heading" "session"!important;
+    grid-auto-rows:min-content!important;
+    align-content:start!important;
+    row-gap:6px!important;
+    min-height:116px!important;
+    height:auto!important;
+    padding-bottom:9px!important;
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    position:static!important;
+    inset:auto!important;
+    grid-area:session!important;
+    display:flex!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:28px!important;
+    max-height:none!important;
+    flex:none!important;
+    align-self:start!important;
+    justify-self:stretch!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    transform:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    position:static!important;
+    inset:auto!important;
+    transform:none!important;
+    flex:0 1 auto!important;
+    width:max-content!important;
+    max-width:100%!important;
+    margin:0!important;
+  }
+}
+
+
+/* Phase 46 — stable compact mobile dashboard header.
+   QA showed the action row expanding to 146px; keep the page title clear and
+   leave account actions in the existing navigation drawer on narrow screens. */
+@media(max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    min-height:76px!important;
+    height:auto!important;
+    padding:12px 12px 12px 68px!important;
+    gap:8px!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
+    flex:1 1 auto!important;
+    width:auto!important;
+    min-width:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    display:flex!important;
+    flex:0 1 auto!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:6px!important;
+    min-width:0!important;
+    max-width:48%!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #roleSession{
+    display:flex!important;
+    align-items:center!important;
+    gap:5px!important;
+    max-width:100%!important;
+    padding:5px 7px!important;
+    border-radius:12px!important;
+    font-size:11px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #roleSession button{
+    padding:3px 6px!important;
+    font-size:10px!important;
+    line-height:1.1!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #installBtn{
+    display:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar #page-title{
+    font-size:clamp(18px,5vw,22px)!important;
+    line-height:1.12!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
+    margin-top:0!important;
+  }
+}
+
+
+/* Phase 47 — final mobile header constraint.
+   Phase 46 still allowed the injected role-session child to stretch the
+   actions flex item. Lock the header and its action lane to measured compact
+   dimensions; keep title and logout visible without a second tall row. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    height:88px!important;
+    min-height:88px!important;
+    max-height:88px!important;
+    padding:10px 10px 10px 68px!important;
+    gap:8px!important;
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
+    flex:1 1 0!important;
+    min-width:0!important;
+    max-height:54px!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    position:static!important;
+    display:flex!important;
+    flex:0 0 auto!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    width:auto!important;
+    height:30px!important;
+    min-height:30px!important;
+    max-height:30px!important;
+    min-width:0!important;
+    max-width:48%!important;
+    align-self:center!important;
+    overflow:visible!important;
+    margin:0!important;
+    padding:0!important;
+    transform:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    height:28px!important;
+    min-height:28px!important;
+    max-height:28px!important;
+    width:max-content!important;
+    max-width:100%!important;
+    padding:3px 6px!important;
+    margin:0!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    font-size:10px!important;
+    line-height:1!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
+    flex:0 0 auto!important;
+    min-height:0!important;
+    max-height:22px!important;
+    margin:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
+    height:22px!important;
+    padding:2px 5px!important;
+    font-size:10px!important;
+    line-height:1!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#installBtn{
+    display:none!important;
+  }
+}
+
+
+/* Phase 48 — keep mobile account controls from collapsing into vertical labels. */
+@media(max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    flex:0 1 44%!important;
+    width:44%!important;
+    max-width:44%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    box-sizing:border-box!important;
+    display:flex!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
+    writing-mode:horizontal-tb!important;
+    white-space:nowrap!important;
+    word-break:normal!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
+    flex:0 1 auto!important;
+    width:auto!important;
+    max-width:82px!important;
+    padding-inline:5px!important;
+  }
+}
