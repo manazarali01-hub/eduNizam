@@ -1,0 +1,86 @@
+/* Phase 2 — global blue-glass component system.
+   Appearance-only: shared surfaces and controls; no markup, data or behavior changes. */
+body.app-page.page-app{
+  --en-p2-ink:#f4f8ff;
+  --en-p2-muted:#c8dcf2;
+  --en-p2-line:rgba(154,218,255,.48);
+  --en-p2-panel:linear-gradient(145deg,rgba(17,78,143,.76),rgba(4,27,68,.82));
+  --en-p2-panel-soft:linear-gradient(145deg,rgba(24,91,151,.48),rgba(4,29,70,.62));
+  --en-p2-glow:0 0 22px rgba(0,158,255,.16);
+  color:var(--en-p2-ink)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.empty-state,.notice-card){
+  color:var(--en-p2-ink)!important;
+  background:var(--en-p2-panel)!important;
+  border:1px solid var(--en-p2-line)!important;
+  border-radius:20px!important;
+  box-shadow:0 14px 34px rgba(0,8,34,.26),var(--en-p2-glow),inset 0 1px 0 rgba(255,255,255,.20)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(145%)!important;
+  backdrop-filter:blur(18px) saturate(145%)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(h1,h2,h3,h4,.section-title,.card-title){
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  text-shadow:0 1px 10px rgba(96,190,255,.22)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(p,label,small,.muted,.help-text,.form-hint,.empty-copy){
+  color:var(--en-p2-muted)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(button,.btn,[role=button]){
+  color:#f8fbff!important;
+  background:linear-gradient(120deg,rgba(13,119,216,.94),rgba(5,65,145,.96))!important;
+  border:1px solid rgba(170,226,255,.66)!important;
+  border-radius:13px!important;
+  box-shadow:0 7px 18px rgba(0,8,35,.22),inset 0 1px 0 rgba(255,255,255,.25)!important;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(button,.btn,[role=button]):not(:disabled):hover{
+  transform:translateY(-1px);
+  border-color:rgba(205,240,255,.92)!important;
+  box-shadow:0 9px 22px rgba(0,8,35,.28),0 0 16px rgba(0,166,255,.25),inset 0 1px 0 rgba(255,255,255,.32)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  color:#102d4c!important;
+  border:1px solid rgba(139,204,246,.82)!important;
+  border-radius:12px!important;
+  box-shadow:inset 0 1px 2px rgba(7,39,73,.08),0 0 0 1px rgba(255,255,255,.10)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(input,select,textarea):focus{
+  outline:2px solid rgba(0,190,255,.62)!important;
+  outline-offset:2px!important;
+  box-shadow:0 0 0 4px rgba(0,157,255,.15)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(table,.data-table){
+  color:var(--en-p2-ink)!important;
+  border-collapse:separate!important;
+  border-spacing:0!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(thead th,.data-table th){
+  color:#f8fbff!important;
+  background:linear-gradient(110deg,rgba(13,92,166,.92),rgba(5,48,108,.94))!important;
+  border-bottom:1px solid rgba(167,222,255,.48)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(tbody td,.data-table td){
+  color:#eaf4ff!important;
+  background:rgba(5,31,72,.28)!important;
+  border-bottom:1px solid rgba(155,211,250,.16)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(tbody tr:hover td,.data-table tr:hover td){
+  background:rgba(24,112,188,.24)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(.badge,.chip,.status-pill,.tag){
+  color:#f4f9ff!important;
+  background:rgba(13,119,206,.28)!important;
+  border:1px solid rgba(161,220,255,.44)!important;
+  border-radius:999px!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(hr,.divider){
+  border-color:rgba(160,215,255,.24)!important;
+}
+body.app-page.page-app #appMain .view:not(#dashboard) :is(button,a,input,select,textarea):focus-visible{
+  outline:3px solid rgba(115,211,255,.82)!important;
+  outline-offset:3px!important;
+}
+@media(prefers-reduced-motion:reduce){
+  body.app-page.page-app #appMain .view:not(#dashboard) :is(button,.btn,[role=button]){transition:none!important}
+}
