@@ -1051,13 +1051,6 @@ body.page-app .sidebar #nav .nav-group>summary>strong{
     background: linear-gradient(120deg, #087fe0, #0753b5 70%, #39a8ed) !important;
     border-color: rgba(164,224,255,.58) !important;
   }
-  body.app-page.page-app .sidebar .mobile-nav-close,
-  body.page-app .sidebar .mobile-nav-close {
-    color: #eff8ff !important;
-    -webkit-text-fill-color: #eff8ff !important;
-    background: rgba(117,190,240,.18) !important;
-    border: 1px solid rgba(151,211,255,.42) !important;
-  }
 }
 @media (max-width: 950px) and (hover: none) and (pointer: coarse) {
   body.app-page.page-app:not(.edu-mobile-nav-open) .sidebar,
