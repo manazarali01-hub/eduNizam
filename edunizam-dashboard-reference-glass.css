@@ -1409,3 +1409,38 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     display:none!important;
   }
 }
+
+
+/* Phase 48 — keep mobile account controls from collapsing into vertical labels. */
+@media(max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    flex:0 1 44%!important;
+    width:44%!important;
+    max-width:44%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    box-sizing:border-box!important;
+    display:flex!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
+    writing-mode:horizontal-tb!important;
+    white-space:nowrap!important;
+    word-break:normal!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
+    flex:0 1 auto!important;
+    width:auto!important;
+    max-width:82px!important;
+    padding-inline:5px!important;
+  }
+}
