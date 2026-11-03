@@ -993,3 +993,24 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     margin-top:0!important;
   }
 }
+
+/* Phase 40 follow-up — retain the dynamically injected role/session chip.
+   Only the decorative campus pill is removed on compact screens. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    min-height:0!important;
+    margin:2px 0 0!important;
+    padding:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>.academic-pill,
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#installBtn{
+    display:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>.session-chip{
+    display:inline-flex!important;
+    visibility:visible!important;
+  }
+}
