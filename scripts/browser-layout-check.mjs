@@ -935,7 +935,8 @@ try{
           const menu=document.getElementById('eduMobileMenuBtn');
           const rect=e=>{const r=e?.getBoundingClientRect();return r?{top:Math.round(r.top),bottom:Math.round(r.bottom),left:Math.round(r.left),right:Math.round(r.right),height:Math.round(r.height)}:null};
           const a=rect(title),b=rect(menu),h=rect(topbar);
-          return {topbar:h,title:a,menu:b,overlap:!!(a&&b&&a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top),scrollY:window.scrollY};
+          const describe=e=>({tag:e?.tagName,id:e?.id,className:typeof e?.className==='string'?e.className:'',rect:rect(e),display:e?getComputedStyle(e).display:'',minHeight:e?getComputedStyle(e).minHeight:'',height:e?getComputedStyle(e).height:'',padding:e?getComputedStyle(e).padding:''});
+          return {topbar:h,title:a,menu:b,children:[...topbar.children].map(describe),titleChildren:[...title.parentElement.children].map(describe),overlap:!!(a&&b&&a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top),scrollY:window.scrollY};
         });
         if(!headerLayout.topbar||!headerLayout.title||!headerLayout.menu||headerLayout.overlap||headerLayout.topbar.height>150||headerLayout.scrollY!==0){
           pushFailure('authenticated mobile header','Compact dashboard header is oversized or overlaps the fixed menu control',JSON.stringify(headerLayout));
