@@ -1330,3 +1330,82 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     margin-top:0!important;
   }
 }
+
+
+/* Phase 47 — final mobile header constraint.
+   Phase 46 still allowed the injected role-session child to stretch the
+   actions flex item. Lock the header and its action lane to measured compact
+   dimensions; keep title and logout visible without a second tall row. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    height:88px!important;
+    min-height:88px!important;
+    max-height:88px!important;
+    padding:10px 10px 10px 68px!important;
+    gap:8px!important;
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
+    flex:1 1 0!important;
+    min-width:0!important;
+    max-height:54px!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    position:static!important;
+    display:flex!important;
+    flex:0 0 auto!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    width:auto!important;
+    height:30px!important;
+    min-height:30px!important;
+    max-height:30px!important;
+    min-width:0!important;
+    max-width:48%!important;
+    align-self:center!important;
+    overflow:visible!important;
+    margin:0!important;
+    padding:0!important;
+    transform:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    height:28px!important;
+    min-height:28px!important;
+    max-height:28px!important;
+    width:max-content!important;
+    max-width:100%!important;
+    padding:3px 6px!important;
+    margin:0!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    font-size:10px!important;
+    line-height:1!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
+    flex:0 0 auto!important;
+    min-height:0!important;
+    max-height:22px!important;
+    margin:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
+    height:22px!important;
+    padding:2px 5px!important;
+    font-size:10px!important;
+    line-height:1!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#installBtn{
+    display:none!important;
+  }
+}
