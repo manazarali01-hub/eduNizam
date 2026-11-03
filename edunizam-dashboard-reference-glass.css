@@ -1575,6 +1575,16 @@ html body.app-page.page-app #appMain #dashboard [data-admin-jump]{
   html body.app-page.page-app .main{padding:0 0 110px!important}
 }
 @media(max-width:760px){
+  /* Keep the mobile drawer out of document flow; the later sticky desktop
+     sidebar rule otherwise reserves a full viewport of vertical space. */
+  html body.app-page.page-app .app-shell>.sidebar{
+    position:fixed!important;
+    left:0!important;
+    top:0!important;
+    width:min(310px,88vw)!important;
+    height:100dvh!important;
+    margin:0!important;
+  }
   html body.app-page.page-app #appMain #dashboard>.campus-hero{grid-template-columns:1fr!important;padding:18px!important}
   html body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   html body.app-page.page-app #appMain #dashboard>.grid-2{grid-template-columns:1fr!important}
