@@ -1444,3 +1444,15 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     padding-inline:5px!important;
   }
 }
+
+/* Phase 5 — mobile bottom-navigation clearance.
+   Preserve the previously browser-verified compact 88px header (Phases 46–48).
+   This phase only reserves safe-area-aware space for the fixed bottom nav. */
+@media (max-width:760px){
+  html body.app-page.page-app main#appMain.main{
+    padding-bottom:calc(104px + env(safe-area-inset-bottom))!important;
+  }
+  html body.app-page.page-app main#appMain.main #dashboard{
+    padding-bottom:calc(12px + env(safe-area-inset-bottom))!important;
+  }
+}
