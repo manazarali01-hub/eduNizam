@@ -994,23 +994,110 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
   }
 }
 
-/* Phase 40 follow-up — retain the dynamically injected role/session chip.
-   Only the decorative campus pill is removed on compact screens. */
+/* Phase 41 — compact mobile header composition.
+   Keep the role/logout control visible while removing the stacked title rows
+   that caused the 248px mobile header. Hamburger remains in its fixed left lane. */
 @media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-areas:"heading" "session"!important;
+    align-items:center!important;
+    justify-content:stretch!important;
+    gap:5px!important;
+    width:100%!important;
+    min-height:0!important;
+    height:auto!important;
+    padding:9px 10px 9px 68px!important;
+    margin:0 0 9px!important;
+    border-radius:14px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
+    grid-area:heading!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:1px!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .academic-kicker{
+    display:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar #page-title{
+    display:block!important;
+    margin:0!important;
+    font-size:clamp(19px,5.4vw,23px)!important;
+    line-height:1.08!important;
+    letter-spacing:-.025em!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .school-identity{
+    display:flex!important;
+    align-items:center!important;
+    min-height:0!important;
+    margin:1px 0 0!important;
+    gap:5px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .school-identity p{
+    display:block!important;
+    max-width:100%!important;
+    margin:0!important;
+    font-size:10px!important;
+    line-height:1.15!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
   html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    grid-area:session!important;
     display:flex!important;
     align-items:center!important;
     justify-content:flex-start!important;
+    width:100%!important;
     min-height:0!important;
-    margin:2px 0 0!important;
+    margin:0!important;
     padding:0!important;
   }
   html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>.academic-pill,
   html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#installBtn{
     display:none!important;
   }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>.session-chip{
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
     display:inline-flex!important;
-    visibility:visible!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:7px!important;
+    width:max-content!important;
+    max-width:100%!important;
+    min-height:25px!important;
+    margin:0!important;
+    padding:2px 7px!important;
+    border-radius:999px!important;
+    font-size:10px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>strong{
+    min-width:0!important;
+    max-width:190px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:10px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
+    flex:0 0 auto!important;
+    min-height:22px!important;
+    margin:0!important;
+    padding:3px 7px!important;
+    border-radius:999px!important;
+    font-size:10px!important;
+    line-height:1!important;
+  }
+  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
+    margin-top:0!important;
   }
 }
