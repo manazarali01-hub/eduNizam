@@ -1,0 +1,51 @@
+/* EduNizam shared blue-glass palette — applied to all routes using brand-refresh.css. */
+:root{
+  --en-site-blue-950:#08233f;
+  --en-site-blue-900:#0d355c;
+  --en-site-blue-800:#145184;
+  --en-site-blue-700:#1769aa;
+  --en-site-blue-600:#2385d1;
+  --en-site-sky-400:#69bdf4;
+  --en-site-sky-200:#b9e2ff;
+  --en-site-glass-line:rgba(55,139,202,.26);
+  --en-site-glass-shadow:0 12px 32px rgba(17,75,119,.10),inset 0 1px 0 rgba(255,255,255,.82);
+}
+body:not(.page-app){
+  color:#17324d!important;
+  background:radial-gradient(ellipse at 8% 0%,rgba(93,180,239,.16),transparent 34rem),radial-gradient(ellipse at 96% 12%,rgba(35,133,209,.10),transparent 38rem),linear-gradient(145deg,#f7fbff 0%,#edf6fd 54%,#f8fbff 100%)!important;
+  background-attachment:fixed!important;
+}
+body:not(.page-app) :is(h1,h2,h3,h4,h5,h6,.section-title,.page-title){color:#0d355c!important}
+body:not(.page-app) :is(p,li,label,small,.muted,.text-muted){color:#49657d}
+body:not(.page-app) :is(header,nav,.topbar,.public-nav,.navbar,.site-header,.hero-card,.public-hero,.hero-copy,.quick-card,.public-card,.feature-card,.resource-card,.home-section-card,.card,.panel,.section-card,.content-card,.form-card,.auth-card,.login-card,.admission-card,.modal-content){
+  border-color:var(--en-site-glass-line)!important;
+}
+body:not(.page-app) :is(.public-nav,.navbar,.site-header,.topbar,.hero-card,.public-hero,.hero-copy,.quick-card,.public-card,.feature-card,.resource-card,.home-section-card,.card,.panel,.section-card,.content-card,.form-card,.auth-card,.login-card,.admission-card,.modal-content){
+  background:linear-gradient(145deg,rgba(255,255,255,.90),rgba(231,243,253,.78))!important;
+  box-shadow:var(--en-site-glass-shadow)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(125%)!important;
+  backdrop-filter:blur(16px) saturate(125%)!important;
+}
+body:not(.page-app) :is(.public-brand,.brand,.logo,.public-links a,a:not([class*="btn"]):not([class*="button"])){color:#1769aa}
+body:not(.page-app) :is(.public-cta,.btn-primary,.button-primary,.primary,button.primary,[type="submit"],.nav-primary){
+  color:#fff!important;
+  background:linear-gradient(120deg,#145f9c,#2385d1 58%,#69bdf4)!important;
+  border-color:rgba(255,255,255,.66)!important;
+  box-shadow:0 8px 22px rgba(23,105,170,.22),inset 0 1px 0 rgba(255,255,255,.22)!important;
+}
+body:not(.page-app) :is(.public-cta-secondary,.btn:not(.primary):not(.btn-primary),.button:not(.primary):not(.button-primary),.secondary-link,.tab){
+  border-color:rgba(35,133,209,.24)!important;color:#145f9c!important;background:rgba(255,255,255,.78)!important;
+}
+body:not(.page-app) :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+  color:#173b59!important;background:rgba(255,255,255,.94)!important;border-color:rgba(35,133,209,.36)!important;
+}
+body:not(.page-app) :is(input,select,textarea):focus{
+  border-color:#2385d1!important;outline:0!important;box-shadow:0 0 0 4px rgba(105,189,244,.22)!important;
+}
+body:not(.page-app) :is(table,thead,tbody,tr,th,td){border-color:rgba(35,113,174,.18)!important}
+body:not(.page-app) :is(th,thead){color:#123f63!important;background:rgba(220,239,253,.78)!important}
+body:not(.page-app) :is(.badge,.pill,.tag,.status-chip){border-color:rgba(35,133,209,.22)!important}
+body:not(.page-app) :is(a,button,input,select,textarea):focus-visible{outline:3px solid rgba(35,133,209,.55)!important;outline-offset:2px!important}
+body.page-app{--en-site-glass-line:rgba(115,192,246,.34)}
+body.page-app .view.active :is(.card,.panel,.dashboard-panel,.request-panel,.section-head,.modal-content){border-color:rgba(115,192,246,.34)!important}
+@media(prefers-reduced-motion:reduce){body:not(.page-app) *{scroll-behavior:auto!important;transition-duration:0s!important}}
