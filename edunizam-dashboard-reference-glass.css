@@ -1456,3 +1456,130 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     padding-bottom:calc(12px + env(safe-area-inset-bottom))!important;
   }
 }
+
+/* Targeted reference finish — floating electric-blue glass dashboard.
+   Visual-only overrides: keep existing dashboard IDs, role widgets and actions. */
+html body.app-page.page-app{
+  min-height:100%;
+  background:
+    radial-gradient(ellipse at 8% 0%,rgba(0,195,255,.34),transparent 34rem),
+    radial-gradient(ellipse at 92% 18%,rgba(0,111,255,.30),transparent 38rem),
+    linear-gradient(135deg,#010b20 0%,#052d62 52%,#010b20 100%)!important;
+  background-attachment:fixed!important;
+}
+html body.app-page.page-app .app-shell{
+  box-sizing:border-box!important;
+  grid-template-columns:276px minmax(0,1fr)!important;
+  gap:12px!important;
+  padding:12px!important;
+  min-height:100vh!important;
+  background:transparent!important;
+}
+html body.app-page.page-app .app-shell>.sidebar{
+  box-sizing:border-box!important;
+  position:sticky!important;
+  top:12px!important;
+  height:calc(100vh - 24px)!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:16px 12px 12px!important;
+  border:1px solid rgba(139,224,255,.88)!important;
+  border-radius:25px!important;
+  background:linear-gradient(155deg,rgba(8,76,145,.94),rgba(1,17,48,.97) 76%)!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.38),0 0 26px rgba(0,174,255,.34),inset 0 1px 0 rgba(255,255,255,.32)!important;
+}
+html body.app-page.page-app .main{
+  box-sizing:border-box!important;
+  min-width:0!important;
+  padding:0 0 28px!important;
+  background:transparent!important;
+}
+html body.app-page.page-app #appMain>.topbar{
+  box-sizing:border-box!important;
+  min-height:62px!important;
+  padding:10px 18px!important;
+  margin:0 0 12px!important;
+  border:1px solid rgba(139,224,255,.9)!important;
+  border-radius:22px!important;
+  background:linear-gradient(110deg,rgba(5,74,142,.94),rgba(1,23,62,.96) 72%,rgba(5,79,151,.92))!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.30),0 0 22px rgba(0,174,255,.30),inset 0 1px 0 rgba(255,255,255,.34)!important;
+}
+html body.app-page.page-app #appMain #dashboard.view.active{
+  padding:0!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero{
+  box-sizing:border-box!important;
+  min-height:164px!important;
+  grid-template-columns:minmax(0,1fr) minmax(170px,.48fr)!important;
+  gap:16px!important;
+  padding:22px 26px!important;
+  margin:0 0 12px!important;
+  border:1px solid rgba(147,226,255,.94)!important;
+  border-radius:24px!important;
+  background:
+    radial-gradient(ellipse at 88% 35%,rgba(0,201,255,.42),transparent 16rem),
+    linear-gradient(115deg,rgba(4,76,153,.98),rgba(1,24,68,.98) 68%,rgba(3,67,133,.96))!important;
+  box-shadow:0 12px 32px rgba(0,0,0,.32),0 0 25px rgba(0,164,255,.32),inset 0 1px 0 rgba(255,255,255,.40)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero h2{
+  font-size:clamp(25px,3vw,38px)!important;
+  letter-spacing:-.035em!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{
+  min-height:118px!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,rgba(48,164,255,.35),rgba(1,20,58,.72))!important;
+  border:1px solid rgba(190,237,255,.82)!important;
+  box-shadow:0 0 28px rgba(0,179,255,.30),inset 0 1px 0 rgba(255,255,255,.34)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:12px!important;
+  margin:0 0 12px!important;
+}
+html body.app-page.page-app #appMain #dashboard .card.stat{
+  min-height:104px!important;
+  padding:15px 14px!important;
+  border:1px solid rgba(157,226,255,.86)!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,rgba(27,119,191,.88),rgba(2,31,77,.96))!important;
+  box-shadow:0 9px 25px rgba(0,0,0,.30),0 0 18px rgba(0,169,255,.28),inset 0 1px 0 rgba(255,255,255,.38)!important;
+}
+html body.app-page.page-app #appMain #dashboard .card.stat strong{
+  font-size:clamp(26px,2.6vw,35px)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2{
+  grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)!important;
+  gap:12px!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card{
+  min-height:204px!important;
+  padding:17px!important;
+  border:1px solid rgba(157,226,255,.84)!important;
+  border-radius:22px!important;
+  background:linear-gradient(145deg,rgba(16,87,151,.91),rgba(2,27,69,.96))!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.30),0 0 19px rgba(0,164,255,.24),inset 0 1px 0 rgba(255,255,255,.34)!important;
+}
+html body.app-page.page-app #appMain #dashboard .quick-actions button,
+html body.app-page.page-app #appMain #dashboard .campus-hero-actions button,
+html body.app-page.page-app #appMain #dashboard .role-quick-actions button,
+html body.app-page.page-app #appMain #dashboard [data-admin-jump]{
+  border:1px solid rgba(186,235,255,.86)!important;
+  border-radius:15px!important;
+  background:linear-gradient(120deg,rgba(28,142,226,.96),rgba(3,64,143,.98))!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.25),0 0 14px rgba(0,174,255,.22),inset 0 1px 0 rgba(255,255,255,.38)!important;
+}
+@media(max-width:950px){
+  html body.app-page.page-app .app-shell{grid-template-columns:1fr!important;gap:0!important;padding:10px!important}
+  html body.app-page.page-app .app-shell>.sidebar{top:0!important;height:100dvh!important;margin:0!important}
+  html body.app-page.page-app .main{padding:0 0 110px!important}
+}
+@media(max-width:760px){
+  html body.app-page.page-app #appMain #dashboard>.campus-hero{grid-template-columns:1fr!important;padding:18px!important}
+  html body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body.app-page.page-app #appMain #dashboard>.grid-2{grid-template-columns:1fr!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body.app-page.page-app #appMain #dashboard :is(.card,.quick-actions button){transition:none!important}
+}
+
