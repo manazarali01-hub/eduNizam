@@ -1595,41 +1595,42 @@ html body.app-page.page-app #appMain #dashboard [data-admin-jump]{
 
 
 
-/* Phase 49 — readable authenticated mobile session chip.
-   Keep the dashboard title and the existing role/logout controls legible at
-   390px; the previous 44% action lane clipped the role label into fragments. */
+/* Phase 49 — keep authenticated mobile controls readable and inside viewport.
+   The previous max-content sizing pushed Logout beyond the 390px viewport. */
 @media (max-width:520px){
   html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    flex:0 0 auto!important;
-    width:auto!important;
+    box-sizing:border-box!important;
+    flex:0 1 48%!important;
+    width:48%!important;
+    min-width:0!important;
     max-width:48%!important;
-    min-width:max-content!important;
     overflow:visible!important;
   }
   html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    box-sizing:border-box!important;
     display:inline-flex!important;
-    flex:0 0 auto!important;
+    flex:0 1 auto!important;
     flex-direction:row!important;
     flex-wrap:nowrap!important;
     align-items:center!important;
-    justify-content:center!important;
-    width:max-content!important;
-    min-width:max-content!important;
-    max-width:none!important;
-    gap:6px!important;
-    padding:5px 7px!important;
-    overflow:visible!important;
+    justify-content:flex-end!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:100%!important;
+    gap:5px!important;
+    padding:4px 6px!important;
+    overflow:hidden!important;
   }
   html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>strong{
     display:inline-block!important;
-    flex:0 0 auto!important;
+    flex:1 1 auto!important;
     width:auto!important;
-    min-width:max-content!important;
-    max-width:none!important;
-    overflow:visible!important;
-    text-overflow:clip!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
     white-space:nowrap!important;
-    word-break:keep-all!important;
+    word-break:normal!important;
   }
   html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
     display:inline-flex!important;
@@ -1639,5 +1640,6 @@ html body.app-page.page-app #appMain #dashboard [data-admin-jump]{
     max-width:none!important;
     white-space:nowrap!important;
     justify-content:center!important;
+    padding:3px 6px!important;
   }
 }
