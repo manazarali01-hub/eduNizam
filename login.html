@@ -89,6 +89,18 @@ body{background:radial-gradient(circle at 90% 8%,rgba(37,99,235,.10),transparent
   <link rel="stylesheet" href="mobile-login-brand-layout.css?v=20261019-login-brand-v1">
   <link rel="stylesheet" href="edunizam-blue-glass-public.css?v=20261102-public-glass-v4">
   <link rel="stylesheet" href="edunizam-brand-refresh.css?v=20261103-brand-refresh-v2">
+  <style id="edunizam-mobile-desktop-mode-fix">
+    /* Phones using browser "Desktop site" can expose a ~980px CSS viewport.
+       Coarse-pointer devices still need the compact single-column login flow. */
+    @media (max-width: 1100px) and (hover: none) and (pointer: coarse) {
+      html, body { min-height: 100%; overflow-x: hidden; }
+      .page { display: block !important; grid-template-columns: 1fr !important; min-height: 100dvh; }
+      .story { display: none !important; }
+      .main { display: block !important; min-height: 100dvh; padding: max(12px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom)); }
+      .card { width: 100%; max-width: 680px; margin: 0 auto; }
+      .grid2 { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body class="auth-page page-login">
 <a class="skip" href="#authCard">Skip to login</a>
