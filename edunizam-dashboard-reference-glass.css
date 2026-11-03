@@ -1188,3 +1188,49 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     z-index:2!important;
   }
 }
+
+
+/* Phase 45 — keep the authenticated role/logout chip inside the mobile header.
+   The previous compact rules left .topbar-actions participating in an inherited
+   positioned layout, so the injected chip painted over the dashboard hero.
+   Restore it to normal grid flow and reserve a dedicated session row. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-areas:"heading" "session"!important;
+    grid-auto-rows:min-content!important;
+    align-content:start!important;
+    row-gap:6px!important;
+    min-height:116px!important;
+    height:auto!important;
+    padding-bottom:9px!important;
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    position:static!important;
+    inset:auto!important;
+    grid-area:session!important;
+    display:flex!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:28px!important;
+    max-height:none!important;
+    flex:none!important;
+    align-self:start!important;
+    justify-self:stretch!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    transform:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    position:static!important;
+    inset:auto!important;
+    transform:none!important;
+    flex:0 1 auto!important;
+    width:max-content!important;
+    max-width:100%!important;
+    margin:0!important;
+  }
+}
