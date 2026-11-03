@@ -1145,3 +1145,31 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     line-height:1.1!important;
   }
 }
+
+
+/* Phase 43 — keep injected mobile session controls fully readable.
+   Phase 42 fixed the header height; the screenshot then exposed child controls
+   being clipped by the 22px max-height inherited from the compact chip rule. */
+@media(max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    overflow:visible!important;
+    height:auto!important;
+    min-height:28px!important;
+    max-height:none!important;
+    align-items:center!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
+    height:auto!important;
+    min-height:24px!important;
+    max-height:none!important;
+    line-height:1.15!important;
+    overflow:visible!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
+    min-height:24px!important;
+    padding:4px 8px!important;
+  }
+}
