@@ -970,3 +970,92 @@ body.page-app .sidebar #nav .nav-group>summary>strong{
     pointer-events: auto !important;
   }
 }
+
+
+/* Phase 8 — compact premium mobile navigation drawer.
+   Consolidates the final cascade for the drawer without changing navigation JS. */
+@media (max-width: 950px) and (hover: none) and (pointer: coarse) {
+  body.app-page.page-app .sidebar,
+  body.page-app .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: min(292px, 82vw) !important;
+    max-width: 82vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+    z-index: 1002 !important;
+    box-sizing: border-box !important;
+    background: linear-gradient(180deg, rgba(5,27,52,.98), rgba(8,54,96,.97)) !important;
+    border-right: 1px solid rgba(151,211,255,.38) !important;
+    box-shadow: 18px 0 48px rgba(0,12,35,.38) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(145%) !important;
+    backdrop-filter: blur(22px) saturate(145%) !important;
+  }
+  body.app-page.page-app .sidebar #nav.nav-groups,
+  body.page-app .sidebar #nav.nav-groups {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 8px 12px max(22px, env(safe-area-inset-bottom)) !important;
+    box-sizing: border-box !important;
+  }
+  body.app-page.page-app .sidebar .nav-group,
+  body.page-app .sidebar .nav-group {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  body.app-page.page-app .sidebar .nav-group > summary,
+  body.page-app .sidebar .nav-group > summary {
+    color: #e8f5ff !important;
+    -webkit-text-fill-color: #e8f5ff !important;
+    background: rgba(117,190,240,.12) !important;
+    border: 1px solid rgba(151,211,255,.20) !important;
+    border-radius: 11px !important;
+  }
+  body.app-page.page-app .sidebar .nav-group > summary strong,
+  body.app-page.page-app .sidebar .nav-group > summary small,
+  body.page-app .sidebar .nav-group > summary strong,
+  body.page-app .sidebar .nav-group > summary small {
+    color: #e8f5ff !important;
+    -webkit-text-fill-color: #e8f5ff !important;
+  }
+  body.app-page.page-app .sidebar .nav-item,
+  body.page-app .sidebar .nav-item {
+    color: #e4f3ff !important;
+    -webkit-text-fill-color: #e4f3ff !important;
+    background: rgba(117,190,240,.09) !important;
+    border: 1px solid rgba(151,211,255,.16) !important;
+    border-radius: 10px !important;
+  }
+  body.app-page.page-app .sidebar .nav-item.active,
+  body.page-app .sidebar .nav-item.active {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    background: linear-gradient(120deg, #087fe0, #0753b5 70%, #39a8ed) !important;
+    border-color: rgba(164,224,255,.58) !important;
+  }
+}
+@media (max-width: 950px) and (hover: none) and (pointer: coarse) {
+  body.app-page.page-app:not(.edu-mobile-nav-open) .sidebar,
+  body.page-app:not(.edu-mobile-nav-open) .sidebar {
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+}

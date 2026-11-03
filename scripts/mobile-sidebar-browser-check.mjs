@@ -23,7 +23,7 @@ try{
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
   await page.goto('http://127.0.0.1:'+port+'/app.html',{waitUntil:'domcontentloaded',timeout:20000});
   await page.waitForSelector('#eduMobileMenuBtn',{timeout:12000});
-  await page.waitForSelector('#nav.nav-groups',{timeout:12000});
+  await page.waitForSelector('#nav.nav-groups',{state:'attached',timeout:12000});
   // Keep this focused navigation test independent of the dashboard's school-auth gate.
   // The gate is covered by separate auth tests; here we exercise the drawer's own controls.
   await page.addStyleTag({content:'#cloudAuthScreen{display:none!important;pointer-events:none!important}'});
