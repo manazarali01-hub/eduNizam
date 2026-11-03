@@ -1101,3 +1101,47 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     margin-top:0!important;
   }
 }
+
+
+/* Phase 42 — constrain injected session controls to a single compact row.
+   Browser QA traced the remaining 205px header to .topbar-actions (144px tall),
+   not the title or hamburger. Keep the session chip from expanding that row. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex:0 0 30px!important;
+    height:30px!important;
+    min-height:30px!important;
+    max-height:30px!important;
+    align-self:start!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    flex-direction:row!important;
+    overflow:hidden!important;
+    padding:0!important;
+    margin:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    box-sizing:border-box!important;
+    display:inline-flex!important;
+    flex:0 0 auto!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    height:26px!important;
+    min-height:26px!important;
+    max-height:26px!important;
+    padding:2px 7px!important;
+    margin:0!important;
+    line-height:1!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
+    flex:0 0 auto!important;
+    min-height:0!important;
+    max-height:22px!important;
+    margin-top:0!important;
+    margin-bottom:0!important;
+    line-height:1.1!important;
+  }
+}
