@@ -27,6 +27,30 @@ try{
   // Keep this focused navigation test independent of the dashboard's school-auth gate.
   // The gate is covered by separate auth tests; here we exercise the drawer's own controls.
   await page.addStyleTag({content:'#cloudAuthScreen{display:none!important;pointer-events:none!important}'});
+  // Capture the real dashboard beneath the cloud-auth gate. The general
+  // layout suite previously captured only the unauthenticated gate card,
+  // so it could not detect the reported blank space above the dashboard.
+  await page.waitForTimeout(180);
+  const dashboardFrame=await page.evaluate(()=>{
+    const main=document.querySelector('main#appMain');
+    const topbar=main?.querySelector(':scope > .topbar');
+    const dashboard=main?.querySelector(':scope > #dashboard.view.active');
+    if(!main||!topbar||!dashboard)return {missing:true};
+    const m=main.getBoundingClientRect(),t=topbar.getBoundingClientRect(),d=dashboard.getBoundingClientRect();
+    return {
+      mainTop:Math.round(m.top),topbarTop:Math.round(t.top),topbarBottom:Math.round(t.bottom),
+      dashboardTop:Math.round(d.top),gapAboveTopbar:Math.round(t.top-m.top),
+      gapBelowTopbar:Math.round(d.top-t.bottom),mainPaddingTop:getComputedStyle(main).paddingTop,
+      dashboardDisplay:getComputedStyle(dashboard).display
+    };
+  });
+  if(dashboardFrame.missing)throw new Error('Authenticated dashboard fixture did not expose #appMain, topbar and active dashboard');
+  if(dashboardFrame.gapAboveTopbar>32||dashboardFrame.gapBelowTopbar>28)
+    throw new Error('Mobile dashboard has excessive blank space above its first content: '+JSON.stringify(dashboardFrame));
+  const visualDir=path.resolve(root,'artifacts','visual-qa');
+  fs.mkdirSync(visualDir,{recursive:true});
+  await page.screenshot({path:path.join(visualDir,'app-dashboard-390.png'),fullPage:false});
+  console.log('Mobile dashboard first-screen geometry PASS:',JSON.stringify(dashboardFrame));
   const menu=page.locator('#eduMobileMenuBtn');
   if(!(await menu.isVisible()))throw new Error('Mobile menu button is not visible at 390px');
   await menu.click();
