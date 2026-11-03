@@ -324,3 +324,60 @@ body.gold-home.page-home .hero-copy .public-kicker{
     overflow-wrap:anywhere!important;
   }
 }
+
+
+/* Phase 6 — unify public homepage sections with the approved blue-glass identity.
+   The legacy photo-glass layer was still painting green foliage behind feature
+   tiles and content sections, making the homepage look unrelated to the app.
+   Keep the hero photography, but use calm blue glass for the actual UI surfaces. */
+body.gold-home.page-home .experience-strip,
+body.gold-home.page-home :is(.role-showcase,.value-section,.learning-band,.public-section),
+body.gold-home.page-home .public-footer{
+  color:#f1f7ff!important;
+  background:linear-gradient(145deg,rgba(14,67,125,.94),rgba(4,27,66,.94))!important;
+  background-image:linear-gradient(145deg,rgba(14,67,125,.94),rgba(4,27,66,.94))!important;
+  border:1px solid rgba(151,211,255,.42)!important;
+  box-shadow:0 16px 40px rgba(0,9,35,.28),inset 0 1px 0 rgba(255,255,255,.16)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(140%)!important;
+  backdrop-filter:blur(20px) saturate(140%)!important;
+}
+body.gold-home.page-home .experience-strip article,
+body.gold-home.page-home .experience-strip article:nth-child(n),
+body.gold-home.page-home .public-section .public-grid>.public-card,
+body.gold-home.page-home .learning-band .resource-card,
+body.gold-home.page-home .role-showcase .role-demo,
+body.gold-home.page-home .role-showcase .role-preview,
+body.gold-home.page-home .value-section .public-card{
+  color:#f3f8ff!important;
+  background:linear-gradient(145deg,rgba(68,143,205,.30),rgba(5,35,82,.66))!important;
+  background-image:linear-gradient(145deg,rgba(68,143,205,.30),rgba(5,35,82,.66))!important;
+  border:1px solid rgba(164,224,255,.42)!important;
+  box-shadow:0 10px 26px rgba(0,9,35,.22),inset 0 1px 0 rgba(255,255,255,.16)!important;
+}
+body.gold-home.page-home .experience-strip article>div{
+  background:transparent!important;
+}
+body.gold-home.page-home :is(.experience-strip,.role-showcase,.value-section,.learning-band,.public-section,.public-footer)
+ :is(h1,h2,h3,h4,p,small,strong,span,li,a){
+  color:#eff7ff!important;
+  -webkit-text-fill-color:#eff7ff!important;
+}
+body.gold-home.page-home :is(.experience-strip,.role-showcase,.value-section,.learning-band,.public-section,.public-footer)
+ :is(.hero-gold,.eyebrow,.public-kicker){
+  color:#8bdcff!important;
+  -webkit-text-fill-color:#8bdcff!important;
+}
+body.gold-home.page-home .experience-strip .feature-icon{
+  background:linear-gradient(145deg,#dff2ff,#8fcfff)!important;
+  border:1px solid rgba(255,255,255,.72)!important;
+  box-shadow:0 5px 14px rgba(0,15,45,.24)!important;
+}
+@media(max-width:720px){
+  body.gold-home.page-home :is(.experience-strip,.role-showcase,.value-section,.learning-band,.public-section){
+    border-radius:18px!important;
+  }
+  body.gold-home.page-home .experience-strip article{
+    min-width:0!important;
+    min-height:96px!important;
+  }
+}
