@@ -49,3 +49,43 @@ body:not(.page-app) :is(a,button,input,select,textarea):focus-visible{outline:3p
 body.page-app{--en-site-glass-line:rgba(115,192,246,.34)}
 body.page-app .view.active :is(.card,.panel,.dashboard-panel,.request-panel,.section-head,.modal-content){border-color:rgba(115,192,246,.34)!important}
 @media(prefers-reduced-motion:reduce){body:not(.page-app) *{scroll-behavior:auto!important;transition-duration:0s!important}}
+
+
+/* Phase 46 — homepage blue-glass finish.
+   Loaded after the page-specific theme so green/teal legacy controls cannot win. */
+body.gold-home.page-home .public-nav,
+body.gold-home.page-home .quick-access-card,
+body.gold-home.page-home .experience-strip,
+body.gold-home.page-home .public-card,
+body.gold-home.page-home .role-demo,
+body.gold-home.page-home .learning-band,
+body.gold-home.page-home .edu-feedback-form{
+  background:linear-gradient(145deg,rgba(238,247,255,.94),rgba(210,231,250,.88))!important;
+  border:1px solid rgba(77,157,218,.38)!important;
+  box-shadow:0 14px 34px rgba(5,49,94,.14),inset 0 1px 0 rgba(255,255,255,.9)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(135%)!important;
+  backdrop-filter:blur(18px) saturate(135%)!important;
+}
+body.gold-home.page-home .public-nav :is(a,.brand-name,small){color:#103b63!important}
+body.gold-home.page-home .public-nav .nav-primary,
+body.gold-home.page-home .hero-actions .public-cta:not(.public-cta-secondary),
+body.gold-home.page-home .quick-actions .quick-main,
+body.gold-home.page-home .learning-links .public-cta,
+body.gold-home.page-home #edu-feedback-submit{
+  color:#fff!important;
+  background:linear-gradient(120deg,#087fe0,#0753b5)!important;
+  border:1px solid rgba(157,218,255,.82)!important;
+  box-shadow:0 8px 22px rgba(4,73,145,.22),inset 0 1px 0 rgba(255,255,255,.24)!important;
+}
+body.gold-home.page-home .hero-actions .public-cta-secondary,
+body.gold-home.page-home .quick-actions a:not(.quick-main),
+body.gold-home.page-home .quick-actions button{
+  color:#104b79!important;
+  background:rgba(242,249,255,.88)!important;
+  border:1px solid rgba(83,159,216,.42)!important;
+}
+body.gold-home.page-home .public-proof span,
+body.gold-home.page-home .quick-dot,
+body.gold-home.page-home .feature-icon{
+  border-color:rgba(68,148,210,.38)!important;
+}
