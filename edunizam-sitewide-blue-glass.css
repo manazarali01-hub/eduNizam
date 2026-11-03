@@ -10,45 +10,45 @@
   --en-site-glass-line:rgba(55,139,202,.26);
   --en-site-glass-shadow:0 12px 32px rgba(17,75,119,.10),inset 0 1px 0 rgba(255,255,255,.82);
 }
-body:not(.page-app){
+body:not(.page-app):not(.page-home){
   color:#17324d!important;
   background:radial-gradient(ellipse at 8% 0%,rgba(93,180,239,.16),transparent 34rem),radial-gradient(ellipse at 96% 12%,rgba(35,133,209,.10),transparent 38rem),linear-gradient(145deg,#f7fbff 0%,#edf6fd 54%,#f8fbff 100%)!important;
   background-attachment:fixed!important;
 }
-body:not(.page-app) :is(h1,h2,h3,h4,h5,h6,.section-title,.page-title){color:#0d355c!important}
-body:not(.page-app) :is(p,li,label,small,.muted,.text-muted){color:#49657d}
-body:not(.page-app) :is(header,nav,.topbar,.public-nav,.navbar,.site-header,.hero-card,.public-hero,.hero-copy,.quick-card,.public-card,.feature-card,.resource-card,.home-section-card,.card,.panel,.section-card,.content-card,.form-card,.auth-card,.login-card,.admission-card,.modal-content){
+body:not(.page-app):not(.page-home) :is(h1,h2,h3,h4,h5,h6,.section-title,.page-title){color:#0d355c!important}
+body:not(.page-app):not(.page-home) :is(p,li,label,small,.muted,.text-muted){color:#49657d}
+body:not(.page-app):not(.page-home) :is(header,nav,.topbar,.public-nav,.navbar,.site-header,.hero-card,.public-hero,.hero-copy,.quick-card,.public-card,.feature-card,.resource-card,.home-section-card,.card,.panel,.section-card,.content-card,.form-card,.auth-card,.login-card,.admission-card,.modal-content){
   border-color:var(--en-site-glass-line)!important;
 }
-body:not(.page-app) :is(.public-nav,.navbar,.site-header,.topbar,.hero-card,.public-hero,.hero-copy,.quick-card,.public-card,.feature-card,.resource-card,.home-section-card,.card,.panel,.section-card,.content-card,.form-card,.auth-card,.login-card,.admission-card,.modal-content){
+body:not(.page-app):not(.page-home) :is(.public-nav,.navbar,.site-header,.topbar,.hero-card,.public-hero,.hero-copy,.quick-card,.public-card,.feature-card,.resource-card,.home-section-card,.card,.panel,.section-card,.content-card,.form-card,.auth-card,.login-card,.admission-card,.modal-content){
   background:linear-gradient(145deg,rgba(255,255,255,.90),rgba(231,243,253,.78))!important;
   box-shadow:var(--en-site-glass-shadow)!important;
   -webkit-backdrop-filter:blur(16px) saturate(125%)!important;
   backdrop-filter:blur(16px) saturate(125%)!important;
 }
-body:not(.page-app) :is(.public-brand,.brand,.logo,.public-links a,a:not([class*="btn"]):not([class*="button"])){color:#1769aa}
-body:not(.page-app) :is(.public-cta,.btn-primary,.button-primary,.primary,button.primary,[type="submit"],.nav-primary){
+body:not(.page-app):not(.page-home) :is(.public-brand,.brand,.logo,.public-links a,a:not([class*="btn"]):not([class*="button"])){color:#1769aa}
+body:not(.page-app):not(.page-home) :is(.public-cta,.btn-primary,.button-primary,.primary,button.primary,[type="submit"],.nav-primary){
   color:#fff!important;
   background:linear-gradient(120deg,#145f9c,#2385d1 58%,#69bdf4)!important;
   border-color:rgba(255,255,255,.66)!important;
   box-shadow:0 8px 22px rgba(23,105,170,.22),inset 0 1px 0 rgba(255,255,255,.22)!important;
 }
-body:not(.page-app) :is(.public-cta-secondary,.btn:not(.primary):not(.btn-primary),.button:not(.primary):not(.button-primary),.secondary-link,.tab){
+body:not(.page-app):not(.page-home) :is(.public-cta-secondary,.btn:not(.primary):not(.btn-primary),.button:not(.primary):not(.button-primary),.secondary-link,.tab){
   border-color:rgba(35,133,209,.24)!important;color:#145f9c!important;background:rgba(255,255,255,.78)!important;
 }
-body:not(.page-app) :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+body:not(.page-app):not(.page-home) :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
   color:#173b59!important;background:rgba(255,255,255,.94)!important;border-color:rgba(35,133,209,.36)!important;
 }
-body:not(.page-app) :is(input,select,textarea):focus{
+body:not(.page-app):not(.page-home) :is(input,select,textarea):focus{
   border-color:#2385d1!important;outline:0!important;box-shadow:0 0 0 4px rgba(105,189,244,.22)!important;
 }
-body:not(.page-app) :is(table,thead,tbody,tr,th,td){border-color:rgba(35,113,174,.18)!important}
-body:not(.page-app) :is(th,thead){color:#123f63!important;background:rgba(220,239,253,.78)!important}
-body:not(.page-app) :is(.badge,.pill,.tag,.status-chip){border-color:rgba(35,133,209,.22)!important}
-body:not(.page-app) :is(a,button,input,select,textarea):focus-visible{outline:3px solid rgba(35,133,209,.55)!important;outline-offset:2px!important}
+body:not(.page-app):not(.page-home) :is(table,thead,tbody,tr,th,td){border-color:rgba(35,113,174,.18)!important}
+body:not(.page-app):not(.page-home) :is(th,thead){color:#123f63!important;background:rgba(220,239,253,.78)!important}
+body:not(.page-app):not(.page-home) :is(.badge,.pill,.tag,.status-chip){border-color:rgba(35,133,209,.22)!important}
+body:not(.page-app):not(.page-home) :is(a,button,input,select,textarea):focus-visible{outline:3px solid rgba(35,133,209,.55)!important;outline-offset:2px!important}
 body.page-app{--en-site-glass-line:rgba(115,192,246,.34)}
 body.page-app .view.active :is(.card,.panel,.dashboard-panel,.request-panel,.section-head,.modal-content){border-color:rgba(115,192,246,.34)!important}
-@media(prefers-reduced-motion:reduce){body:not(.page-app) *{scroll-behavior:auto!important;transition-duration:0s!important}}
+@media(prefers-reduced-motion:reduce){body:not(.page-app):not(.page-home) *{scroll-behavior:auto!important;transition-duration:0s!important}}
 
 
 /* Phase 46 — homepage blue-glass finish.
@@ -89,3 +89,39 @@ body.gold-home.page-home .quick-dot,
 body.gold-home.page-home .feature-icon{
   border-color:rgba(68,148,210,.38)!important;
 }
+
+
+/* Phase 47 — keep homepage on its own dark blue glass system.
+   The generic public-page light panels were overriding the homepage's approved
+   dark glass layer and restoring green/mint controls in the rendered screenshot. */
+body.gold-home.page-home :is(.public-nav,.public-hero.premium-public-hero,.hero-copy,.quick-access-card,.experience-strip,.role-showcase,.value-section,.learning-band,.public-card,.resource-card,.role-demo,.role-preview,.preview-window,.edu-feedback-form){
+  color:#f3f8ff!important;
+  background:linear-gradient(145deg,rgba(18,83,151,.88),rgba(5,30,75,.90))!important;
+  border:1px solid rgba(151,211,255,.52)!important;
+  box-shadow:0 16px 40px rgba(0,9,35,.30),inset 0 1px 0 rgba(255,255,255,.20)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+  backdrop-filter:blur(22px) saturate(145%)!important;
+}
+body.gold-home.page-home .public-nav :is(a,small,.brand-name,.brand-copy),
+body.gold-home.page-home .public-section :is(h1,h2,h3,h4,p,small,strong,span),
+body.gold-home.page-home .quick-access-card :is(h2,h3,p,strong,small,span),
+body.gold-home.page-home .experience-strip :is(strong,small),
+body.gold-home.page-home .public-footer :is(a,span,small,strong){
+  color:#f3f8ff!important;
+  -webkit-text-fill-color:#f3f8ff!important;
+}
+body.gold-home.page-home :is(.public-links .nav-primary,.hero-actions .public-cta:not(.public-cta-secondary),.quick-actions .quick-main,#edu-feedback-submit,.learning-links .public-cta){
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:linear-gradient(120deg,#087fe0,#0753b5)!important;
+  border:1px solid rgba(164,224,255,.78)!important;
+  box-shadow:0 8px 22px rgba(4,73,145,.30),inset 0 1px 0 rgba(255,255,255,.24)!important;
+}
+body.gold-home.page-home :is(.public-links a:not(.nav-primary),.hero-actions .public-cta-secondary,.quick-actions a:not(.quick-main),.quick-actions button,.role-tab){
+  color:#eff7ff!important;
+  -webkit-text-fill-color:#eff7ff!important;
+  background:rgba(71,145,210,.22)!important;
+  border:1px solid rgba(164,224,255,.48)!important;
+}
+body.gold-home.page-home .public-nav .brand-gold,
+body.gold-home.page-home .hero-gold{color:#8bdcff!important;-webkit-text-fill-color:#8bdcff!important}
