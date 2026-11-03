@@ -936,3 +936,60 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
   body.app-page.page-app #appMain #dashboard .role-quick-actions button,
   body.app-page.page-app #appMain #dashboard [data-admin-jump]{transition:none!important}
 }
+
+
+/* Phase 40 — compact authenticated mobile header.
+   The mobile menu control is fixed at 14px/14px by mobile-nav-core.js;
+   reserve its own lane so it never covers the page title. */
+@media (max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:4px!important;
+    min-height:0!important;
+    height:auto!important;
+    margin:0 0 10px!important;
+    padding:10px 10px 10px 68px!important;
+    border-radius:15px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
+    display:flex!important;
+    flex:0 1 auto!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-width:0!important;
+    gap:2px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .academic-kicker{
+    margin:0!important;
+    font-size:9px!important;
+    line-height:1.2!important;
+    letter-spacing:.07em!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar #page-title{
+    margin:0!important;
+    font-size:clamp(20px,6vw,25px)!important;
+    line-height:1.12!important;
+    overflow-wrap:anywhere!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .school-identity{
+    margin:1px 0 0!important;
+    min-height:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar .school-identity p{
+    margin:0!important;
+    font-size:11px!important;
+    line-height:1.2!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    display:none!important;
+  }
+  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
+    margin-top:0!important;
+  }
+}
