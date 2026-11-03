@@ -1234,3 +1234,38 @@ body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
     margin:0!important;
   }
 }
+
+
+/* Phase 46 — stable compact mobile dashboard header.
+   QA showed the action row expanding to 146px; keep the page title clear and
+   leave account actions in the existing navigation drawer on narrow screens. */
+@media(max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    min-height:76px!important;
+    height:auto!important;
+    padding:12px 12px 12px 68px!important;
+    gap:8px!important;
+    overflow:hidden!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
+    flex:1 1 auto!important;
+    width:auto!important;
+    min-width:0!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    display:none!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar #page-title{
+    font-size:clamp(18px,5vw,22px)!important;
+    line-height:1.12!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
+    margin-top:0!important;
+  }
+}
