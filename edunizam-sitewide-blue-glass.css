@@ -262,42 +262,65 @@ body.gold-home.page-home .hero-copy .public-kicker{
 }
 
 
-/* Phase 50 — cap homepage mobile header height with a compact 3-column link grid.
-   The flex-wrap strip still formed three tall rows at 375px; keep the brand on
-   its own compact line and place six public links in two short rows. */
+/* Phase 50 — compact mobile public navigation as a horizontal flex strip.
+   Keep the brand narrow and let the six links wrap into short rows beside it. */
 @media(max-width:720px){
   body.gold-home.page-home header.public-nav{
     display:flex!important;
-    flex-direction:column!important;
-    align-items:stretch!important;
-    justify-content:flex-start!important;
-    gap:7px!important;
-    padding:9px 10px!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:5px!important;
+    padding:7px 8px!important;
+    min-height:0!important;
+    height:auto!important;
   }
   body.gold-home.page-home header.public-nav .public-brand{
-    flex:0 0 auto!important;
-    width:auto!important;
-    min-height:30px!important;
+    flex:0 0 76px!important;
+    width:76px!important;
+    min-width:0!important;
+    min-height:28px!important;
+    gap:4px!important;
+  }
+  body.gold-home.page-home header.public-nav .public-mark{
+    width:25px!important;
+    height:25px!important;
+    flex:0 0 25px!important;
+  }
+  body.gold-home.page-home header.public-nav .brand-name{
+    font-size:13px!important;
+    line-height:1!important;
+  }
+  body.gold-home.page-home header.public-nav .brand-copy small{
+    display:none!important;
   }
   body.gold-home.page-home header.public-nav nav.public-links{
-    display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    grid-auto-rows:minmax(27px,auto)!important;
-    align-items:stretch!important;
-    justify-content:stretch!important;
-    gap:5px!important;
-    width:100%!important;
-    flex:0 0 auto!important;
+    display:flex!important;
+    flex:1 1 auto!important;
+    flex-direction:row!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:3px!important;
+    width:auto!important;
+    min-width:0!important;
+    max-height:none!important;
+    overflow:visible!important;
   }
   body.gold-home.page-home header.public-nav nav.public-links a{
-    box-sizing:border-box!important;
+    display:flex!important;
+    flex:0 1 auto!important;
+    align-items:center!important;
+    justify-content:center!important;
     min-width:0!important;
-    min-height:27px!important;
-    padding:4px 5px!important;
-    font-size:10px!important;
+    min-height:24px!important;
+    padding:3px 4px!important;
+    border-radius:7px!important;
+    font-size:9px!important;
     line-height:1.05!important;
+    text-align:center!important;
     white-space:normal!important;
     overflow-wrap:anywhere!important;
-    text-align:center!important;
   }
 }
