@@ -429,3 +429,73 @@ html body.app-page.page-app #appMain #students #studentFormWrap>select:nth-of-ty
 html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-type(4n+4){
  background:linear-gradient(145deg,#fff,#e9faf5)!important;
 }
+
+
+/* Phase 13 — keep the mobile page title and account controls on separate rows.
+   The real authenticated screenshot showed the injected role/logout chip and
+   account-security button squeezing the title out of the header at 390px. */
+@media(max-width:760px){
+ html body.app-page.page-app #appMain>.topbar{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;
+  align-items:center!important;
+  row-gap:6px!important;
+  min-height:104px!important;
+  max-height:none!important;
+  height:auto!important;
+  padding:8px 10px 8px 66px!important;
+  overflow:visible!important;
+ }
+ html body.app-page.page-app #appMain>.topbar>.topbar-title{
+  grid-column:1!important;grid-row:1!important;
+  width:100%!important;max-width:none!important;min-width:0!important;
+  max-height:34px!important;overflow:hidden!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #page-title{
+  max-width:100%!important;white-space:nowrap!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;
+ }
+ html body.app-page.page-app #appMain>.topbar>.topbar-actions{
+  grid-column:1!important;grid-row:2!important;
+  display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+  align-items:center!important;justify-content:flex-end!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  min-height:34px!important;max-height:38px!important;
+  margin:0!important;padding:0!important;gap:6px!important;
+  overflow:visible!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  display:inline-flex!important;flex:0 1 auto!important;
+  width:auto!important;max-width:calc(100% - 108px)!important;min-width:0!important;
+  flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;
+  justify-content:flex-end!important;gap:4px!important;
+  padding:3px 5px!important;margin:0!important;
+  white-space:nowrap!important;overflow:hidden!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  flex:0 1 auto!important;max-width:56px!important;min-width:0!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{
+  flex:0 0 auto!important;min-width:46px!important;max-width:none!important;
+  height:29px!important;min-height:29px!important;max-height:29px!important;
+  padding:4px 6px!important;white-space:nowrap!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #accountSecurityButton.account-security-btn{
+  display:inline-flex!important;flex:0 0 auto!important;
+  align-items:center!important;justify-content:center!important;
+  width:auto!important;min-width:0!important;max-width:102px!important;
+  min-height:32px!important;max-height:36px!important;
+  margin:0!important;padding:6px 8px!important;
+  font-size:11px!important;line-height:1.1!important;
+  white-space:nowrap!important;word-break:normal!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;
+ }
+}
+@media(max-width:380px){
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{max-width:38px!important}
+ html body.app-page.page-app #appMain>.topbar #accountSecurityButton.account-security-btn{
+  max-width:96px!important;padding:5px 6px!important;font-size:10px!important;
+ }
+}
