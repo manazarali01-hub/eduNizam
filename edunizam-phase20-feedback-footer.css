@@ -1,0 +1,301 @@
+/* EduNizam Phase 20 — feedback, disclaimer and footer finish.
+   Scoped to the public homepage. Form semantics, labels, validation, submission JS,
+   privacy wording, destinations and data handling remain unchanged. */
+html body.gold-home.page-home .edu-feedback-section{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)!important;
+  align-items:start!important;
+  gap:clamp(20px,3.4vw,42px)!important;
+  max-width:none!important;
+  margin:clamp(24px,4vw,48px) 0!important;
+  padding:clamp(22px,3.5vw,40px)!important;
+  overflow:hidden!important;
+  border:1px solid rgba(155,211,255,.52)!important;
+  border-radius:26px!important;
+  background:
+    radial-gradient(ellipse at 5% 0%,rgba(71,162,237,.24),transparent 42%),
+    linear-gradient(145deg,rgba(12,57,111,.97),rgba(4,27,68,.99))!important;
+  color:#f2f8ff!important;
+  box-shadow:0 22px 54px rgba(0,12,43,.25),inset 0 1px 0 rgba(255,255,255,.14)!important;
+}
+html body.gold-home.page-home .edu-feedback-intro{
+  position:relative!important;
+  z-index:1!important;
+  padding:8px 4px!important;
+}
+html body.gold-home.page-home .edu-feedback-intro .eyebrow{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:30px!important;
+  padding:6px 10px!important;
+  border:1px solid rgba(159,219,255,.35)!important;
+  border-radius:999px!important;
+  background:rgba(87,157,216,.16)!important;
+  color:#8fddff!important;
+  -webkit-text-fill-color:#8fddff!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  letter-spacing:.13em!important;
+}
+html body.gold-home.page-home .edu-feedback-intro h2{
+  margin:16px 0 12px!important;
+  color:#f5faff!important;
+  -webkit-text-fill-color:#f5faff!important;
+  font-size:clamp(1.7rem,3vw,2.55rem)!important;
+  line-height:1.12!important;
+  letter-spacing:-.035em!important;
+  text-wrap:balance!important;
+}
+html body.gold-home.page-home .edu-feedback-intro>p{
+  max-width:54ch!important;
+  margin:0 0 14px!important;
+  color:#c9e0f5!important;
+  -webkit-text-fill-color:#c9e0f5!important;
+  font-size:14px!important;
+  line-height:1.75!important;
+}
+html body.gold-home.page-home .edu-feedback-intro .edu-feedback-private{
+  margin-top:20px!important;
+  padding:13px 15px!important;
+  border:1px solid rgba(151,207,249,.30)!important;
+  border-left:3px solid #70d5ff!important;
+  border-radius:5px 13px 13px 5px!important;
+  background:rgba(94,156,211,.13)!important;
+  color:#dceeff!important;
+  -webkit-text-fill-color:#dceeff!important;
+  font-size:12px!important;
+}
+html body.gold-home.page-home .edu-feedback-intro .edu-feedback-private strong{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+html body.gold-home.page-home .edu-feedback-form{
+  display:grid!important;
+  min-width:0!important;
+  gap:15px!important;
+  padding:clamp(17px,2.6vw,26px)!important;
+  border:1px solid rgba(173,220,255,.58)!important;
+  border-radius:20px!important;
+  background:linear-gradient(150deg,rgba(23,74,128,.94),rgba(5,31,75,.97))!important;
+  box-shadow:0 16px 38px rgba(0,8,34,.30),inset 0 1px 0 rgba(255,255,255,.15)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(145%)!important;
+  backdrop-filter:blur(18px) saturate(145%)!important;
+}
+html body.gold-home.page-home .edu-feedback-fields{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px!important;
+}
+html body.gold-home.page-home .edu-feedback-form label{
+  display:grid!important;
+  min-width:0!important;
+  gap:8px!important;
+  color:#eaf5ff!important;
+  -webkit-text-fill-color:#eaf5ff!important;
+  font-size:12px!important;
+  font-weight:780!important;
+  line-height:1.45!important;
+}
+html body.gold-home.page-home .edu-feedback-form :is(select,textarea){
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:48px!important;
+  box-sizing:border-box!important;
+  padding:12px 13px!important;
+  border:1px solid #a9c9e7!important;
+  border-radius:11px!important;
+  background:#f7fbff!important;
+  color:#123455!important;
+  -webkit-text-fill-color:#123455!important;
+  font:inherit!important;
+  font-size:13px!important;
+  line-height:1.5!important;
+  box-shadow:inset 0 1px 2px rgba(7,35,66,.06)!important;
+}
+html body.gold-home.page-home .edu-feedback-form textarea{
+  min-height:130px!important;
+  resize:vertical!important;
+}
+html body.gold-home.page-home .edu-feedback-form :is(select,textarea)::placeholder{
+  color:#627d97!important;
+  -webkit-text-fill-color:#627d97!important;
+  opacity:1!important;
+}
+html body.gold-home.page-home .edu-feedback-form :is(select,textarea):focus-visible{
+  outline:3px solid #70d5ff!important;
+  outline-offset:2px!important;
+  border-color:#70d5ff!important;
+  box-shadow:0 0 0 5px rgba(112,213,255,.14)!important;
+}
+html body.gold-home.page-home .edu-feedback-actions{
+  display:flex!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:12px!important;
+}
+html body.gold-home.page-home .edu-feedback-actions button{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:9px!important;
+  min-height:48px!important;
+  padding:12px 19px!important;
+  border:1px solid rgba(183,231,255,.78)!important;
+  border-radius:12px!important;
+  background:linear-gradient(120deg,#168fe8,#0753ad)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  font-size:13px!important;
+  font-weight:850!important;
+  box-shadow:0 9px 22px rgba(0,15,55,.27),inset 0 1px 0 rgba(255,255,255,.2)!important;
+  cursor:pointer!important;
+}
+html body.gold-home.page-home .edu-feedback-actions button:hover{
+  filter:brightness(1.09)!important;
+}
+html body.gold-home.page-home .edu-feedback-actions button:focus-visible{
+  outline:3px solid #8ce0ff!important;
+  outline-offset:3px!important;
+}
+html body.gold-home.page-home .edu-feedback-actions button:disabled{
+  opacity:.72!important;
+  cursor:wait!important;
+}
+html body.gold-home.page-home .edu-feedback-actions p{
+  flex:1 1 180px!important;
+  margin:0!important;
+  color:#c9e2f7!important;
+  -webkit-text-fill-color:#c9e2f7!important;
+  font-size:11px!important;
+  line-height:1.55!important;
+}
+html body.gold-home.page-home .edu-feedback-actions p[data-kind="error"]{
+  color:#ffd0d3!important;-webkit-text-fill-color:#ffd0d3!important;
+}
+html body.gold-home.page-home .edu-feedback-actions p[data-kind="success"]{
+  color:#b7f5d5!important;-webkit-text-fill-color:#b7f5d5!important;
+}
+html body.gold-home.page-home .public-disclaimer{
+  margin:20px 0 28px!important;
+}
+html body.gold-home.page-home .public-disclaimer .public-note{
+  padding:15px 18px!important;
+  border:1px solid rgba(151,207,249,.35)!important;
+  border-left:3px solid #70d5ff!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,rgba(16,60,113,.91),rgba(5,30,72,.96))!important;
+  color:#c9e0f5!important;
+  -webkit-text-fill-color:#c9e0f5!important;
+  font-size:11px!important;
+  line-height:1.65!important;
+  box-shadow:0 12px 30px rgba(0,10,39,.18)!important;
+}
+html body.gold-home.page-home .public-footer{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:18px 28px!important;
+  margin-top:0!important;
+  padding:30px max(22px,calc((100vw - 1180px)/2)) 22px!important;
+  border-top:1px solid rgba(151,211,255,.32)!important;
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(47,127,194,.23),transparent 38%),
+    linear-gradient(145deg,#092c5d,#041a43)!important;
+  color:#d5e9fa!important;
+  box-shadow:0 -16px 42px rgba(0,12,43,.16)!important;
+}
+html body.gold-home.page-home .public-footer>div{
+  display:grid!important;
+  gap:5px!important;
+}
+html body.gold-home.page-home .public-footer strong{
+  color:#f6fbff!important;-webkit-text-fill-color:#f6fbff!important;
+  font-size:19px!important;font-weight:850!important;letter-spacing:-.025em!important;
+}
+html body.gold-home.page-home .public-footer span{
+  color:#bcd7ef!important;-webkit-text-fill-color:#bcd7ef!important;
+  font-size:11px!important;
+}
+html body.gold-home.page-home .public-footer nav{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+}
+html body.gold-home.page-home .public-footer nav a{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:38px!important;
+  padding:8px 11px!important;
+  border:1px solid rgba(151,207,249,.28)!important;
+  border-radius:10px!important;
+  background:rgba(88,151,207,.13)!important;
+  color:#e3f2ff!important;-webkit-text-fill-color:#e3f2ff!important;
+  font-size:11px!important;font-weight:750!important;
+  text-decoration:none!important;
+}
+html body.gold-home.page-home .public-footer nav a:hover{
+  border-color:rgba(171,225,255,.7)!important;
+  background:rgba(89,164,224,.25)!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+html body.gold-home.page-home .public-footer nav a:focus-visible{
+  outline:3px solid #70d5ff!important;outline-offset:3px!important;
+}
+html body.gold-home.page-home .public-footer>small{
+  grid-column:1/-1!important;
+  padding-top:14px!important;
+  border-top:1px solid rgba(151,207,249,.19)!important;
+  color:#9fbed8!important;-webkit-text-fill-color:#9fbed8!important;
+  font-size:10px!important;
+}
+@media(max-width:850px){
+  html body.gold-home.page-home .edu-feedback-section{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:16px!important;
+    padding:23px!important;
+  }
+  html body.gold-home.page-home .edu-feedback-intro{padding:4px!important}
+}
+@media(max-width:600px){
+  html body.gold-home.page-home .edu-feedback-section{
+    margin:22px 0!important;
+    padding:17px!important;
+    border-radius:21px!important;
+  }
+  html body.gold-home.page-home .edu-feedback-fields{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:12px!important;
+  }
+  html body.gold-home.page-home .edu-feedback-form{
+    padding:15px!important;
+    border-radius:16px!important;
+  }
+  html body.gold-home.page-home .edu-feedback-actions{
+    align-items:stretch!important;
+  }
+  html body.gold-home.page-home .edu-feedback-actions button{
+    width:100%!important;
+  }
+  html body.gold-home.page-home .public-footer{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:16px!important;
+    padding:25px 18px 18px!important;
+  }
+  html body.gold-home.page-home .public-footer nav{
+    justify-content:flex-start!important;
+  }
+  html body.gold-home.page-home .public-footer>small{
+    grid-column:auto!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body.gold-home.page-home .edu-feedback-form *,
+  html body.gold-home.page-home .public-footer *{
+    scroll-behavior:auto!important;
+    transition:none!important;
+  }
+}
