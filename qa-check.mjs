@@ -1218,6 +1218,23 @@ const sidebarTheme=read('edunizam-blue-glass-theme.css');
 if(!sidebarTheme.includes('SIDEBAR TEXT CONTRAST HOTFIX'))fail.push('Sidebar text contrast hotfix is missing.');
 if(!sidebarTheme.includes('-webkit-text-fill-color:#173b5b!important'))fail.push('Sidebar navigation labels must explicitly use readable dark text.');
 if(!sidebarTheme.includes('body.page-app .sidebar #nav .nav-item.active'))fail.push('Active sidebar item contrast override is missing.');
+// Phase 24 visual regression: homepage hero must use the local, responsive blue-glass artwork.
+const homepageHtml=read('index.html');
+const heroAsset=read('assets/themes/digital-learning.svg');
+const heroVisualCss=read('edunizam-phase27-home-hero-visual.css');
+const heroImage=homepageHtml.match(/<div class="hero-image-wrap">\\s*<img\\b([^>]*)>/);
+if(!heroImage)fail.push('Homepage hero image element is missing.');
+else{
+ if(!/src=["']assets\\/themes\\/digital-learning\\.svg["']/.test(heroImage[1]))fail.push('Homepage hero must use the repository-local digital learning artwork.');
+ if(!/alt=["'][^"']+/.test(heroImage[1]))fail.push('Homepage hero artwork needs meaningful alternative text.');
+ if(/pexels\\.com|unsplash\\.com/.test(heroImage[1]))fail.push('Homepage hero must not depend on a third-party image host.');
+}
+if(!heroAsset.trimStart().startsWith('<svg')||!heroAsset.includes('</svg>'))fail.push('Local homepage hero SVG is missing or malformed.');
+if(!homepageHtml.includes('edunizam-phase27-home-hero-visual.css'))fail.push('Premium homepage hero visual stylesheet is not linked.');
+for(const token of ['.hero-image-wrap img','linear-gradient(145deg,#0b3974,#04132f)','@media(max-width:720px)','aspect-ratio:4/3','prefers-reduced-motion:reduce']){
+ if(!heroVisualCss.includes(token))fail.push('Premium homepage hero responsive/accessibility styling missing: '+token);
+}
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
