@@ -228,6 +228,8 @@ jobs:
         run: |
           python3 -m pip install --quiet pillow
           python3 scripts/build-clay-icons.py
+      - name: Verify Phase 26 homepage visual layout at mobile, tablet and desktop widths
+        run: node scripts/phase26-home-visual-check.mjs
       - name: Run rendered mobile/layout regression checks
         timeout-minutes: 20
         run: node scripts/browser-layout-check.mjs
