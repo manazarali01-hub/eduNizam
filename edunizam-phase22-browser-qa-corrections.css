@@ -69,3 +69,14 @@
     opacity:1!important;
   }
 }
+
+
+/* Override the higher-specificity legacy section-heading color declaration. */
+@media(max-width:430px){
+  html body.gold-home.page-home .value-section.value-section>.section-heading :is(h2,p),
+  html body.gold-home.page-home .value-section.value-section>.section-heading :is(h2,p) *{
+    color:#173b5c!important;
+    -webkit-text-fill-color:#173b5c!important;
+    opacity:1!important;
+  }
+}
