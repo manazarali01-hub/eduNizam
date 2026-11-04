@@ -1,0 +1,383 @@
+/* EduNizam Phase 19 — unify homepage feature, role, value and learning sections.
+   Public homepage only. No content, destinations, controls or application logic changed. */
+html body.gold-home.page-home .experience-strip{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+  margin-top:22px!important;
+  padding:14px!important;
+  border:1px solid rgba(157,211,255,.42)!important;
+  border-radius:24px!important;
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(67,160,239,.18),transparent 42%),
+    linear-gradient(145deg,rgba(8,37,83,.97),rgba(5,25,62,.98))!important;
+  box-shadow:0 20px 48px rgba(0,13,45,.22),inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+html body.gold-home.page-home .experience-strip article{
+  display:flex!important;
+  align-items:center!important;
+  gap:13px!important;
+  min-width:0!important;
+  min-height:82px!important;
+  padding:15px!important;
+  border:1px solid rgba(164,218,255,.25)!important;
+  border-radius:16px!important;
+  background:linear-gradient(145deg,rgba(57,124,186,.23),rgba(23,66,119,.24))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10)!important;
+}
+html body.gold-home.page-home .experience-strip .feature-icon{
+  display:grid!important;
+  place-items:center!important;
+  width:43px!important;
+  height:43px!important;
+  flex:0 0 43px!important;
+  border:1px solid rgba(175,225,255,.48)!important;
+  border-radius:13px!important;
+  background:linear-gradient(145deg,#2a91df,#12549b)!important;
+  color:#fff!important;
+  box-shadow:0 7px 17px rgba(0,10,42,.23)!important;
+}
+html body.gold-home.page-home .experience-strip .feature-icon svg{
+  width:21px!important;height:21px!important;
+  stroke:#fff!important;
+}
+html body.gold-home.page-home .experience-strip article :is(strong,small){
+  display:block!important;
+  color:#f2f8ff!important;
+  -webkit-text-fill-color:#f2f8ff!important;
+}
+html body.gold-home.page-home .experience-strip article strong{
+  font-size:14px!important;font-weight:800!important;line-height:1.25!important;
+}
+html body.gold-home.page-home .experience-strip article small{
+  margin-top:5px!important;
+  color:#bcd9f2!important;
+  -webkit-text-fill-color:#bcd9f2!important;
+  font-size:11px!important;line-height:1.35!important;
+}
+html body.gold-home.page-home .role-showcase,
+html body.gold-home.page-home .value-section,
+html body.gold-home.page-home section[aria-labelledby="explore-public-guides"]{
+  position:relative!important;
+  overflow:hidden!important;
+  padding:clamp(22px,3.2vw,38px)!important;
+  border:1px solid rgba(147,205,250,.42)!important;
+  border-radius:28px!important;
+  background:
+    radial-gradient(ellipse at 92% 0%,rgba(65,153,229,.20),transparent 38%),
+    linear-gradient(145deg,rgba(9,43,91,.97),rgba(5,26,66,.98))!important;
+  box-shadow:0 22px 54px rgba(0,13,45,.20),inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+html body.gold-home.page-home :is(.role-showcase,.value-section,section[aria-labelledby="explore-public-guides"]) .section-heading{
+  position:relative!important;
+  z-index:1!important;
+  margin-bottom:24px!important;
+}
+html body.gold-home.page-home :is(.role-showcase,.value-section,section[aria-labelledby="explore-public-guides"]) .section-heading :is(h2,p){
+  color:#f1f7ff!important;
+  -webkit-text-fill-color:#f1f7ff!important;
+}
+html body.gold-home.page-home :is(.role-showcase,.value-section,section[aria-labelledby="explore-public-guides"]) .section-heading p{
+  color:#c3dcf2!important;
+  -webkit-text-fill-color:#c3dcf2!important;
+  max-width:570px!important;
+}
+html body.gold-home.page-home :is(.role-showcase,.value-section,section[aria-labelledby="explore-public-guides"]) .eyebrow{
+  color:#8cdaff!important;
+  -webkit-text-fill-color:#8cdaff!important;
+}
+html body.gold-home.page-home .role-showcase .role-demo{
+  display:grid!important;
+  grid-template-columns:176px minmax(0,1fr)!important;
+  gap:15px!important;
+  padding:14px!important;
+  border:1px solid rgba(158,214,255,.42)!important;
+  border-radius:21px!important;
+  background:rgba(8,33,76,.70)!important;
+  box-shadow:0 15px 38px rgba(0,8,32,.23),inset 0 1px 0 rgba(255,255,255,.10)!important;
+}
+html body.gold-home.page-home .role-showcase .role-selector{
+  display:grid!important;
+  align-content:start!important;
+  gap:9px!important;
+  padding:4px!important;
+}
+html body.gold-home.page-home .role-showcase .role-tab{
+  min-height:48px!important;
+  padding:11px 13px!important;
+  border:1px solid rgba(155,207,246,.28)!important;
+  border-radius:12px!important;
+  background:rgba(69,130,186,.16)!important;
+  color:#d8ebfb!important;
+  -webkit-text-fill-color:#d8ebfb!important;
+  font-size:13px!important;
+  font-weight:780!important;
+  text-align:left!important;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease!important;
+}
+html body.gold-home.page-home .role-showcase .role-tab:hover{
+  border-color:rgba(166,222,255,.68)!important;
+  background:rgba(64,145,211,.30)!important;
+}
+html body.gold-home.page-home .role-showcase .role-tab.is-active{
+  border-color:rgba(177,229,255,.88)!important;
+  background:linear-gradient(120deg,#168fe8,#0753ad)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  box-shadow:0 9px 22px rgba(0,48,111,.30),inset 0 1px 0 rgba(255,255,255,.20)!important;
+}
+html body.gold-home.page-home .role-showcase .preview-window{
+  overflow:hidden!important;
+  border:1px solid rgba(169,218,255,.48)!important;
+  border-radius:17px!important;
+  background:linear-gradient(145deg,rgba(14,53,101,.94),rgba(5,28,69,.97))!important;
+  box-shadow:0 13px 32px rgba(0,8,35,.24)!important;
+}
+html body.gold-home.page-home .role-showcase .preview-topbar{
+  min-height:58px!important;
+  padding:11px 15px!important;
+  border-bottom:1px solid rgba(164,215,255,.22)!important;
+  background:rgba(65,132,192,.18)!important;
+}
+html body.gold-home.page-home .role-showcase .preview-brand,
+html body.gold-home.page-home .role-showcase .preview-brand strong{
+  color:#f5faff!important;-webkit-text-fill-color:#f5faff!important;
+}
+html body.gold-home.page-home .role-showcase .preview-mark{
+  border:1px solid rgba(178,224,255,.48)!important;
+  background:linear-gradient(145deg,#268bdb,#104c91)!important;
+}
+html body.gold-home.page-home .role-showcase .preview-role{
+  border:1px solid rgba(164,219,255,.34)!important;
+  background:rgba(85,161,220,.20)!important;
+  color:#d9efff!important;-webkit-text-fill-color:#d9efff!important;
+}
+html body.gold-home.page-home .role-showcase .preview-sidebar{
+  background:linear-gradient(180deg,#0b2f61,#08234f)!important;
+  border-right:1px solid rgba(164,215,255,.18)!important;
+}
+html body.gold-home.page-home .role-showcase .preview-sidebar span{
+  background:rgba(199,229,255,.22)!important;
+}
+html body.gold-home.page-home .role-showcase .preview-sidebar span.active{
+  background:#70d5ff!important;
+}
+html body.gold-home.page-home .role-showcase .preview-content{
+  background:rgba(9,37,79,.55)!important;
+}
+html body.gold-home.page-home .role-showcase .preview-welcome :is(small,h3,p){
+  color:#f0f7ff!important;-webkit-text-fill-color:#f0f7ff!important;
+}
+html body.gold-home.page-home .role-showcase .preview-welcome small{
+  color:#8bdcff!important;-webkit-text-fill-color:#8bdcff!important;
+}
+html body.gold-home.page-home .role-showcase .preview-welcome p{
+  color:#c2dcf1!important;-webkit-text-fill-color:#c2dcf1!important;
+}
+html body.gold-home.page-home .role-showcase .preview-cards span{
+  min-height:56px!important;
+  display:flex!important;
+  align-items:center!important;
+  border:1px solid rgba(157,211,255,.26)!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,rgba(72,139,196,.23),rgba(24,73,127,.25))!important;
+  color:#e8f4ff!important;-webkit-text-fill-color:#e8f4ff!important;
+  font-size:12px!important;
+}
+html body.gold-home.page-home .role-showcase .preview-note{
+  color:#c5def3!important;-webkit-text-fill-color:#c5def3!important;
+}
+html body.gold-home.page-home .role-showcase .preview-note-dot{
+  background:#70d5ff!important;
+  box-shadow:0 0 0 4px rgba(112,213,255,.14)!important;
+}
+html body.gold-home.page-home .value-section .public-grid,
+html body.gold-home.page-home section[aria-labelledby="explore-public-guides"] .public-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:14px!important;
+}
+html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card{
+  display:flex!important;
+  flex-direction:column!important;
+  min-width:0!important;
+  min-height:100%!important;
+  padding:22px!important;
+  border:1px solid rgba(160,215,255,.34)!important;
+  border-radius:17px!important;
+  background:linear-gradient(150deg,rgba(45,104,159,.35),rgba(12,46,91,.66))!important;
+  box-shadow:0 12px 28px rgba(0,9,34,.20),inset 0 1px 0 rgba(255,255,255,.09)!important;
+}
+html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card:before{
+  height:3px!important;
+  background:linear-gradient(90deg,#4db8f5,#91dcff,#6c9df1)!important;
+}
+html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card :is(h3,p,.card-index){
+  color:#eff7ff!important;-webkit-text-fill-color:#eff7ff!important;
+}
+html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card p{
+  color:#c6dff3!important;-webkit-text-fill-color:#c6dff3!important;
+  font-size:13px!important;line-height:1.7!important;
+}
+html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card .card-index{
+  color:#8edaff!important;-webkit-text-fill-color:#8edaff!important;
+  font-size:11px!important;letter-spacing:.14em!important;
+}
+html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card a{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  margin-top:auto!important;
+  padding-top:14px!important;
+  color:#8cdbff!important;-webkit-text-fill-color:#8cdbff!important;
+  font-size:12px!important;font-weight:800!important;
+  text-decoration:none!important;
+}
+html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card a:hover{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  text-decoration:underline!important;text-underline-offset:4px!important;
+}
+html body.gold-home.page-home .learning-band{
+  position:relative!important;
+  overflow:hidden!important;
+  grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr)!important;
+  gap:clamp(22px,4vw,48px)!important;
+  align-items:center!important;
+  margin-top:30px!important;
+  padding:clamp(25px,4vw,48px)!important;
+  border:1px solid rgba(158,214,255,.55)!important;
+  border-radius:28px!important;
+  background:
+    radial-gradient(ellipse at 86% 8%,rgba(88,184,255,.27),transparent 38%),
+    linear-gradient(135deg,#092d61 0%,#104b8b 54%,#123b79 100%)!important;
+  box-shadow:0 24px 58px rgba(0,15,54,.27),inset 0 1px 0 rgba(255,255,255,.16)!important;
+}
+html body.gold-home.page-home .learning-band .learning-copy :is(.eyebrow,h2,p){
+  color:#f4f9ff!important;-webkit-text-fill-color:#f4f9ff!important;
+}
+html body.gold-home.page-home .learning-band .learning-copy .eyebrow{
+  color:#8edcff!important;-webkit-text-fill-color:#8edcff!important;
+}
+html body.gold-home.page-home .learning-band .learning-copy p{
+  color:#cce2f5!important;-webkit-text-fill-color:#cce2f5!important;
+  font-size:14px!important;line-height:1.75!important;
+}
+html body.gold-home.page-home .learning-band .learning-links .public-cta{
+  min-height:48px!important;
+  border:1px solid rgba(193,232,255,.88)!important;
+  background:linear-gradient(120deg,#168fe8,#0753ad)!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  box-shadow:0 10px 24px rgba(0,18,63,.28)!important;
+}
+html body.gold-home.page-home .learning-band .learning-links>a:not(.public-cta){
+  color:#d9efff!important;-webkit-text-fill-color:#d9efff!important;
+  font-size:13px!important;font-weight:800!important;
+}
+html body.gold-home.page-home .learning-band .learning-visual{
+  min-height:270px!important;
+}
+html body.gold-home.page-home .learning-band .resource-card{
+  border:1px solid rgba(177,221,255,.62)!important;
+  border-radius:16px!important;
+  background:linear-gradient(145deg,rgba(23,74,130,.96),rgba(5,32,76,.98))!important;
+  box-shadow:0 16px 38px rgba(0,8,35,.34),inset 0 1px 0 rgba(255,255,255,.16)!important;
+}
+html body.gold-home.page-home .learning-band .resource-card :is(small,strong,span){
+  color:#f1f8ff!important;-webkit-text-fill-color:#f1f8ff!important;
+}
+html body.gold-home.page-home .learning-band .resource-card small{
+  color:#8edcff!important;-webkit-text-fill-color:#8edcff!important;
+}
+@media(max-width:980px){
+  html body.gold-home.page-home .role-showcase .role-demo{
+    grid-template-columns:1fr!important;
+  }
+  html body.gold-home.page-home .role-showcase .role-selector{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+  html body.gold-home.page-home .role-showcase .role-tab{
+    text-align:center!important;
+  }
+  html body.gold-home.page-home .learning-band{
+    grid-template-columns:1fr!important;
+  }
+  html body.gold-home.page-home .learning-band .learning-visual{
+    width:min(100%,540px)!important;
+    justify-self:center!important;
+  }
+}
+@media(max-width:720px){
+  html body.gold-home.page-home .experience-strip{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;padding:10px!important;border-radius:19px!important;
+  }
+  html body.gold-home.page-home .experience-strip article{
+    min-height:76px!important;padding:11px!important;gap:9px!important;
+  }
+  html body.gold-home.page-home .experience-strip .feature-icon{
+    width:37px!important;height:37px!important;flex-basis:37px!important;
+  }
+  html body.gold-home.page-home :is(.role-showcase,.value-section,section[aria-labelledby="explore-public-guides"]){
+    padding:22px 15px!important;border-radius:22px!important;
+  }
+  html body.gold-home.page-home .role-showcase .role-demo{
+    padding:10px!important;gap:10px!important;
+  }
+  html body.gold-home.page-home .role-showcase .role-selector{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+  html body.gold-home.page-home .role-showcase .role-tab{
+    min-height:44px!important;padding:9px 7px!important;font-size:12px!important;
+  }
+  html body.gold-home.page-home .role-showcase .preview-body{
+    grid-template-columns:42px minmax(0,1fr)!important;
+  }
+  html body.gold-home.page-home .role-showcase .preview-content{
+    padding:18px 13px!important;
+  }
+  html body.gold-home.page-home .role-showcase .preview-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+  html body.gold-home.page-home .role-showcase .preview-cards span{
+    min-height:50px!important;padding:10px!important;font-size:11px!important;
+  }
+  html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;
+  }
+  html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card{
+    padding:16px!important;border-radius:14px!important;
+  }
+  html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card h3{
+    font-size:15px!important;line-height:1.3!important;
+  }
+  html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-card p{
+    font-size:12px!important;line-height:1.6!important;
+  }
+  html body.gold-home.page-home .learning-band{
+    padding:25px 17px!important;border-radius:22px!important;
+  }
+  html body.gold-home.page-home .learning-band .learning-visual{
+    min-height:250px!important;
+  }
+}
+@media(max-width:390px){
+  html body.gold-home.page-home .experience-strip{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  html body.gold-home.page-home :is(.value-section,section[aria-labelledby="explore-public-guides"]) .public-grid{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  html body.gold-home.page-home .role-showcase .preview-cards{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  html body.gold-home.page-home .learning-band .learning-visual{
+    min-height:225px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body.gold-home.page-home .role-showcase .role-tab{
+    transition:none!important;
+  }
+}
