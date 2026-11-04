@@ -1222,12 +1222,12 @@ if(!sidebarTheme.includes('body.page-app .sidebar #nav .nav-item.active'))fail.p
 const homepageHtml=read('index.html');
 const heroAsset=read('assets/themes/digital-learning.svg');
 const heroVisualCss=read('edunizam-phase27-home-hero-visual.css');
-const heroImage=homepageHtml.match(/<div class="hero-image-wrap">\\s*<img\\b([^>]*)>/);
+const heroImage=homepageHtml.match(/<div class="hero-image-wrap">\s*<img\b([^>]*)>/);
 if(!heroImage)fail.push('Homepage hero image element is missing.');
 else{
- if(!/src=["']assets\\/themes\\/digital-learning\\.svg["']/.test(heroImage[1]))fail.push('Homepage hero must use the repository-local digital learning artwork.');
+ if(!/src=["']assets\/themes\/digital-learning\.svg["']/.test(heroImage[1]))fail.push('Homepage hero must use the repository-local digital learning artwork.');
  if(!/alt=["'][^"']+/.test(heroImage[1]))fail.push('Homepage hero artwork needs meaningful alternative text.');
- if(/pexels\\.com|unsplash\\.com/.test(heroImage[1]))fail.push('Homepage hero must not depend on a third-party image host.');
+ if(/pexels\.com|unsplash\.com/.test(heroImage[1]))fail.push('Homepage hero must not depend on a third-party image host.');
 }
 if(!heroAsset.trimStart().startsWith('<svg')||!heroAsset.includes('</svg>'))fail.push('Local homepage hero SVG is missing or malformed.');
 if(!homepageHtml.includes('edunizam-phase27-home-hero-visual.css'))fail.push('Premium homepage hero visual stylesheet is not linked.');
