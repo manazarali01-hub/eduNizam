@@ -522,18 +522,3 @@ html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-
   max-width:92px!important;
  }
 }
-
-
-/* Phase 24 — keep the authenticated mobile role label readable beside session controls. */
-@media(max-width:760px){
- html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
-  flex:1 1 118px!important;max-width:150px!important;min-width:0!important;
-  white-space:normal!important;overflow:visible!important;text-overflow:clip!important;
-  overflow-wrap:anywhere!important;line-height:1.15!important;
- }
-}
-@media(max-width:380px){
- html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
-  flex-basis:108px!important;max-width:124px!important;
- }
-}
