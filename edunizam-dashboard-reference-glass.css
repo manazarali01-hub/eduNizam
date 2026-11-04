@@ -1643,3 +1643,12 @@ html body.app-page.page-app #appMain #dashboard [data-admin-jump]{
     padding:3px 6px!important;
   }
 }
+
+/* Phase 50 — remove the decorative premium context badge from narrow app
+   screens. It was overlapping the account controls and intercepting Logout taps. */
+@media(max-width:520px){
+  html body.app-page.page-app #premiumContext{
+    display:none!important;
+    pointer-events:none!important;
+  }
+}
