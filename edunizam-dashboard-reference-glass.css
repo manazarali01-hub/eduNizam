@@ -321,3 +321,111 @@ html body.app-page.page-app #appMain .view :is(.badge,.chip,.status-pill,.tag){
  html body.app-page.page-app #appMain *,
  html body.app-page.page-app .sidebar *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+/* Phase 12 — repair the three real-browser visual regressions from Phase 11.
+   Keep the unified blue-glass dashboard while preserving existing component intent. */
+
+/* Mobile header: reserve space for the fixed menu button and keep session controls
+   in one compact row. Hiding the secondary school line prevents a third header row. */
+@media(max-width:760px){
+ html body.app-page.page-app #appMain>.topbar{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-rows:minmax(42px,auto)!important;
+  align-items:center!important;
+  column-gap:8px!important;row-gap:0!important;
+  min-height:68px!important;max-height:88px!important;height:auto!important;
+  padding:8px 10px 8px 66px!important;
+  overflow:visible!important;
+ }
+ html body.app-page.page-app #appMain>.topbar>.topbar-title{
+  grid-column:1!important;grid-row:1!important;
+  display:flex!important;flex-direction:column!important;
+  align-items:flex-start!important;justify-content:center!important;
+  width:auto!important;max-width:none!important;min-width:0!important;
+  max-height:48px!important;overflow:hidden!important;
+ }
+ html body.app-page.page-app #appMain>.topbar .school-identity{display:none!important}
+ html body.app-page.page-app #appMain>.topbar #page-title{
+  display:block!important;margin:0!important;
+  font-size:clamp(18px,5vw,21px)!important;line-height:1.12!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+ }
+ html body.app-page.page-app #appMain>.topbar>.topbar-actions{
+  grid-column:2!important;grid-row:1!important;
+  display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+  align-items:center!important;justify-content:flex-end!important;
+  width:auto!important;max-width:100%!important;min-width:0!important;
+  height:auto!important;min-height:0!important;max-height:44px!important;
+  margin:0!important;padding:0!important;overflow:visible!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  display:inline-flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+  align-items:center!important;justify-content:flex-end!important;
+  width:auto!important;min-width:0!important;max-width:100%!important;
+  height:auto!important;min-height:0!important;max-height:40px!important;
+  padding:3px 5px!important;margin:0!important;gap:5px!important;
+  overflow:visible!important;white-space:nowrap!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  display:block!important;flex:0 1 auto!important;min-width:0!important;
+  width:auto!important;max-width:64px!important;max-height:24px!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+  text-overflow:ellipsis!important;white-space:nowrap!important;
+  writing-mode:horizontal-tb!important;line-height:1.15!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{
+  display:inline-flex!important;flex:0 0 auto!important;
+  align-items:center!important;justify-content:center!important;
+  width:auto!important;min-width:48px!important;max-width:none!important;
+  height:30px!important;min-height:30px!important;max-height:30px!important;
+  margin:0!important;padding:4px 7px!important;
+  white-space:nowrap!important;writing-mode:horizontal-tb!important;
+ }
+}
+
+/* Admin daily action tiles retain the intended bright, readable frosted cards.
+   Do not let the generic blue CTA treatment turn navigation tiles into slabs. */
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .admin-daily-actions>button{
+ color:#163c55!important;-webkit-text-fill-color:#163c55!important;
+ background:linear-gradient(145deg,rgba(255,255,255,.99),rgba(226,243,255,.97))!important;
+ border:1px solid rgba(115,177,218,.52)!important;
+ box-shadow:0 8px 20px rgba(7,43,76,.10),inset 0 1px 0 rgba(255,255,255,.98)!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>strong{
+ color:#163c55!important;-webkit-text-fill-color:#163c55!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>small{
+ color:#55758c!important;-webkit-text-fill-color:#55758c!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>span:not(.admin-action-count){
+ color:#0879bd!important;background:rgba(35,151,216,.11)!important;
+}
+
+/* Restore distinct pastel field surfaces on the student form's direct-child inputs.
+   The original form uses direct children rather than .form-grid wrappers. */
+html body.app-page.page-app #appMain #students #studentFormWrap>:is(input,select,textarea){
+ color:#173c55!important;-webkit-text-fill-color:#173c55!important;
+ border:1px solid rgba(113,177,218,.68)!important;
+ box-shadow:0 4px 12px rgba(13,67,104,.07),inset 0 1px 0 rgba(255,255,255,.92)!important;
+}
+html body.app-page.page-app #appMain #students #studentFormWrap>input:nth-of-type(4n+1),
+html body.app-page.page-app #appMain #students #studentFormWrap>select:nth-of-type(4n+1),
+html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-type(4n+1){
+ background:linear-gradient(145deg,#fff,#eaf6ff)!important;
+}
+html body.app-page.page-app #appMain #students #studentFormWrap>input:nth-of-type(4n+2),
+html body.app-page.page-app #appMain #students #studentFormWrap>select:nth-of-type(4n+2),
+html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-type(4n+2){
+ background:linear-gradient(145deg,#fff,#eff0ff)!important;
+}
+html body.app-page.page-app #appMain #students #studentFormWrap>input:nth-of-type(4n+3),
+html body.app-page.page-app #appMain #students #studentFormWrap>select:nth-of-type(4n+3),
+html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-type(4n+3){
+ background:linear-gradient(145deg,#fff,#fff5e5)!important;
+}
+html body.app-page.page-app #appMain #students #studentFormWrap>input:nth-of-type(4n+4),
+html body.app-page.page-app #appMain #students #studentFormWrap>select:nth-of-type(4n+4),
+html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-type(4n+4){
+ background:linear-gradient(145deg,#fff,#e9faf5)!important;
+}
