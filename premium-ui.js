@@ -162,6 +162,17 @@
 
   function mountTopbarContext(){
     const actions=$('.topbar-actions');if(!actions)return;
+    // Re-check after responsive viewport changes: desktop may have mounted the chip
+    // before the browser is narrowed to a phone-sized viewport.
+    if(!window.__eduPremiumContextResizeBound){
+      window.__eduPremiumContextResizeBound=true;
+      const syncContextVisibility=()=>{
+        if(window.matchMedia('(max-width:520px)').matches)$('#premiumContext')?.remove();
+      };
+      window.addEventListener('resize',syncContextVisibility,{passive:true});
+      window.addEventListener('orientationchange',syncContextVisibility,{passive:true});
+      syncContextVisibility();
+    }
     // Keep decorative context chips out of the compact authenticated header.
     // They compete with the role/logout controls at phone widths and can cover taps.
     if(window.matchMedia('(max-width:520px)').matches){$('#premiumContext')?.remove();return;}
