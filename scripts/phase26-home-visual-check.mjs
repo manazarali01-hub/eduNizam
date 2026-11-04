@@ -59,12 +59,12 @@ try{
         imageLoaded:!!img&&img.complete&&img.naturalWidth>0,
         visual:box(visual),image:box(image),quick:box(quick),roles:box(roles),
         visualDisplay:getComputedStyle(visual).display,
-        visualColumns:getComputedStyle(visual).gridTemplateColumns.trim().split(/\\s+/).length,
+        visualColumns:getComputedStyle(visual).gridTemplateColumns.trim().split(/\s+/).length,
         imageAspect:image.getBoundingClientRect().width/image.getBoundingClientRect().height,
         quickPosition:getComputedStyle(quick).position,
         rolesPosition:getComputedStyle(roles).position,
         rolesDisplay:getComputedStyle(roles).display,
-        rolesColumns:getComputedStyle(roles).gridTemplateColumns.trim().split(/\\s+/).length,
+        rolesColumns:getComputedStyle(roles).gridTemplateColumns.trim().split(/\s+/).length,
         overflow:Math.max(root.scrollWidth,document.body.scrollWidth)-root.clientWidth
       };
     });
