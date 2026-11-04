@@ -1020,7 +1020,7 @@ const seoRobots=read('robots.txt');
 if(!seoPublic.includes('index,follow,max-image-preview:large')) fail.push('Public EduNizam landing is not indexable.');
 if(!seoPublic.includes('href="https://edunizam.online/"')) fail.push('Public EduNizam canonical URL missing.');
 if(!seoPublic.includes('"@type":"WebApplication"')&&!seoPublic.includes('"@type":"SoftwareApplication"')) fail.push('Public EduNizam WebApplication/SoftwareApplication schema missing.');
-if(!seoPublic.includes('pexels-photo-5088012.jpeg')||!seoPublic.includes('property="og:image"')||!seoPublic.includes('alt="School supplies and study materials neatly arranged on a desk"')) fail.push('Current credited public landing image/meta/alt signal missing.');
+if(!seoPublic.includes('assets/themes/digital-learning.svg')||!seoPublic.includes('alt="Digital learning illustration representing the EduNizam student experience"')||!seoPublic.includes('pexels-photo-5088012.jpeg')||!seoPublic.includes('property="og:image"')||!seoPublic.includes('property="og:image:alt"')) fail.push('Local homepage hero image or public social image metadata missing.');
 if(!index.includes('noindex,follow,noarchive')) fail.push('Private app.html must remain noindex.');
 if(!read('login.html').includes('noindex,follow,noarchive')) fail.push('Login page must remain noindex.');
 if(!read('admission.html').includes('noindex,follow,noarchive')) fail.push('Admission application page must remain noindex.');
