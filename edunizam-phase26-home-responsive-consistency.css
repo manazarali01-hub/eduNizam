@@ -115,6 +115,14 @@ html body.gold-home.page-home .public-hero.premium-public-hero .quick-actions :i
     text-align:center!important;
   }
 }
+@media (max-width:430px){
+  /* Align the complete hero visual to the hero's inner content width. */
+  html body.gold-home.page-home .public-hero.premium-public-hero .hero-visual{
+    width:calc(100% + 32px)!important;
+    max-width:none!important;
+    margin-left:-16px!important;
+  }
+}
 @media (max-width:380px){
   html body.gold-home.page-home .public-hero.premium-public-hero .quick-access-card{
     padding:12px!important;
