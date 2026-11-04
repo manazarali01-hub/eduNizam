@@ -1652,3 +1652,62 @@ html body.app-page.page-app #appMain #dashboard [data-admin-jump]{
     pointer-events:none!important;
   }
 }
+
+
+/* Phase 51 — keep the real roleSession chip horizontal on compact phones.
+   The vertical badge in the rendered 390px screenshot is #roleSession, not
+   #premiumContext. Reserve space for Logout and prevent label word wrapping. */
+@media(max-width:520px){
+  html body.app-page.page-app main#appMain.main>.topbar{
+    align-items:center!important;
+    flex-wrap:nowrap!important;
+    gap:8px!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
+    flex:1 1 auto!important;
+    min-width:0!important;
+    max-width:54%!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:46%!important;
+    margin-left:auto!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
+    display:inline-flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    width:auto!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:visible!important;
+    white-space:nowrap!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>strong{
+    display:block!important;
+    flex:0 1 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:82px!important;
+    writing-mode:horizontal-tb!important;
+    white-space:nowrap!important;
+    word-break:keep-all!important;
+    overflow-wrap:normal!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
+    flex:0 0 auto!important;
+    min-width:52px!important;
+    width:auto!important;
+    white-space:nowrap!important;
+    writing-mode:horizontal-tb!important;
+    pointer-events:auto!important;
+    position:relative!important;
+    z-index:2!important;
+  }
+}
