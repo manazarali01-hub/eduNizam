@@ -1,1855 +1,323 @@
-/* EduNizam dashboard — reference-matched electric blue glass skin.
-   Visual-only layer. Existing role filters, IDs, data bindings and actions remain intact. */
+/* EduNizam Phase 11 — unified premium blue-glass visual system.
+   Replaces accumulated dashboard-only patches with one final, predictable visual layer.
+   Presentation only: existing HTML IDs, routes, role rules, data and actions are untouched. */
 :root{
- --edg-navy:#031735;--edg-blue:#087bff;--edg-cyan:#00c8ff;
- --edg-line:rgba(151,220,255,.72);--edg-text:#f5f9ff;
- --edg-muted:#c5def5;--edg-panel:linear-gradient(145deg,rgba(20,91,160,.76),rgba(3,28,69,.88));
-}
-body.app-page.page-app{
- color:var(--edg-text)!important;
- background:
-  radial-gradient(ellipse at 10% 4%,rgba(0,173,255,.26),transparent 32rem),
-  radial-gradient(ellipse at 88% 30%,rgba(0,92,255,.22),transparent 38rem),
-  linear-gradient(135deg,#020f27 0%,#06356f 54%,#02132e 100%)!important;
- background-attachment:fixed!important;
-}
-body.app-page.page-app .app-shell{grid-template-columns:286px minmax(0,1fr)!important;gap:0!important;background:transparent!important}
-body.app-page.page-app .sidebar{
- position:sticky!important;top:0!important;height:100vh!important;overflow:hidden!important;
- display:flex!important;flex-direction:column!important;padding:20px 14px 12px!important;
- color:#fff!important;background:linear-gradient(165deg,rgba(3,31,72,.96),rgba(2,16,43,.97))!important;
- border:1px solid rgba(116,207,255,.7)!important;border-radius:0 24px 24px 0!important;
- box-shadow:8px 0 34px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.22),0 0 26px rgba(0,151,255,.24)!important;
- -webkit-backdrop-filter:blur(24px) saturate(150%)!important;backdrop-filter:blur(24px) saturate(150%)!important;
-}
-body.app-page.page-app .sidebar:before{
- content:"";position:absolute;inset:0 0 auto;height:3px;pointer-events:none;
- background:linear-gradient(90deg,transparent,#00c8ff,#fff,#087bff,transparent);box-shadow:0 0 18px #00bfff;
-}
-body.app-page.page-app .sidebar .brand{justify-content:center;gap:10px;margin:2px 0 20px!important;flex-wrap:wrap}
-body.app-page.page-app .sidebar .brand-logo-frame{
- width:100px!important;height:82px!important;display:grid;place-items:center;
- background:radial-gradient(ellipse,rgba(0,174,255,.26),transparent 72%)!important;
-}
-body.app-page.page-app .sidebar .brand-logo-img{max-width:100%;max-height:100%;filter:drop-shadow(0 0 12px rgba(0,177,255,.55))!important}
-body.app-page.page-app .sidebar .sidebar-wordmark{text-align:center!important;width:100%}
-body.app-page.page-app .sidebar .sidebar-wordmark strong{
- color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:clamp(23px,2vw,29px)!important;
- text-shadow:0 2px 8px rgba(255,255,255,.28),0 0 18px rgba(0,190,255,.48)!important
-}
-body.app-page.page-app .sidebar .sidebar-wordmark small{color:#d7eaff!important;font-size:12px!important}
-body.app-page.page-app .sidebar .sidebar-institute{
- color:#fff!important;background:rgba(15,83,143,.42)!important;border:1px solid rgba(150,220,255,.35)!important;
- border-radius:15px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18)!important;margin-bottom:12px!important
-}
-body.app-page.page-app .sidebar .sidebar-institute-copy :is(small,strong,span){color:#eff8ff!important;-webkit-text-fill-color:#eff8ff!important}
-body.app-page.page-app .sidebar #nav{
- flex:1 1 auto!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;
- display:block!important;padding:2px 3px 18px!important;scrollbar-width:thin;scrollbar-color:rgba(96,190,255,.55) transparent
-}
-body.app-page.page-app .sidebar #nav .nav-group{
- margin:0 0 7px!important;padding:3px!important;border:1px solid rgba(134,207,255,.19)!important;
- border-radius:13px!important;background:rgba(12,64,117,.30)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.07)!important
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary{
- min-height:34px!important;display:grid!important;grid-template-columns:24px 1fr 18px!important;align-items:center!important;
- gap:7px!important;padding:5px 9px!important;cursor:pointer!important;border-radius:10px!important;
- color:#eaf6ff!important;background:transparent!important;list-style:none!important
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary::-webkit-details-marker{display:none}
-body.app-page.page-app .sidebar #nav .nav-group>summary>span{color:#8fe5ff!important;background:rgba(0,150,255,.16)!important}
-body.app-page.page-app .sidebar #nav .nav-group>summary>strong{font-size:12px!important;letter-spacing:.04em!important;color:#d7edff!important;-webkit-text-fill-color:#d7edff!important}
-body.app-page.page-app .sidebar #nav .nav-group>summary>small{color:#a7d9ff!important}
-body.app-page.page-app .sidebar #nav .nav-group[open]>summary{background:rgba(0,133,255,.22)!important}
-body.app-page.page-app .sidebar #nav .nav-group-items{display:grid!important;gap:4px!important;padding:4px 2px 5px!important}
-body.app-page.page-app .sidebar #nav .nav-group:not([open])>.nav-group-items{display:none!important}
-body.app-page.page-app .sidebar #nav .nav-item{
- display:block!important;width:100%!important;min-height:37px!important;padding:8px 10px!important;
- text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
- border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;
- color:#edf7ff!important;-webkit-text-fill-color:#edf7ff!important;font-size:13px!important;font-weight:600!important
-}
-body.app-page.page-app .sidebar #nav .nav-item:hover,
-body.app-page.page-app .sidebar #nav .nav-item:focus-visible{
- background:rgba(23,145,255,.28)!important;border-color:rgba(144,220,255,.42)!important;outline:none!important
-}
-body.app-page.page-app .sidebar #nav .nav-item.active{
- color:#fff!important;-webkit-text-fill-color:#fff!important;
- background:linear-gradient(105deg,#078bff,#0752c6)!important;border:1px solid rgba(166,233,255,.9)!important;
- box-shadow:0 0 18px rgba(0,164,255,.46),inset 0 1px 0 rgba(255,255,255,.36)!important
-}
-body.app-page.page-app .main{
- min-width:0!important;padding:18px 20px 28px!important;background:transparent!important;
-}
-body.app-page.page-app .topbar{
- min-height:76px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
- gap:14px!important;padding:14px 22px!important;margin:0 0 20px!important;
- color:#fff!important;background:linear-gradient(110deg,rgba(12,78,143,.86),rgba(2,29,72,.88))!important;
- border:1px solid var(--edg-line)!important;border-radius:22px!important;
- box-shadow:0 10px 28px rgba(0,0,0,.28),0 0 20px rgba(0,165,255,.18),inset 0 1px 0 rgba(255,255,255,.26)!important;
- -webkit-backdrop-filter:blur(22px) saturate(150%)!important;backdrop-filter:blur(22px) saturate(150%)!important
-}
-body.app-page.page-app .topbar :is(h1,p,.academic-kicker,.school-identity){color:#f5f9ff!important;-webkit-text-fill-color:#f5f9ff!important}
-body.app-page.page-app .topbar-title h1{font-size:clamp(22px,2.5vw,30px)!important;text-shadow:0 0 14px rgba(91,197,255,.4)!important}
-body.app-page.page-app .academic-pill{color:#fff!important;background:rgba(0,122,239,.32)!important;border:1px solid rgba(170,226,255,.58)!important;border-radius:999px!important}
-body.app-page.page-app #appMain #dashboard.view.active{display:block!important;background:transparent!important;border:0!important;box-shadow:none!important}
-body.app-page.page-app #appMain #dashboard>.campus-hero{
- position:relative!important;isolation:isolate!important;overflow:hidden!important;min-height:220px!important;
- display:grid!important;grid-template-columns:minmax(0,1.35fr) minmax(190px,.65fr)!important;align-items:center!important;gap:20px!important;
- padding:28px 32px!important;margin:0 0 18px!important;color:#fff!important;
- background:radial-gradient(ellipse at 85% 18%,rgba(0,188,255,.38),transparent 18rem),linear-gradient(120deg,rgba(9,76,149,.96),rgba(2,24,66,.96))!important;
- border:1px solid rgba(132,220,255,.86)!important;border-radius:25px!important;
- box-shadow:0 16px 42px rgba(0,0,0,.30),0 0 25px rgba(0,156,255,.25),inset 0 1px 0 rgba(255,255,255,.35)!important
-}
-body.app-page.page-app #appMain #dashboard>.campus-hero:after{
- content:"";position:absolute;z-index:-1;inset:auto -5% -68px 25%;height:130px;transform:rotate(-7deg);
- border:2px solid rgba(0,198,255,.7);border-radius:50%;box-shadow:0 0 22px rgba(0,184,255,.55),0 -12px 0 -8px rgba(255,255,255,.55)
-}
-body.app-page.page-app #appMain #dashboard>.campus-hero :is(.campus-label,h2,p){color:#f5f9ff!important;-webkit-text-fill-color:#f5f9ff!important}
-body.app-page.page-app #appMain #dashboard>.campus-hero .campus-label{font-weight:800!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#aeeaff!important}
-body.app-page.page-app #appMain #dashboard>.campus-hero h2{font-size:clamp(25px,3vw,39px)!important;line-height:1.15!important;text-shadow:0 3px 14px rgba(0,0,0,.38),0 0 18px rgba(0,177,255,.42)!important}
-body.app-page.page-app #appMain #dashboard>.campus-hero p{max-width:680px!important;color:#d8eaff!important}
-body.app-page.page-app #appMain #dashboard .campus-hero-actions{display:flex!important;flex-wrap:wrap!important;gap:10px!important}
-body.app-page.page-app #appMain #dashboard .campus-hero-actions button,
-body.app-page.page-app #appMain #dashboard .quick-actions button{
- color:#fff!important;background:linear-gradient(115deg,#087fe8,#064aa9)!important;border:1px solid rgba(170,231,255,.75)!important;
- border-radius:14px!important;box-shadow:0 6px 18px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.3)!important
-}
-body.app-page.page-app #appMain #dashboard .campus-visual{
- min-height:150px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
- padding:18px!important;color:#fff!important;text-align:center!important;
- background:linear-gradient(145deg,rgba(47,155,236,.30),rgba(1,24,65,.65))!important;
- border:1px solid rgba(190,231,255,.65)!important;border-radius:22px!important;
- box-shadow:0 0 25px rgba(0,165,255,.24),inset 0 1px 0 rgba(255,255,255,.28)!important
-}
-body.app-page.page-app #appMain #dashboard .campus-visual .campus-icon{font-size:62px!important;filter:drop-shadow(0 0 15px rgba(0,198,255,.7))!important}
-body.app-page.page-app #appMain #dashboard .campus-visual :is(strong,span){color:#fff!important;-webkit-text-fill-color:#fff!important}
-body.app-page.page-app #appMain #dashboard>.cards{
- display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;margin:0 0 18px!important
-}
-body.app-page.page-app #appMain #dashboard .card{
- min-width:0!important;color:#f5f9ff!important;
- background:linear-gradient(145deg,rgba(22,94,159,.78),rgba(3,30,74,.86))!important;
- border:1px solid rgba(159,221,255,.67)!important;border-radius:20px!important;
- box-shadow:0 12px 28px rgba(0,0,0,.24),0 0 16px rgba(0,150,255,.15),inset 0 1px 0 rgba(255,255,255,.25)!important;
- -webkit-backdrop-filter:blur(18px) saturate(145%)!important;backdrop-filter:blur(18px) saturate(145%)!important
-}
-body.app-page.page-app #appMain #dashboard .card :is(h2,h3,p,span,strong){color:#f4f8ff!important;-webkit-text-fill-color:#f4f8ff!important}
-body.app-page.page-app #appMain #dashboard .card.stat{min-height:124px!important;display:flex!important;flex-direction:column!important;justify-content:center!important}
-body.app-page.page-app #appMain #dashboard .card.stat span{font-size:14px!important;color:#d8edff!important}
-body.app-page.page-app #appMain #dashboard .card.stat strong{font-size:clamp(25px,3vw,36px)!important;text-shadow:0 0 16px rgba(95,203,255,.52)!important}
-body.app-page.page-app #appMain #dashboard>.grid-2{display:grid!important;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)!important;gap:16px!important}
-body.app-page.page-app #appMain #dashboard>.grid-2>.card{min-height:230px!important}
-body.app-page.page-app #appMain #dashboard>.grid-2>.card h2{font-size:22px!important;text-shadow:0 0 12px rgba(100,200,255,.4)!important}
-body.app-page.page-app #appMain #dashboard .quick-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-body.app-page.page-app #appMain #dashboard .quick-actions button{min-height:54px!important;text-align:left!important}
-body.app-page.page-app #appMain #dashboard #activityList{color:#e7f4ff!important}
-body.app-page.page-app #appMain #dashboard :is(.muted,.coverage-note){color:#c8def3!important}
-body.app-page.page-app #appMain :is(.view:not(#dashboard),.view:not(#dashboard) .card){
- color:#f4f8ff!important
-}
-body.app-page.page-app #appMain .view:not(#dashboard) .card{
- background:var(--edg-panel)!important;border:1px solid var(--edg-line)!important;border-radius:20px!important;
- box-shadow:0 12px 30px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.22)!important
-}
-body.app-page.page-app #appMain .view:not(#dashboard) :is(h1,h2,h3,p,label,small){color:#edf7ff}
-body.app-page.page-app #appMain input:not([type=checkbox]):not([type=radio]),
-body.app-page.page-app #appMain select,body.app-page.page-app #appMain textarea{
- color:#102c4b!important;background:rgba(245,250,255,.97)!important;border:1px solid rgba(126,198,245,.8)!important
-}
-@media(max-width:1100px){
- body.app-page.page-app .app-shell{grid-template-columns:260px minmax(0,1fr)!important}
- body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-}
-@media(max-width:760px){
- body.app-page.page-app .app-shell{display:block!important}
- body.app-page.page-app .sidebar{
-  position:fixed!important;z-index:1000!important;left:0!important;top:0!important;width:min(310px,88vw)!important;
-  height:100dvh!important;max-height:100dvh!important;border-radius:0 22px 22px 0!important;
-  transform:translateX(-105%);transition:transform .24s ease!important;overflow:hidden!important
- }
- body.app-page.page-app .sidebar.mobile-nav-open{transform:translateX(0)!important}
- body.app-page.page-app .main{padding:10px!important}
- body.app-page.page-app .topbar{min-height:64px!important;padding:11px 14px!important;border-radius:16px!important;margin-bottom:12px!important}
- body.app-page.page-app #appMain #dashboard>.campus-hero{grid-template-columns:1fr!important;padding:21px!important;gap:14px!important}
- body.app-page.page-app #appMain #dashboard .campus-visual{min-height:112px!important}
- body.app-page.page-app #appMain #dashboard>.cards{gap:9px!important}
- body.app-page.page-app #appMain #dashboard .card{padding:14px!important;border-radius:16px!important}
- body.app-page.page-app #appMain #dashboard>.grid-2{grid-template-columns:1fr!important}
-}
-@media(max-width:390px){
- body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
- body.app-page.page-app #appMain #dashboard .quick-actions{grid-template-columns:1fr!important}
-}
-@media(prefers-reduced-motion:reduce){body.app-page.page-app .sidebar{transition:none!important}}
-
-/* Reference alignment refinement — preserve the live dashboard's real metrics and role-based navigation. */
-body.app-page.page-app .app-shell{
-  grid-template-columns:300px minmax(0,1fr)!important;
-}
-body.app-page.page-app .sidebar{
-  padding:22px 14px 14px!important;
-  box-shadow:8px 0 34px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.24),0 0 30px rgba(0,151,255,.28)!important;
-}
-body.app-page.page-app .sidebar .brand-logo-frame{
-  width:112px!important;height:88px!important;
-}
-body.app-page.page-app .sidebar .sidebar-wordmark strong{
-  font-size:30px!important;letter-spacing:-.025em!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group{
-  background:linear-gradient(145deg,rgba(15,82,145,.36),rgba(2,27,66,.34))!important;
-  border-color:rgba(134,207,255,.24)!important;
-}
-body.app-page.page-app .sidebar #nav .nav-item{
-  min-height:39px!important;font-size:13.5px!important;padding:8px 11px!important;
-}
-body.app-page.page-app .topbar{
-  min-height:82px!important;border-radius:24px!important;
-  box-shadow:0 10px 28px rgba(0,0,0,.28),0 0 24px rgba(0,165,255,.22),0 2px 0 rgba(255,214,107,.24),inset 0 1px 0 rgba(255,255,255,.28)!important;
-}
-body.app-page.page-app #appMain #dashboard>.campus-hero{
-  min-height:242px!important;padding:30px 34px!important;border-radius:27px!important;
-  box-shadow:0 16px 42px rgba(0,0,0,.30),0 0 28px rgba(0,156,255,.30),0 2px 0 rgba(255,214,107,.28),inset 0 1px 0 rgba(255,255,255,.38)!important;
-}
-body.app-page.page-app #appMain #dashboard>.cards{
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;
-}
-body.app-page.page-app #appMain #dashboard .card.stat{
-  min-height:138px!important;padding:18px 16px!important;text-align:center!important;
-  background:linear-gradient(150deg,rgba(29,112,184,.82),rgba(3,31,75,.92))!important;
-  border-color:rgba(177,229,255,.78)!important;
-  box-shadow:0 10px 25px rgba(0,0,0,.25),0 0 18px rgba(0,158,255,.22),0 2px 0 rgba(255,214,107,.30),inset 0 1px 0 rgba(255,255,255,.32)!important;
-}
-body.app-page.page-app #appMain #dashboard .card.stat span{
-  font-size:14px!important;font-weight:700!important;letter-spacing:.01em!important;
-}
-body.app-page.page-app #appMain #dashboard .card.stat strong{
-  font-size:clamp(27px,2.6vw,37px)!important;line-height:1.12!important;
-}
-body.app-page.page-app #appMain #dashboard>.grid-2>.card{
-  border-radius:24px!important;border-color:rgba(177,229,255,.72)!important;
-  box-shadow:0 12px 30px rgba(0,0,0,.26),0 0 20px rgba(0,158,255,.18),0 2px 0 rgba(255,214,107,.22),inset 0 1px 0 rgba(255,255,255,.30)!important;
-}
-body.app-page.page-app #appMain #dashboard>.grid-2>.card h2{
-  display:flex!important;align-items:center!important;gap:10px!important;
-  padding-bottom:10px!important;border-bottom:1px solid rgba(177,229,255,.30)!important;
-}
-body.app-page.page-app #appMain #dashboard .quick-actions button{
-  min-height:62px!important;padding:12px 14px!important;border-radius:17px!important;
-  background:linear-gradient(145deg,rgba(25,113,194,.88),rgba(4,46,105,.94))!important;
-  border-color:rgba(190,232,255,.76)!important;
-  box-shadow:0 7px 18px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.30)!important;
-}
-body.app-page.page-app #appMain #dashboard #activityList{
-  line-height:1.55!important;
-}
-@media(max-width:1100px){
-  body.app-page.page-app .app-shell{grid-template-columns:260px minmax(0,1fr)!important}
-}
-@media(max-width:760px){
-  body.app-page.page-app .sidebar{width:min(310px,88vw)!important}
-  body.app-page.page-app .topbar{min-height:68px!important}
-  body.app-page.page-app #appMain #dashboard>.campus-hero{min-height:0!important;padding:22px!important}
-  body.app-page.page-app #appMain #dashboard .card.stat{min-height:112px!important}
-}
-@media(prefers-reduced-motion:reduce){
-  body.app-page.page-app .sidebar{transition:none!important}
-}
-
-/* Keep the mobile drawer above its dismissible backdrop so navigation remains clickable. */
-@media(max-width:760px){
-  body.app-page.page-app .sidebar,
-  body.app-page.page-app .sidebar.mobile-nav-open{
-    z-index:1002!important;
-  }
-  body.app-page.page-app .sidebar .mobile-nav-close{
-    position:absolute!important;
-    z-index:4!important;
-    pointer-events:auto!important;
-  }
-  body.app-page.page-app #eduMobileNavBackdrop{
-    z-index:1001!important;
-  }
-}
-
-
-/* Student admission form: retain the approved blue-glass page while giving key fields
-   gentle, distinct pastel surfaces for faster scanning. Text contrast stays dark. */
-body.app-page.page-app #appMain :is(#studentName,#fatherName,#studentClass,#studentSection,#studentPhone,#studentBForm){
-  color:#102c4b!important;
-  border-color:rgba(126,174,220,.82)!important;
-}
-body.app-page.page-app #appMain #studentName{background-color:#edf6ff!important}
-body.app-page.page-app #appMain #fatherName{background-color:#f3efff!important}
-body.app-page.page-app #appMain #studentClass{background-color:#eaf8f1!important}
-body.app-page.page-app #appMain #studentSection{background-color:#fff4e8!important}
-body.app-page.page-app #appMain #studentPhone{background-color:#fff9df!important}
-body.app-page.page-app #appMain #studentBForm{background-color:#ffeff2!important}
-
-
-/* Render the six admission-field treatments as subtle gradients. The visual QA
-   inspects computed background-image values, not only background-color. */
-body.app-page.page-app #appMain #studentName{background:linear-gradient(135deg,#edf6ff 0%,#dceeff 100%)!important}
-body.app-page.page-app #appMain #fatherName{background:linear-gradient(135deg,#f3efff 0%,#e8ddff 100%)!important}
-body.app-page.page-app #appMain #studentClass{background:linear-gradient(135deg,#eaf8f1 0%,#d9f1e5 100%)!important}
-body.app-page.page-app #appMain #studentSection{background:linear-gradient(135deg,#fff4e8 0%,#ffe8d2 100%)!important}
-body.app-page.page-app #appMain #studentPhone{background:linear-gradient(135deg,#fff9df 0%,#fff0b9 100%)!important}
-body.app-page.page-app #appMain #studentBForm{background:linear-gradient(135deg,#ffeff2 0%,#ffdae2 100%)!important}
-
-
-/* Final-cascade mobile drawer state.
-   This file loads after the general Blue Glass theme, so the open-state
-   transform must be asserted here to override the compact closed transform. */
-@media (max-width:1100px) and (hover:none) and (pointer:coarse) {
-  body.app-page.page-app.edu-mobile-nav-open .sidebar.mobile-nav-open {
-    position:fixed!important;
-    left:0!important;top:0!important;right:auto!important;bottom:0!important;
-    width:min(340px,90vw)!important;max-width:90vw!important;
-    height:100dvh!important;max-height:100dvh!important;
-    transform:translate3d(0,0,0)!important;
-    visibility:visible!important;
-    z-index:1002!important;
-  }
-  body.app-page.page-app.edu-mobile-nav-open .sidebar .mobile-nav-close {
-    position:absolute!important;top:16px!important;right:14px!important;
-    display:grid!important;visibility:visible!important;
-    width:44px!important;height:44px!important;
-    z-index:1004!important;pointer-events:auto!important;
-  }
-  body.app-page.page-app.edu-mobile-nav-open #eduMobileNavBackdrop {
-    position:fixed!important;inset:0!important;z-index:1001!important;
-  }
-}
-
-
-/* Premium accordion navigation refinement — visual-only, keeps native details/summary behavior. */
-body.app-page.page-app .sidebar #nav{scroll-behavior:smooth!important;overscroll-behavior:contain!important}
-body.app-page.page-app .sidebar #nav .nav-group{
-  position:relative!important;overflow:hidden!important;margin:0 0 9px!important;padding:3px!important;
-  border:1px solid rgba(89,190,255,.34)!important;border-radius:16px!important;
-  background:linear-gradient(145deg,rgba(12,83,151,.42),rgba(2,24,59,.72))!important;
-  box-shadow:0 5px 16px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.10)!important;
-  transition:border-color .2s ease,box-shadow .2s ease,background .2s ease!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group[open]{
-  border-color:rgba(0,205,255,.88)!important;
-  background:linear-gradient(145deg,rgba(5,87,158,.58),rgba(2,26,65,.88))!important;
-  box-shadow:0 0 0 1px rgba(0,174,255,.18),0 0 19px rgba(0,157,255,.22),inset 0 1px 0 rgba(255,255,255,.18)!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary{
-  min-height:45px!important;grid-template-columns:30px minmax(0,1fr) 22px!important;
-  gap:9px!important;padding:7px 11px!important;border-radius:12px!important;
-  background:linear-gradient(100deg,rgba(14,102,178,.18),rgba(3,38,86,.12))!important;
-  transition:background .2s ease!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary>span{
-  display:grid!important;place-items:center!important;width:28px!important;height:28px!important;
-  border:1px solid rgba(125,220,255,.35)!important;border-radius:9px!important;
-  color:#d9f6ff!important;background:linear-gradient(145deg,rgba(0,177,255,.34),rgba(0,74,168,.22))!important;
-  font-size:15px!important;box-shadow:0 0 10px rgba(0,162,255,.18)!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary>strong{
-  font-size:13px!important;font-weight:800!important;letter-spacing:.015em!important;
-  color:#f2f9ff!important;-webkit-text-fill-color:#f2f9ff!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary>small{
-  display:grid!important;place-items:center!important;width:21px!important;height:21px!important;
-  border-radius:50%!important;color:#b9eaff!important;background:rgba(0,153,255,.18)!important;
-  font-size:15px!important;transition:transform .2s ease,background .2s ease!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group[open]>summary>small{
-  transform:rotate(180deg)!important;background:rgba(0,190,255,.28)!important;color:#fff!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group-items{
-  position:relative!important;display:grid!important;gap:4px!important;
-  margin:3px 2px 3px!important;padding:7px 6px 8px 11px!important;
-  border:1px solid rgba(91,190,255,.25)!important;border-radius:12px!important;
-  background:linear-gradient(180deg,rgba(0,18,48,.48),rgba(3,43,87,.36))!important;
-  box-shadow:inset 0 1px 7px rgba(0,0,0,.18)!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group-items:before{
-  content:"";position:absolute;left:5px;top:12px;bottom:12px;width:2px;border-radius:2px;
-  background:linear-gradient(180deg,#00d9ff,rgba(0,122,255,.12))!important;
-  box-shadow:0 0 8px rgba(0,198,255,.55)!important;
-}
-body.app-page.page-app .sidebar #nav .nav-item{
-  position:relative!important;min-height:40px!important;padding:9px 10px 9px 13px!important;
-  border:1px solid transparent!important;border-radius:10px!important;
-  font-size:13px!important;font-weight:650!important;letter-spacing:.005em!important;
-  transition:background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease!important;
-}
-body.app-page.page-app .sidebar #nav .nav-item:hover,
-body.app-page.page-app .sidebar #nav .nav-item:focus-visible{
-  transform:translateX(2px)!important;background:rgba(0,142,255,.22)!important;
-  border-color:rgba(113,211,255,.45)!important;box-shadow:inset 3px 0 0 #00c8ff!important;
-}
-body.app-page.page-app .sidebar #nav .nav-item.active{
-  transform:none!important;background:linear-gradient(100deg,#078dff,#0755c7)!important;
-  border-color:rgba(168,235,255,.92)!important;
-  box-shadow:0 0 16px rgba(0,165,255,.40),inset 3px 0 0 #b7f3ff,inset 0 1px 0 rgba(255,255,255,.34)!important;
-}
-@media(max-width:760px){
-  body.app-page.page-app .sidebar #nav .nav-group{margin-bottom:8px!important}
-  body.app-page.page-app .sidebar #nav .nav-group>summary{min-height:47px!important}
-  body.app-page.page-app .sidebar #nav .nav-item{min-height:42px!important;font-size:13.5px!important}
-}
-@media(prefers-reduced-motion:reduce){
-  body.app-page.page-app .sidebar #nav .nav-group,
-  body.app-page.page-app .sidebar #nav .nav-group>summary>small,
-  body.app-page.page-app .sidebar #nav .nav-item{transition:none!important}
-}
-
-
-/* Mobile accordion affordance: use a CSS-drawn chevron so it remains visible
-   even when inherited small-text styles or emoji fonts suppress the glyph. */
-body.app-page.page-app .sidebar #nav .nav-group>summary{
-  position:relative!important;
-  display:grid!important;
-  grid-template-columns:30px minmax(0,1fr) 28px!important;
-  align-items:center!important;
-  padding-right:10px!important;
-  min-height:49px!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary>small{
-  display:none!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary::after{
-  content:""!important;
-  display:block!important;
-  justify-self:center!important;
-  width:9px!important;height:9px!important;
-  border-right:2.5px solid #8feaff!important;
-  border-bottom:2.5px solid #8feaff!important;
-  border-radius:1px!important;
-  transform:translateY(-2px) rotate(45deg)!important;
-  filter:drop-shadow(0 0 4px rgba(0,205,255,.85))!important;
-  transition:transform .2s ease,border-color .2s ease!important;
-  pointer-events:none!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group[open]>summary::after{
-  transform:translateY(2px) rotate(225deg)!important;
-  border-color:#ffffff!important;
-}
-@media(max-width:760px){
-  body.app-page.page-app .sidebar #nav .nav-group>summary{
-    min-height:52px!important;
-    grid-template-columns:30px minmax(0,1fr) 30px!important;
-  }
-  body.app-page.page-app .sidebar #nav .nav-group>summary::after{
-    width:10px!important;height:10px!important;border-width:3px!important;
-  }
-}
-
-
-/* Phase 28 — shared role dashboard finish.
-   The dashboard shell is shared by Admin, Teacher, Parent and Student.
-   Keep this visual layer role-agnostic: role-dashboard.js continues to supply
-   the correct live cards, shortcuts and activity for each signed-in role. */
-body.app-page.page-app #appMain #dashboard.view.active{
-  width:100%!important;max-width:none!important;min-width:0!important;
-}
-body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,#familyDashboard,.family-dashboard,.dashboard-panel){
-  color:#f4f9ff!important;
-  background:linear-gradient(145deg,rgba(20,91,160,.76),rgba(3,28,69,.88))!important;
-  border:1px solid rgba(159,221,255,.67)!important;border-radius:20px!important;
-  box-shadow:0 12px 28px rgba(0,0,0,.24),0 0 16px rgba(0,150,255,.15),inset 0 1px 0 rgba(255,255,255,.25)!important;
-  -webkit-backdrop-filter:blur(18px) saturate(145%)!important;
-  backdrop-filter:blur(18px) saturate(145%)!important;
-}
-body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,#familyDashboard,.family-dashboard) :is(h2,h3,h4,p,span,strong,small,label){
-  color:#f1f7ff!important;-webkit-text-fill-color:#f1f7ff!important;
-}
-body.app-page.page-app #appMain #dashboard .role-quick-actions button,
-body.app-page.page-app #appMain #dashboard [data-admin-jump]{
-  min-width:0!important;min-height:58px!important;padding:12px 14px!important;
-  color:#fff!important;-webkit-text-fill-color:#fff!important;
-  background:linear-gradient(145deg,rgba(25,113,194,.88),rgba(4,46,105,.94))!important;
-  border:1px solid rgba(190,232,255,.76)!important;border-radius:15px!important;
-  box-shadow:0 7px 18px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.30)!important;
-}
-body.app-page.page-app #appMain #dashboard .role-quick-actions button :is(strong,small),
-body.app-page.page-app #appMain #dashboard [data-admin-jump] :is(strong,small){
-  color:#fff!important;-webkit-text-fill-color:#fff!important;
-}
-body.app-page.page-app #appMain #dashboard .dashboard-quick-head{
-  background:transparent!important;border:0!important;box-shadow:none!important;
-}
-body.app-page.page-app #appMain #dashboard #activityList,
-body.app-page.page-app #appMain #dashboard #activityList *{
-  color:#e7f4ff!important;-webkit-text-fill-color:#e7f4ff!important;
-}
-body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,.family-dashboard) button{
-  border-radius:12px!important;
-}
-@media(max-width:760px){
-  body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,#familyDashboard,.family-dashboard){
-    padding:14px!important;border-radius:17px!important;
-  }
-  body.app-page.page-app #appMain #dashboard .role-quick-actions{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  }
-}
-@media(max-width:390px){
-  body.app-page.page-app #appMain #dashboard .role-quick-actions{
-    grid-template-columns:1fr!important;
-  }
-}
-
-
-/* Phase 28 QA repair — keep Admin Daily Desk actions in the blue-glass family.
-   The shared quick-action rule above must not turn these compact cards into
-   saturated slabs; use a bright frosted surface with readable navy text. */
-body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions>button{
-  min-width:0!important;min-height:94px!important;padding:13px!important;
-  color:#12365b!important;-webkit-text-fill-color:#12365b!important;
-  background-color:rgba(239,248,255,.94)!important;
-  background-image:linear-gradient(145deg,rgba(255,255,255,.98) 0%,rgba(222,240,255,.94) 100%)!important;
-  border:1px solid rgba(64,151,218,.34)!important;border-radius:17px!important;
-  box-shadow:0 9px 22px rgba(0,45,92,.10),inset 0 1px 0 rgba(255,255,255,.92)!important;
-  text-shadow:none!important;filter:none!important;
-  -webkit-backdrop-filter:blur(14px) saturate(125%)!important;
-  backdrop-filter:blur(14px) saturate(125%)!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions>button:nth-child(4n+2){
-  background-image:linear-gradient(145deg,rgba(247,252,255,.98),rgba(225,241,255,.96))!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions>button:nth-child(4n+3){
-  background-image:linear-gradient(145deg,rgba(255,255,255,.98),rgba(235,245,255,.96))!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions>button:nth-child(4n+4){
-  background-image:linear-gradient(145deg,rgba(248,252,255,.98),rgba(226,239,255,.96))!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>strong{
-  color:#12365b!important;-webkit-text-fill-color:#12365b!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>small{
-  color:#52708d!important;-webkit-text-fill-color:#52708d!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions>button>span:not(.admin-action-count){
-  color:#087ac7!important;background:rgba(0,133,220,.10)!important;
-}
-
-
-/* Phase 29 — finish the inner role-dashboard surfaces.
-   The shared outer panels were already glass; this styles the dynamically
-   rendered Admin metrics and the nested Parent/Student/Teacher student cards. */
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-stats{
-  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important;margin:14px 0!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-stats>div{
-  min-width:0!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:7px!important;
-  min-height:88px!important;padding:13px 12px!important;border:1px solid rgba(157,220,255,.48)!important;border-radius:15px!important;
-  background:linear-gradient(145deg,rgba(34,117,184,.48),rgba(3,34,78,.70))!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 7px 18px rgba(0,0,0,.14)!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-stats>div>span{
-  color:#d7ecff!important;-webkit-text-fill-color:#d7ecff!important;font-size:12px!important;font-weight:700!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-stats>div>strong{
-  color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:clamp(19px,2vw,27px)!important;line-height:1.1!important;
-  overflow-wrap:anywhere!important;text-shadow:0 0 13px rgba(83,202,255,.38)!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions{
-  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:11px!important;margin:14px 0!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .paper-grid{
-  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .paper-grid>.card{
-  min-width:0!important;padding:17px!important;border:1px solid rgba(159,221,255,.58)!important;border-radius:19px!important;
-  background:linear-gradient(145deg,rgba(19,83,145,.72),rgba(3,27,66,.88))!important;
-  box-shadow:0 10px 25px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.20)!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .paper-grid>.card h3{
-  color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:20px!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .paper-grid>.card .mini-badge{
-  display:inline-flex!important;align-items:center!important;max-width:100%!important;margin:0 6px 7px 0!important;padding:6px 9px!important;
-  border:1px solid rgba(139,213,255,.44)!important;border-radius:999px!important;
-  color:#e5f5ff!important;-webkit-text-fill-color:#e5f5ff!important;background:rgba(0,132,225,.22)!important;font-size:11px!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .pp-stats{
-  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin:13px 0!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .pp-stats article{
-  min-width:0!important;padding:11px!important;border:1px solid rgba(176,224,255,.48)!important;border-radius:13px!important;
-  background:linear-gradient(145deg,rgba(224,243,255,.96),rgba(199,228,250,.94))!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.85)!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .pp-stats article span{
-  display:block!important;color:#496783!important;-webkit-text-fill-color:#496783!important;font-size:11px!important;font-weight:750!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .pp-stats article strong{
-  display:block!important;margin-top:4px!important;color:#12365b!important;-webkit-text-fill-color:#12365b!important;
-  font-size:clamp(18px,2vw,24px)!important;line-height:1.15!important;overflow-wrap:anywhere!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .paper-actions{
-  display:flex!important;flex-wrap:wrap!important;gap:7px!important;margin-top:12px!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .paper-actions button{
-  min-height:37px!important;padding:8px 11px!important;border:1px solid rgba(157,220,255,.58)!important;border-radius:11px!important;
-  color:#fff!important;-webkit-text-fill-color:#fff!important;background:linear-gradient(135deg,#087fe8,#064aa9)!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .empty-state{
-  min-height:135px!important;padding:20px!important;border:1px dashed rgba(151,220,255,.58)!important;border-radius:16px!important;
-  color:#e1f1ff!important;background:rgba(5,35,79,.50)!important;
-}
-body.app-page.page-app #appMain #dashboard #familyDashboard .empty-state *{
-  color:#e1f1ff!important;-webkit-text-fill-color:#e1f1ff!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk>.section-head .badge,
-body.app-page.page-app #appMain #dashboard #familyDashboard>.section-head .badge{
-  flex-shrink:0!important;color:#eaf7ff!important;-webkit-text-fill-color:#eaf7ff!important;
-  background:rgba(0,142,230,.25)!important;border:1px solid rgba(146,218,255,.55)!important;
-}
-@media(max-width:1000px){
-  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-stats{grid-template-columns:repeat(3,minmax(0,1fr))!important}
-  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}
-}
-@media(max-width:760px){
-  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  body.app-page.page-app #appMain #dashboard #familyDashboard .paper-grid{grid-template-columns:1fr!important}
-  body.app-page.page-app #appMain #dashboard #familyDashboard .paper-grid>.card{padding:14px!important}
-}
-@media(max-width:360px){
-  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-stats,
-  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions{grid-template-columns:1fr!important}
-  body.app-page.page-app #appMain #dashboard #familyDashboard .pp-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-}
-
-
-/* Phase 30 — mobile dashboard visual QA repairs from 02 Nov screenshots.
-   Keep the open navigation drawer distinct from dashboard content and ensure
-   light Admin action tiles always use readable dark typography. */
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button,
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button :is(strong,small,span){
-  color:#12365b!important;-webkit-text-fill-color:#12365b!important;
-  text-shadow:none!important;opacity:1!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button>small{
-  color:#52708d!important;-webkit-text-fill-color:#52708d!important;
-  font-size:12px!important;font-weight:650!important;line-height:1.35!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button>strong{
-  color:#12365b!important;-webkit-text-fill-color:#12365b!important;
-  font-size:14px!important;font-weight:800!important;line-height:1.25!important;
-}
-body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button>span:not(.admin-action-count){
-  color:#087ac7!important;-webkit-text-fill-color:#087ac7!important;
-}
-@media(max-width:760px){
-  body.app-page.page-app #appMain{min-width:0!important;width:100%!important}
-  body.app-page.page-app .main{width:100%!important;min-width:0!important;overflow-x:clip!important}
-  body.app-page.page-app #appMain #dashboard,
-  body.app-page.page-app #appMain #dashboard>*{max-width:100%!important;min-width:0!important}
-  body.app-page.page-app.edu-mobile-nav-open #eduMobileNavBackdrop{
-    background:rgba(0,10,28,.68)!important;
-    -webkit-backdrop-filter:blur(3px)!important;backdrop-filter:blur(3px)!important;
-  }
-  body.app-page.page-app.edu-mobile-nav-open .sidebar.mobile-nav-open{
-    width:min(320px,86vw)!important;max-width:86vw!important;
-    box-shadow:12px 0 38px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.22)!important;
-  }
-  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  }
-  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions>button{
-    min-height:82px!important;padding:11px!important;overflow-wrap:anywhere!important;
-  }
-}
-@media(max-width:390px){
-  body.app-page.page-app #appMain #dashboard #adminDailyDesk .admin-daily-actions{
-    grid-template-columns:1fr!important;
-  }
-}
-
-
-/* Phase 31 — screenshot-driven contrast correction.
-   The earlier shared dashboard text rule targets every descendant and wins
-   against the first narrow override in some browser cascade combinations.
-   Match the full Admin desk selector chain and explicitly reset text paint. */
-html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button{
-  color:#12365b!important;
-  -webkit-text-fill-color:#12365b!important;
-  opacity:1!important;filter:none!important;text-shadow:none!important;
-}
-html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > strong,
-html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > small,
-html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > span:not(.admin-action-count){
-  color:#12365b!important;
-  -webkit-text-fill-color:#12365b!important;
-  opacity:1!important;filter:none!important;text-shadow:none!important;
-  mix-blend-mode:normal!important;
-}
-html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > strong{
-  display:block!important;font-size:14px!important;font-weight:800!important;line-height:1.25!important;
-}
-html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > small{
-  display:block!important;margin-top:4px!important;font-size:12px!important;font-weight:650!important;line-height:1.35!important;
-}
-html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button > span:not(.admin-action-count){
-  color:#087ac7!important;-webkit-text-fill-color:#087ac7!important;
-}
-@media(max-width:760px){
-  html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;
-  }
-  html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions > button{
-    min-height:86px!important;padding:12px!important;
-  }
-}
-@media(max-width:390px){
-  html body.app-page.page-app #appMain #dashboard #adminDailyDesk.admin-daily-desk .admin-daily-actions{
-    grid-template-columns:1fr!important;
-  }
-}
-
-/* Phase 31 — remove the mobile dashboard's reserved sticky-header gap.
-   The topbar sits in normal flow on compact screens; the dashboard begins
-   immediately below it instead of leaving a tall blue-only strip above content. */
-@media(max-width:760px){
-  html body.app-page.page-app .main{
-    padding-top:8px!important;
-  }
-  html body.app-page.page-app #appMain>.topbar{
-    position:relative!important;
-    top:auto!important;
-    margin:0 0 12px!important;
-    min-height:60px!important;
-  }
-  html body.app-page.page-app #appMain #dashboard.view.active{
-    margin-top:0!important;
-    padding-top:0!important;
-  }
-  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
-    margin-top:0!important;
-  }
-}
-
-
-/* Phase 32 — make sidebar accordion arrows unmistakable at every size.
-   Native details/summary remains responsible for opening and closing groups. */
-body.app-page.page-app .sidebar #nav .nav-group>summary{
-  grid-template-columns:30px minmax(0,1fr) 34px!important;
-  min-height:52px!important;padding-right:5px!important;
-  border:1px solid transparent!important;
-  transition:background .18s ease,border-color .18s ease!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary:hover,
-body.app-page.page-app .sidebar #nav .nav-group>summary:focus-visible{
-  background:rgba(0,157,255,.20)!important;
-  border-color:rgba(143,226,255,.42)!important;outline:none!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group>summary::after{
-  width:11px!important;height:11px!important;
-  border-right:3px solid #b8f1ff!important;border-bottom:3px solid #b8f1ff!important;
-  filter:drop-shadow(0 0 5px rgba(0,205,255,.95))!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group[open]>summary{
-  background:linear-gradient(100deg,rgba(0,137,255,.28),rgba(0,81,173,.16))!important;
-  border-color:rgba(143,226,255,.32)!important;
-}
-body.app-page.page-app .sidebar #nav .nav-group[open]>summary::after{
-  border-color:#fff!important;filter:drop-shadow(0 0 6px rgba(255,255,255,.8))!important;
-}
-@media(max-width:760px){
-  body.app-page.page-app .sidebar #nav .nav-group>summary{
-    min-height:54px!important;grid-template-columns:32px minmax(0,1fr) 38px!important;
-  }
-  body.app-page.page-app .sidebar #nav .nav-group>summary::after{
-    width:12px!important;height:12px!important;border-width:3px!important;
-  }
-}
-
-
-/* Mobile appearance final fix — collapse reserved space above the dashboard.
-   #appMain is the actual <main> element (not a nested wrapper). Keep its
-   first child in normal flow and remove inherited top offsets on small screens. */
-@media (max-width:760px){
-  html body.app-page.page-app main#appMain.main{
-    box-sizing:border-box!important;
-    margin:0!important;
-    padding:8px 10px max(24px,env(safe-area-inset-bottom))!important;
-    min-height:0!important;
-    height:auto!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar{
-    position:relative!important;
-    inset:auto!important;
-    display:flex!important;
-    align-items:center!important;
-    gap:8px!important;
-    margin:0 0 10px!important;
-    padding:10px 12px!important;
-    min-height:0!important;
-    height:auto!important;
-  }
-  html body.app-page.page-app main#appMain.main>#dashboard.view.active{
-    display:block!important;
-    margin:0!important;
-    padding:0!important;
-    min-height:0!important;
-  }
-  html body.app-page.page-app main#appMain.main>#dashboard.view.active>.campus-hero{
-    margin:0!important;
-  }
-}
-
-
-/* Screenshot-driven mobile readability and footer alignment repair — 02 Nov 2026.
-   Keep the blue-glass shell, but give intentionally light information panels
-   dark readable text. The public footer must use the full mobile viewport. */
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts.admin-attendance-alerts{
-  color:#12365b!important;
-  background:linear-gradient(145deg,rgba(238,248,255,.96),rgba(205,229,249,.94))!important;
-  border:1px solid rgba(126,190,231,.78)!important;
-  border-top:3px solid #28a9e8!important;
-  box-shadow:0 10px 26px rgba(0,20,55,.18),inset 0 1px 0 rgba(255,255,255,.9)!important;
-}
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts :is(h2,h3,p,.muted,.academic-kicker){
-  color:#173d60!important;-webkit-text-fill-color:#173d60!important;
-  opacity:1!important;text-shadow:none!important;
-}
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-counts>div,
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-columns>div{
-  background:rgba(255,255,255,.88)!important;
-  border:1px solid rgba(99,153,195,.35)!important;
-  color:#173d60!important;
-}
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-counts span,
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-person :is(strong,small),
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-columns .muted{
-  color:#496783!important;-webkit-text-fill-color:#496783!important;
-  opacity:1!important;text-shadow:none!important;
-}
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-counts strong,
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-columns h3,
-html body.app-page.page-app #appMain #dashboard #adminAttendanceAlerts .attendance-alert-person strong{
-  color:#12365b!important;-webkit-text-fill-color:#12365b!important;
-  opacity:1!important;text-shadow:none!important;
-}
-html body.app-page.page-app #appMain #dashboard #dashboardAccessApprovalCard{
-  color:#12365b!important;
-}
-html body.app-page.page-app #appMain #dashboard #dashboardAccessApprovalCard .coverage-note,
-html body.app-page.page-app #appMain #dashboard #dashboardAccessApprovalCard .coverage-note strong{
-  color:#496783!important;-webkit-text-fill-color:#496783!important;
-  opacity:1!important;text-shadow:none!important;
-}
-@media(max-width:760px){
-  html body.app-page.page-app footer.seo-footer{
-    display:flex!important;flex-direction:column!important;align-items:flex-start!important;
-    width:100%!important;max-width:100%!important;box-sizing:border-box!important;
-    margin:0!important;padding:18px 14px!important;gap:12px!important;
-    overflow-wrap:anywhere!important;
-  }
-  html body.app-page.page-app footer.seo-footer nav{
-    display:flex!important;flex-wrap:wrap!important;gap:10px 14px!important;
-    width:100%!important;min-width:0!important;
-  }
-  html body.app-page.page-app footer.seo-footer nav a{max-width:100%!important;}
-}
-
-
-/* Phase 39 — screenshot-led premium dashboard finish.
-   Presentation-only: preserve live role data, existing controls and navigation. */
-body.app-page.page-app .sidebar{
-  border:1px solid rgba(117,218,255,.82)!important;
-  box-shadow:8px 0 34px rgba(0,0,0,.34),0 0 26px rgba(0,174,255,.34),inset 0 1px 0 rgba(255,255,255,.32)!important;
-}
-body.app-page.page-app .sidebar .brand-logo-frame{
-  filter:drop-shadow(0 0 12px rgba(0,194,255,.38));
-}
-body.app-page.page-app .sidebar .sidebar-wordmark strong{
-  text-shadow:0 2px 8px rgba(255,255,255,.35),0 0 20px rgba(0,190,255,.62)!important;
-}
-body.app-page.page-app .topbar{
-  position:relative!important;overflow:hidden!important;
-  border-color:rgba(155,229,255,.92)!important;
-  background:linear-gradient(105deg,rgba(8,76,145,.94),rgba(2,24,65,.96) 72%,rgba(4,55,112,.94))!important;
-  box-shadow:0 10px 30px rgba(0,0,0,.30),0 0 24px rgba(0,165,255,.28),0 2px 0 rgba(255,211,107,.42),inset 0 1px 0 rgba(255,255,255,.38)!important;
-}
-body.app-page.page-app .topbar:before,
-body.app-page.page-app #appMain #dashboard>.campus-hero:before{
-  content:""!important;position:absolute!important;inset:0 0 auto!important;height:2px!important;
-  background:linear-gradient(90deg,transparent,#7ceaff,#fff,#ffd77a,#00bfff,transparent)!important;
-  box-shadow:0 0 16px rgba(0,203,255,.92)!important;pointer-events:none!important;
-}
-body.app-page.page-app #appMain #dashboard>.campus-hero{
-  border-color:rgba(145,226,255,.94)!important;
-  background:
-    radial-gradient(ellipse at 82% 18%,rgba(0,200,255,.42),transparent 22rem),
-    linear-gradient(120deg,rgba(8,82,161,.97),rgba(2,23,65,.97) 72%,rgba(4,54,111,.96))!important;
-  box-shadow:0 16px 42px rgba(0,0,0,.32),0 0 30px rgba(0,156,255,.34),0 2px 0 rgba(255,214,107,.34),inset 0 1px 0 rgba(255,255,255,.42)!important;
-}
-body.app-page.page-app #appMain #dashboard>.campus-hero h2{
-  text-shadow:0 3px 14px rgba(0,0,0,.46),0 0 20px rgba(0,177,255,.58),0 2px 0 rgba(255,210,120,.55)!important;
-}
-body.app-page.page-app #appMain #dashboard .campus-visual{
-  background:radial-gradient(ellipse at 50% 30%,rgba(0,184,255,.30),transparent 68%),linear-gradient(145deg,rgba(35,139,219,.34),rgba(1,20,59,.78))!important;
-  border-color:rgba(174,231,255,.78)!important;
-}
-body.app-page.page-app #appMain #dashboard .card,
-body.app-page.page-app #appMain #dashboard :is(.admin-daily-desk,#familyDashboard,.family-dashboard,.dashboard-panel){
-  border-color:rgba(160,226,255,.78)!important;
-  box-shadow:0 12px 28px rgba(0,0,0,.27),0 0 18px rgba(0,150,255,.22),0 2px 0 rgba(255,214,107,.22),inset 0 1px 0 rgba(255,255,255,.34)!important;
-}
-body.app-page.page-app #appMain #dashboard .card.stat{
-  background:linear-gradient(150deg,rgba(34,122,197,.88),rgba(3,29,74,.96))!important;
-}
-body.app-page.page-app #appMain #dashboard .quick-actions button,
-body.app-page.page-app #appMain #dashboard .role-quick-actions button,
-body.app-page.page-app #appMain #dashboard [data-admin-jump]{
-  position:relative!important;overflow:hidden!important;
-  border-color:rgba(185,235,255,.88)!important;
-  background:linear-gradient(145deg,rgba(31,130,211,.94),rgba(3,48,111,.98))!important;
-  box-shadow:0 7px 18px rgba(0,0,0,.24),0 0 12px rgba(0,167,255,.20),inset 0 1px 0 rgba(255,255,255,.40)!important;
-  transition:transform .18s ease,box-shadow .18s ease,filter .18s ease!important;
-}
-body.app-page.page-app #appMain #dashboard .quick-actions button:hover,
-body.app-page.page-app #appMain #dashboard .role-quick-actions button:hover,
-body.app-page.page-app #appMain #dashboard [data-admin-jump]:hover{
-  transform:translateY(-2px)!important;filter:brightness(1.12)!important;
-  box-shadow:0 10px 22px rgba(0,0,0,.28),0 0 20px rgba(0,183,255,.38),inset 0 1px 0 rgba(255,255,255,.48)!important;
-}
-body.app-page.page-app #appMain #dashboard>.grid-2>.card h2{
-  text-shadow:0 0 14px rgba(100,200,255,.54),0 1px 0 rgba(255,211,117,.28)!important;
-}
-body.app-page.page-app #appMain #dashboard #activityList :is(div,li){
-  border-color:rgba(177,225,255,.30)!important;
-}
-@media(max-width:760px){
-  body.app-page.page-app .main{padding:10px!important}
-  body.app-page.page-app .topbar{
-    border-radius:17px!important;box-shadow:0 8px 22px rgba(0,0,0,.28),0 0 17px rgba(0,165,255,.22),inset 0 1px 0 rgba(255,255,255,.34)!important;
-  }
-  body.app-page.page-app #appMain #dashboard>.campus-hero{
-    padding:18px!important;border-radius:19px!important;gap:12px!important;
-  }
-  body.app-page.page-app #appMain #dashboard>.cards{gap:9px!important}
-  body.app-page.page-app #appMain #dashboard .card{border-radius:17px!important}
-}
-@media(prefers-reduced-motion:reduce){
-  body.app-page.page-app #appMain #dashboard .quick-actions button,
-  body.app-page.page-app #appMain #dashboard .role-quick-actions button,
-  body.app-page.page-app #appMain #dashboard [data-admin-jump]{transition:none!important}
-}
-
-
-/* Phase 40 — compact authenticated mobile header.
-   The mobile menu control is fixed at 14px/14px by mobile-nav-core.js;
-   reserve its own lane so it never covers the page title. */
-@media (max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar{
-    box-sizing:border-box!important;
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:stretch!important;
-    justify-content:flex-start!important;
-    gap:4px!important;
-    min-height:0!important;
-    height:auto!important;
-    margin:0 0 10px!important;
-    padding:10px 10px 10px 68px!important;
-    border-radius:15px!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
-    display:flex!important;
-    flex:0 1 auto!important;
-    flex-direction:column!important;
-    align-items:flex-start!important;
-    justify-content:center!important;
-    width:100%!important;
-    min-width:0!important;
-    gap:2px!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar .academic-kicker{
-    margin:0!important;
-    font-size:9px!important;
-    line-height:1.2!important;
-    letter-spacing:.07em!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar #page-title{
-    margin:0!important;
-    font-size:clamp(20px,6vw,25px)!important;
-    line-height:1.12!important;
-    overflow-wrap:anywhere!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar .school-identity{
-    margin:1px 0 0!important;
-    min-height:0!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar .school-identity p{
-    margin:0!important;
-    font-size:11px!important;
-    line-height:1.2!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    display:flex!important;
-    flex:0 1 auto!important;
-    flex-direction:row!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    gap:6px!important;
-    width:auto!important;
-    height:30px!important;
-    min-height:30px!important;
-    max-height:30px!important;
-    min-width:0!important;
-    max-width:48%!important;
-    align-self:center!important;
-    overflow:visible!important;
-    margin:0!important;
-    padding:0!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #roleSession{
-    display:flex!important;
-    align-items:center!important;
-    gap:5px!important;
-    max-width:100%!important;
-    padding:5px 7px!important;
-    border-radius:12px!important;
-    font-size:11px!important;
-    line-height:1.1!important;
-    white-space:nowrap!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #roleSession button{
-    padding:3px 6px!important;
-    font-size:10px!important;
-    line-height:1.1!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #installBtn{
-    display:none!important;
-  }
-  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
-    margin-top:0!important;
-  }
-}
-
-/* Phase 41 — compact mobile header composition.
-   Keep the role/logout control visible while removing the stacked title rows
-   that caused the 248px mobile header. Hamburger remains in its fixed left lane. */
-@media (max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr)!important;
-    grid-template-areas:"heading" "session"!important;
-    align-items:center!important;
-    justify-content:stretch!important;
-    gap:5px!important;
-    width:100%!important;
-    min-height:0!important;
-    height:auto!important;
-    padding:9px 10px 9px 68px!important;
-    margin:0 0 9px!important;
-    border-radius:14px!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
-    grid-area:heading!important;
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr)!important;
-    gap:1px!important;
-    width:100%!important;
-    min-width:0!important;
-    margin:0!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar .academic-kicker{
-    display:none!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar #page-title{
-    display:block!important;
-    margin:0!important;
-    font-size:clamp(19px,5.4vw,23px)!important;
-    line-height:1.08!important;
-    letter-spacing:-.025em!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar .school-identity{
-    display:flex!important;
-    align-items:center!important;
-    min-height:0!important;
-    margin:1px 0 0!important;
-    gap:5px!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar .school-identity p{
-    display:block!important;
-    max-width:100%!important;
-    margin:0!important;
-    font-size:10px!important;
-    line-height:1.15!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    grid-area:session!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:flex-start!important;
-    width:100%!important;
-    min-height:0!important;
-    margin:0!important;
-    padding:0!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>.academic-pill,
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#installBtn{
-    display:none!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:flex-start!important;
-    gap:7px!important;
-    width:max-content!important;
-    max-width:100%!important;
-    min-height:25px!important;
-    margin:0!important;
-    padding:2px 7px!important;
-    border-radius:999px!important;
-    font-size:10px!important;
-    line-height:1.1!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>strong{
-    min-width:0!important;
-    max-width:190px!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    font-size:10px!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
-    flex:0 0 auto!important;
-    min-height:22px!important;
-    margin:0!important;
-    padding:3px 7px!important;
-    border-radius:999px!important;
-    font-size:10px!important;
-    line-height:1!important;
-  }
-  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
-    margin-top:0!important;
-  }
-}
-
-
-/* Phase 42 — constrain injected session controls to a single compact row.
-   Browser QA traced the remaining 205px header to .topbar-actions (144px tall),
-   not the title or hamburger. Keep the session chip from expanding that row. */
-@media (max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    box-sizing:border-box!important;
-    display:flex!important;
-    flex:0 0 30px!important;
-    height:30px!important;
-    min-height:30px!important;
-    max-height:30px!important;
-    align-self:start!important;
-    align-items:center!important;
-    justify-content:flex-start!important;
-    flex-direction:row!important;
-    overflow:hidden!important;
-    padding:0!important;
-    margin:0!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
-    box-sizing:border-box!important;
-    display:inline-flex!important;
-    flex:0 0 auto!important;
-    flex-direction:row!important;
-    align-items:center!important;
-    height:26px!important;
-    min-height:26px!important;
-    max-height:26px!important;
-    padding:2px 7px!important;
-    margin:0!important;
-    line-height:1!important;
-    overflow:hidden!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
-    flex:0 0 auto!important;
-    min-height:0!important;
-    max-height:22px!important;
-    margin-top:0!important;
-    margin-bottom:0!important;
-    line-height:1.1!important;
-  }
-}
-
-
-/* Phase 43 — keep injected mobile session controls fully readable.
-   Phase 42 fixed the header height; the screenshot then exposed child controls
-   being clipped by the 22px max-height inherited from the compact chip rule. */
-@media(max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    overflow:visible!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
-    overflow:visible!important;
-    height:auto!important;
-    min-height:28px!important;
-    max-height:none!important;
-    align-items:center!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
-    height:auto!important;
-    min-height:24px!important;
-    max-height:none!important;
-    line-height:1.15!important;
-    overflow:visible!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
-    min-height:24px!important;
-    padding:4px 8px!important;
-  }
-}
-
-
-/* Phase 44 — prevent the topbar itself from clipping the session chip.
-   Phase 43 removed clipping on the chip and action row, but Phase 39 left
-   overflow:hidden on the parent topbar. Keep the compact header and allow
-   the session controls to remain fully visible inside its lower edge. */
-@media(max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar{
-    overflow:visible!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    position:relative!important;
-    z-index:2!important;
-  }
-}
-
-
-/* Phase 45 — keep the authenticated role/logout chip inside the mobile header.
-   The previous compact rules left .topbar-actions participating in an inherited
-   positioned layout, so the injected chip painted over the dashboard hero.
-   Restore it to normal grid flow and reserve a dedicated session row. */
-@media (max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr)!important;
-    grid-template-areas:"heading" "session"!important;
-    grid-auto-rows:min-content!important;
-    align-content:start!important;
-    row-gap:6px!important;
-    min-height:116px!important;
-    height:auto!important;
-    padding-bottom:9px!important;
-    overflow:visible!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    position:static!important;
-    inset:auto!important;
-    grid-area:session!important;
-    display:flex!important;
-    width:100%!important;
-    height:auto!important;
-    min-height:28px!important;
-    max-height:none!important;
-    flex:none!important;
-    align-self:start!important;
-    justify-self:stretch!important;
-    margin:0!important;
-    padding:0!important;
-    overflow:visible!important;
-    transform:none!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
-    position:static!important;
-    inset:auto!important;
-    transform:none!important;
-    flex:0 1 auto!important;
-    width:max-content!important;
-    max-width:100%!important;
-    margin:0!important;
-  }
-}
-
-
-/* Phase 46 — stable compact mobile dashboard header.
-   QA showed the action row expanding to 146px; keep the page title clear and
-   leave account actions in the existing navigation drawer on narrow screens. */
-@media(max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar{
-    display:flex!important;
-    flex-direction:row!important;
-    align-items:center!important;
-    min-height:76px!important;
-    height:auto!important;
-    padding:12px 12px 12px 68px!important;
-    gap:8px!important;
-    overflow:hidden!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
-    flex:1 1 auto!important;
-    width:auto!important;
-    min-width:0!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    display:flex!important;
-    flex:0 1 auto!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    gap:6px!important;
-    min-width:0!important;
-    max-width:48%!important;
-    margin:0!important;
-    padding:0!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #roleSession{
-    display:flex!important;
-    align-items:center!important;
-    gap:5px!important;
-    max-width:100%!important;
-    padding:5px 7px!important;
-    border-radius:12px!important;
-    font-size:11px!important;
-    line-height:1.1!important;
-    white-space:nowrap!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #roleSession button{
-    padding:3px 6px!important;
-    font-size:10px!important;
-    line-height:1.1!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions #installBtn{
-    display:none!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar #page-title{
-    font-size:clamp(18px,5vw,22px)!important;
-    line-height:1.12!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-  }
-  html body.app-page.page-app #appMain #dashboard.view.active>.campus-hero{
-    margin-top:0!important;
-  }
-}
-
-
-/* Phase 47 — final mobile header constraint.
-   Phase 46 still allowed the injected role-session child to stretch the
-   actions flex item. Lock the header and its action lane to measured compact
-   dimensions; keep title and logout visible without a second tall row. */
-@media (max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar{
-    box-sizing:border-box!important;
-    display:flex!important;
-    flex-direction:row!important;
-    align-items:center!important;
-    justify-content:space-between!important;
-    height:88px!important;
-    min-height:88px!important;
-    max-height:88px!important;
-    padding:10px 10px 10px 68px!important;
-    gap:8px!important;
-    overflow:visible!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
-    flex:1 1 0!important;
-    min-width:0!important;
-    max-height:54px!important;
-    overflow:hidden!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    position:static!important;
-    display:flex!important;
-    flex:0 0 auto!important;
-    flex-direction:row!important;
-    flex-wrap:nowrap!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    width:auto!important;
-    height:30px!important;
-    min-height:30px!important;
-    max-height:30px!important;
-    min-width:0!important;
-    max-width:48%!important;
-    align-self:center!important;
-    overflow:visible!important;
-    margin:0!important;
-    padding:0!important;
-    transform:none!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
-    display:flex!important;
-    flex-direction:row!important;
-    flex-wrap:nowrap!important;
-    align-items:center!important;
-    height:28px!important;
-    min-height:28px!important;
-    max-height:28px!important;
-    width:max-content!important;
-    max-width:100%!important;
-    padding:3px 6px!important;
-    margin:0!important;
-    overflow:hidden!important;
-    white-space:nowrap!important;
-    font-size:10px!important;
-    line-height:1!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
-    flex:0 0 auto!important;
-    min-height:0!important;
-    max-height:22px!important;
-    margin:0!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
-    height:22px!important;
-    padding:2px 5px!important;
-    font-size:10px!important;
-    line-height:1!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#installBtn{
-    display:none!important;
-  }
-}
-
-
-/* Phase 48 — keep mobile account controls from collapsing into vertical labels. */
-@media(max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    flex:0 1 44%!important;
-    width:44%!important;
-    max-width:44%!important;
-    min-width:0!important;
-    overflow:hidden!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
-    box-sizing:border-box!important;
-    display:flex!important;
-    width:100%!important;
-    max-width:100%!important;
-    min-width:0!important;
-    overflow:hidden!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>*{
-    writing-mode:horizontal-tb!important;
-    white-space:nowrap!important;
-    word-break:normal!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    min-width:0!important;
-    max-width:100%!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
-    flex:0 1 auto!important;
-    width:auto!important;
-    max-width:82px!important;
-    padding-inline:5px!important;
-  }
-}
-
-/* Phase 5 — mobile bottom-navigation clearance.
-   Preserve the previously browser-verified compact 88px header (Phases 46–48).
-   This phase only reserves safe-area-aware space for the fixed bottom nav. */
-@media (max-width:760px){
-  html body.app-page.page-app main#appMain.main{
-    padding-bottom:calc(104px + env(safe-area-inset-bottom))!important;
-  }
-  html body.app-page.page-app main#appMain.main #dashboard{
-    padding-bottom:calc(12px + env(safe-area-inset-bottom))!important;
-  }
-}
-
-/* Targeted reference finish — floating electric-blue glass dashboard.
-   Visual-only overrides: keep existing dashboard IDs, role widgets and actions. */
+  --en-bg-0:#031127;
+  --en-bg-1:#062653;
+  --en-bg-2:#0a4380;
+  --en-panel:rgba(7,37,78,.76);
+  --en-panel-strong:rgba(5,29,65,.91);
+  --en-panel-soft:rgba(25,91,151,.42);
+  --en-line:rgba(142,211,255,.30);
+  --en-line-strong:rgba(165,228,255,.62);
+  --en-text:#f4f9ff;
+  --en-muted:#c1d8ee;
+  --en-cyan:#56d9ff;
+  --en-blue:#1689ed;
+  --en-shadow:0 16px 38px rgba(0,8,29,.30),inset 0 1px 0 rgba(255,255,255,.13);
+}
+html{color-scheme:dark}
 html body.app-page.page-app{
   min-height:100%;
+  color:var(--en-text)!important;
   background:
-    radial-gradient(ellipse at 8% 0%,rgba(0,195,255,.34),transparent 34rem),
-    radial-gradient(ellipse at 92% 18%,rgba(0,111,255,.30),transparent 38rem),
-    linear-gradient(135deg,#010b20 0%,#052d62 52%,#010b20 100%)!important;
+    radial-gradient(ellipse at 12% 0%,rgba(0,184,255,.25),transparent 34rem),
+    radial-gradient(ellipse at 94% 12%,rgba(20,101,255,.23),transparent 38rem),
+    linear-gradient(135deg,var(--en-bg-0),var(--en-bg-1) 54%,#020d20)!important;
   background-attachment:fixed!important;
 }
+html body.app-page.page-app *{scrollbar-color:rgba(91,180,238,.55) rgba(2,18,43,.35)}
 html body.app-page.page-app .app-shell{
   box-sizing:border-box!important;
+  display:grid!important;
   grid-template-columns:276px minmax(0,1fr)!important;
-  gap:12px!important;
-  padding:12px!important;
+  align-items:start!important;
+  gap:15px!important;
   min-height:100vh!important;
+  padding:14px!important;
   background:transparent!important;
 }
 html body.app-page.page-app .app-shell>.sidebar{
   box-sizing:border-box!important;
   position:sticky!important;
-  top:12px!important;
-  height:calc(100vh - 24px)!important;
+  top:14px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:auto!important;
+  height:calc(100vh - 28px)!important;
   min-height:0!important;
   margin:0!important;
-  padding:16px 12px 12px!important;
-  border:1px solid rgba(139,224,255,.88)!important;
+  padding:17px 12px 12px!important;
+  overflow:hidden!important;
+  color:var(--en-text)!important;
+  background:linear-gradient(158deg,rgba(12,76,139,.96),rgba(3,22,54,.98) 76%)!important;
+  border:1px solid var(--en-line-strong)!important;
   border-radius:25px!important;
-  background:linear-gradient(155deg,rgba(8,76,145,.94),rgba(1,17,48,.97) 76%)!important;
-  box-shadow:0 12px 34px rgba(0,0,0,.38),0 0 26px rgba(0,174,255,.34),inset 0 1px 0 rgba(255,255,255,.32)!important;
+  box-shadow:0 18px 42px rgba(0,5,23,.36),0 0 28px rgba(0,160,255,.17),inset 0 1px 0 rgba(255,255,255,.22)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(145%)!important;
+  backdrop-filter:blur(24px) saturate(145%)!important;
+}
+html body.app-page.page-app .sidebar .brand{margin:0 4px 16px!important}
+html body.app-page.page-app .sidebar .brand-logo-frame{
+  border:1px solid rgba(178,230,255,.48)!important;
+  border-radius:15px!important;
+  background:rgba(255,255,255,.10)!important;
+  box-shadow:0 0 22px rgba(0,185,255,.20),inset 0 1px 0 rgba(255,255,255,.22)!important;
+}
+html body.app-page.page-app .sidebar .sidebar-wordmark :is(strong,.brand-edu,.brand-nizam),
+html body.app-page.page-app .sidebar .sidebar-wordmark small,
+html body.app-page.page-app .sidebar .sidebar-institute-copy :is(small,strong,span){
+  color:var(--en-text)!important;-webkit-text-fill-color:var(--en-text)!important;
+}
+html body.app-page.page-app .sidebar .sidebar-institute{
+  margin:4px 2px 13px!important;padding:12px!important;
+  color:var(--en-text)!important;
+  background:linear-gradient(135deg,rgba(53,139,207,.28),rgba(2,26,63,.54))!important;
+  border:1px solid rgba(159,220,255,.28)!important;border-radius:17px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+html body.app-page.page-app .sidebar #nav{
+  flex:1 1 auto!important;min-height:0!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  padding:2px 3px 20px!important;gap:8px!important;
+  scrollbar-width:thin!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group{
+  margin:0!important;padding:4px!important;
+  background:rgba(2,19,48,.25)!important;
+  border:1px solid rgba(163,221,255,.16)!important;border-radius:15px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07)!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group>summary{
+  display:flex!important;align-items:center!important;gap:9px!important;
+  min-height:43px!important;padding:9px 10px!important;
+  color:#eaf7ff!important;background:rgba(39,120,190,.13)!important;
+  border:1px solid transparent!important;border-radius:11px!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group>summary>strong{
+  flex:1 1 auto!important;color:#f3f9ff!important;font-size:12px!important;font-weight:800!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group>summary>small{color:#b8ddf7!important}
+html body.app-page.page-app .sidebar #nav .nav-group[open]>summary{
+  color:#fff!important;background:linear-gradient(110deg,rgba(0,159,255,.34),rgba(30,99,190,.24))!important;
+  border-color:rgba(121,211,255,.34)!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group-items{gap:4px!important;padding:5px 2px 3px!important}
+html body.app-page.page-app .sidebar #nav .nav-item{
+  display:flex!important;align-items:center!important;
+  width:100%!important;min-height:39px!important;padding:8px 10px!important;
+  color:#dceeff!important;-webkit-text-fill-color:#dceeff!important;
+  background:transparent!important;border:1px solid transparent!important;border-radius:10px!important;
+  font-size:11.5px!important;font-weight:650!important;text-align:left!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-item:is(:hover,:focus-visible){
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  background:rgba(50,151,226,.22)!important;border-color:rgba(151,222,255,.28)!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-item.active{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  background:linear-gradient(105deg,#087fd8,#1766c2)!important;
+  border-color:rgba(174,232,255,.68)!important;
+  box-shadow:0 7px 18px rgba(0,91,185,.28),0 0 16px rgba(0,177,255,.18),inset 0 1px 0 rgba(255,255,255,.28)!important;
 }
 html body.app-page.page-app .main{
-  box-sizing:border-box!important;
-  min-width:0!important;
-  padding:0 0 28px!important;
-  background:transparent!important;
+  min-width:0!important;padding:0 0 28px!important;background:transparent!important;
 }
 html body.app-page.page-app #appMain>.topbar{
-  box-sizing:border-box!important;
-  min-height:62px!important;
-  padding:10px 18px!important;
-  margin:0 0 12px!important;
-  border:1px solid rgba(139,224,255,.9)!important;
-  border-radius:22px!important;
-  background:linear-gradient(110deg,rgba(5,74,142,.94),rgba(1,23,62,.96) 72%,rgba(5,79,151,.92))!important;
-  box-shadow:0 8px 24px rgba(0,0,0,.30),0 0 22px rgba(0,174,255,.30),inset 0 1px 0 rgba(255,255,255,.34)!important;
+  box-sizing:border-box!important;position:relative!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:14px!important;min-height:72px!important;margin:0 0 15px!important;padding:12px 19px!important;
+  color:var(--en-text)!important;
+  background:linear-gradient(112deg,rgba(9,73,137,.91),rgba(3,25,63,.94) 72%,rgba(7,64,125,.90))!important;
+  border:1px solid var(--en-line-strong)!important;border-radius:21px!important;
+  box-shadow:var(--en-shadow),0 0 22px rgba(0,153,255,.13)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(145%)!important;backdrop-filter:blur(22px) saturate(145%)!important;
 }
-html body.app-page.page-app #appMain #dashboard.view.active{
-  padding:0!important;
+html body.app-page.page-app #appMain>.topbar :is(h1,p,.academic-kicker,.school-identity,.academic-pill){
+  color:var(--en-text)!important;-webkit-text-fill-color:var(--en-text)!important;
 }
+html body.app-page.page-app #appMain>.topbar #page-title{
+  margin:2px 0!important;font-size:clamp(21px,2.1vw,29px)!important;font-weight:850!important;letter-spacing:-.035em!important;
+  text-shadow:0 2px 14px rgba(89,199,255,.28)!important;
+}
+html body.app-page.page-app #appMain>.topbar .academic-kicker{
+  color:#9edfff!important;font-size:10px!important;font-weight:800!important;letter-spacing:.13em!important;text-transform:uppercase!important;
+}
+html body.app-page.page-app #appMain>.topbar>.topbar-actions{
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;
+  flex:0 0 auto!important;min-width:0!important;
+}
+html body.app-page.page-app #appMain>.topbar .academic-pill,
+html body.app-page.page-app #appMain>.topbar .session-chip{
+  color:#effaff!important;background:rgba(27,125,196,.27)!important;
+  border:1px solid rgba(158,224,255,.40)!important;border-radius:999px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15)!important;
+}
+html body.app-page.page-app #appMain #dashboard.view.active{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
 html body.app-page.page-app #appMain #dashboard>.campus-hero{
-  box-sizing:border-box!important;
-  min-height:164px!important;
-  grid-template-columns:minmax(0,1fr) minmax(170px,.48fr)!important;
-  gap:16px!important;
-  padding:22px 26px!important;
-  margin:0 0 12px!important;
-  border:1px solid rgba(147,226,255,.94)!important;
-  border-radius:24px!important;
-  background:
-    radial-gradient(ellipse at 88% 35%,rgba(0,201,255,.42),transparent 16rem),
-    linear-gradient(115deg,rgba(4,76,153,.98),rgba(1,24,68,.98) 68%,rgba(3,67,133,.96))!important;
-  box-shadow:0 12px 32px rgba(0,0,0,.32),0 0 25px rgba(0,164,255,.32),inset 0 1px 0 rgba(255,255,255,.40)!important;
+  box-sizing:border-box!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(180px,.42fr)!important;
+  align-items:center!important;gap:22px!important;min-height:190px!important;margin:0 0 15px!important;padding:27px 30px!important;
+  color:var(--en-text)!important;
+  background:radial-gradient(ellipse at 88% 25%,rgba(0,202,255,.26),transparent 19rem),linear-gradient(118deg,rgba(10,83,155,.93),rgba(3,26,68,.96) 70%,rgba(4,56,112,.92))!important;
+  border:1px solid rgba(160,226,255,.56)!important;border-radius:25px!important;
+  box-shadow:0 18px 40px rgba(0,8,29,.30),0 0 28px rgba(0,160,255,.16),inset 0 1px 0 rgba(255,255,255,.20)!important;
+  overflow:hidden!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero :is(h2,p,.campus-label){
+  color:#f5fbff!important;-webkit-text-fill-color:#f5fbff!important;
 }
 html body.app-page.page-app #appMain #dashboard>.campus-hero h2{
-  font-size:clamp(25px,3vw,38px)!important;
-  letter-spacing:-.035em!important;
+  max-width:760px!important;font-size:clamp(27px,3vw,40px)!important;line-height:1.08!important;letter-spacing:-.045em!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero p{max-width:720px!important;color:#d0e8fb!important;line-height:1.65!important}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-label{
+  color:#8ee8ff!important;font-size:11px!important;font-weight:850!important;letter-spacing:.14em!important;text-transform:uppercase!important;
 }
 html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{
-  min-height:118px!important;
-  border-radius:20px!important;
-  background:linear-gradient(145deg,rgba(48,164,255,.35),rgba(1,20,58,.72))!important;
-  border:1px solid rgba(190,237,255,.82)!important;
-  box-shadow:0 0 28px rgba(0,179,255,.30),inset 0 1px 0 rgba(255,255,255,.34)!important;
+  min-height:132px!important;padding:17px!important;color:#fff!important;
+  background:linear-gradient(145deg,rgba(76,174,237,.30),rgba(1,22,58,.62))!important;
+  border:1px solid rgba(181,231,255,.48)!important;border-radius:21px!important;
+  box-shadow:0 0 25px rgba(0,172,255,.20),inset 0 1px 0 rgba(255,255,255,.20)!important;
 }
 html body.app-page.page-app #appMain #dashboard>.cards{
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
-  gap:12px!important;
-  margin:0 0 12px!important;
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;margin:0 0 15px!important;
 }
-html body.app-page.page-app #appMain #dashboard .card.stat{
-  min-height:104px!important;
-  padding:15px 14px!important;
-  border:1px solid rgba(157,226,255,.86)!important;
-  border-radius:20px!important;
-  background:linear-gradient(145deg,rgba(27,119,191,.88),rgba(2,31,77,.96))!important;
-  box-shadow:0 9px 25px rgba(0,0,0,.30),0 0 18px rgba(0,169,255,.28),inset 0 1px 0 rgba(255,255,255,.38)!important;
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{
+  position:relative!important;isolation:isolate!important;overflow:hidden!important;min-width:0!important;min-height:126px!important;
+  padding:20px 18px!important;color:#fff!important;
+  background:radial-gradient(ellipse at 100% 0%,rgba(41,190,255,.24),transparent 60%),linear-gradient(145deg,rgba(22,102,171,.82),rgba(3,28,71,.94))!important;
+  border:1px solid rgba(160,224,255,.48)!important;border-radius:21px!important;
+  box-shadow:0 13px 30px rgba(0,7,28,.27),0 0 18px rgba(0,156,255,.13),inset 0 1px 0 rgba(255,255,255,.18)!important;
 }
-html body.app-page.page-app #appMain #dashboard .card.stat strong{
-  font-size:clamp(26px,2.6vw,35px)!important;
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:before{
+  content:"";position:absolute;z-index:-1;inset:0 0 auto;height:3px;
+  background:linear-gradient(90deg,transparent,#a5efff 48%,#168fff,transparent);box-shadow:0 0 13px rgba(0,190,255,.55);
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{
+  display:block!important;margin-bottom:12px!important;color:#cceaff!important;font-size:11px!important;font-weight:800!important;letter-spacing:.08em!important;text-transform:uppercase!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong{
+  display:block!important;color:#fff!important;font-size:clamp(27px,2.8vw,38px)!important;font-weight:900!important;line-height:1.08!important;letter-spacing:-.04em!important;text-shadow:0 2px 16px rgba(0,185,255,.38)!important;overflow-wrap:anywhere!important;
 }
 html body.app-page.page-app #appMain #dashboard>.grid-2{
-  grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)!important;
-  gap:12px!important;
+  display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)!important;gap:14px!important;
 }
-html body.app-page.page-app #appMain #dashboard>.grid-2>.card{
-  min-height:204px!important;
-  padding:17px!important;
-  border:1px solid rgba(157,226,255,.84)!important;
-  border-radius:22px!important;
-  background:linear-gradient(145deg,rgba(16,87,151,.91),rgba(2,27,69,.96))!important;
-  box-shadow:0 10px 28px rgba(0,0,0,.30),0 0 19px rgba(0,164,255,.24),inset 0 1px 0 rgba(255,255,255,.34)!important;
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card,
+html body.app-page.page-app #appMain .view:not(#dashboard) :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.empty-state,.notice-card),
+html body.app-page.page-app #appMain .view>.section-head:first-child{
+  color:var(--en-text)!important;
+  background:linear-gradient(145deg,rgba(15,73,130,.78),rgba(3,27,67,.88))!important;
+  border:1px solid var(--en-line)!important;border-radius:21px!important;
+  box-shadow:var(--en-shadow)!important;
+  -webkit-backdrop-filter:blur(17px) saturate(138%)!important;backdrop-filter:blur(17px) saturate(138%)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card{min-height:210px!important;padding:20px!important}
+html body.app-page.page-app #appMain .view :is(h1,h2,h3,h4,.section-title,.card-title){color:#f5fbff!important;-webkit-text-fill-color:#f5fbff!important}
+html body.app-page.page-app #appMain .view :is(p,label,small,.muted,.help-text,.form-hint,.empty-copy){color:var(--en-muted)!important}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card>h2{
+  padding-bottom:13px!important;border-bottom:1px solid rgba(155,220,255,.23)!important;font-size:20px!important;font-weight:850!important;
 }
 html body.app-page.page-app #appMain #dashboard .quick-actions button,
 html body.app-page.page-app #appMain #dashboard .campus-hero-actions button,
-html body.app-page.page-app #appMain #dashboard .role-quick-actions button,
-html body.app-page.page-app #appMain #dashboard [data-admin-jump]{
-  border:1px solid rgba(186,235,255,.86)!important;
-  border-radius:15px!important;
-  background:linear-gradient(120deg,rgba(28,142,226,.96),rgba(3,64,143,.98))!important;
-  box-shadow:0 6px 18px rgba(0,0,0,.25),0 0 14px rgba(0,174,255,.22),inset 0 1px 0 rgba(255,255,255,.38)!important;
-}
-@media(max-width:950px){
-  html body.app-page.page-app .app-shell{grid-template-columns:1fr!important;gap:0!important;padding:10px!important}
-  html body.app-page.page-app .app-shell>.sidebar{top:0!important;height:100dvh!important;margin:0!important}
-  html body.app-page.page-app .main{padding:0 0 110px!important}
-}
-@media(max-width:760px){
-  /* Keep the mobile drawer out of document flow; the later sticky desktop
-     sidebar rule otherwise reserves a full viewport of vertical space. */
-  html body.app-page.page-app .app-shell>.sidebar{
-    position:fixed!important;
-    left:0!important;
-    top:0!important;
-    width:min(310px,88vw)!important;
-    height:100dvh!important;
-    margin:0!important;
-  }
-  html body.app-page.page-app #appMain #dashboard>.campus-hero{grid-template-columns:1fr!important;padding:18px!important}
-  html body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  html body.app-page.page-app #appMain #dashboard>.grid-2{grid-template-columns:1fr!important}
-}
-@media(prefers-reduced-motion:reduce){
-  html body.app-page.page-app #appMain #dashboard :is(.card,.quick-actions button){transition:none!important}
-}
-
-
-
-/* Phase 49 — keep authenticated mobile controls readable and inside viewport.
-   The previous max-content sizing pushed Logout beyond the 390px viewport. */
-@media (max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    box-sizing:border-box!important;
-    flex:0 1 48%!important;
-    width:48%!important;
-    min-width:0!important;
-    max-width:48%!important;
-    overflow:visible!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
-    box-sizing:border-box!important;
-    display:inline-flex!important;
-    flex:0 1 auto!important;
-    flex-direction:row!important;
-    flex-wrap:nowrap!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    width:auto!important;
-    min-width:0!important;
-    max-width:100%!important;
-    gap:5px!important;
-    padding:4px 6px!important;
-    overflow:hidden!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>strong{
-    display:inline-block!important;
-    flex:1 1 auto!important;
-    width:auto!important;
-    min-width:0!important;
-    max-width:100%!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    white-space:nowrap!important;
-    word-break:normal!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
-    display:inline-flex!important;
-    flex:0 0 auto!important;
-    width:auto!important;
-    min-width:48px!important;
-    max-width:none!important;
-    white-space:nowrap!important;
-    justify-content:center!important;
-    padding:3px 6px!important;
-  }
-}
-
-/* Phase 50 — remove the decorative premium context badge from narrow app
-   screens. It was overlapping the account controls and intercepting Logout taps. */
-@media(max-width:520px){
-  html body.app-page.page-app #premiumContext{
-    display:none!important;
-    pointer-events:none!important;
-  }
-}
-
-
-/* Phase 51 — keep the real roleSession chip horizontal on compact phones.
-   The vertical badge in the rendered 390px screenshot is #roleSession, not
-   #premiumContext. Reserve space for Logout and prevent label word wrapping. */
-@media(max-width:520px){
-  html body.app-page.page-app main#appMain.main>.topbar{
-    align-items:center!important;
-    flex-wrap:nowrap!important;
-    gap:8px!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-title{
-    flex:1 1 auto!important;
-    min-width:0!important;
-    max-width:54%!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions{
-    flex:0 0 auto!important;
-    width:auto!important;
-    min-width:0!important;
-    max-width:46%!important;
-    margin-left:auto!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip{
-    display:inline-flex!important;
-    flex-direction:row!important;
-    flex-wrap:nowrap!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    width:auto!important;
-    max-width:100%!important;
-    min-width:0!important;
-    overflow:visible!important;
-    white-space:nowrap!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>strong{
-    display:block!important;
-    flex:0 1 auto!important;
-    width:auto!important;
-    min-width:0!important;
-    max-width:82px!important;
-    writing-mode:horizontal-tb!important;
-    white-space:nowrap!important;
-    word-break:keep-all!important;
-    overflow-wrap:normal!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-  }
-  html body.app-page.page-app main#appMain.main>.topbar>.topbar-actions>#roleSession.session-chip>button{
-    flex:0 0 auto!important;
-    min-width:52px!important;
-    width:auto!important;
-    white-space:nowrap!important;
-    writing-mode:horizontal-tb!important;
-    pointer-events:auto!important;
-    position:relative!important;
-    z-index:2!important;
-  }
-}
-
-
-/* Phase 9 — dashboard statistics and content-panel finish.
-   Decorative-only: preserve live metric values, IDs, actions and role visibility. */
-html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{
-  position:relative!important;
-  isolation:isolate!important;
-  overflow:hidden!important;
-  min-width:0!important;
-  padding:19px 17px 18px!important;
-  text-align:left!important;
-  background:
-    radial-gradient(ellipse at 100% 0%,rgba(31,190,255,.27),transparent 58%),
-    linear-gradient(145deg,rgba(20,111,185,.88),rgba(2,25,67,.96))!important;
-  border:1px solid rgba(166,226,255,.82)!important;
-  border-radius:21px!important;
-  box-shadow:0 12px 28px rgba(0,8,30,.30),0 0 19px rgba(0,158,255,.22),
-    inset 0 1px 0 rgba(255,255,255,.38)!important;
-  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease!important;
-}
-html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:before{
-  content:"";
-  position:absolute;
-  z-index:-1;
-  inset:0 0 auto;
-  height:3px;
-  background:linear-gradient(90deg,rgba(0,205,255,.15),#a9edff 48%,#168dff 82%,rgba(0,205,255,.12));
-  box-shadow:0 0 15px rgba(0,190,255,.65);
-  pointer-events:none;
-}
-html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:after{
-  content:"";
-  position:absolute;
-  z-index:-1;
-  width:118px;
-  height:118px;
-  right:-48px;
-  top:-58px;
-  border:1px solid rgba(177,233,255,.22);
-  border-radius:50%;
-  box-shadow:0 0 0 12px rgba(75,180,255,.035),0 0 0 25px rgba(75,180,255,.025);
-  pointer-events:none;
-}
-html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{
-  position:relative!important;
-  z-index:1!important;
-  display:block!important;
-  margin-bottom:9px!important;
-  color:#d9f0ff!important;
-  font-size:13px!important;
-  font-weight:750!important;
-  letter-spacing:.035em!important;
-  line-height:1.35!important;
-  text-transform:uppercase!important;
-}
-html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong{
-  position:relative!important;
-  z-index:1!important;
-  display:block!important;
+html body.app-page.page-app #appMain .view button:not(.nav-item):not(.icon-button):not(.mobile-nav-close),
+html body.app-page.page-app #appMain .view [role=button]{
   color:#fff!important;
-  font-size:clamp(25px,2.7vw,36px)!important;
-  font-weight:850!important;
-  line-height:1.08!important;
-  letter-spacing:-.025em!important;
-  text-shadow:0 2px 14px rgba(0,190,255,.48)!important;
-  overflow-wrap:anywhere!important;
+  background:linear-gradient(115deg,#1389df,#0752a9)!important;
+  border:1px solid rgba(172,230,255,.48)!important;border-radius:13px!important;
+  box-shadow:0 7px 18px rgba(0,8,30,.23),inset 0 1px 0 rgba(255,255,255,.18)!important;
 }
-html body.app-page.page-app #appMain #dashboard>.grid-2>.card{
-  position:relative!important;
-  overflow:hidden!important;
-  background:
-    radial-gradient(ellipse at 100% 0%,rgba(0,164,255,.17),transparent 48%),
-    linear-gradient(145deg,rgba(13,77,137,.91),rgba(2,24,64,.97))!important;
-  border:1px solid rgba(164,224,255,.78)!important;
-  box-shadow:0 14px 32px rgba(0,8,30,.29),0 0 20px rgba(0,145,255,.19),
-    inset 0 1px 0 rgba(255,255,255,.34)!important;
+html body.app-page.page-app #appMain .view :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  color:#173451!important;background:rgba(244,250,255,.96)!important;
+  border:1px solid rgba(128,194,237,.72)!important;border-radius:11px!important;
+  box-shadow:inset 0 1px 2px rgba(10,43,72,.06)!important;
 }
-html body.app-page.page-app #appMain #dashboard>.grid-2>.card>h2{
-  color:#f5fbff!important;
-  font-size:clamp(18px,1.8vw,22px)!important;
-  font-weight:800!important;
-  letter-spacing:-.015em!important;
-  padding-bottom:12px!important;
-  border-bottom:1px solid rgba(164,224,255,.30)!important;
+html body.app-page.page-app #appMain .view :is(input,select,textarea)::placeholder{color:#7189a0!important}
+html body.app-page.page-app #appMain .view :is(input,select,textarea):focus{
+  outline:2px solid rgba(65,194,255,.58)!important;outline-offset:1px!important;
 }
-html body.app-page.page-app #appMain #dashboard .quick-actions button{
-  min-height:58px!important;
-  padding:13px 15px!important;
-  color:#fff!important;
-  font-weight:750!important;
-  text-align:left!important;
-  background:linear-gradient(120deg,rgba(23,139,224,.94),rgba(3,54,125,.98))!important;
-  border:1px solid rgba(185,233,255,.76)!important;
-  border-radius:15px!important;
-  box-shadow:0 7px 18px rgba(0,8,30,.24),inset 0 1px 0 rgba(255,255,255,.32)!important;
-  transition:transform .18s ease,filter .18s ease,box-shadow .18s ease!important;
+html body.app-page.page-app #appMain .view :is(table,.data-table){
+  color:#eaf5ff!important;background:rgba(2,20,49,.24)!important;border-color:rgba(148,211,255,.22)!important;border-radius:13px!important;
 }
+html body.app-page.page-app #appMain .view :is(thead th,.data-table th){
+  color:#f4fbff!important;background:rgba(17,92,153,.66)!important;border-color:rgba(148,211,255,.24)!important;
+}
+html body.app-page.page-app #appMain .view :is(tbody td,.data-table td){
+  color:#dceeff!important;border-color:rgba(148,211,255,.16)!important;
+}
+html body.app-page.page-app #appMain .view :is(tbody tr:hover td,.data-table tr:hover td){background:rgba(39,139,207,.13)!important}
 html body.app-page.page-app #appMain #dashboard #activityList{
-  min-height:118px!important;
-  padding:13px 14px!important;
-  color:#e5f4ff!important;
-  line-height:1.6!important;
-  background:rgba(1,19,52,.25)!important;
-  border:1px solid rgba(160,220,255,.20)!important;
-  border-radius:14px!important;
+  min-height:125px!important;padding:15px!important;color:#dceeff!important;line-height:1.65!important;
+  background:rgba(1,19,48,.28)!important;border:1px solid rgba(153,215,255,.20)!important;border-radius:14px!important;
+}
+html body.app-page.page-app #appMain .view :is(.badge,.chip,.status-pill,.tag){
+  color:#eaf8ff!important;background:rgba(25,124,190,.25)!important;border:1px solid rgba(150,218,255,.30)!important;
 }
 @media(hover:hover) and (pointer:fine){
-  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:hover{
-    transform:translateY(-4px)!important;
-    border-color:rgba(204,244,255,.98)!important;
-    box-shadow:0 17px 34px rgba(0,8,30,.36),0 0 25px rgba(0,176,255,.34),
-      inset 0 1px 0 rgba(255,255,255,.48)!important;
-  }
-  html body.app-page.page-app #appMain #dashboard .quick-actions button:hover{
-    transform:translateY(-2px)!important;
-    filter:brightness(1.12)!important;
-    box-shadow:0 10px 22px rgba(0,8,30,.30),0 0 15px rgba(0,174,255,.25),
-      inset 0 1px 0 rgba(255,255,255,.4)!important;
-  }
+ html body.app-page.page-app #appMain .card,
+ html body.app-page.page-app #appMain #dashboard .quick-actions button{transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease!important}
+ html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:hover,
+ html body.app-page.page-app #appMain .view:not(#dashboard) .card:hover{transform:translateY(-3px)!important;border-color:rgba(184,235,255,.68)!important;box-shadow:0 19px 38px rgba(0,7,28,.34),0 0 22px rgba(0,157,255,.18)!important}
+}
+@media(max-width:1100px){
+ html body.app-page.page-app .app-shell{grid-template-columns:minmax(0,1fr)!important;gap:0!important;padding:10px!important}
+ html body.app-page.page-app .app-shell>.sidebar{
+  position:fixed!important;z-index:1000!important;left:0!important;top:0!important;
+  width:min(320px,88vw)!important;max-width:88vw!important;height:100dvh!important;max-height:100dvh!important;
+  border-radius:0 22px 22px 0!important;
+ }
+ html body.app-page.page-app .main{padding:0 0 112px!important}
+ html body.app-page.page-app #appMain>.topbar{margin-bottom:12px!important}
 }
 @media(max-width:760px){
-  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{
-    min-height:112px!important;
-    padding:16px 13px 15px!important;
-    border-radius:17px!important;
-  }
-  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{
-    font-size:11px!important;
-  }
-  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong{
-    font-size:clamp(22px,6vw,30px)!important;
-  }
-  html body.app-page.page-app #appMain #dashboard>.grid-2>.card{
-    border-radius:19px!important;
-  }
+ html body.app-page.page-app #appMain>.topbar{
+  min-height:68px!important;max-height:88px!important;flex-wrap:nowrap!important;gap:7px!important;
+  padding:9px 11px!important;border-radius:16px!important;overflow:hidden!important;
+ }
+ html body.app-page.page-app #appMain>.topbar>.topbar-title{
+  flex:1 1 auto!important;min-width:0!important;max-width:54%!important;max-height:64px!important;overflow:hidden!important;
+ }
+ html body.app-page.page-app #appMain>.topbar .academic-kicker{display:none!important}
+ html body.app-page.page-app #appMain>.topbar #page-title{font-size:20px!important;line-height:1.12!important}
+ html body.app-page.page-app #appMain>.topbar .school-identity{max-height:20px!important;overflow:hidden!important}
+ html body.app-page.page-app #appMain>.topbar>.topbar-actions{
+  flex:0 0 auto!important;width:auto!important;max-width:46%!important;min-width:0!important;margin-left:auto!important;
+  flex-wrap:nowrap!important;overflow:visible!important;
+ }
+ html body.app-page.page-app #appMain>.topbar>.topbar-actions>.academic-pill,
+ html body.app-page.page-app #appMain>.topbar>.topbar-actions>#installBtn{display:none!important}
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  display:inline-flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-end!important;
+  width:auto!important;max-width:100%!important;min-width:0!important;gap:5px!important;padding:4px 6px!important;overflow:visible!important;white-space:nowrap!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  display:block!important;flex:0 1 auto!important;min-width:0!important;max-width:72px!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;word-break:normal!important;writing-mode:horizontal-tb!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{
+  display:inline-flex!important;flex:0 0 auto!important;min-width:50px!important;max-width:none!important;
+  padding:4px 7px!important;white-space:nowrap!important;writing-mode:horizontal-tb!important;position:relative!important;z-index:2!important;
+ }
+ html body.app-page.page-app #premiumContext{display:none!important;pointer-events:none!important}
+ html body.app-page.page-app #appMain #dashboard>.campus-hero{grid-template-columns:1fr!important;min-height:0!important;padding:20px!important}
+ html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{min-height:95px!important}
+ html body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+ html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{min-height:108px!important;padding:15px 13px!important;border-radius:17px!important}
+ html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{font-size:10px!important}
+ html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong{font-size:clamp(23px,6vw,30px)!important}
+ html body.app-page.page-app #appMain #dashboard>.grid-2{grid-template-columns:1fr!important;gap:10px!important}
+ html body.app-page.page-app #appMain .view:not(#dashboard) :is(.card,.panel,.section-card,.content-card,.table-card,.form-card){border-radius:16px!important}
+ html body.app-page.page-app #appMain .view :is(table,.data-table){display:block!important;max-width:100%!important;overflow-x:auto!important}
+}
+@media(max-width:380px){
+ html body.app-page.page-app #appMain>.topbar #page-title{font-size:18px!important}
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{max-width:52px!important}
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{min-width:46px!important;padding-inline:5px!important}
+}
+@media(max-width:350px){
+ html body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:1fr!important}
 }
 @media(prefers-reduced-motion:reduce){
-  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat,
-  html body.app-page.page-app #appMain #dashboard .quick-actions button{
-    transition:none!important;
-  }
+ html body.app-page.page-app #appMain *,
+ html body.app-page.page-app .sidebar *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
