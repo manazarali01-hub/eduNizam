@@ -1227,6 +1227,7 @@ if(!heroImage)fail.push('Homepage hero image element is missing.');
 else{
  if(!/src=["']assets\/themes\/digital-learning\.svg["']/.test(heroImage[1]))fail.push('Homepage hero must use the repository-local digital learning artwork.');
  if(!/alt=["'][^"']+/.test(heroImage[1]))fail.push('Homepage hero artwork needs meaningful alternative text.');
+ if(!/width=["']1200["']/.test(heroImage[1])||!/height=["']900["']/.test(heroImage[1]))fail.push('Homepage hero dimensions must match the SVG 4:3 intrinsic viewBox.');
  if(/pexels\.com|unsplash\.com/.test(heroImage[1]))fail.push('Homepage hero must not depend on a third-party image host.');
 }
 if(!heroAsset.trimStart().startsWith('<svg')||!heroAsset.includes('</svg>'))fail.push('Local homepage hero SVG is missing or malformed.');
