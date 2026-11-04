@@ -21,12 +21,35 @@ try{
   browser=await chromium.launch(launch);
   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+  await page.addInitScript(()=>localStorage.setItem('edunizam_session',JSON.stringify({role:'admin'})));
   await page.goto('http://127.0.0.1:'+port+'/app.html',{waitUntil:'domcontentloaded',timeout:20000});
   await page.waitForSelector('#eduMobileMenuBtn',{timeout:12000});
   await page.waitForSelector('#nav.nav-groups',{state:'attached',timeout:12000});
   // Keep this focused navigation test independent of the dashboard's school-auth gate.
   // The gate is covered by separate auth tests; here we exercise the drawer's own controls.
   await page.addStyleTag({content:'#cloudAuthScreen{display:none!important;pointer-events:none!important}'});
+  await page.waitForSelector('#roleSession',{timeout:7000});
+  await page.waitForSelector('#accountSecurityButton',{timeout:7000});
+  for(const width of [390,320]){
+    await page.setViewportSize({width,height:844});
+    const header=await page.evaluate(()=>{
+      const top=document.querySelector('#appMain>.topbar');
+      const title=document.querySelector('#appMain>.topbar>.topbar-title');
+      const heading=document.querySelector('#appMain>.topbar #page-title');
+      const actions=document.querySelector('#appMain>.topbar>.topbar-actions');
+      const session=document.querySelector('#roleSession');
+      const account=document.querySelector('#accountSecurityButton');
+      const rect=n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}};
+      return {top:rect(top),title:rect(title),heading:rect(heading),actions:rect(actions),session:rect(session),account:rect(account),actionsScroll:actions.scrollWidth,actionsClient:actions.clientWidth};
+    });
+    if(header.heading.width<65||header.heading.height<18)throw new Error('Mobile page title is hidden/clipped at '+width+'px: '+JSON.stringify(header));
+    if(header.title.bottom>header.actions.top+1)throw new Error('Mobile title overlaps account controls at '+width+'px: '+JSON.stringify(header));
+    if(header.actionsScroll>header.actionsClient+2)throw new Error('Mobile account controls overflow at '+width+'px: '+JSON.stringify(header));
+    if(header.account.height>40||header.account.width>106)throw new Error('Mobile account button wraps/expands at '+width+'px: '+JSON.stringify(header));
+    if(header.account.right>header.top.right-3)throw new Error('Mobile account button exceeds topbar at '+width+'px: '+JSON.stringify(header));
+    console.log('Mobile topbar layout QA passed at '+width+'px:',JSON.stringify(header));
+  }
+  await page.setViewportSize({width:390,height:844});
   const menu=page.locator('#eduMobileMenuBtn');
   if(!(await menu.isVisible()))throw new Error('Mobile menu button is not visible at 390px');
   await menu.click();
