@@ -87,3 +87,43 @@ body.auth-page .tab.active{color:#fff!important;-webkit-text-fill-color:#fff!imp
   body.gold-home.page-home .public-hero{border-radius:22px!important}
   body.learning-sky.page-learning :is(.hero-card,.quick-card,.card,.side-card,.resource-card){border-radius:18px!important}
 }
+
+
+/* Phase 15 — force the homepage headline out of legacy gold gradient text.
+   The old background-clip:text rule survives on the h1 and defeats inherited
+   text-fill colors; reset it explicitly while preserving the cyan emphasis. */
+body.gold-home.page-home .hero-copy h1{
+  color:#f4f9ff!important;
+  -webkit-text-fill-color:#f4f9ff!important;
+  background:none!important;
+  background-image:none!important;
+  -webkit-background-clip:border-box!important;
+  background-clip:border-box!important;
+  text-shadow:0 2px 16px rgba(0,12,38,.22)!important;
+}
+body.gold-home.page-home .hero-copy h1 .hero-gold{
+  color:#70dcff!important;
+  -webkit-text-fill-color:#70dcff!important;
+  background:none!important;
+  -webkit-background-clip:border-box!important;
+  background-clip:border-box!important;
+}
+
+/* Phase 15 follow-up — override the more specific legacy reconstruction rules. */
+html body.gold-home.page-home .public-hero.premium-public-hero .hero-copy h1,
+html body.gold-home.page-home .public-hero.premium-public-hero .hero-copy h1:not(.hero-gold){
+  color:#f4f9ff!important;
+  -webkit-text-fill-color:#f4f9ff!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  -webkit-background-clip:unset!important;
+  background-clip:unset!important;
+}
+html body.gold-home.page-home .public-hero.premium-public-hero .hero-copy h1 .hero-gold{
+  color:#70dcff!important;
+  -webkit-text-fill-color:#70dcff!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  -webkit-background-clip:unset!important;
+  background-clip:unset!important;
+}
