@@ -1,0 +1,89 @@
+/* EduNizam Phase 14 — public-page contrast and glass consistency.
+   Loaded last on public/auth routes so legacy light-theme rules cannot wash out text.
+   CSS only: no navigation, auth, form, role, or data behavior changes. */
+:root{
+  --en-p14-glass:linear-gradient(145deg,rgba(18,83,151,.90),rgba(5,30,75,.94));
+  --en-p14-line:rgba(151,211,255,.58);
+  --en-p14-text:#f4f9ff;
+  --en-p14-muted:#d6e9fb;
+}
+body.gold-home.page-home .hero-copy,
+body.gold-home.page-home .public-hero,
+body.gold-home.page-home .quick-access-card,
+body.gold-home.page-home .role-preview,
+body.gold-home.page-home .preview-window,
+body.gold-home.page-home .experience-strip,
+body.gold-home.page-home .role-showcase,
+body.gold-home.page-home .value-section,
+body.gold-home.page-home .learning-band,
+body.gold-home.page-home .public-card,
+body.gold-home.page-home .resource-card{
+  color:var(--en-p14-text)!important;
+  background:var(--en-p14-glass)!important;
+  border:1px solid var(--en-p14-line)!important;
+  box-shadow:0 16px 40px rgba(0,9,35,.30),inset 0 1px 0 rgba(255,255,255,.18)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+  backdrop-filter:blur(22px) saturate(145%)!important;
+}
+body.gold-home.page-home .hero-copy *,
+body.gold-home.page-home .role-preview *,
+body.gold-home.page-home .preview-window *,
+body.gold-home.page-home .quick-access-card *,
+body.gold-home.page-home .experience-strip *,
+body.gold-home.page-home .role-showcase *,
+body.gold-home.page-home .value-section *,
+body.gold-home.page-home .learning-band *,
+body.gold-home.page-home .public-card *,
+body.gold-home.page-home .resource-card *{
+  color:var(--en-p14-text)!important;
+  -webkit-text-fill-color:var(--en-p14-text)!important;
+  text-shadow:none!important;
+}
+body.gold-home.page-home .hero-copy .hero-gold,
+body.gold-home.page-home .hero-copy em{color:#70dcff!important;-webkit-text-fill-color:#70dcff!important}
+body.gold-home.page-home .public-hero .hero-image-wrap,
+body.gold-home.page-home .public-hero .preview-window{background:rgba(4,25,62,.62)!important}
+body.gold-home.page-home .public-nav{background:var(--en-p14-glass)!important;border:1px solid var(--en-p14-line)!important}
+body.gold-home.page-home .public-nav :is(a,small,.brand-name){color:#f4f9ff!important}
+body.gold-home.page-home .hero-copy :is(.public-cta,.public-cta-secondary,.hero-actions a),
+body.gold-home.page-home .quick-access-card a{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+/* Learning Hub: older white panels were paired with white text. Make content panels
+   consistently dark glass while keeping search and form controls light. */
+body.learning-sky.page-learning :is(.topbar,.hero-card,.quick-card,.card,.stat,.section-head,.tabs,.side-card,.resource-card,.resource-item,.category-card,.paper-card,.tool-card,.content-card,.panel){
+  color:var(--en-p14-text)!important;background:var(--en-p14-glass)!important;
+  border:1px solid var(--en-p14-line)!important;
+  box-shadow:0 16px 40px rgba(0,9,35,.28),inset 0 1px 0 rgba(255,255,255,.16)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(140%)!important;backdrop-filter:blur(20px) saturate(140%)!important;
+}
+body.learning-sky.page-learning :is(h1,h2,h3,h4,h5,p,li,small,strong,label,.muted,.kicker,.section-head span,.brand strong,.brand small){
+  color:var(--en-p14-text)!important;-webkit-text-fill-color:var(--en-p14-text)!important;
+}
+body.learning-sky.page-learning :is(input,select,textarea,.searchbox){
+  color:#102c4b!important;background:rgba(248,252,255,.98)!important;-webkit-text-fill-color:#102c4b!important;
+}
+body.learning-sky.page-learning :is(.btn.primary,.tab.active){color:#fff!important;-webkit-text-fill-color:#fff!important;background:linear-gradient(120deg,#087fe0,#0753b5)!important}
+/* Auth: brand-refresh is intentionally loaded after the older glass sheet on login.
+   This final layer restores the same dark glass hierarchy without touching auth logic. */
+body.auth-page .mobile-brand,
+body.auth-page .story,
+body.auth-page .card,
+body.auth-page .roles .role,
+body.auth-page .role{
+  color:var(--en-p14-text)!important;background:var(--en-p14-glass)!important;
+  border:1px solid var(--en-p14-line)!important;
+  box-shadow:0 16px 40px rgba(0,9,35,.28),inset 0 1px 0 rgba(255,255,255,.16)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(145%)!important;backdrop-filter:blur(22px) saturate(145%)!important;
+}
+body.auth-page :is(.mobile-brand,.story,.card,.roles .role,.role) :is(h1,h2,h3,p,label,strong,small,span,.subtitle,.help,.eyebrow,.role-guidance){
+  color:var(--en-p14-text)!important;-webkit-text-fill-color:var(--en-p14-text)!important;
+}
+body.auth-page :is(.eyebrow,.subtitle,.role-guidance,.field label,.help){color:var(--en-p14-muted)!important;-webkit-text-fill-color:var(--en-p14-muted)!important}
+body.auth-page :is(input,select,textarea){color:#102c4b!important;background:rgba(248,252,255,.98)!important;-webkit-text-fill-color:#102c4b!important}
+body.auth-page .primary,
+body.auth-page .tab.active{color:#fff!important;-webkit-text-fill-color:#fff!important;background:linear-gradient(120deg,#087fe0,#0753b5)!important}
+@media(max-width:720px){
+  body.gold-home.page-home .public-hero{border-radius:22px!important}
+  body.learning-sky.page-learning :is(.hero-card,.quick-card,.card,.side-card,.resource-card){border-radius:18px!important}
+}
