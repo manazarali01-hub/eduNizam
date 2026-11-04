@@ -57,7 +57,7 @@ function pushFailure(scope,message,detail=''){
   failures.push({scope,message,detail});
 }
 
-async function inspectPage(page,url,width){
+async function inspectPage(page,url,width,navigate=true){
   if(!page.__eduLocalRouteInstalled){
     await page.route('**/*',route=>{
       const requestUrl=new URL(route.request().url());
@@ -83,12 +83,12 @@ async function inspectPage(page,url,width){
       heroRequestFailures.push({url:request.url(),error:request.failure()?.errorText||'unknown request failure'});
     }
   });
-  await page.goto(url,{waitUntil:'domcontentloaded',timeout:15000});
+  if(navigate)await page.goto(url,{waitUntil:'domcontentloaded',timeout:15000});
   // Large homepage stylesheets can finish a few frames after DOMContentLoaded.
   // Measure the fully styled page, not the brief legacy two-column fallback.
   // This wait retains the layout contract: a missing/incorrect stylesheet
   // still fails the subsequent assertions instead of silently passing.
-  if(url.endsWith('/')) {
+  if(navigate&&url.endsWith('/')) {
     await page.waitForFunction(()=>{
       const strip=document.querySelector('.page-home .experience-strip');
       const title=strip?.querySelector('article strong');
@@ -344,7 +344,7 @@ try{
         let inspection;
         try{
           inspection=await Promise.race([
-            inspectPage(page,'http://127.0.0.1:'+port+route,width),
+            inspectPage(page,'http://127.0.0.1:'+port+route,width,width===widths[0]),
             new Promise((_,reject)=>{
               inspectionTimer=setTimeout(()=>reject(new Error('rendered inspection exceeded 18s budget')),18000);
             })
