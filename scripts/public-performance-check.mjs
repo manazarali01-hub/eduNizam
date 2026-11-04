@@ -11,7 +11,7 @@ assert.ok(!head.includes('<link rel="preconnect" href="https://images.pexels.com
 const heroStart = html.indexOf('<img src="assets/themes/digital-learning.svg"');
 assert.ok(heroStart >= 0, 'Homepage local hero image was not found.');
 const hero = html.slice(heroStart, html.indexOf('>', heroStart) + 1);
-for (const attr of ['fetchpriority="high"', 'decoding="async"', 'width="760"', 'height="720"', 'alt="Digital learning illustration representing the EduNizam student experience"']) {
+for (const attr of ['fetchpriority="high"', 'decoding="async"', 'width="1200"', 'height="900"', 'alt="Digital learning illustration representing the EduNizam student experience"']) {
   assert.ok(hero.includes(attr), 'Homepage hero image is missing performance/accessibility attribute: ' + attr);
 }
 assert.ok(fs.existsSync('assets/themes/digital-learning.svg'), 'Homepage local hero image asset is missing from the repository.');
