@@ -370,7 +370,7 @@ try{
             `});
             await screenshotPage.evaluate(()=>{
               const hero=document.querySelector('.page-home .hero-image-wrap img');
-              if(hero)hero.setAttribute('src','assets/edunizam-login-children.webp');
+              // Keep the repository's real homepage hero asset in screenshots.
               window.scrollTo(0,0);
             });
             await screenshotPage.screenshot({
