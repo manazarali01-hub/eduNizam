@@ -1711,3 +1711,145 @@ html body.app-page.page-app #appMain #dashboard [data-admin-jump]{
     z-index:2!important;
   }
 }
+
+
+/* Phase 9 — dashboard statistics and content-panel finish.
+   Decorative-only: preserve live metric values, IDs, actions and role visibility. */
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
+  min-width:0!important;
+  padding:19px 17px 18px!important;
+  text-align:left!important;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(31,190,255,.27),transparent 58%),
+    linear-gradient(145deg,rgba(20,111,185,.88),rgba(2,25,67,.96))!important;
+  border:1px solid rgba(166,226,255,.82)!important;
+  border-radius:21px!important;
+  box-shadow:0 12px 28px rgba(0,8,30,.30),0 0 19px rgba(0,158,255,.22),
+    inset 0 1px 0 rgba(255,255,255,.38)!important;
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0 0 auto;
+  height:3px;
+  background:linear-gradient(90deg,rgba(0,205,255,.15),#a9edff 48%,#168dff 82%,rgba(0,205,255,.12));
+  box-shadow:0 0 15px rgba(0,190,255,.65);
+  pointer-events:none;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  width:118px;
+  height:118px;
+  right:-48px;
+  top:-58px;
+  border:1px solid rgba(177,233,255,.22);
+  border-radius:50%;
+  box-shadow:0 0 0 12px rgba(75,180,255,.035),0 0 0 25px rgba(75,180,255,.025);
+  pointer-events:none;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{
+  position:relative!important;
+  z-index:1!important;
+  display:block!important;
+  margin-bottom:9px!important;
+  color:#d9f0ff!important;
+  font-size:13px!important;
+  font-weight:750!important;
+  letter-spacing:.035em!important;
+  line-height:1.35!important;
+  text-transform:uppercase!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong{
+  position:relative!important;
+  z-index:1!important;
+  display:block!important;
+  color:#fff!important;
+  font-size:clamp(25px,2.7vw,36px)!important;
+  font-weight:850!important;
+  line-height:1.08!important;
+  letter-spacing:-.025em!important;
+  text-shadow:0 2px 14px rgba(0,190,255,.48)!important;
+  overflow-wrap:anywhere!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card{
+  position:relative!important;
+  overflow:hidden!important;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(0,164,255,.17),transparent 48%),
+    linear-gradient(145deg,rgba(13,77,137,.91),rgba(2,24,64,.97))!important;
+  border:1px solid rgba(164,224,255,.78)!important;
+  box-shadow:0 14px 32px rgba(0,8,30,.29),0 0 20px rgba(0,145,255,.19),
+    inset 0 1px 0 rgba(255,255,255,.34)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card>h2{
+  color:#f5fbff!important;
+  font-size:clamp(18px,1.8vw,22px)!important;
+  font-weight:800!important;
+  letter-spacing:-.015em!important;
+  padding-bottom:12px!important;
+  border-bottom:1px solid rgba(164,224,255,.30)!important;
+}
+html body.app-page.page-app #appMain #dashboard .quick-actions button{
+  min-height:58px!important;
+  padding:13px 15px!important;
+  color:#fff!important;
+  font-weight:750!important;
+  text-align:left!important;
+  background:linear-gradient(120deg,rgba(23,139,224,.94),rgba(3,54,125,.98))!important;
+  border:1px solid rgba(185,233,255,.76)!important;
+  border-radius:15px!important;
+  box-shadow:0 7px 18px rgba(0,8,30,.24),inset 0 1px 0 rgba(255,255,255,.32)!important;
+  transition:transform .18s ease,filter .18s ease,box-shadow .18s ease!important;
+}
+html body.app-page.page-app #appMain #dashboard #activityList{
+  min-height:118px!important;
+  padding:13px 14px!important;
+  color:#e5f4ff!important;
+  line-height:1.6!important;
+  background:rgba(1,19,52,.25)!important;
+  border:1px solid rgba(160,220,255,.20)!important;
+  border-radius:14px!important;
+}
+@media(hover:hover) and (pointer:fine){
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:hover{
+    transform:translateY(-4px)!important;
+    border-color:rgba(204,244,255,.98)!important;
+    box-shadow:0 17px 34px rgba(0,8,30,.36),0 0 25px rgba(0,176,255,.34),
+      inset 0 1px 0 rgba(255,255,255,.48)!important;
+  }
+  html body.app-page.page-app #appMain #dashboard .quick-actions button:hover{
+    transform:translateY(-2px)!important;
+    filter:brightness(1.12)!important;
+    box-shadow:0 10px 22px rgba(0,8,30,.30),0 0 15px rgba(0,174,255,.25),
+      inset 0 1px 0 rgba(255,255,255,.4)!important;
+  }
+}
+@media(max-width:760px){
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{
+    min-height:112px!important;
+    padding:16px 13px 15px!important;
+    border-radius:17px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{
+    font-size:11px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong{
+    font-size:clamp(22px,6vw,30px)!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.grid-2>.card{
+    border-radius:19px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat,
+  html body.app-page.page-app #appMain #dashboard .quick-actions button{
+    transition:none!important;
+  }
+}
