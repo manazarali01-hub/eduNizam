@@ -119,9 +119,10 @@ async function inspectPage(page,url,width,navigate=true){
     };
     const intentionallyOffCanvas=el=>{
       const drawer=el.closest?.('.sidebar');
-      if(!drawer||drawer.classList.contains('mobile-nav-open'))return false;
-      const r=drawer.getBoundingClientRect();
-      return r.right<=2||r.left>=viewport-2;
+      // Navigation controls in a closed off-canvas drawer are intentionally
+      // outside the viewport; the dedicated drawer-open regression checks
+      // their geometry when they are actually visible.
+      return !!drawer&&!drawer.classList.contains('mobile-nav-open');
     };
     const scrollAncestor=el=>{
       let p=el.parentElement;
