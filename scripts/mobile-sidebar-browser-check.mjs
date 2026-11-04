@@ -47,11 +47,11 @@ try{
   // Verify the mobile accordion affordance is visibly rendered and the same
   // heading can be tapped twice to open and close (not merely CSS-styled).
   const firstSummary=sidebar.locator('#nav .nav-group').first().locator('summary');
-  const chevron=await firstSummary.evaluate(node=>{
-    const s=getComputedStyle(node,'::after');
-    return {content:s.content,width:parseFloat(s.width),height:parseFloat(s.height),rightColor:s.borderRightColor,bottomColor:s.borderBottomColor,display:s.display};
+  const chevron=await firstSummary.locator('small').evaluate(node=>{
+    const s=getComputedStyle(node),r=node.getBoundingClientRect();
+    return {text:node.textContent.trim(),width:r.width,height:r.height,color:s.color,display:s.display,visibility:s.visibility,opacity:s.opacity};
   });
-  if(chevron.content==='none'||chevron.content==='normal'||chevron.width<7||chevron.height<7||chevron.rightColor==='rgba(0, 0, 0, 0)'||chevron.display==='none')
+  if(!chevron.text||chevron.width<7||chevron.height<7||chevron.color==='rgba(0, 0, 0, 0)'||chevron.display==='none'||chevron.visibility!=='visible'||Number(chevron.opacity)===0)
     throw new Error('Mobile accordion chevron is not visibly rendered: '+JSON.stringify(chevron));
   const firstGroup=sidebar.locator('#nav .nav-group').first();
   if(!(await firstGroup.evaluate(node=>node.open))) await firstSummary.click();
