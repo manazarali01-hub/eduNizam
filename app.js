@@ -152,14 +152,16 @@ async function setView(view){
 window.EDUNIZAM_APP_NAV={setView};
 // Delegation keeps section buttons added after initial startup clickable too.
 const navRoot=document.getElementById('nav');
-// Explicitly manage native details groups so mobile drawer taps always toggle.
+// Handle accordion activation in capture phase so the native <details>
+// default action and later bubbling handlers cannot reverse the explicit toggle.
 navRoot?.addEventListener('click',event=>{
  const summary=event.target.closest?.('.nav-group > summary');
  if(!summary||!navRoot.contains(summary))return;
- event.preventDefault();
  const group=summary.parentElement;
- if(group?.matches('details.nav-group'))group.open=!group.open;
-});
+ if(!group?.matches('details.nav-group'))return;
+ event.preventDefault();
+ group.open=!group.open;
+},true);
 navRoot?.addEventListener('click',event=>{
  const button=event.target.closest?.('.nav-item[data-view]');
  if(!button||button.disabled||!navRoot.contains(button))return;
