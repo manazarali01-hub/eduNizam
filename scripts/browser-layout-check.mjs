@@ -369,7 +369,6 @@ try{
               *,*:before,*:after{animation:none!important;transition:none!important}
             `});
             await screenshotPage.evaluate(()=>{
-              const hero=document.querySelector('.page-home .hero-image-wrap img');
               // Keep the repository's real homepage hero asset in screenshots.
               window.scrollTo(0,0);
             });
