@@ -162,6 +162,9 @@
 
   function mountTopbarContext(){
     const actions=$('.topbar-actions');if(!actions)return;
+    // Keep decorative context chips out of the compact authenticated header.
+    // They compete with the role/logout controls at phone widths and can cover taps.
+    if(window.matchMedia('(max-width:520px)').matches){$('#premiumContext')?.remove();return;}
     let wrap=$('#premiumContext');
     if(!wrap){
       wrap=document.createElement('div');wrap.id='premiumContext';wrap.className='premium-context';
