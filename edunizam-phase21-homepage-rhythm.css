@@ -1,0 +1,141 @@
+/* EduNizam Phase 21 — final homepage rhythm and responsive consistency.
+   Structural/presentation-only layer; no copy, destinations, controls or behavior changed. */
+html body.gold-home.page-home .public-main{
+  box-sizing:border-box!important;
+  width:min(100% - 36px,1180px)!important;
+  max-width:1180px!important;
+  margin-inline:auto!important;
+}
+html body.gold-home.page-home .public-main > :is(.experience-strip,.public-section){
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin-inline:auto!important;
+}
+html body.gold-home.page-home .public-main > .experience-strip{
+  margin-top:clamp(18px,2.8vw,30px)!important;
+  margin-bottom:clamp(38px,5.2vw,66px)!important;
+}
+html body.gold-home.page-home .public-main > .public-section{
+  margin-top:clamp(38px,5.2vw,66px)!important;
+  margin-bottom:clamp(38px,5.2vw,66px)!important;
+}
+html body.gold-home.page-home .public-main > .public-section:first-of-type{
+  margin-top:0!important;
+}
+html body.gold-home.page-home .public-main > .public-section :is(.section-heading,.compact-heading){
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:space-between!important;
+  gap:clamp(14px,2.5vw,28px)!important;
+  margin:0 0 clamp(18px,2.4vw,26px)!important;
+}
+html body.gold-home.page-home .public-main > .public-section :is(.section-heading,.compact-heading)>*{
+  min-width:0!important;
+}
+html body.gold-home.page-home .public-main > .public-section :is(.section-heading,.compact-heading) h2{
+  margin:7px 0 0!important;
+  font-size:clamp(1.55rem,2.7vw,2.25rem)!important;
+  line-height:1.16!important;
+  letter-spacing:-.035em!important;
+  text-wrap:balance!important;
+}
+html body.gold-home.page-home .public-main > .public-section :is(.section-heading,.compact-heading)>p{
+  max-width:48ch!important;
+  margin:0!important;
+  font-size:clamp(12px,1.15vw,14px)!important;
+  line-height:1.7!important;
+}
+html body.gold-home.page-home .public-main > .public-section .public-grid{
+  align-items:stretch!important;
+  min-width:0!important;
+}
+html body.gold-home.page-home .public-main > .public-section .public-grid > .public-card{
+  min-width:0!important;
+  overflow-wrap:anywhere!important;
+}
+html body.gold-home.page-home .public-main > .public-section .public-card :is(h3,p,a){
+  overflow-wrap:anywhere!important;
+}
+html body.gold-home.page-home .public-main > .public-section .public-card a{
+  display:inline-block!important;
+  max-width:100%!important;
+  line-height:1.55!important;
+}
+html body.gold-home.page-home .public-main > .public-section .role-demo,
+html body.gold-home.page-home .public-main > .public-section .preview-window,
+html body.gold-home.page-home .public-main > .public-section .preview-body,
+html body.gold-home.page-home .public-main > .public-section .preview-content{
+  min-width:0!important;
+  max-width:100%!important;
+}
+html body.gold-home.page-home .public-main > .public-section .preview-content{
+  overflow-wrap:anywhere!important;
+}
+html body.gold-home.page-home .public-main > .public-section .learning-visual{
+  min-width:0!important;
+  max-width:100%!important;
+}
+html body.gold-home.page-home .public-main > .public-section .resource-card{
+  box-sizing:border-box!important;
+  max-width:calc(100% - 8px)!important;
+}
+html body.gold-home.page-home .public-main :is(a,button,[role="tab"]):focus-visible{
+  outline:3px solid #83dcff!important;
+  outline-offset:3px!important;
+}
+html body.gold-home.page-home .public-main img{
+  max-width:100%!important;
+}
+html body.gold-home.page-home .public-main :is(.experience-strip,.public-section) *{
+  min-inline-size:0;
+}
+@media(max-width:900px){
+  html body.gold-home.page-home .public-main > .public-section :is(.section-heading,.compact-heading){
+    align-items:flex-start!important;
+    flex-direction:column!important;
+    gap:9px!important;
+  }
+  html body.gold-home.page-home .public-main > .public-section :is(.section-heading,.compact-heading)>p{
+    max-width:66ch!important;
+  }
+}
+@media(max-width:680px){
+  html body.gold-home.page-home .public-main{
+    width:calc(100% - 22px)!important;
+  }
+  html body.gold-home.page-home .public-main > .experience-strip{
+    margin-top:17px!important;
+    margin-bottom:34px!important;
+  }
+  html body.gold-home.page-home .public-main > .public-section{
+    margin-top:34px!important;
+    margin-bottom:34px!important;
+  }
+  html body.gold-home.page-home .public-main > .public-section :is(.section-heading,.compact-heading){
+    margin-bottom:17px!important;
+  }
+  html body.gold-home.page-home .public-main > .public-section .public-grid{
+    gap:12px!important;
+  }
+}
+@media(max-width:380px){
+  html body.gold-home.page-home .public-main{
+    width:calc(100% - 16px)!important;
+  }
+  html body.gold-home.page-home .public-main > .public-section{
+    margin-top:28px!important;
+    margin-bottom:28px!important;
+  }
+  html body.gold-home.page-home .public-main > .public-section :is(.section-heading,.compact-heading) h2{
+    font-size:1.48rem!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body.gold-home.page-home .public-main *{
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important;
+    animation-duration:.01ms!important;
+  }
+}
