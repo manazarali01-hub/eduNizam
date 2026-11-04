@@ -1,0 +1,101 @@
+/* EduNizam Phase 22 — fix rendered mobile homepage QA failures.
+   Narrow, homepage-only presentation corrections. No markup, links or behavior changed. */
+
+/* Keep the six public destinations in a compact, horizontally reachable strip. */
+@media(max-width:720px){
+  html body.gold-home.page-home header.public-nav nav.public-links{
+    display:flex!important;
+    flex-flow:row nowrap!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:7px!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:2px 1px 7px!important;
+    scrollbar-width:thin!important;
+    scrollbar-color:rgba(174,222,255,.78) rgba(255,255,255,.12)!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  html body.gold-home.page-home header.public-nav nav.public-links a{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:max-content!important;
+    min-height:38px!important;
+    white-space:nowrap!important;
+    padding:8px 11px!important;
+    font-size:12px!important;
+  }
+  html body.gold-home.page-home header.public-nav nav.public-links::-webkit-scrollbar{
+    display:block!important;
+    height:5px!important;
+  }
+  html body.gold-home.page-home header.public-nav nav.public-links::-webkit-scrollbar-thumb{
+    border-radius:99px!important;
+    background:rgba(174,222,255,.78)!important;
+  }
+}
+
+/* On narrow phones, let Quick Access and role labels use the full hero width. */
+@media(max-width:430px){
+  html body.gold-home.page-home .public-hero.premium-public-hero .hero-visual{
+    width:100%!important;
+    min-width:0!important;
+  }
+  html body.gold-home.page-home .public-hero.premium-public-hero .quick-access-card,
+  html body.gold-home.page-home .public-hero.premium-public-hero .hero-role-badge{
+    box-sizing:border-box!important;
+    width:calc(100% + 30px)!important;
+    max-width:none!important;
+    margin-left:-15px!important;
+    margin-right:0!important;
+  }
+  html body.gold-home.page-home .public-hero.premium-public-hero .hero-role-badge{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:7px!important;
+    padding:10px!important;
+  }
+  html body.gold-home.page-home .public-hero.premium-public-hero .hero-role-badge span{
+    flex:1 1 62px!important;
+    min-width:0!important;
+    text-align:center!important;
+  }
+  html body.gold-home.page-home .experience-strip article strong{
+    font-size:22px!important;
+    line-height:1.16!important;
+    overflow-wrap:anywhere!important;
+  }
+}
+
+/* Give the photographed value-section heading its own readable frosted plate. */
+@media(max-width:430px){
+  html body.gold-home.page-home .value-section>.section-heading{
+    box-sizing:border-box!important;
+    padding:15px!important;
+    border:1px solid rgba(116,163,199,.48)!important;
+    border-radius:16px!important;
+    background:linear-gradient(145deg,rgba(226,241,253,.96),rgba(204,228,247,.93))!important;
+    box-shadow:0 10px 24px rgba(0,20,48,.16),inset 0 1px 0 rgba(255,255,255,.78)!important;
+    -webkit-backdrop-filter:blur(18px) saturate(135%)!important;
+    backdrop-filter:blur(18px) saturate(135%)!important;
+  }
+  html body.gold-home.page-home .value-section>.section-heading :is(h2,p){
+    color:#173b5c!important;
+    -webkit-text-fill-color:#173b5c!important;
+    opacity:1!important;
+  }
+  html body.gold-home.page-home .value-section>.section-heading .eyebrow{
+    color:#075b91!important;
+    -webkit-text-fill-color:#075b91!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body.gold-home.page-home header.public-nav nav.public-links{
+    scroll-behavior:auto!important;
+  }
+}
