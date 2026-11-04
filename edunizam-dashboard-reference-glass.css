@@ -499,3 +499,26 @@ html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-
   max-width:96px!important;padding:5px 6px!important;font-size:10px!important;
  }
 }
+
+
+/* Phase 23 — actual browser QA correction: prevent the authenticated mobile
+   role label from collapsing to a few characters beside the session controls. */
+@media(max-width:760px){
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  max-width:calc(100% - 104px)!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  max-width:112px!important;
+  font-size:11px!important;
+  letter-spacing:-.01em!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #accountSecurityButton.account-security-btn{
+  max-width:96px!important;
+  padding-inline:6px!important;
+ }
+}
+@media(max-width:380px){
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  max-width:92px!important;
+ }
+}
