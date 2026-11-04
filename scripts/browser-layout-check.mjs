@@ -67,8 +67,22 @@ async function inspectPage(page,url,width){
     page.__eduLocalRouteInstalled=true;
   }
   const errors=[];
+  const heroResponses=[];
+  const heroRequestFailures=[];
   page.removeAllListeners('pageerror');
+  page.removeAllListeners('response');
+  page.removeAllListeners('requestfailed');
   page.on('pageerror',e=>errors.push(e.message));
+  page.on('response',response=>{
+    if(response.url().includes('/assets/themes/digital-learning.svg')){
+      heroResponses.push({url:response.url(),status:response.status(),ok:response.ok(),contentType:response.headers()['content-type']||''});
+    }
+  });
+  page.on('requestfailed',request=>{
+    if(request.url().includes('/assets/themes/digital-learning.svg')){
+      heroRequestFailures.push({url:request.url(),error:request.failure()?.errorText||'unknown request failure'});
+    }
+  });
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:15000});
   // Large homepage stylesheets can finish a few frames after DOMContentLoaded.
   // Measure the fully styled page, not the brief legacy two-column fallback.
@@ -230,7 +244,7 @@ async function inspectPage(page,url,width){
     };
   });
 
-  return {result,errors};
+  return {result,errors,heroResponses,heroRequestFailures};
 }
 
 try{
@@ -342,7 +356,7 @@ try{
         }finally{
           clearTimeout(inspectionTimer);
         }
-        const {result,errors}=inspection;
+        const {result,errors,heroResponses,heroRequestFailures}=inspection;
         // Visual snapshots are best-effort and isolated from the regression page.
         // A screenshot must never hold the functional/layout suite hostage.
         if(width===390||width===1366){
@@ -450,7 +464,11 @@ try{
             pushFailure(scope,'Homepage feature labels are below the enlarged mobile typography target',JSON.stringify(h.featureSizes));
           if(h.experienceColumns.trim().split(/\s+/).length!==1)
             pushFailure(scope,'Homepage features are still squeezed into two tiny mobile columns',h.experienceColumns);
-          if(!result.home.heroImage?.loaded)pushFailure(scope,'Homepage hero illustration failed to load',JSON.stringify(result.home.heroImage));
+          if(!result.home.heroImage?.loaded)pushFailure(scope,'Homepage hero illustration failed to load',JSON.stringify({
+            image:result.home.heroImage,
+            responses:heroResponses,
+            requestFailures:heroRequestFailures
+          }));
           if(result.home.imageQuickOverlap)pushFailure(scope,'Homepage hero image and Quick Access overlap');
           if(result.home.quickRoleOverlap)pushFailure(scope,'Homepage Quick Access and role badge overlap');
           if(result.home.nav&&result.home.main&&result.home.main.top<result.home.nav.bottom-2){
