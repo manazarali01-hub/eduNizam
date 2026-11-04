@@ -197,6 +197,7 @@ async function inspectPage(page,url,width){
         image:box('.page-home .hero-image-wrap'),
         quick:box('.page-home .quick-access-card'),
         roles:box('.page-home .hero-role-badge'),
+        heroImage:(()=>{const img=document.querySelector('.page-home .hero-image-wrap img');return img?{src:img.getAttribute('src'),complete:img.complete,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,loaded:img.complete&&img.naturalWidth>0}:null;})(),
         imageQuickOverlap:intersects(box('.page-home .hero-image-wrap'),box('.page-home .quick-access-card')),
         quickRoleOverlap:intersects(box('.page-home .quick-access-card'),box('.page-home .hero-role-badge')),
         linksDisplay:getComputedStyle(document.querySelector('.page-home .public-links')||document.body).display,
@@ -449,6 +450,7 @@ try{
             pushFailure(scope,'Homepage feature labels are below the enlarged mobile typography target',JSON.stringify(h.featureSizes));
           if(h.experienceColumns.trim().split(/\s+/).length!==1)
             pushFailure(scope,'Homepage features are still squeezed into two tiny mobile columns',h.experienceColumns);
+          if(!result.home.heroImage?.loaded)pushFailure(scope,'Homepage hero illustration failed to load',JSON.stringify(result.home.heroImage));
           if(result.home.imageQuickOverlap)pushFailure(scope,'Homepage hero image and Quick Access overlap');
           if(result.home.quickRoleOverlap)pushFailure(scope,'Homepage Quick Access and role badge overlap');
           if(result.home.nav&&result.home.main&&result.home.main.top<result.home.nav.bottom-2){
