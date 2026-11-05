@@ -620,3 +620,63 @@ html body.gold-home.page-home .hero-gold{color:var(--en-ref-cyan)!important}
     -webkit-overflow-scrolling: touch !important;
   }
 }
+
+
+/* Mobile topbar correction — keep title and session controls on one compact row. */
+@media (max-width: 600px) {
+  html body.app-page.page-app #appMain > .topbar {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    padding: 12px 10px 12px 62px !important;
+  }
+  html body.app-page.page-app #appMain > .topbar > .topbar-title {
+    flex: 1 1 56% !important;
+    width: auto !important;
+    max-width: 56% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    display: flex !important;
+    flex: 0 1 44% !important;
+    width: auto !important;
+    max-width: 44% !important;
+    min-width: 0 !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    overflow: visible !important;
+  }
+  html body.app-page.page-app #appMain > .topbar #page-title {
+    width: auto !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    font-size: clamp(18px, 5vw, 22px) !important;
+    line-height: 1.12 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  html body.app-page.page-app #appMain > .topbar .school-identity {
+    max-width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+  }
+  html body.app-page.page-app #appMain > .topbar #roleSession {
+    display: inline-flex !important;
+    flex: 0 1 auto !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+  }
+}
