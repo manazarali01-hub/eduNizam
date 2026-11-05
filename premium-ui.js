@@ -231,7 +231,7 @@
   }
   function updateDockActive(){
     const active=$('.nav-item.active')?.dataset?.view||'';
-    all('.nav-group').forEach(g=>{const on=!!g.querySelector('.nav-item.active');g.classList.toggle('has-active',on);if(on)g.open=true});
+    all('.nav-group').forEach(g=>{const on=!!g.querySelector('.nav-item.active');g.classList.toggle('has-active',on)});
     all('[data-premium-view]').forEach(b=>b.classList.toggle('active',b.dataset.premiumView===active));
   }
 
