@@ -138,3 +138,22 @@ body.auth-page.page-login .field select{
 @media(prefers-reduced-motion:reduce){
   body.app-page.page-app .sidebar{transition:none!important}
 }
+
+
+/* Phase 55: touch-device readability, including mobile browsers in Desktop Site mode. */
+@media(max-width:1100px) and (hover:none) and (pointer:coarse){
+ body.app-page.page-app .sidebar #nav .nav-group>summary{min-height:48px!important;padding:11px 12px!important;font-size:15px!important}
+ body.app-page.page-app .sidebar #nav .nav-item{min-height:46px!important;padding:12px!important;font-size:14px!important;line-height:1.4!important}
+ body.app-page.page-app .sidebar .sidebar-wordmark strong{font-size:19px!important}
+ body.app-page.page-app .sidebar .sidebar-institute-copy :is(small,strong,span){font-size:13px!important;line-height:1.4!important}
+ body.app-page.page-app .topbar{min-height:76px!important;padding:14px!important;gap:12px!important}
+ body.app-page.page-app .topbar :is(button,a,.academic-pill){min-height:38px!important;padding:9px 12px!important;font-size:14px!important}
+ body.app-page.page-app #appMain>#dashboard>.campus-hero{min-height:190px!important;padding:20px!important;gap:16px!important}
+ body.app-page.page-app #appMain>#dashboard>.campus-hero h2{font-size:clamp(23px,3.4vw,32px)!important;line-height:1.16!important}
+ body.app-page.page-app #appMain>#dashboard>.campus-hero p{font-size:15px!important;line-height:1.5!important}
+ body.app-page.page-app #appMain>#dashboard>.cards{gap:12px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.app-page.page-app #appMain>#dashboard>.cards>.card.stat{min-height:132px!important;padding:16px!important}
+ body.app-page.page-app #appMain>#dashboard>.cards>.card.stat>span{font-size:13px!important;line-height:1.4!important}
+ body.app-page.page-app #appMain>#dashboard>.cards>.card.stat>strong{font-size:clamp(22px,3vw,28px)!important}
+ body.app-page.page-app #appMain>#dashboard .quick-actions>button{min-height:62px!important;padding:12px!important;font-size:14px!important}
+}
