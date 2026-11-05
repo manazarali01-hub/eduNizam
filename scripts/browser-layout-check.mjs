@@ -1809,6 +1809,24 @@ try{
     ));
     if(clippedDockLabels.length)pushFailure('mobile dock','Quick navigation labels are clipped or ellipsized',JSON.stringify(clippedDockLabels));
 
+    const dockTheme=await boundedEvaluate('inspect mobile dock blue-glass theme',()=>{
+      const dock=document.getElementById('premiumMobileDock');
+      if(!dock)return {missing:true};
+      const cs=getComputedStyle(dock);
+      const active=dock.querySelector('button.active');
+      const ac=active?getComputedStyle(active):null;
+      return {
+        missing:false,
+        backgroundImage:cs.backgroundImage,
+        backdropFilter:cs.backdropFilter||cs.webkitBackdropFilter,
+        activeBackground:ac?.backgroundImage||ac?.backgroundColor||'',
+        activeColor:ac?.color||''
+      };
+    });
+    if(dockTheme.missing||!dockTheme.backgroundImage.includes('linear-gradient')||!dockTheme.backdropFilter.includes('blur')||!dockTheme.activeColor.includes('255')){
+      pushFailure('mobile dock theme','Mobile quick-navigation dock lost its premium blue-glass treatment',JSON.stringify(dockTheme));
+    }
+
     const adminDeskVisual=await boundedEvaluate('inspect admin desk visual contract',()=>({
       cards:[...document.querySelectorAll('#adminDailyDesk .admin-daily-actions > button')].map(el=>{
         const cs=getComputedStyle(el);
