@@ -92,7 +92,7 @@
     if(shouldOpen){
       set(sidebar,'position','fixed');set(sidebar,'left','0');set(sidebar,'top','0');
       set(sidebar,'right','auto');set(sidebar,'bottom','0');
-      set(sidebar,'width','min(340px,90vw)');set(sidebar,'max-width','90vw');
+      set(sidebar,'width','min(292px,82vw)');set(sidebar,'max-width','82vw');
       set(sidebar,'height','100vh');set(sidebar,'max-height','100vh');
       set(sidebar,'transform','translate3d(0,0,0)');set(sidebar,'visibility','visible');
       set(sidebar,'z-index','1102');set(sidebar,'overflow-y','auto');
