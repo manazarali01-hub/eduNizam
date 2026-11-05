@@ -1,0 +1,6 @@
+/* Desktop dashboard metric grid: fill available columns when role/data visibility varies. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app #appMain > #dashboard > .cards {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)) !important;
+  }
+}
