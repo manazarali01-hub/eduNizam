@@ -5,9 +5,27 @@
   let sidebarHome=null;
   let menuHome=null;
   let lastPointerActivationAt=0;
-  const isCompactNav=()=>window.innerWidth<=950 || (window.innerWidth<=1100 && !!window.matchMedia?.('(hover: none) and (pointer: coarse)').matches);
+  // Android Chrome "Desktop site" can expose a ~980px layout viewport on a
+  // physically narrow phone. Restore a phone-sized CSS viewport only in that case.
+  function normalizePhysicalPhoneViewport(){
+    const screenWidth=Number(window.screen?.width)||0;
+    const layoutWidth=Number(window.innerWidth)||0;
+    const touch=Number(navigator.maxTouchPoints||0)>0;
+    const desktopSiteOnPhone=touch&&screenWidth>0&&screenWidth<=600&&layoutWidth>screenWidth*1.25;
+    const root=document.documentElement;
+    if(desktopSiteOnPhone){
+      const scale=Math.min(2.6,Math.max(1,layoutWidth/screenWidth));
+      root.style.zoom=String(scale);
+      root.dataset.eduPhoneViewport='normalized';
+      const viewport=document.querySelector('meta[name="viewport"]');
+      if(viewport)viewport.setAttribute('content','width=device-width, initial-scale=1, viewport-fit=cover');
+    }
+    return desktopSiteOnPhone||root.dataset.eduPhoneViewport==='normalized';
+  }
+  const isCompactNav=()=>normalizePhysicalPhoneViewport() || window.innerWidth<=950 || (window.innerWidth<=1100 && !!window.matchMedia?.('(hover: none) and (pointer: coarse)').matches);
 
   function ensureElements(){
+    normalizePhysicalPhoneViewport();
     const sidebar=$('.sidebar'),topbar=$('.topbar');
     if(!sidebar||!topbar||!document.body)return null;
 
