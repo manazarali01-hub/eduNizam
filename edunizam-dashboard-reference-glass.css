@@ -591,3 +591,24 @@ html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-
   font-size:10px!important;
  }
 }
+
+/* Phase 27D — prevent the institution role label from being truncated on mobile. */
+@media(min-width:381px) and (max-width:760px){
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  column-gap:7px!important;
+  row-gap:3px!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  grid-column:1/-1!important;
+  max-width:none!important;width:100%!important;
+  white-space:normal!important;overflow:visible!important;
+  text-overflow:clip!important;overflow-wrap:anywhere!important;
+  line-height:1.2!important;text-align:center!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{
+  grid-column:2!important;justify-self:end!important;
+ }
+}
