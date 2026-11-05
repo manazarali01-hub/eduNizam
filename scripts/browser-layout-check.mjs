@@ -1839,6 +1839,25 @@ try{
       pushFailure('mobile session theme','Authenticated mobile session controls lost their blue-glass treatment',JSON.stringify(sessionTheme));
     }
 
+    const sessionGeometry=await boundedEvaluate('inspect mobile session control spacing',()=>{
+      const chip=document.querySelector('#appMain>.topbar #roleSession.session-chip');
+      const account=document.querySelector('#appMain>.topbar #accountSecurityButton.account-security-btn');
+      const actions=document.querySelector('#appMain>.topbar>.topbar-actions');
+      if(!chip||!account||!actions)return {missing:true};
+      const c=chip.getBoundingClientRect(),a=account.getBoundingClientRect(),p=actions.getBoundingClientRect();
+      return {
+        missing:false,
+        overlap:c.right>a.left+1,
+        outside:Math.min(c.left,a.left)<p.left-1||Math.max(c.right,a.right)>p.right+1,
+        gap:Math.round(a.left-c.right),
+        accountWidth:Math.round(a.width),
+        roleLabel:(chip.querySelector('strong')?.textContent||'').trim()
+      };
+    });
+    if(sessionGeometry.missing||sessionGeometry.overlap||sessionGeometry.outside||sessionGeometry.gap<0){
+      pushFailure('mobile session spacing','Role/logout and account controls overlap or escape the topbar action area',JSON.stringify(sessionGeometry));
+    }
+
     const adminDeskVisual=await boundedEvaluate('inspect admin desk visual contract',()=>({
       cards:[...document.querySelectorAll('#adminDailyDesk .admin-daily-actions > button')].map(el=>{
         const cs=getComputedStyle(el);
