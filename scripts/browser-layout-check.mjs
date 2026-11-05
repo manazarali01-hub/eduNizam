@@ -1868,6 +1868,17 @@ try{
       pushFailure('mobile role label','Institution role label is clipped or ellipsized on mobile',JSON.stringify(roleLabelLayout));
     }
 
+    const sessionChildrenLayout=await boundedEvaluate('verify mobile role label and Logout do not overlap',()=>{
+      const chip=document.querySelector('#appMain>.topbar #roleSession.session-chip');
+      const label=chip?.querySelector('strong'),logout=chip?.querySelector('button');
+      if(!chip||!label||!logout)return {missing:true};
+      const l=label.getBoundingClientRect(),b=logout.getBoundingClientRect(),c=chip.getBoundingClientRect();
+      return {missing:false,overlap:!(l.bottom<=b.top+1||b.bottom<=l.top+1),labelBottom:Math.round(l.bottom),logoutTop:Math.round(b.top),chipBottom:Math.round(c.bottom),logoutBottom:Math.round(b.bottom),logoutInside:b.bottom<=c.bottom+1};
+    });
+    if(sessionChildrenLayout.missing||sessionChildrenLayout.overlap||!sessionChildrenLayout.logoutInside){
+      pushFailure('mobile role/logout separation','Role label and Logout overlap or Logout escapes the session chip',JSON.stringify(sessionChildrenLayout));
+    }
+
     const adminDeskVisual=await boundedEvaluate('inspect admin desk visual contract',()=>({
       cards:[...document.querySelectorAll('#adminDailyDesk .admin-daily-actions > button')].map(el=>{
         const cs=getComputedStyle(el);
