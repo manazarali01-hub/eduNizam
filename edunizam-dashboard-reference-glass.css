@@ -522,3 +522,24 @@ html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-
   max-width:92px!important;
  }
 }
+
+/* Phase 24 — screenshot-led fixes: deterministic local hero artwork and readable mobile role label. */
+html body .hero-image-wrap picture.hero-image-source,
+html body .hero-image-wrap picture.hero-image-source img{
+  display:block!important;width:100%!important;height:100%!important;
+}
+html body .hero-image-wrap picture.hero-image-source img{
+  object-fit:cover!important;object-position:center!important;
+}
+@media(max-width:760px){
+  html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+    flex:1 1 118px!important;max-width:150px!important;min-width:0!important;
+    white-space:normal!important;overflow:visible!important;text-overflow:clip!important;
+    overflow-wrap:anywhere!important;line-height:1.15!important;
+  }
+}
+@media(max-width:380px){
+  html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+    flex-basis:108px!important;max-width:124px!important;
+  }
+}
