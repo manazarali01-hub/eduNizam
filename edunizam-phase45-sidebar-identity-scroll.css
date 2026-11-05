@@ -1,0 +1,77 @@
+/* Phase 45 — desktop sidebar identity and scroll polish.
+   Complements the blue-glass navigation without changing menu behavior. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .app-shell > .sidebar > .brand {
+    position: relative !important;
+    border-color: rgba(164, 224, 255, .42) !important;
+    background: linear-gradient(132deg, rgba(76, 159, 220, .25), rgba(5, 34, 76, .42)) !important;
+    box-shadow: inset 0 1px rgba(255,255,255,.08), 0 8px 20px rgba(0, 15, 42, .14) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar .brand-logo-frame {
+    border: 1px solid rgba(166, 226, 255, .32) !important;
+    border-radius: 13px !important;
+    background: linear-gradient(145deg, rgba(132, 208, 255, .20), rgba(19, 83, 145, .18)) !important;
+    box-shadow: 0 4px 12px rgba(0, 15, 42, .16) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar .sidebar-wordmark strong {
+    letter-spacing: -.045em !important;
+    text-shadow: 0 2px 12px rgba(0, 12, 34, .28) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar .sidebar-wordmark small {
+    letter-spacing: .035em !important;
+    color: #c5e5fb !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > .sidebar-institute {
+    position: relative !important;
+    border-color: rgba(128, 205, 255, .38) !important;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(91, 181, 241, .20), transparent 48%),
+      linear-gradient(135deg, rgba(22, 91, 151, .48), rgba(3, 27, 63, .62)) !important;
+    box-shadow: inset 0 1px rgba(255,255,255,.07), 0 7px 18px rgba(0, 14, 40, .12) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar .sidebar-institute-copy small {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    color: #a9e2ff !important;
+    letter-spacing: .13em !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar .sidebar-institute-copy small::before {
+    content: "" !important;
+    display: inline-block !important;
+    width: 6px !important;
+    height: 6px !important;
+    flex: 0 0 6px !important;
+    border-radius: 50% !important;
+    background: #66e0c0 !important;
+    box-shadow: 0 0 0 3px rgba(102, 224, 192, .13), 0 0 9px rgba(102, 224, 192, .42) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar .sidebar-institute-copy strong {
+    font-size: 14px !important;
+    letter-spacing: -.01em !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar #nav {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(131, 202, 246, .52) rgba(4, 28, 63, .22) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar #nav::-webkit-scrollbar {
+    width: 7px !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar #nav::-webkit-scrollbar-track {
+    border-radius: 8px !important;
+    background: rgba(4, 28, 63, .22) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar #nav::-webkit-scrollbar-thumb {
+    border: 1px solid rgba(190, 231, 255, .18) !important;
+    border-radius: 8px !important;
+    background: linear-gradient(180deg, rgba(151, 218, 255, .72), rgba(69, 146, 207, .62)) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar #nav::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(187, 235, 255, .9), rgba(91, 171, 229, .82)) !important;
+  }
+}
+@media (max-width: 1100px) {
+  html body.app-page.page-app .app-shell > .sidebar .sidebar-institute-copy small::before {
+    content: none !important;
+  }
+}
