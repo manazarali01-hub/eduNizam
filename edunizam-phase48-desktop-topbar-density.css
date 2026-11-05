@@ -1,0 +1,39 @@
+/* Desktop topbar density — reduce wasted vertical space without changing controls. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app #appMain > .topbar {
+    min-height: 104px !important;
+    height: auto !important;
+    padding: 13px 18px !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-title {
+    flex: 0 1 290px !important;
+    min-width: 220px !important;
+    gap: 4px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    display: flex !important;
+    flex: 1 1 580px !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex-flow: row wrap !important;
+    align-items: center !important;
+    align-content: center !important;
+    justify-content: flex-end !important;
+    gap: 7px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions > * {
+    flex: 0 0 auto !important;
+    max-width: 100% !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar #roleSession {
+    max-width: 100% !important;
+    white-space: nowrap !important;
+  }
+}
