@@ -640,3 +640,19 @@ html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-
   line-height:1!important;padding:3px 8px!important;
  }
 }
+/* Phase 29B — keep the mobile page title clear of the fixed menu and improve role-chip contrast. */
+@media(max-width:760px){
+ html body.app-page.page-app #appMain>.topbar>.topbar-title{
+  margin-left:44px!important;
+  width:calc(100% - 44px)!important;
+  max-width:calc(100% - 44px)!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #page-title{
+  max-width:100%!important;
+ }
+}
+html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+ color:#f2f8ff!important;
+ -webkit-text-fill-color:#f2f8ff!important;
+ text-shadow:0 1px 2px rgba(0,12,36,.72)!important;
+}
