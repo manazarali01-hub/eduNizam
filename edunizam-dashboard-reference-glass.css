@@ -576,3 +576,18 @@ html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-
   font-weight:800!important;
  }
 }
+
+/* Phase 27C — give the authenticated mobile role label more room at common phone widths. */
+@media(min-width:381px) and (max-width:760px){
+ html body.app-page.page-app #appMain>.topbar>.topbar-actions{gap:5px!important}
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  max-width:calc(100% - 94px)!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  max-width:128px!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #accountSecurityButton.account-security-btn{
+  max-width:88px!important;min-width:0!important;padding-inline:5px!important;
+  font-size:10px!important;
+ }
+}
