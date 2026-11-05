@@ -1,0 +1,94 @@
+/* Phase 52 — simplify desktop sidebar hierarchy.
+   Reduce nested-card noise while preserving the existing navigation structure and behavior. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .app-shell > .sidebar {
+    padding: 16px 12px 12px !important;
+    background:
+      radial-gradient(ellipse at 12% 0%, rgba(51, 153, 224, .16), transparent 48%),
+      linear-gradient(180deg, rgba(5, 34, 75, .96), rgba(3, 23, 55, .98)) !important;
+    border-right: 1px solid rgba(151, 211, 255, .30) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav {
+    gap: 5px !important;
+    padding: 8px 3px 18px !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group {
+    padding: 4px 0 7px !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(154, 207, 245, .16) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary {
+    min-height: 40px !important;
+    padding: 7px 10px !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary > strong {
+    color: #a9cce8 !important;
+    font-size: 10px !important;
+    font-weight: 850 !important;
+    letter-spacing: .095em !important;
+    text-transform: uppercase !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary > span {
+    width: 23px !important;
+    height: 23px !important;
+    border: 0 !important;
+    border-radius: 7px !important;
+    background: rgba(92, 166, 222, .13) !important;
+    color: #9bdcff !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group[open] > summary {
+    border-color: rgba(135, 207, 255, .18) !important;
+    background: linear-gradient(90deg, rgba(26, 112, 180, .20), rgba(26, 112, 180, .035)) !important;
+    box-shadow: inset 2px 0 #65c9ff !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-group-items {
+    gap: 3px !important;
+    padding: 5px 0 1px 8px !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item {
+    min-height: 37px !important;
+    padding: 8px 10px 8px 12px !important;
+    border: 1px solid transparent !important;
+    border-radius: 9px !important;
+    background: transparent !important;
+    color: #d2e5f6 !important;
+    -webkit-text-fill-color: #d2e5f6 !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item:hover {
+    border-color: rgba(141, 207, 250, .17) !important;
+    background: rgba(78, 157, 218, .13) !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item.active,
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item[aria-current="page"] {
+    border-color: rgba(151, 224, 255, .38) !important;
+    background: linear-gradient(100deg, rgba(19, 137, 218, .72), rgba(20, 91, 165, .48)) !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    box-shadow: inset 3px 0 #b8edff, 0 4px 12px rgba(0, 12, 35, .18) !important;
+    font-weight: 800 !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > .brand {
+    margin-bottom: 10px !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > .sidebar-institute {
+    margin-bottom: 8px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.app-page.page-app .app-shell > .sidebar > #nav * {
+    transition: none !important;
+  }
+}
