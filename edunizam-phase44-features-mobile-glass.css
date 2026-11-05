@@ -30,7 +30,7 @@
     box-sizing:border-box!important; padding:24px 18px!important;
     border:1px solid rgba(151,211,255,.58)!important; border-radius:22px!important;
     background-color:rgba(7,38,78,.78)!important;
-    background-image:linear-gradient(115deg,rgba(5,28,67,.78),rgba(7,68,125,.58)),var(--en-photo-classroom)!important;
+    background-image:linear-gradient(115deg,rgba(5,28,67,.78),rgba(7,68,125,.58)),var(--ng-class)!important;
     background-size:cover!important; background-position:center!important; background-repeat:no-repeat!important;
     -webkit-backdrop-filter:blur(16px) saturate(140%)!important; backdrop-filter:blur(16px) saturate(140%)!important;
     overflow-wrap:anywhere!important;
