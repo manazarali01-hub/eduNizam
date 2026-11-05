@@ -1,0 +1,98 @@
+/* Phase 35 — desktop sidebar search fit and visual balance.
+   Presentation-only: preserve existing search behavior and navigation controls. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .app-shell > .sidebar {
+    width: 292px !important;
+    min-width: 292px !important;
+    max-width: 292px !important;
+  }
+
+  html body.app-page.page-app .sidebar > .nav-search-wrap {
+    display: grid !important;
+    grid-template-columns: 18px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    margin: 0 2px 12px !important;
+    padding: 8px 9px !important;
+    border: 1px solid rgba(165, 220, 255, .30) !important;
+    border-radius: 14px !important;
+    background: linear-gradient(125deg, rgba(82, 157, 211, .19), rgba(5, 34, 73, .56)) !important;
+    box-shadow: inset 0 1px rgba(255,255,255,.07), 0 7px 18px rgba(0, 16, 45, .12) !important;
+    color: #c8e9ff !important;
+  }
+
+  html body.app-page.page-app .sidebar > .nav-search-wrap > span {
+    display: grid !important;
+    place-items: center !important;
+    width: 18px !important;
+    color: #b8e4ff !important;
+    font-size: 15px !important;
+    line-height: 1 !important;
+  }
+
+  html body.app-page.page-app .sidebar > .nav-search-wrap > input {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    border: 1px solid rgba(155, 222, 255, .24) !important;
+    border-radius: 10px !important;
+    outline: none !important;
+    background: rgba(3, 26, 59, .42) !important;
+    color: #f4fbff !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    box-shadow: none !important;
+  }
+
+  html body.app-page.page-app .sidebar > .nav-search-wrap > input::placeholder {
+    color: #c5e3f7 !important;
+    opacity: 1 !important;
+  }
+
+  html body.app-page.page-app .sidebar > .nav-search-wrap > input:focus {
+    border-color: rgba(107, 211, 255, .78) !important;
+    background: rgba(5, 43, 83, .72) !important;
+    box-shadow: 0 0 0 3px rgba(39, 157, 224, .16) !important;
+  }
+
+  html body.app-page.page-app .sidebar > .nav-search-wrap > kbd {
+    padding: 3px 5px !important;
+    border: 1px solid rgba(163, 219, 255, .24) !important;
+    border-radius: 6px !important;
+    background: rgba(3, 24, 53, .42) !important;
+    color: #c8e8ff !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+  }
+
+  html body.app-page.page-app .sidebar > #nav > .nav-group {
+    margin-bottom: 7px !important;
+  }
+
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary {
+    grid-template-columns: 23px minmax(0, 1fr) 15px !important;
+    gap: 8px !important;
+  }
+}
+
+@media (min-width: 1101px) and (max-width: 1200px) {
+  html body.app-page.page-app .app-shell > .sidebar {
+    width: 276px !important;
+    min-width: 276px !important;
+    max-width: 276px !important;
+  }
+  html body.app-page.page-app .sidebar > .nav-search-wrap {
+    grid-template-columns: 16px minmax(0, 1fr) auto !important;
+    gap: 5px !important;
+    padding-inline: 7px !important;
+  }
+  html body.app-page.page-app .sidebar > .nav-search-wrap > kbd {
+    font-size: 8px !important;
+    padding-inline: 4px !important;
+  }
+}
