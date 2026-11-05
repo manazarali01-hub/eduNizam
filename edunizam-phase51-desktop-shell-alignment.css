@@ -1,0 +1,18 @@
+/* Phase 51 — align the desktop sidebar rail with the app-shell grid.
+   Desktop-only geometry correction; mobile drawer and app behavior remain unchanged. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .app-shell {
+    grid-template-columns: 276px minmax(0, 1fr) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar {
+    width: 276px !important;
+    min-width: 276px !important;
+    max-width: 276px !important;
+    box-sizing: border-box !important;
+  }
+  html body.app-page.page-app .app-shell > .main,
+  html body.app-page.page-app #appMain {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
