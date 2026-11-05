@@ -462,7 +462,7 @@ html body.gold-home.page-home .hero-gold{color:var(--en-ref-cyan)!important}
   html body.app-page.page-app .mobile-nav-backdrop.show {
     position: fixed !important;
     inset: 0 !important;
-    z-index: 1301 !important;
+    z-index: 1101 !important;
     display: block !important;
     background: rgba(0,8,24,.58) !important;
     opacity: 0 !important;
@@ -595,5 +595,28 @@ html body.gold-home.page-home .hero-gold{color:var(--en-ref-cyan)!important}
   html body.app-page.page-app .sidebar,
   html body.app-page.page-app .mobile-nav-backdrop {
     transition: none !important;
+  }
+}
+
+
+/* The navigation controller reparents the open drawer directly under body.
+   Keep its glass surface styled there, and keep the backdrop below its inline z-index. */
+@media (max-width: 950px) {
+  html body.app-page.page-app > .sidebar.mobile-nav-open {
+    border-radius: 0 22px 22px 0 !important;
+    background: linear-gradient(160deg, rgba(9,54,105,.98), rgba(2,16,42,.99)) !important;
+    border: 1px solid rgba(115,207,255,.52) !important;
+    box-shadow: 18px 0 48px rgba(0,8,30,.42), inset -1px 0 rgba(255,255,255,.12) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
+    backdrop-filter: blur(24px) saturate(150%) !important;
+    isolation: isolate !important;
+  }
+  html body.app-page.page-app > .sidebar.mobile-nav-open #nav {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 }
