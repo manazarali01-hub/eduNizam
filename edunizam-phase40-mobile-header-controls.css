@@ -1,0 +1,89 @@
+/* Phase 40 — compact authenticated mobile header controls.
+   Keep the existing role, logout and account actions; improve their touch layout only. */
+@media (max-width: 760px) {
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    min-height: 42px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions #roleSession {
+    display: inline-flex !important;
+    flex: 0 1 auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: nowrap !important;
+    gap: 7px !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    padding: 5px 7px 5px 11px !important;
+    border: 1px solid rgba(157, 220, 255, .58) !important;
+    border-radius: 999px !important;
+    background: linear-gradient(115deg, rgba(14, 88, 158, .54), rgba(3, 37, 86, .68)) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 5px 14px rgba(0,12,42,.18) !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions #roleSession > strong {
+    min-width: 0 !important;
+    color: #eaf7ff !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    font-weight: 800 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+    flex: 1 1 auto !important;
+    max-width: none !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions #roleSession > button {
+    min-height: 30px !important;
+    padding: 5px 10px !important;
+    border: 1px solid rgba(190, 229, 255, .62) !important;
+    border-radius: 999px !important;
+    color: #07386e !important;
+    background: linear-gradient(180deg, #f1f9ff, #c9e7ff) !important;
+    box-shadow: none !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+    font-weight: 850 !important;
+    white-space: nowrap !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions > button:not(#installBtn):not(#roleSession button) {
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    border: 1px solid rgba(166, 224, 255, .62) !important;
+    border-radius: 12px !important;
+    color: #f5fbff !important;
+    background: linear-gradient(120deg, rgba(15, 128, 199, .88), rgba(5, 70, 139, .92)) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 5px 13px rgba(0,10,38,.2) !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions #installBtn:not(.hidden) {
+    min-height: 38px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    gap: 6px !important;
+  }
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions #roleSession {
+    gap: 5px !important;
+    padding-inline: 8px 5px !important;
+  }
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions #roleSession > strong {
+    font-size: 10px !important;
+  }
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions #roleSession > button {
+    padding-inline: 8px !important;
+  }
+}

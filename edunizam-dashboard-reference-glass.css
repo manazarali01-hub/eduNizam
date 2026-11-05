@@ -522,3 +522,137 @@ html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-
   max-width:92px!important;
  }
 }
+
+
+/* Phase 27 — align the mobile quick-navigation dock with the premium blue-glass dashboard.
+   Presentation-only override; role-aware dock items and click handlers remain unchanged. */
+@media(max-width:950px){
+  html body.app-page.page-app #premiumMobileDock.premium-mobile-dock{
+    color:#f4f9ff!important;
+    background:linear-gradient(145deg,rgba(12,72,132,.96),rgba(3,24,62,.97))!important;
+    border:1px solid rgba(163,222,255,.72)!important;
+    box-shadow:0 16px 38px rgba(0,8,32,.38),0 0 24px rgba(0,158,255,.20),inset 0 1px 0 rgba(255,255,255,.22)!important;
+    -webkit-backdrop-filter:blur(22px) saturate(150%)!important;
+    backdrop-filter:blur(22px) saturate(150%)!important;
+  }
+  html body.app-page.page-app #premiumMobileDock.premium-mobile-dock button{
+    color:#dceeff!important;background:transparent!important;
+    border:1px solid transparent!important;border-radius:13px!important;
+    transition:background .18s ease,border-color .18s ease,color .18s ease!important;
+  }
+  html body.app-page.page-app #premiumMobileDock.premium-mobile-dock button.active{
+    color:#fff!important;
+    background:linear-gradient(135deg,rgba(0,157,255,.42),rgba(24,91,181,.48))!important;
+    border-color:rgba(145,222,255,.58)!important;
+    box-shadow:0 0 16px rgba(0,166,255,.22),inset 0 1px 0 rgba(255,255,255,.22)!important;
+  }
+  html body.app-page.page-app #premiumMobileDock .premium-dock-icon{color:currentColor!important}
+  html body.app-page.page-app #premiumMobileDock button:focus-visible{
+    outline:2px solid #9ce7ff!important;outline-offset:2px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body.app-page.page-app #premiumMobileDock button{transition:none!important}
+}
+
+/* Phase 27B — unify authenticated mobile session controls with the blue-glass header. */
+@media(max-width:760px){
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  background:linear-gradient(135deg,rgba(12,67,121,.72),rgba(8,35,79,.78))!important;
+  border:1px solid rgba(147,207,255,.48)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 5px 14px rgba(0,15,48,.16)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(145%)!important;
+  backdrop-filter:blur(14px) saturate(145%)!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  color:#f1f8ff!important;
+  text-shadow:0 1px 5px rgba(0,0,0,.18)!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{
+  background:linear-gradient(135deg,rgba(237,247,255,.98),rgba(202,228,250,.96))!important;
+  border:1px solid rgba(255,255,255,.82)!important;
+  color:#164674!important;
+  box-shadow:0 3px 9px rgba(0,13,42,.18),inset 0 1px 0 #fff!important;
+  font-weight:800!important;
+ }
+}
+
+/* Phase 27C — give the authenticated mobile role label more room at common phone widths. */
+@media(min-width:381px) and (max-width:760px){
+ html body.app-page.page-app #appMain>.topbar>.topbar-actions{gap:5px!important}
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  max-width:calc(100% - 94px)!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  max-width:128px!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #accountSecurityButton.account-security-btn{
+  max-width:88px!important;min-width:0!important;padding-inline:5px!important;
+  font-size:10px!important;
+ }
+}
+
+/* Phase 27D — prevent the institution role label from being truncated on mobile. */
+@media(min-width:381px) and (max-width:760px){
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  column-gap:7px!important;
+  row-gap:3px!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  grid-column:1/-1!important;
+  max-width:none!important;width:100%!important;
+  white-space:normal!important;overflow:visible!important;
+  text-overflow:clip!important;overflow-wrap:anywhere!important;
+  line-height:1.2!important;text-align:center!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{
+  grid-column:2!important;justify-self:end!important;
+ }
+}
+
+/* Phase 27E — separate the mobile role label and Logout into deliberate rows. */
+@media(min-width:381px) and (max-width:760px){
+ html body.app-page.page-app #appMain>.topbar>.topbar-actions{
+  min-height:58px!important;max-height:none!important;
+  align-items:center!important;overflow:visible!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  display:flex!important;flex:0 1 auto!important;
+  flex-direction:column!important;flex-wrap:nowrap!important;
+  align-items:center!important;justify-content:center!important;
+  gap:3px!important;height:auto!important;min-height:52px!important;
+  max-height:none!important;padding:5px 8px!important;overflow:visible!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  display:block!important;order:1!important;
+  width:100%!important;max-width:100%!important;
+  line-height:1.2!important;white-space:normal!important;
+  overflow:visible!important;text-overflow:clip!important;
+  text-align:center!important;overflow-wrap:anywhere!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{
+  display:inline-flex!important;order:2!important;
+  align-self:center!important;flex:0 0 auto!important;
+  height:24px!important;min-height:24px!important;max-height:24px!important;
+  line-height:1!important;padding:3px 8px!important;
+ }
+}
+/* Phase 29B — keep the mobile page title clear of the fixed menu and improve role-chip contrast. */
+@media(max-width:760px){
+ html body.app-page.page-app #appMain>.topbar>.topbar-title{
+  margin-left:44px!important;
+  width:calc(100% - 44px)!important;
+  max-width:calc(100% - 44px)!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #page-title{
+  max-width:100%!important;
+ }
+}
+html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+ color:#f2f8ff!important;
+ -webkit-text-fill-color:#f2f8ff!important;
+ text-shadow:0 1px 2px rgba(0,12,36,.72)!important;
+}

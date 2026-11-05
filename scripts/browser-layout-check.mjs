@@ -57,7 +57,7 @@ function pushFailure(scope,message,detail=''){
   failures.push({scope,message,detail});
 }
 
-async function inspectPage(page,url,width){
+async function inspectPage(page,url,width,navigate=true){
   if(!page.__eduLocalRouteInstalled){
     await page.route('**/*',route=>{
       const requestUrl=new URL(route.request().url());
@@ -67,14 +67,28 @@ async function inspectPage(page,url,width){
     page.__eduLocalRouteInstalled=true;
   }
   const errors=[];
+  const heroResponses=[];
+  const heroRequestFailures=[];
   page.removeAllListeners('pageerror');
+  page.removeAllListeners('response');
+  page.removeAllListeners('requestfailed');
   page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(url,{waitUntil:'domcontentloaded',timeout:15000});
+  page.on('response',response=>{
+    if(response.url().includes('/assets/themes/digital-learning.svg')){
+      heroResponses.push({url:response.url(),status:response.status(),ok:response.ok(),contentType:response.headers()['content-type']||''});
+    }
+  });
+  page.on('requestfailed',request=>{
+    if(request.url().includes('/assets/themes/digital-learning.svg')){
+      heroRequestFailures.push({url:request.url(),error:request.failure()?.errorText||'unknown request failure'});
+    }
+  });
+  if(navigate)await page.goto(url,{waitUntil:'domcontentloaded',timeout:15000});
   // Large homepage stylesheets can finish a few frames after DOMContentLoaded.
   // Measure the fully styled page, not the brief legacy two-column fallback.
   // This wait retains the layout contract: a missing/incorrect stylesheet
   // still fails the subsequent assertions instead of silently passing.
-  if(url.endsWith('/')) {
+  if(navigate&&url.endsWith('/')) {
     await page.waitForFunction(()=>{
       const strip=document.querySelector('.page-home .experience-strip');
       const title=strip?.querySelector('article strong');
@@ -105,9 +119,10 @@ async function inspectPage(page,url,width){
     };
     const intentionallyOffCanvas=el=>{
       const drawer=el.closest?.('.sidebar');
-      if(!drawer||drawer.classList.contains('mobile-nav-open'))return false;
-      const r=drawer.getBoundingClientRect();
-      return r.right<=2||r.left>=viewport-2;
+      // Navigation controls in a closed off-canvas drawer are intentionally
+      // outside the viewport; the dedicated drawer-open regression checks
+      // their geometry when they are actually visible.
+      return !!drawer&&!drawer.classList.contains('mobile-nav-open');
     };
     const scrollAncestor=el=>{
       let p=el.parentElement;
@@ -197,6 +212,7 @@ async function inspectPage(page,url,width){
         image:box('.page-home .hero-image-wrap'),
         quick:box('.page-home .quick-access-card'),
         roles:box('.page-home .hero-role-badge'),
+        heroImage:(()=>{const img=document.querySelector('.page-home .hero-image-wrap img');return img?{src:img.getAttribute('src'),complete:img.complete,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,loaded:img.complete&&img.naturalWidth>0}:null;})(),
         imageQuickOverlap:intersects(box('.page-home .hero-image-wrap'),box('.page-home .quick-access-card')),
         quickRoleOverlap:intersects(box('.page-home .quick-access-card'),box('.page-home .hero-role-badge')),
         linksDisplay:getComputedStyle(document.querySelector('.page-home .public-links')||document.body).display,
@@ -229,7 +245,7 @@ async function inspectPage(page,url,width){
     };
   });
 
-  return {result,errors};
+  return {result,errors,heroResponses,heroRequestFailures};
 }
 
 try{
@@ -329,7 +345,7 @@ try{
         let inspection;
         try{
           inspection=await Promise.race([
-            inspectPage(page,'http://127.0.0.1:'+port+route,width),
+            inspectPage(page,'http://127.0.0.1:'+port+route,width,width===widths[0]),
             new Promise((_,reject)=>{
               inspectionTimer=setTimeout(()=>reject(new Error('rendered inspection exceeded 18s budget')),18000);
             })
@@ -341,7 +357,7 @@ try{
         }finally{
           clearTimeout(inspectionTimer);
         }
-        const {result,errors}=inspection;
+        const {result,errors,heroResponses,heroRequestFailures}=inspection;
         // Visual snapshots are best-effort and isolated from the regression page.
         // A screenshot must never hold the functional/layout suite hostage.
         if(width===390||width===1366){
@@ -369,8 +385,7 @@ try{
               *,*:before,*:after{animation:none!important;transition:none!important}
             `});
             await screenshotPage.evaluate(()=>{
-              const hero=document.querySelector('.page-home .hero-image-wrap img');
-              if(hero)hero.setAttribute('src','assets/edunizam-login-children.webp');
+              // Keep the repository's real homepage hero asset in screenshots.
               window.scrollTo(0,0);
             });
             await screenshotPage.screenshot({
@@ -450,6 +465,11 @@ try{
             pushFailure(scope,'Homepage feature labels are below the enlarged mobile typography target',JSON.stringify(h.featureSizes));
           if(h.experienceColumns.trim().split(/\s+/).length!==1)
             pushFailure(scope,'Homepage features are still squeezed into two tiny mobile columns',h.experienceColumns);
+          if(!result.home.heroImage?.loaded)pushFailure(scope,'Homepage hero illustration failed to load',JSON.stringify({
+            image:result.home.heroImage,
+            responses:heroResponses,
+            requestFailures:heroRequestFailures
+          }));
           if(result.home.imageQuickOverlap)pushFailure(scope,'Homepage hero image and Quick Access overlap');
           if(result.home.quickRoleOverlap)pushFailure(scope,'Homepage Quick Access and role badge overlap');
           if(result.home.nav&&result.home.main&&result.home.main.top<result.home.nav.bottom-2){
@@ -942,7 +962,13 @@ try{
           pushFailure('authenticated mobile header','Compact dashboard header is oversized or overlaps the fixed menu control',JSON.stringify(headerLayout));
         }
         await page.screenshot({path:path.join(visualDir,'authenticated-app-390.png'),fullPage:false});
-        console.log('Authenticated dashboard screenshot: '+JSON.stringify(headerLayout));
+        // Capture the same authenticated role at desktop width so dashboard glass,
+        // sidebar and topbar can be visually reviewed independently of the guest gate.
+        await page.setViewportSize({width:1366,height:900});
+        await page.waitForTimeout(180);
+        await page.screenshot({path:path.join(visualDir,'authenticated-app-1366.png'),fullPage:false});
+        await page.setViewportSize({width:390,height:844});
+        console.log('Authenticated dashboard screenshots captured at 390px and 1366px: '+JSON.stringify(headerLayout));
       }
 
       await page.locator('#eduMobileMenuBtn').tap({timeout:5000});
@@ -1788,6 +1814,76 @@ try{
       x.scrollHeight>x.height+2
     ));
     if(clippedDockLabels.length)pushFailure('mobile dock','Quick navigation labels are clipped or ellipsized',JSON.stringify(clippedDockLabels));
+
+    const dockTheme=await boundedEvaluate('inspect mobile dock blue-glass theme',()=>{
+      const dock=document.getElementById('premiumMobileDock');
+      if(!dock)return {missing:true};
+      const cs=getComputedStyle(dock);
+      const active=dock.querySelector('button.active');
+      const ac=active?getComputedStyle(active):null;
+      return {
+        missing:false,
+        backgroundImage:cs.backgroundImage,
+        backdropFilter:cs.backdropFilter||cs.webkitBackdropFilter,
+        activeBackground:ac?.backgroundImage||ac?.backgroundColor||'',
+        activeColor:ac?.color||''
+      };
+    });
+    if(dockTheme.missing||!dockTheme.backgroundImage.includes('linear-gradient')||!dockTheme.backdropFilter.includes('blur')||!dockTheme.activeColor.includes('255')){
+      pushFailure('mobile dock theme','Mobile quick-navigation dock lost its premium blue-glass treatment',JSON.stringify(dockTheme));
+    }
+
+    const sessionTheme=await boundedEvaluate('inspect mobile session control glass theme',()=>{
+      const chip=document.querySelector('#appMain>.topbar #roleSession.session-chip');
+      if(!chip)return {missing:true};
+      const cs=getComputedStyle(chip);
+      const logout=chip.querySelector('button');
+      const ls=logout?getComputedStyle(logout):null;
+      return {missing:false,backgroundImage:cs.backgroundImage,border:cs.borderTopColor,backdropFilter:cs.backdropFilter||cs.webkitBackdropFilter,logoutBackground:ls?.backgroundImage||''};
+    });
+    if(sessionTheme.missing||!sessionTheme.backgroundImage.includes('linear-gradient')||!sessionTheme.backdropFilter.includes('blur')||!sessionTheme.logoutBackground.includes('linear-gradient')){
+      pushFailure('mobile session theme','Authenticated mobile session controls lost their blue-glass treatment',JSON.stringify(sessionTheme));
+    }
+
+    const sessionGeometry=await boundedEvaluate('inspect mobile session control spacing',()=>{
+      const chip=document.querySelector('#appMain>.topbar #roleSession.session-chip');
+      const account=document.querySelector('#appMain>.topbar #accountSecurityButton.account-security-btn');
+      const actions=document.querySelector('#appMain>.topbar>.topbar-actions');
+      if(!chip||!account||!actions)return {missing:true};
+      const c=chip.getBoundingClientRect(),a=account.getBoundingClientRect(),p=actions.getBoundingClientRect();
+      return {
+        missing:false,
+        overlap:c.right>a.left+1,
+        outside:Math.min(c.left,a.left)<p.left-1||Math.max(c.right,a.right)>p.right+1,
+        gap:Math.round(a.left-c.right),
+        accountWidth:Math.round(a.width),
+        roleLabel:(chip.querySelector('strong')?.textContent||'').trim()
+      };
+    });
+    if(sessionGeometry.missing||sessionGeometry.overlap||sessionGeometry.outside||sessionGeometry.gap<0){
+      pushFailure('mobile session spacing','Role/logout and account controls overlap or escape the topbar action area',JSON.stringify(sessionGeometry));
+    }
+
+    const roleLabelLayout=await boundedEvaluate('inspect mobile role label truncation',()=>{
+      const label=document.querySelector('#appMain>.topbar #roleSession.session-chip>strong');
+      if(!label)return {missing:true};
+      const cs=getComputedStyle(label);
+      return {missing:false,whiteSpace:cs.whiteSpace,overflow:cs.overflow,textOverflow:cs.textOverflow,scrollWidth:label.scrollWidth,clientWidth:label.clientWidth,scrollHeight:label.scrollHeight,clientHeight:label.clientHeight};
+    });
+    if(roleLabelLayout.missing||roleLabelLayout.whiteSpace==='nowrap'||roleLabelLayout.textOverflow==='ellipsis'||roleLabelLayout.scrollWidth>roleLabelLayout.clientWidth+2||roleLabelLayout.scrollHeight>roleLabelLayout.clientHeight+2){
+      pushFailure('mobile role label','Institution role label is clipped or ellipsized on mobile',JSON.stringify(roleLabelLayout));
+    }
+
+    const sessionChildrenLayout=await boundedEvaluate('verify mobile role label and Logout do not overlap',()=>{
+      const chip=document.querySelector('#appMain>.topbar #roleSession.session-chip');
+      const label=chip?.querySelector('strong'),logout=chip?.querySelector('button');
+      if(!chip||!label||!logout)return {missing:true};
+      const l=label.getBoundingClientRect(),b=logout.getBoundingClientRect(),c=chip.getBoundingClientRect();
+      return {missing:false,overlap:!(l.bottom<=b.top+1||b.bottom<=l.top+1),labelBottom:Math.round(l.bottom),logoutTop:Math.round(b.top),chipBottom:Math.round(c.bottom),logoutBottom:Math.round(b.bottom),logoutInside:b.bottom<=c.bottom+1};
+    });
+    if(sessionChildrenLayout.missing||sessionChildrenLayout.overlap||!sessionChildrenLayout.logoutInside){
+      pushFailure('mobile role/logout separation','Role label and Logout overlap or Logout escapes the session chip',JSON.stringify(sessionChildrenLayout));
+    }
 
     const adminDeskVisual=await boundedEvaluate('inspect admin desk visual contract',()=>({
       cards:[...document.querySelectorAll('#adminDailyDesk .admin-daily-actions > button')].map(el=>{

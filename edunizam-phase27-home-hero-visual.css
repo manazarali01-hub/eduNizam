@@ -1,0 +1,39 @@
+/* Phase 27 — premium homepage hero visual finish.
+   Scoped to the public homepage; preserve existing navigation and actions. */
+html body.gold-home.page-home .public-hero.premium-public-hero .hero-image-wrap{
+ height:clamp(430px,42vw,570px)!important;min-height:430px!important;
+ background:linear-gradient(145deg,#0b3974,#04132f)!important;
+ border:1px solid rgba(177,225,255,.78)!important;
+ box-shadow:0 24px 58px rgba(0,8,35,.42),0 0 30px rgba(44,158,239,.20),inset 0 1px 0 rgba(255,255,255,.24)!important;
+}
+html body.gold-home.page-home .public-hero.premium-public-hero .hero-image-wrap img{
+ object-fit:cover!important;object-position:center!important;transform:none!important;filter:none!important;
+}
+html body.gold-home.page-home .public-hero.premium-public-hero .hero-image-shade{
+ background:linear-gradient(180deg,rgba(3,20,53,0) 45%,rgba(3,20,53,.18) 100%)!important;
+}
+html body.gold-home.page-home .public-hero.premium-public-hero .portrait-caption{
+ z-index:2!important;left:20px!important;right:295px!important;bottom:20px!important;max-width:calc(100% - 320px)!important;
+}
+html body.gold-home.page-home .public-hero.premium-public-hero .quick-access-card{
+ z-index:6!important;border:1px solid rgba(190,229,255,.72)!important;
+ background:linear-gradient(145deg,rgba(14,69,130,.96),rgba(3,24,62,.97))!important;
+ box-shadow:0 18px 42px rgba(0,8,35,.46),inset 0 1px 0 rgba(255,255,255,.22)!important;
+}
+html body.gold-home.page-home .public-hero.premium-public-hero .hero-role-badge{
+ z-index:4!important;border:1px solid rgba(190,229,255,.62)!important;background:rgba(5,35,79,.82)!important;
+ -webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;
+}
+@media(max-width:1000px){
+ html body.gold-home.page-home .public-hero.premium-public-hero .hero-image-wrap{height:clamp(300px,55vw,430px)!important;min-height:300px!important}
+ html body.gold-home.page-home .public-hero.premium-public-hero .portrait-caption{left:14px!important;right:14px!important;bottom:14px!important;max-width:calc(100% - 28px)!important}
+}
+@media(max-width:720px){
+ html body.gold-home.page-home .public-hero.premium-public-hero .hero-image-wrap{height:auto!important;min-height:0!important;aspect-ratio:4/3!important;border-radius:19px!important}
+ html body.gold-home.page-home .public-hero.premium-public-hero .portrait-caption{left:12px!important;right:12px!important;bottom:12px!important;max-width:calc(100% - 24px)!important}
+ html body.gold-home.page-home .public-hero.premium-public-hero .portrait-caption strong{font-size:15px!important;max-width:24ch!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html body.gold-home.page-home .public-hero.premium-public-hero .hero-image-wrap,
+ html body.gold-home.page-home .public-hero.premium-public-hero .quick-access-card{transition:none!important}
+}

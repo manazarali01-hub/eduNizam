@@ -41,3 +41,37 @@
     box-shadow: 0 0 0 3px rgba(39, 157, 224, .18) !important;
   }
 }
+
+/* Phase 37 — horizontal category headings using the actual app-shell sidebar path. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .app-shell > .sidebar > #nav > details.nav-group > summary {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    text-align: left !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > details.nav-group > summary > span {
+    display: inline-flex !important;
+    flex: 0 0 23px !important;
+    width: 23px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    margin: 0 !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > details.nav-group > summary > strong {
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > details.nav-group > summary > small {
+    display: inline-flex !important;
+    flex: 0 0 15px !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    margin-left: auto !important;
+  }
+}

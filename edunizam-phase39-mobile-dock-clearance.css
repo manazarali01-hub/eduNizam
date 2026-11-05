@@ -1,0 +1,19 @@
+/* Phase 39 — reserve touch-safe space for the fixed mobile dock.
+   The rendered 390px QA screenshot showed the dock covering the dashboard
+   card footer. Add scrollable clearance without changing desktop geometry. */
+@media (max-width: 950px) {
+  html body.page-app.page-app #appMain,
+  html body.page-app #appMain.main {
+    box-sizing: border-box !important;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+    scroll-padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html body.page-app #appMain .view.active {
+    scroll-margin-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html body.page-app .premium-mobile-dock {
+    bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

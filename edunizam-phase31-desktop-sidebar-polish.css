@@ -1,0 +1,242 @@
+/* Phase 31 — desktop sidebar hierarchy and navigation repair.
+   Desktop-only presentation layer. Mobile drawer and app behavior remain unchanged. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .app-shell > .sidebar {
+    width: 276px !important;
+    min-width: 276px !important;
+    max-width: 276px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    padding: 16px 12px 12px !important;
+    overflow: hidden !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > .brand {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    flex: 0 0 auto !important;
+    min-height: 72px !important;
+    margin: 0 2px 12px !important;
+    padding: 10px !important;
+    border: 1px solid rgba(169, 222, 255, .32) !important;
+    border-radius: 17px !important;
+    background: linear-gradient(130deg, rgba(95, 173, 230, .20), rgba(4, 31, 69, .30)) !important;
+  }
+
+  html body.app-page.page-app .sidebar .brand-logo-frame {
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    padding: 5px !important;
+    overflow: hidden !important;
+  }
+  html body.app-page.page-app .sidebar .brand-logo-img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  html body.app-page.page-app .sidebar .sidebar-wordmark {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    gap: 3px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  html body.app-page.page-app .sidebar .sidebar-wordmark strong {
+    display: block !important;
+    color: #f4faff !important;
+    font-size: 19px !important;
+    line-height: 1.1 !important;
+    letter-spacing: -.035em !important;
+  }
+  html body.app-page.page-app .sidebar .sidebar-wordmark small {
+    display: block !important;
+    color: #b8d9f2 !important;
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+  }
+
+  html body.app-page.page-app .sidebar > .sidebar-institute {
+    display: flex !important;
+    align-items: center !important;
+    flex: 0 0 auto !important;
+    min-height: 76px !important;
+    margin: 0 2px 12px !important;
+    padding: 12px !important;
+    overflow: hidden !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    border: 1px solid rgba(160, 221, 255, .34) !important;
+    border-radius: 16px !important;
+    background: linear-gradient(135deg, rgba(64, 145, 207, .22), rgba(2, 25, 60, .48)) !important;
+  }
+  html body.app-page.page-app .sidebar .sidebar-institute-copy {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    gap: 4px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  html body.app-page.page-app .sidebar .sidebar-institute-copy small {
+    color: #9ed9ff !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    letter-spacing: .12em !important;
+    text-transform: uppercase !important;
+  }
+  html body.app-page.page-app .sidebar .sidebar-institute-copy strong {
+    display: block !important;
+    overflow: hidden !important;
+    color: #f5faff !important;
+    font-size: 14px !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  html body.app-page.page-app .sidebar .sidebar-institute-copy span {
+    color: #c1def4 !important;
+    font-size: 11px !important;
+  }
+
+  html body.app-page.page-app .sidebar > #nav {
+    display: flex !important;
+    flex: 1 1 0 !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 3px 2px 18px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: thin !important;
+  }
+  html body.app-page.page-app .sidebar > #nav > .nav-group {
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 5px !important;
+    overflow: visible !important;
+    border: 1px solid rgba(159, 218, 255, .22) !important;
+    border-radius: 14px !important;
+    background: rgba(5, 31, 68, .42) !important;
+  }
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary {
+    display: grid !important;
+    grid-template-columns: 22px minmax(0, 1fr) 16px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    height: auto !important;
+    padding: 8px 10px !important;
+    color: #edf8ff !important;
+    border: 1px solid rgba(155, 219, 255, .18) !important;
+    border-radius: 10px !important;
+    background: rgba(65, 145, 207, .16) !important;
+    cursor: pointer !important;
+  }
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary > span {
+    display: grid !important;
+    place-items: center !important;
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 15px !important;
+    line-height: 1 !important;
+  }
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary > strong {
+    display: block !important;
+    min-width: 0 !important;
+    color: #f1f9ff !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+  }
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary > small {
+    display: block !important;
+    color: #b7ddf7 !important;
+    font-size: 11px !important;
+    text-align: center !important;
+  }
+  html body.app-page.page-app .sidebar > #nav > .nav-group[open] > summary {
+    border-color: rgba(137, 218, 255, .42) !important;
+    background: linear-gradient(110deg, rgba(14, 123, 202, .38), rgba(54, 137, 203, .20)) !important;
+  }
+  html body.app-page.page-app .sidebar > #nav > .nav-group > .nav-group-items {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 4px !important;
+    padding: 6px 2px 2px !important;
+  }
+  html body.app-page.page-app .sidebar > #nav > .nav-group:not([open]) > .nav-group-items {
+    display: none !important;
+  }
+  html body.app-page.page-app .sidebar > #nav .nav-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 38px !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 8px 9px !important;
+    overflow: hidden !important;
+    color: #deeffc !important;
+    -webkit-text-fill-color: #deeffc !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    line-height: 1.3 !important;
+    text-align: left !important;
+    white-space: normal !important;
+    border: 1px solid transparent !important;
+    border-radius: 9px !important;
+    background: rgba(104, 174, 225, .075) !important;
+    box-shadow: none !important;
+  }
+  html body.app-page.page-app .sidebar > #nav .nav-item:hover,
+  html body.app-page.page-app .sidebar > #nav .nav-item:focus-visible {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    border-color: rgba(154, 222, 255, .30) !important;
+    background: rgba(69, 160, 225, .22) !important;
+  }
+  html body.app-page.page-app .sidebar > #nav .nav-item.active {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    border-color: rgba(166, 229, 255, .52) !important;
+    background: linear-gradient(105deg, #087fd8, #1766c2) !important;
+    box-shadow: 0 5px 14px rgba(0, 91, 185, .24) !important;
+  }
+  html body.app-page.page-app .sidebar :is(.nav-search-wrap, .nav-search-wrap input) {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}

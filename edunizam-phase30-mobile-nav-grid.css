@@ -1,0 +1,71 @@
+/* EduNizam Phase 30 — make the compact mobile navigation strip visibly scrollable.
+   The homepage keeps its low-height horizontal layout; all existing destinations
+   remain reachable without clipping or changing desktop navigation. */
+@media (max-width:720px){
+  html body.gold-home.page-home header.public-nav nav.public-links{
+    position:relative!important;
+    display:flex!important;
+    flex-flow:row nowrap!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:7px!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:2px 2px 8px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    overscroll-behavior-inline:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    scroll-snap-type:x proximity!important;
+    scrollbar-width:thin!important;
+    scrollbar-color:rgba(174,222,255,.92) rgba(4,28,67,.72)!important;
+  }
+  html body.gold-home.page-home header.public-nav nav.public-links a{
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex:0 0 auto!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:auto!important;
+    min-width:max-content!important;
+    min-height:40px!important;
+    margin:0!important;
+    padding:8px 12px!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+    white-space:nowrap!important;
+    scroll-snap-align:start!important;
+  }
+  html body.gold-home.page-home header.public-nav nav.public-links::-webkit-scrollbar{
+    display:block!important;
+    height:6px!important;
+  }
+  html body.gold-home.page-home header.public-nav nav.public-links::-webkit-scrollbar-track{
+    border-radius:99px!important;
+    background:rgba(4,28,67,.72)!important;
+  }
+  html body.gold-home.page-home header.public-nav nav.public-links::-webkit-scrollbar-thumb{
+    border:1px solid rgba(223,243,255,.62)!important;
+    border-radius:99px!important;
+    background:linear-gradient(90deg,#66cfff,#1689ed)!important;
+  }
+}
+@media (max-width:380px){
+  html body.gold-home.page-home header.public-nav nav.public-links{
+    gap:6px!important;
+  }
+  html body.gold-home.page-home header.public-nav nav.public-links a{
+    min-height:38px!important;
+    padding:7px 10px!important;
+    font-size:11.5px!important;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  html body.gold-home.page-home header.public-nav nav.public-links{
+    scroll-behavior:auto!important;
+    scroll-snap-type:none!important;
+  }
+}

@@ -1,0 +1,18 @@
+/* Phase 43 — strengthen dashboard metric-card supporting text contrast.
+   Presentation-only: preserve metric values, data and card layout. */
+html body.app-page.page-app #appMain #dashboard > .cards > .card.stat :is(small,p,.muted,.trend,.stat-label,.stat-meta) {
+  color: #d9edff !important;
+  -webkit-text-fill-color: #d9edff !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 3px rgba(0, 12, 35, .58) !important;
+}
+html body.app-page.page-app #appMain #dashboard > .cards > .card.stat :is(.positive,.success,.negative,.warning) {
+  color: #d9edff !important;
+  -webkit-text-fill-color: #d9edff !important;
+}
+@media (max-width: 760px) {
+  html body.app-page.page-app #appMain #dashboard > .cards > .card.stat :is(small,p,.muted,.trend,.stat-label,.stat-meta) {
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+}
