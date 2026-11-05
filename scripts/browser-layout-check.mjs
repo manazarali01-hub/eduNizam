@@ -962,7 +962,13 @@ try{
           pushFailure('authenticated mobile header','Compact dashboard header is oversized or overlaps the fixed menu control',JSON.stringify(headerLayout));
         }
         await page.screenshot({path:path.join(visualDir,'authenticated-app-390.png'),fullPage:false});
-        console.log('Authenticated dashboard screenshot: '+JSON.stringify(headerLayout));
+        // Capture the same authenticated role at desktop width so dashboard glass,
+        // sidebar and topbar can be visually reviewed independently of the guest gate.
+        await page.setViewportSize({width:1366,height:900});
+        await page.waitForTimeout(180);
+        await page.screenshot({path:path.join(visualDir,'authenticated-app-1366.png'),fullPage:false});
+        await page.setViewportSize({width:390,height:844});
+        console.log('Authenticated dashboard screenshots captured at 390px and 1366px: '+JSON.stringify(headerLayout));
       }
 
       await page.locator('#eduMobileMenuBtn').tap({timeout:5000});
