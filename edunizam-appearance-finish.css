@@ -1,0 +1,113 @@
+/* EduNizam Appearance Finish — consolidated final visual layer.
+   Scoped to the authenticated workspace; no application logic or data behavior changes. */
+html body.app-page.page-app {
+  background:
+    radial-gradient(ellipse at 12% 4%, rgba(67, 158, 226, .17), transparent 34%),
+    radial-gradient(ellipse at 88% 92%, rgba(28, 111, 190, .12), transparent 38%),
+    #eaf2fb !important;
+}
+html body.app-page.page-app .app-shell > .sidebar {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(67, 157, 225, .22), transparent 34%),
+    linear-gradient(165deg, rgba(5, 32, 72, .98), rgba(7, 48, 94, .97) 58%, rgba(4, 28, 65, .99)) !important;
+  border-right: 1px solid rgba(145, 211, 255, .28) !important;
+  box-shadow: 12px 0 34px rgba(8, 38, 78, .12) !important;
+}
+html body.app-page.page-app .sidebar > #nav > .nav-group {
+  border-color: rgba(156, 215, 255, .18) !important;
+  background: rgba(10, 48, 91, .42) !important;
+  transition: background .2s ease, border-color .2s ease !important;
+}
+html body.app-page.page-app .sidebar > #nav > .nav-group[open] {
+  border-color: rgba(117, 202, 255, .38) !important;
+  background: rgba(18, 74, 128, .48) !important;
+}
+html body.app-page.page-app .sidebar > #nav > .nav-group > .nav-group-items > .nav-item {
+  min-height: 39px !important;
+  margin: 3px 0 !important;
+  padding: 9px 11px !important;
+  color: #d6eaff !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  text-align: left !important;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease !important;
+}
+html body.app-page.page-app .sidebar > #nav > .nav-group > .nav-group-items > .nav-item:hover {
+  color: #fff !important;
+  border-color: rgba(143, 213, 255, .26) !important;
+  background: rgba(73, 157, 220, .18) !important;
+  transform: translateX(2px) !important;
+}
+html body.app-page.page-app .sidebar > #nav > .nav-group > .nav-group-items > .nav-item.active,
+html body.app-page.page-app .sidebar > #nav > .nav-group > .nav-group-items > .nav-item[aria-current="page"] {
+  color: #fff !important;
+  border-color: rgba(157, 225, 255, .55) !important;
+  background: linear-gradient(105deg, rgba(36, 145, 220, .48), rgba(37, 101, 171, .28)) !important;
+  box-shadow: inset 3px 0 #75d2ff, 0 5px 14px rgba(0, 17, 45, .16) !important;
+}
+html body.app-page.page-app #appMain {
+  min-width: 0 !important;
+  background: transparent !important;
+}
+html body.app-page.page-app #appMain > .topbar {
+  backdrop-filter: blur(18px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
+}
+html body.app-page.page-app #appMain > #dashboard .campus-hero {
+  isolation: isolate !important;
+}
+html body.app-page.page-app #appMain > #dashboard .campus-hero::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  width: 300px !important;
+  height: 300px !important;
+  right: -100px !important;
+  top: -145px !important;
+  border: 1px solid rgba(177, 229, 255, .17) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 0 28px rgba(177, 229, 255, .035), 0 0 0 58px rgba(177, 229, 255, .025) !important;
+  pointer-events: none !important;
+}
+html body.app-page.page-app #appMain > #dashboard .cards > .card.stat {
+  position: relative !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(14px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(135%) !important;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
+}
+html body.app-page.page-app #appMain > #dashboard .cards > .card.stat::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, #66d2ff, #318ee0, #9ae5ff) !important;
+}
+html body.app-page.page-app #appMain > #dashboard .cards > .card.stat:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgba(126, 205, 255, .62) !important;
+  box-shadow: 0 16px 30px rgba(0, 34, 80, .2), inset 0 1px rgba(255,255,255,.1) !important;
+}
+html body.app-page.page-app #appMain > #dashboard .grid-2 > .card {
+  backdrop-filter: blur(12px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(130%) !important;
+}
+html body.app-page.page-app :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(36, 151, 225, .62) !important;
+  outline-offset: 2px !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.app-page.page-app *,
+  html body.app-page.page-app *::before,
+  html body.app-page.page-app *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+@media (max-width: 600px) {
+  html body.app-page.page-app #appMain > #dashboard .campus-hero::after { display: none !important; }
+  html body.app-page.page-app #appMain > #dashboard .cards > .card.stat:hover { transform: none !important; }
+}
