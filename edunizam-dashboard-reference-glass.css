@@ -656,3 +656,56 @@ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
  -webkit-text-fill-color:#f2f8ff!important;
  text-shadow:0 1px 2px rgba(0,12,36,.72)!important;
 }
+
+/* Phase 51 — mobile appearance: prevent topbar clipping and reserve space
+   for the fixed bottom navigation. Visual-only; no application logic changed. */
+@media (max-width: 760px) {
+  body.app-page.page-app .topbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    justify-content: stretch !important;
+    gap: 10px !important;
+    min-height: 0 !important;
+    padding: 62px 14px 14px !important;
+    overflow: visible !important;
+  }
+  body.app-page.page-app .topbar-title {
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow-wrap: anywhere !important;
+  }
+  body.app-page.page-app .topbar-title h1 {
+    margin: 0 0 4px !important;
+    font-size: clamp(21px, 6vw, 27px) !important;
+    line-height: 1.15 !important;
+  }
+  body.app-page.page-app .topbar-title .school-identity {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  body.app-page.page-app .topbar-title .school-identity p {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  body.app-page.page-app .topbar-actions {
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 7px !important;
+  }
+  body.app-page.page-app .topbar-actions > * {
+    max-width: 100% !important;
+  }
+  body.app-page.page-app #appMain {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+  body.app-page.page-app .main {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+}
