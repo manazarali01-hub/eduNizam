@@ -95,7 +95,22 @@
       if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:5000});
       else setTimeout(run,4500);
     };
-    nav.addEventListener('click',e=>{const b=e.target.closest('.nav-item');if(!b)return;const g=b.closest('.nav-group');if(g)g.open=true;if(window.innerWidth<951)window.EDUNIZAM_MOBILE_NAV_CORE?.close?.()});
+    nav.addEventListener('click',e=>{
+      const summary=e.target.closest('.nav-group > summary');
+      if(summary){
+        // Keep the accordion toggle explicit and reliable on touch/mobile browsers.
+        // Prevent the native summary default so a single tap always maps to one state change.
+        e.preventDefault();
+        const group=summary.parentElement;
+        if(group?.matches('details.nav-group'))group.open=!group.open;
+        return;
+      }
+      const b=e.target.closest('.nav-item');
+      if(!b)return;
+      const g=b.closest('.nav-group');
+      if(g)g.open=true;
+      if(window.innerWidth<951)window.EDUNIZAM_MOBILE_NAV_CORE?.close?.();
+    });
     const observer=new MutationObserver(mutations=>{
       let changed=false;
       for(const m of mutations){
