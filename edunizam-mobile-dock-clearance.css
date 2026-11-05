@@ -1,0 +1,10 @@
+/* Keep the fixed mobile dock from obscuring the final dashboard cards. */
+@media(max-width:950px){
+  body.app-page.page-app #appMain{
+    padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))!important;
+    scroll-padding-bottom:calc(112px + env(safe-area-inset-bottom,0px));
+  }
+  body.app-page.page-app .premium-mobile-dock{
+    padding-bottom:env(safe-area-inset-bottom,0px)!important;
+  }
+}
