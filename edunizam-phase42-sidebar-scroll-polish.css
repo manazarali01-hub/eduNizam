@@ -1,0 +1,32 @@
+/* Phase 42 — make the long desktop navigation rail easier to scan and scroll.
+   Keep the brand, institute and search areas fixed; only the navigation list scrolls. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .app-shell > .sidebar > #nav {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(105, 195, 255, .78) rgba(7, 35, 72, .42) !important;
+    scroll-behavior: smooth !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav::-webkit-scrollbar { width: 8px !important; }
+  html body.app-page.page-app .app-shell > .sidebar > #nav::-webkit-scrollbar-track {
+    margin-block: 5px !important; border-radius: 999px !important;
+    background: rgba(5, 27, 58, .42) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav::-webkit-scrollbar-thumb {
+    min-height: 42px !important; border: 2px solid rgba(5, 27, 58, .72) !important;
+    border-radius: 999px !important;
+    background: linear-gradient(180deg, #69c8ff, #247cc8) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #a0e2ff, #3a9be5) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group {
+    transition: border-color .18s ease, background .18s ease !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group:focus-within {
+    border-color: rgba(112, 202, 255, .52) !important;
+    background: rgba(13, 66, 119, .56) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.app-page.page-app .app-shell > .sidebar > #nav { scroll-behavior: auto !important; }
+}
