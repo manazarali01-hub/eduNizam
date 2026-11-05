@@ -522,3 +522,35 @@ html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-
   max-width:92px!important;
  }
 }
+
+
+/* Phase 27 — align the mobile quick-navigation dock with the premium blue-glass dashboard.
+   Presentation-only override; role-aware dock items and click handlers remain unchanged. */
+@media(max-width:950px){
+  html body.app-page.page-app #premiumMobileDock.premium-mobile-dock{
+    color:#f4f9ff!important;
+    background:linear-gradient(145deg,rgba(12,72,132,.96),rgba(3,24,62,.97))!important;
+    border:1px solid rgba(163,222,255,.72)!important;
+    box-shadow:0 16px 38px rgba(0,8,32,.38),0 0 24px rgba(0,158,255,.20),inset 0 1px 0 rgba(255,255,255,.22)!important;
+    -webkit-backdrop-filter:blur(22px) saturate(150%)!important;
+    backdrop-filter:blur(22px) saturate(150%)!important;
+  }
+  html body.app-page.page-app #premiumMobileDock.premium-mobile-dock button{
+    color:#dceeff!important;background:transparent!important;
+    border:1px solid transparent!important;border-radius:13px!important;
+    transition:background .18s ease,border-color .18s ease,color .18s ease!important;
+  }
+  html body.app-page.page-app #premiumMobileDock.premium-mobile-dock button.active{
+    color:#fff!important;
+    background:linear-gradient(135deg,rgba(0,157,255,.42),rgba(24,91,181,.48))!important;
+    border-color:rgba(145,222,255,.58)!important;
+    box-shadow:0 0 16px rgba(0,166,255,.22),inset 0 1px 0 rgba(255,255,255,.22)!important;
+  }
+  html body.app-page.page-app #premiumMobileDock .premium-dock-icon{color:currentColor!important}
+  html body.app-page.page-app #premiumMobileDock button:focus-visible{
+    outline:2px solid #9ce7ff!important;outline-offset:2px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body.app-page.page-app #premiumMobileDock button{transition:none!important}
+}
