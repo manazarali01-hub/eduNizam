@@ -217,6 +217,7 @@ jobs:
           verify_exact_file "daily-class-diary.js"
           verify_exact_file "teacher-paper-builder.js"
           verify_exact_file "premium-ui.css"
+          verify_exact_file "edunizam-unified-blue-glass-finish.css"
           verify_exact_file "edunizam-visual-system.css"
           verify_exact_file "home-showcase.css"
           verify_exact_file "home-mobile-200-clarity-oct08.css"
