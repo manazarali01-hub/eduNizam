@@ -1,0 +1,140 @@
+/* EduNizam unified blue-glass finish — screenshot-led responsive corrections.
+   Visual-only: preserve application behavior, navigation, permissions and data. */
+:root{
+  --en-night:#04152e;
+  --en-deep:#082b58;
+  --en-blue:#087fe5;
+  --en-cyan:#65dcff;
+  --en-glass:rgba(8,43,86,.72);
+}
+/* Public home: bring navigation, hero and feature surfaces into the same visual family. */
+body.gold-home.page-home{
+  color:#edf7ff!important;
+  background:
+    radial-gradient(ellipse at 82% 4%,rgba(0,148,255,.22),transparent 34rem),
+    radial-gradient(ellipse at 8% 75%,rgba(0,86,190,.18),transparent 38rem),
+    linear-gradient(145deg,#03152f 0%,#082e60 54%,#041a38 100%)!important;
+}
+body.gold-home.page-home .public-nav{
+  background:linear-gradient(110deg,rgba(3,25,58,.94),rgba(5,65,123,.88))!important;
+  border:1px solid rgba(100,207,255,.5)!important;
+  box-shadow:0 12px 32px rgba(0,8,30,.28),inset 0 1px rgba(255,255,255,.14)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(140%)!important;
+  backdrop-filter:blur(18px) saturate(140%)!important;
+}
+body.gold-home.page-home .public-nav :is(.brand-name,.brand-copy small,.public-links a){color:#edf8ff!important}
+body.gold-home.page-home .public-nav .public-links a{
+  border:1px solid rgba(135,211,255,.34)!important;
+  background:rgba(32,112,183,.24)!important;
+}
+body.gold-home.page-home .public-nav .public-links a.nav-primary{
+  background:linear-gradient(120deg,#0789ed,#0754b5)!important;
+  border-color:rgba(155,226,255,.75)!important;color:#fff!important;
+}
+body.gold-home.page-home .public-hero{
+  color:#f1f8ff!important;
+  background:
+    radial-gradient(ellipse at 82% 12%,rgba(0,164,255,.26),transparent 40%),
+    linear-gradient(140deg,rgba(5,44,91,.96),rgba(4,28,65,.94))!important;
+  border:1px solid rgba(96,202,255,.48)!important;
+  box-shadow:0 22px 56px rgba(0,8,30,.30),inset 0 1px rgba(255,255,255,.13)!important;
+}
+body.gold-home.page-home .public-hero :is(h1,p,.public-kicker,.public-proof span){color:#edf7ff!important}
+body.gold-home.page-home .public-hero .hero-gold{color:#8ddfff!important}
+body.gold-home.page-home .public-proof span{
+  border:1px solid rgba(117,207,255,.42)!important;background:rgba(25,105,174,.28)!important;
+}
+body.gold-home.page-home .quick-access-card,
+body.gold-home.page-home .hero-image-wrap{
+  background:linear-gradient(145deg,rgba(16,78,139,.68),rgba(3,27,65,.88))!important;
+  border:1px solid rgba(108,209,255,.58)!important;
+  box-shadow:0 12px 30px rgba(0,8,30,.28),inset 0 1px rgba(255,255,255,.16)!important;
+}
+body.gold-home.page-home .quick-access-card :is(strong,small){color:#eff8ff!important}
+body.gold-home.page-home .quick-access-card a{
+  color:#f3faff!important;background:linear-gradient(120deg,rgba(0,119,220,.78),rgba(4,49,105,.88))!important;
+  border:1px solid rgba(110,211,255,.58)!important;
+}
+body.gold-home.page-home :is(.home-section,.feature-section,.public-section,.home-feature-grid,.home-tools-grid) :is(article,.card,.feature-card,.tool-card){
+  color:#edf7ff!important;background:linear-gradient(145deg,rgba(13,68,126,.82),rgba(3,30,70,.90))!important;
+  border:1px solid rgba(102,198,255,.42)!important;box-shadow:0 12px 28px rgba(0,8,30,.20),inset 0 1px rgba(255,255,255,.10)!important;
+}
+body.gold-home.page-home footer{color:#d9edff!important;background:rgba(2,18,43,.92)!important;border-top:1px solid rgba(95,190,255,.36)!important}
+/* Role selection and auth: the chooser must not fall back to pale cards. */
+body.auth-page.page-login{
+  color:#edf7ff!important;
+  background:
+    radial-gradient(ellipse at 12% 6%,rgba(0,151,255,.24),transparent 34rem),
+    radial-gradient(ellipse at 92% 90%,rgba(0,83,190,.26),transparent 32rem),
+    linear-gradient(145deg,#03152f,#082d5d 56%,#041a38)!important;
+}
+body.auth-page.page-login .card{
+  background:linear-gradient(145deg,rgba(13,67,123,.88),rgba(3,27,64,.94))!important;
+  border:1px solid rgba(115,207,255,.56)!important;
+  box-shadow:0 24px 64px rgba(0,7,28,.42),inset 0 1px rgba(255,255,255,.18)!important;
+}
+body.auth-page.page-login .mobile-brand{
+  background:rgba(4,31,69,.92)!important;border-bottom:1px solid rgba(110,203,255,.28)!important;
+}
+body.auth-page.page-login .mobile-brand :is(strong,span){color:#f2f9ff!important}
+body.auth-page.page-login .pwa-home-entry,
+body.auth-page.page-login .pwa-install-login{
+  color:#eaf7ff!important;background:rgba(38,111,177,.34)!important;
+  border:1px solid rgba(125,210,255,.48)!important;box-shadow:none!important;
+}
+body.auth-page.page-login .role{
+  min-height:112px!important;color:#f4faff!important;
+  background:linear-gradient(145deg,rgba(49,128,191,.40),rgba(5,39,83,.86))!important;
+  border:1px solid rgba(142,215,255,.56)!important;
+  box-shadow:0 10px 24px rgba(0,10,34,.24),inset 0 1px rgba(255,255,255,.16)!important;
+}
+body.auth-page.page-login .role :is(strong,small){color:#f1f8ff!important}
+body.auth-page.page-login .role .icon{
+  display:grid!important;place-items:center!important;width:42px!important;height:42px!important;
+  border-radius:12px!important;background:rgba(91,185,245,.18)!important;color:#a9e7ff!important;
+}
+body.auth-page.page-login .role .icon svg{width:27px!important;height:27px!important}
+body.auth-page.page-login .role:hover,
+body.auth-page.page-login .role:focus-visible{
+  transform:translateY(-2px)!important;border-color:#a6e8ff!important;
+  background:linear-gradient(145deg,rgba(44,150,225,.55),rgba(5,49,103,.94))!important;
+  box-shadow:0 14px 30px rgba(0,9,33,.32),0 0 18px rgba(42,176,255,.20)!important;
+}
+body.auth-page.page-login .role-guidance,
+body.auth-page.page-login .school-picker{
+  color:#dceeff!important;background:rgba(7,43,86,.78)!important;border-color:rgba(112,198,245,.42)!important;
+}
+body.auth-page.page-login .field input,
+body.auth-page.page-login .field select{
+  color:#f1f8ff!important;background:rgba(2,23,54,.78)!important;border-color:rgba(123,201,247,.52)!important;
+}
+/* Dashboard: phone browsers in Desktop-site mode still need the phone layout. */
+@media(max-width:1100px) and (hover:none) and (pointer:coarse){
+  body.app-page.page-app .app-shell{display:block!important;min-height:100dvh!important}
+  body.app-page.page-app .sidebar{
+    position:fixed!important;left:0!important;top:0!important;bottom:0!important;
+    width:min(320px,84vw)!important;height:100dvh!important;overflow-y:auto!important;
+    z-index:1200!important;transform:translateX(-105%)!important;
+    transition:transform .22s ease!important;
+  }
+  body.app-page.page-app .sidebar.mobile-nav-open{transform:translateX(0)!important}
+  body.app-page.page-app .main{width:100%!important;min-width:0!important;padding:12px!important}
+  body.app-page.page-app .topbar{gap:10px!important;flex-wrap:wrap!important}
+  body.app-page.page-app #appMain>#dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.app-page.page-app #appMain>#dashboard>.grid-2{grid-template-columns:1fr!important}
+  body.app-page.page-app #appMain>#dashboard :is(h2,h3){font-size:clamp(18px,3.5vw,24px)!important;line-height:1.2!important}
+  body.app-page.page-app #appMain>#dashboard .card.stat>span{font-size:12px!important;line-height:1.35!important}
+  body.app-page.page-app #appMain>#dashboard .card.stat>strong{font-size:clamp(19px,4vw,27px)!important}
+  body.app-page.page-app #appMain>#dashboard :is(.muted,.section-description,.campus-hero p){font-size:13px!important;line-height:1.5!important}
+  body.app-page.page-app #appMain>#dashboard .quick-actions>button{min-height:54px!important;font-size:13px!important}
+  body.app-page.page-app .premium-mobile-dock{z-index:1100!important}
+}
+@media(max-width:520px){
+  body.gold-home.page-home .public-hero{padding:18px!important}
+  body.gold-home.page-home .public-hero h1{font-size:clamp(30px,9vw,42px)!important;line-height:1.02!important}
+  body.auth-page.page-login .roles{gap:11px!important}
+  body.auth-page.page-login .role{min-height:104px!important;padding:13px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.app-page.page-app .sidebar{transition:none!important}
+}
