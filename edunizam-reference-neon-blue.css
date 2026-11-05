@@ -1,0 +1,184 @@
+/* EduNizam Reference Neon-Blue Transformation
+   Visual-only dashboard and navigation skin inspired by the approved reference.
+   Preserves existing markup, data, actions, role visibility and navigation behavior. */
+:root{
+  --en-night:#03152f;
+  --en-deep:#062653;
+  --en-blue:#087de0;
+  --en-cyan:#51d8ff;
+  --en-glow:rgba(35,174,255,.48);
+  --en-glass:rgba(5,34,76,.78);
+}
+body.app-page.page-app{
+  color:#eaf7ff!important;
+  background:
+    radial-gradient(ellipse at 78% 8%,rgba(0,137,255,.25),transparent 38%),
+    radial-gradient(ellipse at 12% 86%,rgba(0,84,190,.22),transparent 42%),
+    linear-gradient(145deg,#020d20 0%,#052653 52%,#03152f 100%)!important;
+}
+body.app-page.page-app .app-shell{background:transparent!important}
+@media(min-width:951px){
+  body.app-page.page-app .sidebar{
+    background:
+      radial-gradient(ellipse at 50% 0%,rgba(0,155,255,.22),transparent 48%),
+      linear-gradient(180deg,rgba(2,19,48,.97),rgba(4,38,83,.95))!important;
+    border-right:1px solid rgba(72,203,255,.58)!important;
+    box-shadow:8px 0 34px rgba(0,125,255,.18),inset -1px 0 rgba(255,255,255,.08)!important;
+  }
+}
+body.app-page.page-app .sidebar .brand{
+  border:1px solid rgba(80,205,255,.68)!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(7,63,132,.92),rgba(2,23,59,.88))!important;
+  box-shadow:0 0 22px rgba(0,151,255,.28),inset 0 1px rgba(255,255,255,.24)!important;
+}
+body.app-page.page-app .sidebar .brand-logo-frame{
+  filter:drop-shadow(0 0 10px rgba(44,190,255,.5));
+}
+body.app-page.page-app .sidebar .sidebar-wordmark strong,
+body.app-page.page-app .sidebar .sidebar-wordmark small{color:#f2fbff!important}
+body.app-page.page-app .sidebar .sidebar-institute{
+  border:1px solid rgba(75,192,255,.58)!important;
+  border-radius:14px!important;
+  background:linear-gradient(125deg,rgba(9,91,170,.76),rgba(3,35,82,.86))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.16),0 5px 18px rgba(0,12,38,.22)!important;
+}
+body.app-page.page-app .sidebar .sidebar-institute-copy :is(small,strong,span){color:#eaf8ff!important}
+body.app-page.page-app .sidebar #nav .nav-group{
+  margin:5px 0!important;
+  border:1px solid rgba(80,174,235,.32)!important;
+  border-radius:13px!important;
+  background:linear-gradient(135deg,rgba(14,65,125,.76),rgba(4,31,73,.86))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.10),0 5px 14px rgba(0,10,34,.16)!important;
+}
+body.app-page.page-app .sidebar #nav .nav-group>summary{
+  min-height:42px!important;
+  color:#f2faff!important;
+}
+body.app-page.page-app .sidebar #nav .nav-group>summary strong{color:#f2faff!important}
+body.app-page.page-app .sidebar #nav .nav-group[open]>summary{
+  background:linear-gradient(100deg,rgba(0,135,255,.62),rgba(0,71,157,.36))!important;
+  box-shadow:inset 3px 0 #7be7ff,0 0 15px rgba(0,153,255,.16)!important;
+}
+body.app-page.page-app .sidebar #nav .nav-item{
+  min-height:36px!important;
+  color:#e7f6ff!important;
+  border:1px solid transparent!important;
+  border-radius:8px!important;
+  background:transparent!important;
+}
+body.app-page.page-app .sidebar #nav .nav-item:hover{
+  color:#fff!important;
+  background:rgba(20,151,255,.24)!important;
+  border-color:rgba(93,213,255,.35)!important;
+}
+body.app-page.page-app .sidebar #nav .nav-item.active{
+  color:#fff!important;
+  background:linear-gradient(100deg,#087ee8,#12b5ff)!important;
+  border:1px solid rgba(143,231,255,.9)!important;
+  box-shadow:0 0 16px rgba(0,160,255,.45),inset 0 1px rgba(255,255,255,.32)!important;
+}
+body.app-page.page-app .main{
+  background:
+    radial-gradient(ellipse at 78% 0%,rgba(0,144,255,.20),transparent 42%),
+    linear-gradient(155deg,rgba(2,17,43,.94),rgba(4,42,91,.90))!important;
+}
+body.app-page.page-app .topbar{
+  border:1px solid rgba(78,197,255,.64)!important;
+  border-radius:18px!important;
+  background:linear-gradient(110deg,rgba(3,31,75,.94),rgba(5,75,139,.84))!important;
+  box-shadow:0 0 22px rgba(0,133,255,.20),inset 0 1px rgba(255,255,255,.18)!important;
+  color:#f3fbff!important;
+}
+body.app-page.page-app .topbar :is(h1,p,.academic-kicker,.academic-pill){color:#f1f9ff!important;-webkit-text-fill-color:#f1f9ff!important}
+body.app-page.page-app #appMain>.view.active{
+  border:1px solid rgba(79,193,255,.46)!important;
+  border-radius:22px!important;
+  background:linear-gradient(145deg,rgba(4,31,72,.62),rgba(3,23,57,.52))!important;
+  box-shadow:0 18px 44px rgba(0,8,30,.28),inset 0 1px rgba(255,255,255,.12)!important;
+}
+body.app-page.page-app #appMain>#dashboard>.campus-hero{
+  position:relative!important;
+  overflow:hidden!important;
+  border:1px solid rgba(77,207,255,.78)!important;
+  border-radius:22px!important;
+  background:
+    radial-gradient(ellipse at 82% 18%,rgba(0,174,255,.30),transparent 38%),
+    linear-gradient(112deg,rgba(2,27,70,.98),rgba(5,76,145,.94) 58%,rgba(2,37,91,.98))!important;
+  box-shadow:0 0 24px rgba(0,139,255,.25),inset 0 1px rgba(255,255,255,.20)!important;
+}
+body.app-page.page-app #appMain>#dashboard>.campus-hero:after{
+  content:""!important;position:absolute!important;left:-5%!important;right:-5%!important;bottom:-38px!important;height:82px!important;
+  border-top:2px solid rgba(53,202,255,.78)!important;border-radius:50%!important;
+  box-shadow:0 -8px 24px rgba(0,153,255,.24)!important;pointer-events:none!important;
+}
+body.app-page.page-app #appMain>#dashboard .campus-hero :is(.campus-label,h2,p,strong,span){color:#f3faff!important;-webkit-text-fill-color:#f3faff!important}
+body.app-page.page-app #appMain>#dashboard .campus-hero h2{
+  font-size:clamp(24px,3vw,38px)!important;font-weight:850!important;letter-spacing:-.035em!important;
+  text-shadow:0 3px 18px rgba(0,0,0,.38)!important;
+}
+body.app-page.page-app #appMain>#dashboard .campus-visual{
+  border:1px solid rgba(113,224,255,.72)!important;border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(13,104,174,.68),rgba(2,27,69,.72))!important;
+  box-shadow:0 0 20px rgba(0,166,255,.24),inset 0 1px rgba(255,255,255,.20)!important;
+}
+body.app-page.page-app #appMain>#dashboard>.cards>.card.stat{
+  border:1px solid rgba(86,198,255,.68)!important;border-radius:17px!important;
+  background:linear-gradient(145deg,rgba(7,70,132,.92),rgba(2,30,75,.96))!important;
+  box-shadow:0 0 18px rgba(0,139,255,.20),inset 0 1px rgba(255,255,255,.18)!important;
+}
+body.app-page.page-app #appMain>#dashboard>.cards>.card.stat>span{color:#bdeaff!important}
+body.app-page.page-app #appMain>#dashboard>.cards>.card.stat>strong{
+  color:#fff!important;text-shadow:0 0 16px rgba(62,190,255,.38)!important;
+}
+body.app-page.page-app #appMain>#dashboard>.grid-2>.card{
+  border:1px solid rgba(81,197,255,.66)!important;border-radius:19px!important;
+  background:linear-gradient(145deg,rgba(5,54,111,.91),rgba(2,27,69,.96))!important;
+  box-shadow:0 0 20px rgba(0,135,255,.19),inset 0 1px rgba(255,255,255,.16)!important;
+}
+body.app-page.page-app #appMain>#dashboard>.grid-2>.card>h2{color:#f3faff!important}
+body.app-page.page-app #appMain>#dashboard .quick-actions>button{
+  border:1px solid rgba(95,210,255,.72)!important;border-radius:12px!important;
+  color:#f4fbff!important;background:linear-gradient(120deg,rgba(0,116,218,.78),rgba(4,52,116,.88))!important;
+  box-shadow:0 0 12px rgba(0,142,255,.18),inset 0 1px rgba(255,255,255,.24)!important;
+}
+body.app-page.page-app #appMain>#dashboard .quick-actions>button:hover{
+  background:linear-gradient(120deg,#0798ff,#0758b6)!important;
+  box-shadow:0 0 19px rgba(0,174,255,.42)!important;
+}
+body.app-page.page-app #appMain>#dashboard #activityList{
+  color:#e4f6ff!important;border-color:rgba(91,201,255,.48)!important;
+  background:rgba(1,20,54,.48)!important;
+}
+body.app-page.page-app #appMain>#dashboard :is(.muted,.section-description){color:#c3e1f6!important}
+body.app-page.page-app .premium-mobile-dock{
+  border-top:1px solid rgba(85,198,255,.56)!important;
+  background:rgba(2,22,55,.96)!important;
+  box-shadow:0 -8px 24px rgba(0,90,190,.18)!important;
+}
+body.app-page.page-app .premium-mobile-dock button:not(.active) :is(strong,span){color:#d8efff!important}
+body.app-page.page-app .premium-mobile-dock button.active{
+  color:#fff!important;background:linear-gradient(130deg,#087ee8,#10baff)!important;
+  box-shadow:0 0 14px rgba(0,153,255,.40)!important;
+}
+@media(max-width:950px){
+  body.app-page.page-app .sidebar,
+  body.app-page.page-app .sidebar.mobile-nav-open{
+    background:
+      radial-gradient(ellipse at 50% 0%,rgba(0,151,255,.26),transparent 46%),
+      linear-gradient(180deg,rgba(2,18,47,.985),rgba(3,37,83,.98))!important;
+    border-right:1px solid rgba(83,205,255,.72)!important;
+    box-shadow:8px 0 34px rgba(0,120,255,.24)!important;
+  }
+  body.app-page.page-app #appMain>#dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.app-page.page-app #appMain>#dashboard>.campus-hero{gap:14px!important}
+  body.app-page.page-app #appMain>#dashboard>.grid-2{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(max-width:430px){
+  body.app-page.page-app #appMain>#dashboard>.cards{gap:9px!important}
+  body.app-page.page-app #appMain>#dashboard>.cards>.card.stat{padding:13px!important;min-height:106px!important}
+  body.app-page.page-app #appMain>#dashboard>.campus-hero{padding:17px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.app-page.page-app #appMain>#dashboard .quick-actions>button{transition:none!important}
+}
