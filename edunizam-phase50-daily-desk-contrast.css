@@ -1,0 +1,17 @@
+/* Phase 50 — restore readable contrast inside the light-glass Admin Daily Desk.
+   Scoped to this dashboard module; no layout, data, or workflow changes. */
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk :is(h1,h2,h3,h4,.section-title,.card-title){
+  color:#173c55!important;
+  -webkit-text-fill-color:#173c55!important;
+  text-shadow:none!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk :is(p,small,label,.muted,.help-text,.form-hint){
+  color:#45677d!important;
+  -webkit-text-fill-color:#45677d!important;
+  opacity:1!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk :is(.badge,.pill,[class*="status"],[class*="count"]){
+  color:#16466b!important;
+  -webkit-text-fill-color:#16466b!important;
+  text-shadow:none!important;
+}
