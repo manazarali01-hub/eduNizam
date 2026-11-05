@@ -1858,6 +1858,16 @@ try{
       pushFailure('mobile session spacing','Role/logout and account controls overlap or escape the topbar action area',JSON.stringify(sessionGeometry));
     }
 
+    const roleLabelLayout=await boundedEvaluate('inspect mobile role label truncation',()=>{
+      const label=document.querySelector('#appMain>.topbar #roleSession.session-chip>strong');
+      if(!label)return {missing:true};
+      const cs=getComputedStyle(label);
+      return {missing:false,whiteSpace:cs.whiteSpace,overflow:cs.overflow,textOverflow:cs.textOverflow,scrollWidth:label.scrollWidth,clientWidth:label.clientWidth,scrollHeight:label.scrollHeight,clientHeight:label.clientHeight};
+    });
+    if(roleLabelLayout.missing||roleLabelLayout.whiteSpace==='nowrap'||roleLabelLayout.textOverflow==='ellipsis'||roleLabelLayout.scrollWidth>roleLabelLayout.clientWidth+2||roleLabelLayout.scrollHeight>roleLabelLayout.clientHeight+2){
+      pushFailure('mobile role label','Institution role label is clipped or ellipsized on mobile',JSON.stringify(roleLabelLayout));
+    }
+
     const adminDeskVisual=await boundedEvaluate('inspect admin desk visual contract',()=>({
       cards:[...document.querySelectorAll('#adminDailyDesk .admin-daily-actions > button')].map(el=>{
         const cs=getComputedStyle(el);
