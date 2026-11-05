@@ -28,7 +28,15 @@
     const byView=new Map(buttons.map(b=>[b.dataset.view,b]));
     for(const [title,icon,views] of groups){
       const details=document.createElement('details');details.className='nav-group';details.dataset.groupTitle=title;details.open=title==='Overview'||title==='Daily Work';
-      const summary=document.createElement('summary');summary.innerHTML='<span>'+icon+'</span><strong>'+title+'</strong><small>›</small>';details.appendChild(summary);
+      const summary=document.createElement('summary');summary.innerHTML='<span>'+icon+'</span><strong>'+title+'</strong><small>›</small>';
+      // Bind the accordion action directly to its own summary. Native details
+      // activation is cancelled so each click produces exactly one state change.
+      summary.addEventListener('click',event=>{
+        event.preventDefault();
+        event.stopPropagation();
+        details.open=!details.open;
+      });
+      details.appendChild(summary);
       const box=document.createElement('div');box.className='nav-group-items';views.forEach(v=>{const b=byView.get(v);if(b){box.appendChild(b);byView.delete(v)}});details.appendChild(box);if(box.children.length||['Daily Work','Communication'].includes(title))nav.appendChild(details);
     }
     if(byView.size){const details=document.createElement('details');details.className='nav-group';details.dataset.groupTitle='More';details.innerHTML='<summary><span>＋</span><strong>More</strong><small>›</small></summary><div class="nav-group-items"></div>';const box=details.lastElementChild;byView.forEach(b=>box.appendChild(b));nav.appendChild(details)}
@@ -96,15 +104,6 @@
       else setTimeout(run,4500);
     };
     nav.addEventListener('click',e=>{
-      const summary=e.target.closest('.nav-group > summary');
-      if(summary){
-        // Keep the accordion toggle explicit and reliable on touch/mobile browsers.
-        // Prevent the native summary default so a single tap always maps to one state change.
-        e.preventDefault();
-        const group=summary.parentElement;
-        if(group?.matches('details.nav-group'))group.open=!group.open;
-        return;
-      }
       const b=e.target.closest('.nav-item');
       if(!b)return;
       const g=b.closest('.nav-group');
