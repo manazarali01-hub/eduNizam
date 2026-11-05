@@ -773,3 +773,48 @@ html body.app-page.page-app #appMain > #dashboard > .grid-2 > .card {
     gap: 10px !important;
   }
 }
+
+
+/* Mobile dashboard: retain the institute identity glass tile instead of hiding it. */
+@media (max-width: 950px) {
+  html body.app-page.page-app #appMain > #dashboard.view.active > .campus-hero .campus-visual {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 76px !important;
+    padding: 12px 14px !important;
+    border: 1px solid rgba(137,216,255,.42) !important;
+    border-radius: 16px !important;
+    background: linear-gradient(135deg,rgba(42,137,205,.22),rgba(4,28,65,.34)) !important;
+    box-shadow: inset 0 1px rgba(255,255,255,.13),0 10px 28px rgba(0,8,28,.18) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
+    backdrop-filter: blur(18px) saturate(145%) !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard.view.active > .campus-hero .campus-visual .campus-icon {
+    flex: 0 0 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+    display: grid !important;
+    place-items: center !important;
+    margin: 0 !important;
+    border-radius: 13px !important;
+    background: rgba(74,164,235,.20) !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard.view.active > .campus-hero .campus-visual strong,
+  html body.app-page.page-app #appMain > #dashboard.view.active > .campus-hero .campus-visual span {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard.view.active > .campus-hero .campus-visual strong {
+    color: #f1f8ff !important;
+    font-size: 15px !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard.view.active > .campus-hero .campus-visual span {
+    color: #c7def4 !important;
+    font-size: 11px !important;
+  }
+}
