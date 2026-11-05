@@ -680,3 +680,96 @@ html body.gold-home.page-home .hero-gold{color:var(--en-ref-cyan)!important}
     overflow: hidden !important;
   }
 }
+
+
+/* Reference composition refinement — translucent glass surfaces, not opaque blue blocks. */
+html body.app-page.page-app #appMain > #dashboard.view.active {
+  padding: clamp(14px, 1.8vw, 24px) !important;
+  border: 1px solid rgba(105, 197, 255, .28) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(ellipse at 88% 0%, rgba(24, 142, 255, .13), transparent 42%),
+    linear-gradient(145deg, rgba(8, 29, 62, .48), rgba(3, 18, 43, .36)) !important;
+  box-shadow: 0 18px 48px rgba(0, 7, 25, .22), inset 0 1px rgba(255,255,255,.08) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(145%) !important;
+  backdrop-filter: blur(22px) saturate(145%) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, .34fr) !important;
+  align-items: center !important;
+  gap: clamp(18px, 3vw, 34px) !important;
+  min-width: 0 !important;
+  padding: clamp(22px, 3vw, 38px) !important;
+  border: 1px solid rgba(112, 205, 255, .52) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(ellipse at 82% 18%, rgba(25, 157, 255, .20), transparent 42%),
+    linear-gradient(125deg, rgba(7, 43, 88, .72), rgba(4, 27, 62, .54)) !important;
+  box-shadow: 0 14px 38px rgba(0, 9, 30, .20), inset 0 1px rgba(255,255,255,.15), 0 0 24px rgba(0,140,255,.10) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
+  backdrop-filter: blur(24px) saturate(150%) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero::after {
+  content: none !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero > div:first-child {
+  min-width: 0 !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero h2 {
+  max-width: 18ch !important;
+  font-size: clamp(27px, 3vw, 42px) !important;
+  line-height: 1.08 !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero p {
+  max-width: 66ch !important;
+  color: #c7def4 !important;
+  line-height: 1.65 !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-visual {
+  min-width: 0 !important;
+  min-height: 190px !important;
+  border: 1px solid rgba(137, 216, 255, .42) !important;
+  border-radius: 20px !important;
+  background: linear-gradient(145deg, rgba(42, 137, 205, .22), rgba(4, 28, 65, .34)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.13), 0 10px 28px rgba(0, 8, 28, .18) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
+  backdrop-filter: blur(18px) saturate(145%) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .cards > .card.stat {
+  border: 1px solid rgba(117, 197, 255, .38) !important;
+  border-radius: 19px !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(55, 166, 255, .14), transparent 58%),
+    linear-gradient(145deg, rgba(12, 53, 99, .56), rgba(3, 24, 57, .48)) !important;
+  box-shadow: 0 10px 28px rgba(0, 8, 28, .16), inset 0 1px rgba(255,255,255,.12) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+  backdrop-filter: blur(18px) saturate(140%) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .grid-2 > .card {
+  border: 1px solid rgba(117, 197, 255, .32) !important;
+  background: linear-gradient(145deg, rgba(9, 43, 83, .54), rgba(3, 22, 52, .48)) !important;
+  box-shadow: 0 12px 30px rgba(0, 8, 28, .16), inset 0 1px rgba(255,255,255,.10) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+  backdrop-filter: blur(18px) saturate(140%) !important;
+}
+@media (max-width: 950px) {
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero h2 {
+    max-width: 100% !important;
+  }
+}
+@media (max-width: 600px) {
+  html body.app-page.page-app #appMain > #dashboard.view.active {
+    padding: 10px !important;
+    border-radius: 18px !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero {
+    padding: 18px !important;
+    gap: 10px !important;
+  }
+}
