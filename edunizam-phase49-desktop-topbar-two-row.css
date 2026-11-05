@@ -1,0 +1,51 @@
+/* Desktop topbar two-row refinement — preserve all actions, reduce visual bulk. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app #appMain > .topbar {
+    min-height: 88px !important;
+    padding: 10px 16px !important;
+    gap: 10px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-title {
+    flex: 0 1 245px !important;
+    min-width: 190px !important;
+    gap: 3px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-title h1 {
+    font-size: clamp(25px, 2.15vw, 31px) !important;
+    line-height: 1.08 !important;
+    margin: 2px 0 !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    flex: 1 1 640px !important;
+    gap: 5px !important;
+    row-gap: 6px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions > * {
+    min-height: 34px !important;
+    padding: 6px 9px !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    border-radius: 12px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions button {
+    min-height: 34px !important;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar #roleSession {
+    padding: 6px 8px !important;
+    gap: 6px !important;
+    font-size: 11px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar #roleSession button {
+    min-height: 32px !important;
+    padding: 5px 9px !important;
+  }
+}
