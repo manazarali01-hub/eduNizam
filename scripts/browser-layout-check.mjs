@@ -1827,6 +1827,18 @@ try{
       pushFailure('mobile dock theme','Mobile quick-navigation dock lost its premium blue-glass treatment',JSON.stringify(dockTheme));
     }
 
+    const sessionTheme=await boundedEvaluate('inspect mobile session control glass theme',()=>{
+      const chip=document.querySelector('#appMain>.topbar #roleSession.session-chip');
+      if(!chip)return {missing:true};
+      const cs=getComputedStyle(chip);
+      const logout=chip.querySelector('button');
+      const ls=logout?getComputedStyle(logout):null;
+      return {missing:false,backgroundImage:cs.backgroundImage,border:cs.borderTopColor,backdropFilter:cs.backdropFilter||cs.webkitBackdropFilter,logoutBackground:ls?.backgroundImage||''};
+    });
+    if(sessionTheme.missing||!sessionTheme.backgroundImage.includes('linear-gradient')||!sessionTheme.backdropFilter.includes('blur')||!sessionTheme.logoutBackground.includes('linear-gradient')){
+      pushFailure('mobile session theme','Authenticated mobile session controls lost their blue-glass treatment',JSON.stringify(sessionTheme));
+    }
+
     const adminDeskVisual=await boundedEvaluate('inspect admin desk visual contract',()=>({
       cards:[...document.querySelectorAll('#adminDailyDesk .admin-daily-actions > button')].map(el=>{
         const cs=getComputedStyle(el);
