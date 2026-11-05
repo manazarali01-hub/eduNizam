@@ -32,7 +32,12 @@
     font-size: 11px !important;
     line-height: 1.2 !important;
     font-weight: 800 !important;
-    white-space: nowrap !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+    flex: 1 1 auto !important;
+    max-width: none !important;
   }
 
   html body.app-page.page-app #appMain > .topbar > .topbar-actions #roleSession > button {
