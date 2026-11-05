@@ -1,0 +1,44 @@
+/* EduNizam Phase 36 — desktop sidebar alignment and search focus refinement.
+   Desktop-only presentation override. Mobile navigation is intentionally untouched. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary {
+    display: grid !important;
+    grid-template-columns: 23px minmax(0, 1fr) 15px !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+    text-align: left !important;
+  }
+
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary > :first-child {
+    justify-self: start !important;
+  }
+
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary strong,
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary span {
+    text-align: left !important;
+    justify-self: start !important;
+  }
+
+  html body.app-page.page-app .sidebar > #nav > .nav-group > summary > :last-child {
+    justify-self: end !important;
+  }
+
+  html body.app-page.page-app .sidebar > .nav-search-wrap > input {
+    color: #f4fbff !important;
+    -webkit-text-fill-color: #f4fbff !important;
+    caret-color: #9ce7ff !important;
+    background: linear-gradient(135deg, rgba(5, 37, 76, .78), rgba(8, 54, 96, .68)) !important;
+  }
+
+  html body.app-page.page-app .sidebar > .nav-search-wrap > input::placeholder {
+    color: #c5e3f7 !important;
+    -webkit-text-fill-color: #c5e3f7 !important;
+    opacity: 1 !important;
+  }
+
+  html body.app-page.page-app .sidebar > .nav-search-wrap > input:focus {
+    border-color: rgba(111, 216, 255, .9) !important;
+    background: linear-gradient(135deg, rgba(7, 48, 91, .94), rgba(10, 70, 119, .86)) !important;
+    box-shadow: 0 0 0 3px rgba(39, 157, 224, .2), inset 0 1px rgba(255,255,255,.08) !important;
+  }
+}
