@@ -612,3 +612,31 @@ html body.app-page.page-app #appMain #students #studentFormWrap>textarea:nth-of-
   grid-column:2!important;justify-self:end!important;
  }
 }
+
+/* Phase 27E — separate the mobile role label and Logout into deliberate rows. */
+@media(min-width:381px) and (max-width:760px){
+ html body.app-page.page-app #appMain>.topbar>.topbar-actions{
+  min-height:58px!important;max-height:none!important;
+  align-items:center!important;overflow:visible!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+  display:flex!important;flex:0 1 auto!important;
+  flex-direction:column!important;flex-wrap:nowrap!important;
+  align-items:center!important;justify-content:center!important;
+  gap:3px!important;height:auto!important;min-height:52px!important;
+  max-height:none!important;padding:5px 8px!important;overflow:visible!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+  display:block!important;order:1!important;
+  width:100%!important;max-width:100%!important;
+  line-height:1.2!important;white-space:normal!important;
+  overflow:visible!important;text-overflow:clip!important;
+  text-align:center!important;overflow-wrap:anywhere!important;
+ }
+ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{
+  display:inline-flex!important;order:2!important;
+  align-self:center!important;flex:0 0 auto!important;
+  height:24px!important;min-height:24px!important;max-height:24px!important;
+  line-height:1!important;padding:3px 8px!important;
+ }
+}
