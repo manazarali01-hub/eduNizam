@@ -1,0 +1,43 @@
+/* Phase 36 — final desktop sidebar alignment and search focus state.
+   Desktop-only visual correction; mobile drawer rules and behavior are untouched. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary {
+    text-align: left !important;
+    justify-items: stretch !important;
+    grid-template-columns: 23px minmax(0, 1fr) 15px !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary > span {
+    justify-self: start !important;
+    text-align: left !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary > strong {
+    justify-self: start !important;
+    width: 100% !important;
+    text-align: left !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary > small {
+    justify-self: end !important;
+    text-align: right !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap #navFeatureSearch,
+  html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap #navFeatureSearch:focus,
+  html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap #navFeatureSearch:focus-visible {
+    color: #f4fbff !important;
+    -webkit-text-fill-color: #f4fbff !important;
+    background: rgba(3, 26, 59, .58) !important;
+    border: 1px solid rgba(155, 222, 255, .38) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap #navFeatureSearch::placeholder {
+    color: #c5e3f7 !important;
+    -webkit-text-fill-color: #c5e3f7 !important;
+    opacity: 1 !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap #navFeatureSearch:focus-visible {
+    border-color: rgba(107, 211, 255, .82) !important;
+    box-shadow: 0 0 0 3px rgba(39, 157, 224, .18) !important;
+  }
+}
