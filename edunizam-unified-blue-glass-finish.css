@@ -2241,3 +2241,37 @@ body.page-home :is(.home-nav,.site-header,header){
     to{box-shadow:0 0 22px rgba(0,166,255,.5),inset 0 0 13px rgba(255,255,255,.12)}
   }
 }
+
+
+/* AUTHENTICATED VISUAL CONTRAST PASS — CSS only */
+html body.auth-page.page-login #authCard #roleView :is(.eyebrow,h2,.subtitle),
+html body.auth-page.page-login #authCard #roleView .roles .role :is(strong,small,span:not(.icon)){
+  color:#eff8ff!important;
+  text-shadow:0 1px 8px rgba(0,12,35,.35)!important;
+}
+html body.auth-page.page-login #authCard #roleView .roles .role{
+  color:#eff8ff!important;
+  background:linear-gradient(145deg,rgba(13,67,121,.92),rgba(3,23,53,.96))!important;
+  border:1px solid rgba(87,195,255,.72)!important;
+  box-shadow:0 10px 25px rgba(0,0,0,.25),0 0 18px rgba(0,139,255,.2),inset 0 1px rgba(255,255,255,.14)!important;
+}
+html body.auth-page.page-login #authCard #roleView .roles .role:is(#admissionApplicantRole,.guest-role){
+  background:linear-gradient(145deg,rgba(12,56,105,.96),rgba(3,23,53,.98))!important;
+  color:#f3faff!important;
+}
+html body.auth-page.page-login #authCard #roleView .roles .role:is(#admissionApplicantRole,.guest-role) :is(strong,small){
+  color:#eaf6ff!important;
+}
+html body.auth-page.page-login #authCard #roleView .roles .role:focus-visible{
+  outline:2px solid #62d5ff!important;outline-offset:3px!important;
+  box-shadow:0 0 0 4px rgba(0,145,255,.22),0 0 26px rgba(0,157,255,.42)!important;
+}
+/* Homepage navigation actions share the same electric-blue glass language. */
+html body.page-home :is(.home-nav,.site-header,header) :is(a,button,.btn,.button){
+  color:#f2f9ff!important;
+}
+html body.page-home :is(.home-nav,.site-header,header) :is(a,button,.btn,.button):not(.brand):not(.logo){
+  background:linear-gradient(115deg,rgba(8,105,199,.92),rgba(5,58,119,.94))!important;
+  border:1px solid rgba(92,199,255,.72)!important;
+  box-shadow:0 5px 18px rgba(0,115,235,.22),inset 0 1px rgba(255,255,255,.14)!important;
+}
