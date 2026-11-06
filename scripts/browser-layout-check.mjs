@@ -1879,7 +1879,8 @@ try{
       const label=chip?.querySelector('strong'),logout=chip?.querySelector('button');
       if(!chip||!label||!logout)return {missing:true};
       const l=label.getBoundingClientRect(),b=logout.getBoundingClientRect(),c=chip.getBoundingClientRect();
-      return {missing:false,overlap:!(l.bottom<=b.top+1||b.bottom<=l.top+1),labelBottom:Math.round(l.bottom),logoutTop:Math.round(b.top),chipBottom:Math.round(c.bottom),logoutBottom:Math.round(b.bottom),logoutInside:b.bottom<=c.bottom+1};
+      const intersects=l.left<b.right-1&&l.right>b.left+1&&l.top<b.bottom-1&&l.bottom>b.top+1;
+      return {missing:false,overlap:intersects,labelBottom:Math.round(l.bottom),logoutTop:Math.round(b.top),labelLeft:Math.round(l.left),labelRight:Math.round(l.right),logoutLeft:Math.round(b.left),logoutRight:Math.round(b.right),chipBottom:Math.round(c.bottom),logoutBottom:Math.round(b.bottom),logoutInside:b.bottom<=c.bottom+1};
     });
     if(sessionChildrenLayout.missing||sessionChildrenLayout.overlap||!sessionChildrenLayout.logoutInside){
       pushFailure('mobile role/logout separation','Role label and Logout overlap or Logout escapes the session chip',JSON.stringify(sessionChildrenLayout));
