@@ -63,10 +63,10 @@
   html body.app-page.page-app #appMain > .topbar > .topbar-actions > #roleSession.session-chip {
     display: flex !important;
     flex: 1 1 0 !important;
-    flex-direction: row !important;
+    flex-direction: column !important;
     flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: space-between !important;
+    align-items: stretch !important;
+    justify-content: center !important;
     width: auto !important;
     min-width: 0 !important;
     max-width: none !important;
@@ -90,8 +90,8 @@
 
   html body.app-page.page-app #appMain > .topbar > .topbar-actions > #roleSession.session-chip > strong {
     display: block !important;
-    flex: 1 1 auto !important;
-    width: auto !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
     height: auto !important;
@@ -112,6 +112,7 @@
   html body.app-page.page-app #appMain > .topbar > .topbar-actions > #roleSession.session-chip > button {
     display: inline-flex !important;
     flex: 0 0 auto !important;
+    align-self: flex-end !important;
     align-items: center !important;
     justify-content: center !important;
     width: auto !important;
