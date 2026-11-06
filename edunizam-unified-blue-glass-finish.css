@@ -1156,3 +1156,29 @@ html body.auth-page.page-login #authCard #loginForm input::placeholder {
     line-height: 1.1 !important;
   }
 }
+
+
+/* Mobile header QA fix — stack the page title above the action row.
+   The browser regression check requires a clear vertical separation. */
+@media (max-width: 600px) {
+  html body.app-page.page-app #appMain > .topbar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+  }
+  html body.app-page.page-app #appMain > .topbar > .topbar-title {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 22px !important;
+    overflow: visible !important;
+  }
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
