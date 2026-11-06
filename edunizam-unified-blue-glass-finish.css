@@ -2108,3 +2108,136 @@ body.app-page.page-app #appMain :is(.section-head,.form-grid,.table-wrap){
     min-width: 0 !important;
   }
 }
+
+
+/* =========================================================
+   EDU NIZAM — DEEP NAVY / ELECTRIC BLUE / FROSTED GLASS
+   Final site-wide visual layer. Appearance only.
+   ========================================================= */
+:root{
+  --en-night:#020b1d;
+  --en-navy:#04152f;
+  --en-panel:rgba(7,30,62,.72);
+  --en-panel-strong:rgba(5,24,52,.88);
+  --en-edge:rgba(76,190,255,.48);
+  --en-edge-hot:rgba(42,178,255,.82);
+  --en-glow:rgba(0,145,255,.34);
+  --en-ice:#eaf7ff;
+  --en-muted:#a9c9e5;
+}
+html:has(body.page-app),html:has(body.auth-page),html:has(body.page-home){background:#020b1d!important}
+body.page-app,body.auth-page,body.page-home{
+  color:var(--en-ice)!important;
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(0,123,255,.25),transparent 42%),
+    radial-gradient(ellipse at 92% 32%,rgba(0,177,255,.17),transparent 38%),
+    linear-gradient(145deg,#020817 0%,#041a3b 48%,#020b1d 100%)!important;
+  background-attachment:fixed!important;
+}
+body.page-app :is(.card,.campus-hero,.campus-visual,.topbar,.section-head,.panel,.modal-content,.stat),
+body.auth-page :is(.main>.card,.story,.roles>.role,.head,.form-card),
+body.page-home :is(.card,.feature-card,.quick-card,.showcase-card,.home-panel){
+  color:var(--en-ice)!important;
+  background:
+    linear-gradient(135deg,rgba(15,66,116,.64),rgba(4,23,51,.76) 58%,rgba(3,16,39,.82))!important;
+  border:1px solid var(--en-edge)!important;
+  box-shadow:0 14px 38px rgba(0,0,0,.28),0 0 0 1px rgba(25,143,255,.10) inset,0 0 25px rgba(0,125,255,.13)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(145%)!important;
+  backdrop-filter:blur(18px) saturate(145%)!important;
+}
+body.page-app .sidebar{
+  background:linear-gradient(180deg,rgba(2,15,37,.97),rgba(4,29,62,.94))!important;
+  border-right:1px solid var(--en-edge-hot)!important;
+  box-shadow:10px 0 42px rgba(0,117,255,.2)!important;
+  -webkit-backdrop-filter:blur(20px)!important;backdrop-filter:blur(20px)!important;
+}
+body.page-app .sidebar :is(.brand,.sidebar-institute,.sidebar-search,.search-box,.nav-group){
+  background:rgba(8,42,80,.58)!important;border-color:rgba(69,184,255,.38)!important;
+  box-shadow:0 0 18px rgba(0,139,255,.12)!important;
+}
+body.page-app .sidebar .nav-item{color:#e4f5ff!important;background:rgba(15,67,112,.28)!important;border:1px solid rgba(85,177,235,.22)!important}
+body.page-app .sidebar .nav-item.active{
+  color:#fff!important;background:linear-gradient(105deg,#087be0,#0750a4 72%,#12aaff)!important;
+  border-color:#68d5ff!important;box-shadow:0 0 12px rgba(0,157,255,.62),inset 0 0 12px rgba(255,255,255,.12)!important;
+}
+body.page-app :is(h1,h2,h3,h4,strong,.academic-kicker,.campus-label){color:#f0f9ff!important}
+body.page-app :is(p,.muted,small,.section-description){color:#b7d2e9!important}
+body.page-app .campus-hero{
+  position:relative!important;overflow:hidden!important;
+  background:radial-gradient(ellipse at 85% 10%,rgba(0,160,255,.25),transparent 42%),linear-gradient(125deg,rgba(9,57,105,.82),rgba(3,19,45,.92))!important;
+  border-color:rgba(75,195,255,.72)!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.28),0 0 34px rgba(0,130,255,.2),inset 0 1px rgba(255,255,255,.12)!important;
+}
+body.page-app .campus-visual{
+  background:linear-gradient(145deg,rgba(19,91,151,.5),rgba(3,22,51,.58))!important;
+  border:1px solid rgba(102,204,255,.62)!important;
+  box-shadow:inset 0 0 34px rgba(0,135,255,.16),0 0 24px rgba(0,130,255,.2)!important;
+}
+body.page-app .card.stat{
+  background:linear-gradient(145deg,rgba(12,61,108,.8),rgba(3,23,52,.88))!important;
+  border-color:rgba(68,181,255,.62)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.22),0 0 22px rgba(0,129,255,.17),inset 0 1px rgba(255,255,255,.12)!important;
+}
+body.page-app :is(input,select,textarea){
+  color:#f0f8ff!important;background:rgba(2,17,40,.78)!important;
+  border:1px solid rgba(76,183,255,.58)!important;
+  box-shadow:inset 0 1px 8px rgba(0,0,0,.22),0 0 12px rgba(0,125,255,.09)!important;
+}
+body.page-app :is(input,select,textarea)::placeholder{color:#9bbbd7!important}
+body.page-app :is(button,.button,.btn){
+  border-color:rgba(85,194,255,.62)!important;
+}
+body.page-app :is(button:not(.nav-item),.button,.btn):not(.secondary){
+  background:linear-gradient(115deg,#0878dc,#0755a9 58%,#079be9)!important;color:#fff!important;
+  box-shadow:0 5px 18px rgba(0,112,230,.22),inset 0 1px rgba(255,255,255,.18)!important;
+}
+body.auth-page .page{background:transparent!important}
+body.auth-page .story{
+  background:radial-gradient(ellipse at 20% 10%,rgba(0,155,255,.28),transparent 48%),linear-gradient(145deg,rgba(3,24,55,.92),rgba(2,11,29,.96))!important;
+  border-right:1px solid var(--en-edge)!important;
+}
+body.auth-page .main>.card{
+  background:linear-gradient(145deg,rgba(9,48,91,.82),rgba(2,17,41,.9))!important;
+  border:1px solid rgba(73,189,255,.68)!important;border-radius:24px!important;
+  box-shadow:0 20px 55px rgba(0,0,0,.34),0 0 34px rgba(0,126,255,.24),inset 0 1px rgba(255,255,255,.12)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(150%)!important;backdrop-filter:blur(22px) saturate(150%)!important;
+}
+body.auth-page :is(h1,h2,.eyebrow,strong){color:#f0f9ff!important}
+body.auth-page :is(.subtitle,.story-copy p,.benefits){color:#b8d5ed!important}
+body.auth-page .roles>.role{
+  background:linear-gradient(145deg,rgba(14,68,119,.76),rgba(3,23,51,.88))!important;
+  border:1px solid rgba(80,187,255,.56)!important;border-radius:16px!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.2),0 0 16px rgba(0,129,255,.16)!important;
+}
+body.auth-page .roles>.role :is(strong,small){color:#edf8ff!important}
+body.auth-page :is(input,select,textarea){
+  color:#f0f8ff!important;background:rgba(2,17,40,.82)!important;
+  border:1px solid rgba(77,184,255,.68)!important;border-radius:12px!important;
+  box-shadow:inset 0 1px 8px rgba(0,0,0,.22),0 0 14px rgba(0,132,255,.12)!important;
+}
+body.auth-page :is(input,select,textarea)::placeholder{color:#9abbd8!important}
+body.auth-page .pwa-home-entry,body.auth-page .pwa-install-login{
+  background:rgba(8,53,99,.68)!important;border:1px solid var(--en-edge)!important;color:#eaf7ff!important;
+}
+body.page-home :is(h1,h2,h3,strong){color:#f0f9ff!important}
+body.page-home :is(p,small,.eyebrow){color:#c0d9ef!important}
+body.page-home :is(.home-nav,.site-header,header){
+  background:rgba(3,19,44,.82)!important;border-color:rgba(73,184,255,.48)!important;
+  box-shadow:0 8px 30px rgba(0,0,0,.22),0 0 20px rgba(0,125,255,.12)!important;
+  -webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;
+}
+@media(max-width:760px){
+  body.page-app,body.auth-page,body.page-home{background-attachment:scroll!important}
+  body.page-app #appMain :is(.card,.campus-hero,.campus-visual){border-radius:18px!important}
+  body.auth-page .main>.card{border-radius:19px!important}
+  body.auth-page .page{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(prefers-reduced-motion:no-preference){
+  body.page-app .sidebar .nav-item.active,body.auth-page .roles>.role:focus-visible{
+    animation:en-electric-breathe 3.8s ease-in-out infinite alternate;
+  }
+  @keyframes en-electric-breathe{
+    from{box-shadow:0 0 10px rgba(0,145,255,.28),inset 0 0 8px rgba(255,255,255,.06)}
+    to{box-shadow:0 0 22px rgba(0,166,255,.5),inset 0 0 13px rgba(255,255,255,.12)}
+  }
+}
