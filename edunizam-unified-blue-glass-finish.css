@@ -986,3 +986,81 @@ html body.auth-page.page-login #authCard :is(.field,.form-field,.auth-field) > :
     margin-left: auto !important;
   }
 }
+
+
+/* QA recovery — Nov 06: restore the visible gradient form fields on login. */
+html body.auth-page.page-login #authCard #loginForm input#loginSchoolName,
+html body.auth-page.page-login #authCard #loginForm input#loginEmail,
+html body.auth-page.page-login #authCard #loginForm input#loginPassword,
+html body.auth-page.page-login #authCard #memberSchoolField select#memberSchoolDropdown {
+  box-sizing: border-box !important;
+  min-height: 56px !important;
+  border: 3px solid transparent !important;
+  border-radius: 18px !important;
+  background-image:
+    linear-gradient(145deg, rgba(17, 61, 105, .96), rgba(7, 35, 72, .98)) padding-box,
+    linear-gradient(115deg, #48c5ff, #657eff 55%, #42e2e0) border-box !important;
+  background-color: transparent !important;
+  color: #f5fbff !important;
+  -webkit-text-fill-color: #f5fbff !important;
+  box-shadow: 0 0 0 1px rgba(66, 170, 255, .18), 0 10px 24px rgba(0, 8, 28, .22), inset 0 1px rgba(255,255,255,.10) !important;
+}
+html body.auth-page.page-login #authCard #loginForm input::placeholder {
+  color: #b9d2eb !important;
+  -webkit-text-fill-color: #b9d2eb !important;
+}
+
+/* QA recovery — compact, readable authenticated session controls on phones. */
+@media (max-width: 600px) {
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    gap: 6px !important;
+  }
+  html body.app-page.page-app #appMain > .topbar #roleSession.session-chip {
+    display: inline-flex !important;
+    flex: 1 1 48px !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    width: auto !important;
+    min-width: 48px !important;
+    max-width: calc(100% - 94px) !important;
+    padding: 7px 8px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+  html body.app-page.page-app #appMain > .topbar #roleSession.session-chip > strong {
+    display: block !important;
+    flex: 0 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+    line-height: 1.18 !important;
+  }
+  html body.app-page.page-app #appMain > .topbar #roleSession.session-chip > button {
+    align-self: flex-end !important;
+    flex: 0 0 auto !important;
+    min-height: 28px !important;
+    padding: 4px 8px !important;
+    white-space: nowrap !important;
+  }
+  html body.app-page.page-app #appMain > .topbar #accountSecurityButton.account-security-btn {
+    flex: 0 0 88px !important;
+    width: 88px !important;
+    min-width: 88px !important;
+    max-width: 88px !important;
+    min-height: 36px !important;
+    padding: 6px 7px !important;
+    white-space: normal !important;
+    line-height: 1.1 !important;
+  }
+}
