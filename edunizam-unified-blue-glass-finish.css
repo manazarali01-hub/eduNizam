@@ -1182,3 +1182,57 @@ html body.auth-page.page-login #authCard #loginForm input::placeholder {
     max-width: 100% !important;
   }
 }
+
+
+/* Reference glass unification — visible surface pass.
+   Visual-only: unify cards and work panels with translucent blue glass. */
+body.app-page.page-app #appMain > .view.active {
+  background:
+    radial-gradient(ellipse at 92% 0%, rgba(16,145,255,.13), transparent 38%),
+    linear-gradient(145deg, rgba(4,28,66,.48), rgba(3,19,49,.42)) !important;
+  border-color: rgba(91,194,255,.42) !important;
+  backdrop-filter: blur(18px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
+}
+body.app-page.page-app #appMain .view.active :is(.card, .request-panel, .paper-grid, .coverage-note, .output, .math-editor, .math-preview-wrap) {
+  background:
+    linear-gradient(145deg, rgba(12,62,116,.60), rgba(3,28,67,.66)) !important;
+  border: 1px solid rgba(103,196,255,.40) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 12px 30px rgba(0,8,30,.22),
+    0 0 16px rgba(0,133,255,.09),
+    inset 0 1px 0 rgba(255,255,255,.13) !important;
+  backdrop-filter: blur(16px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+}
+body.app-page.page-app #appMain .view.active :is(.card, .request-panel) :is(h2,h3,h4) {
+  color: #f1f9ff !important;
+  text-shadow: 0 1px 12px rgba(48,166,255,.16) !important;
+}
+body.app-page.page-app #appMain .view.active :is(.muted, .section-description, .coverage-note) {
+  color: #c8e2f8 !important;
+}
+body.app-page.page-app #appMain .view.active :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  color: #f3faff !important;
+  background: rgba(1,18,46,.66) !important;
+  border: 1px solid rgba(104,191,255,.48) !important;
+  border-radius: 11px !important;
+  box-shadow: inset 0 1px 5px rgba(0,0,0,.18), 0 0 0 1px rgba(30,139,230,.05) !important;
+}
+body.app-page.page-app #appMain .view.active :is(input,select,textarea)::placeholder {
+  color: #a9c8e5 !important;
+  opacity: 1 !important;
+}
+body.app-page.page-app #appMain .view.active :is(button, .button) {
+  border-color: rgba(105,202,255,.54) !important;
+}
+body.app-page.page-app #appMain .view.active :is(.section-head, .math-editor-head) {
+  border-color: rgba(96,184,245,.24) !important;
+}
+@media (max-width: 600px) {
+  body.app-page.page-app #appMain .view.active :is(.card, .request-panel, .paper-grid) {
+    border-radius: 15px !important;
+    box-shadow: 0 8px 22px rgba(0,8,30,.20), inset 0 1px 0 rgba(255,255,255,.12) !important;
+  }
+}
