@@ -1,0 +1,98 @@
+/* Targeted mobile dashboard repair — fixes narrow-column text collapse and header overlap. */
+@media (max-width: 760px) {
+  html body.app-page.page-app #appMain #dashboard > .campus-hero {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    gap: 16px !important;
+    padding: 18px !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .campus-hero > div,
+  html body.app-page.page-app #appMain #dashboard > .campus-hero > div:first-child {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard #dashboardWelcomeTitle,
+  html body.app-page.page-app #appMain #dashboard #dashboardWelcomeText {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    letter-spacing: normal !important;
+    box-sizing: border-box !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard #dashboardWelcomeTitle {
+    font-size: clamp(23px, 6vw, 32px) !important;
+    line-height: 1.18 !important;
+    margin: 10px 0 12px !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard .campus-visual {
+    position: relative !important;
+    inset: auto !important;
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 130px !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar {
+    position: relative !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-title {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding-left: 48px !important;
+    margin-left: 0 !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-title :is(.academic-kicker, #page-title, .school-identity) {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    writing-mode: horizontal-tb !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+}
+
+@media (max-width: 380px) {
+  html body.app-page.page-app #appMain #dashboard > .campus-hero {
+    padding: 15px !important;
+  }
+  html body.app-page.page-app #appMain #dashboard #dashboardWelcomeTitle {
+    font-size: 23px !important;
+  }
+}
