@@ -1,6 +1,6 @@
 /* Mobile dashboard screenshot correction — layout only.
    Keep the navy/electric-blue glass identity; repair narrow touch layouts and drawer width. */
-@media (hover:none) and (pointer:coarse) and (max-width:1100px) {
+@media (max-width:1100px) {
   html body.app-page.page-app .app-shell {
     display:block!important;
     width:100%!important;
@@ -119,7 +119,7 @@
     text-align:center!important;
   }
 }
-@media (hover:none) and (pointer:coarse) and (max-width:390px) {
+@media (max-width:390px) {
   html body.app-page.page-app .app-shell > .sidebar {
     width:min(286px,84vw)!important;
     max-width:84vw!important;
