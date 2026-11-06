@@ -1887,3 +1887,58 @@ body.app-page.page-app #appMain :is(.section-head,.form-grid,.table-wrap){
 @media(prefers-reduced-motion:reduce){
   body.app-page.page-app *{scroll-behavior:auto!important;transition:none!important}
 }
+
+
+/* Screenshot QA correction: reserve space for the fixed mobile menu and
+   force dashboard metrics into the intended two-column phone grid. */
+@media(max-width:760px){
+  body.app-page.page-app #appMain>.topbar{
+    position:relative!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:10px!important;
+    min-height:112px!important;
+    padding:14px 12px 13px 66px!important;
+  }
+  body.app-page.page-app #appMain>.topbar .topbar-title{
+    width:100%!important;
+    min-width:0!important;
+    min-height:38px!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    align-items:center!important;
+  }
+  body.app-page.page-app #appMain>.topbar #page-title{
+    max-width:100%!important;
+    margin:0!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:clamp(20px,5.6vw,25px)!important;
+    line-height:1.15!important;
+  }
+  body.app-page.page-app #appMain>.topbar .topbar-actions{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    gap:7px!important;
+  }
+  body.app-page.page-app #appMain>#dashboard>.cards{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+  }
+  body.app-page.page-app #appMain>#dashboard>.cards>.card.stat{
+    min-width:0!important;
+    width:auto!important;
+  }
+}
+@media(max-width:380px){
+  body.app-page.page-app #appMain>.topbar{padding-left:62px!important}
+  body.app-page.page-app #appMain>#dashboard>.cards>.card.stat{padding:11px!important}
+}
