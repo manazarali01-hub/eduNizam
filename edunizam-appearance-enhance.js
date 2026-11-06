@@ -1,0 +1,2 @@
+/* Appearance-only enhancement hook. Does not change application behavior. */
+(()=>{'use strict';const apply=()=>{if(document.body)document.body.classList.add('en-appearance-ready')};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply()})();
