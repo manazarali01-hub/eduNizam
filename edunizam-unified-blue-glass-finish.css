@@ -2007,3 +2007,26 @@ body.app-page.page-app #appMain :is(.section-head,.form-grid,.table-wrap){
     padding-left: 66px !important;
   }
 }
+
+
+/* Screenshot-driven correction: 390px phones were caught by an older,
+   higher-specificity one-column rule. Keep the reference two-column metric grid. */
+@media (max-width: 760px) {
+  html body.app-page.page-app #appMain > #dashboard.view.active > .cards {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard.view.active > .cards > .card.stat {
+    min-width: 0 !important;
+    width: auto !important;
+    min-height: 124px !important;
+    padding: 13px !important;
+  }
+}
+@media (max-width: 360px) {
+  html body.app-page.page-app #appMain > #dashboard.view.active > .cards {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
