@@ -912,3 +912,77 @@ html body.auth-page.page-login #authCard :is(.tabs,.tab,.back,.role-guidance) {
 html body.auth-page.page-login #authCard .role-guidance {
   background: rgba(13, 67, 119, .40) !important;
 }
+
+
+/* CI-driven appearance repair — preserve premium login field borders after the
+   dark-glass theme, and allow authenticated mobile session controls to wrap. */
+html body.auth-page.page-login #authCard :is(.field,.form-field,.auth-field) > :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,textarea),
+html body.auth-page.page-login #authCard :is(#loginForm,#signupForm,#resetForm,#otpForm) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,textarea) {
+  box-sizing: border-box !important;
+  min-height: 54px !important;
+  border: 3px solid transparent !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(145deg, rgba(11, 52, 96, .94), rgba(4, 28, 62, .96)) padding-box,
+    linear-gradient(115deg, #69caff, #438bff 52%, #8c9dff) border-box !important;
+  color: #f1f8ff !important;
+  -webkit-text-fill-color: #f1f8ff !important;
+  box-shadow: 0 0 0 1px rgba(71, 163, 255, .16), 0 9px 22px rgba(0, 7, 26, .22), inset 0 1px rgba(255,255,255,.12) !important;
+}
+html body.auth-page.page-login #authCard :is(.field,.form-field,.auth-field) > :is(input,select,textarea)::placeholder {
+  color: #a9c8e8 !important;
+  -webkit-text-fill-color: #a9c8e8 !important;
+}
+@media (max-width: 600px) {
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    flex: 0 1 44% !important;
+    width: auto !important;
+    max-width: 44% !important;
+    min-width: 0 !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    overflow: visible !important;
+  }
+  html body.app-page.page-app #appMain > .topbar #roleSession {
+    display: inline-flex !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 38px !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 5px !important;
+    padding: 6px 7px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+  html body.app-page.page-app #appMain > .topbar #roleSession > strong {
+    display: block !important;
+    flex: 1 1 54px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+    line-height: 1.25 !important;
+  }
+  html body.app-page.page-app #appMain > .topbar #roleSession > button {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+  }
+  html body.app-page.page-app #appMain > .topbar > .topbar-actions > #accountSecurityButton {
+    flex: 0 1 auto !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+  }
+}
