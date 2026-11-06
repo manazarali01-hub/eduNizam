@@ -1,7 +1,7 @@
 /* Physical-touch mobile layout repair.
    Covers Android Chrome desktop-site mode, where CSS viewport can exceed the
    handset width and ordinary max-width:760px rules do not run. */
-@media (hover:none) and (pointer:coarse) and (max-width:1100px) {
+@media (hover:none) and (pointer:coarse) and (min-width:601px) and (max-width:1100px) {
   html body.app-page.page-app #appMain { min-width:0!important; width:100%!important; max-width:100%!important; }
   html body.app-page.page-app #appMain > .topbar {
     display:flex!important; flex-direction:column!important; align-items:stretch!important;
