@@ -37,3 +37,108 @@ body.app-page :is(.sidebar,.topbar,.app-topbar){background:rgba(3,19,43,.94)!imp
 body.app-page :is(.metric-card,.dashboard-card,.panel,.card,.content-card){background:linear-gradient(145deg,rgba(12,58,105,.88),rgba(3,19,44,.96))!important}
 body.app-page :is(input,select,textarea){color:#eff8ff!important;background:#021027!important;border-color:#5ebeff9e!important}
 @media(max-width:820px){body.auth-page .card{background:linear-gradient(145deg,rgba(12,48,86,.97),rgba(3,19,44,.98))!important}body.page-home .public-nav{background:rgba(3,19,43,.96)!important}body.app-page .sidebar{background:rgba(3,19,43,.98)!important}}
+
+
+
+/* FINAL VISUAL COHESION PASS — shared surfaces across public, learning, auth and workspace routes.
+   Deliberately presentation-only: no layout structure, navigation, data or interactions changed. */
+:root{
+  --en-night:#020b1d;
+  --en-deep:#061b3b;
+  --en-blue:#087fe8;
+  --en-electric:#37c5ff;
+  --en-ice:#eaf6ff;
+  --en-copy:#c5dcef;
+  --en-glass:linear-gradient(145deg,rgba(13,62,112,.78),rgba(3,19,45,.88));
+  --en-glass-strong:linear-gradient(145deg,rgba(10,48,91,.94),rgba(2,13,32,.96));
+  --en-stroke:rgba(111,202,255,.42);
+  --en-halo:0 0 26px rgba(0,145,255,.17);
+  --en-depth:0 18px 44px rgba(0,5,22,.34),inset 0 1px rgba(255,255,255,.12);
+}
+html{background:var(--en-night)!important}
+body.page-home,body.auth-page,body.page-app,body.learning-sky,body.premium-public-page{
+  color:var(--en-ice)!important;
+  background:
+    radial-gradient(ellipse at 10% 0%,rgba(0,151,255,.25),transparent 34rem),
+    radial-gradient(ellipse at 94% 18%,rgba(0,104,255,.18),transparent 38rem),
+    linear-gradient(145deg,#020817 0%,#06234a 52%,#020b1d 100%)!important;
+  background-attachment:fixed!important;
+}
+body.page-home :is(.public-nav,.public-hero,.premium-public-hero,.hero-copy,.quick-access-card,.experience-strip,.role-showcase,.value-section,.learning-band,.public-card,.feature-card,.resource-card,.home-section-card,.feedback-card),
+body.premium-public-page :is(.public-nav,.public-hero,.public-card,.feature-card,.resource-card,.home-section-card,.prose,.public-note,.public-section),
+body.learning-sky :is(.topbar,.hero-card,.quick-card,.card,.stat,.section-head,.tabs,.resource-card,.panel),
+body.auth-page :is(.card,.role,.role-guidance,.school-picker,.school-search-result),
+body.page-app :is(.sidebar,.topbar,.campus-hero,.campus-visual,.card,.panel,.section-head,.modal-content,.workspace-card,.content-card){
+  color:var(--en-ice)!important;
+  border:1px solid var(--en-stroke)!important;
+  background:var(--en-glass)!important;
+  box-shadow:var(--en-depth),var(--en-halo)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(145%)!important;
+  backdrop-filter:blur(20px) saturate(145%)!important;
+}
+body.page-home :is(h1,h2,h3,h4,.public-kicker,.hero-gold,.brand-name),
+body.premium-public-page :is(h1,h2,h3,h4,.public-kicker),
+body.learning-sky :is(h1,h2,h3,h4,.kicker,.section-head),
+body.auth-page :is(h1,h2,h3,h4,.eyebrow,.brand-title),
+body.page-app :is(h1,h2,h3,h4,.academic-kicker,.topbar-title){
+  color:#f3faff!important;-webkit-text-fill-color:#f3faff!important;
+  text-shadow:0 0 18px rgba(93,194,255,.16)!important;
+}
+body.page-home :is(p,li,small,.hero-copy,.public-proof),
+body.premium-public-page :is(p,li,small),
+body.learning-sky :is(p,li,small,.muted),
+body.auth-page :is(p,small,.subtitle,.help,.role-guidance),
+body.page-app :is(p,small,.muted,.academic-pill,.campus-label){
+  color:var(--en-copy)!important;
+}
+body.page-home :is(.public-cta,.quick-main,.nav-primary,.btn-primary),
+body.premium-public-page :is(.public-cta,.nav-primary,.btn-primary),
+body.auth-page :is(.primary,.tab.active),
+body.learning-sky :is(.primary,.btn-primary),
+body.page-app :is(.btn-primary,.primary,.campus-hero-actions .primary){
+  color:#fff!important;
+  background:linear-gradient(115deg,#087fe8 0%,#0755b5 58%,#08a9ef 100%)!important;
+  border:1px solid rgba(150,224,255,.78)!important;
+  box-shadow:0 8px 24px rgba(0,111,230,.3),inset 0 1px rgba(255,255,255,.22)!important;
+}
+body.page-home :is(a,.public-links a),
+body.premium-public-page :is(a,.public-links a),
+body.learning-sky a,
+body.page-app a:not(.nav-item){text-underline-offset:3px}
+body.page-app .sidebar{background:linear-gradient(180deg,rgba(3,20,48,.98),rgba(2,11,29,.98))!important}
+body.page-app .sidebar :is(.nav-group,details.nav-group){background:rgba(16,70,121,.26)!important;border-color:rgba(119,200,255,.22)!important}
+body.page-app .sidebar .nav-item:is(:hover,:focus-visible,.active),
+body.page-app .sidebar .nav-group[open]>summary{
+  color:#fff!important;background:linear-gradient(110deg,rgba(0,143,255,.48),rgba(15,76,148,.56))!important;
+  border-color:rgba(115,213,255,.68)!important;box-shadow:0 0 18px rgba(0,144,255,.2)!important;
+}
+body.page-home :is(.public-nav,.home-nav,.site-header,header),
+body.premium-public-page :is(.public-nav,.site-header,header){
+  border-color:var(--en-stroke)!important;background:rgba(2,15,36,.84)!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.24),var(--en-halo)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(150%)!important;backdrop-filter:blur(20px) saturate(150%)!important;
+}
+body.auth-page :is(input,select,textarea),
+body.learning-sky :is(input,select,textarea),
+body.page-app :is(input,select,textarea){
+  color:#f0f8ff!important;background:rgba(2,17,40,.88)!important;
+  border:1px solid rgba(91,190,255,.62)!important;border-radius:12px!important;
+}
+body.auth-page :is(input,select,textarea)::placeholder,
+body.learning-sky :is(input,select,textarea)::placeholder,
+body.page-app :is(input,select,textarea)::placeholder{color:#a7c5df!important}
+:is(body.page-home,body.auth-page,body.page-app,body.learning-sky,body.premium-public-page) :is(a,button,input,select,textarea,[tabindex]):focus-visible{
+  outline:3px solid var(--en-electric)!important;outline-offset:3px!important;
+}
+@media(max-width:760px){
+  body.page-home,body.auth-page,body.page-app,body.learning-sky,body.premium-public-page{background-attachment:scroll!important}
+  body.page-home :is(.public-card,.feature-card,.resource-card,.home-section-card),
+  body.premium-public-page :is(.public-card,.feature-card,.resource-card,.home-section-card),
+  body.learning-sky :is(.card,.panel,.resource-card),
+  body.page-app :is(.card,.panel,.campus-hero){border-radius:16px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.page-home *,body.auth-page *,body.page-app *,body.learning-sky *,body.premium-public-page *{
+    scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;
+  }
+}
