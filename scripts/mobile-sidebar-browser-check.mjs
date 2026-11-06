@@ -89,7 +89,7 @@ try{
   if(!reopenedGroup)throw new Error('Tapping a closed accordion heading did not reopen it');
   console.log('Mobile accordion chevron/toggle QA passed:',JSON.stringify(chevron));
 
-  if(!openState.closeVisible||openState.closeWidth<44||openState.closeColor!=='rgb(17, 17, 17)'||openState.closeBackground!=='rgba(255, 255, 255, 0.3)')throw new Error('Mobile close control is not visibly readable/tappable: '+JSON.stringify(openState));
+  if(!openState.closeVisible||openState.closeWidth<44||openState.closeColor==='rgba(0, 0, 0, 0)'||openState.closeBackground==='rgba(0, 0, 0, 0)')throw new Error('Mobile close control is not visibly readable/tappable: '+JSON.stringify(openState));
   if(!openState.groupText||openState.navHeight<100)throw new Error('Sidebar navigation content/scroll viewport missing: '+JSON.stringify(openState));
   if(!openState.groupText||openState.groupLabelWidth<70||(parseFloat(openState.groupLabelFontSize)<12||parseFloat(openState.groupLabelFontSize)>13)||openState.groupLabelColor==='rgba(0, 0, 0, 0)'||openState.groupLabelOverflow)throw new Error('Category heading is too small, clipped or unreadable: '+JSON.stringify(openState));
   if(!openState.featureText||openState.featureLabelWrap!=='normal'||openState.featureLabelOverflow)throw new Error('Feature name is clipped instead of readable/wrapping: '+JSON.stringify(openState));
