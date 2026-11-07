@@ -41,6 +41,8 @@ jobs:
         run: node scripts/public-metadata-consistency-check.mjs
       - name: Validate public sitemap pages and internal HTML links
         run: node scripts/public-internal-link-check.mjs
+      - name: Verify safe IndexNow public URL submission selection
+        run: node scripts/indexnow-submit-check.mjs
       - name: Verify homepage critical resource loading contract
         run: node scripts/public-performance-check.mjs
       - name: Verify atomic AI quota reservation before provider spend
