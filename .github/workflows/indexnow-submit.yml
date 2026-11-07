@@ -1,0 +1,45 @@
+name: Submit changed EduNizam URLs to IndexNow
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "*.html"
+      - "sitemap.xml"
+      - "edunizam-indexnow-20261107-7f4a9c2d.txt"
+      - "scripts/indexnow-submit.mjs"
+      - ".github/workflows/indexnow-submit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: edunizam-indexnow-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout full history for changed-file detection
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify IndexNow key and public URL selection
+        run: node scripts/indexnow-submit-check.mjs
+
+      - name: Submit changed public sitemap URLs
+        env:
+          INDEXNOW_KEY: "edunizam-indexnow-20261107-7f4a9c2d"
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/indexnow-submit.mjs
