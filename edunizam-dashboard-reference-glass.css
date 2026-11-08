@@ -677,3 +677,33 @@ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
     max-width: 124px !important;
   }
 }
+
+
+/* Mobile sidebar readability: strengthen category labels, item text and disclosure arrows.
+   Scoped to the navigation drawer; no layout, sizing, or interaction changes. */
+@media (max-width: 760px) {
+  html body.app-page.page-app .app-shell > .sidebar #nav > .nav-group > summary > strong {
+    color: #f5fbff !important;
+    -webkit-text-fill-color: #f5fbff !important;
+    font-weight: 800 !important;
+    text-shadow: 0 1px 5px rgba(0, 8, 28, .72) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar #nav > .nav-group > summary > small {
+    color: #48dcff !important;
+    -webkit-text-fill-color: #48dcff !important;
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    text-shadow: 0 0 8px rgba(37, 196, 255, .72) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar #nav .nav-item {
+    color: #f0f7ff !important;
+    -webkit-text-fill-color: #f0f7ff !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 4px rgba(0, 8, 28, .78) !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar #nav .nav-item.active {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0, 24, 64, .72) !important;
+  }
+}
