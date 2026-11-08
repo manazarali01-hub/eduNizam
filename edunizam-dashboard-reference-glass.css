@@ -707,3 +707,37 @@ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
     text-shadow: 0 1px 4px rgba(0, 24, 64, .72) !important;
   }
 }
+
+
+/* Final mobile navigation contrast pass: target the real details/summary markup.
+   Keep selectors independent of shell nesting so the drawer remains readable
+   when mobile-nav-core temporarily portals the sidebar to document.body. */
+@media (max-width: 760px) {
+  body #nav details.nav-group > summary > strong {
+    color: #f7fbff !important;
+    -webkit-text-fill-color: #f7fbff !important;
+    font-weight: 800 !important;
+    text-shadow: 0 1px 5px rgba(0, 8, 28, .9) !important;
+  }
+  body #nav details.nav-group > summary > small {
+    color: #55e6ff !important;
+    -webkit-text-fill-color: #55e6ff !important;
+    font-size: 17px !important;
+    font-weight: 900 !important;
+    text-shadow: 0 0 9px rgba(37, 196, 255, .85) !important;
+  }
+  body #nav details.nav-group > summary > span {
+    color: #eaf8ff !important;
+    -webkit-text-fill-color: #eaf8ff !important;
+  }
+  body #nav .nav-group-items > .nav-item {
+    color: #f5faff !important;
+    -webkit-text-fill-color: #f5faff !important;
+    font-weight: 750 !important;
+    text-shadow: 0 1px 4px rgba(0, 8, 28, .9) !important;
+  }
+  body #nav .nav-group-items > .nav-item.active {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+}
