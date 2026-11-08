@@ -14,11 +14,16 @@
     const desktopSiteOnPhone=touch&&screenWidth>0&&screenWidth<=600&&layoutWidth>screenWidth*1.25;
     const root=document.documentElement;
     if(desktopSiteOnPhone){
-      const scale=Math.min(2.6,Math.max(1,layoutWidth/screenWidth));
-      root.style.zoom=String(scale);
+      // Restore the device-width layout viewport, but never apply CSS zoom.
+      // Zooming by layoutWidth/screenWidth (often ~2.7x on Android) remains
+      // active after the viewport meta tag changes and can enlarge/reflow the
+      // dashboard a second time after the initial render.
+      root.style.removeProperty('zoom');
       root.dataset.eduPhoneViewport='normalized';
       const viewport=document.querySelector('meta[name="viewport"]');
       if(viewport)viewport.setAttribute('content','width=device-width, initial-scale=1, viewport-fit=cover');
+    }else if(root.dataset.eduPhoneViewport==='normalized'){
+      root.style.removeProperty('zoom');
     }
     return desktopSiteOnPhone||root.dataset.eduPhoneViewport==='normalized';
   }
