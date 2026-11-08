@@ -1,4 +1,4 @@
-const CACHE='edunizam-v282-auth-event-guard-v2'
+const CACHE='edunizam-v283-dashboard-appearance-refresh-v1'
 const CORE=[
   './',
   './index.html',
