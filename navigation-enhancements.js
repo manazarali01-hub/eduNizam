@@ -29,13 +29,9 @@
     for(const [title,icon,views] of groups){
       const details=document.createElement('details');details.className='nav-group';details.dataset.groupTitle=title;details.open=title==='Overview'||title==='Daily Work';
       const summary=document.createElement('summary');summary.innerHTML='<span>'+icon+'</span><strong>'+title+'</strong><small>›</small>';
-      // Bind the accordion action directly to its own summary. Native details
-      // activation is cancelled so each click produces exactly one state change.
-      summary.addEventListener('click',event=>{
-        event.preventDefault();
-        event.stopPropagation();
-        details.open=!details.open;
-      });
+      // Accordion state is managed centrally by app.js on the nav root.
+      // Do not add a second summary handler here: capture + target toggles
+      // would cancel each other and make repeated taps appear unresponsive.
       details.appendChild(summary);
       const box=document.createElement('div');box.className='nav-group-items';views.forEach(v=>{const b=byView.get(v);if(b){box.appendChild(b);byView.delete(v)}});details.appendChild(box);if(box.children.length||['Daily Work','Communication'].includes(title))nav.appendChild(details);
     }
