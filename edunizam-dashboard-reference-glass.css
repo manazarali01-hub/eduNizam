@@ -656,3 +656,24 @@ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
  -webkit-text-fill-color:#f2f8ff!important;
  text-shadow:0 1px 2px rgba(0,12,36,.72)!important;
 }
+
+
+/* Mobile session chip: keep the complete role label readable instead of ellipsizing it. */
+@media (max-width: 760px) {
+  html body.app-page.page-app #appMain > .topbar #roleSession.session-chip > strong {
+    flex: 1 1 118px !important;
+    min-width: 0 !important;
+    max-width: 150px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.15 !important;
+  }
+}
+@media (max-width: 380px) {
+  html body.app-page.page-app #appMain > .topbar #roleSession.session-chip > strong {
+    flex-basis: 108px !important;
+    max-width: 124px !important;
+  }
+}
