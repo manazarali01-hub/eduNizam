@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const server=http.createServer((req,res)=>{
   const url=new URL(req.url,'http://127.0.0.1');
-  const rel=decodeURIComponent(url.pathname).replace(/^\\/+/, '')||'index.html';
+  const rel=decodeURIComponent(url.pathname).replace(/^\/+/, '')||'index.html';
   const file=path.resolve(root,rel);
   if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){
     res.writeHead(404);res.end('Not found');return;
