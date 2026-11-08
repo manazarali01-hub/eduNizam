@@ -226,9 +226,9 @@ if(bootstrapPublicFns.length!==2||bootstrapPublicFns.some(m=>!m[1].includes('sel
 const expectedWizard='20261009-practice-source-v44';
 if(!read('app.html').includes('auth-bridge.js?v=20261020-auth-event-guard-v2'))fail.push('Secure auth bridge cache version was not bumped after the fail-closed fix.');
 if(!read('feature-loader.js').includes("const VERSION='20261012-feature-delivery-v75'"))fail.push('Feature asset cache version was not bumped for the paper wizard.');
-if(!read('sw.js').includes("const CACHE='edunizam-v282-auth-event-guard-v2'"))fail.push('PWA release cache does not match the paper wizard release.');
+if(!read('sw.js').includes("const CACHE='edunizam-v283-dashboard-appearance-refresh-v1'"))fail.push('PWA release cache does not match the paper wizard release.');
 if(!read('pwa-install.js').includes('sw.js?v=20261020-auth-event-guard-v2'))fail.push('Installed-app service worker update URL is stale.');
-if(!read('system-auto-update.js').includes("const ACTIVE_CACHE='edunizam-v282-auth-event-guard-v2'"))fail.push('PWA system updater still clears or retains the wrong cache.');
+if(!read('system-auto-update.js').includes("const ACTIVE_CACHE='edunizam-v283-dashboard-appearance-refresh-v1'"))fail.push('PWA system updater still clears or retains the wrong cache.');
 const systemAutoUpdateSafety=read('system-auto-update.js');
 const reliabilitySafety=read('reliability-guardian.js');
 if(systemAutoUpdateSafety.includes("querySelectorAll('button[disabled]')")) fail.push('System auto-update still globally re-enables disabled controls.');
