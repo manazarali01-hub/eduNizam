@@ -101,8 +101,13 @@ input,select,textarea{min-width:0}
   .main{min-height:100dvh;contain:layout style}
   .sidebar{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;will-change:transform}
   .mobile-nav-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-  .topbar,.premium-mobile-dock,.card,.view>.card,.view .card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-  .card,.paper-card{box-shadow:none!important}
+  /* Keep lightweight glass surfaces on mobile instead of globally stripping
+     blur and depth; the reduced blur limits GPU cost while preserving the UI. */
+  .topbar,.premium-mobile-dock,.card,.view>.card,.view .card{
+    backdrop-filter:blur(8px)!important;
+    -webkit-backdrop-filter:blur(8px)!important;
+  }
+  .card,.paper-card{box-shadow:0 4px 16px rgba(0,18,48,.16)!important}
   .edu-scroll-progress{display:none!important}
   .edu-reveal{animation:none!important;transition:none!important}
 }
