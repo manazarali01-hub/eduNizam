@@ -525,7 +525,7 @@ function makeCloudRestoreRace({timeoutFirst=false}={}){
 }
  
 assert.match(read('app.html'),/admissions-cloud\.js\?v=20261011-session-epoch-v46/);
-assert.match(read('app.html'),/auth-bridge\.js\?v=20261020-auth-event-guard-v2/);
+assert.match(read('app.html'),/auth-bridge\.js\?v=20261109-secure-access-silver-glass-v1/);
 assert.match(read('app.html'),/reliability-guardian\.js\?v=20261010-auth-race-v1/);
 assert.match(read('sw.js'),/edunizam-v283-dashboard-appearance-refresh-v1/);
 assert.match(read('system-auto-update.js'),/edunizam-v283-dashboard-appearance-refresh-v1/);
