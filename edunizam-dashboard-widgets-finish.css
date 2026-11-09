@@ -45,3 +45,128 @@ html body.app-page.page-app #appMain #adminDailyDesk .admin-daily-actions>button
 }
 @media(max-width:360px){html body.app-page.page-app #appMain #adminDailyDesk .admin-daily-actions{grid-template-columns:minmax(0,1fr)!important}}
 @media(prefers-reduced-motion:reduce){html body.app-page.page-app #appMain #adminDailyDesk .admin-daily-actions>button{transition:none!important}}
+
+/* Reference alignment: hero, headline metrics and two-column action/activity stage. */
+html body.app-page.page-app #appMain>.topbar{
+  position:relative!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:16px!important;padding:14px 20px!important;margin:0 0 14px!important;min-height:74px!important;
+  color:#f5faff!important;background:linear-gradient(110deg,rgba(4,30,70,.96),rgba(7,74,132,.90),rgba(3,26,65,.96))!important;
+  border:1px solid rgba(106,203,255,.66)!important;border-radius:19px!important;
+  box-shadow:0 0 18px rgba(0,145,255,.24),inset 0 1px 0 rgba(255,255,255,.18)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(150%)!important;backdrop-filter:blur(18px) saturate(150%)!important;
+}
+html body.app-page.page-app #appMain>.topbar #page-title{
+  color:#fff!important;font-size:clamp(20px,2.4vw,28px)!important;font-weight:850!important;
+  text-shadow:0 0 16px rgba(72,187,255,.35)!important;
+}
+html body.app-page.page-app #appMain>.topbar .academic-kicker{color:#71ddff!important;font-weight:850!important;letter-spacing:.13em!important}
+html body.app-page.page-app #appMain>.topbar .school-identity p{color:#c6e6ff!important}
+html body.app-page.page-app #appMain>.topbar .academic-pill{
+  color:#e9f8ff!important;background:rgba(16,114,184,.26)!important;border:1px solid rgba(116,211,255,.44)!important;
+  border-radius:999px!important;padding:8px 13px!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero{
+  position:relative!important;isolation:isolate!important;display:grid!important;
+  grid-template-columns:minmax(0,1.25fr) minmax(180px,.75fr)!important;align-items:center!important;
+  gap:18px!important;min-height:210px!important;padding:24px!important;margin:0 0 16px!important;
+  overflow:hidden!important;color:#f5faff!important;
+  background:radial-gradient(ellipse at 82% 20%,rgba(0,180,255,.30),transparent 38%),
+    linear-gradient(115deg,rgba(4,35,83,.98),rgba(5,78,139,.90) 56%,rgba(3,27,68,.98))!important;
+  border:1px solid rgba(115,210,255,.68)!important;border-radius:23px!important;
+  box-shadow:0 0 22px rgba(0,145,255,.22),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -20px 45px rgba(0,7,30,.18)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero:before{
+  content:""!important;position:absolute!important;z-index:-1!important;inset:auto -8% -48% 28%!important;height:72%!important;
+  border:2px solid rgba(44,190,255,.54)!important;border-radius:50%!important;
+  box-shadow:0 0 18px rgba(0,174,255,.42),0 0 42px rgba(0,112,255,.24)!important;
+  transform:rotate(-9deg)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero h2{
+  margin:7px 0 9px!important;color:#fff!important;font-size:clamp(25px,3.2vw,39px)!important;
+  font-weight:900!important;line-height:1.08!important;text-shadow:0 2px 15px rgba(0,0,0,.34),0 0 18px rgba(74,190,255,.25)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero p{max-width:650px!important;color:#d5eaff!important;font-size:13px!important;line-height:1.6!important}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-label{color:#77e4ff!important;font-size:10px!important;font-weight:900!important;letter-spacing:.15em!important;text-transform:uppercase!important}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-hero-actions{display:flex!important;flex-wrap:wrap!important;gap:9px!important;margin-top:14px!important}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-hero-actions button{
+  min-height:40px!important;padding:9px 15px!important;color:#fff!important;
+  background:linear-gradient(135deg,#087ed2,#064b9f)!important;border:1px solid rgba(145,222,255,.74)!important;
+  border-radius:11px!important;box-shadow:0 0 14px rgba(0,150,255,.25),inset 0 1px 0 rgba(255,255,255,.24)!important;
+  font-weight:800!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-hero-actions button.secondary{
+  color:#eaf7ff!important;background:rgba(3,30,71,.62)!important;border-color:rgba(115,197,255,.48)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{
+  display:flex!important;align-items:center!important;justify-content:center!important;flex-direction:column!important;
+  min-height:140px!important;padding:18px!important;text-align:center!important;color:#f6fbff!important;
+  background:linear-gradient(145deg,rgba(19,113,183,.32),rgba(1,24,59,.48))!important;
+  border:1px solid rgba(116,204,255,.40)!important;border-radius:19px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 10px 24px rgba(0,8,30,.18)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-icon{font-size:54px!important;filter:drop-shadow(0 0 14px rgba(72,193,255,.55))!important}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual strong{margin-top:7px!important;color:#fff!important;font-size:16px!important}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual span{color:#b9d9f4!important;font-size:10px!important}
+html body.app-page.page-app #appMain #dashboard>.cards{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:11px!important;margin:0 0 16px!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{
+  position:relative!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;
+  gap:10px!important;min-width:0!important;min-height:112px!important;padding:15px!important;overflow:hidden!important;
+  color:#f5faff!important;background:radial-gradient(ellipse at 50% 0%,rgba(0,174,255,.26),transparent 58%),
+    linear-gradient(145deg,rgba(9,69,126,.92),rgba(2,26,64,.97))!important;
+  border:1px solid rgba(124,208,255,.56)!important;border-radius:17px!important;
+  box-shadow:0 0 15px rgba(0,132,255,.16),inset 0 1px 0 rgba(255,255,255,.18)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:before{
+  content:""!important;position:absolute!important;top:0!important;left:12%!important;right:12%!important;height:3px!important;
+  background:linear-gradient(90deg,transparent,#72e6ff,#fff, #36b9ff,transparent)!important;
+  box-shadow:0 0 12px rgba(62,202,255,.9)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{color:#c9e7fb!important;font-size:11px!important;font-weight:800!important}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong{
+  color:#fff!important;font-size:clamp(23px,2.5vw,31px)!important;font-weight:900!important;
+  text-shadow:0 0 15px rgba(83,196,255,.32)!important;overflow-wrap:anywhere!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2{
+  display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)!important;
+  gap:13px!important;align-items:stretch!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card{
+  min-width:0!important;padding:16px!important;color:#f3f9ff!important;
+  background:linear-gradient(145deg,rgba(7,49,99,.94),rgba(2,22,54,.97))!important;
+  border:1px solid rgba(117,199,249,.52)!important;border-radius:19px!important;
+  box-shadow:0 0 17px rgba(0,121,255,.16),inset 0 1px 0 rgba(255,255,255,.14)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card h2{
+  color:#f7fbff!important;font-size:clamp(17px,2vw,21px)!important;font-weight:850!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card .muted{color:#bcd8ee!important}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card .quick-actions{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card .quick-actions>button{
+  min-width:0!important;min-height:48px!important;padding:10px!important;text-align:left!important;
+  color:#f4faff!important;background:linear-gradient(135deg,rgba(17,101,169,.72),rgba(3,32,76,.94))!important;
+  border:1px solid rgba(117,204,255,.48)!important;border-radius:12px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14)!important;font-weight:800!important;
+}
+html body.app-page.page-app #appMain #dashboard #activityList{color:#e8f5ff!important}
+html body.app-page.page-app #appMain #dashboard #activityList>*{
+  padding:9px 10px!important;margin:0 0 6px!important;color:#eaf6ff!important;
+  background:rgba(14,87,145,.30)!important;border:1px solid rgba(109,190,240,.26)!important;border-radius:10px!important;
+}
+@media(max-width:900px){
+ html body.app-page.page-app #appMain #dashboard>.campus-hero{grid-template-columns:minmax(0,1fr) minmax(150px,.6fr)!important}
+ html body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:600px){
+ html body.app-page.page-app #appMain>.topbar{padding:11px 13px!important;min-height:62px!important;border-radius:15px!important}
+ html body.app-page.page-app #appMain #dashboard>.campus-hero{grid-template-columns:minmax(0,1fr)!important;gap:12px!important;min-height:0!important;padding:15px!important;border-radius:17px!important}
+ html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{min-height:92px!important;padding:10px!important}
+ html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-icon{font-size:38px!important}
+ html body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{min-height:88px!important;padding:11px!important;border-radius:14px!important}
+ html body.app-page.page-app #appMain #dashboard>.grid-2{grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+ html body.app-page.page-app #appMain #dashboard>.grid-2>.card{padding:12px!important;border-radius:15px!important}
+}
