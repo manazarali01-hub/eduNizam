@@ -378,3 +378,29 @@ html body.app-page.page-app #appMain > .topbar{
     box-shadow:0 7px 18px rgba(0,8,28,.16),inset 0 1px 0 rgba(255,255,255,.38)!important;
   }
 }
+
+
+/* Screenshot-verified mobile search contrast correction.
+   The search field is intentionally pale glass, so its text must be dark. */
+@media (max-width:760px){
+  html body.app-page.page-app .sidebar #navFeatureSearch,
+  html body.app-page.page-app .sidebar input#navFeatureSearch{
+    color:#173d5b!important;
+    -webkit-text-fill-color:#173d5b!important;
+    caret-color:#087fc0!important;
+    background:linear-gradient(135deg,rgba(239,250,255,.94),rgba(205,237,250,.90))!important;
+    border:1px solid rgba(231,249,255,.96)!important;
+    box-shadow:0 0 0 1px rgba(39,190,229,.20),0 0 20px rgba(0,177,220,.18),
+      inset 0 1px 0 rgba(255,255,255,.95)!important;
+  }
+  html body.app-page.page-app .sidebar #navFeatureSearch::placeholder,
+  html body.app-page.page-app .sidebar input#navFeatureSearch::placeholder{
+    color:#45677e!important;
+    -webkit-text-fill-color:#45677e!important;
+    opacity:1!important;
+  }
+  html body.app-page.page-app .sidebar #navFeatureSearch:focus{
+    outline:2px solid rgba(66,211,230,.72)!important;
+    outline-offset:2px!important;
+  }
+}
