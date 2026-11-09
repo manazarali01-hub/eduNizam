@@ -1,0 +1,149 @@
+/* EduNizam premium finish layer — visual cohesion for authenticated workspace.
+   Presentation-only: preserves DOM, data, navigation and control behavior. */
+:root{
+  --en-finish-ice:#f3f9ff;
+  --en-finish-muted:#bfd7eb;
+  --en-finish-line:rgba(125,202,250,.34);
+  --en-finish-line-strong:rgba(143,218,255,.56);
+  --en-finish-glass:linear-gradient(145deg,rgba(12,66,119,.76),rgba(2,22,54,.91));
+  --en-finish-glass-deep:linear-gradient(145deg,rgba(8,43,86,.94),rgba(2,15,39,.97));
+  --en-finish-shadow:0 14px 34px rgba(0,7,27,.24),0 0 18px rgba(0,145,255,.11),inset 0 1px 0 rgba(255,255,255,.12);
+}
+html body.app-page.page-app #appMain .view{
+  color:var(--en-finish-ice)!important;
+}
+html body.app-page.page-app #appMain .view :is(.section-head,.section-header,.view-header,.page-heading){
+  color:var(--en-finish-ice)!important;
+  border-color:var(--en-finish-line)!important;
+}
+html body.app-page.page-app #appMain .view :is(.section-head h1,.section-head h2,.section-head h3,.section-header h1,.section-header h2,.view-header h1,.view-header h2,.page-heading h1,.page-heading h2){
+  color:#f7fbff!important;
+  -webkit-text-fill-color:#f7fbff!important;
+  font-weight:850!important;
+  letter-spacing:-.025em!important;
+  text-shadow:0 2px 14px rgba(54,166,255,.18)!important;
+}
+html body.app-page.page-app #appMain .view :is(.section-head p,.section-header p,.view-header p,.page-heading p,.muted,.hint,.help-text,.form-hint){
+  color:var(--en-finish-muted)!important;
+}
+html body.app-page.page-app #appMain .view :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.empty-state,.notice-card,.widget-card){
+  color:var(--en-finish-ice)!important;
+  background:var(--en-finish-glass)!important;
+  border:1px solid var(--en-finish-line)!important;
+  border-radius:18px!important;
+  box-shadow:var(--en-finish-shadow)!important;
+  -webkit-backdrop-filter:blur(17px) saturate(140%)!important;
+  backdrop-filter:blur(17px) saturate(140%)!important;
+}
+html body.app-page.page-app #appMain .view :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card)>:is(h1,h2,h3,h4,.title,.card-title){
+  color:#f5faff!important;
+  -webkit-text-fill-color:#f5faff!important;
+  font-weight:820!important;
+}
+html body.app-page.page-app #appMain .view :is(label,.field-label,.form-label){
+  color:#dceeff!important;
+  font-weight:700!important;
+}
+html body.app-page.page-app #appMain .view :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){
+  color:#f3f9ff!important;
+  background:linear-gradient(145deg,rgba(2,20,48,.94),rgba(3,29,65,.94))!important;
+  border:1px solid rgba(112,192,244,.48)!important;
+  border-radius:11px!important;
+  box-shadow:inset 0 1px 5px rgba(0,0,0,.18)!important;
+  accent-color:#27aaff!important;
+}
+html body.app-page.page-app #appMain .view :is(input,select,textarea)::placeholder{
+  color:#9dbbd5!important;opacity:1!important;
+}
+html body.app-page.page-app #appMain .view :is(input,select,textarea):focus{
+  border-color:#65d7ff!important;
+  outline:2px solid rgba(49,185,255,.22)!important;
+  outline-offset:1px!important;
+  box-shadow:0 0 0 3px rgba(0,153,255,.12),0 0 17px rgba(0,166,255,.16)!important;
+}
+html body.app-page.page-app #appMain .view :is(button,.btn,[role=button],input[type=submit]){
+  border-radius:11px!important;
+  transition:box-shadow .18s ease,border-color .18s ease,filter .18s ease!important;
+}
+html body.app-page.page-app #appMain .view :is(button:not(.secondary):not(.ghost):not(.icon-btn):not(.tab),.btn-primary,.primary-action,input[type=submit]){
+  color:#fff!important;
+  border-color:rgba(133,218,255,.56)!important;
+  box-shadow:0 5px 16px rgba(0,104,210,.20),inset 0 1px 0 rgba(255,255,255,.17)!important;
+}
+html body.app-page.page-app #appMain .view :is(button.secondary,button.ghost,.btn-secondary,.icon-btn,.tab){
+  color:#e9f6ff!important;
+  background:linear-gradient(145deg,rgba(24,91,148,.48),rgba(4,31,72,.76))!important;
+  border:1px solid rgba(117,194,240,.36)!important;
+}
+html body.app-page.page-app #appMain .view :is(button,.btn,[role=button]):hover{
+  filter:brightness(1.08)!important;
+  border-color:rgba(142,222,255,.72)!important;
+  box-shadow:0 7px 20px rgba(0,120,220,.22),0 0 13px rgba(0,173,255,.12)!important;
+}
+html body.app-page.page-app #appMain .view :is(table,.data-table,.table){
+  color:#eaf5ff!important;
+  border-color:rgba(115,190,239,.28)!important;
+}
+html body.app-page.page-app #appMain .view :is(thead,th){
+  color:#f4faff!important;
+  background:linear-gradient(110deg,rgba(12,72,128,.94),rgba(4,36,82,.96))!important;
+  border-color:rgba(126,204,249,.30)!important;
+}
+html body.app-page.page-app #appMain .view :is(td,tr){
+  color:#e3f1ff!important;
+  border-color:rgba(119,185,229,.20)!important;
+}
+html body.app-page.page-app #appMain .view tbody tr:nth-child(even){
+  background:rgba(27,94,145,.13)!important;
+}
+html body.app-page.page-app #appMain .view tbody tr:hover{
+  background:rgba(30,139,207,.18)!important;
+}
+html body.app-page.page-app #appMain .view :is(.badge,.chip,.pill,.status,.tag,.count-badge){
+  color:#dff4ff!important;
+  background:rgba(23,116,181,.25)!important;
+  border:1px solid rgba(116,200,247,.34)!important;
+  border-radius:999px!important;
+}
+html body.app-page.page-app #appMain .view :is(.tabs,.tab-list,[role=tablist]){
+  border-color:rgba(117,197,245,.27)!important;
+}
+html body.app-page.page-app #appMain .view :is(.tab.active,[role=tab][aria-selected=true]){
+  color:#fff!important;
+  background:linear-gradient(115deg,#087fe8,#0755b3 65%,#08a8ef)!important;
+  border-color:rgba(151,224,255,.72)!important;
+  box-shadow:0 0 16px rgba(0,153,255,.20)!important;
+}
+html body.app-page.page-app #appMain .view :is(.empty-state,.empty,.no-data,.no-results){
+  color:#c6def2!important;
+  background:rgba(2,22,53,.58)!important;
+  border:1px dashed rgba(119,196,241,.38)!important;
+}
+html body.app-page.page-app :is(dialog,.modal,.modal-content,.drawer-panel,.popover,.dropdown-menu){
+  color:#f0f8ff!important;
+  background:var(--en-finish-glass-deep)!important;
+  border:1px solid var(--en-finish-line-strong)!important;
+  border-radius:18px!important;
+  box-shadow:0 22px 60px rgba(0,5,22,.48),0 0 26px rgba(0,143,255,.16)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+  backdrop-filter:blur(22px) saturate(145%)!important;
+}
+html body.app-page.page-app :is(dialog,.modal,.modal-content,.drawer-panel,.popover,.dropdown-menu) :is(h1,h2,h3,h4,label,p,small){
+  color:#eff8ff!important;
+}
+html body.app-page.page-app :is(dialog,.modal,.modal-content,.drawer-panel,.popover,.dropdown-menu) :is(input,select,textarea){
+  color:#f2f9ff!important;background:#031a3b!important;border-color:rgba(119,199,247,.46)!important;
+}
+html body.app-page.page-app :focus-visible{
+  outline:2px solid #80ddff!important;
+  outline-offset:3px!important;
+}
+@media(max-width:760px){
+  html body.app-page.page-app #appMain .view :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card){
+    border-radius:15px!important;
+  }
+  html body.app-page.page-app #appMain .view :is(table,.data-table,.table){font-size:12px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body.app-page.page-app #appMain .view :is(button,.btn,[role=button]){transition:none!important}
+}
