@@ -1,0 +1,169 @@
+/* Physical-device responsive layer.
+   max-device-width also catches Android browsers using "Desktop site", where
+   the layout viewport can remain wide even though the screen is a phone. */
+@media (max-device-width: 600px) and (hover: none) and (pointer: coarse) {
+  html, body.app-page.page-app {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  body.app-page.page-app .app-shell {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: clip !important;
+  }
+
+  body.app-page.page-app .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 1102 !important;
+    width: min(292px, 84vw) !important;
+    max-width: 84vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    transform: translate3d(-105%, 0, 0) !important;
+    visibility: hidden !important;
+    transition: transform .22s ease, visibility .22s ease !important;
+    border-radius: 0 18px 18px 0 !important;
+  }
+
+  body.app-page.page-app .sidebar.mobile-nav-open {
+    transform: translate3d(0, 0, 0) !important;
+    visibility: visible !important;
+  }
+
+  body.app-page.page-app #eduMobileNavBackdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1098 !important;
+    display: none;
+    background: rgba(1, 8, 24, .58) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  body.app-page.page-app #eduMobileNavBackdrop.show {
+    display: block !important;
+    opacity: 1 !important;
+  }
+
+  body.app-page.page-app .main,
+  body.app-page.page-app #appMain {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body.app-page.page-app #appMain > .topbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 10px 12px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  body.app-page.page-app #appMain > .topbar > .topbar-title,
+  body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  body.app-page.page-app #appMain > .topbar > .topbar-title {
+    min-height: 0 !important;
+  }
+
+  body.app-page.page-app #appMain > .topbar > .topbar-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  body.app-page.page-app #appMain > #dashboard > .campus-hero {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 14px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  body.app-page.page-app #appMain > #dashboard > .campus-hero > div:first-child {
+    position: relative !important;
+    inset: auto !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-visual {
+    position: relative !important;
+    inset: auto !important;
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 132px !important;
+    height: auto !important;
+    max-height: 190px !important;
+    margin: 0 !important;
+    transform: none !important;
+    box-sizing: border-box !important;
+  }
+
+  body.app-page.page-app #appMain > #dashboard > .cards {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body.app-page.page-app #appMain > #dashboard > .cards > .card.stat {
+    min-width: 0 !important;
+    min-height: 96px !important;
+    height: auto !important;
+    padding: 10px !important;
+    overflow: hidden !important;
+  }
+
+  body.app-page.page-app #appMain > #dashboard > .grid-2 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.app-page.page-app #appMain .dashboard-panel,
+  body.app-page.page-app #appMain #dashboard > .card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
