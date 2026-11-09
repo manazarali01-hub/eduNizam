@@ -79,7 +79,7 @@
       if(navChanged||active)decorateActiveNav();
     });
     observer.observe(main,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
-    const nav=$('#nav');if(nav)observer.observe(nav,{subtree:true,attributes:true,attributeFilter:['class','open']});
+    const nav=$('#nav');if(nav)observer.observe(nav,{subtree:true,attributes:true,attributeFilter:['class']});
     reveal($('.view.active'));decorateActiveNav();
   }
 
