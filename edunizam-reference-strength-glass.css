@@ -173,3 +173,52 @@ html body.app-page.page-app #appMain .view :is(.card,.panel,.section-card,.conte
     backdrop-filter:blur(32px) saturate(190%)!important;
   }
 }
+
+
+/* Final screenshot-targeted mobile drawer contrast + glass pass.
+   Keep category names readable even when inherited theme text-fill is applied. */
+html body.app-page.page-app #nav details.nav-group > summary,
+html body.app-page.page-app .sidebar #nav details > summary{
+  color:#f7fcff!important;
+  background:linear-gradient(105deg,rgba(93,190,244,.20),rgba(9,66,122,.12))!important;
+  border:1px solid rgba(190,237,255,.40)!important;
+  text-shadow:0 1px 8px rgba(0,8,28,.95),0 0 12px rgba(0,174,255,.34)!important;
+}
+html body.app-page.page-app #nav details.nav-group > summary strong,
+html body.app-page.page-app #nav details.nav-group > summary small,
+html body.app-page.page-app #nav details.nav-group > summary span,
+html body.app-page.page-app .sidebar #nav details > summary :is(strong,small,span){
+  color:#f7fcff!important;
+  -webkit-text-fill-color:#f7fcff!important;
+  opacity:1!important;
+  visibility:visible!important;
+  text-shadow:0 1px 8px rgba(0,8,28,.95),0 0 12px rgba(0,174,255,.34)!important;
+}
+html body.app-page.page-app .sidebar #nav details.nav-group{
+  background:linear-gradient(145deg,rgba(74,163,221,.16),rgba(3,31,68,.18))!important;
+  border:1px solid rgba(165,225,255,.42)!important;
+  box-shadow:0 8px 24px rgba(0,7,28,.15),inset 0 1px 0 rgba(255,255,255,.28)!important;
+  -webkit-backdrop-filter:blur(30px) saturate(200%)!important;
+  backdrop-filter:blur(30px) saturate(200%)!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group-items{
+  background:rgba(2,24,53,.12)!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group-items .nav-item{
+  color:#f5fbff!important;
+  -webkit-text-fill-color:#f5fbff!important;
+  font-weight:700!important;
+  text-shadow:0 1px 7px rgba(0,7,24,.95)!important;
+}
+html body.app-page.page-app .sidebar,
+html body.app-page.page-app .sidebar.mobile-nav-open,
+html body.app-page.page-app .app-shell > .sidebar{
+  background:
+    radial-gradient(ellipse at 14% 8%,rgba(111,213,255,.20),transparent 55%),
+    linear-gradient(145deg,rgba(28,119,183,.25),rgba(4,31,68,.31) 54%,rgba(2,18,43,.36))!important;
+  border:1px solid rgba(202,241,255,.88)!important;
+  box-shadow:0 20px 54px rgba(0,5,22,.28),0 0 38px rgba(0,177,255,.34),
+    inset 0 1px 0 rgba(255,255,255,.48),inset -1px 0 rgba(255,255,255,.15)!important;
+  -webkit-backdrop-filter:blur(38px) saturate(205%)!important;
+  backdrop-filter:blur(38px) saturate(205%)!important;
+}
