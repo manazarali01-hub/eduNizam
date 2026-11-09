@@ -147,3 +147,98 @@ html body.app-page.page-app :focus-visible{
 @media(prefers-reduced-motion:reduce){
   html body.app-page.page-app #appMain .view :is(button,.btn,[role=button]){transition:none!important}
 }
+
+
+/* Final responsive workspace header pass — keep every account/session control visible. */
+@media(min-width:761px){
+  html body.app-page.page-app #appMain>.topbar{
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    overflow:visible!important;
+  }
+  html body.app-page.page-app #appMain>.topbar>.topbar-title{
+    flex:1 1 220px!important;
+    min-width:190px!important;
+  }
+  html body.app-page.page-app #appMain>.topbar>.topbar-actions{
+    flex:1 1 580px!important;
+    max-width:100%!important;
+    flex-wrap:wrap!important;
+    justify-content:flex-end!important;
+  }
+}
+@media(max-width:760px){
+  html body.app-page.page-app #appMain>.topbar{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    align-items:start!important;
+    gap:8px!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding:9px 11px!important;
+  }
+  html body.app-page.page-app #appMain>.topbar>.topbar-title{
+    grid-row:1!important;
+    flex:none!important;
+    width:calc(100% - 44px)!important;
+    max-width:calc(100% - 44px)!important;
+    margin:0 0 0 44px!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+  html body.app-page.page-app #appMain>.topbar>.topbar-actions{
+    grid-row:2!important;
+    display:flex!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-height:none!important;
+    flex-wrap:wrap!important;
+    justify-content:flex-start!important;
+    align-items:center!important;
+    gap:6px!important;
+    margin:0!important;
+    overflow:visible!important;
+  }
+  html body.app-page.page-app #appMain>.topbar #roleSession.session-chip{
+    display:flex!important;
+    flex:1 1 170px!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:6px!important;
+    width:auto!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:38px!important;
+    max-height:none!important;
+    padding:5px 8px!important;
+    overflow:visible!important;
+    white-space:normal!important;
+  }
+  html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
+    display:block!important;
+    flex:1 1 auto!important;
+    width:auto!important;
+    max-width:none!important;
+    min-width:0!important;
+    text-align:left!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    overflow-wrap:anywhere!important;
+    text-overflow:clip!important;
+  }
+  html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>button{
+    flex:0 0 auto!important;
+  }
+  html body.app-page.page-app #appMain>.topbar #accountSecurityButton.account-security-btn{
+    display:inline-flex!important;
+    flex:0 1 auto!important;
+    width:auto!important;
+    max-width:100%!important;
+    min-width:0!important;
+    white-space:nowrap!important;
+  }
+}
