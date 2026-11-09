@@ -40,3 +40,23 @@
     opacity: 1 !important;
   }
 }
+
+/* Restore readable contrast inside the navy admin daily desk panel. */
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk,
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk * {
+  text-shadow: none;
+}
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk h2,
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk h3,
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk strong,
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk .stat-value {
+  color: #f4f9ff !important;
+}
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk p,
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk span,
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk small {
+  color: #c7dcf2 !important;
+}
+html body.app-page.page-app #appMain #dashboard .admin-daily-desk .muted {
+  color: #c7dcf2 !important;
+}
