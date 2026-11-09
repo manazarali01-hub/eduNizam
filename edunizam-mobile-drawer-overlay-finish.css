@@ -1,0 +1,117 @@
+/* EduNizam mobile drawer overlay finish — mobile-only layout/state presentation. */
+@media (max-width: 1100px) and (hover: none) and (pointer: coarse) {
+  html body.app-page.page-app .app-shell {
+    display: block !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: clip !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar,
+  html body.app-page.page-app > .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 1102 !important;
+    width: min(292px, 82vw) !important;
+    max-width: 82vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 20px 20px 0 !important;
+    transform: translate3d(-105%, 0, 0) !important;
+    transition: transform .22s ease !important;
+    visibility: hidden !important;
+    box-shadow: 18px 0 48px rgba(0, 5, 22, .52), 0 0 26px rgba(0, 145, 255, .18) !important;
+  }
+
+  html body.app-page.page-app .sidebar.mobile-nav-open {
+    transform: translate3d(0, 0, 0) !important;
+    visibility: visible !important;
+  }
+
+  html body.app-page.page-app #eduMobileNavBackdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1098 !important;
+    display: none;
+    background: rgba(1, 9, 27, .68) !important;
+    -webkit-backdrop-filter: blur(2px) !important;
+    backdrop-filter: blur(2px) !important;
+    opacity: 0;
+    transition: opacity .18s ease !important;
+  }
+
+  html body.app-page.page-app #eduMobileNavBackdrop.show {
+    display: block !important;
+    opacity: 1 !important;
+  }
+
+  html body.app-page.page-app #eduMobileMenuBtn {
+    z-index: 1105 !important;
+    width: 46px !important;
+    height: 46px !important;
+    border: 1px solid rgba(154, 225, 255, .72) !important;
+    border-radius: 13px !important;
+    color: #f4fbff !important;
+    background: linear-gradient(145deg, #087fce, #073d82) !important;
+    box-shadow: 0 0 18px rgba(0, 166, 255, .34), inset 0 1px 0 rgba(255,255,255,.24) !important;
+  }
+
+  html body.app-page.page-app .sidebar .mobile-nav-close {
+    z-index: 1104 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    color: #f5fbff !important;
+    background: rgba(7, 55, 105, .92) !important;
+    border: 1px solid rgba(147, 220, 255, .62) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 0 14px rgba(0, 155, 255, .24) !important;
+  }
+
+  html body.app-page.page-app.mobile-nav-lock {
+    overflow: hidden !important;
+  }
+
+  html body.app-page.page-app .main,
+  html body.app-page.page-app #appMain {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 600px) {
+  html body.app-page.page-app #appMain #dashboard > .cards {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .cards > .card.stat {
+    min-width: 0 !important;
+    min-height: 88px !important;
+    padding: 11px !important;
+    overflow: hidden !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .grid-2 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.app-page.page-app .sidebar,
+  html body.app-page.page-app #eduMobileNavBackdrop {
+    transition: none !important;
+  }
+}
