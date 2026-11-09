@@ -46,25 +46,7 @@ html body.app-page.page-app #appMain #adminDailyDesk .admin-daily-actions>button
 @media(max-width:360px){html body.app-page.page-app #appMain #adminDailyDesk .admin-daily-actions{grid-template-columns:minmax(0,1fr)!important}}
 @media(prefers-reduced-motion:reduce){html body.app-page.page-app #appMain #adminDailyDesk .admin-daily-actions>button{transition:none!important}}
 
-/* Reference alignment: hero, headline metrics and two-column action/activity stage. */
-html body.app-page.page-app #appMain>.topbar{
-  position:relative!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
-  gap:16px!important;padding:14px 20px!important;margin:0 0 14px!important;min-height:74px!important;
-  color:#f5faff!important;background:linear-gradient(110deg,rgba(4,30,70,.96),rgba(7,74,132,.90),rgba(3,26,65,.96))!important;
-  border:1px solid rgba(106,203,255,.66)!important;border-radius:19px!important;
-  box-shadow:0 0 18px rgba(0,145,255,.24),inset 0 1px 0 rgba(255,255,255,.18)!important;
-  -webkit-backdrop-filter:blur(18px) saturate(150%)!important;backdrop-filter:blur(18px) saturate(150%)!important;
-}
-html body.app-page.page-app #appMain>.topbar #page-title{
-  color:#fff!important;font-size:clamp(20px,2.4vw,28px)!important;font-weight:850!important;
-  text-shadow:0 0 16px rgba(72,187,255,.35)!important;
-}
-html body.app-page.page-app #appMain>.topbar .academic-kicker{color:#71ddff!important;font-weight:850!important;letter-spacing:.13em!important}
-html body.app-page.page-app #appMain>.topbar .school-identity p{color:#c6e6ff!important}
-html body.app-page.page-app #appMain>.topbar .academic-pill{
-  color:#e9f8ff!important;background:rgba(16,114,184,.26)!important;border:1px solid rgba(116,211,255,.44)!important;
-  border-radius:999px!important;padding:8px 13px!important;
-}
+/* Dashboard hero, statistics and quick-action panels. Topbar remains under existing mobile navigation styles. */
 html body.app-page.page-app #appMain #dashboard>.campus-hero{
   position:relative!important;isolation:isolate!important;display:grid!important;
   grid-template-columns:minmax(0,1.25fr) minmax(180px,.75fr)!important;align-items:center!important;
