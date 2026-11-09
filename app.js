@@ -595,7 +595,7 @@ function renderSettings(){
  if(sideName)sideName.textContent=instituteName;
  if(sideType)sideType.textContent=instituteType;
  if(dashName)dashName.textContent=instituteName;
- if(dashMeta)dashMeta.textContent=[instituteType,state.settings.session,'Powered by EduNizam'].filter(Boolean).join(' · ');
+ if(dashMeta)dashMeta.textContent=[instituteType,state.settings.session,'Powered by Sir Manazar Ali'].filter(Boolean).join(' · ');
  if(dashTitle)dashTitle.textContent='Welcome to '+instituteName;
  if(dashText)dashText.textContent='Manage '+instituteType.toLowerCase()+' students, admissions, attendance, fees, academics and learning resources from one professional workspace.';
  if(state.settings.schoolLogo){
