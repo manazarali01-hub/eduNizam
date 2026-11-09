@@ -2156,10 +2156,17 @@ try{
       await loginFlowPage.locator('#saveSettingsBtn').tap({timeout:5000});
     });
     const settingsAction=await boundedEvaluate('verify settings save action',()=>{
-      const settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}');
-      return settings.tagline==='QA Stable Workspace';
+      let settings={};
+      try{settings=JSON.parse(localStorage.getItem('edunizam_settings')||'{}')}catch(error){return {parseError:String(error),raw:localStorage.getItem('edunizam_settings')||null}}
+      return {
+        saved:settings.tagline==='QA Stable Workspace',
+        storedTagline:settings.tagline??null,
+        inputTagline:document.getElementById('schoolTaglineInput')?.value??null,
+        sessionRole:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role??null}catch{return 'invalid-session'}})(),
+        saveButtonPresent:!!document.getElementById('saveSettingsBtn')
+      };
     });
-    if(!settingsAction)pushFailure('admin primary actions','Settings save did not persist the updated tagline');
+    if(!settingsAction.saved)pushFailure('admin primary actions','Settings save did not persist the updated tagline',JSON.stringify(settingsAction));
 
     // High-value school workflow sections: mobile click + lazy-loader + unlocked UI contract.
     for(const view of ['noticeboard','schedulecenter','dailydiary','paperbuilder','practice','leavecenter','parentcomplaints']){
