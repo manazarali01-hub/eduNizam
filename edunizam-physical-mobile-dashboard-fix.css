@@ -167,3 +167,109 @@
     box-sizing: border-box !important;
   }
 }
+
+
+/* Mobile visual polish: readable drawer groups and dashboard artwork clearance.
+   Scoped to compact touch layouts; no navigation or data behavior changes. */
+@media (max-width: 600px) {
+  html body.app-page.page-app .sidebar {
+    padding: 12px 10px calc(28px + env(safe-area-inset-bottom, 0px)) !important;
+    background:
+      radial-gradient(ellipse at 15% 0%, rgba(20, 145, 226, .24), transparent 42%),
+      linear-gradient(155deg, #082b59 0%, #061d43 58%, #041632 100%) !important;
+  }
+
+  html body.app-page.page-app .sidebar .nav-group {
+    margin: 0 0 9px !important;
+    padding: 7px !important;
+    border: 1px solid rgba(117, 194, 244, .34) !important;
+    border-radius: 15px !important;
+    background: linear-gradient(145deg, rgba(13, 66, 117, .76), rgba(4, 29, 66, .88)) !important;
+    box-shadow: inset 0 1px rgba(255,255,255,.10), 0 6px 16px rgba(0,8,28,.18) !important;
+  }
+
+  html body.app-page.page-app .sidebar .nav-group > summary {
+    min-height: 44px !important;
+    gap: 9px !important;
+    padding: 9px 10px !important;
+    color: #f4faff !important;
+    border-radius: 10px !important;
+    background: rgba(26, 111, 177, .22) !important;
+  }
+
+  html body.app-page.page-app .sidebar .nav-group > summary > strong {
+    color: #f4faff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    font-size: 12px !important;
+    font-weight: 850 !important;
+    letter-spacing: .035em !important;
+    text-shadow: 0 1px 8px rgba(0,0,0,.38) !important;
+  }
+
+  html body.app-page.page-app .sidebar .nav-group > summary > span {
+    color: #bcecff !important;
+    opacity: 1 !important;
+  }
+
+  html body.app-page.page-app .sidebar .nav-group-items {
+    display: grid !important;
+    gap: 5px !important;
+    padding: 7px 2px 3px !important;
+  }
+
+  html body.app-page.page-app .sidebar .nav-group-items .nav-item {
+    min-height: 42px !important;
+    padding: 9px 10px !important;
+    color: #eaf5ff !important;
+    opacity: 1 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+    text-align: left !important;
+    white-space: normal !important;
+    border: 1px solid rgba(119, 191, 239, .17) !important;
+    border-radius: 10px !important;
+    background: rgba(3, 24, 56, .38) !important;
+  }
+
+  html body.app-page.page-app .sidebar .nav-group-items .nav-item.active,
+  html body.app-page.page-app .sidebar .nav-group-items .nav-item[aria-current="page"] {
+    color: #fff !important;
+    border-color: rgba(142, 224, 255, .78) !important;
+    background: linear-gradient(105deg, #087ecb, #07539e) !important;
+    box-shadow: inset 3px 0 #bcefff, 0 5px 13px rgba(0, 8, 28, .24) !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .campus-hero {
+    gap: 10px !important;
+    padding: 16px 14px !important;
+    margin-bottom: 12px !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .campus-hero .campus-visual {
+    min-height: 108px !important;
+    max-height: 142px !important;
+    padding: 10px !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .campus-hero .campus-hero-artwork {
+    display: block !important;
+    width: min(100%, 190px) !important;
+    max-height: 108px !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+
+  html body.app-page.page-app #appMain {
+    padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px)) !important;
+    scroll-padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.app-page.page-app .sidebar .nav-group,
+  html body.app-page.page-app .sidebar .nav-group-items .nav-item {
+    transition: none !important;
+  }
+}
