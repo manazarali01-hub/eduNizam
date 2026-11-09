@@ -1,7 +1,7 @@
 /* Physical-device responsive layer.
    max-device-width also catches Android browsers using "Desktop site", where
    the layout viewport can remain wide even though the screen is a phone. */
-@media (max-device-width: 600px) and (hover: none) and (pointer: coarse) {
+@media (max-width: 1100px) and (hover: none) and (pointer: coarse) {
   html, body.app-page.page-app {
     width: 100% !important;
     max-width: 100% !important;

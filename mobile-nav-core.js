@@ -11,19 +11,22 @@
     const screenWidth=Number(window.screen?.width)||0;
     const layoutWidth=Number(window.innerWidth)||0;
     const touch=Number(navigator.maxTouchPoints||0)>0;
-    const desktopSiteOnPhone=touch&&screenWidth>0&&screenWidth<=600&&layoutWidth>screenWidth*1.25;
+    const ua=navigator.userAgent||'';
+    const androidPhone=/Android/i.test(ua)&&touch&&screenWidth>0&&screenWidth<=1200;
+    const compactTouchViewport=touch&&screenWidth>0&&screenWidth<=700&&layoutWidth>screenWidth*1.2;
+    const desktopSiteOnPhone=androidPhone||compactTouchViewport;
     const root=document.documentElement;
     if(desktopSiteOnPhone){
-      // Restore the device-width layout viewport, but never apply CSS zoom.
-      // Zooming by layoutWidth/screenWidth (often ~2.7x on Android) remains
-      // active after the viewport meta tag changes and can enlarge/reflow the
-      // dashboard a second time after the initial render.
+      // Android browsers may report a desktop-width screen (often ~980 CSS px)
+      // even on a narrow phone. Use the Android + touch signal as well as width.
       root.style.removeProperty('zoom');
       root.dataset.eduPhoneViewport='normalized';
+      root.classList.add('edu-physical-phone');
       const viewport=document.querySelector('meta[name="viewport"]');
       if(viewport)viewport.setAttribute('content','width=device-width, initial-scale=1, viewport-fit=cover');
     }else if(root.dataset.eduPhoneViewport==='normalized'){
       root.style.removeProperty('zoom');
+      root.classList.add('edu-physical-phone');
     }
     return desktopSiteOnPhone||root.dataset.eduPhoneViewport==='normalized';
   }
