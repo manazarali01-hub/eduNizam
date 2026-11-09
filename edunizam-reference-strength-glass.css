@@ -83,3 +83,93 @@ html body.app-page.page-app :is(dialog,.modal,.modal-content,.drawer-panel,.popo
  html body.app-page.page-app #appMain #dashboard>.grid-2>.card,
  html body.app-page.page-app #appMain .view :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card){background:rgba(5,25,56,.88)!important}
 }
+
+
+/* Screenshot-driven correction: force visibly translucent surfaces in the
+   real mobile drawer (including when the drawer is portalled to body), and
+   restore high-contrast category labels. */
+html body.app-page.page-app .app-shell > .sidebar,
+html body.app-page.page-app .sidebar.mobile-nav-open,
+html body.app-page.page-app .sidebar{
+  background:
+    linear-gradient(145deg,rgba(26,126,196,.30),rgba(5,37,82,.34) 52%,rgba(2,18,45,.42))!important;
+  border:1px solid rgba(190,237,255,.82)!important;
+  box-shadow:0 18px 48px rgba(0,5,22,.30),0 0 34px rgba(0,168,255,.28),
+    inset 0 1px 0 rgba(255,255,255,.42),inset -1px 0 rgba(255,255,255,.12)!important;
+  -webkit-backdrop-filter:blur(34px) saturate(190%)!important;
+  backdrop-filter:blur(34px) saturate(190%)!important;
+}
+html body.app-page.page-app .sidebar .sidebar-institute,
+html body.app-page.page-app .sidebar .brand,
+html body.app-page.page-app .sidebar #nav .nav-group{
+  background:linear-gradient(145deg,rgba(103,190,242,.20),rgba(4,35,75,.25))!important;
+  border-color:rgba(181,231,255,.48)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(185%)!important;
+  backdrop-filter:blur(24px) saturate(185%)!important;
+}
+html body.app-page.page-app #nav details.nav-group > summary,
+html body.app-page.page-app .sidebar #nav .nav-group > summary{
+  background:linear-gradient(110deg,rgba(93,184,235,.22),rgba(14,81,143,.20))!important;
+  border:1px solid rgba(170,229,255,.30)!important;
+}
+html body.app-page.page-app #nav details.nav-group > summary > strong,
+html body.app-page.page-app .sidebar #nav .nav-group > summary > strong,
+html body.app-page.page-app #nav details.nav-group > summary > span,
+html body.app-page.page-app #nav details.nav-group > summary > small{
+  color:#f5fbff!important;
+  -webkit-text-fill-color:#f5fbff!important;
+  opacity:1!important;
+  text-shadow:0 1px 7px rgba(0,8,28,.92),0 0 10px rgba(0,166,255,.22)!important;
+}
+html body.app-page.page-app #nav .nav-group-items > .nav-item,
+html body.app-page.page-app .sidebar #nav .nav-item{
+  color:#f4faff!important;
+  -webkit-text-fill-color:#f4faff!important;
+  background:rgba(3,28,61,.22)!important;
+  border-color:rgba(160,221,255,.20)!important;
+  text-shadow:0 1px 5px rgba(0,8,28,.86)!important;
+}
+html body.app-page.page-app #nav .nav-group-items > .nav-item.active,
+html body.app-page.page-app .sidebar #nav .nav-item.active{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  background:linear-gradient(110deg,rgba(0,168,255,.66),rgba(13,83,165,.58))!important;
+  border-color:rgba(208,246,255,.88)!important;
+  box-shadow:0 0 22px rgba(0,177,255,.38),inset 0 1px 0 rgba(255,255,255,.42)!important;
+}
+/* Add visible light behind the glass so transparency reads as glass, not flat blue. */
+html body.app-page.page-app{
+  background:
+    radial-gradient(ellipse 48rem 12rem at 12% 16%,rgba(0,197,255,.36),transparent 72%),
+    radial-gradient(ellipse 42rem 10rem at 88% 39%,rgba(24,119,255,.30),transparent 72%),
+    radial-gradient(ellipse 54rem 11rem at 28% 78%,rgba(0,174,255,.26),transparent 74%),
+    radial-gradient(ellipse 30rem 7rem at 86% 94%,rgba(255,194,94,.15),transparent 72%),
+    linear-gradient(135deg,#020b1d 0%,#082c5a 48%,#03152e 100%)!important;
+  background-attachment:fixed!important;
+}
+html body.app-page.page-app #appMain #dashboard > .campus-hero{
+  background:
+    linear-gradient(118deg,rgba(13,105,181,.23),rgba(3,30,70,.27) 56%,rgba(5,62,119,.24))!important;
+  border-color:rgba(184,237,255,.88)!important;
+  box-shadow:0 0 0 1px rgba(64,177,255,.22),0 0 38px rgba(0,151,255,.32),
+    0 20px 44px rgba(0,5,22,.22),inset 0 1px 0 rgba(255,255,255,.48)!important;
+  -webkit-backdrop-filter:blur(32px) saturate(195%)!important;
+  backdrop-filter:blur(32px) saturate(195%)!important;
+}
+html body.app-page.page-app #appMain #dashboard > .cards > .card.stat,
+html body.app-page.page-app #appMain #dashboard > .grid-2 > .card,
+html body.app-page.page-app #appMain .view :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel){
+  background:linear-gradient(145deg,rgba(86,177,232,.20),rgba(8,49,94,.24) 42%,rgba(2,22,52,.32))!important;
+  border-color:rgba(177,232,255,.78)!important;
+  box-shadow:0 15px 34px rgba(0,5,24,.23),0 0 25px rgba(0,157,255,.23),
+    inset 0 1px 0 rgba(255,255,255,.42),inset 0 -1px 0 rgba(255,255,255,.12)!important;
+  -webkit-backdrop-filter:blur(30px) saturate(195%)!important;
+  backdrop-filter:blur(30px) saturate(195%)!important;
+}
+@media(max-width:760px){
+  html body.app-page.page-app .sidebar.mobile-nav-open,
+  html body.app-page.page-app .app-shell > .sidebar{
+    background:linear-gradient(145deg,rgba(24,113,180,.34),rgba(3,26,61,.43))!important;
+    -webkit-backdrop-filter:blur(32px) saturate(190%)!important;
+    backdrop-filter:blur(32px) saturate(190%)!important;
+  }
+}
