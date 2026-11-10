@@ -2153,6 +2153,11 @@ try{
     await boundedEvaluate('open settings action view',()=>window.EDUNIZAM_APP_NAV.setView('settings'));
     await loginStep('save settings action',async()=>{
       await loginFlowPage.locator('#schoolTaglineInput').fill('QA Stable Workspace');
+      const beforeSave=await loginFlowPage.locator('#schoolTaglineInput').inputValue();
+      console.log('Settings tagline immediately before save:',JSON.stringify(beforeSave));
+      if(beforeSave!=='QA Stable Workspace'){
+        pushFailure('admin primary actions','Tagline input lost its value before Save Settings was tapped',JSON.stringify({beforeSave}));
+      }
       await loginFlowPage.locator('#saveSettingsBtn').tap({timeout:5000});
     });
     const settingsAction=await boundedEvaluate('verify settings save action',()=>{
