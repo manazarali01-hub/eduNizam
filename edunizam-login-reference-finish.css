@@ -212,3 +212,38 @@ body.auth-page.page-login :focus-visible{outline-color:#8ce7ff!important}
   body.auth-page.page-login .mini-chip,
   body.auth-page.page-login .benefits span{background:rgba(5,28,62,.96)!important}
 }
+
+
+/* Final contrast correction — override legacy green theme text on dark glass. */
+body.auth-page.page-login .card,
+body.auth-page.page-login .card p,
+body.auth-page.page-login .card h1,
+body.auth-page.page-login .card h2,
+body.auth-page.page-login .card h3,
+body.auth-page.page-login .card label,
+body.auth-page.page-login .card small,
+body.auth-page.page-login .card strong,
+body.auth-page.page-login .card span,
+body.auth-page.page-login .card .role,
+body.auth-page.page-login .card .role *{
+  -webkit-text-fill-color:currentColor!important;
+}
+body.auth-page.page-login .card .view h1,
+body.auth-page.page-login .card .view h2,
+body.auth-page.page-login .card .head h1,
+body.auth-page.page-login .card .head h2{
+  color:#f5fbff!important;-webkit-text-fill-color:#f5fbff!important;
+}
+body.auth-page.page-login .card .subtitle,
+body.auth-page.page-login .card .help,
+body.auth-page.page-login .card .role-guidance,
+body.auth-page.page-login .card .role-guidance *,
+body.auth-page.page-login .card .role small,
+body.auth-page.page-login .card .role p,
+body.auth-page.page-login .card .field label{
+  color:#d7edfc!important;-webkit-text-fill-color:#d7edfc!important;
+}
+body.auth-page.page-login .card .role strong,
+body.auth-page.page-login .card .role span{
+  color:#f5fbff!important;-webkit-text-fill-color:#f5fbff!important;
+}
