@@ -1,0 +1,322 @@
+/* EduNizam — final reference appearance layer
+   Visual-only finish: navy / silver / luminous blue glass, responsive on desktop and mobile.
+   Existing markup, navigation, data, roles and application behavior are intentionally untouched. */
+:root{
+  --en-night:#041329;
+  --en-navy:#08264b;
+  --en-blue:#168fe8;
+  --en-cyan:#73e5ff;
+  --en-silver:#d9f0ff;
+  --en-glass:rgba(8,38,76,.42);
+  --en-glass-strong:rgba(5,27,58,.72);
+  --en-glass-line:rgba(207,238,255,.62);
+  --en-glass-shine:rgba(255,255,255,.48);
+}
+html body.app-page.page-app{
+  color:#f3f9ff!important;
+  background:
+    radial-gradient(ellipse 42rem 28rem at 8% 4%,rgba(0,174,255,.23),transparent 72%),
+    radial-gradient(ellipse 38rem 26rem at 94% 24%,rgba(28,105,255,.21),transparent 72%),
+    radial-gradient(ellipse 44rem 24rem at 52% 100%,rgba(0,192,255,.13),transparent 72%),
+    linear-gradient(132deg,#020817 0%,#061b38 38%,#0a2d58 68%,#020b1d 100%)!important;
+  background-attachment:fixed!important;
+}
+html body.app-page.page-app .app-shell,
+html body.app-page.page-app .main,
+html body.app-page.page-app #appMain,
+html body.app-page.page-app #appMain .view.active{background:transparent!important}
+html body.app-page.page-app .app-shell>.sidebar{
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(139,218,255,.20),transparent 44%),
+    linear-gradient(155deg,rgba(115,184,225,.20),rgba(7,43,82,.48) 42%,rgba(2,16,39,.70))!important;
+  border:1px solid rgba(208,239,255,.62)!important;
+  border-right-color:rgba(224,246,255,.78)!important;
+  box-shadow:14px 0 48px rgba(0,5,23,.30),0 0 34px rgba(0,151,255,.16),
+    inset 1px 1px 0 rgba(255,255,255,.30),inset -1px 0 rgba(255,255,255,.20)!important;
+  -webkit-backdrop-filter:blur(36px) saturate(185%)!important;
+  backdrop-filter:blur(36px) saturate(185%)!important;
+}
+html body.app-page.page-app .sidebar .brand,
+html body.app-page.page-app .sidebar .sidebar-institute{
+  background:linear-gradient(135deg,rgba(171,222,250,.17),rgba(5,43,82,.24))!important;
+  border:1px solid rgba(209,240,255,.42)!important;
+  border-radius:18px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 10px 24px rgba(0,8,30,.16)!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group{
+  background:linear-gradient(135deg,rgba(125,192,231,.10),rgba(3,31,65,.20))!important;
+  border:1px solid rgba(175,222,249,.24)!important;
+  border-radius:15px!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group>summary{
+  min-height:44px!important;
+  border-radius:13px!important;
+  background:linear-gradient(110deg,rgba(161,218,247,.14),rgba(8,67,121,.18))!important;
+  border:1px solid rgba(196,231,250,.25)!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-group>summary strong,
+html body.app-page.page-app .sidebar #nav .nav-group>summary span,
+html body.app-page.page-app .sidebar #nav .nav-group>summary small{
+  color:#f3faff!important;-webkit-text-fill-color:#f3faff!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-item{
+  min-height:40px!important;
+  color:#e6f4ff!important;-webkit-text-fill-color:#e6f4ff!important;
+  background:rgba(2,24,53,.24)!important;
+  border:1px solid rgba(174,219,247,.14)!important;
+  border-radius:12px!important;
+  transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-item:hover{
+  background:rgba(53,151,218,.24)!important;border-color:rgba(184,233,255,.48)!important;
+}
+html body.app-page.page-app .sidebar #nav .nav-item.active{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  background:linear-gradient(105deg,rgba(30,177,255,.70),rgba(26,91,184,.74))!important;
+  border:1px solid rgba(219,246,255,.82)!important;
+  box-shadow:0 0 0 1px rgba(85,194,255,.18),0 0 22px rgba(0,155,255,.32),
+    inset 0 1px 0 rgba(255,255,255,.48)!important;
+}
+html body.app-page.page-app .sidebar #navFeatureSearch,
+html body.app-page.page-app .sidebar input[type=search]{
+  color:#173b59!important;-webkit-text-fill-color:#173b59!important;
+  background:linear-gradient(135deg,rgba(241,251,255,.96),rgba(203,233,249,.91))!important;
+  border:1px solid rgba(231,247,255,.90)!important;border-radius:14px!important;
+  box-shadow:0 0 0 1px rgba(78,193,239,.16),0 8px 22px rgba(0,8,28,.14),inset 0 1px #fff!important;
+}
+html body.app-page.page-app .sidebar #navFeatureSearch::placeholder,
+html body.app-page.page-app .sidebar input[type=search]::placeholder{
+  color:#476b83!important;-webkit-text-fill-color:#476b83!important;opacity:1!important;
+}
+html body.app-page.page-app #appMain>.topbar{
+  position:relative!important;
+  background:linear-gradient(112deg,rgba(184,224,248,.17),rgba(14,75,128,.30) 48%,rgba(4,30,68,.42))!important;
+  border:1px solid rgba(213,240,255,.64)!important;border-radius:22px!important;
+  box-shadow:0 16px 38px rgba(0,5,24,.22),0 0 26px rgba(0,149,255,.15),
+    inset 0 1px 0 rgba(255,255,255,.48)!important;
+  -webkit-backdrop-filter:blur(30px) saturate(185%)!important;
+  backdrop-filter:blur(30px) saturate(185%)!important;
+}
+html body.app-page.page-app #appMain .academic-kicker,
+html body.app-page.page-app #appMain .campus-label{
+  color:#9deaff!important;letter-spacing:.14em!important;text-transform:uppercase!important;
+  font-weight:800!important;
+}
+html body.app-page.page-app #appMain .topbar h1,
+html body.app-page.page-app #appMain .topbar .school-identity,
+html body.app-page.page-app #appMain .topbar .school-identity p{color:#f5fbff!important}
+html body.app-page.page-app #appMain #dashboard>.campus-hero{
+  position:relative!important;isolation:isolate!important;overflow:hidden!important;
+  display:grid!important;grid-template-columns:minmax(0,1.35fr) minmax(230px,.65fr)!important;
+  align-items:center!important;gap:24px!important;
+  min-height:260px!important;padding:clamp(24px,3vw,42px)!important;
+  border:1px solid rgba(220,243,255,.78)!important;border-radius:28px!important;
+  background:
+    radial-gradient(ellipse at 80% 35%,rgba(66,207,255,.22),transparent 34%),
+    radial-gradient(ellipse at 18% 110%,rgba(17,111,255,.20),transparent 42%),
+    linear-gradient(118deg,rgba(125,194,235,.17),rgba(8,48,94,.36) 48%,rgba(2,18,47,.54))!important;
+  box-shadow:0 0 0 1px rgba(82,184,255,.14),0 22px 52px rgba(0,4,22,.30),
+    0 0 42px rgba(0,153,255,.18),inset 0 1px 0 rgba(255,255,255,.62),
+    inset 0 -1px 0 rgba(122,218,255,.22)!important;
+  -webkit-backdrop-filter:blur(28px) saturate(185%)!important;
+  backdrop-filter:blur(28px) saturate(185%)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero:before{
+  content:""!important;position:absolute!important;z-index:-1!important;
+  width:clamp(250px,30vw,390px)!important;aspect-ratio:1!important;right:10%!important;top:50%!important;
+  transform:translateY(-50%)!important;border-radius:50%!important;
+  border:1px solid rgba(212,244,255,.36)!important;
+  box-shadow:0 0 0 12px rgba(177,231,255,.045),0 0 0 30px rgba(177,231,255,.035),
+    0 0 0 52px rgba(177,231,255,.025),0 0 54px rgba(0,170,255,.18),
+    inset 0 0 42px rgba(151,224,255,.12)!important;pointer-events:none!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero:after{
+  content:""!important;position:absolute!important;z-index:-1!important;inset:0!important;
+  background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 26%,transparent 70%,rgba(108,209,255,.10))!important;
+  pointer-events:none!important;border-radius:inherit!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero h2{
+  color:#fff!important;font-size:clamp(1.55rem,2.6vw,2.35rem)!important;
+  line-height:1.12!important;letter-spacing:-.035em!important;
+  text-shadow:0 3px 24px rgba(0,10,34,.35)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero p{
+  max-width:58ch!important;color:#d5eaff!important;line-height:1.7!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{
+  position:relative!important;isolation:isolate!important;display:flex!important;
+  flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  min-height:205px!important;padding:12px!important;
+  background:linear-gradient(145deg,rgba(193,230,250,.12),rgba(5,34,73,.16))!important;
+  border:1px solid rgba(211,240,255,.30)!important;border-radius:24px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25)!important;
+}
+html body.app-page.page-app #appMain #dashboard .campus-hero-artwork{
+  display:block!important;width:min(100%,245px)!important;height:auto!important;
+  max-height:190px!important;object-fit:contain!important;
+  filter:drop-shadow(0 0 10px rgba(125,228,255,.70)) drop-shadow(0 0 28px rgba(0,130,255,.38))!important;
+  animation:enHeroFloat 7s ease-in-out infinite!important;
+}
+html body.app-page.page-app #appMain #dashboard .campus-visual .dashboard-institute-logo{
+  max-width:76px!important;max-height:76px!important;object-fit:contain!important;
+  border:1px solid rgba(221,244,255,.64)!important;border-radius:18px!important;
+  box-shadow:0 0 22px rgba(0,157,255,.24)!important;
+}
+html body.app-page.page-app #appMain #dashboard .campus-visual .campus-icon{
+  color:#eaf8ff!important;text-shadow:0 0 20px rgba(91,215,255,.72)!important;
+}
+html body.app-page.page-app #appMain #dashboard .campus-visual>strong{
+  margin-top:8px!important;color:#fff!important;font-size:1rem!important;
+}
+html body.app-page.page-app #appMain #dashboard .campus-visual>span{
+  color:#c8e5f8!important;font-size:.78rem!important;text-align:center!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:16px!important;margin:20px 0!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{
+  position:relative!important;isolation:isolate!important;overflow:hidden!important;
+  min-height:124px!important;padding:20px!important;border-radius:21px!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;gap:9px!important;
+  background:linear-gradient(145deg,rgba(167,218,246,.19),rgba(11,62,111,.32) 48%,rgba(2,20,50,.52))!important;
+  border:1px solid rgba(207,239,255,.65)!important;
+  box-shadow:0 14px 30px rgba(0,5,24,.22),0 0 22px rgba(0,145,255,.13),
+    inset 0 1px 0 rgba(255,255,255,.48)!important;
+  -webkit-backdrop-filter:blur(25px) saturate(180%)!important;backdrop-filter:blur(25px) saturate(180%)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat:before{
+  content:""!important;position:absolute!important;inset:0 12% auto!important;height:2px!important;
+  background:linear-gradient(90deg,transparent,#bcecff,#fff,#76ddff,transparent)!important;
+  box-shadow:0 0 14px rgba(117,226,255,.72)!important;pointer-events:none!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{
+  color:#c4e5f8!important;font-size:.82rem!important;font-weight:700!important;letter-spacing:.025em!important;
+}
+html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong{
+  color:#fff!important;font-size:clamp(1.55rem,2.2vw,2rem)!important;
+  letter-spacing:-.035em!important;text-shadow:0 0 18px rgba(105,211,255,.38)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card{
+  position:relative!important;overflow:hidden!important;min-width:0!important;
+  padding:22px!important;border-radius:22px!important;
+  background:linear-gradient(145deg,rgba(146,207,239,.16),rgba(7,48,91,.30) 48%,rgba(2,19,47,.48))!important;
+  border:1px solid rgba(199,232,251,.58)!important;
+  box-shadow:0 15px 34px rgba(0,5,24,.22),0 0 24px rgba(0,145,255,.12),
+    inset 0 1px 0 rgba(255,255,255,.40)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(180%)!important;backdrop-filter:blur(26px) saturate(180%)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.grid-2>.card h2{
+  color:#f6fbff!important;font-size:1.1rem!important;letter-spacing:-.015em!important;
+}
+html body.app-page.page-app #appMain #dashboard .quick-actions button,
+html body.app-page.page-app #appMain .campus-hero-actions button{
+  color:#f7fcff!important;
+  background:linear-gradient(115deg,rgba(40,164,239,.74),rgba(20,78,158,.78))!important;
+  border:1px solid rgba(209,242,255,.70)!important;border-radius:13px!important;
+  box-shadow:0 8px 20px rgba(0,8,32,.18),0 0 16px rgba(0,151,255,.15),
+    inset 0 1px 0 rgba(255,255,255,.42)!important;
+}
+html body.app-page.page-app #appMain .campus-hero-actions button.secondary{
+  background:linear-gradient(115deg,rgba(195,226,246,.16),rgba(25,85,137,.24))!important;
+}
+html body.app-page.page-app #appMain .view:not(#dashboard)>.card,
+html body.app-page.page-app #appMain .view:not(#dashboard) .section-card,
+html body.app-page.page-app #appMain .view:not(#dashboard) .panel,
+html body.app-page.page-app #appMain .view:not(#dashboard) .content-card{
+  background:linear-gradient(145deg,rgba(130,193,229,.14),rgba(7,43,82,.28) 48%,rgba(2,19,46,.40))!important;
+  border:1px solid rgba(190,226,248,.48)!important;border-radius:20px!important;
+  box-shadow:0 12px 28px rgba(0,5,22,.17),inset 0 1px 0 rgba(255,255,255,.32)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(170%)!important;backdrop-filter:blur(22px) saturate(170%)!important;
+}
+html body.app-page.page-app #appMain .view input:not([type=checkbox]):not([type=radio]):not([type=file]),
+html body.app-page.page-app #appMain .view select,
+html body.app-page.page-app #appMain .view textarea{
+  color:#173b59!important;background:linear-gradient(135deg,rgba(246,252,255,.97),rgba(218,239,250,.94))!important;
+  border:1px solid rgba(192,224,243,.90)!important;border-radius:12px!important;
+  box-shadow:inset 0 1px 2px rgba(11,46,77,.06),0 3px 10px rgba(0,7,25,.07)!important;
+}
+html body.app-page.page-app #appMain .view input::placeholder,
+html body.app-page.page-app #appMain .view textarea::placeholder{color:#607e94!important;opacity:1!important}
+html body.app-page.page-app #appMain .view button:not(.nav-item){
+  border-radius:12px!important;
+}
+html body.app-page.page-app #appMain .view table{
+  border-color:rgba(182,222,246,.30)!important;
+}
+html body.app-page.page-app #appMain .view th{
+  color:#f2f9ff!important;background:rgba(62,139,194,.28)!important;
+}
+html body.app-page.page-app #appMain .view td{
+  color:#e0effb!important;border-color:rgba(174,215,241,.18)!important;
+}
+@keyframes enHeroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@media(max-width:1100px){
+  html body.app-page.page-app #appMain #dashboard>.campus-hero{grid-template-columns:minmax(0,1.2fr) minmax(190px,.8fr)!important}
+  html body.app-page.page-app #appMain #dashboard>.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+  html body.app-page.page-app #appMain>.topbar{padding:13px 14px!important;border-radius:18px!important}
+  html body.app-page.page-app #appMain #dashboard>.campus-hero{
+    grid-template-columns:minmax(0,1fr)!important;gap:16px!important;
+    min-height:0!important;padding:22px 18px!important;border-radius:22px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.campus-hero:before{
+    width:220px!important;right:-92px!important;top:34%!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{
+    min-height:155px!important;display:grid!important;
+    grid-template-columns:100px minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;
+    justify-items:start!important;align-items:center!important;column-gap:14px!important;
+    text-align:left!important;padding:12px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard .campus-hero-artwork{
+    grid-column:1!important;grid-row:1/4!important;width:100px!important;max-height:120px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard .campus-visual .dashboard-institute-logo,
+  html body.app-page.page-app #appMain #dashboard .campus-visual .campus-icon{
+    grid-column:1!important;grid-row:1/4!important;max-width:76px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard .campus-visual>strong{
+    grid-column:2!important;grid-row:1!important;margin:0!important;
+  }
+  html body.app-page.page-app #appMain #dashboard .campus-visual>span{
+    grid-column:2!important;grid-row:2!important;text-align:left!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards{gap:10px!important;margin:14px 0!important}
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{
+    min-height:102px!important;padding:14px!important;border-radius:17px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{font-size:.73rem!important}
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong{font-size:1.45rem!important}
+  html body.app-page.page-app #appMain #dashboard>.grid-2{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  html body.app-page.page-app #appMain #dashboard>.grid-2>.card{padding:17px!important;border-radius:18px!important}
+  html body.app-page.page-app .app-shell>.sidebar,
+  html body.app-page.page-app .sidebar.mobile-nav-open{
+    background:linear-gradient(150deg,rgba(116,188,231,.27),rgba(5,39,78,.52) 42%,rgba(2,16,40,.76))!important;
+    border:1px solid rgba(216,243,255,.72)!important;
+    -webkit-backdrop-filter:blur(34px) saturate(185%)!important;backdrop-filter:blur(34px) saturate(185%)!important;
+  }
+}
+@media(max-width:380px){
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat{padding:12px!important}
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span{font-size:.68rem!important}
+  html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{grid-template-columns:84px minmax(0,1fr)!important}
+  html body.app-page.page-app #appMain #dashboard .campus-hero-artwork{width:84px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body.app-page.page-app #appMain #dashboard .campus-hero-artwork{animation:none!important}
+  html body.app-page.page-app *{scroll-behavior:auto!important;transition:none!important}
+}
+@media(prefers-reduced-transparency:reduce){
+  html body.app-page.page-app .sidebar,
+  html body.app-page.page-app #appMain>.topbar,
+  html body.app-page.page-app #appMain #dashboard>.campus-hero,
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat,
+  html body.app-page.page-app #appMain #dashboard>.grid-2>.card{
+    background:rgba(5,28,62,.94)!important;
+  }
+}
