@@ -4,7 +4,6 @@
   let mountedTopbar=null;
   let sidebarHome=null;
   let menuHome=null;
-  let lastPointerActivationAt=0;
   // Android Chrome "Desktop site" can expose a ~980px layout viewport on a
   // physically narrow phone. Restore a phone-sized CSS viewport only in that case.
   function normalizePhysicalPhoneViewport(){
@@ -173,20 +172,14 @@
   // One delegated capture path always targets the currently mounted shell.
   if(!document.documentElement.dataset.eduMobileNavDelegated){
     document.documentElement.dataset.eduMobileNavDelegated='1';
-    document.addEventListener('pointerdown',event=>{
-      const trigger=event.target.closest?.('#eduMobileMenuBtn,.mobile-menu-btn');
-      if(!trigger)return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      lastPointerActivationAt=Date.now();
-      toggle();
-    },true);
+    // Use one native click path for mouse, touch and keyboard activation.
+    // Preventing pointerdown can suppress the synthesized click on mobile browsers,
+    // leaving the drawer closed even though the pointer handler ran.
     document.addEventListener('click',event=>{
-      const trigger=event.target.closest?.('#eduMobileMenuBtn');
+      const trigger=event.target.closest?.('#eduMobileMenuBtn,.mobile-menu-btn');
       if(trigger){
         event.preventDefault();
         event.stopImmediatePropagation();
-        if(Date.now()-lastPointerActivationAt<900)return;
         toggle();
         return;
       }
