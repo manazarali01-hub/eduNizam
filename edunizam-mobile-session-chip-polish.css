@@ -1,23 +1,26 @@
-/* Mobile session/account controls: keep the role label and logout action on one tidy line. */
+/* Mobile session/account controls: keep role label readable beside Logout. */
 @media (max-width:760px), (hover:none) and (pointer:coarse) and (max-width:1100px) {
   html body.app-page.page-app #appMain>.topbar>.topbar-actions #roleSession.session-chip{
     flex:1 1 170px!important;
     flex-wrap:nowrap!important;
     justify-content:space-between!important;
+    align-items:center!important;
     gap:5px!important;
     min-width:0!important;
     padding:6px 8px!important;
   }
   html body.app-page.page-app #appMain>.topbar>.topbar-actions #roleSession.session-chip>strong{
-    flex:0 1 auto!important;
+    flex:1 1 68px!important;
     width:auto!important;
     min-width:0!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
+    max-width:100%!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
     overflow-wrap:normal!important;
+    word-break:normal!important;
     font-size:clamp(9px,2.65vw,10.5px)!important;
-    line-height:1.1!important;
+    line-height:1.15!important;
   }
   html body.app-page.page-app #appMain>.topbar>.topbar-actions #roleSession.session-chip>button{
     flex:0 0 auto!important;
@@ -34,6 +37,7 @@
     padding:5px 6px!important;
   }
   html body.app-page.page-app #appMain>.topbar>.topbar-actions #roleSession.session-chip>strong{
+    flex-basis:62px!important;
     font-size:9px!important;
   }
   html body.app-page.page-app #appMain>.topbar>.topbar-actions #roleSession.session-chip>button{
