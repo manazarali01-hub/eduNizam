@@ -115,3 +115,9 @@
     transition: none !important;
   }
 }
+
+  /* The drawer must cover the floating trigger while open. This selector
+     outranks the static trigger z-index above; the core restores 1105 on close. */
+  html body.app-page.page-app.edu-mobile-nav-open #eduMobileMenuBtn {
+    z-index: 1090 !important;
+  }
