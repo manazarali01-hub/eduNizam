@@ -112,6 +112,11 @@
       document.body.appendChild(sidebar);
     }
     sidebar.classList.toggle('mobile-nav-open',shouldOpen);
+    // The floating hamburger overlaps the drawer's brand/header on phones.
+    // Hide it while the drawer is open; the drawer's own close control remains available.
+    menu.style.visibility=shouldOpen?'hidden':'visible';
+    menu.style.pointerEvents=shouldOpen?'none':'auto';
+    menu.setAttribute('aria-hidden',String(shouldOpen));
     // Apply the drawer geometry directly as well as through CSS. This avoids
     // transformed app-shell ancestors pushing the close control off-screen.
     const set=(el,property,value)=>el.style.setProperty(property,value,'important');
