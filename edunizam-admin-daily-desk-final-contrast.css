@@ -8,6 +8,9 @@ html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .section-h
   text-shadow:0 0 12px rgba(65,205,255,.28)!important;
 }
 html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .section-head h2 {
+  font-family:inherit!important;
+  font-weight:850!important;
+  letter-spacing:-.025em!important;
   color:#f7fbff!important;
   -webkit-text-fill-color:#f7fbff!important;
   opacity:1!important;
