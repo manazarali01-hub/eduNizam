@@ -1,0 +1,42 @@
+/* Login mobile contrast correction based on rendered QA screenshot. */
+@media(max-width:820px){
+  html body.auth-page.page-login .card,
+  html body.auth-page.page-login .card h1,
+  html body.auth-page.page-login .card h2,
+  html body.auth-page.page-login .card h3,
+  html body.auth-page.page-login .card p,
+  html body.auth-page.page-login .card label,
+  html body.auth-page.page-login .card small,
+  html body.auth-page.page-login .card strong,
+  html body.auth-page.page-login .card span,
+  html body.auth-page.page-login .card .eyebrow,
+  html body.auth-page.page-login .card .section-label{
+    color:#edf7ff!important;
+    -webkit-text-fill-color:#edf7ff!important;
+  }
+  html body.auth-page.page-login .card .role strong,
+  html body.auth-page.page-login .card .role span,
+  html body.auth-page.page-login .card .role h3{
+    color:#f7fcff!important;
+    -webkit-text-fill-color:#f7fcff!important;
+  }
+  html body.auth-page.page-login .card .role small,
+  html body.auth-page.page-login .card .role p,
+  html body.auth-page.page-login .card .subtitle,
+  html body.auth-page.page-login .card .help,
+  html body.auth-page.page-login .card .field label{
+    color:#d7edfc!important;
+    -webkit-text-fill-color:#d7edfc!important;
+  }
+  html body.auth-page.page-login .card input,
+  html body.auth-page.page-login .card select,
+  html body.auth-page.page-login .card textarea{
+    color:#173b59!important;
+    -webkit-text-fill-color:#173b59!important;
+  }
+  html body.auth-page.page-login .card input::placeholder,
+  html body.auth-page.page-login .card textarea::placeholder{
+    color:#607e94!important;
+    -webkit-text-fill-color:#607e94!important;
+  }
+}
