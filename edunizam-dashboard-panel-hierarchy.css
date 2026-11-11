@@ -81,3 +81,111 @@ html body.app-page.page-app #appMain #dashboard>.grid-2>.card *{
 @media(prefers-reduced-motion:reduce){
   html body.app-page.page-app #appMain #dashboard>.grid-2 .quick-actions>button{transition:none!important}
 }
+
+
+/* Desktop dashboard balance — refined spacing and proportional hero/stat rhythm.
+   Wide-screen only: preserves all mobile/tablet composition and behavior. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app #appMain {
+    min-width: 0 !important;
+    padding: 28px 32px 40px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar {
+    min-height: 104px !important;
+    padding: 18px 24px !important;
+    margin: 0 0 22px !important;
+    gap: 22px !important;
+    align-items: center !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar .topbar-title {
+    min-width: 0 !important;
+    gap: 5px !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar #page-title {
+    font-size: clamp(25px, 2.15vw, 32px) !important;
+    line-height: 1.12 !important;
+    letter-spacing: -.035em !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar .school-identity {
+    margin-top: 3px !important;
+    line-height: 1.35 !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar .topbar-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .campus-hero {
+    grid-template-columns: minmax(0, 1.22fr) minmax(280px, .78fr) !important;
+    gap: clamp(26px, 3vw, 40px) !important;
+    min-height: 286px !important;
+    padding: clamp(30px, 3.1vw, 46px) !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .campus-hero > div:first-child {
+    min-width: 0 !important;
+    max-width: 760px !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .campus-hero h2 {
+    max-width: 18ch !important;
+    margin: 9px 0 12px !important;
+    font-size: clamp(30px, 3.05vw, 43px) !important;
+    line-height: 1.08 !important;
+    letter-spacing: -.04em !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .campus-hero p {
+    max-width: 60ch !important;
+    font-size: 14px !important;
+    line-height: 1.72 !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .campus-hero .campus-visual {
+    min-width: 0 !important;
+    min-height: 226px !important;
+    padding: 18px !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard .campus-hero-artwork {
+    max-width: 270px !important;
+    max-height: 208px !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .cards {
+    gap: 16px !important;
+    margin: 20px 0 22px !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .cards > .card.stat {
+    min-height: 132px !important;
+    padding: 21px 22px !important;
+    gap: 10px !important;
+    border-radius: 20px !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .cards > .card.stat > span:not(.premium-stat-icon) {
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    letter-spacing: .07em !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .cards > .card.stat > strong {
+    font-size: clamp(25px, 2.15vw, 33px) !important;
+    line-height: 1.08 !important;
+    letter-spacing: -.035em !important;
+  }
+
+  html body.app-page.page-app #appMain #dashboard > .grid-2 {
+    gap: 18px !important;
+  }
+}
