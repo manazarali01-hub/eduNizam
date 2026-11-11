@@ -40,3 +40,28 @@
     -webkit-text-fill-color:#607e94!important;
   }
 }
+
+/* Strong ID-scoped override: legacy role palette uses ID selectors. */
+@media(max-width:820px){
+  html body.auth-page.page-login #authCard #roleView,
+  html body.auth-page.page-login #authCard #roleView *{
+    color:#edf7ff!important;
+    -webkit-text-fill-color:#edf7ff!important;
+  }
+  html body.auth-page.page-login #authCard #roleView .role strong,
+  html body.auth-page.page-login #authCard #roleView .role span{
+    color:#f7fcff!important;
+    -webkit-text-fill-color:#f7fcff!important;
+  }
+  html body.auth-page.page-login #authCard #roleView .role small,
+  html body.auth-page.page-login #authCard #roleView .subtitle{
+    color:#d7edfc!important;
+    -webkit-text-fill-color:#d7edfc!important;
+  }
+  html body.auth-page.page-login #authCard input,
+  html body.auth-page.page-login #authCard select,
+  html body.auth-page.page-login #authCard textarea{
+    color:#173b59!important;
+    -webkit-text-fill-color:#173b59!important;
+  }
+}
