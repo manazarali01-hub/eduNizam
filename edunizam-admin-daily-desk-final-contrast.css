@@ -1,0 +1,29 @@
+/* Final Admin Daily Desk contrast correction.
+   Phase 50 used dark navy text on the later navy glass panel. This last layer
+   restores readable silver/ice-blue text without changing data or behavior. */
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .section-head .academic-kicker {
+  color:#78e5ff!important;
+  -webkit-text-fill-color:#78e5ff!important;
+  opacity:1!important;
+  text-shadow:0 0 12px rgba(65,205,255,.28)!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .section-head h2 {
+  color:#f7fbff!important;
+  -webkit-text-fill-color:#f7fbff!important;
+  opacity:1!important;
+  text-shadow:0 1px 12px rgba(0,10,32,.24)!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .section-head p,
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .section-head p.muted {
+  color:#c9e1f4!important;
+  -webkit-text-fill-color:#c9e1f4!important;
+  opacity:1!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .section-head>.badge {
+  color:#effaff!important;
+  -webkit-text-fill-color:#effaff!important;
+  background:linear-gradient(135deg,rgba(22,126,190,.46),rgba(8,57,108,.62))!important;
+  border:1px solid rgba(133,218,255,.62)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.16),0 0 14px rgba(0,158,255,.12)!important;
+  opacity:1!important;
+}
