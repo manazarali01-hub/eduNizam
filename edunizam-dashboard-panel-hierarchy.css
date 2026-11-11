@@ -212,3 +212,20 @@ html body.app-page.page-app #appMain #dashboard>.grid-2>.card *{
     text-shadow: none !important;
   }
 }
+
+
+/* Mobile/tablet topbar title contrast — silver glass needs dark text fill too. */
+@media (max-width: 1100px) {
+  html body.app-page.page-app #appMain > .topbar .topbar-title #page-title {
+    color: #092b55 !important;
+    -webkit-text-fill-color: #092b55 !important;
+    text-shadow: 0 1px 0 rgba(255,255,255,.82) !important;
+  }
+
+  html body.app-page.page-app #appMain > .topbar .topbar-title .school-identity,
+  html body.app-page.page-app #appMain > .topbar .topbar-title .school-identity p {
+    color: #365c7e !important;
+    -webkit-text-fill-color: #365c7e !important;
+    text-shadow: none !important;
+  }
+}
