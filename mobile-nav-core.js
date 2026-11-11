@@ -111,6 +111,9 @@
       document.body.appendChild(sidebar);
     }
     sidebar.classList.toggle('mobile-nav-open',shouldOpen);
+    // Apply important inline overrides so the drawer can out-layer fixed
+    // dashboard controls without being defeated by stylesheet !important rules.
+    const set=(el,property,value)=>el.style.setProperty(property,value,'important');
     // Keep the hamburger mounted and visible to avoid cancelling its own
     // pointer sequence. Layer the drawer above it so the drawer header is clear.
     set(menu,'z-index',shouldOpen?'1090':'1105');
@@ -119,7 +122,6 @@
     menu.removeAttribute('aria-hidden');
     // Apply the drawer geometry directly as well as through CSS. This avoids
     // transformed app-shell ancestors pushing the close control off-screen.
-    const set=(el,property,value)=>el.style.setProperty(property,value,'important');
     if(shouldOpen){
       set(sidebar,'position','fixed');set(sidebar,'left','0');set(sidebar,'top','0');
       set(sidebar,'right','auto');set(sidebar,'bottom','0');
