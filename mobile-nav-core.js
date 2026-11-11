@@ -68,7 +68,7 @@
     menu.style.top=isCompactNav()?'14px':'';
     menu.style.width=isCompactNav()?'48px':'';
     menu.style.height=isCompactNav()?'48px':'';
-    menu.style.zIndex=isCompactNav()?'1105':'1006';
+    menu.style.zIndex=isCompactNav()?(sidebar.classList.contains('mobile-nav-open')?'1090':'1105'):'1006';
     menu.style.pointerEvents='auto';
     // Keep the interactive header above the dashboard content's stacking layer.
     topbar.style.position='sticky';
