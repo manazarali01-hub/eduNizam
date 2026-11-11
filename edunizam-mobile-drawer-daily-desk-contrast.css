@@ -1,0 +1,81 @@
+/* Mobile readability pass for the glass drawer and Admin Daily Desk.
+   Presentation-only: preserves navigation, role visibility, data and actions. */
+@media (max-width: 1100px) and (hover: none) and (pointer: coarse) {
+  html body.app-page.page-app .app-shell > .sidebar,
+  html body.app-page.page-app .sidebar.mobile-nav-open {
+    color:#f4f9ff!important;
+    background:
+      radial-gradient(ellipse at 12% 0%,rgba(27,145,224,.24),transparent 48%),
+      linear-gradient(155deg,rgba(7,48,91,.98),rgba(2,17,43,.995) 72%)!important;
+    border-color:rgba(167,224,255,.72)!important;
+    -webkit-backdrop-filter:blur(24px) saturate(145%)!important;
+    backdrop-filter:blur(24px) saturate(145%)!important;
+  }
+  html body.app-page.page-app .sidebar #nav .nav-group {
+    background:rgba(2,19,47,.66)!important;
+    border:1px solid rgba(136,203,246,.34)!important;
+    border-radius:13px!important;
+    box-shadow:inset 0 1px rgba(255,255,255,.09)!important;
+  }
+  html body.app-page.page-app .sidebar #nav .nav-group > summary,
+  html body.app-page.page-app .sidebar #nav .nav-group[open] > summary {
+    color:#f3f9ff!important;
+    background:linear-gradient(110deg,rgba(21,103,166,.42),rgba(5,39,82,.72))!important;
+    border:1px solid rgba(147,211,250,.38)!important;
+    box-shadow:inset 0 1px rgba(255,255,255,.13)!important;
+  }
+  html body.app-page.page-app .sidebar #nav .nav-group > summary :is(strong,span,small,em,i) {
+    color:#eff8ff!important;
+    -webkit-text-fill-color:#eff8ff!important;
+    opacity:1!important;
+    text-shadow:0 1px 5px rgba(0,8,25,.45)!important;
+  }
+  html body.app-page.page-app .sidebar #nav .nav-group-items .nav-item,
+  html body.app-page.page-app .sidebar #nav .nav-group-items .nav-item :is(span,strong,small) {
+    color:#e6f3ff!important;
+    -webkit-text-fill-color:#e6f3ff!important;
+    opacity:1!important;
+  }
+  html body.app-page.page-app .sidebar #nav .nav-group-items .nav-item {
+    background:rgba(5,35,72,.38)!important;
+    border:1px solid rgba(135,196,237,.18)!important;
+    border-radius:10px!important;
+    font-weight:700!important;
+    text-shadow:0 1px 4px rgba(0,8,25,.38)!important;
+  }
+  html body.app-page.page-app .sidebar #nav .nav-group-items .nav-item:is(:hover,:focus-visible),
+  html body.app-page.page-app .sidebar #nav .nav-group-items .nav-item.active {
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    background:linear-gradient(105deg,rgba(14,128,207,.88),rgba(12,67,137,.94))!important;
+    border-color:rgba(174,232,255,.72)!important;
+  }
+}
+
+/* Admin Daily Desk — enforce a consistent sans-serif heading and readable stat tiles. */
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .section-head h2 {
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-weight:850!important;
+  letter-spacing:-.025em!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .admin-daily-stats > div {
+  color:#f4f9ff!important;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(49,181,255,.20),transparent 60%),
+    linear-gradient(145deg,rgba(16,77,132,.96),rgba(3,27,64,.98))!important;
+  border:1px solid rgba(160,222,255,.72)!important;
+  box-shadow:0 8px 22px rgba(0,7,26,.24),inset 0 1px rgba(255,255,255,.16)!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .admin-daily-stats > div > span {
+  color:#cdeaff!important;
+  -webkit-text-fill-color:#cdeaff!important;
+  opacity:1!important;
+  font-weight:800!important;
+  text-shadow:0 1px 5px rgba(0,8,25,.42)!important;
+}
+html body.app-page.page-app #appMain #adminDailyDesk.admin-daily-desk .admin-daily-stats > div > strong {
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  opacity:1!important;
+  text-shadow:0 0 14px rgba(73,195,255,.35)!important;
+}
