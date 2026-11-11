@@ -62,9 +62,9 @@ try{
     const drawerZ=Number.parseInt(getComputedStyle(side).zIndex,10)||0;
     const menuZ=Number.parseInt(getComputedStyle(menu).zIndex,10)||0;
     const overlaps=m.left+m.width/2>=d.left&&m.left+m.width/2<=d.right&&m.top+m.height/2>=d.top&&m.top+m.height/2<=d.bottom;
-    return overlaps&&drawerZ>menuZ;
+    return {overlaps,drawerZ,menuZ,drawer:{left:d.left,right:d.right,top:d.top,bottom:d.bottom,position:getComputedStyle(side).position},menu:{left:m.left,right:m.right,top:m.top,bottom:m.bottom,position:getComputedStyle(menu).position},inlineDrawerZ:side.style.zIndex,inlineMenuZ:menu.style.zIndex};
   });
-  if(!hamburgerCovered)throw new Error('Mobile drawer must cover the hamburger area and have a higher stacking order without hiding the control');
+  if(!hamburgerCovered.overlaps||hamburgerCovered.drawerZ<=hamburgerCovered.menuZ)throw new Error('Mobile drawer layering mismatch: '+JSON.stringify(hamburgerCovered));
   const openState=await page.evaluate(()=>{
     const side=document.querySelector('.sidebar'),nav=document.querySelector('.sidebar #nav'),close=document.querySelector('#eduMobileNavClose'),cs=getComputedStyle(close),r=close.getBoundingClientRect();
     const group=nav?.querySelector('.nav-group summary strong');
