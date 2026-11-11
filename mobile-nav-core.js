@@ -4,7 +4,6 @@
   let mountedTopbar=null;
   let sidebarHome=null;
   let menuHome=null;
-  let lastPointerActivationAt=0;
   // Android Chrome "Desktop site" can expose a ~980px layout viewport on a
   // physically narrow phone. Restore a phone-sized CSS viewport only in that case.
   function normalizePhysicalPhoneViewport(){
@@ -68,7 +67,7 @@
     menu.style.top=isCompactNav()?'14px':'';
     menu.style.width=isCompactNav()?'48px':'';
     menu.style.height=isCompactNav()?'48px':'';
-    menu.style.zIndex=isCompactNav()?'1105':'1006';
+    menu.style.zIndex=isCompactNav()?(sidebar.classList.contains('mobile-nav-open')?'1090':'1105'):'1006';
     menu.style.pointerEvents='auto';
     // Keep the interactive header above the dashboard content's stacking layer.
     topbar.style.position='sticky';
@@ -112,14 +111,17 @@
       document.body.appendChild(sidebar);
     }
     sidebar.classList.toggle('mobile-nav-open',shouldOpen);
-    // The floating hamburger overlaps the drawer's brand/header on phones.
-    // Hide it while the drawer is open; the drawer's own close control remains available.
-    menu.style.visibility=shouldOpen?'hidden':'visible';
-    menu.style.pointerEvents=shouldOpen?'none':'auto';
-    menu.setAttribute('aria-hidden',String(shouldOpen));
+    // Apply important inline overrides so the drawer can out-layer fixed
+    // dashboard controls without being defeated by stylesheet !important rules.
+    const set=(el,property,value)=>el.style.setProperty(property,value,'important');
+    // Keep the hamburger mounted and visible to avoid cancelling its own
+    // pointer sequence. Layer the drawer above it so the drawer header is clear.
+    set(menu,'z-index',shouldOpen?'1090':'1105');
+    menu.style.visibility='visible';
+    menu.style.pointerEvents='auto';
+    menu.removeAttribute('aria-hidden');
     // Apply the drawer geometry directly as well as through CSS. This avoids
     // transformed app-shell ancestors pushing the close control off-screen.
-    const set=(el,property,value)=>el.style.setProperty(property,value,'important');
     if(shouldOpen){
       set(sidebar,'position','fixed');set(sidebar,'left','0');set(sidebar,'top','0');
       set(sidebar,'right','auto');set(sidebar,'bottom','0');
@@ -172,20 +174,14 @@
   // One delegated capture path always targets the currently mounted shell.
   if(!document.documentElement.dataset.eduMobileNavDelegated){
     document.documentElement.dataset.eduMobileNavDelegated='1';
-    document.addEventListener('pointerdown',event=>{
-      const trigger=event.target.closest?.('#eduMobileMenuBtn,.mobile-menu-btn');
-      if(!trigger)return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      lastPointerActivationAt=Date.now();
-      toggle();
-    },true);
+    // Use one native click path for mouse, touch and keyboard activation.
+    // Preventing pointerdown can suppress the synthesized click on mobile browsers,
+    // leaving the drawer closed even though the pointer handler ran.
     document.addEventListener('click',event=>{
-      const trigger=event.target.closest?.('#eduMobileMenuBtn');
+      const trigger=event.target.closest?.('#eduMobileMenuBtn,.mobile-menu-btn');
       if(trigger){
         event.preventDefault();
         event.stopImmediatePropagation();
-        if(Date.now()-lastPointerActivationAt<900)return;
         toggle();
         return;
       }

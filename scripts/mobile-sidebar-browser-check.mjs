@@ -55,7 +55,16 @@ try{
   await menu.click();
   const sidebar=page.locator('.sidebar');
   await page.waitForFunction(()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
-  if(await menu.isVisible())throw new Error('Floating hamburger must be hidden while the mobile drawer is open');
+  const hamburgerCovered=await page.evaluate(()=>{
+    const side=document.querySelector('.sidebar'),menu=document.querySelector('#eduMobileMenuBtn');
+    if(!side||!menu)return false;
+    const d=side.getBoundingClientRect(),m=menu.getBoundingClientRect();
+    const drawerZ=Number.parseInt(getComputedStyle(side).zIndex,10)||0;
+    const menuZ=Number.parseInt(getComputedStyle(menu).zIndex,10)||0;
+    const overlaps=m.left+m.width/2>=d.left&&m.left+m.width/2<=d.right&&m.top+m.height/2>=d.top&&m.top+m.height/2<=d.bottom;
+    return {overlaps,drawerZ,menuZ,drawer:{left:d.left,right:d.right,top:d.top,bottom:d.bottom,position:getComputedStyle(side).position},menu:{left:m.left,right:m.right,top:m.top,bottom:m.bottom,position:getComputedStyle(menu).position},inlineDrawerZ:side.style.zIndex,inlineMenuZ:menu.style.zIndex};
+  });
+  if(!hamburgerCovered.overlaps||hamburgerCovered.drawerZ<=hamburgerCovered.menuZ)throw new Error('Mobile drawer layering mismatch: '+JSON.stringify(hamburgerCovered));
   const openState=await page.evaluate(()=>{
     const side=document.querySelector('.sidebar'),nav=document.querySelector('.sidebar #nav'),close=document.querySelector('#eduMobileNavClose'),cs=getComputedStyle(close),r=close.getBoundingClientRect();
     const group=nav?.querySelector('.nav-group summary strong');
