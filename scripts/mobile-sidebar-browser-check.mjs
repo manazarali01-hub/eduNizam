@@ -55,6 +55,7 @@ try{
   await menu.click();
   const sidebar=page.locator('.sidebar');
   await page.waitForFunction(()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
+  if(await menu.isVisible())throw new Error('Floating hamburger must be hidden while the mobile drawer is open');
   const openState=await page.evaluate(()=>{
     const side=document.querySelector('.sidebar'),nav=document.querySelector('.sidebar #nav'),close=document.querySelector('#eduMobileNavClose'),cs=getComputedStyle(close),r=close.getBoundingClientRect();
     const group=nav?.querySelector('.nav-group summary strong');
