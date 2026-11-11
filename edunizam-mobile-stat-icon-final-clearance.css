@@ -1,0 +1,101 @@
+/* Final mobile metric-card clearance.
+   The silver-glass finish is loaded after the earlier mobile containment layer;
+   this last, narrowly scoped override keeps its larger desktop icon frame from
+   widening into the mobile text lane. Presentation-only. */
+@media (max-width:760px), (hover:none) and (pointer:coarse) and (max-width:1100px) {
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat {
+    display:grid!important;
+    grid-template-columns:34px minmax(0,1fr)!important;
+    grid-template-rows:minmax(26px,auto) auto auto!important;
+    align-items:center!important;
+    align-content:center!important;
+    column-gap:9px!important;
+    row-gap:5px!important;
+    min-width:0!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-icon {
+    grid-column:1!important;
+    grid-row:1/4!important;
+    position:relative!important;
+    inset:auto!important;
+    width:32px!important;
+    height:32px!important;
+    min-width:32px!important;
+    min-height:32px!important;
+    max-width:32px!important;
+    max-height:32px!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+    transform:none!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-icon img,
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-icon svg,
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-icon canvas {
+    display:block!important;
+    position:static!important;
+    width:21px!important;
+    height:21px!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-width:21px!important;
+    max-height:21px!important;
+    object-fit:contain!important;
+    transform:none!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span:not(.premium-stat-icon),
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong,
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-meta {
+    grid-column:2!important;
+    min-width:0!important;
+    width:100%!important;
+    margin:0!important;
+    justify-self:stretch!important;
+    text-align:left!important;
+    overflow-wrap:anywhere!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>span:not(.premium-stat-icon) {
+    grid-row:1!important;
+    align-self:end!important;
+    font-size:clamp(9px,2.45vw,10px)!important;
+    line-height:1.2!important;
+    letter-spacing:.02em!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>strong {
+    grid-row:2!important;
+    align-self:center!important;
+    font-size:clamp(19px,4.8vw,24px)!important;
+    line-height:1.08!important;
+    white-space:nowrap!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-meta {
+    grid-row:3!important;
+    align-self:start!important;
+    font-size:10px!important;
+    line-height:1.15!important;
+  }
+}
+@media (max-width:380px) {
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat {
+    grid-template-columns:30px minmax(0,1fr)!important;
+    column-gap:7px!important;
+    padding:9px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-icon {
+    width:29px!important;
+    height:29px!important;
+    min-width:29px!important;
+    min-height:29px!important;
+    max-width:29px!important;
+    max-height:29px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-icon img,
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-icon svg,
+  html body.app-page.page-app #appMain #dashboard>.cards>.card.stat>.premium-stat-icon canvas {
+    width:19px!important;
+    height:19px!important;
+    max-width:19px!important;
+    max-height:19px!important;
+  }
+}
