@@ -1,0 +1,66 @@
+/* EduNizam — reference hero artwork emphasis.
+   Presentation-only sizing and glow; preserves the existing SVG asset and dashboard behavior. */
+html body.app-page.page-app #appMain #dashboard>.campus-hero{
+  min-height:286px!important;
+  grid-template-columns:minmax(0,1.28fr) minmax(270px,.72fr)!important;
+}
+html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{
+  min-height:232px!important;
+  padding:10px!important;
+  background:
+    radial-gradient(ellipse at 50% 38%,rgba(111,221,255,.20),transparent 62%),
+    linear-gradient(145deg,rgba(206,237,255,.18),rgba(5,34,73,.22))!important;
+  border-color:rgba(225,246,255,.58)!important;
+  box-shadow:
+    0 12px 32px rgba(0,7,27,.22),
+    0 0 34px rgba(32,174,255,.20),
+    inset 0 1px 0 rgba(255,255,255,.46),
+    inset 0 -1px 0 rgba(120,218,255,.20)!important;
+}
+html body.app-page.page-app #appMain #dashboard .campus-hero-artwork{
+  width:min(100%,292px)!important;
+  max-height:226px!important;
+  filter:
+    drop-shadow(0 0 12px rgba(153,237,255,.78))
+    drop-shadow(0 0 30px rgba(0,145,255,.48))
+    drop-shadow(0 0 52px rgba(0,111,255,.22))!important;
+}
+@media(max-width:1100px) and (min-width:761px){
+  html body.app-page.page-app #appMain #dashboard>.campus-hero{
+    grid-template-columns:minmax(0,1.12fr) minmax(230px,.88fr)!important;
+  }
+  html body.app-page.page-app #appMain #dashboard .campus-hero-artwork{
+    width:min(100%,258px)!important;max-height:205px!important;
+  }
+}
+@media(max-width:760px){
+  html body.app-page.page-app #appMain #dashboard>.campus-hero{
+    min-height:0!important;grid-template-columns:minmax(0,1fr)!important;
+  }
+  html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{
+    min-height:174px!important;
+    grid-template-columns:116px minmax(0,1fr)!important;
+    column-gap:12px!important;
+    background:
+      radial-gradient(ellipse at 18% 50%,rgba(111,221,255,.19),transparent 64%),
+      linear-gradient(145deg,rgba(206,237,255,.16),rgba(5,34,73,.24))!important;
+  }
+  html body.app-page.page-app #appMain #dashboard .campus-hero-artwork{
+    width:116px!important;max-height:142px!important;
+    filter:
+      drop-shadow(0 0 9px rgba(153,237,255,.72))
+      drop-shadow(0 0 22px rgba(0,145,255,.42))!important;
+  }
+}
+@media(max-width:380px){
+  html body.app-page.page-app #appMain #dashboard>.campus-hero .campus-visual{
+    grid-template-columns:96px minmax(0,1fr)!important;min-height:158px!important;
+    column-gap:10px!important;
+  }
+  html body.app-page.page-app #appMain #dashboard .campus-hero-artwork{
+    width:96px!important;max-height:122px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body.app-page.page-app #appMain #dashboard .campus-hero-artwork{animation:none!important}
+}
