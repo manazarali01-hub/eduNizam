@@ -113,7 +113,7 @@
     sidebar.classList.toggle('mobile-nav-open',shouldOpen);
     // Keep the hamburger mounted and visible to avoid cancelling its own
     // pointer sequence. Layer the drawer above it so the drawer header is clear.
-    menu.style.zIndex=shouldOpen?'1090':'1105';
+    set(menu,'z-index',shouldOpen?'1090':'1105');
     menu.style.visibility='visible';
     menu.style.pointerEvents='auto';
     menu.removeAttribute('aria-hidden');
