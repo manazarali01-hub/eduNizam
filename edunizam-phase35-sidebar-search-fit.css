@@ -64,7 +64,10 @@
     border: 1px solid rgba(163, 219, 255, .24) !important;
     border-radius: 6px !important;
     background: rgba(3, 24, 53, .42) !important;
-    color: #c8e8ff !important;
+    color: #e3f4ff !important;
+    -webkit-text-fill-color: #e3f4ff !important;
+    opacity: 1 !important;
+    background: rgba(3, 24, 53, .78) !important;
     font-size: 9px !important;
     line-height: 1.2 !important;
     white-space: nowrap !important;
