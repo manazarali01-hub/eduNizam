@@ -23,7 +23,7 @@
     const buttons=[...nav.querySelectorAll(':scope > .nav-item')];
     nav.dataset.enhanced='1';nav.classList.add('nav-groups');
     let search=document.querySelector('.sidebar > .nav-search-wrap');
-    if(!search){search=document.createElement('div');search.className='nav-search-wrap';search.innerHTML='<span aria-hidden="true">⌕</span><input id="navFeatureSearch" type="search" placeholder="Find a feature…" aria-label="Find a feature"><kbd>Ctrl K</kbd>';nav.before(search)}
+    if(!search){search=document.createElement('div');search.className='nav-search-wrap';search.innerHTML='<span aria-hidden="true">⌕</span><input id="navFeatureSearch" type="search" placeholder="Search..." aria-label="Search features"><kbd>Ctrl K</kbd>';nav.before(search)}
     if(buttons.length){
     const byView=new Map(buttons.map(b=>[b.dataset.view,b]));
     for(const [title,icon,views] of groups){
