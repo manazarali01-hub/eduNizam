@@ -1,0 +1,95 @@
+/* Desktop sidebar readability finish — presentation only.
+   Strengthens category and feature labels without changing navigation behavior. */
+@media (min-width: 1101px) {
+  html body.app-page.page-app .app-shell > .sidebar > #nav {
+    gap: 7px !important;
+    padding: 10px 5px 20px !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group {
+    padding: 5px 0 8px !important;
+    border-bottom: 1px solid rgba(170, 214, 247, .20) !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary {
+    min-height: 44px !important;
+    padding: 9px 11px !important;
+    gap: 10px !important;
+    border-radius: 11px !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary > strong {
+    color: #e4f2ff !important;
+    -webkit-text-fill-color: #e4f2ff !important;
+    font-size: 11.5px !important;
+    font-weight: 850 !important;
+    letter-spacing: .075em !important;
+    line-height: 1.35 !important;
+    text-shadow: 0 1px 3px rgba(0, 10, 28, .32) !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary > span {
+    color: #b9e8ff !important;
+    background: rgba(91, 176, 232, .17) !important;
+    border: 1px solid rgba(164, 220, 255, .22) !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group > summary > small {
+    color: #c7e5fa !important;
+    -webkit-text-fill-color: #c7e5fa !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav > .nav-group[open] > summary {
+    background: linear-gradient(100deg, rgba(28, 130, 204, .30), rgba(27, 91, 151, .12)) !important;
+    border-color: rgba(146, 215, 255, .28) !important;
+    box-shadow: inset 3px 0 #70d2ff !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-group-items {
+    gap: 4px !important;
+    padding: 7px 0 2px 8px !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item {
+    min-height: 40px !important;
+    padding: 9px 11px 9px 13px !important;
+    border-radius: 10px !important;
+    color: #e1effc !important;
+    -webkit-text-fill-color: #e1effc !important;
+    font-size: 12.5px !important;
+    font-weight: 650 !important;
+    line-height: 1.35 !important;
+    letter-spacing: .005em !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item:hover,
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item:focus-visible {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    background: rgba(69, 157, 218, .20) !important;
+    border-color: rgba(157, 220, 255, .26) !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item.active,
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item[aria-current="page"] {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    background: linear-gradient(100deg, rgba(18, 139, 220, .82), rgba(20, 88, 162, .64)) !important;
+    border-color: rgba(174, 232, 255, .56) !important;
+    box-shadow: inset 3px 0 #c2f0ff, 0 4px 12px rgba(0, 10, 30, .20) !important;
+    font-weight: 800 !important;
+  }
+
+  html body.app-page.page-app .app-shell > .sidebar > #nav .nav-item :is(.premium-nav-label, span, strong, small) {
+    color: inherit !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.app-page.page-app .app-shell > .sidebar > #nav * {
+    transition: none !important;
+  }
+}
