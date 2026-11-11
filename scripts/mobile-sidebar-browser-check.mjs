@@ -56,11 +56,15 @@ try{
   const sidebar=page.locator('.sidebar');
   await page.waitForFunction(()=>document.querySelector('.sidebar')?.classList.contains('mobile-nav-open'),null,{timeout:5000});
   const hamburgerCovered=await page.evaluate(()=>{
-    const side=document.querySelector('.sidebar'),menu=document.querySelector('#eduMobileMenuBtn'),r=menu.getBoundingClientRect();
-    const hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
-    return !!side&&side.contains(hit);
+    const side=document.querySelector('.sidebar'),menu=document.querySelector('#eduMobileMenuBtn');
+    if(!side||!menu)return false;
+    const d=side.getBoundingClientRect(),m=menu.getBoundingClientRect();
+    const drawerZ=Number.parseInt(getComputedStyle(side).zIndex,10)||0;
+    const menuZ=Number.parseInt(getComputedStyle(menu).zIndex,10)||0;
+    const overlaps=m.left+m.width/2>=d.left&&m.left+m.width/2<=d.right&&m.top+m.height/2>=d.top&&m.top+m.height/2<=d.bottom;
+    return overlaps&&drawerZ>menuZ;
   });
-  if(!hamburgerCovered)throw new Error('Mobile drawer must visually cover the floating hamburger without hiding its control');
+  if(!hamburgerCovered)throw new Error('Mobile drawer must cover the hamburger area and have a higher stacking order without hiding the control');
   const openState=await page.evaluate(()=>{
     const side=document.querySelector('.sidebar'),nav=document.querySelector('.sidebar #nav'),close=document.querySelector('#eduMobileNavClose'),cs=getComputedStyle(close),r=close.getBoundingClientRect();
     const group=nav?.querySelector('.nav-group summary strong');
