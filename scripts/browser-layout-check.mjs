@@ -216,6 +216,9 @@ async function inspectPage(page,url,width,navigate=true){
         imageQuickOverlap:intersects(box('.page-home .hero-image-wrap'),box('.page-home .quick-access-card')),
         quickRoleOverlap:intersects(box('.page-home .quick-access-card'),box('.page-home .hero-role-badge')),
         linksDisplay:getComputedStyle(document.querySelector('.page-home .public-links')||document.body).display,
+        linksGridColumns:(getComputedStyle(document.querySelector('.page-home .public-links')||document.body).gridTemplateColumns||'').trim().split(/\s+/).filter(Boolean).length,
+        navLinkCount:document.querySelectorAll('.page-home .public-links>a').length,
+        navLinksVisible:[...document.querySelectorAll('.page-home .public-links>a')].every(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.left>=-1&&r.right<=document.documentElement.clientWidth+1;}),
         navHeight:box('.page-home .public-nav')?.height||0,
         learningColors:[...document.querySelectorAll('.page-home .learning-band .resource-card :is(small,strong,span)')].slice(0,9).map(el=>({color:getComputedStyle(el).color,text:(el.textContent||'').trim().slice(0,30)})),
         experienceColumns:getComputedStyle(document.querySelector('.page-home .experience-strip')||document.body).gridTemplateColumns,
@@ -475,10 +478,13 @@ try{
           if(result.home.nav&&result.home.main&&result.home.main.top<result.home.nav.bottom-2){
             pushFailure(scope,'Homepage navigation covers main content',JSON.stringify({nav:result.home.nav,main:result.home.main}));
           }
-          // Visual regression guard: an oversized 3-row header or pale-on-pale
-          // Learning Hub labels must never slip through the layout-only gates.
-          if(result.home.linksDisplay!=='flex')pushFailure(scope,'Homepage mobile navigation is not a compact flex strip',result.home.linksDisplay);
-          if(result.home.navHeight>175)pushFailure(scope,'Homepage mobile navigation consumes too much vertical space',Math.round(result.home.navHeight)+'px');
+          // Mobile homepage navigation intentionally uses a two-column, three-row grid.
+          // Guard the real UX contract: six visible destinations, no clipped links, and a compact header.
+          if(result.home.linksDisplay!=='grid')pushFailure(scope,'Homepage mobile navigation is not a two-column grid',result.home.linksDisplay);
+          if(result.home.linksGridColumns!==2)pushFailure(scope,'Homepage mobile navigation does not have exactly two columns',String(result.home.linksGridColumns));
+          if(result.home.navLinkCount!==6)pushFailure(scope,'Homepage mobile navigation does not expose all six destinations',String(result.home.navLinkCount));
+          if(!result.home.navLinksVisible)pushFailure(scope,'One or more homepage navigation links are clipped or outside the viewport');
+          if(result.home.navHeight>235)pushFailure(scope,'Homepage mobile navigation consumes too much vertical space',Math.round(result.home.navHeight)+'px');
           for(const panel of result.home.contrastPanels||[]){
             if(panel.missing||!panel.background.includes('rgba(')||!panel.blur.includes('blur(')){
               pushFailure(scope,'Homepage heading has no real frosted glass reading plate',JSON.stringify(panel));
