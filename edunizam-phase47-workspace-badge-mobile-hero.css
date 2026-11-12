@@ -13,16 +13,22 @@ html body.app-page.page-app .app-shell > .sidebar > .premium-workspace-badge {
   background: linear-gradient(120deg, rgba(37, 126, 190, .28), rgba(5, 39, 82, .48)) !important;
   box-shadow: inset 0 1px rgba(255,255,255,.09), 0 5px 14px rgba(0,12,35,.14) !important;
   color: #dff3ff !important;
+  -webkit-text-fill-color: #dff3ff !important;
+  opacity: 1 !important;
   font-size: 10px !important;
   line-height: 1.35 !important;
   letter-spacing: .025em !important;
 }
 html body.app-page.page-app .premium-workspace-badge > span:first-child {
   color: #eaf7ff !important;
+  -webkit-text-fill-color: #eaf7ff !important;
+  opacity: 1 !important;
   font-weight: 800 !important;
 }
 html body.app-page.page-app .premium-workspace-badge > span:last-child {
   color: #a9ddff !important;
+  -webkit-text-fill-color: #a9ddff !important;
+  opacity: 1 !important;
   font-weight: 750 !important;
   white-space: nowrap !important;
 }
