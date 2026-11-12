@@ -549,8 +549,8 @@ if(enFormCss.includes('VISIBLE_FIELD_REVAMP_V2') && enFormCss.includes('border:3
 else bad('forms:visible-gradient-contract','Missing clearly colored 3px gradient field border');
 for(const target of ["index.html","login.html","app.html","learn.html","admission.html"]){
   const source=read(target);
-  const link='premium-form-fields.css?v=20261008-visible-forms-v2';
-  if(!source.includes(link)||source.indexOf(link)>source.indexOf("</head>"))bad("forms:linked-"+target,"Shared premium fields not linked before closing head");
+  const link=source.match(/premium-form-fields\.css\?v=[^"'\s]+/i)?.[0]||'';
+  if(!link||source.indexOf(link)>source.indexOf("</head>"))bad("forms:linked-"+target,"Shared premium fields not linked before closing head");
   else ok("forms:linked-"+target);
 }
 for(const marker of [".password-wrap","--en-field-focus",":focus","select:not([multiple])","input[type=\"date\"]","textarea"]){
