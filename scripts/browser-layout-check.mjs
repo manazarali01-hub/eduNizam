@@ -216,7 +216,7 @@ async function inspectPage(page,url,width,navigate=true){
         imageQuickOverlap:intersects(box('.page-home .hero-image-wrap'),box('.page-home .quick-access-card')),
         quickRoleOverlap:intersects(box('.page-home .quick-access-card'),box('.page-home .hero-role-badge')),
         linksDisplay:getComputedStyle(document.querySelector('.page-home .public-links')||document.body).display,
-        linksGridColumns:(getComputedStyle(document.querySelector('.page-home .public-links')||document.body).gridTemplateColumns||'').trim().split(/\\s+/).filter(Boolean).length,
+        linksGridColumns:(getComputedStyle(document.querySelector('.page-home .public-links')||document.body).gridTemplateColumns||'').trim().split(/\s+/).filter(Boolean).length,
         navLinkCount:document.querySelectorAll('.page-home .public-links>a').length,
         navLinksVisible:[...document.querySelectorAll('.page-home .public-links>a')].every(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.left>=-1&&r.right<=document.documentElement.clientWidth+1;}),
         navHeight:box('.page-home .public-nav')?.height||0,
