@@ -58,3 +58,61 @@
  .page-features .public-card{padding:19px}
 }
 @media(prefers-reduced-motion:reduce){.page-features *{scroll-behavior:auto!important;transition:none!important}}
+
+
+/* Final cascade guard: the unified public layer uses !important on shared
+   hero/section surfaces. Keep the Features page's premium dark-glass palette
+   and readable foregrounds after all shared appearance styles load. */
+body.premium-public-page.page-features .public-hero{
+  color:#edf5ff!important;
+  background:linear-gradient(128deg,rgba(26,75,143,.96),rgba(15,42,78,.96) 58%,rgba(20,95,153,.92))!important;
+  border-color:rgba(159,196,255,.38)!important;
+}
+body.premium-public-page.page-features .public-hero h1{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+body.premium-public-page.page-features .public-hero p{
+  color:#d8e9ff!important;-webkit-text-fill-color:#d8e9ff!important;
+}
+body.premium-public-page.page-features .public-section{
+  color:#edf5ff!important;
+  background:linear-gradient(145deg,rgba(21,45,78,.96),rgba(11,29,53,.96))!important;
+  border-color:rgba(151,190,255,.28)!important;
+}
+body.premium-public-page.page-features .public-section h2{
+  color:#f3f8ff!important;-webkit-text-fill-color:#f3f8ff!important;
+}
+body.premium-public-page.page-features .public-list li{
+  color:#d4e4f8!important;-webkit-text-fill-color:#d4e4f8!important;
+  background:linear-gradient(145deg,rgba(7,23,45,.92),rgba(10,35,65,.92))!important;
+  border-color:rgba(146,184,237,.24)!important;
+}
+body.premium-public-page.page-features .public-list li strong{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+body.premium-public-page.page-features .public-card{
+  color:#d4e4f8!important;
+  background:linear-gradient(145deg,rgba(25,63,108,.94),rgba(8,26,50,.96))!important;
+}
+body.premium-public-page.page-features .public-card h3{
+  color:#f4f8ff!important;-webkit-text-fill-color:#f4f8ff!important;
+}
+body.premium-public-page.page-features .public-card p,
+body.premium-public-page.page-features .public-section>p{
+  color:#c7d9f0!important;-webkit-text-fill-color:#c7d9f0!important;
+}
+
+
+/* Desktop hero copy: the older guide-readability layer puts a pale panel
+   behind the paragraph. Keep its text readable against that surface. */
+body.premium-public-page.page-features .public-hero .public-kicker{
+  color:#bfe3ff!important;-webkit-text-fill-color:#bfe3ff!important;
+}
+@media(min-width:761px){
+  body.premium-public-page.page-features .public-hero>p{
+    color:#e1efff!important;-webkit-text-fill-color:#e1efff!important;
+    background:linear-gradient(135deg,rgba(5,25,52,.88),rgba(9,43,78,.84))!important;
+    border:1px solid rgba(155,203,255,.28)!important;
+    box-shadow:inset 0 1px rgba(255,255,255,.08),0 8px 22px rgba(0,0,0,.14)!important;
+  }
+}
