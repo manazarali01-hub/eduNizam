@@ -101,3 +101,18 @@ body.premium-public-page.page-features .public-card p,
 body.premium-public-page.page-features .public-section>p{
   color:#c7d9f0!important;-webkit-text-fill-color:#c7d9f0!important;
 }
+
+
+/* Desktop hero copy: the older guide-readability layer puts a pale panel
+   behind the paragraph. Keep its text readable against that surface. */
+body.premium-public-page.page-features .public-hero .public-kicker{
+  color:#bfe3ff!important;-webkit-text-fill-color:#bfe3ff!important;
+}
+@media(min-width:761px){
+  body.premium-public-page.page-features .public-hero>p{
+    color:#e1efff!important;-webkit-text-fill-color:#e1efff!important;
+    background:linear-gradient(135deg,rgba(5,25,52,.88),rgba(9,43,78,.84))!important;
+    border:1px solid rgba(155,203,255,.28)!important;
+    box-shadow:inset 0 1px rgba(255,255,255,.08),0 8px 22px rgba(0,0,0,.14)!important;
+  }
+}
