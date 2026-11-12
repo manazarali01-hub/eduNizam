@@ -96,7 +96,9 @@
       '<input id="calEditId" type="hidden" value="'+esc(edit?.id||'')+'">'+
       '<input id="calTitle" placeholder="Event title" value="'+esc(edit?.title||'')+'">'+
       '<select id="calCategory">'+['Holiday','PTM','Exam','Fee Due','Meeting','Activity','Other'].map(x=>'<option '+(edit?.category===x?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
-      '<input id="calDate" type="date" value="'+esc(edit?.eventDate||today())+'">'+
+      '<input id="calDate" type="hidden" value="'+esc(edit?.eventDate||today())+'">'+
+      '<div class="cal-date-field"><label for="calDateOpen">Event date</label><button type="button" id="calDateOpen" class="cal-date-trigger" aria-haspopup="dialog" aria-expanded="false"><span id="calDateLabel">'+esc(formatCalendarDate(edit?.eventDate||today()))+'</span><span aria-hidden="true">▾</span></button></div>'+
+      '<div id="calDatePicker" class="cal-date-overlay" hidden><section class="cal-date-dialog" role="dialog" aria-modal="true" aria-labelledby="calDateTitle"><div class="cal-date-heading"><button type="button" id="calDatePrev" class="secondary" aria-label="Previous month">‹</button><h3 id="calDateTitle"></h3><button type="button" id="calDateNext" class="secondary" aria-label="Next month">›</button></div><div class="cal-date-weekdays" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div id="calDateGrid" class="cal-date-grid"></div><div class="cal-date-actions"><button type="button" id="calDateCancel" class="secondary">Cancel</button><button type="button" id="calDateOk">OK</button></div></section></div>'+
       '<input id="calStart" type="time" value="'+esc(edit?.startTime||'')+'">'+
       '<input id="calEnd" type="time" value="'+esc(edit?.endTime||'')+'">'+
       '<select id="calAudience">'+[['all','All Institute'],['students','Students'],['parents','Parents'],['staff','Staff'],['class','Specific Class']].map(x=>'<option value="'+x[0]+'" '+(edit?.audience===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select>'+
@@ -107,6 +109,45 @@
       '<button id="calSave">'+(edit?'Update Event':'Save Event')+'</button>'+
       (edit?'<button id="calCancel" class="secondary">Cancel</button>':'')+
       '</div></article>';
+  }
+  function formatCalendarDate(value){
+    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(value||'')))return 'Select a date';
+    const [y,m,d]=value.split('-').map(Number);
+    return new Intl.DateTimeFormat('en-PK',{day:'numeric',month:'short',year:'numeric'}).format(new Date(y,m-1,d));
+  }
+  function ensureCalendarDateStyles(){
+    if(document.getElementById('calDatePickerStyles'))return;
+    const style=document.createElement('style');style.id='calDatePickerStyles';
+    style.textContent='.cal-date-field{display:grid;gap:7px;min-width:0}.cal-date-field>label{font-weight:800;color:var(--en-field-label,#163f40)}.cal-date-trigger{width:100%;min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border:2px solid #78bfc2;border-radius:16px;background:linear-gradient(145deg,#fff,#e9f8f5);color:#174b56;font:inherit;font-weight:700;text-align:left}.cal-date-overlay{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px;background:rgba(13,35,48,.58)}.cal-date-overlay[hidden]{display:none}.cal-date-dialog{width:min(100%,380px);padding:20px;border:1px solid #b8d9d8;border-radius:22px;background:#f8fffd;box-shadow:0 22px 70px rgba(8,35,48,.3);color:#173f45}.cal-date-heading{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;margin-bottom:18px}.cal-date-heading h3{margin:0;text-align:center;font-size:1.08rem}.cal-date-heading button{min-height:42px;padding:6px;border-radius:12px}.cal-date-weekdays,.cal-date-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.cal-date-weekdays{margin-bottom:7px;text-align:center;color:#52777a;font-size:.78rem;font-weight:800}.cal-date-grid button{min-width:0;min-height:42px;padding:5px 0;border:1px solid #d1e7e3;border-radius:12px;background:#fff;color:#174b56;font:inherit;font-weight:650}.cal-date-grid button:disabled{border-color:transparent;background:transparent}.cal-date-grid button[aria-pressed=true]{border-color:#147e8b;background:#147e8b;color:#fff}.cal-date-grid button.cal-date-today{outline:2px solid #78bfc2;outline-offset:-3px}.cal-date-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.cal-date-actions button{min-width:92px;min-height:44px;border-radius:13px}.cal-date-dialog button:focus-visible,.cal-date-trigger:focus-visible{outline:3px solid #238eae;outline-offset:2px}@media(max-width:420px){.cal-date-dialog{padding:16px}.cal-date-grid{gap:3px}.cal-date-grid button{min-height:40px}}';
+    document.head.appendChild(style);
+  }
+  function bindCalendarDatePicker(){
+    const input=$('calDate'),trigger=$('calDateOpen'),overlay=$('calDatePicker');if(!input||!trigger||!overlay)return;
+    ensureCalendarDateStyles();
+    let draft=input.value||today(),shownMonth=draft.slice(0,7);
+    const close=()=>{overlay.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.focus()};
+    const draw=()=>{
+      const [year,month]=shownMonth.split('-').map(Number),first=new Date(year,month-1,1),days=new Date(year,month,0).getDate();
+      const offset=(first.getDay()+6)%7,grid=$('calDateGrid'),title=$('calDateTitle');
+      if(!grid||!title)return;
+      title.textContent=new Intl.DateTimeFormat('en-PK',{month:'long',year:'numeric'}).format(first);
+      let html='';
+      for(let i=0;i<offset;i++)html+='<button type="button" disabled tabindex="-1" aria-hidden="true"></button>';
+      for(let day=1;day<=days;day++){
+        const value=shownMonth+'-'+String(day).padStart(2,'0'),selected=value===draft,isToday=value===today();
+        html+='<button type="button" data-cal-draft-date="'+value+'" aria-pressed="'+(selected?'true':'false')+'" class="'+(isToday?'cal-date-today':'')+'" aria-label="'+formatCalendarDate(value)+'">'+day+'</button>';
+      }
+      grid.innerHTML=html;
+    };
+    const open=()=>{draft=input.value||today();shownMonth=draft.slice(0,7);draw();overlay.hidden=false;trigger.setAttribute('aria-expanded','true');$('calDateGrid')?.querySelector('[aria-pressed=true]')?.focus()};
+    trigger.addEventListener('click',open);
+    $('calDatePrev')?.addEventListener('click',()=>{const [y,m]=shownMonth.split('-').map(Number),d=new Date(y,m-2,1);shownMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');draw()});
+    $('calDateNext')?.addEventListener('click',()=>{const [y,m]=shownMonth.split('-').map(Number),d=new Date(y,m,1);shownMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');draw()});
+    $('calDateGrid')?.addEventListener('click',event=>{const button=event.target.closest('[data-cal-draft-date]');if(!button)return;draft=button.dataset.calDraftDate;draw();$('calDateGrid')?.querySelector('[aria-pressed=true]')?.focus()});
+    $('calDateCancel')?.addEventListener('click',close);
+    $('calDateOk')?.addEventListener('click',()=>{input.value=draft;$('calDateLabel').textContent=formatCalendarDate(draft);input.dispatchEvent(new Event('change',{bubbles:true}));close()});
+    overlay.addEventListener('click',event=>{if(event.target===overlay)close()});
+    overlay.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();close()}});
   }
   function eventCard(x){
     const when=x.startTime?(x.startTime+(x.endTime?' - '+x.endTime:'')):'All day';
@@ -150,6 +191,7 @@
     }finally{calendarDeleteInFlight.delete(key);if(btn?.isConnected)setBusy(btn,false)}
   }
   function bindEditor(){
+    bindCalendarDatePicker();
     $('calSave')?.addEventListener('click',save);$('calCancel')?.addEventListener('click',render);
     $('calAudience')?.addEventListener('change',()=>{const show=$('calAudience').value==='class';if($('calClass'))$('calClass').style.display=show?'block':'none';if($('calSection'))$('calSection').style.display=show?'block':'none'});
     $('calAudience')?.dispatchEvent(new Event('change'));

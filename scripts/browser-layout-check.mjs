@@ -2054,6 +2054,47 @@ try{
       }
     }
 
+    // Calendar Center date-picker interaction contract: draft selection must
+    // not alter the committed date until OK, and saved events use that value.
+    await boundedEvaluate('open Calendar Center date picker test view',()=>window.EDUNIZAM_APP_NAV.setView('calendarcenter'));
+    await loginFlowPage.waitForSelector('#calDateOpen',{state:'visible',timeout:8000}).catch(e=>pushFailure('calendar date picker','Calendar Center editor did not expose its date control',e.message));
+    if(await loginFlowPage.locator('#calDateOpen').count()){
+      const initialDate=await loginFlowPage.locator('#calDate').inputValue();
+      await loginFlowPage.locator('#calDateOpen').tap({timeout:5000});
+      await loginFlowPage.locator('#calDateNext').tap({timeout:5000});
+      await loginFlowPage.locator('[data-cal-draft-date$="-15"]').first().tap({timeout:5000});
+      await loginFlowPage.locator('#calDateCancel').tap({timeout:5000});
+      const afterCancel=await loginFlowPage.locator('#calDate').inputValue();
+      if(afterCancel!==initialDate)pushFailure('calendar date picker','Cancel changed the committed date',JSON.stringify({initialDate,afterCancel}));
+      await loginFlowPage.locator('#calDateOpen').tap({timeout:5000});
+      await loginFlowPage.locator('#calDateNext').tap({timeout:5000});
+      const chosen=await loginFlowPage.locator('[data-cal-draft-date$="-15"]').first().getAttribute('data-cal-draft-date');
+      await loginFlowPage.locator('[data-cal-draft-date$="-15"]').first().tap({timeout:5000});
+      await loginFlowPage.locator('#calDateOk').tap({timeout:5000});
+      const committed=await loginFlowPage.locator('#calDate').inputValue();
+      if(committed!==chosen)pushFailure('calendar date picker','OK did not commit the selected date',JSON.stringify({chosen,committed}));
+      const title='QA Calendar Date '+Date.now();
+      await loginFlowPage.locator('#calTitle').fill(title);
+      // This contract verifies local persistence. Disable the mocked cloud
+      // session for this test so an unrelated cloud reconciliation cannot
+      // short-circuit the local save path.
+      await loginFlowPage.evaluate(()=>{
+        if(window.EDUNIZAM_CLOUD_CONFIG)window.EDUNIZAM_CLOUD_CONFIG.enabled=false;
+      });
+      await loginFlowPage.locator('#calSave').tap({timeout:5000});
+      // Calendar save is async (and may reconcile a cloud write before the
+      // local commit). Wait for the persisted row instead of reading storage
+      // immediately after the click.
+      await loginFlowPage.waitForFunction(({title,chosen})=>{
+        try{
+          const rows=JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]');
+          return rows.some(x=>x.title===title&&x.eventDate===chosen);
+        }catch(_){return false}
+      },{title,chosen},{timeout:8000}).catch(()=>{});
+      const saved=await loginFlowPage.evaluate(date=>JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]').find(x=>x.title===date),title).catch(()=>null);
+      if(!saved||saved.eventDate!==chosen)pushFailure('calendar date picker','Saved event did not retain the date confirmed with OK',JSON.stringify({chosen,saved}));
+    }
+
     await boundedEvaluate('prepare local primary action contract',()=>{
       if(window.EDUNIZAM_CORE_CLOUD)window.EDUNIZAM_CORE_CLOUD.ready=()=>false;
       if(window.EDUNIZAM_WORKFLOW_ALERTS){
