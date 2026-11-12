@@ -95,3 +95,36 @@ html body.app-page.page-app #appMain .view:not(#dashboard) > .card > .section-he
     scroll-behavior:auto!important;
   }
 }
+
+
+/* Keep data tables readable on the light internal workspace cards.
+   The site-wide dark-glass layer styles table cells for dark surfaces; these
+   scoped overrides restore contrast only inside the light cards above. */
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card {
+  color:#173b59!important;
+}
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card table {
+  color:#244763!important;
+  border-color:rgba(78,125,165,.24)!important;
+}
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card table th {
+  color:#12385d!important;
+  -webkit-text-fill-color:#12385d!important;
+  background:linear-gradient(135deg,#e3f2fc,#d4e9f8)!important;
+  border-color:rgba(78,125,165,.24)!important;
+}
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card table td {
+  color:#294b67!important;
+  -webkit-text-fill-color:#294b67!important;
+  background:rgba(255,255,255,.42)!important;
+  border-color:rgba(78,125,165,.18)!important;
+}
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card table tr:nth-child(even) td {
+  background:rgba(222,239,251,.46)!important;
+}
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card table a {
+  color:#075da5!important;
+  -webkit-text-fill-color:#075da5!important;
+  text-decoration-thickness:1px!important;
+  text-underline-offset:2px!important;
+}
