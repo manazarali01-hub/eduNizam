@@ -128,3 +128,34 @@ html body.app-page.page-app #appMain .view:not(#dashboard) > .card table a {
   text-decoration-thickness:1px!important;
   text-underline-offset:2px!important;
 }
+
+
+/* Mobile data tables: preserve readable cell sizing and allow intentional
+   horizontal scrolling instead of squeezing every column into the viewport. */
+@media(max-width:700px) {
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card table {
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    white-space:nowrap!important;
+    scrollbar-width:thin!important;
+    scrollbar-color:rgba(34,112,173,.58) rgba(204,226,244,.55)!important;
+  }
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card table th,
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card table td {
+    min-width:96px!important;
+    padding:11px 13px!important;
+  }
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card table th:first-child,
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card table td:first-child {
+    min-width:112px!important;
+  }
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card table a:focus-visible {
+    outline:3px solid #f0b84b!important;
+    outline-offset:3px!important;
+    border-radius:3px!important;
+  }
+}
