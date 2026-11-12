@@ -1022,15 +1022,26 @@ try{
             pushFailure('workspace table appearance','Soft blue table header surface did not render',JSON.stringify(tablePreview));
           if(!String(tablePreview.link?.color||'').includes('7, 93, 165')&&!String(tablePreview.link?.fill||'').includes('7, 93, 165'))
             pushFailure('workspace table appearance','Accessible blue table link color did not render',JSON.stringify(tablePreview));
-          if(tablePreview.table?.clientWidth<500||tablePreview.table?.scrollWidth<=tablePreview.table?.clientWidth)
-            pushFailure('workspace table appearance','Mobile table does not expose horizontal scrolling',JSON.stringify(tablePreview.table));
+          if(tablePreview.table?.clientWidth<520)
+            pushFailure('workspace table appearance','Table minimum width was not preserved for readable columns',JSON.stringify(tablePreview.table));
         }
         await page.setViewportSize({width:1366,height:900});
         await page.locator('#students #qa-workspace-table-preview').scrollIntoViewIfNeeded();
         await page.waitForTimeout(120);
         await page.screenshot({path:path.join(visualDir,'workspace-table-1366.png'),fullPage:false});
         await page.setViewportSize({width:390,height:844});
-        await page.locator('#qa-workspace-table-view').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(180);
+        const mobileTable=await page.locator('#students .qa-workspace-table-scroll').evaluate(wrapper=>{
+          const table=wrapper.querySelector('table');
+          return {wrapperClientWidth:wrapper.clientWidth,wrapperScrollWidth:wrapper.scrollWidth,
+            tableClientWidth:table?.clientWidth||0,tableScrollWidth:table?.scrollWidth||0,
+            overflowX:getComputedStyle(wrapper).overflowX};
+        });
+        console.log('Mobile Students table scroll:',JSON.stringify(mobileTable));
+        if(mobileTable.wrapperClientWidth>430||mobileTable.wrapperScrollWidth<=mobileTable.wrapperClientWidth||
+           mobileTable.tableClientWidth<520||mobileTable.overflowX!=='auto')
+          pushFailure('workspace table appearance','Mobile Students table does not fit the viewport with horizontal scrolling',JSON.stringify(mobileTable));
+        await page.locator('#students #qa-workspace-table-preview').scrollIntoViewIfNeeded();
         await page.waitForTimeout(120);
         await page.screenshot({path:path.join(visualDir,'workspace-table-390.png'),fullPage:false});
         await page.evaluate(()=>document.getElementById('qa-workspace-table-preview')?.remove());
