@@ -1,0 +1,97 @@
+/* EduNizam internal workspace — consistent premium blue-glass panel hierarchy.
+   Applies only to non-dashboard authenticated views; no data, actions, or role logic changes. */
+
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card {
+  position:relative!important;
+  min-width:0!important;
+  border:1px solid rgba(190,222,247,.78)!important;
+  border-radius:18px!important;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(88,190,255,.14),transparent 46%),
+    linear-gradient(145deg,rgba(255,255,255,.97),rgba(232,243,253,.92))!important;
+  box-shadow:
+    0 14px 32px rgba(7,39,78,.10),
+    0 0 0 1px rgba(91,174,225,.06),
+    inset 0 1px 0 rgba(255,255,255,.98)!important;
+}
+
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card > .section-head {
+  display:flex!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:12px!important;
+  margin:0 0 17px!important;
+  padding:0 0 13px!important;
+  border-bottom:1px solid rgba(91,151,197,.24)!important;
+}
+
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card > .section-head h2,
+html body.app-page.page-app #appMain .view:not(#dashboard) > .section-head h2 {
+  min-width:0!important;
+  margin:0!important;
+  color:#0b315d!important;
+  -webkit-text-fill-color:#0b315d!important;
+  font-size:clamp(18px,1.8vw,22px)!important;
+  font-weight:850!important;
+  letter-spacing:-.03em!important;
+  line-height:1.2!important;
+}
+
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card > .section-head > button {
+  flex:0 0 auto!important;
+  min-height:42px!important;
+  border:1px solid rgba(112,195,241,.64)!important;
+  border-radius:11px!important;
+  background:linear-gradient(135deg,#176eae,#082f64)!important;
+  color:#f4fbff!important;
+  -webkit-text-fill-color:#f4fbff!important;
+  box-shadow:0 6px 15px rgba(7,57,105,.16),inset 0 1px 0 rgba(255,255,255,.2)!important;
+}
+
+html body.app-page.page-app #appMain .view:not(#dashboard) > .section-head {
+  padding:16px 18px!important;
+  border:1px solid rgba(190,222,247,.76)!important;
+  border-radius:17px!important;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(88,190,255,.13),transparent 48%),
+    linear-gradient(135deg,rgba(255,255,255,.96),rgba(231,243,253,.90))!important;
+  box-shadow:0 10px 25px rgba(7,39,78,.08),inset 0 1px 0 rgba(255,255,255,.98)!important;
+}
+
+html body.app-page.page-app #appMain .view:not(#dashboard) > .section-head h2 {
+  color:#0b315d!important;
+  -webkit-text-fill-color:#0b315d!important;
+  font-weight:850!important;
+  letter-spacing:-.03em!important;
+}
+
+html body.app-page.page-app #appMain .view:not(#dashboard) > .card > .section-head > :is(div,p,small) {
+  min-width:0!important;
+}
+
+@media(max-width:700px) {
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card {
+    padding:15px!important;
+    border-radius:15px!important;
+  }
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card > .section-head {
+    align-items:flex-start!important;
+    gap:9px!important;
+    margin-bottom:14px!important;
+    padding-bottom:11px!important;
+  }
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card > .section-head > button {
+    flex:1 1 100%!important;
+    width:100%!important;
+  }
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .section-head {
+    padding:13px 14px!important;
+    border-radius:14px!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  html body.app-page.page-app #appMain .view:not(#dashboard) > .card {
+    scroll-behavior:auto!important;
+  }
+}
