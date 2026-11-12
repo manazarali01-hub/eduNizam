@@ -2075,6 +2075,12 @@ try{
       if(committed!==chosen)pushFailure('calendar date picker','OK did not commit the selected date',JSON.stringify({chosen,committed}));
       const title='QA Calendar Date '+Date.now();
       await loginFlowPage.locator('#calTitle').fill(title);
+      // This contract verifies local persistence. Disable the mocked cloud
+      // session for this test so an unrelated cloud reconciliation cannot
+      // short-circuit the local save path.
+      await loginFlowPage.evaluate(()=>{
+        if(window.EDUNIZAM_CLOUD_CONFIG)window.EDUNIZAM_CLOUD_CONFIG.enabled=false;
+      });
       await loginFlowPage.locator('#calSave').tap({timeout:5000});
       // Calendar save is async (and may reconcile a cloud write before the
       // local commit). Wait for the persisted row instead of reading storage
