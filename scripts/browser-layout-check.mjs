@@ -1023,8 +1023,11 @@ try{
             pushFailure('workspace table appearance','Accessible blue table link color did not render',JSON.stringify(tablePreview));
         }
         await page.setViewportSize({width:1366,height:900});
+        await page.locator('#qa-workspace-table-view').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(120);
         await page.screenshot({path:path.join(visualDir,'workspace-table-1366.png'),fullPage:false});
         await page.setViewportSize({width:390,height:844});
+        await page.locator('#qa-workspace-table-view').scrollIntoViewIfNeeded();
         await page.waitForTimeout(120);
         await page.screenshot({path:path.join(visualDir,'workspace-table-390.png'),fullPage:false});
         await page.evaluate(()=>document.getElementById('qa-workspace-table-view')?.remove());
