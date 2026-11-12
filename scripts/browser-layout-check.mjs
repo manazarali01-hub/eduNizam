@@ -219,6 +219,7 @@ async function inspectPage(page,url,width,navigate=true){
         linksGridColumns:(getComputedStyle(document.querySelector('.page-home .public-links')||document.body).gridTemplateColumns||'').trim().split(/\s+/).filter(Boolean).length,
         navLinkCount:document.querySelectorAll('.page-home .public-links>a').length,
         navLinksVisible:[...document.querySelectorAll('.page-home .public-links>a')].every(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.left>=-1&&r.right<=document.documentElement.clientWidth+1;}),
+        navLinkStyles:[...document.querySelectorAll('.page-home .public-links>a:not(.nav-primary)')].map(el=>{const cs=getComputedStyle(el);return {background:cs.backgroundColor,image:cs.backgroundImage,color:cs.color,fill:cs.webkitTextFillColor};}),
         navHeight:box('.page-home .public-nav')?.height||0,
         learningColors:[...document.querySelectorAll('.page-home .learning-band .resource-card :is(small,strong,span)')].slice(0,9).map(el=>({color:getComputedStyle(el).color,text:(el.textContent||'').trim().slice(0,30)})),
         experienceColumns:getComputedStyle(document.querySelector('.page-home .experience-strip')||document.body).gridTemplateColumns,
@@ -484,6 +485,12 @@ try{
           if(result.home.linksGridColumns!==2)pushFailure(scope,'Homepage mobile navigation does not have exactly two columns',String(result.home.linksGridColumns));
           if(result.home.navLinkCount!==6)pushFailure(scope,'Homepage mobile navigation does not expose all six destinations',String(result.home.navLinkCount));
           if(!result.home.navLinksVisible)pushFailure(scope,'One or more homepage navigation links are clipped or outside the viewport');
+          for(const link of result.home.navLinkStyles||[]){
+            const rgb=(link.background.match(/[0-9.]+/g)||[]).slice(0,3).map(Number);
+            if(!link.image.includes('linear-gradient')||rgb.length!==3||rgb[0]>30||rgb[1]>75||rgb[2]>125||link.color!=='rgb(247, 251, 255)'||link.fill!=='rgb(247, 251, 255)'){
+              pushFailure(scope,'Mobile public navigation link is not rendered on a dark navy surface with readable white text',JSON.stringify(link));
+            }
+          }
           if(result.home.navHeight>235)pushFailure(scope,'Homepage mobile navigation consumes too much vertical space',Math.round(result.home.navHeight)+'px');
           for(const panel of result.home.contrastPanels||[]){
             if(panel.missing||!panel.background.includes('rgba(')||!panel.blur.includes('blur(')){
