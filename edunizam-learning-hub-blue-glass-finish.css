@@ -1,0 +1,145 @@
+/* Learning Hub premium blue-glass finish — presentation only.
+   Keep resource data, filters, guest access and navigation behavior unchanged. */
+body.page-learning.learning-sky{
+  --learn-glass:linear-gradient(145deg,rgba(12,48,88,.94),rgba(3,16,38,.97));
+  --learn-glass-soft:linear-gradient(145deg,rgba(14,57,101,.82),rgba(4,23,50,.92));
+  color:#eff8ff;
+  background:
+    radial-gradient(ellipse at 12% 0,rgba(0,132,255,.24),transparent 34rem),
+    radial-gradient(ellipse at 92% 22%,rgba(0,190,255,.14),transparent 32rem),
+    linear-gradient(145deg,#020817,#061d40 54%,#020b1d)!important;
+  background-attachment:fixed!important;
+}
+.page-learning .topbar{
+  background:rgba(3,19,43,.92)!important;
+  border:1px solid rgba(91,190,255,.38);
+  border-radius:0 0 18px 18px;
+  box-shadow:0 12px 34px rgba(0,0,0,.28),0 0 22px rgba(0,132,255,.12);
+  backdrop-filter:blur(20px) saturate(150%);
+}
+.page-learning .brand strong,
+.page-learning .brand small{color:#eff8ff!important}
+.page-learning .brand .n{color:#7bd5ff!important}
+.page-learning .brand img{border-color:rgba(91,190,255,.55);box-shadow:0 0 22px rgba(0,132,255,.25)}
+.page-learning .top-actions .btn{
+  color:#eaf6ff!important;background:rgba(25,78,128,.48)!important;
+  border-color:rgba(91,190,255,.42)!important;
+}
+.page-learning .top-actions .btn.primary,
+.page-learning .hero-actions .btn.primary,
+.page-learning #runGlobalSearch,
+.page-learning .paper-filters .btn.primary{
+  color:#fff!important;background:linear-gradient(115deg,#087fe8,#0755b3 58%,#08a8ef)!important;
+  border:1px solid rgba(116,211,255,.72)!important;
+  box-shadow:0 8px 24px rgba(0,119,235,.28),inset 0 1px rgba(255,255,255,.2);
+}
+.page-learning .hero-card,
+.page-learning .quick-card,
+.page-learning .stat,
+.page-learning .card,
+.page-learning .paper-filters,
+.page-learning .practice-box,
+.page-learning .searchbox{
+  color:#eff8ff!important;
+  background:var(--learn-glass)!important;
+  border:1px solid rgba(91,190,255,.42)!important;
+  box-shadow:0 16px 38px rgba(0,0,0,.25),0 0 22px rgba(0,130,255,.12),inset 0 1px rgba(255,255,255,.08)!important;
+  backdrop-filter:blur(18px) saturate(145%);
+}
+.page-learning .hero-card{overflow:hidden}
+.page-learning .hero-card:after{border-color:rgba(91,190,255,.2);box-shadow:0 0 0 44px rgba(91,184,246,.05),0 0 0 88px rgba(91,184,246,.025)}
+.page-learning .hero-card .kicker,
+.page-learning .quick-card .kicker{
+  color:#a9e3ff!important;background:rgba(8,127,232,.18)!important;
+  border:1px solid rgba(91,190,255,.34)!important;
+}
+.page-learning .hero h1,
+.page-learning .quick-card h2,
+.page-learning .section-head h2,
+.page-learning .card h3,
+.page-learning .question,
+.page-learning .empty strong,
+.page-learning .smart-empty h3{color:#f2f9ff!important}
+.page-learning .hero p,
+.page-learning .quick-item small,
+.page-learning .section-head p,
+.page-learning .card p,
+.page-learning .paper-summary,
+.page-learning .stat span,
+.page-learning .footer{color:#bdd5e9!important}
+.page-learning .hero h1:after{background:linear-gradient(90deg,#37c5ff,#d6a94d)}
+.page-learning .quick-item{
+  background:rgba(2,16,39,.48)!important;border-color:rgba(91,190,255,.25)!important;
+}
+.page-learning .searchbox{background:rgba(3,19,43,.94)!important}
+.page-learning .searchbox input{color:#f1f9ff!important;background:transparent!important}
+.page-learning .searchbox input::placeholder,
+.page-learning .paper-filters input::placeholder{color:#9dbbd6!important}
+.page-learning .searchbox>span{color:#7bd5ff!important}
+.page-learning .tabs{background:rgba(3,19,43,.52)!important;border:1px solid rgba(91,190,255,.22)}
+.page-learning .tab{
+  color:#c9e1f5!important;background:rgba(14,57,101,.58)!important;
+  border-color:rgba(91,190,255,.28)!important;
+}
+.page-learning .tab.active{
+  color:#fff!important;background:linear-gradient(115deg,#087fe8,#0755b3)!important;
+  border-color:#74d3ff!important;box-shadow:0 7px 20px rgba(0,119,235,.24);
+}
+.page-learning .stat{position:relative;overflow:hidden}
+.page-learning .stat:before{background:linear-gradient(180deg,#37c5ff,#087fe8)!important}
+.page-learning .stat strong{color:#f2f9ff!important}
+.page-learning .card:hover{
+  transform:translateY(-3px);border-color:rgba(116,211,255,.72)!important;
+  box-shadow:0 20px 42px rgba(0,0,0,.32),0 0 28px rgba(0,153,255,.2)!important;
+}
+.page-learning .resource-card:before{background:linear-gradient(90deg,#087fe8,#37c5ff,#d6a94d)!important}
+.page-learning .card .open,
+.page-learning .hub-link strong{color:#8ed8ff!important}
+.page-learning .hub-link span{color:#bdd5e9!important}
+.page-learning .badge{background:rgba(8,127,232,.18)!important;color:#ccecff!important;border-color:rgba(91,190,255,.25)!important}
+.page-learning .badge.official{background:rgba(21,122,90,.2)!important;color:#a8f0ce!important;border-color:rgba(91,220,165,.35)!important}
+.page-learning .badge.verified{background:rgba(214,169,77,.16)!important;color:#ffe3a3!important;border-color:rgba(214,169,77,.38)!important}
+.page-learning .badge.builtin{background:rgba(87,105,255,.18)!important;color:#d5d9ff!important}
+.page-learning .paper-filters input,
+.page-learning .paper-filters select,
+.page-learning .searchbox input{
+  color:#eff8ff!important;background:#021027!important;border:1px solid rgba(94,190,255,.52)!important;
+}
+.page-learning .paper-filters input:focus,
+.page-learning .paper-filters select:focus,
+.page-learning .searchbox:focus-within{
+  border-color:#37c5ff!important;box-shadow:0 0 0 3px rgba(55,197,255,.16),0 14px 34px rgba(0,0,0,.2)!important;
+}
+.page-learning .paper-filters select option{color:#eff8ff;background:#061b3b}
+.page-learning .search-suggestions button{
+  color:#ccecff!important;background:rgba(14,57,101,.72)!important;border-color:rgba(91,190,255,.32)!important;
+}
+.page-learning .search-suggestions button:hover{background:rgba(8,127,232,.3)!important;border-color:#74d3ff!important}
+.page-learning .option{
+  color:#eaf6ff!important;background:rgba(2,16,39,.62)!important;border-color:rgba(91,190,255,.32)!important;
+}
+.page-learning .option:hover{background:rgba(8,127,232,.22)!important;border-color:#74d3ff!important}
+.page-learning .option.correct{color:#a8f0ce!important;background:rgba(21,122,90,.2)!important;border-color:rgba(91,220,165,.5)!important}
+.page-learning .option.wrong{color:#ffc4c0!important;background:rgba(178,58,53,.2)!important;border-color:rgba(244,140,130,.5)!important}
+.page-learning .explain,
+.page-learning .empty,
+.page-learning .smart-empty{
+  color:#c5dcef!important;background:rgba(2,16,39,.56)!important;border-color:rgba(91,190,255,.3)!important;
+}
+.page-learning .notice{
+  color:#ffe3a3!important;background:rgba(113,79,22,.22)!important;border-color:rgba(214,169,77,.42)!important;
+}
+.page-learning .preview-box,
+.page-learning .premium-dialog{color:#eff8ff!important;background:#061b3b!important;border:1px solid rgba(91,190,255,.48)!important}
+.page-learning .preview-head{border-bottom-color:rgba(91,190,255,.28)!important}
+.page-learning .preview-frame,
+.page-learning .premium-preview-frame{background:#021027!important}
+.page-learning .footer{border-top-color:rgba(91,190,255,.28)!important}
+.page-learning :focus-visible{outline:3px solid #42c7ff!important;outline-offset:3px!important}
+@media(max-width:620px){
+  .page-learning .topbar{border-radius:0 0 14px 14px}
+  .page-learning .tabs{border:0;background:transparent!important}
+  .page-learning .searchbox{box-shadow:0 10px 26px rgba(0,0,0,.24)!important}
+  .page-learning .hero-card,.page-learning .quick-card,.page-learning .card{border-radius:17px}
+}
+@media(prefers-reduced-motion:reduce){.page-learning .card{transition:none!important}}
