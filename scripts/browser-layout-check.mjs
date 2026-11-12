@@ -2076,7 +2076,7 @@ try{
       const title='QA Calendar Date '+Date.now();
       await loginFlowPage.locator('#calTitle').fill(title);
       await loginFlowPage.locator('#calSave').tap({timeout:5000});
-      const saved=await boundedEvaluate('verify Calendar Center committed event date',date=>JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]').find(x=>x.title===date),title,5000).catch(()=>null);
+      const saved=await loginFlowPage.evaluate(date=>JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]').find(x=>x.title===date),title).catch(()=>null);
       if(!saved||saved.eventDate!==chosen)pushFailure('calendar date picker','Saved event did not retain the date confirmed with OK',JSON.stringify({chosen,saved}));
     }
 
