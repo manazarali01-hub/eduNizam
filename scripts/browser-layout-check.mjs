@@ -2076,6 +2076,15 @@ try{
       const title='QA Calendar Date '+Date.now();
       await loginFlowPage.locator('#calTitle').fill(title);
       await loginFlowPage.locator('#calSave').tap({timeout:5000});
+      // Calendar save is async (and may reconcile a cloud write before the
+      // local commit). Wait for the persisted row instead of reading storage
+      // immediately after the click.
+      await loginFlowPage.waitForFunction(({title,chosen})=>{
+        try{
+          const rows=JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]');
+          return rows.some(x=>x.title===title&&x.eventDate===chosen);
+        }catch(_){return false}
+      },{title,chosen},{timeout:8000}).catch(()=>{});
       const saved=await loginFlowPage.evaluate(date=>JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]').find(x=>x.title===date),title).catch(()=>null);
       if(!saved||saved.eventDate!==chosen)pushFailure('calendar date picker','Saved event did not retain the date confirmed with OK',JSON.stringify({chosen,saved}));
     }
