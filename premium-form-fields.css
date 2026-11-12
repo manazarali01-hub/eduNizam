@@ -445,3 +445,21 @@ body.admission-premium.page-admission .password-wrap>input{
  :is(body.auth-page,body.app-page,body.learning-sky,body.admission-premium)
  :is(input,select,textarea){transition:none!important}
 }
+
+
+/* Keep browser/Android native date and time pickers fully functional.
+   Generic form-field gradients and text-fill styling must not replace the
+   platform control's own affordances or confirmation UI. */
+:where(body) input:is([type="date"], [type="time"], [type="datetime-local"]) {
+  -webkit-appearance: auto;
+  appearance: auto;
+  background-image: none;
+  -webkit-text-fill-color: currentColor;
+  color: #17324a;
+  color-scheme: light;
+}
+
+:where(body) input:is([type="date"], [type="time"], [type="datetime-local"])::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+}
