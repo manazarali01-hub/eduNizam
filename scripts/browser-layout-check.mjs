@@ -984,34 +984,35 @@ try{
         // contrast rules are exercised in a real browser, not inferred from CSS.
         const tablePreview=await page.evaluate(()=>{
           const main=document.getElementById('appMain');
-          if(!main)return {missingMain:true};
-          const prior=main.querySelector('#qa-workspace-table-view');
-          prior?.remove();
-          const view=document.createElement('section');
-          view.id='qa-workspace-table-view';
-          view.className='view active';
-          view.innerHTML=`
-            <div class="section-head"><h2>Workspace table preview</h2></div>
-            <article class="card" style="margin-top:16px">
-              <div class="section-head"><h2>Class records</h2><button type="button">Export preview</button></div>
-              <div style="overflow-x:auto">
-                <table style="width:100%;border-collapse:collapse;min-width:520px">
-                  <thead><tr><th style="padding:12px;text-align:left">Student</th><th style="padding:12px;text-align:left">Class</th><th style="padding:12px;text-align:left">Status</th><th style="padding:12px;text-align:left">Record</th></tr></thead>
-                  <tbody>
-                    <tr><td style="padding:12px">Ayesha Khan</td><td style="padding:12px">Grade 5</td><td style="padding:12px">Active</td><td style="padding:12px"><a href="#qa-record">View record</a></td></tr>
-                    <tr><td style="padding:12px">Ali Raza</td><td style="padding:12px">Grade 8</td><td style="padding:12px">Active</td><td style="padding:12px"><a href="#qa-record">View record</a></td></tr>
-                    <tr><td style="padding:12px">Sara Noor</td><td style="padding:12px">Grade 5</td><td style="padding:12px">Pending</td><td style="padding:12px"><a href="#qa-record">View record</a></td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </article>`;
+          const view=document.getElementById('students');
+          if(!main||!view)return {missingMain:!main,missingStudentsView:!view};
+          view.querySelector('#qa-workspace-table-preview')?.remove();
+          const preview=document.createElement('article');
+          preview.id='qa-workspace-table-preview';
+          preview.className='card';
+          preview.style.marginTop='16px';
+          preview.innerHTML=`
+            <div class="section-head"><div><h2>Visual QA — Student records</h2><p class="muted">Temporary sample rows; no real student data is used.</p></div><button type="button">Export preview</button></div>
+            <div class="qa-workspace-table-scroll" style="overflow-x:auto">
+              <table style="width:100%;border-collapse:collapse;min-width:520px">
+                <thead><tr><th style="padding:12px;text-align:left">Student</th><th style="padding:12px;text-align:left">Class</th><th style="padding:12px;text-align:left">Status</th><th style="padding:12px;text-align:left">Record</th></tr></thead>
+                <tbody>
+                  <tr><td style="padding:12px">Ayesha Khan</td><td style="padding:12px">Grade 5</td><td style="padding:12px">Active</td><td style="padding:12px"><a href="#qa-record">View record</a></td></tr>
+                  <tr><td style="padding:12px">Ali Raza</td><td style="padding:12px">Grade 8</td><td style="padding:12px">Active</td><td style="padding:12px"><a href="#qa-record">View record</a></td></tr>
+                  <tr><td style="padding:12px">Sara Noor</td><td style="padding:12px">Grade 5</td><td style="padding:12px">Pending</td><td style="padding:12px"><a href="#qa-record">View record</a></td></tr>
+                </tbody>
+              </table>
+            </div>`;
+          view.querySelectorAll('.card').length;
+          view.append(preview);
           main.querySelectorAll('.view.active').forEach(el=>el.classList.remove('active'));
-          main.append(view);
-          const pick=sel=>{const el=view.querySelector(sel);if(!el)return null;const cs=getComputedStyle(el);return {color:cs.color,fill:cs.webkitTextFillColor,background:cs.backgroundColor,image:cs.backgroundImage};};
-          return {missingMain:false,card:pick('.card'),heading:pick('thead th'),cell:pick('tbody tr:first-child td'),alternate:pick('tbody tr:nth-child(even) td'),link:pick('tbody a'),width:main.clientWidth};
+          view.classList.add('active');
+          const pick=sel=>{const el=preview.querySelector(sel);if(!el)return null;const cs=getComputedStyle(el);return {color:cs.color,fill:cs.webkitTextFillColor,background:cs.backgroundColor,image:cs.backgroundImage};};
+          const table=preview.querySelector('table'),wrapper=preview.querySelector('.qa-workspace-table-scroll');
+          return {missingMain:false,missingStudentsView:false,card:pick('.card'),heading:pick('thead th'),cell:pick('tbody tr:first-child td'),alternate:pick('tbody tr:nth-child(even) td'),link:pick('tbody a'),width:main.clientWidth,table:{clientWidth:table.clientWidth,scrollWidth:table.scrollWidth,overflowX:getComputedStyle(table).overflowX,wrapperClientWidth:wrapper.clientWidth,wrapperScrollWidth:wrapper.scrollWidth}};
         });
         console.log('Workspace table contrast preview:',JSON.stringify(tablePreview));
-        if(tablePreview.missingMain)pushFailure('workspace table appearance','appMain was not available for rendered table preview');
+        if(tablePreview.missingMain||tablePreview.missingStudentsView)pushFailure('workspace table appearance','Real Students workspace view was not available for rendered table preview',JSON.stringify(tablePreview));
         else {
           const rgb=value=>(value||'').match(/\d+/g)?.slice(0,3).map(Number)||[];
           const darkEnough=value=>{const c=rgb(value);return c.length===3&&Math.max(...c)<150;};
@@ -1021,16 +1022,18 @@ try{
             pushFailure('workspace table appearance','Soft blue table header surface did not render',JSON.stringify(tablePreview));
           if(!String(tablePreview.link?.color||'').includes('7, 93, 165')&&!String(tablePreview.link?.fill||'').includes('7, 93, 165'))
             pushFailure('workspace table appearance','Accessible blue table link color did not render',JSON.stringify(tablePreview));
+          if(tablePreview.table?.clientWidth<500||tablePreview.table?.scrollWidth<=tablePreview.table?.clientWidth)
+            pushFailure('workspace table appearance','Mobile table does not expose horizontal scrolling',JSON.stringify(tablePreview.table));
         }
         await page.setViewportSize({width:1366,height:900});
-        await page.locator('#qa-workspace-table-view').scrollIntoViewIfNeeded();
+        await page.locator('#students #qa-workspace-table-preview').scrollIntoViewIfNeeded();
         await page.waitForTimeout(120);
         await page.screenshot({path:path.join(visualDir,'workspace-table-1366.png'),fullPage:false});
         await page.setViewportSize({width:390,height:844});
         await page.locator('#qa-workspace-table-view').scrollIntoViewIfNeeded();
         await page.waitForTimeout(120);
         await page.screenshot({path:path.join(visualDir,'workspace-table-390.png'),fullPage:false});
-        await page.evaluate(()=>document.getElementById('qa-workspace-table-view')?.remove());
+        await page.evaluate(()=>document.getElementById('qa-workspace-table-preview')?.remove());
 
         await page.setViewportSize({width:390,height:844});
         console.log('Authenticated dashboard screenshots captured at 390px and 1366px: '+JSON.stringify(headerLayout));
