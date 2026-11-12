@@ -1013,7 +1013,7 @@ try{
         console.log('Workspace table contrast preview:',JSON.stringify(tablePreview));
         if(tablePreview.missingMain)pushFailure('workspace table appearance','appMain was not available for rendered table preview');
         else {
-          const rgb=value=>(value||'').match(/\\d+/g)?.slice(0,3).map(Number)||[];
+          const rgb=value=>(value||'').match(/\d+/g)?.slice(0,3).map(Number)||[];
           const darkEnough=value=>{const c=rgb(value);return c.length===3&&Math.max(...c)<150;};
           if(!darkEnough(tablePreview.heading?.color)||!darkEnough(tablePreview.cell?.color))
             pushFailure('workspace table appearance','Table heading/body text did not resolve to dark readable colors',JSON.stringify(tablePreview));
