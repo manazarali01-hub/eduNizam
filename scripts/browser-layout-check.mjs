@@ -2197,7 +2197,13 @@ try{
         }catch(_){return false}
       },{title,chosen},{timeout:8000}).catch(()=>{});
       const saved=await loginFlowPage.evaluate(date=>JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]').find(x=>x.title===date),title).catch(()=>null);
-      if(!saved||saved.eventDate!==chosen)pushFailure('calendar date picker','Saved event did not retain the date confirmed with OK',JSON.stringify({chosen,saved}));
+      if(!saved||saved.eventDate!==chosen){
+        const diagnostic=await loginFlowPage.evaluate(({title,chosen})=>{
+          let rows=[];try{rows=JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]')}catch(_){}
+          return {chosen,title,inputDate:document.getElementById('calDate')?.value||null,titleInput:document.getElementById('calTitle')?.value||null,saveDisabled:!!document.getElementById('calSave')?.disabled,cloudEnabled:window.EDUNIZAM_CLOUD_CONFIG?.enabled??null,matchingTitle:rows.filter(x=>x.title===title),recentRows:rows.slice(-4)};
+        },{title,chosen}).catch(error=>({diagnosticError:error.message}));
+        pushFailure('calendar date picker','Saved event did not retain the date confirmed with OK',JSON.stringify({chosen,saved,diagnostic}));
+      }
     }
 
     await boundedEvaluate('prepare local primary action contract',()=>{
