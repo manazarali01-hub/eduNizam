@@ -44,3 +44,25 @@ body.admission-premium.page-admission .shell #schoolSearch::placeholder {
     align-items: flex-start;
   }
 }
+
+/* Rendered QA follow-up: keep inherited pill labels and the mobile back link
+   on a dark surface so their pale text never sits on a light background. */
+body.admission-premium.page-admission .shell .field label,
+body.admission-premium.page-admission .shell .doc label {
+  color: #f1f7ff !important;
+  -webkit-text-fill-color: #f1f7ff !important;
+  background: rgba(8, 35, 68, 0.88) !important;
+  border: 1px solid rgba(112, 190, 244, 0.34) !important;
+  border-radius: 8px !important;
+  padding: 4px 8px !important;
+  width: fit-content;
+}
+
+body.admission-premium.page-admission .shell .back {
+  color: #f0f7ff !important;
+  -webkit-text-fill-color: #f0f7ff !important;
+  background: rgba(8, 35, 68, 0.88) !important;
+  border: 1px solid rgba(112, 190, 244, 0.42) !important;
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+}
