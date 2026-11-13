@@ -1,0 +1,144 @@
+/* Phase 55 — dashboard hero typography and action hierarchy.
+   Presentation-only: preserves dashboard content, IDs, actions and institute identity behavior. */
+html body.app-page.page-app #appMain > #dashboard > .campus-hero {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(137, 211, 255, .48) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(ellipse at 88% 12%, rgba(75, 190, 255, .22), transparent 36%),
+    radial-gradient(ellipse at 5% 100%, rgba(22, 111, 194, .18), transparent 42%),
+    linear-gradient(132deg, rgba(8, 47, 91, .98), rgba(3, 25, 61, .99)) !important;
+  box-shadow: 0 18px 42px rgba(0, 13, 43, .24), inset 0 1px rgba(255,255,255,.13) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero > div:first-child {
+  position: relative !important;
+  z-index: 1 !important;
+  min-width: 0 !important;
+  padding: clamp(8px, 1.2vw, 16px) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  padding: 7px 12px !important;
+  border: 1px solid rgba(135, 221, 255, .42) !important;
+  border-radius: 999px !important;
+  background: rgba(37, 142, 204, .22) !important;
+  color: #c8efff !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  letter-spacing: .105em !important;
+  line-height: 1.3 !important;
+  text-transform: uppercase !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-label::before {
+  content: "" !important;
+  width: 7px !important;
+  height: 7px !important;
+  flex: 0 0 7px !important;
+  border-radius: 50% !important;
+  background: #7ee8ff !important;
+  box-shadow: 0 0 12px rgba(87, 218, 255, .85) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero #dashboardWelcomeTitle {
+  max-width: 720px !important;
+  margin: 17px 0 12px !important;
+  color: #f6fbff !important;
+  font-size: clamp(27px, 3vw, 43px) !important;
+  font-weight: 880 !important;
+  letter-spacing: -.045em !important;
+  line-height: 1.08 !important;
+  text-wrap: balance !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero #dashboardWelcomeText {
+  max-width: 660px !important;
+  margin: 0 !important;
+  color: #c6def2 !important;
+  font-size: clamp(14px, 1.15vw, 16px) !important;
+  font-weight: 520 !important;
+  line-height: 1.72 !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-hero-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 11px !important;
+  margin-top: 22px !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-hero-actions > button {
+  min-height: 46px !important;
+  padding: 11px 17px !important;
+  border: 1px solid rgba(147, 224, 255, .65) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(125deg, #168bd4, #0755a6) !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 820 !important;
+  box-shadow: 0 7px 18px rgba(0, 93, 173, .25), inset 0 1px rgba(255,255,255,.2) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-hero-actions > button.secondary {
+  border-color: rgba(158, 205, 239, .38) !important;
+  background: rgba(9, 44, 83, .66) !important;
+  color: #e4f3ff !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.1) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-hero-actions > button:hover {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.08) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-hero-actions > button:focus-visible {
+  outline: 3px solid #ffda78 !important;
+  outline-offset: 3px !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-visual {
+  position: relative !important;
+  z-index: 1 !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(12px) saturate(130%) !important;
+}
+@media (max-width: 760px) {
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero {
+    gap: 12px !important;
+    padding: 17px !important;
+    border-radius: 19px !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero > div:first-child {
+    padding: 0 !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero #dashboardWelcomeTitle {
+    margin-top: 13px !important;
+    font-size: clamp(25px, 7.2vw, 33px) !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero #dashboardWelcomeText {
+    font-size: 13px !important;
+    line-height: 1.62 !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-hero-actions {
+    gap: 8px !important;
+    margin-top: 16px !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-hero-actions > button {
+    flex: 1 1 145px !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
+}
+@media (max-width: 360px) {
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero {
+    padding: 14px !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-hero-actions > button {
+    flex-basis: 100% !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.app-page.page-app #appMain > #dashboard > .campus-hero .campus-hero-actions > button {
+    transition: none !important;
+  }
+}
