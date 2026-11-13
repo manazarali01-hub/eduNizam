@@ -2272,9 +2272,14 @@ try{
       const added=rows.find(x=>x.name==='QA New Student');
       const days=JSON.parse(localStorage.getItem('edunizam_attendance')||'{}');
       const values=Object.values(days);
+      const renderedRows=[...document.querySelectorAll('#attendanceList .attendance-row')].map(row=>({
+        text:(row.textContent||'').trim(),
+        studentInputs:[...row.querySelectorAll('input[type="radio"]')].map(input=>({name:input.name,value:input.value,checked:input.checked}))
+      }));
       return {
         approvedLeavePreserved:values.some(day=>day&&String(day['9001']||day[9001])==='Leave'),
-        newStudentPresent:!!added&&values.some(day=>day&&String(day[String(added.id)]||day[added.id])==='Present')
+        newStudentPresent:!!added&&values.some(day=>day&&String(day[String(added.id)]||day[added.id])==='Present'),
+        diagnostic:{addedStudentId:added?.id??null,sessionRole:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role??null}catch{return 'invalid'}})(),todayKey:Object.keys(days).sort().at(-1)||null,storedToday:days[new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')+'-'+String(new Date().getDate()).padStart(2,'0')]||null,renderedRows}
       };
     });
     if(!attendanceAction.approvedLeavePreserved||!attendanceAction.newStudentPresent){
