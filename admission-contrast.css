@@ -1,50 +1,46 @@
-/* Admission portal contrast repair — keep helper copy readable on the dark glass surface. */
-body.page-admission .muted,
-body.page-admission .section-title span,
-body.page-admission .doc small,
-body.page-admission .result small,
-body.page-admission .meta {
+/* Admission portal contrast repair — stronger page-scoped selectors beat injected shared appearance rules. */
+body.admission-premium.page-admission .shell .muted,
+body.admission-premium.page-admission .shell .section-title span,
+body.admission-premium.page-admission .shell .doc small,
+body.admission-premium.page-admission .shell .result small,
+body.admission-premium.page-admission .shell .meta {
   color: #c7d9ec !important;
 }
 
-body.page-admission .back {
+body.admission-premium.page-admission .shell .back {
   color: #d9edff !important;
 }
 
-body.page-admission .field label,
-body.page-admission .doc label {
+body.admission-premium.page-admission .shell .field label,
+body.admission-premium.page-admission .shell .doc label {
   color: #edf6ff !important;
 }
 
-body.page-admission .section-title {
+body.admission-premium.page-admission .shell .section-title {
   border-top-color: rgba(190, 220, 248, 0.22) !important;
 }
 
-body.page-admission .meta span {
+body.admission-premium.page-admission .shell .meta span {
   color: #d7e8f8 !important;
   border-color: rgba(190, 220, 248, 0.2) !important;
   background: rgba(10, 36, 70, 0.56) !important;
 }
 
-body.page-admission .app,
-body.page-admission .doc,
-body.page-admission .result {
-  color: #edf6ff;
+body.admission-premium.page-admission .shell .app,
+body.admission-premium.page-admission .shell .doc,
+body.admission-premium.page-admission .shell .result {
+  color: #edf6ff !important;
 }
 
-body.page-admission .field input::placeholder,
-body.page-admission .field textarea::placeholder,
-body.page-admission #schoolSearch::placeholder {
-  color: #617b91;
+body.admission-premium.page-admission .shell .field input::placeholder,
+body.admission-premium.page-admission .shell .field textarea::placeholder,
+body.admission-premium.page-admission .shell #schoolSearch::placeholder {
+  color: #617b91 !important;
   opacity: 1;
 }
 
 @media (max-width: 720px) {
-  body.page-admission .top {
+  body.admission-premium.page-admission .shell .top {
     align-items: flex-start;
-  }
-
-  body.page-admission .brand .muted {
-    color: #c7d9ec !important;
   }
 }
