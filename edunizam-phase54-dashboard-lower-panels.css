@@ -1,0 +1,107 @@
+/* Phase 54 — dashboard lower-panel visual finish.
+   Visual-only: no data, role visibility, navigation or action behavior changes. */
+html body.app-page.page-app #appMain > #dashboard > .grid-2 > .card {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  gap: 14px !important;
+  padding: 20px !important;
+  border: 1px solid rgba(135, 202, 245, .42) !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(48, 168, 239, .18), transparent 48%),
+    linear-gradient(145deg, rgba(9, 54, 103, .96), rgba(2, 24, 59, .98)) !important;
+  box-shadow: 0 14px 32px rgba(0, 12, 39, .22), inset 0 1px rgba(255,255,255,.12) !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .grid-2 > .card > h2 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 0 12px !important;
+  border-bottom: 1px solid rgba(135, 202, 245, .22) !important;
+  color: #f5fbff !important;
+  font-size: clamp(17px, 1.5vw, 20px) !important;
+  font-weight: 850 !important;
+  letter-spacing: -.025em !important;
+}
+html body.app-page.page-app #appMain > #dashboard > .grid-2 > .card > h2::before {
+  content: "" !important;
+  width: 4px !important;
+  height: 21px !important;
+  flex: 0 0 4px !important;
+  border-radius: 99px !important;
+  background: linear-gradient(180deg, #8cecff, #258bd3) !important;
+  box-shadow: 0 0 12px rgba(66, 190, 255, .42) !important;
+}
+html body.app-page.page-app #appMain > #dashboard .quick-actions > button {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 52px !important;
+  padding: 12px 14px !important;
+  border: 1px solid rgba(128, 204, 249, .42) !important;
+  border-radius: 13px !important;
+  background: linear-gradient(130deg, rgba(21, 111, 178, .82), rgba(5, 43, 91, .94)) !important;
+  color: #f4fbff !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.13), 0 6px 14px rgba(0, 10, 34, .14) !important;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease !important;
+}
+html body.app-page.page-app #appMain > #dashboard .quick-actions > button:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(125, 221, 255, .82) !important;
+  box-shadow: 0 10px 20px rgba(0, 104, 182, .22), inset 0 1px rgba(255,255,255,.16) !important;
+}
+html body.app-page.page-app #appMain > #dashboard .quick-actions > button:focus-visible {
+  outline: 3px solid #ffd36a !important;
+  outline-offset: 3px !important;
+}
+html body.app-page.page-app #appMain > #dashboard #activityList {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  min-height: 116px !important;
+  padding: 13px !important;
+  border: 1px dashed rgba(132, 201, 243, .36) !important;
+  border-radius: 14px !important;
+  background: rgba(1, 17, 43, .38) !important;
+  color: #c8e2f5 !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+}
+html body.app-page.page-app #appMain > #dashboard #activityList > * {
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 10px 11px !important;
+  border: 1px solid rgba(125, 194, 238, .22) !important;
+  border-radius: 11px !important;
+  background: linear-gradient(120deg, rgba(19, 91, 148, .38), rgba(5, 37, 81, .44)) !important;
+  color: #e8f5ff !important;
+  overflow-wrap: anywhere !important;
+}
+@media (max-width: 760px) {
+  html body.app-page.page-app #appMain > #dashboard > .grid-2 > .card {
+    gap: 12px !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+  html body.app-page.page-app #appMain > #dashboard .quick-actions > button {
+    min-height: 48px !important;
+    padding: 10px 11px !important;
+  }
+}
+@media (max-width: 380px) {
+  html body.app-page.page-app #appMain > #dashboard > .grid-2 > .card {
+    padding: 14px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.app-page.page-app #appMain > #dashboard .quick-actions > button {
+    transition: none !important;
+  }
+}
