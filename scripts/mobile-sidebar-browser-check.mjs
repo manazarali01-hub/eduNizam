@@ -87,6 +87,22 @@ try{
   if(!chevron.text||chevron.width<7||chevron.height<7||chevron.color==='rgba(0, 0, 0, 0)'||chevron.display==='none'||chevron.visibility!=='visible'||Number(chevron.opacity)===0)
     throw new Error('Mobile accordion chevron is not visibly rendered: '+JSON.stringify(chevron));
   const firstGroup=sidebar.locator('#nav .nav-group').first();
+  const toggleTrace=await page.evaluate(()=>{
+    const nav=document.querySelector('#nav');
+    const group=nav?.querySelector('.nav-group');
+    const summary=group?.querySelector('summary');
+    if(!nav||!group||!summary)return {missing:true};
+    const trace=[];
+    nav.addEventListener('click',event=>{
+      if(event.target.closest?.('.nav-group > summary'))trace.push({phase:'capture',defaultPrevented:event.defaultPrevented,open:group.open,target:event.target.tagName});
+    },true);
+    nav.addEventListener('click',event=>{
+      if(event.target.closest?.('.nav-group > summary'))trace.push({phase:'bubble',defaultPrevented:event.defaultPrevented,open:group.open,target:event.target.tagName});
+    });
+    group.addEventListener('toggle',()=>trace.push({phase:'toggle',open:group.open}));
+    return {trace};
+  });
+
   if(!(await firstGroup.evaluate(node=>node.open))) await firstSummary.click();
   const ensuredOpen=await firstGroup.evaluate(node=>node.open);
   if(!ensuredOpen)throw new Error('Could not open the first accordion group before testing toggle');
