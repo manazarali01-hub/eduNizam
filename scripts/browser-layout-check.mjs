@@ -2197,7 +2197,13 @@ try{
         }catch(_){return false}
       },{title,chosen},{timeout:8000}).catch(()=>{});
       const saved=await loginFlowPage.evaluate(date=>JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]').find(x=>x.title===date),title).catch(()=>null);
-      if(!saved||saved.eventDate!==chosen)pushFailure('calendar date picker','Saved event did not retain the date confirmed with OK',JSON.stringify({chosen,saved}));
+      if(!saved||saved.eventDate!==chosen){
+        const diagnostic=await loginFlowPage.evaluate(({title,chosen})=>{
+          let rows=[];try{rows=JSON.parse(localStorage.getItem('edunizam_calendar_events_v1')||'[]')}catch(_){}
+          return {chosen,title,inputDate:document.getElementById('calDate')?.value||null,titleInput:document.getElementById('calTitle')?.value||null,saveDisabled:!!document.getElementById('calSave')?.disabled,cloudEnabled:window.EDUNIZAM_CLOUD_CONFIG?.enabled??null,matchingTitle:rows.filter(x=>x.title===title),recentRows:rows.slice(-4)};
+        },{title,chosen}).catch(error=>({diagnosticError:error.message}));
+        pushFailure('calendar date picker','Saved event did not retain the date confirmed with OK',JSON.stringify({chosen,saved,diagnostic}));
+      }
     }
 
     await boundedEvaluate('prepare local primary action contract',()=>{
@@ -2272,9 +2278,14 @@ try{
       const added=rows.find(x=>x.name==='QA New Student');
       const days=JSON.parse(localStorage.getItem('edunizam_attendance')||'{}');
       const values=Object.values(days);
+      const renderedRows=[...document.querySelectorAll('#attendanceList .attendance-row')].map(row=>({
+        text:(row.textContent||'').trim(),
+        studentInputs:[...row.querySelectorAll('input[type="radio"]')].map(input=>({name:input.name,value:input.value,checked:input.checked}))
+      }));
       return {
         approvedLeavePreserved:values.some(day=>day&&String(day['9001']||day[9001])==='Leave'),
-        newStudentPresent:!!added&&values.some(day=>day&&String(day[String(added.id)]||day[added.id])==='Present')
+        newStudentPresent:!!added&&values.some(day=>day&&String(day[String(added.id)]||day[added.id])==='Present'),
+        diagnostic:{addedStudentId:added?.id??null,sessionRole:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role??null}catch{return 'invalid'}})(),todayKey:Object.keys(days).sort().at(-1)||null,storedToday:days[new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')+'-'+String(new Date().getDate()).padStart(2,'0')]||null,renderedRows}
       };
     });
     if(!attendanceAction.approvedLeavePreserved||!attendanceAction.newStudentPresent){
