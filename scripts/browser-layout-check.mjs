@@ -1047,6 +1047,45 @@ try{
         await page.evaluate(()=>document.getElementById('qa-workspace-table-preview')?.remove());
 
         await page.setViewportSize({width:390,height:844});
+        // Verify the final authenticated dashboard content can be scrolled clear
+        // of the fixed mobile dock at common phone widths. This catches real
+        // content/dock overlap rather than treating a cropped viewport screenshot
+        // as evidence of a layout defect.
+        for(const width of [390,320]){
+          await page.setViewportSize({width,height:844});
+          await page.waitForTimeout(140);
+          const clearance=await page.evaluate(()=>{
+            const main=document.getElementById('appMain');
+            const dashboard=document.getElementById('dashboard');
+            const dock=document.getElementById('premiumMobileDock');
+            if(!main||!dashboard||!dock)return {missing:{main:!main,dashboard:!dashboard,dock:!dock}};
+            const last=dashboard.lastElementChild;
+            const before={mainClient:main.clientHeight,mainScroll:main.scrollHeight,
+              windowHeight:document.documentElement.clientHeight,
+              documentScroll:document.documentElement.scrollHeight,
+              lastTag:last?.tagName||'',lastId:last?.id||'',lastClass:typeof last?.className==='string'?last.className:'',
+              dockPosition:getComputedStyle(dock).position,dockDisplay:getComputedStyle(dock).display};
+            main.scrollTop=main.scrollHeight;
+            window.scrollTo(0,document.documentElement.scrollHeight);
+            const lastRect=last?.getBoundingClientRect();
+            const dockRect=dock.getBoundingClientRect();
+            const mainRect=main.getBoundingClientRect();
+            return {...before,mainTop:main.scrollTop,windowY:window.scrollY,
+              lastBottom:lastRect?Math.round(lastRect.bottom):null,
+              dockTop:Math.round(dockRect.top),dockBottom:Math.round(dockRect.bottom),
+              mainBottom:Math.round(mainRect.bottom),
+              gap:lastRect?Math.round(dockRect.top-lastRect.bottom):null,
+              dockVisible:dockRect.width>0&&dockRect.height>0&&dockRect.top<innerHeight&&dockRect.bottom>0};
+          });
+          console.log('Authenticated mobile dashboard dock clearance at '+width+'px:',JSON.stringify(clearance));
+          if(clearance.missing||clearance.dockPosition!=='fixed'||!clearance.dockVisible||
+             clearance.lastBottom===null||clearance.gap<8){
+            pushFailure('mobile dashboard dock clearance',
+              'The final dashboard content is missing, unscrollable or remains underneath the fixed bottom dock at '+width+'px',
+              JSON.stringify(clearance));
+          }
+          await page.evaluate(()=>window.scrollTo(0,0));
+        }
         console.log('Authenticated dashboard screenshots captured at 390px and 1366px: '+JSON.stringify(headerLayout));
       }
 
