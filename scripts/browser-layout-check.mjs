@@ -2288,7 +2288,24 @@ try{
       for(let i=0;i<count;i++){
         const row=rows.nth(i);
         const leaveChecked=await row.locator('input[value="Leave"]:checked').count();
-        if(!leaveChecked)await row.locator('input[value="Present"]').check({timeout:5000});
+        if(!leaveChecked){
+          const present=row.locator('input[value="Present"]');
+          await present.check({timeout:5000});
+          const selected=await present.isChecked();
+          const immediateState=await row.locator('input[type="radio"]').evaluateAll(inputs=>inputs.map(input=>({value:input.value,checked:input.checked,disabled:input.disabled,name:input.name})));
+          console.log('Attendance radio immediate state:',JSON.stringify({selected,inputs:immediateState}));
+          if(!selected){
+            const rowText=(await row.innerText()).trim();
+            throw new Error('Attendance radio did not remain selected before save: '+rowText+' '+JSON.stringify(immediateState));
+          }
+        }
+        await loginFlowPage.waitForTimeout(100);
+        const settledState=await row.locator('input[type="radio"]').evaluateAll(inputs=>inputs.map(input=>({value:input.value,checked:input.checked,disabled:input.disabled,name:input.name})));
+        const selectedCount=settledState.filter(input=>input.checked).length;
+        if(selectedCount!==1){
+          const rowText=(await row.innerText()).trim();
+          throw new Error('Expected exactly one selected attendance status before save; got '+selectedCount+' for '+rowText+'; inputs='+JSON.stringify(settledState)+'; row='+await row.evaluate(el=>el.outerHTML));
+        }
       }
       await loginFlowPage.locator('#saveAttendanceBtn').tap({timeout:5000});
       await loginFlowPage.waitForFunction(()=>!document.getElementById('saveAttendanceBtn')?.disabled,null,{timeout:5000});
@@ -2321,9 +2338,21 @@ try{
     });
     const feeAction=await boundedEvaluate('verify fee save action',()=>{
       const rows=JSON.parse(localStorage.getItem('edunizam_fees')||'[]');
-      return rows.some(x=>Number(x.studentId)===9001&&Number(x.amount)===1500&&x.status==='Paid');
+      const matching=rows.filter(x=>Number(x.studentId)===9001&&Number(x.amount)===1500&&x.status==='Paid');
+      return {
+        saved:matching.length>0,
+        role:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role??null}catch{return 'invalid'}})(),
+        selectedStudent:document.getElementById('feeStudent')?.value??null,
+        amount:document.getElementById('feeAmount')?.value??null,
+        status:document.getElementById('feeStatus')?.value??null,
+        feeFormDisplay:document.getElementById('saveFeeBtn')?.closest('.form-grid')?.style.display??null,
+        storedCount:rows.length,
+        storedRows:rows.slice(-3),
+        matchingCount:matching.length
+      };
     });
-    if(!feeAction)pushFailure('admin primary actions','Fee save did not persist the valid record');
+    console.log('Fee save diagnostic:',JSON.stringify(feeAction));
+    if(!feeAction.saved)pushFailure('admin primary actions','Fee save did not persist the valid record',JSON.stringify(feeAction));
 
     await boundedEvaluate('open results action view',()=>window.EDUNIZAM_APP_NAV.setView('results'));
     await loginStep('save result action',async()=>{
