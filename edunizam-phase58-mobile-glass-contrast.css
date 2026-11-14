@@ -64,3 +64,21 @@ html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap input#navFe
     margin-top:0 !important;
   }
 }
+
+/* Match the higher-specificity Phase 57 dashboard selectors so metric cards
+   actually receive the darker surface on the live dashboard. */
+html body.app-page.page-app #appMain>#dashboard>.cards>.card.stat,
+html body.app-page.page-app #appMain>#dashboard>.grid-2>.card {
+  color:#f3f8ff !important;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(55,174,255,.16),transparent 58%),
+    linear-gradient(145deg,rgba(13,65,116,.82),rgba(4,29,64,.90) 58%,rgba(2,18,43,.94)) !important;
+  border:1px solid rgba(117,202,255,.58) !important;
+  box-shadow:0 14px 34px rgba(0,5,24,.30),0 0 18px rgba(0,145,255,.10),inset 0 1px rgba(255,255,255,.20) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(165%) !important;
+  backdrop-filter:blur(22px) saturate(165%) !important;
+}
+html body.app-page.page-app #appMain>#dashboard>.cards>.card.stat :is(h2,h3,h4,strong,small,p,.muted,.trend,.stat-label,.stat-meta) {
+  color:#f3f8ff !important;
+  -webkit-text-fill-color:#f3f8ff !important;
+}
