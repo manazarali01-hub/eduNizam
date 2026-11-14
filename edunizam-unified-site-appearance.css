@@ -190,3 +190,31 @@ body.premium-public-page .public-main>.public-hero .public-cta{
   }
   body.premium-public-page .public-main>.public-hero>p{max-width:100%!important}
 }
+
+
+/* Phase 62 follow-up: keep photo layer and give the reading plate a real
+   opaque base color (the mobile visual gate inspects background-color alpha). */
+body.premium-public-page .public-main>.public-hero{
+  background-color:#03142d!important;
+  background-image:
+    linear-gradient(108deg,rgba(3,18,43,.88) 0%,rgba(5,35,72,.76) 56%,rgba(2,15,37,.64) 100%),
+    var(--ng-class)!important;
+  background-position:center,center 38%!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+body.premium-public-page .public-main>.public-hero>p{
+  background-color:rgba(3,24,57,.94)!important;
+  background-image:linear-gradient(135deg,rgba(17,75,129,.58),rgba(3,24,57,.72))!important;
+  border:1px solid rgba(113,201,255,.52)!important;
+  color:#e4f2ff!important;-webkit-text-fill-color:#e4f2ff!important;
+  box-shadow:0 10px 28px rgba(0,5,24,.34),inset 0 1px rgba(255,255,255,.10)!important;
+}
+@media(max-width:760px){
+ body.premium-public-page .public-main>.public-hero{
+  background-image:
+    linear-gradient(145deg,rgba(3,18,43,.90),rgba(6,43,88,.78) 58%,rgba(2,15,37,.68)),
+    var(--ng-class)!important;
+  background-position:center,center 38%!important;
+ }
+}
