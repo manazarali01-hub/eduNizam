@@ -1236,6 +1236,11 @@ for(const token of ['.hero-image-wrap img','linear-gradient(145deg,#0b3974,#0413
  if(!heroVisualCss.includes(token))fail.push('Premium homepage hero responsive/accessibility styling missing: '+token);
 }
 
+const educationHubs=read('education-hubs.js');
+if(educationHubs.includes('Exact Indexed Resource'))fail.push('University directory must not claim every generic source page is an exact indexed resource.');
+if(!educationHubs.includes('Source Listing'))fail.push('University directory source-listing label is missing.');
+if(!educationHubs.includes("arr.length+' matching resources · '+S.resources.length+' total'"))fail.push('Grade 5/8 resource count must reflect active filters and total inventory.');
+
 if(fail.length){
   console.error('\nEduNizam QA FAILED\n');
   for(const x of fail) console.error('✗ '+x);
