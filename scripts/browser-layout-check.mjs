@@ -2338,9 +2338,21 @@ try{
     });
     const feeAction=await boundedEvaluate('verify fee save action',()=>{
       const rows=JSON.parse(localStorage.getItem('edunizam_fees')||'[]');
-      return rows.some(x=>Number(x.studentId)===9001&&Number(x.amount)===1500&&x.status==='Paid');
+      const matching=rows.filter(x=>Number(x.studentId)===9001&&Number(x.amount)===1500&&x.status==='Paid');
+      return {
+        saved:matching.length>0,
+        role:(()=>{try{return JSON.parse(localStorage.getItem('edunizam_session')||'null')?.role??null}catch{return 'invalid'}})(),
+        selectedStudent:document.getElementById('feeStudent')?.value??null,
+        amount:document.getElementById('feeAmount')?.value??null,
+        status:document.getElementById('feeStatus')?.value??null,
+        feeFormDisplay:document.getElementById('saveFeeBtn')?.closest('.form-grid')?.style.display??null,
+        storedCount:rows.length,
+        storedRows:rows.slice(-3),
+        matchingCount:matching.length
+      };
     });
-    if(!feeAction)pushFailure('admin primary actions','Fee save did not persist the valid record');
+    console.log('Fee save diagnostic:',JSON.stringify(feeAction));
+    if(!feeAction.saved)pushFailure('admin primary actions','Fee save did not persist the valid record',JSON.stringify(feeAction));
 
     await boundedEvaluate('open results action view',()=>window.EDUNIZAM_APP_NAV.setView('results'));
     await loginStep('save result action',async()=>{
