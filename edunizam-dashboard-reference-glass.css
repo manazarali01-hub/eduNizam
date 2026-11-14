@@ -741,3 +741,19 @@ html body.app-page.page-app #appMain>.topbar #roleSession.session-chip>strong{
     -webkit-text-fill-color: #ffffff !important;
   }
 }
+
+/* Keep the mobile drawer above its dismissible backdrop so navigation remains clickable. */
+@media(max-width:760px){
+  body.app-page.page-app .sidebar,
+  body.app-page.page-app .sidebar.mobile-nav-open{
+    z-index:1002!important;
+  }
+  body.app-page.page-app .sidebar .mobile-nav-close{
+    position:absolute!important;
+    z-index:4!important;
+    pointer-events:auto!important;
+  }
+  body.app-page.page-app #eduMobileNavBackdrop{
+    z-index:1001!important;
+  }
+}
