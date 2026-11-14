@@ -377,6 +377,26 @@ try{
               else route.abort();
             });
             await screenshotPage.goto('http://127.0.0.1:'+port+route,{waitUntil:'domcontentloaded',timeout:6000});
+            // Do not capture a half-painted page: DOMContentLoaded can fire
+            // before linked stylesheets and deferred access-gate injection settle.
+            await screenshotPage.waitForFunction(()=>{
+              const stylesReady=[...document.querySelectorAll('link[rel="stylesheet"]')]
+                .filter(link=>link.href.startsWith(location.origin))
+                .every(link=>!!link.sheet);
+              const accessGateReady=location.pathname!=='/app.html'||
+                !!document.querySelector('.cloud-auth-screen .cloud-auth-card');
+              return stylesReady&&accessGateReady;
+            },null,{timeout:6500}).catch(()=>{});
+            await screenshotPage.waitForTimeout(220);
+            if(route==='/app.html'){
+              const gateStyle=await screenshotPage.evaluate(()=>{
+                const card=document.querySelector('.cloud-auth-screen .cloud-auth-card');
+                if(!card)return {missing:true};
+                const cs=getComputedStyle(card);
+                return {background:cs.backgroundImage,color:cs.color,blur:cs.backdropFilter};
+              });
+              console.log('Rendered secure access gate screenshot style:',JSON.stringify(gateStyle));
+            }
             await screenshotPage.addStyleTag({content:`
               :root{
                 --en-photo-kids:url("/assets/edunizam-login-children.webp")!important;
