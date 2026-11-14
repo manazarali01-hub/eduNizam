@@ -2292,15 +2292,19 @@ try{
           const present=row.locator('input[value="Present"]');
           await present.check({timeout:5000});
           const selected=await present.isChecked();
+          const immediateState=await row.locator('input[type="radio"]').evaluateAll(inputs=>inputs.map(input=>({value:input.value,checked:input.checked,disabled:input.disabled,name:input.name})));
+          console.log('Attendance radio immediate state:',JSON.stringify({selected,inputs:immediateState}));
           if(!selected){
             const rowText=(await row.innerText()).trim();
-            throw new Error('Attendance radio did not remain selected before save: '+rowText);
+            throw new Error('Attendance radio did not remain selected before save: '+rowText+' '+JSON.stringify(immediateState));
           }
         }
-        const selectedCount=await row.locator('input[type="radio"]:checked').count();
+        await loginFlowPage.waitForTimeout(100);
+        const settledState=await row.locator('input[type="radio"]').evaluateAll(inputs=>inputs.map(input=>({value:input.value,checked:input.checked,disabled:input.disabled,name:input.name})));
+        const selectedCount=settledState.filter(input=>input.checked).length;
         if(selectedCount!==1){
           const rowText=(await row.innerText()).trim();
-          throw new Error('Expected exactly one selected attendance status before save; got '+selectedCount+' for '+rowText);
+          throw new Error('Expected exactly one selected attendance status before save; got '+selectedCount+' for '+rowText+'; inputs='+JSON.stringify(settledState)+'; row='+await row.evaluate(el=>el.outerHTML));
         }
       }
       await loginFlowPage.locator('#saveAttendanceBtn').tap({timeout:5000});
