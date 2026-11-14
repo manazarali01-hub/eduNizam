@@ -1,0 +1,61 @@
+/* Phase 59 — replace the washed-out secure-access gate with the approved navy glass system.
+   Scoped to the injected access overlay only; no auth/session behavior or actions change. */
+html body.page-app .cloud-auth-screen .cloud-auth-card {
+  color:#f2f8ff !important;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(54,177,255,.20),transparent 54%),
+    linear-gradient(145deg,rgba(11,54,101,.96),rgba(3,20,47,.98) 68%,rgba(2,13,32,.99)) !important;
+  background-color:rgba(3,20,47,.98) !important;
+  background-image:
+    radial-gradient(ellipse at 100% 0%,rgba(54,177,255,.20),transparent 54%),
+    linear-gradient(145deg,rgba(11,54,101,.96),rgba(3,20,47,.98) 68%,rgba(2,13,32,.99)) !important;
+  border:1px solid rgba(119,207,255,.72) !important;
+  box-shadow:0 30px 88px rgba(0,5,24,.58),0 0 0 1px rgba(92,190,255,.16) inset,0 0 38px rgba(0,145,255,.22) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(170%) !important;
+  backdrop-filter:blur(28px) saturate(170%) !important;
+}
+html body.page-app .cloud-auth-screen .cloud-auth-card:before {
+  height:4px !important;
+  background:linear-gradient(90deg,#087fe8,#5cceff,#d7f4ff,#168cff) !important;
+  box-shadow:0 0 26px rgba(62,185,255,.82) !important;
+}
+html body.page-app .cloud-auth-screen .cloud-auth-card:after {
+  background:radial-gradient(circle,rgba(46,169,255,.30),rgba(46,169,255,0) 70%) !important;
+}
+html body.page-app .cloud-auth-screen .cloud-auth-card .academic-kicker {
+  color:#83d9ff !important;
+  -webkit-text-fill-color:#83d9ff !important;
+}
+html body.page-app .cloud-auth-screen .cloud-auth-card h1 {
+  color:#f4f9ff !important;
+  -webkit-text-fill-color:#f4f9ff !important;
+  text-shadow:0 0 22px rgba(75,178,255,.18) !important;
+}
+html body.page-app .cloud-auth-screen .cloud-auth-card p {
+  color:#c9e2f7 !important;
+  -webkit-text-fill-color:#c9e2f7 !important;
+}
+html body.page-app .cloud-auth-screen .cloud-auth-actions .cloud-auth-nav {
+  color:#eaf6ff !important;
+  -webkit-text-fill-color:#eaf6ff !important;
+  background:linear-gradient(145deg,rgba(30,104,166,.62),rgba(4,31,68,.90)) !important;
+  border:1px solid rgba(123,207,255,.58) !important;
+  box-shadow:0 8px 22px rgba(0,7,28,.28),inset 0 1px rgba(255,255,255,.16) !important;
+}
+html body.page-app .cloud-auth-screen .cloud-auth-actions .cloud-auth-nav:hover {
+  background:linear-gradient(145deg,rgba(39,139,211,.76),rgba(5,49,101,.96)) !important;
+  border-color:rgba(165,231,255,.88) !important;
+  box-shadow:0 12px 28px rgba(0,7,28,.34),0 0 20px rgba(47,169,255,.22) !important;
+}
+html body.page-app .cloud-auth-screen .cloud-auth-actions #cloudAuthRetry {
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  background:linear-gradient(110deg,#087fe8,#0755b3 58%,#08a8ef) !important;
+  border:1px solid rgba(145,222,255,.82) !important;
+  box-shadow:0 8px 24px rgba(0,105,220,.34),0 0 22px rgba(48,166,255,.20) !important;
+}
+@media(max-width:560px) {
+  html body.page-app .cloud-auth-screen .cloud-auth-card {
+    border-radius:23px !important;
+  }
+}
