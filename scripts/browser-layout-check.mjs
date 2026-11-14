@@ -2288,7 +2288,20 @@ try{
       for(let i=0;i<count;i++){
         const row=rows.nth(i);
         const leaveChecked=await row.locator('input[value="Leave"]:checked').count();
-        if(!leaveChecked)await row.locator('input[value="Present"]').check({timeout:5000});
+        if(!leaveChecked){
+          const present=row.locator('input[value="Present"]');
+          await present.check({timeout:5000});
+          const selected=await present.isChecked();
+          if(!selected){
+            const rowText=(await row.innerText()).trim();
+            throw new Error('Attendance radio did not remain selected before save: '+rowText);
+          }
+        }
+        const selectedCount=await row.locator('input[type="radio"]:checked').count();
+        if(selectedCount!==1){
+          const rowText=(await row.innerText()).trim();
+          throw new Error('Expected exactly one selected attendance status before save; got '+selectedCount+' for '+rowText);
+        }
       }
       await loginFlowPage.locator('#saveAttendanceBtn').tap({timeout:5000});
       await loginFlowPage.waitForFunction(()=>!document.getElementById('saveAttendanceBtn')?.disabled,null,{timeout:5000});
