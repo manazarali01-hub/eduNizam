@@ -1,0 +1,66 @@
+/* Phase 58 — screenshot-led mobile glass contrast and sidebar search sizing.
+   Presentation-only. No DOM, navigation, data, auth, or permission changes. */
+html body.app-page.page-app #appMain .view.active :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel,.stat,.stat-card,.metric-card) {
+  color:#f3f8ff !important;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(55,174,255,.16),transparent 58%),
+    linear-gradient(145deg,rgba(13,65,116,.82),rgba(4,29,64,.90) 58%,rgba(2,18,43,.94)) !important;
+  border:1px solid rgba(117,202,255,.58) !important;
+  box-shadow:0 14px 34px rgba(0,5,24,.30),0 0 18px rgba(0,145,255,.10),inset 0 1px rgba(255,255,255,.20) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(165%) !important;
+  backdrop-filter:blur(22px) saturate(165%) !important;
+}
+html body.app-page.page-app #appMain .view.active :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel,.stat,.stat-card,.metric-card) :is(h2,h3,h4,strong,.stat-label,.metric-label,.label) {
+  color:#f4f9ff !important;
+  -webkit-text-fill-color:#f4f9ff !important;
+}
+html body.app-page.page-app #appMain .view.active :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel,.stat,.stat-card,.metric-card) :is(p,small,.muted,.hint,.help-text,.stat-meta,.metric-meta) {
+  color:#c8e2f7 !important;
+  -webkit-text-fill-color:#c8e2f7 !important;
+}
+html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap {
+  box-sizing:border-box !important;
+  min-height:0 !important;
+  height:auto !important;
+  padding:8px 10px !important;
+  margin:8px 10px 12px !important;
+  gap:8px !important;
+  position:relative !important;
+  flex:0 0 auto !important;
+  border-radius:18px !important;
+  background:linear-gradient(135deg,rgba(29,105,164,.48),rgba(3,29,66,.76)) !important;
+  border:1px solid rgba(137,211,255,.48) !important;
+  box-shadow:0 8px 24px rgba(0,5,24,.24),inset 0 1px rgba(255,255,255,.18) !important;
+}
+html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap input#navFeatureSearch {
+  box-sizing:border-box !important;
+  width:100% !important;
+  min-width:0 !important;
+  height:48px !important;
+  min-height:48px !important;
+  max-height:48px !important;
+  margin:0 !important;
+  padding:0 16px !important;
+  border-radius:14px !important;
+  color:#153653 !important;
+  background:linear-gradient(135deg,#e4f5ff,#c6e8fb) !important;
+  border:1px solid rgba(255,255,255,.86) !important;
+  box-shadow:0 0 0 2px rgba(64,185,255,.16),0 5px 16px rgba(0,8,28,.16) !important;
+  font-size:16px !important;
+  line-height:1.2 !important;
+}
+html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap input#navFeatureSearch::placeholder {
+  color:#47677f !important;
+  opacity:1 !important;
+}
+@media(max-width:760px) {
+  html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap {
+    width:auto !important;
+    min-height:0 !important;
+    margin:8px 10px 12px !important;
+  }
+  html body.app-page.page-app .app-shell > .sidebar > #nav {
+    min-height:0 !important;
+    margin-top:0 !important;
+  }
+}
