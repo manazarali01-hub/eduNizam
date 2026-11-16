@@ -207,7 +207,7 @@ body.premium-public-page .public-main>.public-hero>p{
   background-color:rgba(3,24,57,.94)!important;
   background-image:linear-gradient(135deg,rgba(17,75,129,.58),rgba(3,24,57,.72))!important;
   border:1px solid rgba(113,201,255,.52)!important;
-  color:#e4f2ff!important;-webkit-text-fill-color:#e4f2ff!important;
+  color:#c8e2f7!important;-webkit-text-fill-color:#c8e2f7!important;
   box-shadow:0 10px 28px rgba(0,5,24,.34),inset 0 1px rgba(255,255,255,.10)!important;
 }
 @media(max-width:760px){
