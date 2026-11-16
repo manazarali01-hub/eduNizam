@@ -1,23 +1,46 @@
-/* Phase 58 — screenshot-led mobile glass contrast and sidebar search sizing.
+/* Phase 58 — mobile-only glass contrast and sidebar search sizing.
+   Phase 60 correction: keep the stronger, darker panel treatment on small screens;
+   do not let this mobile refinement override Phase 57 desktop glass styling.
    Presentation-only. No DOM, navigation, data, auth, or permission changes. */
-html body.app-page.page-app #appMain .view.active :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel,.stat,.stat-card,.metric-card) {
-  color:#f3f8ff !important;
-  background:
-    radial-gradient(ellipse at 100% 0%,rgba(55,174,255,.16),transparent 58%),
-    linear-gradient(145deg,rgba(13,65,116,.82),rgba(4,29,64,.90) 58%,rgba(2,18,43,.94)) !important;
-  border:1px solid rgba(117,202,255,.58) !important;
-  box-shadow:0 14px 34px rgba(0,5,24,.30),0 0 18px rgba(0,145,255,.10),inset 0 1px rgba(255,255,255,.20) !important;
-  -webkit-backdrop-filter:blur(22px) saturate(165%) !important;
-  backdrop-filter:blur(22px) saturate(165%) !important;
+
+@media (max-width:760px) {
+  html body.app-page.page-app #appMain .view.active :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel,.stat,.stat-card,.metric-card) {
+    color:#f3f8ff !important;
+    background:
+      radial-gradient(ellipse at 100% 0%,rgba(55,174,255,.16),transparent 58%),
+      linear-gradient(145deg,rgba(13,65,116,.82),rgba(4,29,64,.90) 58%,rgba(2,18,43,.94)) !important;
+    border:1px solid rgba(117,202,255,.58) !important;
+    box-shadow:0 14px 34px rgba(0,5,24,.30),0 0 18px rgba(0,145,255,.10),inset 0 1px rgba(255,255,255,.20) !important;
+    -webkit-backdrop-filter:blur(22px) saturate(165%) !important;
+    backdrop-filter:blur(22px) saturate(165%) !important;
+  }
+  html body.app-page.page-app #appMain .view.active :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel,.stat,.stat-card,.metric-card) :is(h2,h3,h4,strong,.stat-label,.metric-label,.label) {
+    color:#f4f9ff !important;
+    -webkit-text-fill-color:#f4f9ff !important;
+  }
+  html body.app-page.page-app #appMain .view.active :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel,.stat,.stat-card,.metric-card) :is(p,small,.muted,.hint,.help-text,.stat-meta,.metric-meta) {
+    color:#c8e2f7 !important;
+    -webkit-text-fill-color:#c8e2f7 !important;
+  }
+
+  /* Match the higher-specificity dashboard selectors on mobile. */
+  html body.app-page.page-app #appMain>#dashboard>.cards>.card.stat,
+  html body.app-page.page-app #appMain>#dashboard>.grid-2>.card {
+    color:#f3f8ff !important;
+    background:
+      radial-gradient(ellipse at 100% 0%,rgba(55,174,255,.16),transparent 58%),
+      linear-gradient(145deg,rgba(13,65,116,.82),rgba(4,29,64,.90) 58%,rgba(2,18,43,.94)) !important;
+    border:1px solid rgba(117,202,255,.58) !important;
+    box-shadow:0 14px 34px rgba(0,5,24,.30),0 0 18px rgba(0,145,255,.10),inset 0 1px rgba(255,255,255,.20) !important;
+    -webkit-backdrop-filter:blur(22px) saturate(165%) !important;
+    backdrop-filter:blur(22px) saturate(165%) !important;
+  }
+  html body.app-page.page-app #appMain>#dashboard>.cards>.card.stat :is(h2,h3,h4,strong,small,p,.muted,.trend,.stat-label,.stat-meta) {
+    color:#f3f8ff !important;
+    -webkit-text-fill-color:#f3f8ff !important;
+  }
 }
-html body.app-page.page-app #appMain .view.active :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel,.stat,.stat-card,.metric-card) :is(h2,h3,h4,strong,.stat-label,.metric-label,.label) {
-  color:#f4f9ff !important;
-  -webkit-text-fill-color:#f4f9ff !important;
-}
-html body.app-page.page-app #appMain .view.active :is(.card,.panel,.section-card,.content-card,.table-card,.form-card,.settings-card,.analytics-card,.result-card,.widget-card,.notice-card,.dashboard-panel,.stat,.stat-card,.metric-card) :is(p,small,.muted,.hint,.help-text,.stat-meta,.metric-meta) {
-  color:#c8e2f7 !important;
-  -webkit-text-fill-color:#c8e2f7 !important;
-}
+
 html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap {
   box-sizing:border-box !important;
   min-height:0 !important;
@@ -63,22 +86,4 @@ html body.app-page.page-app .app-shell > .sidebar > .nav-search-wrap input#navFe
     min-height:0 !important;
     margin-top:0 !important;
   }
-}
-
-/* Match the higher-specificity Phase 57 dashboard selectors so metric cards
-   actually receive the darker surface on the live dashboard. */
-html body.app-page.page-app #appMain>#dashboard>.cards>.card.stat,
-html body.app-page.page-app #appMain>#dashboard>.grid-2>.card {
-  color:#f3f8ff !important;
-  background:
-    radial-gradient(ellipse at 100% 0%,rgba(55,174,255,.16),transparent 58%),
-    linear-gradient(145deg,rgba(13,65,116,.82),rgba(4,29,64,.90) 58%,rgba(2,18,43,.94)) !important;
-  border:1px solid rgba(117,202,255,.58) !important;
-  box-shadow:0 14px 34px rgba(0,5,24,.30),0 0 18px rgba(0,145,255,.10),inset 0 1px rgba(255,255,255,.20) !important;
-  -webkit-backdrop-filter:blur(22px) saturate(165%) !important;
-  backdrop-filter:blur(22px) saturate(165%) !important;
-}
-html body.app-page.page-app #appMain>#dashboard>.cards>.card.stat :is(h2,h3,h4,strong,small,p,.muted,.trend,.stat-label,.stat-meta) {
-  color:#f3f8ff !important;
-  -webkit-text-fill-color:#f3f8ff !important;
 }
